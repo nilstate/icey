@@ -395,7 +395,7 @@ void Client::onPresenceData(const json::value& data, bool whiny)
                 PeerDisconnected.emit(*peer);
                 _roster.free(id);
             } else {
-                LWarn("Unknown peer disconnected:", peer->address().toString())
+                LWarn("Unknown peer disconnected")
             }
         }
     } else {
