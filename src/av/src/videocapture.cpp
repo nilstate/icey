@@ -34,7 +34,7 @@ VideoCapture::VideoCapture()
 }
 
 
-VideoCapture::VideoCapture(const std::string& device, int width, int height, 
+VideoCapture::VideoCapture(const std::string& device, int width, int height,
                            double framerate, const std::string& pixelFmt)
 {
     openVideo(device, width, height, framerate);
@@ -59,7 +59,7 @@ void VideoCapture::openVideo(const std::string& device, const av::VideoCodec& pa
 }
 
 
-void VideoCapture::openVideo(const std::string& device, int width, int height, 
+void VideoCapture::openVideo(const std::string& device, int width, int height,
                              double framerate, const std::string& pixelFmt)
 {
     STrace << "Opening camera: " << device << ", "
@@ -85,7 +85,8 @@ void VideoCapture::openVideo(const std::string& device, int width, int height,
 
     // Set the desired pixel format
     // TODO: Use yuv420p once encoders support PlanarVideoPacket input
-    av_dict_set(&iparams, "pixel_format", pixelFmt.data(), 0); //bgr24, yuv420p
+    if (!pixelFmt.empty())
+      av_dict_set(&iparams, "pixel_format", pixelFmt.data(), 0); //bgr24, yuv420p
 #endif
 
     openStream(device.c_str(), iformat, &iparams);
