@@ -25,6 +25,5 @@ node app
 4. Finally, point your browser to: `http://localhost:4499`
 
 IMPORTANT NOTICE!
-Chrome: enable mixed content: `chrome --allow-running-insecure-content`
-Firefox: this fix should be applied, until it is not merged to upstream project:
-https://github.com/sourcey/libsourcey/pull/205
+Firefox: make sure you are using latest master branch of libsourcey, there is an important bugfix for Firefox
+Chrome: enable mixed content: `chrome --allow-running-insecure-content`, modify /client/app.js to support HTTPS web server
