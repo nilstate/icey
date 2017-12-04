@@ -427,7 +427,8 @@ void WebSocketFramer::acceptServerRequest(http::Request& request, http::Response
 {
     assert(_mode == ws::ServerSide);
 
-    if (util::icompare(request.get("Connection", ""), "upgrade") == 0 &&
+    if ((util::icompare(request.get("Connection", ""), "upgrade") == 0 ||
+        util::icompare(request.get("Connection", ""), "keep-alive, Upgrade") == 0) &&
         util::icompare(request.get("Upgrade", ""), "websocket") == 0) {
         std::string version = request.get("Sec-WebSocket-Version", "");
         if (version.empty())
