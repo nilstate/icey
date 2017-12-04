@@ -14,8 +14,6 @@
 #else
 #define SERVER_PORT 4500
 #define PROCESS_EVERY_FRAME_NUMBER 10
-#define NETWORK_MODEL_TXT "/home/osboxes/Moto/Alpha/libsourcey/src/webrtc/samples/opencvanalyzer/mobilenetssd.prototxt.txt"
-#define NETWORK_MODEL_BIN "/home/osboxes/Moto/Alpha/libsourcey/src/webrtc/samples/opencvanalyzer/mobilenetssd.caffemodel"
 #endif
 
 #endif
