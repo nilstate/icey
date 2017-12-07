@@ -110,10 +110,6 @@ private:
 };
 
 
-
-// -------------------------------------------------------------------
-//
-
 /// This implementation of a ServerConnectionFactory
 /// is used by HTTP Server to create ServerConnection objects.
 class HTTP_API ServerConnectionFactory
@@ -137,9 +133,6 @@ public:
     }
 };
 
-
-// -------------------------------------------------------------------
-//
 
 /// HTTP server implementation.
 ///

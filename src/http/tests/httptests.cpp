@@ -234,7 +234,6 @@ int main(int argc, char** argv)
         expect(!conn->error().any());
     });
 
-
     //
     /// Google Drive Upload Test
     //

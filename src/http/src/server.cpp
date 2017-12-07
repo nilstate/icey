@@ -116,6 +116,7 @@ void Server::onConnectionReady(ServerConnection& conn)
 void Server::onConnectionClose(ServerConnection& conn)
 {
     // LTrace("On connection closed")
+
     for (auto it = _connections.begin(); it != _connections.end(); ++it) {
         if (it->get() == &conn) {
             _connections.erase(it);
@@ -157,6 +158,7 @@ ServerConnection::ServerConnection(Server& server, net::TCPSocket::Ptr socket)
     , _upgrade(false)
 {
     // LTrace("Create")
+
     replaceAdapter(new ConnectionAdapter(this, HTTP_REQUEST));
 }
 
@@ -168,7 +170,6 @@ ServerConnection::~ServerConnection()
     close();
 
     if (_responder) {
-        LTrace("Destroy: Responder: ", _responder)
         delete _responder;
     }
 }
@@ -241,8 +242,8 @@ void ServerConnection::onHeaders()
     _responder = _server.createResponder(*this);
 
     // Upgraded connections don't receive the onHeaders callback
-     if (_responder && !_upgrade)
-         _responder->onHeaders(_request);
+    if (_responder && !_upgrade)
+        _responder->onHeaders(_request);
 }
 
 

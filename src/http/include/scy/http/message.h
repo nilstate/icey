@@ -55,8 +55,7 @@ public:
     /// or CHUNKED_TRANSFER_CODING.
     void setTransferEncoding(const std::string& transferEncoding);
 
-    /// Returns the transfer encoding used for this
-    /// message.
+    /// Returns the transfer encoding used for this message.
     ///
     /// Normally, this is the value of the Transfer-Encoding
     /// header field. If no such field is present,
@@ -64,8 +63,7 @@ public:
     const std::string& getTransferEncoding() const;
 
     /// If flag is true, sets the Transfer-Encoding header to
-    /// chunked. Otherwise, removes the Transfer-Encoding
-    /// header.
+    /// chunked. Otherwise, removes the Transfer-Encoding header.
     void setChunkedTransferEncoding(bool flag);
 
     /// Returns true if the Transfer-Encoding header is set
@@ -91,8 +89,7 @@ public:
     void setKeepAlive(bool keepAlive);
 
     /// Returns true if
-    ///   * the message has a Connection header field and its value is
-    ///   "Keep-Alive"
+    ///   * the message has a Connection header field and its value is "Keep-Alive"
     ///   * the message is a HTTP/1.1 message and not Connection header is set
     /// Returns false otherwise.
     bool getKeepAlive() const;
@@ -129,7 +126,7 @@ public:
 
 protected:
     std::string _version;
-    
+
     /// Creates the Message with version HTTP/1.0.
     Message();
 

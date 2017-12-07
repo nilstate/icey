@@ -1,4 +1,6 @@
 #include "scy/http/server.h"
+#include "scy/net/sslmanager.h"
+#include "scy/net/sslsocket.h"
 #include "scy/application.h"
 
 
@@ -22,6 +24,24 @@ void raiseEchoServer()
     };
 
     std::cout << "HTTP server listening on " << address << std::endl;
+    waitForShutdown();
+}
+
+
+void raiseHTTPSEchoServer()
+{
+    http::Server srv(address, std::make_shared<net::SSLSocket>(
+      net::SSLManager::instance().defaultServerContext()));
+    srv.start();
+
+    srv.Connection += [](http::ServerConnection::Ptr conn) {
+        conn->Payload += [](http::ServerConnection& conn, const MutableBuffer& buffer) {
+            conn.send(bufferCast<const char*>(buffer), buffer.size());
+            conn.close();
+        };
+    };
+
+    std::cout << "HTTPS server listening on " << address << std::endl;
     waitForShutdown();
 }
 

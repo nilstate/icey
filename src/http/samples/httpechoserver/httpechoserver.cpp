@@ -17,22 +17,23 @@ int main(int argc, char** argv)
     setenv("UV_THREADPOOL_SIZE", std::to_string(ncores).c_str(), 1);
 #endif
 
+    net::SSLManager::initNoVerifyServer();
+
     // Logger::instance().add(new ConsoleChannel("debug", Level::Trace));
     // Logger::instance().setWriter(new AsyncLogWriter);
-    // net::SSLManager::initNoVerifyServer();
-    {
-        raiseBenchmarkServer();
-        // runMulticoreBenchmarkServers();
-        // runMulticoreEchoServers();
-        // rlibuv::raiseBenchmarkServer();
-
+//
 // #if SCY_HAS_KERNEL_SOCKET_LOAD_BALANCING
-        // runMulticoreBenchmarkServers();
+    // runMulticoreBenchmarkServers();
 // #else
-        // raiseBenchmarkServer();
+    // raiseBenchmarkServer();
 // #endif
-    }
-    // net::SSLManager::instance().shutdown();
+    // runMulticoreEchoServers();
+    raiseHTTPSEchoServer();
+    // rlibuv::raiseBenchmarkServer();
+
+
+    net::SSLManager::instance().shutdown();
+
     Logger::destroy();
     return 0;
 }

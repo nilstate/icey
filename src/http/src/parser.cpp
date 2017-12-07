@@ -317,14 +317,14 @@ int Parser::on_headers_complete(http_parser* parser)
         self->onHeader(self->_lastHeaderField, self->_lastHeaderValue);
     }
 
-    /// HTTP version
+    // HTTP version
     // start_line_.version(parser_.http_major, parser_.http_minor);
 
-    /// KeepAlive
-    //self->_message->setKeepAlive(http_should_keep_alive(&parser) > 0);
-    //self->_shouldKeepAlive = http_should_keep_alive(&parser) > 0;
+    // KeepAlive
+    // self->_message->setKeepAlive(http_should_keep_alive(&parser) > 0);
+    // self->_shouldKeepAlive = http_should_keep_alive(&parser) > 0;
 
-    /// Request HTTP method
+    // Request HTTP method
     if (self->_request)
         self->_request->setMethod(http_method_str(static_cast<http_method>(parser->method)));
 
@@ -345,10 +345,11 @@ int Parser::on_body(http_parser* parser, const char* at, size_t len)
 
 int Parser::on_message_complete(http_parser* parser)
 {
-    // When http_parser finished receiving a message, signal message complete
     auto self = reinterpret_cast<Parser*>(parser->data);
     assert(self);
 
+    // Signal message complete when the http_parser
+    // has finished receiving the message.
     self->onMessageEnd();
     return 0;
 }

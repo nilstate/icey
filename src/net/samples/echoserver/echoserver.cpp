@@ -34,7 +34,7 @@ int main(int argc, char** argv)
         srvs.udp.start("0.0.0.0", UdpPort);
 
         std::cout << "TCP Lerver listening on " << srvs.tcp.server->address() << std::endl;
-        std::cout << "LSL Server listening on " << srvs.ssl.server->address() << std::endl;
+        std::cout << "SSL Server listening on " << srvs.ssl.server->address() << std::endl;
         std::cout << "UDP Lerver listening on " << srvs.udp.server->address() << std::endl;
 
         waitForShutdown([&](void*) {

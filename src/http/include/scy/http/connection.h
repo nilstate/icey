@@ -72,6 +72,9 @@ public:
     /// The flow is: Connection <-> ConnectionAdapter <-> Socket
     virtual void replaceAdapter(net::SocketAdapter* adapter);
 
+    /// Return true if the connection uses TLS/SSL.
+    bool secure() const;
+
     /// Return the underlying socket pointer.
     net::TCPSocket::Ptr& socket();
 

@@ -303,8 +303,7 @@ inline SSL_CTX* SSLContext::sslContext() const
 
 /// Non-case sensitive conversion of a string to a VerificationMode enum.
 /// If verMode is illegal an ArgumentException is thrown.
-inline SSLContext::VerificationMode
-convertVerificationMode(const std::string& vMode)
+inline SSLContext::VerificationMode convertVerificationMode(const std::string& vMode)
 {
     std::string mode = util::toLower(vMode);
     SSLContext::VerificationMode verMode = SSLContext::VERIFY_STRICT;

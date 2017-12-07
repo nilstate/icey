@@ -217,6 +217,13 @@ void Connection::shouldSendHeader(bool flag)
 }
 
 
+bool Connection::secure() const
+{
+    return _socket
+        && _socket->transport() == net::SSLTCP;
+}
+
+
 //
 // HTTP Client Connection Adapter
 //
@@ -267,7 +274,7 @@ ssize_t ConnectionAdapter::send(const char* data, size_t len, int flags)
 
         // Send body / chunk
         return SocketAdapter::send(data, len, flags);
-    // } 
+    // }
     // catch (std::exception& exc) {
     //     LError("Send error: ", exc.what())
     //
