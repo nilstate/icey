@@ -1,0 +1,26 @@
+{
+  /* The ID of the node instance */
+  "nodeId" : 1,
+
+  /* The port to listen on */
+  "port" : 4500,
+
+  /* Allow anonymous connections */
+  "anonymous" : true,
+
+  /* Session ttl in minutes */
+  "sessionTtl" : 15/*,*/
+
+  /* Redis configuration
+  "redis" : {
+    "host" : "localhost",
+    "port" : 6379
+  }, */
+
+  /* SSL configuration
+  "ssl" : {
+    "enabled" : false,
+    "key" : "ssl/symple.key",
+    "cert" : "ssl/symple.crt"
+  } */
+}
