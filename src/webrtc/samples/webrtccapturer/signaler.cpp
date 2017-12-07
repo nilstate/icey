@@ -229,7 +229,7 @@ void Signaler::onPeerDiconnected(const smpl::Peer& peer)
 void Signaler::onClientStateChange(void* sender, sockio::ClientState& state,
                                    const sockio::ClientState& oldState)
 {
-    LDebug("Client state changed from " << oldState << " to ", state)
+    LDebug("Client state changed from ", oldState, " to ", state)
 
     switch (state.id()) {
         case sockio::ClientState::Connecting:
