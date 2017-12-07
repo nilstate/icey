@@ -1,0 +1,107 @@
+/*
+    Simple Player CSS
+
+    Layering is in the following order from bottom to top:
+    screen, status, message, loading, controls
+*/
+
+.symple-player:-webkit-full-screen,
+.symple-player.fullscreen {
+    width: 100%;
+    height: 100%;
+}
+
+.symple-player-screen {
+    /* position: relative; cannot be absolute as the player resizes with the screen
+    width: 100%;
+    height: 100%; */
+    text-align: center;
+    margin: 0 auto; /* center the screen when fixed width */
+    z-index: 0;
+
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.symple-player-status {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    height: 0px;
+    text-shadow: none;
+    text-align: left;
+    z-index: 1;
+}
+
+.symple-player-message {
+    position: absolute;
+    display: table;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+}
+
+.symple-player-message p {
+    display: table-cell;
+    vertical-align: middle;
+    text-align: center;
+}
+
+.symple-player-loading {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 3;
+}
+
+.symple-player-controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding-bottom: 25px;
+    text-align: center;
+    z-index: 4;
+}
+
+.symple-player-screen video,
+.symple-player-screen object,
+.symple-player-screen embed,
+.symple-player-screen img {
+    /* height: 100%; 0 height unless absolute */
+    /* width: 100%; skewed images */
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+
+/*
+    Style
+*/
+
+.symple-player {
+    color: #ccc;
+    text-align: center;
+    background: #000;
+    position: relative;
+}
+.symple-player a {
+    color: #999;
+}
+
+
+/*
+    States
+    none, loading, loading, playing, paused, stopped, error
+*/
+
+.symple-player.state-loading .symple-player-loading {
+    display: block;
+}
