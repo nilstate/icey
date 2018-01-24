@@ -21,6 +21,7 @@
 #include "scy/av/packet.h"
 
 #include "webrtc/media/base/videocapturer.h"
+#include "webrtc/api/video/i420_buffer.h"
 
 
 namespace scy {
