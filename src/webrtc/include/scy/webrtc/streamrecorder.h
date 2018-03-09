@@ -50,6 +50,7 @@ protected:
     rtc::scoped_refptr<webrtc::AudioTrackInterface> _audioTrack;
     bool _awaitingVideo;
     bool _awaitingAudio;
+    bool _shouldInit = true;
 };
 
 
