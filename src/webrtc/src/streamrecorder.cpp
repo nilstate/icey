@@ -81,8 +81,15 @@ void StreamRecorder::OnFrame(const webrtc::VideoFrame& yuvframe)
         ivideo.pixelFmt = "yuv420p";
         ivideo.fps = 25;
 
-        if (!_awaitingAudio)
-            _encoder.init();
+        if (_shouldInit) {
+            try {
+                _encoder.init();
+                _shouldInit = false;
+            } catch (std::exception& exc) {
+              LError("Failed to init encoder: ", exc.what())
+              _encoder.uninit();
+            }
+        }
     }
 
     if (_encoder.isActive()) {
@@ -132,8 +139,15 @@ void StreamRecorder::OnData(const void* audio_data, int bits_per_sample,
         // format. Set an assertion just incase this ever changes or varies.
         assert(bits_per_sample == 16);
 
-        if (!_awaitingVideo)
-            _encoder.init();
+        if (_shouldInit) {
+            try {
+                _encoder.init();
+                _shouldInit = false;
+            } catch (std::exception& exc) {
+                LError("Failed to init encoder: ", exc.what())
+                _encoder.uninit();
+            }
+        }
     }
 
     if (_encoder.isActive())
