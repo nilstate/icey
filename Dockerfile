@@ -23,9 +23,9 @@ RUN sudo update-alternatives \
   --slave /usr/bin/g++ g++ /usr/bin/g++-6
 
 # Download and extract precompiled WebRTC static libraries
-# COPY vendor/webrtc-17657-894c0c6-linux-x64 /vendor/webrtc-17657-894c0c6-linux-x64
-RUN mkdir -p /vendor/webrtc-17657-894c0c6-linux-x64; \
-  curl -sSL https://github.com/sourcey/webrtc-precompiled-builds/raw/master/webrtc-17657-894c0c6-linux-x64.tar.gz | sudo tar -xzC /vendor/webrtc-17657-894c0c6-linux-x64
+# COPY vendor/webrtc-22215-ab42706-linux-x64 /vendor/webrtc-22215-ab42706-linux-x64
+RUN mkdir -p /vendor/webrtc-22215-ab42706-linux-x64; \
+  curl -sSL https://github.com/sourcey/webrtc-precompiled-builds/raw/master/webrtc-22215-ab42706-linux-x64.tar.gz | sudo tar -xzC /vendor/webrtc-22215-ab42706-linux-x64
 
 # Install LibSourcey
 RUN git clone https://github.com/sourcey/libsourcey.git && \
@@ -33,7 +33,7 @@ RUN git clone https://github.com/sourcey/libsourcey.git && \
   cmake .. -DCMAKE_BUILD_TYPE=DEBUG -DBUILD_SHARED_LIBS=OFF -DBUILD_WITH_STATIC_CRT=ON \
            -DBUILD_MODULES=ON -DBUILD_APPLICATIONS=OFF -DBUILD_SAMPLES=OFF -DBUILD_TESTS=OFF \
            -DWITH_FFMPEG=OFF -DWITH_WEBRTC=ON -DENABLE_LOGGING=OFF \
-           -DWEBRTC_ROOT_DIR=/vendor/webrtc-17657-894c0c6-linux-x64 \
+           -DWEBRTC_ROOT_DIR=/vendor/webrtc-22215-ab42706-linux-x64 \
            -DCMAKE_INSTALL_PREFIX=/libsourcey/install && \
   make VERBOSE=1 && \
   make install

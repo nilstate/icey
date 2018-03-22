@@ -48,8 +48,9 @@ protected:
     av::MultiplexEncoder _encoder;
     rtc::scoped_refptr<webrtc::VideoTrackInterface> _videoTrack;
     rtc::scoped_refptr<webrtc::AudioTrackInterface> _audioTrack;
-    bool _awaitingVideo;
-    bool _awaitingAudio;
+    bool _awaitingVideo = false;
+    bool _awaitingAudio = false;
+    bool _shouldInit = true;
 };
 
 

@@ -28,8 +28,6 @@ namespace wrtc {
 
 StreamRecorder::StreamRecorder(const av::EncoderOptions& options)
     : _encoder(options)
-    , _awaitingVideo(false)
-    , _awaitingAudio(false)
 {
     // Disable audio and video until tracks are set
     _encoder.options().oformat.video.enabled = false;
@@ -81,18 +79,24 @@ void StreamRecorder::OnFrame(const webrtc::VideoFrame& yuvframe)
         ivideo.pixelFmt = "yuv420p";
         ivideo.fps = 25;
 
-        if (!_awaitingAudio)
-            _encoder.init();
+        if (_shouldInit) {
+            try {
+                _encoder.init();
+                _shouldInit = false;
+            } catch (std::exception& exc) {
+              LError("Failed to init encoder: ", exc.what())
+              _encoder.uninit();
+            }
+        }
     }
 
     if (_encoder.isActive()) {
         // Set AVFrame->data pointers manually so we don't need to copy any data
         // or convert the pixel format from YUV to some contiguous format.
-        auto yuvbuffer = yuvframe.video_frame_buffer()->GetI420();
         auto frame = _encoder.video()->frame;
-        frame->data[0] = (uint8_t*)yuvbuffer->DataY();
-        frame->data[1] = (uint8_t*)yuvbuffer->DataU();
-        frame->data[2] = (uint8_t*)yuvbuffer->DataV();
+        frame->data[0] = (uint8_t*)yuvframe.video_frame_buffer()->DataY();
+        frame->data[1] = (uint8_t*)yuvframe.video_frame_buffer()->DataU();
+        frame->data[2] = (uint8_t*)yuvframe.video_frame_buffer()->DataV();
         frame->width = yuvframe.width();
         frame->height = yuvframe.height();
         frame->pts = AV_NOPTS_VALUE; // set by encoder
@@ -133,8 +137,15 @@ void StreamRecorder::OnData(const void* audio_data, int bits_per_sample,
         // format. Set an assertion just incase this ever changes or varies.
         assert(bits_per_sample == 16);
 
-        if (!_awaitingVideo)
-            _encoder.init();
+        if (_shouldInit) {
+            try {
+                _encoder.init();
+                _shouldInit = false;
+            } catch (std::exception& exc) {
+                LError("Failed to init encoder: ", exc.what())
+                _encoder.uninit();
+            }
+        }
     }
 
     if (_encoder.isActive())

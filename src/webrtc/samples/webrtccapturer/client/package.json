@@ -7,10 +7,10 @@
     "start": "node app.js"
   },
   "dependencies": {
-    "symple" : "*",
-    "symple-client" : "*",
-    "symple-client-player" : "*",
-    "express" : "~4.13.3",
-    "ejs" : "~2.3.4"
+    "symple": "*",
+    "symple-client": "*",
+    "symple-client-player": "*",
+    "express": "~4.13.3",
+    "ejs": "~2.3.4"
   }
 }
