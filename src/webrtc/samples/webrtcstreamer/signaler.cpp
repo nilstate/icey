@@ -16,7 +16,7 @@
 #include "scy/webrtc/videopacketsource.h"
 #include "signaler.h"
 
-#include "webrtc/api/mediastreamtrackproxy.h"
+#include "api/mediastreamtrackproxy.h"
 
 
 using std::endl;

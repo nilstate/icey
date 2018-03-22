@@ -19,11 +19,11 @@
 
 #include "yuvframegenerator.h"
 
-#include "webrtc/base/thread.h"
-#include "webrtc/base/bind.h"
-#include "webrtc/base/asyncinvoker.h"
-#include "webrtc/api/video/video_frame.h"
-#include "webrtc/common_video/include/video_frame_buffer.h"
+#include "rtc_base/thread.h"
+#include "rtc_base/bind.h"
+#include "rtc_base/asyncinvoker.h"
+#include "api/video/video_frame.h"
+#include "common_video/include/video_frame_buffer.h"
 
 
 namespace scy {

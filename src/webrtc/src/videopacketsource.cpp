@@ -17,8 +17,10 @@
 #include "scy/av/videocontext.h"
 #include "scy/av/videodecoder.h"
 #include "scy/av/fpscounter.h"
-#include <chrono>
 
+#include "api/video/i420_buffer.h"
+
+#include <chrono>
 
 using std::endl;
 

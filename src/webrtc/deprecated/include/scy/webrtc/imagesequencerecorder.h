@@ -15,7 +15,7 @@
 
 #include "scy/av/videoencoder.h"
 
-#include "webrtc/api/peerconnectioninterface.h"
+#include "api/peerconnectioninterface.h"
 
 
 namespace scy {

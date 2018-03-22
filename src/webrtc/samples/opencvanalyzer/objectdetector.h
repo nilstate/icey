@@ -21,7 +21,7 @@
 #include "scy/av/av.h"
 #include "scy/av/multiplexencoder.h"
 
-#include "webrtc/api/peerconnectioninterface.h"
+#include "api/peerconnectioninterface.h"
 #include <opencv/cv.h>
 #include <opencv2/dnn.hpp>
 

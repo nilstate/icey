@@ -13,9 +13,9 @@
 
 #ifdef HAVE_FFMPEG
 
-#include "webrtc/base/refcount.h"
-#include "webrtc/base/thread.h"
-#include "webrtc/base/timeutils.h"
+#include "rtc_base/refcountedobject.h"
+#include "rtc_base/thread.h"
+#include "rtc_base/timeutils.h"
 
 #include "scy/logger.h"
 
@@ -107,7 +107,7 @@ void AudioPacketModule::OnMessage(rtc::Message* msg)
             processFrameP();
             break;
         default:
-            // All existing messages should be caught. 
+            // All existing messages should be caught.
             // Getting here should never happen.
             assert(false);
     }
@@ -238,24 +238,24 @@ void AudioPacketModule::receiveFrameP()
     // }
 }
 
-int64_t AudioPacketModule::TimeUntilNextProcess()
-{
-    const int64_t current_time = rtc::TimeMillis();
-    if (current_time < _lastProcessTimeMS) {
-        // TODO: wraparound could be handled more gracefully.
-        return 0;
-    }
-    const int64_t elapsed_time = current_time - _lastProcessTimeMS;
-    if (kAdmMaxIdleTimeProcess < elapsed_time) {
-        return 0;
-    }
-    return kAdmMaxIdleTimeProcess - elapsed_time;
-}
-
-void AudioPacketModule::Process()
-{
-    _lastProcessTimeMS = rtc::TimeMillis();
-}
+// int64_t AudioPacketModule::TimeUntilNextProcess()
+// {
+//     const int64_t current_time = rtc::TimeMillis();
+//     if (current_time < _lastProcessTimeMS) {
+//         // TODO: wraparound could be handled more gracefully.
+//         return 0;
+//     }
+//     const int64_t elapsed_time = current_time - _lastProcessTimeMS;
+//     if (kAdmMaxIdleTimeProcess < elapsed_time) {
+//         return 0;
+//     }
+//     return kAdmMaxIdleTimeProcess - elapsed_time;
+// }
+//
+// void AudioPacketModule::Process()
+// {
+//     _lastProcessTimeMS = rtc::TimeMillis();
+// }
 
 int32_t AudioPacketModule::ActiveAudioLayer(AudioLayer* /*audio_layer*/) const
 {
@@ -263,18 +263,11 @@ int32_t AudioPacketModule::ActiveAudioLayer(AudioLayer* /*audio_layer*/) const
     return 0;
 }
 
-webrtc::AudioDeviceModule::ErrorCode AudioPacketModule::LastError() const
-{
-    assert(false);
-    return webrtc::AudioDeviceModule::kAdmErrNone;
-}
-
-int32_t AudioPacketModule::RegisterEventObserver(webrtc::AudioDeviceObserver* /*event_callback*/)
-{
-    // Only used to report warnings and errors. This fake implementation won't
-    // generate any so discard this callback.
-    return 0;
-}
+// webrtc::AudioDeviceModule::ErrorCode AudioPacketModule::LastError() const
+// {
+//     assert(false);
+//     return webrtc::AudioDeviceModule::kAdmErrNone;
+// }
 
 int32_t AudioPacketModule::RegisterAudioCallback(webrtc::AudioTransport* audio_callback)
 {
@@ -460,32 +453,6 @@ bool AudioPacketModule::Recording() const
     return _recording;
 }
 
-int32_t AudioPacketModule::SetAGC(bool /*enable*/)
-{
-    // No AGC but not needed since audio is pregenerated. Return success.
-    return 0;
-}
-
-bool AudioPacketModule::AGC() const
-{
-    assert(false);
-    return 0;
-}
-
-int32_t AudioPacketModule::SetWaveOutVolume(uint16_t /*volume_left*/,
-                                            uint16_t /*volume_right*/)
-{
-    assert(false);
-    return 0;
-}
-
-int32_t AudioPacketModule::WaveOutVolume(uint16_t* /*volume_left*/,
-                                         uint16_t* /*volume_right*/) const
-{
-    assert(false);
-    return 0;
-}
-
 int32_t AudioPacketModule::InitSpeaker()
 {
     // No speaker, just playing from file. Return success.
@@ -540,11 +507,11 @@ int32_t AudioPacketModule::MinSpeakerVolume(uint32_t* /*min_volume*/) const
     return 0;
 }
 
-int32_t AudioPacketModule::SpeakerVolumeStepSize(uint16_t* /*step_size*/) const
-{
-    assert(false);
-    return 0;
-}
+// int32_t AudioPacketModule::SpeakerVolumeStepSize(uint16_t* /*step_size*/) const
+// {
+//     assert(false);
+//     return 0;
+// }
 
 int32_t AudioPacketModule::MicrophoneVolumeIsAvailable(bool* /*available*/)
 {
@@ -578,12 +545,11 @@ int32_t AudioPacketModule::MinMicrophoneVolume(uint32_t* /*min_volume*/) const
     return 0;
 }
 
-int32_t
-AudioPacketModule::MicrophoneVolumeStepSize(uint16_t* /*step_size*/) const
-{
-    assert(false);
-    return 0;
-}
+// int32_t AudioPacketModule::MicrophoneVolumeStepSize(uint16_t* /*step_size*/) const
+// {
+//     assert(false);
+//     return 0;
+// }
 
 int32_t AudioPacketModule::SpeakerMuteIsAvailable(bool* /*available*/)
 {
@@ -616,24 +582,6 @@ int32_t AudioPacketModule::SetMicrophoneMute(bool /*enable*/)
 }
 
 int32_t AudioPacketModule::MicrophoneMute(bool* /*enabled*/) const
-{
-    assert(false);
-    return 0;
-}
-
-int32_t AudioPacketModule::MicrophoneBoostIsAvailable(bool* /*available*/)
-{
-    assert(false);
-    return 0;
-}
-
-int32_t AudioPacketModule::SetMicrophoneBoost(bool /*enable*/)
-{
-    assert(false);
-    return 0;
-}
-
-int32_t AudioPacketModule::MicrophoneBoost(bool* /*enabled*/) const
 {
     assert(false);
     return 0;
@@ -681,128 +629,10 @@ int32_t AudioPacketModule::StereoRecording(bool* /*enabled*/) const
     return 0;
 }
 
-int32_t AudioPacketModule::SetRecordingChannel(const ChannelType channel)
-{
-    if (channel != AudioDeviceModule::kChannelBoth) {
-        // There is no right or left in mono. I.e. kChannelBoth should be used
-        // for
-        // mono.
-        assert(false);
-        return -1;
-    }
-    return 0;
-}
-
-int32_t AudioPacketModule::RecordingChannel(ChannelType* channel) const
-{
-    // Stereo recording not supported. However, WebRTC ADM returns kChannelBoth
-    // in that case. Do the same here.
-    *channel = AudioDeviceModule::kChannelBoth;
-    return 0;
-}
-
-int32_t AudioPacketModule::SetPlayoutBuffer(const BufferType /*type*/,
-                                            uint16_t /*size_ms*/)
-{
-    assert(false);
-    return 0;
-}
-
-int32_t AudioPacketModule::PlayoutBuffer(BufferType* /*type*/,
-                                         uint16_t* /*size_ms*/) const
-{
-    assert(false);
-    return 0;
-}
-
 int32_t AudioPacketModule::PlayoutDelay(uint16_t* delay_ms) const
 {
     // No delay since audio frames are dropped.
     *delay_ms = 0;
-    return 0;
-}
-
-int32_t AudioPacketModule::RecordingDelay(uint16_t* /*delay_ms*/) const
-{
-    assert(false);
-    return 0;
-}
-
-int32_t AudioPacketModule::CPULoad(uint16_t* /*load*/) const
-{
-    assert(false);
-    return 0;
-}
-
-int32_t AudioPacketModule::StartRawOutputFileRecording(
-    const char /*pcm_file_name_utf8*/[webrtc::kAdmMaxFileNameSize])
-{
-    assert(false);
-    return 0;
-}
-
-int32_t AudioPacketModule::StopRawOutputFileRecording()
-{
-    assert(false);
-    return 0;
-}
-
-int32_t AudioPacketModule::StartRawInputFileRecording(
-    const char /*pcm_file_name_utf8*/[webrtc::kAdmMaxFileNameSize])
-{
-    assert(false);
-    return 0;
-}
-
-int32_t AudioPacketModule::StopRawInputFileRecording()
-{
-    assert(false);
-    return 0;
-}
-
-int32_t
-AudioPacketModule::SetRecordingSampleRate(const uint32_t /*samples_per_sec*/)
-{
-    assert(false);
-    return 0;
-}
-
-int32_t
-AudioPacketModule::RecordingSampleRate(uint32_t* /*samples_per_sec*/) const
-{
-    assert(false);
-    return 0;
-}
-
-int32_t
-AudioPacketModule::SetPlayoutSampleRate(const uint32_t /*samples_per_sec*/)
-{
-    assert(false);
-    return 0;
-}
-
-int32_t
-AudioPacketModule::PlayoutSampleRate(uint32_t* /*samples_per_sec*/) const
-{
-    assert(false);
-    return 0;
-}
-
-int32_t AudioPacketModule::ResetAudioDevice()
-{
-    assert(false);
-    return 0;
-}
-
-int32_t AudioPacketModule::SetLoudspeakerStatus(bool /*enable*/)
-{
-    assert(false);
-    return 0;
-}
-
-int32_t AudioPacketModule::GetLoudspeakerStatus(bool* /*enabled*/) const
-{
-    assert(false);
     return 0;
 }
 

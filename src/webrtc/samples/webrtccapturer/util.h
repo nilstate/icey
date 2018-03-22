@@ -23,7 +23,7 @@
 #endif
 
 
-#include "webrtc/base/arraysize.h"
+#include "rtc_base/arraysize.h"
 
 
 namespace scy {

@@ -33,7 +33,8 @@ set(WEBRTC_ROOT_DIR "" CACHE STRING "Where is the WebRTC root directory located?
 # ----------------------------------------------------------------------
 find_path(WEBRTC_INCLUDE_DIR
   NAMES
-    webrtc/config.h
+    # webrtc/config.h
+    call/rtp_config.h
   PATHS
     ${WEBRTC_ROOT_DIR}
     ${WEBRTC_ROOT_DIR}/include
@@ -93,7 +94,7 @@ if(WEBRTC_INCLUDE_DIR)
     #unset(WEBRTC_LIBRARY CACHE)
     #unset(WEBRTC_LIBRARIES CACHE)
     #set(WEBRTC_LIBRARIES "")
-    
+
     if(MSVC)
       set(lib_suffix "lib")
     else()
@@ -162,7 +163,7 @@ if(WEBRTC_INCLUDE_DIR)
   endif()
 
   # Add vendor include directories
-  if(WEBRTC_INCLUDE_DIR)
+  if(WEBRTC_INCLUDE_DIR AND NOT WEBRTC_INCLUDE_DIRS)
     list(APPEND WEBRTC_INCLUDE_DIRS ${WEBRTC_INCLUDE_DIR} ${WEBRTC_INCLUDE_DIR}/third_party/boringssl/src/include)
   endif()
 
@@ -181,9 +182,13 @@ endif()
 # Display status
 # ----------------------------------------------------------------------
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(WEBRTC DEFAULT_MSG WEBRTC_LIBRARIES WEBRTC_INCLUDE_DIR)
+message("WEBRTC_INCLUDE_DIR: ${WEBRTC_INCLUDE_DIR}")
+message("WEBRTC_INCLUDE_DIRS: ${WEBRTC_INCLUDE_DIRS}")
 
-# print_module_variables(WEBRTC)
+set(WEBRTC_FOUND TRUE)
+find_package_handle_standard_args(WEBRTC DEFAULT_MSG WEBRTC_LIBRARIES WEBRTC_INCLUDE_DIRS)
+
+print_module_variables(WEBRTC)
 
 # HACK: WEBRTC_LIBRARIES and WEBRTC_DEPENDENCIES not propagating to parent scope
 # while the WEBRTC_DEBUG_LIBRARY and WEBRTC_RELEASE_LIBRARY vars are.

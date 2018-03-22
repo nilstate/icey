@@ -11,16 +11,16 @@
 
 #include "scy/webrtc/peerfactorycontext.h"
 #include "scy/webrtc/fakeaudiodevicemodule.h"
-//#include "webrtc/pc/test/fakeaudiocapturemodule.h"
+//#include "pc/test/fakeaudiocapturemodule.h"
 #include "scy/logger.h"
 
-#include "webrtc/api/peerconnectionfactoryproxy.h"
-#include "webrtc/api/peerconnectionproxy.h"
-#include "webrtc/api/audio_codecs/builtin_audio_decoder_factory.h"
-#include "webrtc/modules/audio_coding/codecs/builtin_audio_encoder_factory.h"
-#include "webrtc/p2p/base/basicpacketsocketfactory.h"
-#include "webrtc/p2p/client/basicportallocator.h"
-#include "webrtc/pc/peerconnection.h"
+#include "api/peerconnectionfactoryproxy.h"
+#include "api/peerconnectionproxy.h"
+#include "api/audio_codecs/builtin_audio_decoder_factory.h"
+#include "api/audio_codecs/builtin_audio_encoder_factory.h"
+#include "p2p/base/basicpacketsocketfactory.h"
+#include "p2p/client/basicportallocator.h"
+#include "pc/peerconnection.h"
 
 
 using std::endl;
@@ -36,7 +36,6 @@ PeerFactoryContext::PeerFactoryContext(
     cricket::WebRtcVideoDecoderFactory* video_decoder_factory,
     rtc::scoped_refptr<webrtc::AudioEncoderFactory> audio_encoder_factory,
     rtc::scoped_refptr<webrtc::AudioDecoderFactory> audio_decoder_factory)
-    // : audioDeviceManager(default_adm)
 {
     // Setup threads
     networkThread = rtc::Thread::CreateWithSocketServer();
@@ -44,23 +43,30 @@ PeerFactoryContext::PeerFactoryContext(
     if (!networkThread->Start() || !workerThread->Start())
         throw std::runtime_error("Failed to start WebRTC threads");
 
+    // Init required builtin factories if not provided
+    if (!audio_encoder_factory)
+        audio_encoder_factory = webrtc::CreateBuiltinAudioEncoderFactory();
+    if (!audio_decoder_factory)
+        audio_decoder_factory = webrtc::CreateBuiltinAudioDecoderFactory();
+
     // Create the factory
-    if (audio_encoder_factory || audio_decoder_factory) {
-        factory = webrtc::CreatePeerConnectionFactory(
-            networkThread.get(), workerThread.get(), rtc::Thread::Current(),
-            default_adm, audio_encoder_factory, audio_decoder_factory,
-            video_encoder_factory, video_decoder_factory);
-    }
-    else {
-        //if (!audioDeviceManager)
-        //    audioDeviceManager = wrtc::FakeAudioDeviceModule::Create();
-            //audioDeviceManager = FakeAudioCaptureModule::Create();
-        factory = webrtc::CreatePeerConnectionFactory(
-            networkThread.get(), workerThread.get(), rtc::Thread::Current(),
-            default_adm, video_encoder_factory, video_decoder_factory);
-            // audioDeviceManager.get(), video_encoder_factory, video_decoder_factory);
-        //factory = webrtc::CreatePeerConnectionFactory();
-    }
+    factory = webrtc::CreatePeerConnectionFactory(
+        networkThread.get(), workerThread.get(), rtc::Thread::Current(),
+        default_adm, audio_encoder_factory, audio_decoder_factory,
+        video_encoder_factory, video_decoder_factory);
+
+    // if (audio_encoder_factory || audio_decoder_factory) {
+    //     factory = webrtc::CreatePeerConnectionFactory(
+    //         networkThread.get(), workerThread.get(), rtc::Thread::Current(),
+    //         default_adm, audio_encoder_factory, audio_decoder_factory,
+    //         video_encoder_factory, video_decoder_factory);
+    // }
+    // else {
+    //     factory = webrtc::CreatePeerConnectionFactory(
+    //         networkThread.get(), workerThread.get(), rtc::Thread::Current(),
+    //         default_adm, video_encoder_factory, video_decoder_factory);
+    // }
+
     if (!factory)
         throw std::runtime_error("Failed to create WebRTC factory");
 }

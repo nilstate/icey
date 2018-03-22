@@ -18,9 +18,9 @@
 using namespace cv;
 using namespace cv::dnn;
 
-#include "webrtc/common_video/libyuv/include/webrtc_libyuv.h"
-#include "webrtc/media/engine/webrtcvideocapturerfactory.h"
-#include "webrtc/modules/video_capture/video_capture_factory.h"
+#include "common_video/libyuv/include/webrtc_libyuv.h"
+#include "media/engine/webrtcvideocapturerfactory.h"
+#include "modules/video_capture/video_capture_factory.h"
 
 #include <fstream>
 #include <iostream>

@@ -11,9 +11,9 @@
 
 #include "scy/webrtc/yuvframegenerator.h"
 
-#include "webrtc/base/thread.h"
-#include "webrtc/base/bind.h"
-#include "webrtc/base/asyncinvoker.h"
+#include "rtc_base/thread.h"
+#include "rtc_base/bind.h"
+#include "rtc_base/asyncinvoker.h"
 
 #include <string.h>
 #include <sstream>

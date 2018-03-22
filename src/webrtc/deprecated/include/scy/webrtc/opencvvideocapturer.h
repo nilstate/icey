@@ -27,7 +27,7 @@
 #include "scy/av/mediafactory.h"
 #include "scy/av/videocapture.h"
 
-#include "webrtc/media/base/videocapturer.h"
+#include "media/base/videocapturer.h"
 
 
 namespace scy {

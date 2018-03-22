@@ -15,10 +15,10 @@
 
 #include "scy/webrtc/peerfactorycontext.h"
 
-#include "webrtc/api/jsep.h"
-#include "webrtc/api/peerconnectioninterface.h"
-#include "webrtc/api/test/fakeconstraints.h"
-#include "webrtc/p2p/client/basicportallocator.h"
+#include "api/jsep.h"
+#include "api/peerconnectioninterface.h"
+#include "api/test/fakeconstraints.h"
+#include "p2p/client/basicportallocator.h"
 
 
 namespace scy {
@@ -99,8 +99,8 @@ protected:
     virtual void OnSuccess(webrtc::SessionDescriptionInterface* desc) override;
     virtual void OnFailure(const std::string& error) override;
 
-    virtual int AddRef() const override { return 1; }
-    virtual int Release() const override { return 0; }
+    virtual void AddRef() const override { return; }
+    virtual rtc::RefCountReleaseStatus Release() const override { return rtc::RefCountReleaseStatus::kDroppedLastRef; }
 
 protected:
     PeerManager* _manager;

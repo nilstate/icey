@@ -22,7 +22,7 @@
 #include "scy/webrtc/audiopacketmodule.h"
 #include "scy/webrtc/videopacketsource.h"
 
-#include "webrtc/api/peerconnectioninterface.h"
+#include "api/peerconnectioninterface.h"
 
 
 namespace scy {

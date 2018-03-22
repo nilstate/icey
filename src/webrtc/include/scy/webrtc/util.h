@@ -15,9 +15,9 @@
 
 #include "scy/webrtc/webrtc.h"
 
-#include "webrtc/media/base/videocapturer.h"
-#include "webrtc/media/engine/webrtcvideocapturerfactory.h"
-#include "webrtc/modules/video_capture/video_capture_factory.h"
+#include "media/base/videocapturer.h"
+#include "media/engine/webrtcvideocapturerfactory.h"
+#include "modules/video_capture/video_capture_factory.h"
 
 
 namespace scy {

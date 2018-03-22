@@ -15,7 +15,7 @@
 
 #include "scy/webrtc/webrtc.h"
 
-#include "webrtc/pc/peerconnectionfactory.h"
+#include "pc/peerconnectionfactory.h"
 
 
 namespace scy {

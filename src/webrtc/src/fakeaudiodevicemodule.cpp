@@ -11,9 +11,9 @@
 
 #include "scy/webrtc/fakeaudiodevicemodule.h"
 
-#include "webrtc/base/refcount.h"
-#include "webrtc/base/thread.h"
-#include "webrtc/base/timeutils.h"
+#include "rtc_base/refcountedobject.h"
+#include "rtc_base/thread.h"
+#include "rtc_base/timeutils.h"
 
 #include "scy/logger.h"
 
@@ -57,24 +57,24 @@ void FakeAudioDeviceModule::OnMessage(rtc::Message* msg)
 {
 }
 
-int64_t FakeAudioDeviceModule::TimeUntilNextProcess()
-{
-    const int64_t current_time = rtc::TimeMillis();
-    if (current_time < _lastProcessTimeMS) {
-        // TODO: wraparound could be handled more gracefully.
-        return 0;
-    }
-    const int64_t elapsed_time = current_time - _lastProcessTimeMS;
-    if (kAdmMaxIdleTimeProcess < elapsed_time) {
-        return 0;
-    }
-    return kAdmMaxIdleTimeProcess - elapsed_time;
-}
-
-void FakeAudioDeviceModule::Process()
-{
-    _lastProcessTimeMS = rtc::TimeMillis();
-}
+// int64_t FakeAudioDeviceModule::TimeUntilNextProcess()
+// {
+//     const int64_t current_time = rtc::TimeMillis();
+//     if (current_time < _lastProcessTimeMS) {
+//         // TODO: wraparound could be handled more gracefully.
+//         return 0;
+//     }
+//     const int64_t elapsed_time = current_time - _lastProcessTimeMS;
+//     if (kAdmMaxIdleTimeProcess < elapsed_time) {
+//         return 0;
+//     }
+//     return kAdmMaxIdleTimeProcess - elapsed_time;
+// }
+//
+// void FakeAudioDeviceModule::Process()
+// {
+//     _lastProcessTimeMS = rtc::TimeMillis();
+// }
 
 int32_t FakeAudioDeviceModule::ActiveAudioLayer(AudioLayer* /*audio_layer*/) const
 {
@@ -82,18 +82,18 @@ int32_t FakeAudioDeviceModule::ActiveAudioLayer(AudioLayer* /*audio_layer*/) con
     return 0;
 }
 
-webrtc::AudioDeviceModule::ErrorCode FakeAudioDeviceModule::LastError() const
-{
-    assert(false);
-    return webrtc::AudioDeviceModule::kAdmErrNone;
-}
+// webrtc::AudioDeviceModule::ErrorCode FakeAudioDeviceModule::LastError() const
+// {
+//     assert(false);
+//     return webrtc::AudioDeviceModule::kAdmErrNone;
+// }
 
-int32_t FakeAudioDeviceModule::RegisterEventObserver(webrtc::AudioDeviceObserver* /*event_callback*/)
-{
-    // Only used to report warnings and errors. This fake implementation won't
-    // generate any so discard this callback.
-    return 0;
-}
+// int32_t FakeAudioDeviceModule::RegisterEventObserver(webrtc::AudioDeviceObserver* /*event_callback*/)
+// {
+//     // Only used to report warnings and errors. This fake implementation won't
+//     // generate any so discard this callback.
+//     return 0;
+// }
 
 int32_t FakeAudioDeviceModule::RegisterAudioCallback(webrtc::AudioTransport* audio_callback)
 {
@@ -269,31 +269,17 @@ bool FakeAudioDeviceModule::Recording() const
     return _recording;
 }
 
-int32_t FakeAudioDeviceModule::SetAGC(bool /*enable*/)
-{
-    // No AGC but not needed since audio is pregenerated. Return success.
-    return 0;
-}
-
-bool FakeAudioDeviceModule::AGC() const
-{
-    assert(false);
-    return 0;
-}
-
-int32_t FakeAudioDeviceModule::SetWaveOutVolume(uint16_t /*volume_left*/,
-                                            uint16_t /*volume_right*/)
-{
-    assert(false);
-    return 0;
-}
-
-int32_t FakeAudioDeviceModule::WaveOutVolume(uint16_t* /*volume_left*/,
-                                         uint16_t* /*volume_right*/) const
-{
-    assert(false);
-    return 0;
-}
+// int32_t FakeAudioDeviceModule::SetAGC(bool /*enable*/)
+// {
+//     // No AGC but not needed since audio is pregenerated. Return success.
+//     return 0;
+// }
+//
+// bool FakeAudioDeviceModule::AGC() const
+// {
+//     assert(false);
+//     return 0;
+// }
 
 int32_t FakeAudioDeviceModule::InitSpeaker()
 {
@@ -349,12 +335,6 @@ int32_t FakeAudioDeviceModule::MinSpeakerVolume(uint32_t* /*min_volume*/) const
     return 0;
 }
 
-int32_t FakeAudioDeviceModule::SpeakerVolumeStepSize(uint16_t* /*step_size*/) const
-{
-    assert(false);
-    return 0;
-}
-
 int32_t FakeAudioDeviceModule::MicrophoneVolumeIsAvailable(bool* /*available*/)
 {
     assert(false);
@@ -382,13 +362,6 @@ int32_t FakeAudioDeviceModule::MaxMicrophoneVolume(uint32_t* max_volume) const
 }
 
 int32_t FakeAudioDeviceModule::MinMicrophoneVolume(uint32_t* /*min_volume*/) const
-{
-    assert(false);
-    return 0;
-}
-
-int32_t
-FakeAudioDeviceModule::MicrophoneVolumeStepSize(uint16_t* /*step_size*/) const
 {
     assert(false);
     return 0;
@@ -425,24 +398,6 @@ int32_t FakeAudioDeviceModule::SetMicrophoneMute(bool /*enable*/)
 }
 
 int32_t FakeAudioDeviceModule::MicrophoneMute(bool* /*enabled*/) const
-{
-    assert(false);
-    return 0;
-}
-
-int32_t FakeAudioDeviceModule::MicrophoneBoostIsAvailable(bool* /*available*/)
-{
-    assert(false);
-    return 0;
-}
-
-int32_t FakeAudioDeviceModule::SetMicrophoneBoost(bool /*enable*/)
-{
-    assert(false);
-    return 0;
-}
-
-int32_t FakeAudioDeviceModule::MicrophoneBoost(bool* /*enabled*/) const
 {
     assert(false);
     return 0;
@@ -490,128 +445,10 @@ int32_t FakeAudioDeviceModule::StereoRecording(bool* /*enabled*/) const
     return 0;
 }
 
-int32_t FakeAudioDeviceModule::SetRecordingChannel(const ChannelType channel)
-{
-    if (channel != AudioDeviceModule::kChannelBoth) {
-        // There is no right or left in mono. I.e. kChannelBoth should be used
-        // for
-        // mono.
-        assert(false);
-        return -1;
-    }
-    return 0;
-}
-
-int32_t FakeAudioDeviceModule::RecordingChannel(ChannelType* channel) const
-{
-    // Stereo recording not supported. However, WebRTC ADM returns kChannelBoth
-    // in that case. Do the same here.
-    *channel = AudioDeviceModule::kChannelBoth;
-    return 0;
-}
-
-int32_t FakeAudioDeviceModule::SetPlayoutBuffer(const BufferType /*type*/,
-                                            uint16_t /*size_ms*/)
-{
-    assert(false);
-    return 0;
-}
-
-int32_t FakeAudioDeviceModule::PlayoutBuffer(BufferType* /*type*/,
-                                         uint16_t* /*size_ms*/) const
-{
-    assert(false);
-    return 0;
-}
-
 int32_t FakeAudioDeviceModule::PlayoutDelay(uint16_t* delay_ms) const
 {
     // No delay since audio frames are dropped.
     *delay_ms = 0;
-    return 0;
-}
-
-int32_t FakeAudioDeviceModule::RecordingDelay(uint16_t* /*delay_ms*/) const
-{
-    assert(false);
-    return 0;
-}
-
-int32_t FakeAudioDeviceModule::CPULoad(uint16_t* /*load*/) const
-{
-    assert(false);
-    return 0;
-}
-
-int32_t FakeAudioDeviceModule::StartRawOutputFileRecording(
-    const char /*pcm_file_name_utf8*/[webrtc::kAdmMaxFileNameSize])
-{
-    assert(false);
-    return 0;
-}
-
-int32_t FakeAudioDeviceModule::StopRawOutputFileRecording()
-{
-    assert(false);
-    return 0;
-}
-
-int32_t FakeAudioDeviceModule::StartRawInputFileRecording(
-    const char /*pcm_file_name_utf8*/[webrtc::kAdmMaxFileNameSize])
-{
-    assert(false);
-    return 0;
-}
-
-int32_t FakeAudioDeviceModule::StopRawInputFileRecording()
-{
-    assert(false);
-    return 0;
-}
-
-int32_t
-FakeAudioDeviceModule::SetRecordingSampleRate(const uint32_t /*samples_per_sec*/)
-{
-    assert(false);
-    return 0;
-}
-
-int32_t
-FakeAudioDeviceModule::RecordingSampleRate(uint32_t* /*samples_per_sec*/) const
-{
-    assert(false);
-    return 0;
-}
-
-int32_t
-FakeAudioDeviceModule::SetPlayoutSampleRate(const uint32_t /*samples_per_sec*/)
-{
-    assert(false);
-    return 0;
-}
-
-int32_t
-FakeAudioDeviceModule::PlayoutSampleRate(uint32_t* /*samples_per_sec*/) const
-{
-    assert(false);
-    return 0;
-}
-
-int32_t FakeAudioDeviceModule::ResetAudioDevice()
-{
-    assert(false);
-    return 0;
-}
-
-int32_t FakeAudioDeviceModule::SetLoudspeakerStatus(bool /*enable*/)
-{
-    assert(false);
-    return 0;
-}
-
-int32_t FakeAudioDeviceModule::GetLoudspeakerStatus(bool* /*enabled*/) const
-{
-    assert(false);
     return 0;
 }
 

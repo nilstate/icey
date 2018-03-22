@@ -20,7 +20,7 @@
 
 #include "scy/av/packet.h"
 
-#include "webrtc/media/base/videocapturer.h"
+#include "media/base/videocapturer.h"
 
 
 namespace scy {

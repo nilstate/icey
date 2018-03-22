@@ -45,7 +45,7 @@ protected:
     void onStable(wrtc::Peer* conn) override;
     void onClosed(wrtc::Peer* conn) override;
     void onFailure(wrtc::Peer* conn, const std::string& error) override;
-    
+
     void postMessage(const smpl::Message& m);
     void syncMessage(const ipc::Action& action);
 

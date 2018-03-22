@@ -18,7 +18,7 @@
 #include "scy/webrtc/webrtc.h"
 #include "scy/webrtc/peer.h"
 
-#include "webrtc/api/peerconnectioninterface.h"
+#include "api/peerconnectioninterface.h"
 
 #include <iostream>
 #include <string>

@@ -11,8 +11,8 @@
 #include "signaler.h"
 #include "util.h"
 
-#include "webrtc/base/ssladapter.h"
-#include "webrtc/base/thread.h"
+#include "rtc_base/ssladapter.h"
+#include "rtc_base/thread.h"
 
 
 using std::endl;
