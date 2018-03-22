@@ -24,13 +24,15 @@ LibSourcey is a collection of cross platform C++14 modules and classes that prov
 
 * **Clean and readable code** — Modern C++ design principles have been adhered to throughout for clean and readable code.
 
-* **Networking layer** — A solid network layer is absolutely essential. The networking layer contains TCP, SSL and UDP socket implementations that combine `libuv` under the hood for blazing fast networking, and `openssl` for security and encryption.
+* **Easy packaging and installation** — LibSourcey can be compiled and installed on most platforms with `CMake`. For straight forward distribution and integration with existing projects the libraries be also packaged as a `deb`, `rpm`, `tar.gz`, `zip`, and more formats with a [single command](https://sourcey.com/libsourcey/installation#building-packages).
 
-* **Media streaming and encoding** — The `av` library consists of thin wrappers around `FFmpeg` and `OpenCV` for media capture, encoding, recording, streaming, analysis and more.
+* **Docker images** — Semantically versioned images are available on [Docker Hub](https://hub.docker.com/r/sourcey/libsourcey/). Just type `docker pull sourcey/libsourcey` to grab the latest.
 
-* **Easy install** — LibSourcey can be packaged as a `deb`, `rpm`, `tar.gz`, `zip` and many other formats with a [single command](https://sourcey.com/libsourcey/installation#building-packages) for straight forward distribution and integration.
+* **Solid networking layer** — At the core of LibSourcey is a solid and blazing fast networking layer build on `libuv` and `openssl` primitives, with TCP, SSL and UDP socket implementations.
 
 * **Web servers and clients** — A HTTP stack is provided that includes servers, clients, WebSockets, media streaming, file transfers, and authentication. The HTTP parser is based on the super-fast C code used by `nginx`.
+
+* **Media streaming and encoding** — The `av` library consists of thin wrappers around `FFmpeg` and `OpenCV` for media capture, encoding, recording, streaming, analysis and more.
 
 * **Realtime messaging** — LibSourcey aims to bridge the gap between desktop, mobile and web by providing performance oriented messaging solutions that work across all platforms.
     * **Socket.IO** — Socket.IO C++ client that supports the latest protocol revision 4 (>= 1.0). Read more about [Socket.IO](http://socket.io).
@@ -44,11 +46,29 @@ LibSourcey is a collection of cross platform C++14 modules and classes that prov
     * **STUN** — [RFC 5389](http://tools.ietf.org/rfc/rfc5389) implementation that includes support for ICE and TURN and TURN TCP messages.
     * **TURN** — Server and client stack that supports both [RFC 5766 (Traversal Using Relays around NAT)](http://tools.ietf.org/rfc/rfc5766) and [RFC 6062 (Traversal Using Relays around NAT Extensions for TCP Allocations)](http://tools.ietf.org/rfc/rfc6062) specifications.s
     * **SDP** — [RFC 4566](http://tools.ietf.org/rfc/rfc4566) implementation that includes extra support for ICE headers.
-      -->
+-->
 
 ## Getting started
 
 See the [installation guides](https://sourcey.com/libsourcey/installation) in the docs to get started playing with LibSourcey.
+
+
+<!--
+TODO: move to docs
+### Using Docker
+
+Building with Docker:
+
+```
+sudo docker build .
+```
+
+Docker images are available on Docker Hub: https://hub.docker.com/r/sourcey/libsourcey/
+
+```
+sudo docker pull sourcey/libsourcey
+```
+-->
 
 ## A few examples
 
@@ -122,7 +142,7 @@ proc.spawn();
 proc.in() << "random data"
 ~~~
 
-#### PacketStream
+#### Packet Stream
 
 A good starting point for learning LibSourcey is the `PacketStream`, which lets you create a dynamic delegate chain for piping, processing and outputting arbitrary data packets. This method of layering packet processors and makes it possible to develop complex data processing applications on the fly.
 
