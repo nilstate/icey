@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y \
   build-essential \
   pkg-config \
   git \
+  curl \
   cmake \
   libx11-dev \
   libglu1-mesa-dev \
