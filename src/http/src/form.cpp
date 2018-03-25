@@ -120,7 +120,7 @@ void FormWriter::prepareSubmit()
             // factor chunk headers.
             if (!_parts.empty()) {
                 assert(_filesLength);
-                // _stream.OutgoingProgress.total = _filesLength;
+                _stream.OutgoingProgress.total = _filesLength;
             }
 
             // Set Content-Length for non-chunked transfers
