@@ -394,7 +394,7 @@ void TCPSocket::acceptConnection()
 
 void TCPSocket::onError(const scy::Error& error)
 {
-    // LDebug("Error:", error.message);
+    LDebug("Error:", error.message);
     onSocketError(*this, error);
     close(); // close on error
 }

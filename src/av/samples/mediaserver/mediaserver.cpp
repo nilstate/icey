@@ -26,7 +26,7 @@ namespace scy {
 
 
 MediaServer::MediaServer(uint16_t port)
-    : http::Server(net::Address("0.0.0.0", port), 
+    : http::Server(net::Address("0.0.0.0", port),
                    net::makeSocket<net::TCPSocket>(),
                    new HTTPStreamingConnectionFactory(this))
 {
@@ -40,7 +40,7 @@ MediaServer::MediaServer(uint16_t port)
     // Flash Player can handle MP3 files encoded at 32kbps, 48kbps, 56kbps,
     // 64kbps, 128kbps, 160kbps or 256kbps.
     // NOTE: 128000 works fine for 44100, but 64000 is borked!
-    formats.registerFormat(av::Format("MP3", "mp3", 
+    formats.registerFormat(av::Format("MP3", "mp3",
         av::AudioCodec("MP3", "libmp3lame", 2, 44100, 128000, "s16p")));
 
     formats.registerFormat(av::Format("FLV", "flv",
@@ -108,25 +108,23 @@ void MediaServer::setupPacketStream(PacketStream& stream, const StreamingOptions
     if (options.oformat.name == "MJPEG") {
 
         // Base64 encode the MJPEG stream for old browsers
-        if (options.encoding.empty() || options.encoding == "none" || options.encoding == "None") {
+        if (options.encoding.empty() || options.encoding == "none") {
             // no default encoding
         } else if (options.encoding == "Base64") {
             auto base64 = new Base64PacketEncoder();
             stream.attach(base64, 10, true);
         } else
             throw std::runtime_error("Unsupported encoding method: " + options.encoding);
-    } 
+    }
     else if (options.oformat.name == "FLV") {
-
         // Allow mid-stream flash client connection
         // FIXME: Broken in latest flash
         // auto injector = new FLVMetadataInjector(options.oformat);
         // stream.attach(injector, 10);
     }
-
     // Attach the HTTP output framing
     IPacketizer* framing = nullptr;
-    if (options.framing.empty() || options.framing == "none" || options.framing == "None")
+    if (options.framing.empty() || options.framing == "none")
         ;
         // framing = new http::StreamingAdapter("image/jpeg");
 
@@ -159,7 +157,7 @@ HTTPStreamingConnectionFactory::HTTPStreamingConnectionFactory(MediaServer* serv
 }
 
 
-HTTPStreamingConnectionFactory:: ~HTTPStreamingConnectionFactory() 
+HTTPStreamingConnectionFactory:: ~HTTPStreamingConnectionFactory()
 {
 }
 
@@ -196,8 +194,8 @@ StreamingOptions HTTPStreamingConnectionFactory::createStreamingOptions(http::Se
         devman.getDefaultCamera(dev);
         LInfo("Default video capture ", dev.id)
         options.videoCapture = std::make_shared<av::VideoCapture>(dev.id, options.oformat.video);
-        //options.videoCapture->openVideo(dev.id, options.oformat.video.width, 
-        //                                   options.oformat.video.height, 
+        // options.videoCapture->openVideo(dev.id, options.oformat.video.width,
+        //                                   options.oformat.video.height,
         //                                   options.oformat.video.fps);
         options.videoCapture->getEncoderFormat(options.iformat);
     }
@@ -205,7 +203,7 @@ StreamingOptions HTTPStreamingConnectionFactory::createStreamingOptions(http::Se
         devman.getDefaultMicrophone(dev);
         LInfo("Default audio capture ", dev.id)
         options.audioCapture = std::make_shared<av::AudioCapture>(dev.id, options.oformat.audio);
-        //options.audioCapture->open(dev.id, options.oformat.audio.channels, 
+        // options.audioCapture->open(dev.id, options.oformat.audio.channels,
         //                                   options.oformat.audio.sampleRate);
         options.audioCapture->getEncoderFormat(options.iformat);
     }
@@ -225,7 +223,7 @@ http::ServerResponder* HTTPStreamingConnectionFactory::createResponder(http::Ser
 
         // Log incoming requests
         SInfo << "Incoming connection from " << conn.socket()->peerAddress()
-              << ": URI:\n" << request.getURI() 
+              << ": URI:\n" << request.getURI()
               << ": Request:\n" << request << endl;
 
         // Handle websocket connections
@@ -249,7 +247,7 @@ http::ServerResponder* HTTPStreamingConnectionFactory::createResponder(http::Ser
             return new SnapshotRequestHandler(conn, createStreamingOptions(conn));
         }
 #endif
-    } 
+    }
     catch (std::exception& exc) {
         LError("Request error: ", exc.what())
     }
@@ -275,7 +273,7 @@ StreamingOptions::StreamingOptions(MediaServer* server,
     , audioCapture(audioCapture)
 {
 }
- 
+
 
 StreamingOptions::~StreamingOptions()
 {

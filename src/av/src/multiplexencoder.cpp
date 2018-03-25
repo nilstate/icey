@@ -260,9 +260,9 @@ bool MultiplexEncoder::writeOutputPacket(AVPacket& packet)
     assert(isActive());
 
     STrace << "Writing packet:"
-           << "\n\tPacket Size: " << packet.size 
+           << "\n\tPacket Size: " << packet.size
            << "\n\tPTS: " << packet.pts
-           << "\n\tDTS: " << packet.dts 
+           << "\n\tDTS: " << packet.dts
            << "\n\tDuration: " << packet.duration
            << endl;
 
@@ -287,14 +287,18 @@ bool MultiplexEncoder::updateStreamPts(AVStream* stream, int64_t* pts)
         // Set a realtime pts value if not specified
         int64_t delta(av_gettime() - _formatCtx->start_time_realtime);
         next = delta * (double)stream->time_base.den / (double)stream->time_base.num / AV_TIME_BASE;
-    } 
+    }
     else {
         // Convert from input microseconds to encoder stream time base
         next = *pts * (double)stream->time_base.den / (double)stream->time_base.num / AV_TIME_BASE;
     }
 
-    if (next == _pts) {
-        LWarn("Dropping frame at dusplicate PTS: ", next)
+    if (next < _pts) {
+        LWarn("Invalid pts (", next ,") <= last (", _pts, ")")
+        return false;
+    }
+    else if (next == _pts) {
+        LWarn("Dropping frame at duplicate PTS: ", next)
         return false;
     }
 

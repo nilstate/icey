@@ -62,10 +62,11 @@ void VideoCapture::openVideo(const std::string& device, const av::VideoCodec& pa
 void VideoCapture::openVideo(const std::string& device, int width, int height,
                              double framerate, const std::string& pixelFmt)
 {
-    STrace << "Opening camera: " << device << ", "
-                 << "width=" << width << ", "
-                 << "height=" << height << ", "
-                 << "framerate=" << framerate << endl;
+    SDebug << "Opening camera: " << device << ", "
+           << "width=" << width << ", "
+           << "height=" << height << ", "
+           << "framerate=" << framerate  << ", "
+           << "pixelFmt=" << pixelFmt << endl;
 
     DeviceManager devman;
     auto iformat = devman.findVideoInputFormat();
@@ -74,6 +75,11 @@ void VideoCapture::openVideo(const std::string& device, int width, int height,
 
     AVDictionary* iparams = nullptr;
     AVDictionaryCleanup cleanup{ &iparams };
+
+    // NOTE: A pixel format must be passed or the capture may error out with:
+    // [mjpeg @ 0x7fb5f40016c0] Specified pixel format -1 is invalid or not supported
+    // TODO: Use yuv420p default on linux, is this OK for Windows too?
+    std::string pixfmt = pixelFmt.empty() ? "yuv420p" : pixelFmt;
 
     // Set custom parameters for devices.
     // NOTE: This doesn't work for DirectShow.
@@ -84,11 +90,13 @@ void VideoCapture::openVideo(const std::string& device, int width, int height,
         av_dict_set(&iparams, "framerate", util::format("%f", framerate).c_str(), 0);
 
     // Set the desired pixel format
-    // TODO: Use yuv420p once encoders support PlanarVideoPacket input
-    if (!pixelFmt.empty())
-      av_dict_set(&iparams, "pixel_format", pixelFmt.data(), 0); //bgr24, yuv420p
+    av_dict_set(&iparams, "pixel_format", pixfmt.data(), 0); //bgr24, yuv420p
 #endif
 
+    // Use realtime PTS calculation for live sources
+    setRealtimePTS(true);
+
+    // Open the stream
     openStream(device.c_str(), iformat, &iparams);
 
     // Set the decoder video output parameters for conversion context.
@@ -96,8 +104,8 @@ void VideoCapture::openVideo(const std::string& device, int width, int height,
     // If the input device wouldn't accept our parameters then we will
     // perform pixel conversions and resizing ourself (on the decoder).
     if (_video) {
-        if (!pixelFmt.empty())
-            _video->oparams.pixelFmt = pixelFmt; // bgr24, yuv420p
+        if (!pixfmt.empty())
+            _video->oparams.pixelFmt = pixfmt; // bgr24, yuv420p
         if (width > 0)
             _video->oparams.width = width;
         if (height > 0)

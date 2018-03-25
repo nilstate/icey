@@ -25,14 +25,14 @@ public:
                      //<< "\n\tOutput Format: " << options.oformat.name
                      << "\n\tOutput Encoding: " << options.encoding
                      << "\n\tOutput Packetizer: " << options.framing
-                     << std::endl; 
-        
+                     << std::endl;
+
         // We will be sending our own headers
-        connection().shouldSendHeader(false); 
-        
+        connection().shouldSendHeader(false);
+
         // Create the packet stream
-        MediaServer::setupPacketStream(stream, options, true, true); 
-        
+        MediaServer::setupPacketStream(stream, options, true, true);
+
         // Start the stream
         stream.emitter += packetSlot(this, &StreamingRequestHandler::onVideoEncoded);
         stream.start();
@@ -48,8 +48,8 @@ public:
     void onVideoEncoded(RawPacket& packet)
     {
         SDebug << "Send packet: "
-                     // assert(!connection().socket()->closed());
-                     << packet.size() << ": " << fpsCounter.fps << std::endl;
+               // assert(!connection().socket()->closed());
+               << packet.size() << ": " << fpsCounter.fps << std::endl;
 
         try {
             connection().socket()->send((const char*)packet.data(), packet.size());

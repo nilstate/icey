@@ -85,20 +85,23 @@ inline void emitPacket(VideoDecoder* dec, AVFrame* frame)
 
     // Set the decoder time in microseconds
     // This value represents the number of microseconds
-    // that have elapsed since the brginning of the stream.
-    dec->time = dec->frame->pts > 0 ? static_cast<int64_t>(dec->frame->pkt_pts *
+    // that have elapsed since the beginning of the stream.
+    int64_t pts = frame->pts;
+    dec->time = pts > 0 ? static_cast<int64_t>(pts *
                 av_q2d(dec->stream->time_base) * AV_TIME_BASE) : 0;
 
     // Set the decoder pts in stream time base
-    dec->pts = frame->pts;
+    dec->pts = pts;
 
     // Set the decoder seconds since stream start
-    dec->seconds = (frame->pkt_dts - dec->stream->start_time) * av_q2d(dec->stream->time_base);
+    dec->seconds = (pts - dec->stream->start_time) * av_q2d(dec->stream->time_base);
 
     STrace << "Decoded video frame:"
-        << "\n\tFrame DTS: " << frame->pkt_dts
+        << "\n\tFrame Pkt DTS: " << frame->pkt_dts
+        << "\n\tFrame Pkt PTS: " << frame->pkt_pts
         << "\n\tFrame PTS: " << frame->pts
         << "\n\tTimestamp: " << dec->time
+        << "\n\tPTS: " << pts
         << "\n\tSeconds: " << dec->seconds
         << endl;
 
@@ -111,15 +114,15 @@ inline void emitPacket(VideoDecoder* dec, AVFrame* frame)
 }
 
 
-//bool VideoDecoder::decode(uint8_t* data, int size)
-//{
+// bool VideoDecoder::decode(uint8_t* data, int size)
+// {
 //    AVPacket ipacket;
 //    av_init_packet(&ipacket);
 //    ipacket.stream_index = stream->index;
 //    ipacket.data = data;
 //    ipacket.size = size;
 //    return decode(ipacket);
-//}
+// }
 
 
 bool VideoDecoder::decode(AVPacket& ipacket)

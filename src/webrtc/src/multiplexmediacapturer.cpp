@@ -47,7 +47,7 @@ void MultiplexMediaCapturer::openFile(const std::string& file, bool loop)
 {
     // Open the capture file
     _videoCapture->setLoopInput(loop);
-    _videoCapture->setRealtimePlayback(true);
+    _videoCapture->setLimitFramerate(true);
     _videoCapture->openFile(file);
 
     // Set the output settings

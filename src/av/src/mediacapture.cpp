@@ -37,6 +37,7 @@ MediaCapture::MediaCapture()
     , _stopping(false)
     , _looping(false)
     , _realtime(false)
+    , _ratelimit(false)
 {
     initializeFFmpeg();
 }
@@ -171,6 +172,9 @@ void MediaCapture::run()
         int64_t audioPtsOffset = 0;
 
         // Realtime variables
+        int64_t startTime = time::hrtime();
+
+        // Rate limiting variables
         int64_t lastTimestamp = time::hrtime();
         int64_t frameInterval = _video ? fpsToInterval(int(_video->iparams.fps)) : 0;
 
@@ -195,8 +199,12 @@ void MediaCapture::run()
 
             if (_video && ipacket.stream_index == _video->stream->index) {
 
-                // Set the PTS offset when looping
-                if (_looping) {
+                // Realtime PTS calculation in microseconds
+                if (_realtime) {
+                    ipacket.pts = time::hrtime() - startTime;
+                }
+                else if (_looping) {
+                    // Set the PTS offset when looping
                     if (ipacket.pts == 0 && _video->pts > 0)
                         videoPtsOffset = _video->pts;
                     ipacket.pts += videoPtsOffset;
@@ -209,9 +217,9 @@ void MediaCapture::run()
                            << "pts=" << _video->pts << endl;
                 }
 
-                // Pause the input stream in realtime mode if the
+                // Pause the input stream in rate limited mode if the
                 // decoder is working too fast
-                if (_realtime) {
+                if (_ratelimit) {
                     auto nsdelay = frameInterval - (time::hrtime() - lastTimestamp);
                     // LDebug("Sleep delay: ", nsdelay, ", ", (time::hrtime() - lastTimestamp), ", ", frameInterval)
                     std::this_thread::sleep_for(std::chrono::nanoseconds(nsdelay));
@@ -324,7 +332,13 @@ void MediaCapture::setLoopInput(bool flag)
 }
 
 
-void MediaCapture::setRealtimePlayback(bool flag)
+void MediaCapture::setLimitFramerate(bool flag)
+{
+    _ratelimit = flag;
+}
+
+
+void MediaCapture::setRealtimePTS(bool flag)
 {
     _realtime = flag;
 }

@@ -118,18 +118,18 @@ struct AV_API VideoCodec : public Codec
 
     VideoCodec();
     VideoCodec(int width, int height, double fps = 0.0,
-               const std::string& pixelFmt = "", // = DEFAULT_VIDEO_PIXEL_FMT
+               const std::string& pixelFmt = DEFAULT_VIDEO_PIXEL_FMT,
                int bitRate = 0,                  // = DEFAULT_VIDEO_BIT_RATE
                int sampleRate = 0);              // = DEFAULT_VIDEO_SAMPLE_RATE
     VideoCodec(const std::string& name, int width = 0, int height = 0, double fps = 0.0,
                int bitRate = 0,
                int sampleRate = 0,
-               const std::string& pixelFmt = "");
+               const std::string& pixelFmt = DEFAULT_VIDEO_PIXEL_FMT);
     VideoCodec(const std::string& name, const std::string& encoder,
                int width = 0, int height = 0, double fps = 0.0,
                int bitRate = 0,
                int sampleRatee = 0,
-               const std::string& pixelFmt = "");
+               const std::string& pixelFmt = DEFAULT_VIDEO_PIXEL_FMT);
     VideoCodec(const VideoCodec& r);
     virtual ~VideoCodec();
 

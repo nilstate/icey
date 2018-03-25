@@ -17,8 +17,8 @@ public:
         LDebug("Create")
 
         // Create the packet stream
-        MediaServer::setupPacketStream(stream, options); 
-        
+        MediaServer::setupPacketStream(stream, options);
+
         // Start the stream
         stream.emitter += packetSlot(this, &WebSocketRequestHandler::onVideoEncoded);
         stream.start();
@@ -40,13 +40,11 @@ public:
     void onVideoEncoded(RawPacket& packet)
     {
         SDebug << "Sending Packet: "
-                     // assert(!connection().socket()->closed());
-                     << &connection() << ": " << packet.size() << ": "
-                     << fpsCounter.fps << std::endl;
+               << &connection() << ": " << packet.size() << ": "
+               << fpsCounter.fps << std::endl;
 
         try {
-            connection().socket()->send(packet.data(), packet.size(), http::ws::Binary);
-            // connection().sendData(packet.data(), packet.size(), http::WebSocket::Binary);
+            connection().send(packet.data(), packet.size(), http::ws::Binary);
             fpsCounter.tick();
         } catch (std::exception& exc) {
             LError("Error: ", exc.what())

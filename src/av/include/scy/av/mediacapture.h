@@ -56,11 +56,16 @@ public:
     virtual void getEncoderAudioCodec(AudioCodec& params);
     virtual void getEncoderVideoCodec(VideoCodec& params);
 
-    /// Continuously loop the input file when set
+    /// Continuously loop the input file when set.
     void setLoopInput(bool flag);
 
-    /// Playback video in real time when set
-    void setRealtimePlayback(bool flag);
+    /// Limit playback to video FPS.
+    void setLimitFramerate(bool flag);
+
+    /// Set to use realtime PTS calculation.
+    /// This is preferred when sing live captures as FFmpeg provided values are
+    /// not always reliable.
+    void setRealtimePTS(bool flag);
 
     AVFormatContext* formatCtx() const;
     VideoDecoder* video() const;
@@ -87,6 +92,7 @@ protected:
     bool _stopping;
     bool _looping;
     bool _realtime;
+    bool _ratelimit;
 };
 
 
