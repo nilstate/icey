@@ -118,7 +118,12 @@ void VideoEncoder::create()
             // TODO: Use oparams.quality to determine values
             // ctx->mb_lmin        = ctx->lmin = ctx->qmin * FF_QP2LAMBDA;
             // ctx->mb_lmax        = ctx->lmax = ctx->qmax * FF_QP2LAMBDA;
-            ctx->flags = CODEC_FLAG_QSCALE;
+            #if LIBAVCODEC_VERSION_CHECK(52, 30, 2, 30, 2)
+                ctx->flags |= AV_CODEC_FLAG_QSCALE;
+            #else
+                ctx->flags |= CODEC_FLAG_QSCALE;
+            #endif
+
             ctx->global_quality = ctx->qmin * FF_QP2LAMBDA;
             break;
         case AV_CODEC_ID_MPEG2VIDEO:
@@ -129,8 +134,13 @@ void VideoEncoder::create()
     }
 
     // Some formats want stream headers to be separate
-    if (format && format->oformat->flags & AVFMT_GLOBALHEADER)
-        ctx->flags |= CODEC_FLAG_GLOBAL_HEADER;
+    if (format && format->oformat->flags & AVFMT_GLOBALHEADER) {
+        #if LIBAVCODEC_VERSION_CHECK(52, 30, 2, 30, 2)
+            ctx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
+        #else
+            ctx->flags |= CODEC_FLAG_GLOBAL_HEADER;
+        #endif
+    }
 
     // Allocate the input frame
     frame = createVideoFrame(av_get_pix_fmt(iparams.pixelFmt.c_str()),

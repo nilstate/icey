@@ -27,6 +27,11 @@ extern "C" {
 #endif
 }
 
+
+#define LIBAVCODEC_VERSION_CHECK( a, b, c, d, e ) \
+    ( (LIBAVCODEC_VERSION_MICRO <  100 && LIBAVCODEC_VERSION_INT >= AV_VERSION_INT( a, b, c ) ) || \
+          (LIBAVCODEC_VERSION_MICRO >= 100 && LIBAVCODEC_VERSION_INT >= AV_VERSION_INT( a, d, e ) ) )
+
 #endif
 
 
