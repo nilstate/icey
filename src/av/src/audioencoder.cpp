@@ -138,7 +138,6 @@ void AudioEncoder::create()
             ctx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
         #else
             ctx->flags |= CODEC_FLAG_GLOBAL_HEADER;
-
         #endif
     }
 
