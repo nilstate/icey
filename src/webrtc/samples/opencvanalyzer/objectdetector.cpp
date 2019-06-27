@@ -92,7 +92,7 @@ namespace scy {
                 Rect crop(Point((width - cropSize.width) / 2, (height - cropSize.height) / 2), cropSize);
 
                 // get gray frame
-                uint8_t* brightnessData = (uint8_t*)yuvframe.video_frame_buffer()->DataY();
+                uint8_t* brightnessData = (uint8_t*)yuvframe.video_frame_buffer()->GetI420()->DataY();
 
                 Mat frame;
                 frame.create(height, width, CV_8UC1);
