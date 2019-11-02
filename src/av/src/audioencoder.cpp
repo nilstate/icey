@@ -133,8 +133,13 @@ void AudioEncoder::create()
 
     // Some container formats (like MP4) require global headers to be present
     // Mark the encoder so that it behaves accordingly.
-    if (format && format->oformat->flags & AVFMT_GLOBALHEADER)
-        ctx->flags |= CODEC_FLAG_GLOBAL_HEADER;
+    if (format && format->oformat->flags & AVFMT_GLOBALHEADER) {
+        #if LIBAVCODEC_VERSION_CHECK(52, 30, 2, 30, 2)
+            ctx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
+        #else
+            ctx->flags |= CODEC_FLAG_GLOBAL_HEADER;
+        #endif
+    }
 
     // Open the encoder for the audio stream to use it later.
     if ((err = avcodec_open2(ctx, codec, nullptr)) < 0) {
