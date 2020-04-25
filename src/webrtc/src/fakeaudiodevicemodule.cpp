@@ -11,9 +11,9 @@
 
 #include "scy/webrtc/fakeaudiodevicemodule.h"
 
-#include "rtc_base/refcountedobject.h"
+#include "rtc_base/ref_counted_object.h"
 #include "rtc_base/thread.h"
-#include "rtc_base/timeutils.h"
+#include "rtc_base/time_utils.h"
 
 #include "scy/logger.h"
 
