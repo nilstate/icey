@@ -114,7 +114,7 @@ void PeerManager::onClosed(Peer* conn)
 }
 
 
-void PeerManager::onFailure(Peer* conn, const std::string& error)
+void PeerManager::onFailure(Peer* conn, webrtc::RTCError error)
 {
     LDebug("Deleting peer connection: ", conn->peerid())
 

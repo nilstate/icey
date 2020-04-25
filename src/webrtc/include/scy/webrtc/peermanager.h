@@ -18,7 +18,7 @@
 #include "scy/webrtc/webrtc.h"
 #include "scy/webrtc/peer.h"
 
-#include "api/peerconnectioninterface.h"
+#include "api/peer_connection_interface.h"
 
 #include <iostream>
 #include <string>
@@ -48,7 +48,7 @@ public:
 
     virtual void onStable(Peer* conn);
     virtual void onClosed(Peer* conn);
-    virtual void onFailure(Peer* conn, const std::string& error);
+    virtual void onFailure(Peer* conn, webrtc::RTCError error);
 };
 
 

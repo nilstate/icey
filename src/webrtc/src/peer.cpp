@@ -90,7 +90,7 @@ void Peer::setPortRange(int minPort, int maxPort)
 void Peer::createConnection()
 {
     assert(_context->factory);
-    _peerConnection = _context->factory->CreatePeerConnection(_config, &_constraints,
+    _peerConnection = _context->factory->CreatePeerConnection(_config,
                                                               std::move(_portAllocator), nullptr, this);
 
     if (_stream) {
@@ -121,7 +121,8 @@ void Peer::createOffer()
     assert(_mode == Offer);
     assert(_peerConnection);
 
-    _peerConnection->CreateOffer(this, &_constraints);
+    webrtc::PeerConnectionInterface::RTCOfferAnswerOptions options;
+    _peerConnection->CreateOffer(this, options);
 }
 
 
@@ -140,7 +141,8 @@ void Peer::recvSDP(const std::string& type, const std::string& sdp)
 
     if (type == "offer") {
         assert(_mode == Answer);
-        _peerConnection->CreateAnswer(this, &_constraints);
+        webrtc::PeerConnectionInterface::RTCOfferAnswerOptions options;
+        _peerConnection->CreateAnswer(this, options);
     } else {
         assert(_mode == Offer);
     }
@@ -268,9 +270,9 @@ void Peer::OnSuccess(webrtc::SessionDescriptionInterface* desc)
 }
 
 
-void Peer::OnFailure(const std::string& error)
+void Peer::OnFailure(webrtc::RTCError error)
 {
-    LError(_peerid, ": On failure: ", error)
+    LError(_peerid, ": On failure: ", error.message())
 
     _manager->onFailure(this, error);
 }
@@ -295,7 +297,7 @@ std::string Peer::token() const
 }
 
 
-webrtc::FakeConstraints& Peer::constraints()
+webrtc::MediaConstraints& Peer::constraints()
 {
     return _constraints;
 }
@@ -330,9 +332,9 @@ void DummySetSessionDescriptionObserver::OnSuccess()
 }
 
 
-void DummySetSessionDescriptionObserver::OnFailure(const std::string& error)
+void DummySetSessionDescriptionObserver::OnFailure(webrtc::RTCError error)
 {
-    LError("On SDP parse error: ", error)
+    LError("On SDP parse error: ", error.message())
     assert(0);
 }
 
