@@ -53,7 +53,7 @@ public:
 protected:
     Hash& operator=(Hash const&);
 
-    EVP_MD_CTX _ctx;
+    EVP_MD_CTX* _ctx;
     const EVP_MD* _md;
     crypto::ByteVec _digest;
     std::string _algorithm;

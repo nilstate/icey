@@ -11,6 +11,7 @@
 
 #include "scy/crypto/x509certificate.h"
 #include <sstream>
+#include <openssl/opensslv.h>
 #include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -58,10 +59,13 @@ X509Certificate::X509Certificate(X509* pCert, bool shared)
 {
     assert(_certificate);
 
-    if (shared)
+    if (shared){
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fL
+        X509_up_ref(_certificate);   
+#else
         _certificate->references++;
-        // X509_up_ref(_certificate); // OpenSSL >= 1.1.0
-
+#endif
+    }
     init();
 }
 
