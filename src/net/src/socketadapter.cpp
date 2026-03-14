@@ -192,7 +192,10 @@ void SocketAdapter::addReceiver(SocketAdapter* adapter)
     // Note that we insert new adapters in the back of the queue,
     // and iterate in reverse to ensure calling order is preserved.
     _dirty = true;
-    _receivers.push_back(new Ref{ adapter, true });
+	auto ptrRef = std::make_shared<Ref>();
+	ptrRef->ptr = adapter;
+	ptrRef->alive = true;
+    _receivers.push_back(ptrRef);
     // _receivers.insert(_receivers.begin(), new Ref{ adapter, false }); // insert front
     // std::sort(_receivers.begin(), _receivers.end(),
     //     [](SocketAdapter const& l, SocketAdapter const& r) {
@@ -204,7 +207,7 @@ void SocketAdapter::removeReceiver(SocketAdapter* adapter)
 {
     assert(adapter != this);
     auto it = std::find_if(_receivers.begin(), _receivers.end(),
-        [&](const Ref* ref) { return ref->ptr == adapter; });
+        [&](const Ref::ptr_t& ref) { return ref->ptr == adapter; });
     if (it != _receivers.end()) { (*it)->alive = false; }
 }
 
@@ -215,7 +218,7 @@ void SocketAdapter::cleanupReceivers()
     for (auto it = _receivers.begin(); it != _receivers.end();) {
         auto ref = *it;
         if (!ref->alive) {
-            delete ref;
+            //delete ref;
             it = _receivers.erase(it);
         }
         else ++it;
@@ -234,7 +237,7 @@ std::vector<SocketAdapter*> SocketAdapter::receivers()
 {
     std::vector<SocketAdapter*> items;
     std::transform(_receivers.begin(), _receivers.end(), std::back_inserter(items),
-        [](const Ref* ref) { return ref->ptr; });
+        [](const Ref::ptr_t& ref) { return ref->ptr; });
     return items;
 }
 
