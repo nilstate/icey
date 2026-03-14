@@ -15,7 +15,7 @@
 
 #include "scy/webrtc/webrtc.h"
 
-#include "pc/peerconnectionfactory.h"
+#include "pc/peer_connection_factory.h"
 
 
 namespace scy {
@@ -27,10 +27,12 @@ class PeerFactoryContext
 public:
     PeerFactoryContext(
         webrtc::AudioDeviceModule* default_adm = nullptr,
-        cricket::WebRtcVideoEncoderFactory* video_encoder_factory = nullptr,
-        cricket::WebRtcVideoDecoderFactory* video_decoder_factory = nullptr,
+        webrtc::VideoEncoderFactory* video_encoder_factory = nullptr,
+        webrtc::VideoDecoderFactory* video_decoder_factory = nullptr,
         rtc::scoped_refptr<webrtc::AudioEncoderFactory> audio_encoder_factory = nullptr,
-        rtc::scoped_refptr<webrtc::AudioDecoderFactory> audio_decoder_factory = nullptr);
+        rtc::scoped_refptr<webrtc::AudioDecoderFactory> audio_decoder_factory = nullptr,
+        rtc::scoped_refptr<webrtc::AudioMixer> audio_mixer = nullptr,
+        rtc::scoped_refptr<webrtc::AudioProcessing> audio_processing = nullptr);
 
     void initCustomNetworkManager();
 

@@ -16,9 +16,9 @@
 #include "scy/webrtc/peerfactorycontext.h"
 
 #include "api/jsep.h"
-#include "api/peerconnectioninterface.h"
-#include "api/test/fakeconstraints.h"
-#include "p2p/client/basicportallocator.h"
+#include "api/peer_connection_interface.h"
+#include "sdk/media_constraints.h"
+#include "p2p/client/basic_port_allocator.h"
 
 
 namespace scy {
@@ -77,7 +77,7 @@ public:
 
     std::string peerid() const;
     std::string token() const;
-    webrtc::FakeConstraints& constraints();
+    webrtc::MediaConstraints& constraints();
     webrtc::PeerConnectionFactoryInterface* factory() const;
     rtc::scoped_refptr<webrtc::PeerConnectionInterface> peerConnection() const;
     rtc::scoped_refptr<webrtc::MediaStreamInterface> stream() const;
@@ -97,7 +97,7 @@ protected:
 
     /// inherited from CreateSessionDescriptionObserver
     virtual void OnSuccess(webrtc::SessionDescriptionInterface* desc) override;
-    virtual void OnFailure(const std::string& error) override;
+    virtual void OnFailure(webrtc::RTCError error) override;
 
     virtual void AddRef() const override { return; }
     virtual rtc::RefCountReleaseStatus Release() const override { return rtc::RefCountReleaseStatus::kDroppedLastRef; }
@@ -109,7 +109,7 @@ protected:
     std::string _token;
     Mode _mode;
     webrtc::PeerConnectionInterface::RTCConfiguration _config;
-    webrtc::FakeConstraints _constraints;
+    webrtc::MediaConstraints _constraints;
     rtc::scoped_refptr<webrtc::PeerConnectionInterface> _peerConnection;
     rtc::scoped_refptr<webrtc::MediaStreamInterface> _stream;
     std::unique_ptr<cricket::BasicPortAllocator> _portAllocator;
@@ -126,7 +126,7 @@ public:
     }
 
     virtual void OnSuccess() override;
-    virtual void OnFailure(const std::string& error) override;
+    virtual void OnFailure(webrtc::RTCError error) override;
 
 protected:
     DummySetSessionDescriptionObserver() = default;

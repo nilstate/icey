@@ -13,10 +13,11 @@
 
 #include "scy/base.h"
 
-#include "rtc_base/basictypes.h"
-#include "rtc_base/criticalsection.h"
-#include "rtc_base/messagehandler.h"
-#include "rtc_base/scoped_ref_ptr.h"
+// #include "rtc_base/basictypes.h"
+#include "rtc_base/critical_section.h"
+#include "rtc_base/message_handler.h"
+// #include "rtc_base/scoped_ref_ptr.h"
+#include "base/memory/scoped_refptr.h"
 #include "rtc_base/thread.h"
 #include "common_types.h"
 #include "modules/audio_device/include/audio_device.h"

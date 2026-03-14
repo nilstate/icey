@@ -153,6 +153,10 @@ if(WEBRTC_INCLUDE_DIR)
     set(WEBRTC_DEPENDENCIES Secur32.lib Winmm.lib msdmo.lib dmoguids.lib wmcodecdspuuid.lib) # strmbase.lib
   elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     add_definitions(-DWEBRTC_POSIX)
+  elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    add_compile_definitions(WEBRTC_POSIX)
+    add_compile_definitions(WEBRTC_MAC)
+  
 
     # For ABI compatability between precompiled WebRTC libraries using clang and new GCC versions
     add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)

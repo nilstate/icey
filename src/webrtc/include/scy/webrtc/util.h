@@ -15,8 +15,8 @@
 
 #include "scy/webrtc/webrtc.h"
 
-#include "media/base/videocapturer.h"
-#include "media/engine/webrtcvideocapturerfactory.h"
+// #include "media/base/videocapturer.h"
+// #include "media/engine/webrtcvideocapturerfactory.h"
 #include "modules/video_capture/video_capture_factory.h"
 
 
@@ -26,7 +26,7 @@ namespace wrtc {
 
 std::vector<std::string> getVideoCaptureDevices();
 
-std::unique_ptr<cricket::VideoCapturer> openWebRtcVideoCaptureDevice(const std::string& deviceName = "");
+// std::unique_ptr<cricket::VideoCapturer> openWebRtcVideoCaptureDevice(const std::string& deviceName = "");
 
 
 } } // namespace scy::wrtc

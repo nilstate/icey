@@ -20,7 +20,7 @@
 #include "scy/av/av.h"
 #include "scy/av/multiplexencoder.h"
 
-#include "api/peerconnectioninterface.h"
+#include "api/peer_connection_interface.h"
 
 
 namespace scy {
