@@ -37,7 +37,7 @@ std::vector<std::string> getVideoCaptureDevices()
     return deviceNames;
 }
 
-
+/*
 // cricket::VideoCapturer* openWebRtcVideoCaptureDevice(const std::string& deviceName)
 std::unique_ptr<cricket::VideoCapturer> openWebRtcVideoCaptureDevice(const std::string& deviceName)
 {
@@ -56,7 +56,7 @@ std::unique_ptr<cricket::VideoCapturer> openWebRtcVideoCaptureDevice(const std::
 
     assert(0 && "no video devices");
     return nullptr;
-}
+}/**/
 
 
 

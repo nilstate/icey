@@ -14,13 +14,14 @@
 //#include "pc/test/fakeaudiocapturemodule.h"
 #include "scy/logger.h"
 
-#include "api/peerconnectionfactoryproxy.h"
-#include "api/peerconnectionproxy.h"
+#include "api/create_peerconnection_factory.h"
+#include "api/peer_connection_factory_proxy.h"
+#include "api/peer_connection_proxy.h"
 #include "api/audio_codecs/builtin_audio_decoder_factory.h"
 #include "api/audio_codecs/builtin_audio_encoder_factory.h"
-#include "p2p/base/basicpacketsocketfactory.h"
-#include "p2p/client/basicportallocator.h"
-#include "pc/peerconnection.h"
+#include "p2p/base/basic_packet_socket_factory.h"
+#include "p2p/client/basic_port_allocator.h"
+#include "pc/peer_connection.h"
 
 
 using std::endl;
@@ -32,10 +33,12 @@ namespace wrtc {
 
 PeerFactoryContext::PeerFactoryContext(
     webrtc::AudioDeviceModule* default_adm,
-    cricket::WebRtcVideoEncoderFactory* video_encoder_factory,
-    cricket::WebRtcVideoDecoderFactory* video_decoder_factory,
+    webrtc::VideoEncoderFactory* video_encoder_factory,
+    webrtc::VideoDecoderFactory* video_decoder_factory,
     rtc::scoped_refptr<webrtc::AudioEncoderFactory> audio_encoder_factory,
-    rtc::scoped_refptr<webrtc::AudioDecoderFactory> audio_decoder_factory)
+    rtc::scoped_refptr<webrtc::AudioDecoderFactory> audio_decoder_factory,
+    rtc::scoped_refptr<webrtc::AudioMixer> audio_mixer,
+    rtc::scoped_refptr<webrtc::AudioProcessing> audio_processing)
 {
     // Setup threads
     networkThread = rtc::Thread::CreateWithSocketServer();
@@ -53,7 +56,8 @@ PeerFactoryContext::PeerFactoryContext(
     factory = webrtc::CreatePeerConnectionFactory(
         networkThread.get(), workerThread.get(), rtc::Thread::Current(),
         default_adm, audio_encoder_factory, audio_decoder_factory,
-        video_encoder_factory, video_decoder_factory);
+        std::unique_ptr<webrtc::VideoEncoderFactory>(video_encoder_factory), std::unique_ptr<webrtc::VideoDecoderFactory>(video_decoder_factory),
+        audio_mixer, audio_processing);
 
     // if (audio_encoder_factory || audio_decoder_factory) {
     //     factory = webrtc::CreatePeerConnectionFactory(
