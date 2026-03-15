@@ -8,10 +8,7 @@
 /// @addtogroup http
 /// @{
 
-
-#ifndef SCY_HTTP_ServerConnection_H
-#define SCY_HTTP_ServerConnection_H
-
+#pragma once
 
 #include "scy/http/parser.h"
 #include "scy/http/request.h"
@@ -22,6 +19,9 @@
 #include "scy/packetqueue.h"
 #include "scy/timer.h"
 
+#include <memory>
+#include <stdexcept>
+
 
 namespace scy {
 namespace http {
@@ -29,13 +29,14 @@ namespace http {
 
 class HTTP_API ConnectionStream;
 class HTTP_API ConnectionAdapter;
+/// @ingroup http
 class HTTP_API Connection : public net::SocketAdapter
 {
 public:
-    typedef std::shared_ptr<Connection> Ptr;
+    using Ptr = std::shared_ptr<Connection>;
 
     Connection(const net::TCPSocket::Ptr& socket = std::make_shared<net::TCPSocket>());
-    virtual ~Connection();
+    virtual ~Connection() noexcept;
 
     virtual void onHeaders() = 0;
     virtual void onPayload(const MutableBuffer&) = 0;
@@ -53,39 +54,39 @@ public:
     virtual void close();
 
     /// Return true if the connection is closed.
-    bool closed() const;
+    [[nodiscard]] bool closed() const;
 
     /// Return the error object if any.
-    scy::Error error() const;
-
-    /// Return true if the server did not give us
-    /// a proper response within the allotted time.
-    // bool expired() const;
+    [[nodiscard]] scy::Error error() const;
 
     /// Return true if headers should be automatically sent.
-    bool shouldSendHeader() const;
+    [[nodiscard]] bool shouldSendHeader() const;
 
     /// Set true to prevent auto-sending HTTP headers.
     void shouldSendHeader(bool flag);
 
-    /// Assign the new ConnectionAdapter and setup the chain
-    /// The flow is: Connection <-> ConnectionAdapter <-> Socket
-    virtual void replaceAdapter(net::SocketAdapter* adapter);
+    /// Assign the new ConnectionAdapter and setup the chain.
+    /// The flow is: Connection <-> ConnectionAdapter <-> Socket.
+    /// Takes ownership of the adapter (deferred deletion via uv loop).
+    virtual void replaceAdapter(std::unique_ptr<net::SocketAdapter> adapter);
+
+    /// Overload for nullptr (used in destructor to clear adapter).
+    virtual void replaceAdapter(std::nullptr_t);
 
     /// Return true if the connection uses TLS/SSL.
-    bool secure() const;
+    [[nodiscard]] bool secure() const;
 
     /// Return the underlying socket pointer.
-    net::TCPSocket::Ptr& socket();
+    [[nodiscard]] net::TCPSocket::Ptr& socket();
 
     /// Return the underlying adapter pointer.
-    net::SocketAdapter* adapter() const;
+    [[nodiscard]] net::SocketAdapter* adapter() const;
 
     /// The HTTP request headers.
-    Request& request();
+    [[nodiscard]] Request& request();
 
     /// The HTTP response headers.
-    Response& response();
+    [[nodiscard]] Response& response();
 
     virtual http::Message* incomingHeader() = 0;
     virtual http::Message* outgoingHeader() = 0;
@@ -96,10 +97,10 @@ protected:
     virtual void setError(const scy::Error& err);
 
     /// net::SocketAdapter interface
-    virtual void onSocketConnect(net::Socket& socket) override;
-    virtual void onSocketRecv(net::Socket& socket, const MutableBuffer& buffer, const net::Address& peerAddress) override;
-    virtual void onSocketError(net::Socket& socket, const scy::Error& error) override;
-    virtual void onSocketClose(net::Socket& socket) override;
+    virtual bool onSocketConnect(net::Socket& socket) override;
+    virtual bool onSocketRecv(net::Socket& socket, const MutableBuffer& buffer, const net::Address& peerAddress) override;
+    virtual bool onSocketError(net::Socket& socket, const scy::Error& error) override;
+    virtual bool onSocketClose(net::Socket& socket) override;
 
 protected:
     net::TCPSocket::Ptr _socket;
@@ -120,11 +121,13 @@ protected:
 //
 
 
+/// @ingroup http
 /// Default HTTP socket adapter for reading and writing HTTP messages
-class HTTP_API ConnectionAdapter : public ParserObserver, public net::SocketAdapter
+class HTTP_API ConnectionAdapter : public ParserObserver
+    , public net::SocketAdapter
 {
 public:
-    ConnectionAdapter(Connection* connection, http_parser_type type);
+    ConnectionAdapter(Connection* connection, llhttp_type_t type);
     virtual ~ConnectionAdapter();
 
     virtual ssize_t send(const char* data, size_t len, int flags = 0);
@@ -135,14 +138,12 @@ public:
     /// matches the current receiver.
     virtual void removeReceiver(SocketAdapter* adapter);
 
-    Parser& parser();
-    Connection* connection();
+    [[nodiscard]] Parser& parser();
+    [[nodiscard]] Connection* connection();
 
 protected:
     /// SocketAdapter interface
-    virtual void onSocketRecv(net::Socket& socket, const MutableBuffer& buffer, const net::Address& peerAddress);
-    // virtual void onSocketError(const Error& error);
-    // virtual void onSocketClose();
+    virtual bool onSocketRecv(net::Socket& socket, const MutableBuffer& buffer, const net::Address& peerAddress);
 
     /// HTTP Parser interface
     virtual void onParserHeader(const std::string& name, const std::string& value);
@@ -161,7 +162,8 @@ protected:
 //
 
 
-// HTTP progress signal for upload and download progress notifications.
+/// @ingroup http
+/// HTTP progress signal for upload and download progress notifications.
 class HTTP_API ProgressSignal : public Signal<void(const double&)>
 {
 public:
@@ -176,11 +178,13 @@ public:
     {
     }
 
-    double progress() const { return (current / (total * 1.0)) * 100; }
+    [[nodiscard]] double progress() const { return (current / (total * 1.0)) * 100; }
 
     void update(int nread)
     {
-        assert(current <= total);
+        if (current > total) {
+            throw std::runtime_error("ProgressSignal: current exceeds total");
+        }
         current += nread;
         emit(progress());
     }
@@ -192,6 +196,7 @@ public:
 //
 
 
+/// @ingroup http
 /// Packet stream wrapper for a HTTP connection.
 class HTTP_API ConnectionStream : public net::SocketAdapter
 {
@@ -203,7 +208,7 @@ public:
     virtual ssize_t send(const char* data, size_t len, int flags = 0);
 
     /// Return a reference to the underlying connection.
-    Connection::Ptr connection();
+    [[nodiscard]] Connection::Ptr connection();
 
     /// The Outgoing stream is responsible for packetizing
     /// raw application data into the agreed upon HTTP
@@ -220,8 +225,7 @@ public:
     ProgressSignal OutgoingProgress; ///< Fired on upload progress
 
 protected:
-    //void onRecv(net::Socket& socket, const MutableBuffer& buffer, const net::Address& peerAddress);
-    virtual void onSocketRecv(net::Socket& socket, const MutableBuffer& buffer, const net::Address& peerAddress);
+    virtual bool onSocketRecv(net::Socket& socket, const MutableBuffer& buffer, const net::Address& peerAddress);
 
     Connection::Ptr _connection;
 };
@@ -231,7 +235,4 @@ protected:
 } // namespace scy
 
 
-#endif
-
-
-/// @\}
+/// @}

@@ -13,8 +13,7 @@
 /// @{
 
 
-#ifndef SCY_UV_LOOP_H
-#define SCY_UV_LOOP_H
+#pragma once
 
 
 #include "scy/base.h"
@@ -26,7 +25,7 @@ namespace scy {
 namespace uv {
 
 
-typedef uv_loop_t Loop;
+using Loop = uv_loop_t;
 
 
 inline Loop* defaultLoop()
@@ -57,11 +56,37 @@ inline bool closeLoop(Loop* loop)
 }
 
 
+/// RAII wrapper for a libuv event loop.
+/// Automatically closes and deletes the loop on destruction.
+struct ScopedLoop
+{
+    Loop* loop;
+
+    ScopedLoop()
+        : loop(createLoop())
+    {
+    }
+
+    ~ScopedLoop()
+    {
+        if (loop) {
+            closeLoop(loop);
+            delete loop;
+        }
+    }
+
+    operator Loop*() const { return loop; }
+    Loop* get() const { return loop; }
+
+    ScopedLoop(const ScopedLoop&) = delete;
+    ScopedLoop& operator=(const ScopedLoop&) = delete;
+    ScopedLoop(ScopedLoop&&) = delete;
+    ScopedLoop& operator=(ScopedLoop&&) = delete;
+};
+
+
 } // namespace uv
 } // namespace scy
-
-
-#endif // SCY_UV_LOOP_H
 
 
 /// @\}

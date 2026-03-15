@@ -14,7 +14,7 @@
 
 #include "scy/numeric.h"
 
-#include <assert.h>
+#include <stdexcept>
 
 
 #if defined(_MSC_VER) || defined(__MINGW32__)
@@ -40,7 +40,8 @@ void format(std::string& str, int value)
 
 void format(std::string& str, int value, int width)
 {
-    assert(width > 0 && width < 64);
+    if (width <= 0 || width >= 64)
+        throw std::invalid_argument("Numeric: width out of range");
 
     char buffer[64];
     std::sprintf(buffer, "%*d", width, value);
@@ -50,7 +51,8 @@ void format(std::string& str, int value, int width)
 
 void format0(std::string& str, int value, int width)
 {
-    assert(width > 0 && width < 64);
+    if (width <= 0 || width >= 64)
+        throw std::invalid_argument("Numeric: width out of range");
 
     char buffer[64];
     std::sprintf(buffer, "%0*d", width, value);
@@ -68,7 +70,8 @@ void formatHex(std::string& str, int value)
 
 void formatHex(std::string& str, int value, int width)
 {
-    assert(width > 0 && width < 64);
+    if (width <= 0 || width >= 64)
+        throw std::invalid_argument("Numeric: width out of range");
 
     char buffer[64];
     std::sprintf(buffer, "%0*X", width, value);
@@ -86,7 +89,8 @@ void format(std::string& str, unsigned value)
 
 void format(std::string& str, unsigned value, int width)
 {
-    assert(width > 0 && width < 64);
+    if (width <= 0 || width >= 64)
+        throw std::invalid_argument("Numeric: width out of range");
 
     char buffer[64];
     std::sprintf(buffer, "%*u", width, value);
@@ -96,7 +100,8 @@ void format(std::string& str, unsigned value, int width)
 
 void format0(std::string& str, unsigned int value, int width)
 {
-    assert(width > 0 && width < 64);
+    if (width <= 0 || width >= 64)
+        throw std::invalid_argument("Numeric: width out of range");
 
     char buffer[64];
     std::sprintf(buffer, "%0*u", width, value);
@@ -114,7 +119,8 @@ void formatHex(std::string& str, unsigned value)
 
 void formatHex(std::string& str, unsigned value, int width)
 {
-    assert(width > 0 && width < 64);
+    if (width <= 0 || width >= 64)
+        throw std::invalid_argument("Numeric: width out of range");
 
     char buffer[64];
     std::sprintf(buffer, "%0*X", width, value);
@@ -132,7 +138,8 @@ void format(std::string& str, long value)
 
 void format(std::string& str, long value, int width)
 {
-    assert(width > 0 && width < 64);
+    if (width <= 0 || width >= 64)
+        throw std::invalid_argument("Numeric: width out of range");
 
     char buffer[64];
     std::sprintf(buffer, "%*ld", width, value);
@@ -142,7 +149,8 @@ void format(std::string& str, long value, int width)
 
 void format0(std::string& str, long value, int width)
 {
-    assert(width > 0 && width < 64);
+    if (width <= 0 || width >= 64)
+        throw std::invalid_argument("Numeric: width out of range");
 
     char buffer[64];
     std::sprintf(buffer, "%0*ld", width, value);
@@ -160,7 +168,8 @@ void formatHex(std::string& str, long value)
 
 void formatHex(std::string& str, long value, int width)
 {
-    assert(width > 0 && width < 64);
+    if (width <= 0 || width >= 64)
+        throw std::invalid_argument("Numeric: width out of range");
 
     char buffer[64];
     std::sprintf(buffer, "%0*lX", width, value);
@@ -178,7 +187,8 @@ void format(std::string& str, unsigned long value)
 
 void format(std::string& str, unsigned long value, int width)
 {
-    assert(width > 0 && width < 64);
+    if (width <= 0 || width >= 64)
+        throw std::invalid_argument("Numeric: width out of range");
 
     char buffer[64];
     std::sprintf(buffer, "%*lu", width, value);
@@ -188,7 +198,8 @@ void format(std::string& str, unsigned long value, int width)
 
 void format0(std::string& str, unsigned long value, int width)
 {
-    assert(width > 0 && width < 64);
+    if (width <= 0 || width >= 64)
+        throw std::invalid_argument("Numeric: width out of range");
 
     char buffer[64];
     std::sprintf(buffer, "%0*lu", width, value);
@@ -206,7 +217,8 @@ void formatHex(std::string& str, unsigned long value)
 
 void formatHex(std::string& str, unsigned long value, int width)
 {
-    assert(width > 0 && width < 64);
+    if (width <= 0 || width >= 64)
+        throw std::invalid_argument("Numeric: width out of range");
 
     char buffer[64];
     std::sprintf(buffer, "%0*lX", width, value);
@@ -227,7 +239,8 @@ void format(std::string& str, std::int64_t value)
 
 void format(std::string& str, std::int64_t value, int width)
 {
-    assert(width > 0 && width < 64);
+    if (width <= 0 || width >= 64)
+        throw std::invalid_argument("Numeric: width out of range");
 
     char buffer[64];
     std::sprintf(buffer, "%*" I64_FMT "d", width, value);
@@ -237,7 +250,8 @@ void format(std::string& str, std::int64_t value, int width)
 
 void format0(std::string& str, std::int64_t value, int width)
 {
-    assert(width > 0 && width < 64);
+    if (width <= 0 || width >= 64)
+        throw std::invalid_argument("Numeric: width out of range");
 
     char buffer[64];
     std::sprintf(buffer, "%0*" I64_FMT "d", width, value);
@@ -255,7 +269,8 @@ void formatHex(std::string& str, std::int64_t value)
 
 void formatHex(std::string& str, std::int64_t value, int width)
 {
-    assert(width > 0 && width < 64);
+    if (width <= 0 || width >= 64)
+        throw std::invalid_argument("Numeric: width out of range");
 
     char buffer[64];
     std::sprintf(buffer, "%0*" I64_FMT "X", width, value);
@@ -273,7 +288,8 @@ void format(std::string& str, uint64_t value)
 
 void format(std::string& str, uint64_t value, int width)
 {
-    assert(width > 0 && width < 64);
+    if (width <= 0 || width >= 64)
+        throw std::invalid_argument("Numeric: width out of range");
 
     char buffer[64];
     std::sprintf(buffer, "%*" I64_FMT "u", width, value);
@@ -283,7 +299,8 @@ void format(std::string& str, uint64_t value, int width)
 
 void format0(std::string& str, uint64_t value, int width)
 {
-    assert(width > 0 && width < 64);
+    if (width <= 0 || width >= 64)
+        throw std::invalid_argument("Numeric: width out of range");
 
     char buffer[64];
     std::sprintf(buffer, "%0*" I64_FMT "u", width, value);
@@ -301,7 +318,8 @@ void formatHex(std::string& str, uint64_t value)
 
 void formatHex(std::string& str, uint64_t value, int width)
 {
-    assert(width > 0 && width < 64);
+    if (width <= 0 || width >= 64)
+        throw std::invalid_argument("Numeric: width out of range");
 
     char buffer[64];
     std::sprintf(buffer, "%0*" I64_FMT "X", width, value);
@@ -315,17 +333,6 @@ void formatHex(std::string& str, uint64_t value, int width)
 void format(std::string& str, const void* ptr)
 {
     char buffer[24];
-#if 0 // deprecated
-#if defined(SCY_PTR_IS_64_BIT)
-#if defined(SCY_LONG_IS_64_BIT)
-    std::sprintf(buffer, "%016lX", (std::uintptr_t)ptr);
-#else
-    std::sprintf(buffer, "%016" I64_FMT "X", (std::uintptr_t)ptr);
-#endif
-#else
-    std::sprintf(buffer, "%08lX", (std::uintptr_t)ptr);
-#endif
-#endif
     std::sprintf(buffer, "%p", ptr);
     str.append(buffer);
 }

@@ -9,54 +9,41 @@
 /// @{
 
 
-#ifndef SCY_Singleton_H
-#define SCY_Singleton_H
+#pragma once
 
 
-#include <cstdint>
+#include <memory>
 #include <mutex>
 
 
 namespace scy {
 
 
-/// This is a helper template class for managing
-/// singleton objects allocated on the heap.
+/// Helper template class for managing singleton objects allocated on the heap.
 template <class S>
 class Singleton
 {
 public:
-    /// Creates the Singleton wrapper.
-    Singleton()
-        : _ptr(0)
-    {
-    }
+    Singleton() = default;
 
-    /// Destroys the Singleton wrapper and the managed
-    /// singleton instance it holds.
-    ~Singleton()
-    {
-        if (_ptr)
-            delete _ptr;
-    }
+    ~Singleton() = default;
 
-    /// Returns a pointer to the singleton object hold by the Singleton.
-    /// The first call to get on a nullptr singleton will instantiate
-    /// the singleton.
+    /// Returns a pointer to the singleton object held by the Singleton.
+    /// The first call to get will instantiate the singleton.
     S* get()
     {
         std::lock_guard<std::mutex> guard(_m);
         if (!_ptr)
-            _ptr = new S;
-        return _ptr;
+            _ptr.reset(new S());
+        return _ptr.get();
     }
 
     /// Swaps the old pointer with the new one and returns the old instance.
     S* swap(S* newPtr)
     {
         std::lock_guard<std::mutex> guard(_m);
-        S* oldPtr = _ptr;
-        _ptr = newPtr;
+        S* oldPtr = _ptr.release();
+        _ptr.reset(newPtr);
         return oldPtr;
     }
 
@@ -64,21 +51,19 @@ public:
     void destroy()
     {
         std::lock_guard<std::mutex> guard(_m);
-        if (_ptr)
-            delete _ptr;
-        _ptr = nullptr;
+        _ptr.reset();
     }
 
 private:
-    S* _ptr;
+    /// Custom deleter that can access private destructors via friendship.
+    struct Deleter
+    {
+        void operator()(S* p) const { delete p; }
+    };
+
+    std::unique_ptr<S, Deleter> _ptr;
     std::mutex _m;
 };
 
 
 } // namespace scy
-
-
-#endif // SCY_Singleton_H
-
-
-/// @\}

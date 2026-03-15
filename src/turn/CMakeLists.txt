@@ -1,5 +1,6 @@
-ask_build_sourcey_module(turn)
-if(BUILD_MODULES OR (NOT BUILD_MODULES AND BUILD_MODULE_turn))
-  set(turn_PRETTY_NAME TURN)
-  define_sourcey_module(turn base net stun crypto util)
+if(HAVE_OPENSSL)
+  scy_add_module(turn
+    DEPENDS base net stun crypto
+    PRETTY_NAME TURN
+  )
 endif()

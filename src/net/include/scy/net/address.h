@@ -9,13 +9,12 @@
 /// @{
 
 
-#ifndef SCY_Net_Address_H
-#define SCY_Net_Address_H
+#pragma once
 
 
 #include "scy/net/net.h"
-#include <string>
 #include <memory>
+#include <string>
 
 
 namespace scy {
@@ -74,7 +73,7 @@ public:
     explicit Address(const std::string& hostAndPort);
 
     /// Destroys the Address.
-    ~Address();
+    ~Address() noexcept;
 
     /// Assigns another Address.
     Address& operator=(const Address& addr);
@@ -131,9 +130,6 @@ private:
 
 } // namespace net
 } // namespace scy
-
-
-#endif // SCY_Net_Address_H
 
 
 /// @\}

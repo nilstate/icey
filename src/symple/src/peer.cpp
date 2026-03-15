@@ -10,7 +10,6 @@
 
 
 #include "scy/symple/peer.h"
-#include "assert.h"
 #include "scy/logger.h"
 
 
@@ -51,9 +50,7 @@ void Peer::print(std::ostream& os) const
 
 bool Peer::valid()
 {
-    return find("id") != end()
-        && find("user") != end()
-        && find("type") != end();
+    return find("id") != end() && find("user") != end() && find("type") != end();
 }
 
 

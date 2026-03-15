@@ -9,15 +9,14 @@
 /// @{
 
 
-#ifndef SCY_Crypto_X509Certificate_H
-#define SCY_Crypto_X509Certificate_H
+#pragma once
 
 
 #include "scy/crypto/crypto.h"
 #include "scy/datetime.h"
-#include "scy/memory.h"
 
 #include <istream>
+#include <memory>
 #include <set>
 
 #include <openssl/ssl.h>
@@ -28,6 +27,9 @@ namespace crypto {
 
 
 /// This class represents a X509 Certificate.
+/// RAII wrapper for OpenSSL X509 pointers.
+using X509Ptr = std::unique_ptr<X509, decltype(&X509_free)>;
+
 class Crypto_API X509Certificate
 {
 public:
@@ -65,8 +67,14 @@ public:
     /// Creates the certificate by copying another one.
     X509Certificate(const X509Certificate& cert);
 
+    /// Move constructor.
+    X509Certificate(X509Certificate&& cert) noexcept;
+
     /// Assigns a certificate.
     X509Certificate& operator=(const X509Certificate& cert);
+
+    /// Move assignment.
+    X509Certificate& operator=(X509Certificate&& cert) noexcept;
 
     /// Exchanges the certificate with another one.
     void swap(X509Certificate& cert);
@@ -127,6 +135,7 @@ public:
 
     /// Returns the underlying OpenSSL certificate.
     const X509* certificate() const;
+    X509* certificate();
 
 protected:
     /// Loads the certificate from the given buffer.
@@ -148,15 +157,12 @@ private:
 
     std::string _issuerName;
     std::string _subjectName;
-    X509* _certificate;
+    X509Ptr _certificate;
 };
 
 
 } // namespace crypto
 } // namespace scy
-
-
-#endif // SCY_Crypto_X509Certificate_H
 
 
 /// @\}

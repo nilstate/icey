@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_Net_H
-#define SCY_Net_H
+#pragma once
 
 
 #include "scy/base.h"
@@ -22,13 +21,12 @@
 #ifdef SCY_WIN
 #include <winsock2.h>
 #include <ws2tcpip.h>
-typedef int socklen_t;
+using socklen_t = int;
 // typedef SOCKET scy_socket_t;
 #else
-#include <sys/socket.h>
 #include <netinet/in.h>
+#include <sys/socket.h>
 // typedef int scy_socket_t;
-// Conflicts with WebRTC: webrtc/base/socket.h:116
 // #define INVALID_SOCKET -1
 #endif
 
@@ -61,7 +59,7 @@ typedef int socklen_t;
 // process can easily use SO_REUSEPORT sockets to achieve a kind of simple
 // load balancing and that absolutely for free as the kernel is doing
 // "all the hard work" for them.
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,9,0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 9, 0)
 #define SCY_HAS_KERNEL_SOCKET_LOAD_BALANCING 1
 #endif
 #endif
@@ -69,13 +67,13 @@ typedef int socklen_t;
 
 // Shared library exports
 #if defined(SCY_WIN) && defined(SCY_SHARED_LIBRARY)
-    #if defined(Net_EXPORTS)
-        #define Net_API __declspec(dllexport)
-    #else
-        #define Net_API __declspec(dllimport)
-    #endif
+#if defined(Net_EXPORTS)
+#define Net_API __declspec(dllexport)
 #else
-    #define Net_API // nothing
+#define Net_API __declspec(dllimport)
+#endif
+#else
+#define Net_API // nothing
 #endif
 
 
@@ -83,8 +81,8 @@ namespace scy {
 namespace net {
 
 
-const int MAX_TCP_PACKET_SIZE = 64 * 1024;
-const int MAX_UDP_PACKET_SIZE = 1500;
+constexpr int MAX_TCP_PACKET_SIZE = 64 * 1024;
+constexpr int MAX_UDP_PACKET_SIZE = 1500;
 
 
 enum TransportType
@@ -104,6 +102,3 @@ enum SocketMode
 
 } // namespace net
 } // namespace scy
-
-
-#endif

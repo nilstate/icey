@@ -3,9 +3,9 @@
 
 
 #include "scy/logger.h"
+#include "scy/net/tcpsocket.h"
 #include "scy/time.h"
 #include "scy/util.h"
-#include "scy/net/tcpsocket.h"
 #include <string>
 
 
@@ -27,20 +27,20 @@ public:
         : id(id)
         , timer(1000, 1000)
     {
-        LDebug(id, ": Creating")
+        LDebug(id, ": Creating");
 
         socket.addReceiver(this);
     }
 
     virtual ~TCPResponder()
     {
-        LDebug(id, ": Destroying")
+        LDebug(id, ": Destroying");
         socket.removeReceiver(this);
     }
 
     void connect(const net::Address& relayAddr)
     {
-        LDebug(id,": Starting on: ", relayAddr)
+        LDebug(id, ": Starting on: ", relayAddr);
 
         try {
             this->relayedAddr = relayAddr;
@@ -49,7 +49,7 @@ public:
             // will be received below.
             socket.connect(relayAddr);
         } catch (std::exception& exc) {
-            LError(id, ": ERROR: ", exc.what())
+            LError(id, ": ERROR: ", exc.what());
             assert(false);
         }
     }
@@ -59,8 +59,8 @@ public:
         socket.close();
         timer.stop();
     }
-    
-    void onSocketConnect(net::Socket&)
+
+    bool onSocketConnect(net::Socket&)
     {
         // Send some early media to client
         // sendPacketToInitiator();
@@ -68,24 +68,28 @@ public:
         // Start the send timer
         // timer.Timeout += slot(this, &TCPResponder::onSendTimer);
         // timer.start();
+        return false;
     }
 
-    void onSocketRecv(net::Socket&, const MutableBuffer& buffer, const net::Address& peerAddress)
+    bool onSocketRecv(net::Socket&, const MutableBuffer& buffer, const net::Address& peerAddress)
     {
-        LDebug(id, ": On recv: ", peerAddress, ": ", buffer.size())
+        LDebug(id, ": On recv: ", peerAddress, ": ", buffer.size());
 
         // Echo data back to client
         socket.send(bufferCast<const char*>(buffer), buffer.size());
+        return false;
     }
 
-    void onSocketError(net::Socket&, const scy::Error& error)
+    bool onSocketError(net::Socket&, const scy::Error& error)
     {
-        LDebug(id, ": On error: ", error.message)
+        LDebug(id, ": On error: ", error.message);
+        return false;
     }
 
-    void onSocketClose(net::Socket&)
+    bool onSocketClose(net::Socket&)
     {
-        LDebug(id, ": On close")
+        LDebug(id, ": On close");
+        return false;
     }
 
 #if 0

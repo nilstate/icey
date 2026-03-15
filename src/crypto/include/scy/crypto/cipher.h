@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_Crypto_Cipher_H
-#define SCY_Crypto_Cipher_H
+#pragma once
 
 
 #include "scy/crypto/crypto.h"
@@ -20,12 +19,16 @@
 
 #include <openssl/evp.h>
 
-#include <cstdint>
 #include <assert.h>
+#include <cstdint>
+#include <memory>
 
 
 namespace scy {
 namespace crypto {
+
+
+using EvpCipherCtxPtr = std::unique_ptr<EVP_CIPHER_CTX, decltype(&EVP_CIPHER_CTX_free)>;
 
 
 /// Provides symmetric algorithms for encryption and decryption.
@@ -113,10 +116,10 @@ public:
     }
 
     /// Encrypts a string and encodes it using the given encoding.
-    virtual std::string encryptString(const std::string& str, Encoding encoding = Binary);
+    [[nodiscard]] virtual std::string encryptString(const std::string& str, Encoding encoding = Binary);
 
     /// Decrypts a string that is encoded with the given encoding.
-    virtual std::string decryptString(const std::string& str, Encoding encoding = Binary);
+    [[nodiscard]] virtual std::string decryptString(const std::string& str, Encoding encoding = Binary);
 
     /// Encrypts an input stream and encodes it using the given encoding.
     virtual void encryptStream(std::istream& source, std::ostream& sink, Encoding encoding = Binary);
@@ -179,6 +182,8 @@ protected:
     Cipher() = default;
     Cipher(const Cipher&) = delete;
     Cipher& operator=(const Cipher&) = delete;
+    Cipher(Cipher&&) = delete;
+    Cipher& operator=(Cipher&&) = delete;
 
     /// Generates and sets the key and IV from a password and optional salt string.
     void generateKey(const std::string& passphrase, const std::string& salt, int iterationCount);
@@ -195,7 +200,7 @@ protected:
     bool _initialized;
     bool _encrypt;
     const EVP_CIPHER* _cipher;
-    EVP_CIPHER_CTX* _ctx;
+    EvpCipherCtxPtr _ctx;
     std::string _name;
     ByteVec _key;
     ByteVec _iv;
@@ -236,9 +241,6 @@ std::string decryptString(const std::string& algorithm, const std::string& data,
 
 } // namespace crypto
 } // namespace scy
-
-
-#endif // SCY_Crypto_Cipher_H
 
 
 /// @\}

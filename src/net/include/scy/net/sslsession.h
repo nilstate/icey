@@ -9,14 +9,13 @@
 /// @{
 
 
-#ifndef SCY_Net_SSLSession_H
-#define SCY_Net_SSLSession_H
+#pragma once
 
 
 #include "scy/crypto/crypto.h"
-#include "scy/memory.h"
 #include "scy/net/net.h"
 
+#include <memory>
 #include <openssl/ssl.h>
 
 
@@ -33,7 +32,7 @@ namespace net {
 class Net_API SSLSession
 {
 public:
-    typedef std::shared_ptr<SSLSession> Ptr;
+    using Ptr = std::shared_ptr<SSLSession>;
 
     /// Returns the stored OpenSSL SSL_SESSION object.
     SSL_SESSION* sslSession() const;
@@ -48,9 +47,14 @@ public:
     ///
     /// Calls SSL_SESSION_free() on the stored
     /// SSL_SESSION object.
-    ~SSLSession();
+    ~SSLSession() noexcept;
 
     SSLSession();
+
+    SSLSession(const SSLSession&) = delete;
+    SSLSession& operator=(const SSLSession&) = delete;
+    SSLSession(SSLSession&&) = delete;
+    SSLSession& operator=(SSLSession&&) = delete;
 
 protected:
     SSL_SESSION* _ptr;
@@ -59,9 +63,6 @@ protected:
 
 } // namespace net
 } // namespace scy
-
-
-#endif // SCY_Net_SSLSession_H
 
 
 /// @\}

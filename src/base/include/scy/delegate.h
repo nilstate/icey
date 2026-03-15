@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_Delegate_H
-#define SCY_Delegate_H
+#pragma once
 
 
 #include <functional>
@@ -154,9 +153,6 @@ struct PolymorphicDelegate : AbstractDelegate<RT, IT&>
 
 
 } // namespace scy
-
-
-#endif // SCY_Delegate_H
 
 
 /// @\}

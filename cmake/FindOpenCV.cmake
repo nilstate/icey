@@ -1,165 +1,75 @@
-# Try to find OpenCV library installation
-# See http://sourceforge.net/projects/opencvlibrary/
+# Find OpenCV library (4.x+)
 #
-# The following variables are optionally searched for defaults
-#  OPENCV_FIND_COMPONENTS : find_package(OPENCV COMPONENTS ..)
-#    compatible interface. typically  CV CXCORE CVAUX HIGHGUI CVCAM .. etc.
+# Uses OpenCV's own CMake config (OpenCVConfig.cmake) which ships with
+# all modern OpenCV installations. Falls back to pkg-config.
 #
-# The following are set after configuration is done:
-#  OPENCV_FOUND
-#  OPENCV_INCLUDE_DIR
-#  OPENCV_LIBRARIES
-#  OPENCV_LIBRARY_DIRS
-# ----------------------------------------------------------------------
+# Sets:
+#   OPENCV_FOUND
+#   OPENCV_INCLUDE_DIRS  (alias for OpenCV_INCLUDE_DIRS)
+#   OPENCV_LIBRARIES     (alias for OpenCV_LIBS)
+#   OPENCV_VERSION       (alias for OpenCV_VERSION)
 
-# ----------------------------------------------------------------------
-# Default OpenCV components to include if COMPONENTS is undefined
-# ----------------------------------------------------------------------
-if(NOT OPENCV_FIND_COMPONENTS)
-  set(OPENCV_FIND_COMPONENTS callib3d contrib core features2d flann gpu harrtraining_engine highgui imgproc legacy ml objdetect video)
+# Try OpenCV's own config-based find first (preferred)
+find_package(OpenCV 4.0 QUIET CONFIG)
+
+if(OpenCV_FOUND)
+  set(OPENCV_FOUND TRUE)
+  set(OPENCV_INCLUDE_DIRS ${OpenCV_INCLUDE_DIRS})
+  set(OPENCV_LIBRARIES ${OpenCV_LIBS})
+  set(OPENCV_VERSION ${OpenCV_VERSION})
+  message(STATUS "Found OpenCV ${OPENCV_VERSION} (config mode)")
+  return()
 endif()
 
-# ----------------------------------------------------------------------
-# Options
-# ----------------------------------------------------------------------
-set(OPENCV_LINK_SHARED_LIBS ${BUILD_SHARED_LIBS} CACHE BOOL "Link with shared OpenCV libraries (.dll/.so) instead of static ones (.lib/.a)")
-
-# ----------------------------------------------------------------------
-# Use pkg-config to find OpenCV if available
-# ----------------------------------------------------------------------
+# Fallback: pkg-config
 find_package(PkgConfig QUIET)
-if (PKG_CONFIG_FOUND)
-  pkg_search_module(OPENCV opencv)
-
-  # message("OPENCV_FOUND=${OPENCV_FOUND}")
-  # message("OPENCV_LIBRARIES=${OPENCV_LIBRARIES}")
-  # message("OPENCV_STATIC_LIBRARIES=${OPENCV_STATIC_LIBRARIES}")
-  # message("OPENCV_INCLUDE_DIRS=${OPENCV_INCLUDE_DIRS}")
-  # message("OPENCV_LIBRARY_DIRS=${OPENCV_LIBRARY_DIRS}")
-  # message("OPENCV_DEFINITIONS=${OPENCV_DEFINITIONS}")
-  # message("OPENCV_VERSION=${OPENCV_VERSION}")
-endif()
-
-# ----------------------------------------------------------------------
-# Find component libraries
-# ----------------------------------------------------------------------
-#set_module_notfound(OPENCV)
-if (NOT OPENCV_FOUND)
-  set(OPENCV_FOUND 0)
-
-  # Find OpenCV include directory
-  # set(OPENCV_INCLUDE_DIR OPENCV_INCLUDE_DIR-NOTFOUND)
-  find_path(OPENCV_INCLUDE_DIR
-    NAMES
-      opencv2/core/core.hpp
-    DOC
-      "OpenCV Include Directory"
-    PATHS
-      /usr/local/include
-      /usr/include
-    )
-
-  # Find OpenCV library directory
-  # set(OPENCV_LIBRARY_DIRS OPENCV_LIBRARY_DIRS-NOTFOUND)
-  find_path(OPENCV_LIBRARY_DIRS
-    NAMES
-      opencv_core
-    DOC
-      "OpenCV Library Directory"
-    PATHS
-      /usr/lib
-      /usr/lib/x86_64-linux-gnu
-      /usr/lib/i386-linux-gnu
-      /usr/lib64
-      /usr/local/lib
-      /usr/local/lib/x86_64-linux-gnu
-      /usr/local/lib/i386-linux-gnu
-      /usr/local/lib64
-    )
-
-  if(OPENCV_LIBRARY_DIRS)
-    set(OPENCV_FOUND 1)
-
-    # Glob library files (wish CMake supported "*.{lib|so|a}" syntax :P)
-    if (WIN32)
-      file(GLOB_RECURSE libraries "${OPENCV_LIBRARY_DIRS}/*.lib")
-    else()
-      if (BUILD_SHARED_LIBS)
-        file(GLOB_RECURSE libraries "${OPENCV_LIBRARY_DIRS}/*.so")
-      else()
-        file(GLOB_RECURSE libraries "${OPENCV_LIBRARY_DIRS}/*.a")
-      endif()
-    endif()
-
-    # TODO: Include only OPENCV_FIND_COMPONENTS
-    set(OPENCV_LIBRARIES "")
-    foreach(lib ${libraries})
-      get_filename_component(filename ${lib} NAME)
-      if(${filename} MATCHES "opencv_")
-        if(WIN32 AND (CMAKE_CONFIGURATION_TYPES OR CMAKE_BUILD_TYPE))
-          if (${filename} MATCHES "d.lib$")
-            list(APPEND OPENCV_LIBRARIES "debug" ${filename})
-          else()
-            list(APPEND OPENCV_LIBRARIES "optimized" ${filename})
-          endif()
-        else()
-          list(APPEND OPENCV_LIBRARIES ${filename})
-        endif()
-      endif()
-    endforeach()
-
-    if(WIN32)
-      # Include OpenCV shared libraries
-      if(NOT OPENCV_LINK_SHARED_LIBS)
-        set(OPENCV_SHARED_LIBRARY_DIR "")
-        if(IS_DIRECTORY "${OPENCV_INCLUDE_DIR}/../share/OpenCV/3rdparty/lib")
-          set(OPENCV_SHARED_LIBRARY_DIR "${OPENCV_INCLUDE_DIR}/../share/OpenCV/3rdparty/lib")
-        elseif(IS_DIRECTORY "${OPENCV_INCLUDE_DIR}/../3rdparty/lib")
-          set(OPENCV_SHARED_LIBRARY_DIR "${OPENCV_INCLUDE_DIR}/../3rdparty/lib")
-        endif()
-        if(OPENCV_SHARED_LIBRARY_DIR)
-          list(APPEND OPENCV_LIBRARY_DIRS ${OPENCV_SHARED_LIBRARY_DIR})
-          if(CMAKE_CONFIGURATION_TYPES OR CMAKE_BUILD_TYPE)
-            list(APPEND OPENCV_LIBRARIES debug zlibd.lib)
-            list(APPEND OPENCV_LIBRARIES optimized zlib.lib)
-          else()
-            list(APPEND OPENCV_LIBRARIES zlib.lib)
-          endif()
-        endif()
-        list(APPEND OPENCV_LIBRARIES Vfw32.lib)
-      endif()
-
-      # LibSourcey requires HighGUI DirectShow to use multithreaded COM.
-      # Just provide a warning for now, but we really should check the source file itself.
-      status("IMPORTANT: OpenCV HighGUI DirectShow must be compiled with VI_COM_MULTI_THREADED defined.")
-    endif()
-
-    #message(STATUS "Found OpenCV libraries: ${OPENCV_LIBRARIES}")
-
-    #set_module_found(OPENCV)
+if(PKG_CONFIG_FOUND)
+  pkg_check_modules(OPENCV QUIET opencv4)
+  if(NOT OPENCV_FOUND)
+    pkg_check_modules(OPENCV QUIET opencv)
+  endif()
+  if(OPENCV_FOUND)
+    message(STATUS "Found OpenCV ${OPENCV_VERSION} (pkg-config)")
+    return()
   endif()
 endif()
 
-# Cache the vars.
-set(OPENCV_INCLUDE_DIR  ${OPENCV_INCLUDE_DIR}  CACHE STRING   "The OpenCV include directory." FORCE)
-set(OPENCV_LIBRARY_DIRS ${OPENCV_LIBRARY_DIRS} CACHE STRING   "The OpenCV library directories." FORCE)
-set(OPENCV_LIBRARIES    ${OPENCV_LIBRARIES}    CACHE STRING   "The OpenCV libraries." FORCE)
-set(OPENCV_FOUND        ${OPENCV_FOUND}        CACHE BOOLEAN  "The OpenCV found status." FORCE)
+# Manual fallback for non-standard installations
+find_path(OPENCV_INCLUDE_DIRS
+  NAMES opencv2/core.hpp
+  PATHS
+    /usr/local/include
+    /usr/include
+    $ENV{OPENCV_DIR}/include
+)
 
-mark_as_advanced(OPENCV_INCLUDE_DIR
-                 OPENCV_LIBRARY_DIRS
-                 OPENCV_LIBRARIES
-                 OPENCV_FOUND)
+find_library(OPENCV_CORE_LIB
+  NAMES opencv_core
+  PATHS
+    /usr/local/lib
+    /usr/lib
+    /usr/lib/x86_64-linux-gnu
+    /usr/lib64
+    $ENV{OPENCV_DIR}/lib
+)
 
-#message("OPENCV_INCLUDE_DIR=${OPENCV_INCLUDE_DIR}")
-#message("OPENCV_LIBRARY_DIRS=${OPENCV_LIBRARY_DIRS}")
-#message("OPENCV_LIBRARIES=${OPENCV_LIBRARIES}")
-#message("OPENCV_VERSION_FILE=${OPENCV_VERSION_FILE}")
-#message("OPENCV_VERSION=${OPENCV_VERSION}")
+if(OPENCV_INCLUDE_DIRS AND OPENCV_CORE_LIB)
+  set(OPENCV_FOUND TRUE)
+  get_filename_component(OPENCV_LIBRARY_DIR ${OPENCV_CORE_LIB} DIRECTORY)
 
-if(NOT OPENCV_FOUND)
- if (OPENCV_FIND_REQUIRED)
-    message(FATAL_ERROR
-      "OpenCV was not found, please specify the path manually. Version >= 3.0.0 supported.")
- endif()
+  # Find all opencv_ libraries in the directory
+  file(GLOB _opencv_libs "${OPENCV_LIBRARY_DIR}/libopencv_*.so" "${OPENCV_LIBRARY_DIR}/libopencv_*.a")
+  set(OPENCV_LIBRARIES "")
+  foreach(lib ${_opencv_libs})
+    list(APPEND OPENCV_LIBRARIES ${lib})
+  endforeach()
+
+  message(STATUS "Found OpenCV (manual search) in ${OPENCV_LIBRARY_DIR}")
+else()
+  set(OPENCV_FOUND FALSE)
+  if(OPENCV_FIND_REQUIRED)
+    message(FATAL_ERROR "OpenCV >= 4.0 not found. Set OpenCV_DIR or OPENCV_DIR.")
+  endif()
 endif()
+
+mark_as_advanced(OPENCV_INCLUDE_DIRS OPENCV_LIBRARIES OPENCV_CORE_LIB)

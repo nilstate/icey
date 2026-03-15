@@ -10,7 +10,7 @@ class SnapshotRequestHandler : public http::ServerResponder
 {
 public:
     SnapshotRequestHandler(http::ServerConnection& connection,
-        const StreamingOptions& options)
+                           const StreamingOptions& options)
         : http::ServerResponder(connection)
         , options(options)
     {
@@ -20,7 +20,7 @@ public:
 
     void onRequest(http::Request& request, http::Response& response)
     {
-        LDebug("Running")
+        LDebug("Running");
 
         cv::Mat frame;
         options.videoCapture->getFrame(frame, options.oformat.video.width,
@@ -39,7 +39,7 @@ public:
                << "\n\tCapture Height: " << options.videoCapture->height()
                << "\n\tType: " << frame.type()
                << "\n\tInput Size: " << frame.total()
-               << "\n\tOutput Lize: " << buffer.size() << std::endl;
+               << "\n\tOutput Size: " << buffer.size() << std::endl;
 
         // std::copy(buffer.begin(), buffer.end(), data);
         // connection().sendData((const char*)data, buffer.size());

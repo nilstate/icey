@@ -1,3 +1,1 @@
-# include_dependency(SSL REQUIRED)
-
-define_libsourcey_test(cryptotests base crypto)
+scy_add_test(cryptotests DEPENDS base crypto)

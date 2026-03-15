@@ -10,11 +10,9 @@
 
 
 #include "scy/symple/command.h"
-#include "assert.h"
 #include "scy/util.h"
 
-
-using std::endl;
+#include <stdexcept>
 
 
 namespace scy {
@@ -31,7 +29,7 @@ Command::Command(const Command& root)
     : Message(root)
 {
     // if (find("type") == end())
-        (*this)["type"] = "command";
+    (*this)["type"] = "command";
 }
 
 
@@ -39,7 +37,7 @@ Command::Command(const json::value& root)
     : Message(root)
 {
     // if (find("type") == end())
-        (*this)["type"] = "command";
+    (*this)["type"] = "command";
 }
 
 
@@ -50,8 +48,7 @@ Command::~Command()
 
 bool Command::valid() const
 {
-    return Message::valid()
-        && find("node") != end();
+    return Message::valid() && find("node") != end();
 }
 
 
@@ -82,9 +79,8 @@ void Command::setAction(const std::string& action)
 std::string Command::param(int n) const
 {
     std::vector<std::string> params = util::split(node(), ':');
-    assert(int(params.size()) >= n);
     if (int(params.size()) < n)
-        return "";
+        throw std::out_of_range("Command param index out of range: " + std::to_string(n));
     return params[n - 1].c_str();
 }
 

@@ -10,12 +10,12 @@
 
 
 #include "scy/crypto/x509certificate.h"
-#include <sstream>
-#include <openssl/opensslv.h>
 #include <openssl/err.h>
 #include <openssl/evp.h>
+#include <openssl/opensslv.h>
 #include <openssl/pem.h>
 #include <openssl/x509v3.h>
+#include <sstream>
 
 
 namespace scy {
@@ -23,48 +23,37 @@ namespace crypto {
 
 
 X509Certificate::X509Certificate(const char* data, size_t length)
-    : _certificate(0)
+    : _certificate(nullptr, X509_free)
 {
-    std::string res;
-    Timestamp ts;
-    DateTimeFormatter::append(res, ts, DateTimeFormat::HTTP_FORMAT);
-
-    std::string dateTime;
-    int tzd;
-    DateTime t = DateTimeParser::parse("%y%m%d%H%M%S", dateTime, tzd);
-    Timespan t1;
-
     load(data, length);
 }
 
 
 X509Certificate::X509Certificate(const std::string& path)
-    : _certificate(0)
+    : _certificate(nullptr, X509_free)
 {
     load(path);
 }
 
 
 X509Certificate::X509Certificate(X509* pCert)
-    : _certificate(pCert)
+    : _certificate(pCert, X509_free)
 {
-    assert(_certificate);
+    if (!_certificate)
+        throw std::runtime_error("X509Certificate: certificate is null");
 
     init();
 }
 
 
 X509Certificate::X509Certificate(X509* pCert, bool shared)
-    : _certificate(pCert)
+    : _certificate(pCert, X509_free)
 {
-    assert(_certificate);
+    if (!_certificate)
+        throw std::runtime_error("X509Certificate: certificate is null");
 
-    if (shared){
-#if OPENSSL_VERSION_NUMBER >= 0x1010000fL
-        X509_up_ref(_certificate);   
-#else
-        _certificate->references++;
-#endif
+    if (shared) {
+        X509_up_ref(_certificate.get());
     }
     init();
 }
@@ -73,9 +62,16 @@ X509Certificate::X509Certificate(X509* pCert, bool shared)
 X509Certificate::X509Certificate(const X509Certificate& cert)
     : _issuerName(cert._issuerName)
     , _subjectName(cert._subjectName)
-    , _certificate(cert._certificate)
+    , _certificate(X509_dup(cert._certificate.get()), X509_free)
 {
-    _certificate = X509_dup(_certificate);
+}
+
+
+X509Certificate::X509Certificate(X509Certificate&& cert) noexcept
+    : _issuerName(std::move(cert._issuerName))
+    , _subjectName(std::move(cert._subjectName))
+    , _certificate(std::move(cert._certificate))
+{
 }
 
 
@@ -83,6 +79,17 @@ X509Certificate& X509Certificate::operator=(const X509Certificate& cert)
 {
     X509Certificate tmp(cert);
     swap(tmp);
+    return *this;
+}
+
+
+X509Certificate& X509Certificate::operator=(X509Certificate&& cert) noexcept
+{
+    if (&cert != this) {
+        _issuerName = std::move(cert._issuerName);
+        _subjectName = std::move(cert._subjectName);
+        _certificate = std::move(cert._certificate);
+    }
     return *this;
 }
 
@@ -95,15 +102,13 @@ void X509Certificate::swap(X509Certificate& cert)
 }
 
 
-X509Certificate::~X509Certificate()
-{
-    X509_free(_certificate);
-}
+X509Certificate::~X509Certificate() = default;
 
 
 void X509Certificate::load(const char* data, size_t length)
 {
-    assert(!_certificate);
+    if (_certificate)
+        throw std::logic_error("X509Certificate: already loaded");
 
     std::string cert(data, length);
     BIO* pBIO = BIO_new_mem_buf(const_cast<char*>(cert.data()),
@@ -111,12 +116,12 @@ void X509Certificate::load(const char* data, size_t length)
     if (!pBIO)
         throw std::runtime_error(
             "SSL IO error: Cannot create BIO for reading certificate");
-    _certificate = PEM_read_bio_X509(pBIO, 0, 0, 0);
+    _certificate.reset(PEM_read_bio_X509(pBIO, nullptr, nullptr, nullptr));
     BIO_free(pBIO);
 
     if (!_certificate)
         throw std::runtime_error(
-            "SSL IO error: Faild to load X509 certificate from stream");
+            "SSL IO error: Failed to load X509 certificate from stream");
 
     init();
 }
@@ -124,7 +129,8 @@ void X509Certificate::load(const char* data, size_t length)
 
 void X509Certificate::load(const std::string& path)
 {
-    assert(!_certificate);
+    if (_certificate)
+        throw std::logic_error("X509Certificate: already loaded");
 
     BIO* pBIO = BIO_new(BIO_s_file());
     if (!pBIO)
@@ -138,12 +144,12 @@ void X509Certificate::load(const std::string& path)
             path);
     }
 
-    _certificate = PEM_read_bio_X509(pBIO, 0, 0, 0);
+    _certificate.reset(PEM_read_bio_X509(pBIO, nullptr, nullptr, nullptr));
     BIO_free(pBIO);
 
     if (!_certificate)
         throw std::runtime_error(
-            "SSL file error: Faild to load certificate from: " + path);
+            "SSL file error: Failed to load certificate from: " + path);
 
     init();
 }
@@ -156,7 +162,7 @@ void X509Certificate::save(std::ostream& stream) const
         throw std::runtime_error(
             "SSL IO error: Cannot create BIO for writing certificate");
     try {
-        if (!PEM_write_bio_X509(pBIO, _certificate))
+        if (!PEM_write_bio_X509(pBIO, _certificate.get()))
             throw std::runtime_error(
                 "SSL IO error: Failed to write certificate to stream");
 
@@ -176,7 +182,7 @@ void X509Certificate::save(const std::string& path) const
 {
     BIO* pBIO = BIO_new(BIO_s_file());
     if (!pBIO)
-        std::runtime_error(
+        throw std::runtime_error(
             "SSL IO error: Cannot create BIO for reading certificate file: " +
             path);
     if (!BIO_write_filename(pBIO, const_cast<char*>(path.c_str()))) {
@@ -186,7 +192,7 @@ void X509Certificate::save(const std::string& path) const
     }
 
     try {
-        if (!PEM_write_bio_X509(pBIO, _certificate))
+        if (!PEM_write_bio_X509(pBIO, _certificate.get()))
             throw std::runtime_error(
                 "SSL file error: Failed to write certificate to file: " + path);
     } catch (...) {
@@ -201,9 +207,9 @@ void X509Certificate::save(const std::string& path) const
 void X509Certificate::init()
 {
     char buffer[NAME_BUFFER_SIZE];
-    X509_NAME_oneline(X509_get_issuer_name(_certificate), buffer, sizeof(buffer));
+    X509_NAME_oneline(X509_get_issuer_name(_certificate.get()), buffer, sizeof(buffer));
     _issuerName = buffer;
-    X509_NAME_oneline(X509_get_subject_name(_certificate), buffer, sizeof(buffer));
+    X509_NAME_oneline(X509_get_subject_name(_certificate.get()), buffer, sizeof(buffer));
     _subjectName = buffer;
 }
 
@@ -216,7 +222,7 @@ std::string X509Certificate::commonName() const
 
 std::string X509Certificate::issuerName(NID nid) const
 {
-    if (X509_NAME* issuer = X509_get_issuer_name(_certificate)) {
+    if (X509_NAME* issuer = X509_get_issuer_name(_certificate.get())) {
         char buffer[NAME_BUFFER_SIZE];
         X509_NAME_get_text_by_NID(issuer, nid, buffer, sizeof(buffer));
         return std::string(buffer);
@@ -227,7 +233,7 @@ std::string X509Certificate::issuerName(NID nid) const
 
 std::string X509Certificate::subjectName(NID nid) const
 {
-    if (X509_NAME* subj = X509_get_subject_name(_certificate)) {
+    if (X509_NAME* subj = X509_get_subject_name(_certificate.get())) {
         char buffer[NAME_BUFFER_SIZE];
         X509_NAME_get_text_by_NID(subj, nid, buffer, sizeof(buffer));
         return std::string(buffer);
@@ -241,12 +247,12 @@ void X509Certificate::extractNames(std::string& cmnName,
 {
     domainNames.clear();
     if (STACK_OF(GENERAL_NAME)* names = static_cast<STACK_OF(GENERAL_NAME)*>(
-            X509_get_ext_d2i(_certificate, NID_subject_alt_name, 0, 0))) {
+            X509_get_ext_d2i(_certificate.get(), NID_subject_alt_name, nullptr, nullptr))) {
         for (int i = 0; i < sk_GENERAL_NAME_num(names); ++i) {
             const GENERAL_NAME* name = sk_GENERAL_NAME_value(names, i);
             if (name->type == GEN_DNS) {
                 const char* data =
-                    reinterpret_cast<char*>(ASN1_STRING_data(name->d.ia5));
+                    reinterpret_cast<const char*>(ASN1_STRING_get0_data(name->d.ia5));
                 size_t len = ASN1_STRING_length(name->d.ia5);
                 domainNames.insert(std::string(data, len));
             }
@@ -263,7 +269,7 @@ void X509Certificate::extractNames(std::string& cmnName,
 
 DateTime X509Certificate::validFrom() const
 {
-    ASN1_TIME* certTime = X509_get_notBefore(_certificate);
+    const ASN1_TIME* certTime = X509_get0_notBefore(_certificate.get());
     std::string dateTime(reinterpret_cast<char*>(certTime->data));
     int tzd;
     return DateTimeParser::parse("%y%m%d%H%M%S", dateTime, tzd);
@@ -272,7 +278,7 @@ DateTime X509Certificate::validFrom() const
 
 DateTime X509Certificate::expiresOn() const
 {
-    ASN1_TIME* certTime = X509_get_notAfter(_certificate);
+    const ASN1_TIME* certTime = X509_get0_notAfter(_certificate.get());
     std::string dateTime(reinterpret_cast<char*>(certTime->data));
     int tzd;
     return DateTimeParser::parse("%y%m%d%H%M%S", dateTime, tzd);
@@ -281,7 +287,7 @@ DateTime X509Certificate::expiresOn() const
 
 bool X509Certificate::issuedBy(const X509Certificate& issuerCertificate) const
 {
-    X509* pCert = const_cast<X509*>(_certificate);
+    X509* pCert = const_cast<X509*>(_certificate.get());
     X509* pIssuerCert = const_cast<X509*>(issuerCertificate.certificate());
     EVP_PKEY* pIssuerPublicKey = X509_get_pubkey(pIssuerCert);
     if (!pIssuerPublicKey)
@@ -306,7 +312,13 @@ const std::string& X509Certificate::subjectName() const
 
 const X509* X509Certificate::certificate() const
 {
-    return _certificate;
+    return _certificate.get();
+}
+
+
+X509* X509Certificate::certificate()
+{
+    return _certificate.get();
 }
 
 

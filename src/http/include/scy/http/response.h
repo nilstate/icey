@@ -8,10 +8,7 @@
 /// @addtogroup http
 /// @{
 
-
-#ifndef SCY_HTTP_Response_H
-#define SCY_HTTP_Response_H
-
+#pragma once
 
 #include "scy/datetime.h"
 #include "scy/http/cookie.h"
@@ -107,13 +104,13 @@ public:
     void setStatus(StatusCode status);
 
     /// Returns the HTTP status code.
-    StatusCode getStatus() const;
+    [[nodiscard]] StatusCode getStatus() const;
 
     /// Sets the HTTP reason phrase.
     void setReason(const std::string& reason);
 
     /// Returns the HTTP reason phrase.
-    const std::string& getReason() const;
+    [[nodiscard]] const std::string& getReason() const;
 
     /// Sets the HTTP status code and reason phrase.
     void setStatusAndReason(StatusCode status, const std::string& reason);
@@ -122,7 +119,7 @@ public:
     void setDate(const Timestamp& dateTime);
 
     /// Returns the value of the Date header.
-    Timestamp getDate() const;
+    [[nodiscard]] Timestamp getDate() const;
 
     /// Adds the cookie to the response by
     /// adding a Set-Cookie header.
@@ -139,8 +136,8 @@ public:
     /// Writes the HTTP response headers to the given output string.
     void write(std::string& str) const override;
 
-    /// Returns true if the HTTP response code was successful (>= 400).
-    virtual bool success() const;
+    /// Returns true if the HTTP response code was successful (< 400).
+    [[nodiscard]] virtual bool success() const;
 
     friend std::ostream& operator<<(std::ostream& stream, const Response& res)
     {
@@ -154,14 +151,11 @@ private:
 };
 
 
-const char* getStatusCodeReason(StatusCode status);
+[[nodiscard]] const char* getStatusCodeReason(StatusCode status);
 
 
 } // namespace http
 } // namespace scy
 
 
-#endif
-
-
-/// @\}
+/// @}

@@ -10,7 +10,6 @@
 
 
 #include "scy/av/formatregistry.h"
-#include "scy/singleton.h"
 
 
 using std::endl;
@@ -25,81 +24,61 @@ FormatRegistry::FormatRegistry()
 }
 
 
-FormatRegistry::~FormatRegistry()
+FormatRegistry::~FormatRegistry() noexcept
 {
 }
 
 
 FormatRegistry& FormatRegistry::instance()
 {
-    static Singleton<FormatRegistry> sh;
-    return *sh.get();
+    static FormatRegistry instance;
+    return instance;
 }
 
 
 Format& FormatRegistry::get(const std::string& name)
 {
     std::lock_guard<std::mutex> guard(_mutex);
-    for (unsigned int i = 0; i < _formats.size(); i++) {
-        if (_formats[i].name == name) {
-            return _formats[i];
-        }
-    }
-
-    throw std::runtime_error("Not found: No media format for: " + name);
+    return findByName(name);
 }
 
 
 Format& FormatRegistry::getByID(const std::string& id)
 {
     std::lock_guard<std::mutex> guard(_mutex);
-    for (unsigned int i = 0; i < _formats.size(); i++) {
-        if (_formats[i].id == id) {
-            return _formats[i];
-        }
+    for (auto& fmt : _formats) {
+        if (fmt.id == id)
+            return fmt;
     }
-
     throw std::runtime_error("Not found: No media format type: " + id);
 }
 
 
 Format& FormatRegistry::getOrDefault(const std::string& name)
 {
-    {
-        std::lock_guard<std::mutex> guard(_mutex);
-        for (unsigned int i = 0; i < _formats.size(); i++) {
-            if (_formats[i].name == name) {
-                return _formats[i];
-            }
-        }
+    std::lock_guard<std::mutex> guard(_mutex);
+    for (auto& fmt : _formats) {
+        if (fmt.name == name)
+            return fmt;
     }
-
-    return getDefault();
+    return defaultLocked();
 }
 
 
 Format& FormatRegistry::getDefault()
 {
     std::lock_guard<std::mutex> guard(_mutex);
-    if (!_default.empty()) {
-        return get(_default);
-    } else if (!_formats.empty()) {
-        return *_formats.begin();
-    }
-
-    throw std::runtime_error("Not found: No default media format.");
+    return defaultLocked();
 }
 
 
 bool FormatRegistry::exists(const std::string& name)
 {
     std::lock_guard<std::mutex> guard(_mutex);
-    for (unsigned int i = 0; i < _formats.size(); i++) {
-        if (_formats[i].name == name) {
+    for (const auto& fmt : _formats) {
+        if (fmt.name == name)
             return true;
-        }
     }
-
     return false;
 }
 
@@ -120,8 +99,16 @@ FormatList FormatRegistry::formats() const
 
 void FormatRegistry::registerFormat(const Format& format)
 {
-    unregisterFormat(format.name);
     std::lock_guard<std::mutex> guard(_mutex);
+    // Remove existing format with the same name (unlocked)
+    for (auto it = _formats.begin(); it != _formats.end(); ++it) {
+        if (it->name == format.name) {
+            if (_default == format.name)
+                _default = "";
+            _formats.erase(it);
+            break;
+        }
+    }
     _formats.push_back(format);
 }
 
@@ -129,9 +116,8 @@ void FormatRegistry::registerFormat(const Format& format)
 bool FormatRegistry::unregisterFormat(const std::string& name)
 {
     std::lock_guard<std::mutex> guard(_mutex);
-    for (FormatList::iterator it = _formats.begin(); it != _formats.end();
-         ++it) {
-        if ((*it).name == name) {
+    for (auto it = _formats.begin(); it != _formats.end(); ++it) {
+        if (it->name == name) {
             _formats.erase(it);
             if (_default == name)
                 _default = "";
@@ -146,6 +132,28 @@ void FormatRegistry::setDefault(const std::string& name)
 {
     std::lock_guard<std::mutex> guard(_mutex);
     _default = name;
+}
+
+
+// Private: must be called with _mutex held
+Format& FormatRegistry::findByName(const std::string& name)
+{
+    for (auto& fmt : _formats) {
+        if (fmt.name == name)
+            return fmt;
+    }
+    throw std::runtime_error("Not found: No media format for: " + name);
+}
+
+
+// Private: must be called with _mutex held
+Format& FormatRegistry::defaultLocked()
+{
+    if (!_default.empty())
+        return findByName(_default);
+    if (!_formats.empty())
+        return *_formats.begin();
+    throw std::runtime_error("Not found: No default media format.");
 }
 
 

@@ -13,9 +13,6 @@
 #include "scy/net/udpsocket.h"
 
 
-using namespace std;
-
-
 namespace scy {
 namespace turn {
 
@@ -23,17 +20,18 @@ namespace turn {
 UDPClient::UDPClient(ClientObserver& observer, const Options& options)
     : Client(observer, options, net::makeSocket<net::UDPSocket>())
 {
-    LTrace("Create")
+    LTrace("Create");
 }
 
 
 UDPClient::~UDPClient()
 {
-    LTrace("Destroy")
+    LTrace("Destroy");
 }
 
 
-} } // namespace scy::turn
+} // namespace turn
+} // namespace scy
 
 
 /// @\}

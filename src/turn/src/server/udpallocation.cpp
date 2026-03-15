@@ -14,13 +14,11 @@
 #include "scy/logger.h"
 #include "scy/net/udpsocket.h"
 #include "scy/turn/server/server.h"
+
 #include <algorithm>
-#include <cassert>
 #include <cstring>
 #include <iostream>
-
-
-using namespace std;
+#include <stdexcept>
 
 
 namespace scy {
@@ -39,13 +37,13 @@ UDPAllocation::UDPAllocation(Server& server, const FiveTuple& tuple,
     _relaySocket->bind(net::Address(server.options().listenAddr.host(), 0));
     _relaySocket.Recv += slot(this, &UDPAllocation::onPeerDataReceived);
 
-    LTrace(" Initializing on address: ", _relaySocket->address())
+    LTrace(" Initializing on address: ", _relaySocket->address());
 }
 
 
 UDPAllocation::~UDPAllocation()
 {
-    LTrace("Destroy")
+    LTrace("Destroy");
     _relaySocket.Recv -= slot(this, &UDPAllocation::onPeerDataReceived);
     _relaySocket->close();
 }
@@ -53,7 +51,7 @@ UDPAllocation::~UDPAllocation()
 
 bool UDPAllocation::handleRequest(Request& request)
 {
-    LTrace("Handle Request")
+    LTrace("Handle Request");
 
     if (!ServerAllocation::handleRequest(request)) {
         if (request.methodType() == stun::Message::SendIndication)
@@ -68,96 +66,58 @@ bool UDPAllocation::handleRequest(Request& request)
 
 void UDPAllocation::handleSendIndication(Request& request)
 {
-    LTrace("Handle Send Indication")
-
-    // The message is first checked for validity.  The Send indication MUST
-    // contain both an XOR-PEER-ADDRESS attribute and a DATA attribute.  If
-    // one of these attributes is missing or invalid, then the message is
-    // discarded.  Note that the DATA attribute is allowed to contain zero
-    // bytes of data.
+    LTrace("Handle Send Indication");
 
     auto peerAttr = request.get<stun::XorPeerAddress>();
-    if (!peerAttr || (peerAttr && peerAttr->family() != 1)) {
-        LError("Send Indication error: No Peer Address")
+    if (!peerAttr || peerAttr->family() != stun::AddressFamily::IPv4) {
+        LError("Send Indication error: No Peer Address");
         // silently discard...
         return;
     }
 
     auto dataAttr = request.get<stun::Data>();
     if (!dataAttr) {
-        LError("Send Indication error: No Data attribute")
+        LError("Send Indication error: No Data attribute");
         // silently discard...
         return;
     }
-
-    // The Send indication may also contain the DONT-FRAGMENT attribute.  If
-    // the server is unable to set the DF bit on outgoing UDP datagrams when
-    // this attribute is present, then the server acts as if the DONT-
-    // FRAGMENT attribute is an unknown comprehension-required attribute
-    // (and thus the Send indication is discarded).
-
-    // The server also checks that there is a permission installed for the
-    // IP address contained in the XOR-PEER-ADDRESS attribute.  If no such
-    // permission exists, the message is discarded.  Note that a Send
-    // indication never causes the server to refresh the permission.
-
-    // The server MAY impose restrictions on the IP address and port values
-    // allowed in the XOR-PEER-ADDRESS attribute -- if a value is not
-    // allowed, the server silently discards the Send indication.
 
     net::Address peerAddress = peerAttr->address();
     if (!hasPermission(peerAddress.host())) {
         SError << "Send Indication error: No permission for: "
-               << peerAddress.host() << endl;
+               << peerAddress.host() << std::endl;
         // silently discard...
         return;
     }
 
-    // If everything is OK, then the server forms a UDP datagram as follows:
-
-    // o  the source transport address is the relayed transport address of
-    //    the allocation, where the allocation is determined by the 5-tuple
-    //    on which the Send indication arrived;
-
-    // o  the destination transport address is taken from the XOR-PEER-
-    //    ADDRESS attribute;
-
-    // o  the data following the UDP header is the contents of the value
-    //    field of the DATA attribute.
-
-    // The handling of the DONT-FRAGMENT attribute (if present), is
-    // described in Section 12.
-
-    // The resulting UDP datagram is then sent to the peer.
-
     STrace << "Relaying Send Indication: "
            << "\r\tFrom: " << request.remoteAddress.toString()
-           << "\r\tTo: " << peerAddress << endl;
+           << "\r\tTo: " << peerAddress << std::endl;
 
     if (send(dataAttr->bytes(), dataAttr->size(), peerAddress) == -1) {
-        _server.respondError(request, 486, "Allocation Quota Reached");
-        delete this;
+        _server.respondError(request, kErrorAllocationQuotaReached, "Allocation Quota Reached");
+        // Signal the server to delete this allocation instead of `delete this`
+        _deleted = true;
     }
 }
 
 
-void UDPAllocation::onPeerDataReceived(net::Socket&,
+bool UDPAllocation::onPeerDataReceived(net::Socket&,
                                        const MutableBuffer& buffer,
                                        const net::Address& peerAddress)
 {
-    // auto source = reinterpret_cast<net::PacketInfo*>(packet.info);
-    LTrace("Received UDP Datagram from ", peerAddress)
+    LTrace("Received UDP Datagram from ", peerAddress);
 
     if (!hasPermission(peerAddress.host())) {
-        LTrace("No Permission: ", peerAddress.host())
-        return;
+        LTrace("No Permission: ", peerAddress.host());
+        return false;
     }
 
     updateUsage(buffer.size());
 
     // Check that we have not exceeded out lifetime and bandwidth quota.
     if (IAllocation::deleted())
-        return;
+        return false;
 
     stun::Message message(stun::Message::Indication,
                           stun::Message::DataIndication);
@@ -167,7 +127,7 @@ void UDPAllocation::onPeerDataReceived(net::Socket&,
     std::string peerHost(server().options().externalIP);
     if (peerHost.empty()) {
         peerHost.assign(peerAddress.host());
-        assert(0 && "external IP not set");
+        LWarn("External IP not set, using peer address directly: ", peerHost);
     }
 
     auto peerAttr = new stun::XorPeerAddress;
@@ -180,10 +140,10 @@ void UDPAllocation::onPeerDataReceived(net::Socket&,
 
     STrace << "Send data indication:"
            << "\n\tFrom: " << peerAddress << "\n\tTo: " << _tuple.remote()
-           //<< "\n\tData: " << std::string(packet.data(), packet.size())
-           << endl;
+           << std::endl;
 
     server().udpSocket().sendPacket(message, _tuple.remote());
+    return false;
 }
 
 
@@ -194,7 +154,7 @@ ssize_t UDPAllocation::send(const char* data, size_t size,
 
     // Check that we have not exceeded our lifetime and bandwidth quota.
     if (IAllocation::deleted()) {
-        LWarn("Send indication dropped: Allocation quota reached")
+        LWarn("Send indication dropped: Allocation quota reached");
         return -1;
     }
 
@@ -204,12 +164,12 @@ ssize_t UDPAllocation::send(const char* data, size_t size,
 
 net::Address UDPAllocation::relayedAddress() const
 {
-   
     return _relaySocket->address();
 }
 
 
-} } //  namespace scy::turn
+} // namespace turn
+} // namespace scy
 
 
 /// @\}

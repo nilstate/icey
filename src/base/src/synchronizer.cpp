@@ -42,7 +42,7 @@ void Synchronizer::start(std::function<void()> target)
 
 void Synchronizer::post()
 {
-    assert(_handle.initialized());
+    if (!_handle.initialized()) return;
     // NOTE: Cannot call `_handle.get()` as we're on different thread
     uv_async_send(_handle.context()->ptr);
 }

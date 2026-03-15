@@ -1,60 +1,48 @@
 // Name of library
-#define SCY_NAME "${LibSourcey_NAME}"
+#define SCY_NAME "${PROJECT_NAME}"
 
 // Define the library version
-#define SCY_VERSION "${LibSourcey_VERSION}"
-#define SCY_VERSION_MAJOR ${LibSourcey_VERSION_MAJOR}
-#define SCY_VERSION_MINOR ${LibSourcey_VERSION_MINOR}
-#define SCY_VERSION_PATCH ${LibSourcey_VERSION_PATCH}
+#define SCY_VERSION "${PROJECT_VERSION}"
+#define SCY_VERSION_MAJOR ${PROJECT_VERSION_MAJOR}
+#define SCY_VERSION_MINOR ${PROJECT_VERSION_MINOR}
+#define SCY_VERSION_PATCH ${PROJECT_VERSION_PATCH}
 
 // Define the source path
 #define SCY_SOURCE_DIR "${LibSourcey_SOURCE_DIR}"
 
 // Define the build path
-#define SCY_BUILD_DIR "${LibSourcey_BUILD_DIR}"
+#define SCY_BUILD_DIR "${CMAKE_BINARY_DIR}"
 
 // Define the installation path
-#define SCY_INSTALL_DIR "${LibSourcey_INSTALL_DIR}"
+#define SCY_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}"
 
 // Building as shared library (.so or .dll)
 #cmakedefine SCY_SHARED_LIBRARY
 
-// Disable logging
+// Enable logging
 #cmakedefine SCY_ENABLE_LOGGING
 
 // Attempt to recover from internal exceptions
-// Exceptions thrown inside thread and stream context will be caught, logged and
-// handled via the event loop in an attempt to prevent crashes.
 #cmakedefine SCY_EXCEPTION_RECOVERY
 
 // LibSourcey modules
-// cmakedefine HAVE_SCY_base
-// cmakedefine HAVE_SCY_http
-// cmakedefine HAVE_SCY_json
-// cmakedefine HAVE_SCY_av
-// cmakedefine HAVE_SCY_net
-// cmakedefine HAVE_SCY_rtp
-// cmakedefine HAVE_SCY_sdp
-// cmakedefine HAVE_SCY_socketio
-// cmakedefine HAVE_SCY_stun
-// cmakedefine HAVE_SCY_symple
-// cmakedefine HAVE_SCY_turn
-// cmakedefine HAVE_SCY_xml
-// cmakedefine HAVE_SCY_xmpp
-// cmakedefine HAVE_SCY_uv
-// cmakedefine HAVE_SCY_rtsp
-// cmakedefine HAVE_SCY_ice
-// cmakedefine HAVE_SCY_pacm
-// cmakedefine HAVE_SCY_webrtc
-// cmakedefine HAVE_SCY_anionu
-// cmakedefine HAVE_SCY_spotapi
-
-// LibUV library
-#cmakedefine HAVE_LIBUV
-
+#cmakedefine HAVE_SOURCEY_base
+#cmakedefine HAVE_SOURCEY_crypto
+#cmakedefine HAVE_SOURCEY_net
+#cmakedefine HAVE_SOURCEY_http
+#cmakedefine HAVE_SOURCEY_json
+#cmakedefine HAVE_SOURCEY_av
+#cmakedefine HAVE_SOURCEY_socketio
+#cmakedefine HAVE_SOURCEY_symple
+#cmakedefine HAVE_SOURCEY_stun
+#cmakedefine HAVE_SOURCEY_turn
+#cmakedefine HAVE_SOURCEY_util
+#cmakedefine HAVE_SOURCEY_sched
+#cmakedefine HAVE_SOURCEY_archo
+#cmakedefine HAVE_SOURCEY_pacm
+#cmakedefine HAVE_SOURCEY_pluga
 // OpenSSL library
 #cmakedefine HAVE_OPENSSL
-#cmakedefine OPENSSL_IS_BORINGSSL
 
 // FFmpeg video library
 #cmakedefine HAVE_FFMPEG
@@ -71,18 +59,11 @@
 // OpenCV library
 #cmakedefine HAVE_OPENCV
 
-// RtAudio library
-#cmakedefine HAVE_RTAUDIO
-
 // Define to 1 if you have the <inttypes.h> header file.
 #cmakedefine HAVE_INTTYPES_H 1
 
 // Enable macros for format specifiers in <inttypes.h>
 #define __STDC_FORMAT_MACROS
-
-// Define to 1 if your processor stores words with the most significant byte
-// first (like Motorola and SPARC, unlike Intel and VAX).
-#cmakedefine WORDS_BIGENDIAN
 
 
 //

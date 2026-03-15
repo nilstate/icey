@@ -9,8 +9,8 @@ using namespace scy;
 
 int main(int argc, char** argv)
 {
-    Logger::instance().add(new ConsoleChannel("debug", Level::Trace));
-    //Logger::instance().setWriter(new AsyncLogWriter);
+    Logger::instance().add(std::make_unique<ConsoleChannel>("debug", Level::Trace));
+    //Logger::instance().setWriter(std::make_unique<AsyncLogWriter>());
     {
         // Pre-initialize video captures in the main thread
         // MediaFactory::instance().loadVideoCaptures();

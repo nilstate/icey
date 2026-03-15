@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_Stateful_H
-#define SCY_Stateful_H
+#pragma once
 
 
 #include "scy/base.h"
@@ -32,7 +31,7 @@ namespace scy {
 class Base_API State
 {
 public:
-    typedef uint32_t ID;
+    using ID = uint32_t;
 
     State(ID id = 0);
     State(const State& that);
@@ -134,9 +133,6 @@ protected:
 
 
 } // namespace scy
-
-
-#endif // SCY_Stateful_H
 
 
 /// @\}

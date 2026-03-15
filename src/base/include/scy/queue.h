@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_Queue_H
-#define SCY_Queue_H
+#pragma once
 
 
 #include "scy/base.h"
@@ -20,13 +19,15 @@
 #include "scy/synchronizer.h"
 #include "scy/thread.h"
 #include <queue>
+#include <stdexcept>
 
 
 namespace scy {
 
 
 /// Thread-safe queue container.
-template <typename T> class Queue
+template <typename T>
+class Queue
 {
 public:
     void push(const T& data)
@@ -101,7 +102,8 @@ protected:
 
 
 template <class T>
-class RunnableQueue : public Queue<T*>, public basic::Runnable
+class RunnableQueue : public Queue<T*>
+    , public basic::Runnable
 {
 public:
     /// The default dispatch function.
@@ -126,7 +128,7 @@ public:
         std::lock_guard<std::mutex> guard(_mutex);
 
         while (_limit > 0 && static_cast<int>(Queue<T*>::size()) >= _limit) {
-            LWarn("Purging: ", Queue<T*>::size())
+            LWarn("Purging: ", Queue<T*>::size());
             delete Queue<T*>::front();
             Queue<T*>::pop();
         }
@@ -165,9 +167,8 @@ public:
             runTimeout();
         } else {
             while (!cancelled()) {
-                dispatchNext();
-                scy::sleep(1);
-                // scy::sleep(dispatchNext() ? 1 : 50);
+                if (!dispatchNext())
+                    std::this_thread::yield();
             }
         }
     }
@@ -200,13 +201,16 @@ public:
     void setTimeout(int milliseconds)
     {
         std::lock_guard<std::mutex> guard(_mutex);
-        assert(Queue<T*>::empty() && "queue must not be active");
+        if (!Queue<T*>::empty())
+            throw std::logic_error("Cannot change timeout while queue is active");
         _timeout = milliseconds;
     }
 
 protected:
     RunnableQueue(const RunnableQueue&) = delete;
     RunnableQueue& operator=(const RunnableQueue&) = delete;
+    RunnableQueue(RunnableQueue&&) = delete;
+    RunnableQueue& operator=(RunnableQueue&&) = delete;
 
     /// Pops the next waiting item.
     virtual T* popNext()
@@ -253,7 +257,7 @@ template <class T>
 class SyncQueue : public RunnableQueue<T>
 {
 public:
-    typedef RunnableQueue<T> Queue;
+    using Queue = RunnableQueue<T>;
 
     SyncQueue(uv::Loop* loop, int limit = 2048, int timeout = 20)
         : Queue(limit, timeout)
@@ -308,7 +312,7 @@ template <class T>
 class AsyncQueue : public RunnableQueue<T>
 {
 public:
-    typedef RunnableQueue<T> Queue;
+    using Queue = RunnableQueue<T>;
 
     AsyncQueue(int limit = 2048)
         : Queue(limit)
@@ -332,9 +336,6 @@ protected:
 
 
 } // namespace scy
-
-
-#endif // SCY_Queue_H
 
 
 /// @\}

@@ -9,34 +9,33 @@
 /// @{
 
 
-#ifndef SCY_Crypto_Crypto_H
-#define SCY_Crypto_Crypto_H
+#pragma once
 
 
 #include "scy/base.h"
 #include <string>
 #include <vector>
 
-#ifdef SCY_WIN 
-#include <winsock2.h>
+#ifdef SCY_WIN
 #include <windows.h>
+#include <winsock2.h>
 
 // Undefine the following definitions defined in wincrypt.h
-// as they conflict with BoringSSL
-#undef X509_NAME 
-#undef X509_CERT_PAIR 
-#undef X509_EXTENSIONS 
-#endif 
+// as they conflict with OpenSSL
+#undef X509_NAME
+#undef X509_CERT_PAIR
+#undef X509_EXTENSIONS
+#endif
 
 // Shared library exports
 #if defined(SCY_WIN) && defined(SCY_SHARED_LIBRARY)
-    #if defined(Crypto_EXPORTS)
-        #define Crypto_API __declspec(dllexport)
-    #else
-        #define Crypto_API __declspec(dllimport)
-    #endif
+#if defined(Crypto_EXPORTS)
+#define Crypto_API __declspec(dllexport)
 #else
-    #define Crypto_API // nothing
+#define Crypto_API __declspec(dllimport)
+#endif
+#else
+#define Crypto_API // nothing
 #endif
 
 
@@ -62,7 +61,7 @@ Crypto_API void initializeEngine();
 Crypto_API void uninitializeEngine();
 
 /// Generic storage container for storing cryptographic binary data.
-typedef std::vector<unsigned char> ByteVec;
+using ByteVec = std::vector<unsigned char>;
 
 namespace internal {
 
@@ -77,7 +76,8 @@ void throwError();
 /// The class uses const_cast for maximum flexibility, so use with care.
 /// Also ensure that std::string is contiguous on your platform
 /// before using the std::string constructors (C++11 guarantees it).
-template <typename T> struct Raw
+template <typename T>
+struct Raw
 {
     T ptr;
     size_t len;
@@ -124,9 +124,6 @@ template <typename T> struct Raw
 
 } // namespace crypto
 } // namespace scy
-
-
-#endif // SCY_Crypto_Crypto_H
 
 
 /// @\}

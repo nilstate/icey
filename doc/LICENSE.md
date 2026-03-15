@@ -1,1 +1,1 @@
-IntxLNK.
+../LICENSE.md

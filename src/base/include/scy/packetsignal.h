@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_PacketSignal_H
-#define SCY_PacketSignal_H
+#pragma once
 
 
 #include "scy/packet.h"
@@ -22,7 +21,7 @@ namespace scy {
 
 
 /// Signal that broadcasts `IPacket` types.
-typedef Signal<void(IPacket&)> PacketSignal;
+using PacketSignal = Signal<void(IPacket&)>;
 
 
 /// Signal slot that allows listeners to filter polymorphic `IPacket` types.
@@ -36,9 +35,6 @@ packetSlot(Class* instance, RT (Class::*method)(PT&), int id = -1, int priority 
 
 
 } // namespace scy
-
-
-#endif // SCY_PacketSignal_H
 
 
 /// @\}

@@ -8,27 +8,21 @@
 /// @addtogroup socketio
 /// @{
 
-
-#ifndef SCY_SocketIO_H
-#define SCY_SocketIO_H
-
+#pragma once
 
 #include "scy/base.h"
 
 
 // Shared library exports
 #if defined(SCY_WIN) && defined(SCY_SHARED_LIBRARY)
-    #if defined(SocketIO_EXPORTS)
-        #define SocketIO_API __declspec(dllexport)
-    #else
-        #define SocketIO_API __declspec(dllimport)
-    #endif
+#if defined(SocketIO_EXPORTS)
+#define SocketIO_API __declspec(dllexport)
 #else
-    #define SocketIO_API // nothing
+#define SocketIO_API __declspec(dllimport)
+#endif
+#else
+#define SocketIO_API // nothing
 #endif
 
 
-#endif // SCY_SocketIO_H
-
-
-/// @\}
+/// @}

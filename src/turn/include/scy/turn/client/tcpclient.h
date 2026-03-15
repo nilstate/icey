@@ -8,9 +8,7 @@
 /// @addtogroup turn
 /// @{
 
-
-#ifndef SCY_TURN_TCPClient_H
-#define SCY_TURN_TCPClient_H
+#pragma once
 
 
 #include "scy/collection.h"
@@ -45,8 +43,8 @@ struct RelayConnectionBinding
 };
 
 
-typedef KVCollection<net::Address, net::SocketEmitter> ConnectionManager;
-typedef ConnectionManager::Map ConnectionManagerMap;
+using ConnectionManager = KVCollection<net::Address, net::SocketEmitter>;
+using ConnectionManagerMap = ConnectionManager::Map;
 
 
 class TURN_API TCPClient : public Client
@@ -71,10 +69,10 @@ public:
     virtual bool createAndBindConnection(uint32_t connectionID, const net::Address& peerAddress);
     // virtual void onRelayConnectionStateChange(void* sender, Net::SocketState& state, const Net::SocketState& oldState);
 
-    virtual void onRelayConnectionConnect(net::Socket& socket);
-    virtual void onRelayDataReceived(net::Socket& socket, const MutableBuffer& buffer, const net::Address& peerAddress);
-    virtual void onRelayConnectionError(net::Socket& socket, const Error& error);
-    virtual void onRelayConnectionClosed(net::Socket& socket);
+    virtual bool onRelayConnectionConnect(net::Socket& socket);
+    virtual bool onRelayDataReceived(net::Socket& socket, const MutableBuffer& buffer, const net::Address& peerAddress);
+    virtual bool onRelayConnectionError(net::Socket& socket, const Error& error);
+    virtual bool onRelayConnectionClosed(net::Socket& socket);
 
     void freeConnection(const net::Address& peerAddress);
 
@@ -89,10 +87,8 @@ protected:
 };
 
 
-} } //  namespace scy::turn
-
-
-#endif // SCY_TURN_TCPClient_H
+} // namespace turn
+} // namespace scy
 
 
 /// @\}

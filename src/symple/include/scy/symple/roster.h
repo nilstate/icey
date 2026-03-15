@@ -9,14 +9,13 @@
 /// @{
 
 
-#ifndef SCY_Symple_Roster_H
-#define SCY_Symple_Roster_H
+#pragma once
 
 
-#include "scy/symple/symple.h"
+#include "scy/collection.h"
 #include "scy/symple/address.h"
 #include "scy/symple/peer.h"
-#include "scy/collection.h"
+#include "scy/symple/symple.h"
 
 
 namespace scy {
@@ -28,8 +27,8 @@ namespace smpl {
 class Symple_API Roster : public LiveCollection<std::string, Peer>
 {
 public:
-    typedef LiveCollection<std::string, Peer> Manager;
-    typedef Manager::Map PeerMap;
+    using Manager = LiveCollection<std::string, Peer>;
+    using PeerMap = Manager::Map;
 
 public:
     Roster();
@@ -38,7 +37,8 @@ public:
     /// Returns the first peer which matches the given host address.
     Peer* getByHost(const std::string& host);
 
-    virtual PeerMap peers() const;
+    /// Returns a copy of the peer map for thread-safe iteration.
+    [[nodiscard]] virtual PeerMap peers() const;
 
     virtual void print(std::ostream& os) const;
 
@@ -48,9 +48,6 @@ public:
 
 } // namespace smpl
 } // namespace scy
-
-
-#endif // SCY_Symple_Roster_H
 
 
 /// @\}

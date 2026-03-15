@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_ByteOrder_H
-#define SCY_ByteOrder_H
+#pragma once
 
 
 #include <cstdint>
@@ -21,7 +20,7 @@
 #endif
 
 #ifdef SCY_WIN
-#include <stdlib.h>
+#include <cstdlib>
 #endif
 
 
@@ -74,7 +73,7 @@ inline void setBE64(void* memory, uint64_t v)
 inline uint16_t getBE16(const void* memory)
 {
     return static_cast<uint16_t>((get8(memory, 0) << 8) |
-                                      (get8(memory, 1) << 0));
+                                 (get8(memory, 1) << 0));
 }
 
 inline uint32_t getBE32(const void* memory)
@@ -126,7 +125,7 @@ inline void setLE64(void* memory, uint64_t v)
 inline uint16_t getLE16(const void* memory)
 {
     return static_cast<uint16_t>((get8(memory, 0) << 0) |
-                                      (get8(memory, 1) << 8));
+                                 (get8(memory, 1) << 8));
 }
 
 inline uint32_t getLE32(const void* memory)
@@ -194,9 +193,6 @@ inline uint64_t networkToHost64(uint64_t n)
 
 
 } // namespace scy
-
-
-#endif // SCY_ByteOrder_H
 
 
 /// @\}

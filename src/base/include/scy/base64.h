@@ -12,8 +12,7 @@
 /// @{
 
 
-#ifndef SCY_Base64_H
-#define SCY_Base64_H
+#pragma once
 
 
 #include "scy/interface.h"
@@ -28,8 +27,8 @@ namespace scy {
 namespace base64 {
 
 
-const int BUFFER_SIZE = 16384;
-const int LINE_LENGTH = 72;
+constexpr int BUFFER_SIZE = 16384;
+constexpr int LINE_LENGTH = 72;
 
 
 //
@@ -40,16 +39,21 @@ const int LINE_LENGTH = 72;
 namespace internal {
 
 
-typedef enum { step_A, step_B, step_C } encodestep;
+enum encodestep
+{
+    step_A,
+    step_B,
+    step_C
+};
 
-typedef struct
+struct encodestate
 {
     encodestep step;
     char result;
     int stepcount;
     int linelength;        // added
     int nullptrlterminate; // added
-} encodestate;
+};
 
 Base_API void init_encodestate(internal::encodestate* state_in);
 
@@ -76,39 +80,34 @@ struct Encoder : public basic::Encoder
     void encode(std::istream& istrm, std::ostream& ostrm)
     {
         const int N = _buffersize;
-        char* readbuf = new char[N];
-        char* encbuf = new char[2 * N];
+        auto readbuf = std::make_unique<char[]>(N);
+        auto encbuf = std::make_unique<char[]>(2 * N);
         ssize_t nread;
         ssize_t enclen;
 
         do {
-            istrm.read(readbuf, N);
+            istrm.read(readbuf.get(), N);
             nread = static_cast<int>(istrm.gcount());
-            enclen = encode(readbuf, nread, encbuf);
-            ostrm.write(encbuf, enclen);
+            enclen = encode(readbuf.get(), nread, encbuf.get());
+            ostrm.write(encbuf.get(), enclen);
         } while (istrm.good() && nread > 0);
 
-        enclen = finalize(encbuf);
-        ostrm.write(encbuf, enclen);
+        enclen = finalize(encbuf.get());
+        ostrm.write(encbuf.get(), enclen);
 
         internal::init_encodestate(&_state);
-
-        delete[] encbuf;
-        delete[] readbuf;
     }
 
     void encode(const std::string& in, std::string& out)
     {
-        char* encbuf = new char[in.length() * 2];
-        ssize_t enclen = encode(in.c_str(), in.length(), encbuf);
-        out.append(encbuf, enclen);
+        auto encbuf = std::make_unique<char[]>(in.length() * 2);
+        ssize_t enclen = encode(in.c_str(), in.length(), encbuf.get());
+        out.append(encbuf.get(), enclen);
 
-        enclen = finalize(encbuf);
-        out.append(encbuf, enclen);
+        enclen = finalize(encbuf.get());
+        out.append(encbuf.get(), enclen);
 
         internal::init_encodestate(&_state);
-
-        delete[] encbuf;
     }
 
     ssize_t encode(const char* inbuf, size_t nread, char* outbuf) override
@@ -134,7 +133,7 @@ inline std::string encode(const T& bytes, int lineLength = LINE_LENGTH)
 {
     std::string res;
     res.reserve(bytes.size() * 2);
-    std::unique_ptr<char[]> encbuf(new char[bytes.size() * 2]);
+    auto encbuf = std::make_unique<char[]>(bytes.size() * 2);
 
     internal::encodestate state;
     internal::init_encodestate(&state);
@@ -158,13 +157,19 @@ inline std::string encode(const T& bytes, int lineLength = LINE_LENGTH)
 namespace internal {
 
 
-typedef enum { step_a, step_b, step_c, step_d } decodestep;
+enum decodestep
+{
+    step_a,
+    step_b,
+    step_c,
+    step_d
+};
 
-typedef struct
+struct decodestate
 {
     decodestep step;
     char plainchar;
-} decodestate;
+};
 
 Base_API void init_decodestate(internal::decodestate* state_in);
 
@@ -196,22 +201,19 @@ struct Decoder : public basic::Decoder
     void decode(std::istream& istrm, std::ostream& ostrm)
     {
         const int N = _buffersize;
-        char* decbuf = new char[N];
-        char* readbuf = new char[N];
+        auto decbuf = std::make_unique<char[]>(N);
+        auto readbuf = std::make_unique<char[]>(N);
         size_t declen;
         size_t nread;
 
         do {
-            istrm.read((char*)decbuf, N);
+            istrm.read(decbuf.get(), N);
             declen = static_cast<int>(istrm.gcount());
-            nread = decode(decbuf, declen, readbuf);
-            ostrm.write((const char*)readbuf, nread);
+            nread = decode(decbuf.get(), declen, readbuf.get());
+            ostrm.write(readbuf.get(), nread);
         } while (istrm.good() && declen > 0);
 
         internal::init_decodestate(&_state);
-
-        delete[] decbuf;
-        delete[] readbuf;
     }
 
     internal::decodestate _state;
@@ -225,7 +227,7 @@ inline std::string decode(const T& bytes)
 {
     std::string res;
     res.reserve(bytes.size() * 2);
-    std::unique_ptr<char[]> encbuf(new char[bytes.size() * 2]);
+    auto encbuf = std::make_unique<char[]>(bytes.size() * 2);
 
     internal::decodestate state;
     internal::init_decodestate(&state);
@@ -240,9 +242,6 @@ inline std::string decode(const T& bytes)
 
 } // namespace base64
 } // namespace scy
-
-
-#endif // SCY_Base64_H
 
 
 /// @\}

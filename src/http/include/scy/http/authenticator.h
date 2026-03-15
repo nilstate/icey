@@ -8,10 +8,7 @@
 /// @addtogroup http
 /// @{
 
-
-#ifndef SCY_HTTP_Authenticator_H
-#define SCY_HTTP_Authenticator_H
-
+#pragma once
 
 #include "scy/http/http.h"
 #include "scy/http/url.h"
@@ -26,6 +23,7 @@ class HTTP_API Request;
 class HTTP_API Response;
 
 
+/// @ingroup http
 /// This is a utility class for working with HTTP
 /// authentication (basic or digest) in http::Request objects.
 ///
@@ -58,20 +56,17 @@ public:
     void setUsername(const std::string& username);
 
     /// Returns the username.
-    const std::string& username() const;
+    [[nodiscard]] const std::string& username() const;
 
     /// Sets the password.
     void setPassword(const std::string& password);
 
     /// Returns the password.
-    const std::string& password() const;
+    [[nodiscard]] const std::string& password() const;
 
     /// Inspects WWW-Authenticate header of the response, initializes
     /// the internal state (in case of digest authentication) and
     /// adds required information to the given http::Request.
-    ///
-    /// Does nothing if there is no WWW-Authenticate header in the
-    /// http::Response.
     void authenticate(http::Request& request, const http::Response& response);
 
     /// Updates internal state (in case of digest authentication) and
@@ -81,9 +76,6 @@ public:
     /// Inspects Proxy-Authenticate header of the response, initializes
     /// the internal state (in case of digest authentication) and
     /// adds required information to the given http::Request.
-    ///
-    /// Does nothing if there is no Proxy-Authenticate header in the
-    /// http::Response.
     void proxyAuthenticate(http::Request& request,
                            const http::Response& response);
 
@@ -92,8 +84,8 @@ public:
     void updateProxyAuthInfo(http::Request& request);
 
 private:
-    Authenticator(const Authenticator&);
-    Authenticator& operator=(const Authenticator&);
+    Authenticator(const Authenticator&) = delete;
+    Authenticator& operator=(const Authenticator&) = delete;
 
     std::string _username;
     std::string _password;
@@ -104,6 +96,7 @@ private:
 // Basic Authenticator (rfc2617)
 //
 
+/// @ingroup http
 /// This is a utility class for working with HTTP Basic
 /// Authentication in http::Request objects.
 class HTTP_API BasicAuthenticator
@@ -137,13 +130,13 @@ public:
     void setUsername(const std::string& username);
 
     /// Returns the username.
-    const std::string& username() const;
+    [[nodiscard]] const std::string& username() const;
 
     /// Sets the password.
     void setPassword(const std::string& password);
 
     /// Returns the password.
-    const std::string& password() const;
+    [[nodiscard]] const std::string& password() const;
 
     /// Adds authentication information to the given http::Request.
     void authenticate(http::Request& request) const;
@@ -158,8 +151,8 @@ protected:
     void parseAuthInfo(const std::string& authInfo);
 
 private:
-    BasicAuthenticator(const BasicAuthenticator&);
-    BasicAuthenticator& operator=(const BasicAuthenticator&);
+    BasicAuthenticator(const BasicAuthenticator&) = delete;
+    BasicAuthenticator& operator=(const BasicAuthenticator&) = delete;
 
     std::string _username;
     std::string _password;
@@ -171,65 +164,25 @@ private:
 //
 
 
-bool isBasicCredentials(const std::string& header); /// Returns true if
-                                                    /// authentication header is
-                                                    /// for Basic
-                                                    /// authentication.
-
-bool isDigestCredentials(const std::string& header); /// Returns true if
-                                                     /// authentication header
-                                                     /// is for Digest
-                                                     /// authentication.
-
-bool hasBasicCredentials(const http::Request& request); /// Returns true if
-                                                        /// Authorization with
-                                                        /// Basic credentials
-                                                        /// header is present in
-                                                        /// the request.
-
-bool hasDigestCredentials(const http::Request& request); /// Returns true if
-                                                         /// Authorization with
-                                                         /// Digest credentials
-                                                         /// header is present
-                                                         /// in the request.
-
-bool hasProxyBasicCredentials(const http::Request& request); /// Returns true if
-                                                             /// Authorization
-                                                             /// with Basic
-                                                             /// credentials
-                                                             /// header is
-                                                             /// present in the
-                                                             /// request.
-
-bool hasProxyDigestCredentials(const http::Request& request); /// Returns true
-                                                              /// if
-                                                              /// Authorization
-                                                              /// with Digest
-                                                              /// credentials
-                                                              /// header is
-                                                              /// present in the
-                                                              /// request.
+[[nodiscard]] bool isBasicCredentials(const std::string& header);
+[[nodiscard]] bool isDigestCredentials(const std::string& header);
+[[nodiscard]] bool hasBasicCredentials(const http::Request& request);
+[[nodiscard]] bool hasDigestCredentials(const http::Request& request);
+[[nodiscard]] bool hasProxyBasicCredentials(const http::Request& request);
+[[nodiscard]] bool hasProxyDigestCredentials(const http::Request& request);
 
 void extractCredentials(const std::string& userInfo, std::string& username,
-                        std::string& password); /// Extracts username and
-                                                /// password from user:password
-                                                /// information std::string.
+                        std::string& password);
 
-void extractCredentials(
-    const http::URL& uri, std::string& username,
-    std::string& password); /// Extracts username and password from the given
-                            /// URI (e.g.:
-                            /// "http://user:pass@sample.com/secret").
+void extractCredentials(const http::URL& uri, std::string& username,
+                        std::string& password);
 
 
 } // namespace http
 } // namespace scy
 
 
-#endif // SCY_HTTP_Authenticator_H
-
-
-/// @\}
+/// @}
 
 
 //

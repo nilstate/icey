@@ -14,12 +14,9 @@
 #include "scy/util.h"
 
 #include <algorithm>
-#include <cassert>
 #include <cstring>
 #include <iostream>
-
-
-using namespace std;
+#include <stdexcept>
 
 
 namespace scy {
@@ -45,14 +42,15 @@ IAllocation::IAllocation(const FiveTuple& tuple, const std::string& username,
 
 IAllocation::~IAllocation()
 {
-    LTrace("Destroy")
+    LTrace("Destroy");
     _permissions.clear();
 }
 
 
 void IAllocation::updateUsage(std::int64_t numBytes)
 {
-    LTrace("Update usage: ", _bandwidthUsed, ": ", numBytes)
+    std::lock_guard<std::mutex> lock(_mutex);
+    LTrace("Update usage: ", _bandwidthUsed, ": ", numBytes);
     _updatedAt = time(0);
     _bandwidthUsed += numBytes;
 }
@@ -60,6 +58,7 @@ void IAllocation::updateUsage(std::int64_t numBytes)
 
 std::int64_t IAllocation::timeRemaining() const
 {
+    std::lock_guard<std::mutex> lock(_mutex);
     // uint32_t remaining = static_cast<std::int64_t>(_lifetime - (time(0) - _updatedAt));
     std::int64_t remaining = _lifetime - static_cast<std::int64_t>(time(0) - _updatedAt);
     return remaining > 0 ? remaining : 0;
@@ -74,41 +73,48 @@ bool IAllocation::expired() const
 
 bool IAllocation::deleted() const
 {
+    std::lock_guard<std::mutex> lock(_mutex);
     return _deleted || expired();
 }
 
 
 void IAllocation::setLifetime(std::int64_t lifetime)
 {
+    std::lock_guard<std::mutex> lock(_mutex);
     _lifetime = lifetime;
     _updatedAt = static_cast<std::int64_t>(time(0));
-    LTrace("Updating Lifetime: ", _lifetime)
+    LTrace("Updating Lifetime: ", _lifetime);
 }
 
 
 void IAllocation::setBandwidthLimit(std::int64_t numBytes)
 {
+    std::lock_guard<std::mutex> lock(_mutex);
     _bandwidthLimit = numBytes;
 }
 
 
 std::int64_t IAllocation::bandwidthLimit() const
 {
+    std::lock_guard<std::mutex> lock(_mutex);
     return _bandwidthLimit;
 }
 
 
 std::int64_t IAllocation::bandwidthUsed() const
 {
+    std::lock_guard<std::mutex> lock(_mutex);
     return _bandwidthUsed;
 }
 
 
 std::int64_t IAllocation::bandwidthRemaining() const
 {
+    std::lock_guard<std::mutex> lock(_mutex);
     return _bandwidthLimit > 0 ? (_bandwidthLimit > _bandwidthUsed
                                       ? _bandwidthLimit - _bandwidthUsed
-                                      : 0) : 99999999;
+                                      : 0)
+                               : 99999999;
 }
 
 
@@ -132,39 +138,42 @@ std::int64_t IAllocation::lifetime() const
 
 PermissionList IAllocation::permissions() const
 {
+    std::lock_guard<std::mutex> lock(_mutex);
     return _permissions;
 }
 
 
 void IAllocation::addPermission(const std::string& ip)
 {
+    std::lock_guard<std::mutex> lock(_mutex);
     // If the permission is already in the list then refresh it.
-    for (auto it = _permissions.begin(); it != _permissions.end(); ++it) {
-        if ((*it).ip == ip) {
-            LTrace("Refreshing permission: ", ip)
-            (*it).refresh();
+    for (auto& perm : _permissions) {
+        if (perm.ip == ip) {
+            LTrace("Refreshing permission: ", ip);
+            perm.refresh();
             return;
         }
     }
 
     // Otherwise create it...
-    LTrace("Create permission: ", ip)
+    LTrace("Create permission: ", ip);
     _permissions.push_back(Permission(ip));
 }
 
 
 void IAllocation::addPermissions(const IPList& ips)
 {
-    for (auto it = ips.begin(); it != ips.end(); ++it) {
-        addPermission(*it);
+    for (const auto& ip : ips) {
+        addPermission(ip);
     }
 }
 
 
 void IAllocation::removePermission(const std::string& ip)
 {
+    std::lock_guard<std::mutex> lock(_mutex);
     for (auto it = _permissions.begin(); it != _permissions.end();) {
-        if ((*it).ip == ip) {
+        if (it->ip == ip) {
             it = _permissions.erase(it);
             return;
         } else
@@ -175,17 +184,17 @@ void IAllocation::removePermission(const std::string& ip)
 
 void IAllocation::removeAllPermissions()
 {
-
+    std::lock_guard<std::mutex> lock(_mutex);
     _permissions.clear();
 }
 
 
 void IAllocation::removeExpiredPermissions()
 {
-
+    std::lock_guard<std::mutex> lock(_mutex);
     for (auto it = _permissions.begin(); it != _permissions.end();) {
-        if ((*it).timeout.expired()) {
-            LInfo("Removing Expired Permission: ", (*it).ip)
+        if (it->timeout.expired()) {
+            LInfo("Removing Expired Permission: ", it->ip);
             it = _permissions.erase(it);
         } else
             ++it;
@@ -195,19 +204,20 @@ void IAllocation::removeExpiredPermissions()
 
 bool IAllocation::hasPermission(const std::string& peerIP)
 {
-    for (auto it = _permissions.begin(); it != _permissions.end(); ++it) {
-        if (*it == peerIP)
+    std::lock_guard<std::mutex> lock(_mutex);
+    for (const auto& perm : _permissions) {
+        if (perm == peerIP)
             return true;
     }
 
 #if ENABLE_LOCAL_IPS
     if (peerIP.find("192.168.") == 0 || peerIP.find("127.") == 0) {
-        LWarn("Granting permission for local IP without explicit permission: ", peerIP)
+        LWarn("Granting permission for local IP without explicit permission: ", peerIP);
         return true;
     }
 #endif
 
-    LTrace("No permission for: ", peerIP)
+    LTrace("No permission for: ", peerIP);
     return false;
 }
 

@@ -9,19 +9,22 @@
 /// @{
 
 
-#ifndef SCY_Crypto_Hash_H
-#define SCY_Crypto_Hash_H
+#pragma once
 
 
 #include "scy/crypto/crypto.h"
 #include "scy/hex.h"
 #include <cstdint>
+#include <memory>
 
 #include <openssl/evp.h>
 
 
 namespace scy {
 namespace crypto {
+
+
+using EvpMdCtxPtr = std::unique_ptr<EVP_MD_CTX, decltype(&EVP_MD_CTX_free)>;
 
 
 class Crypto_API Hash
@@ -39,10 +42,10 @@ public:
     void update(const void* data, size_t length);
 
     /// Finish up the digest operation and return the result.
-    const ByteVec& digest();
+    [[nodiscard]] const ByteVec& digest();
 
     /// Finish up the digest operation and return the result as a string.
-    std::string digestStr();
+    [[nodiscard]] std::string digestStr();
 
     /// Resets the engine and digest state ready for the next computation.
     void reset();
@@ -53,7 +56,7 @@ public:
 protected:
     Hash& operator=(Hash const&);
 
-    EVP_MD_CTX* _ctx;
+    EvpMdCtxPtr _ctx;
     const EVP_MD* _md;
     crypto::ByteVec _digest;
     std::string _algorithm;
@@ -97,9 +100,6 @@ inline std::string checksum(const std::string& algorithm,
 
 } // namespace crypto
 } // namespace scy
-
-
-#endif // SCY_Crypto_Hash_H
 
 
 /// @\}

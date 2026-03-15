@@ -1,1 +1,1 @@
-define_sourcey_module_sample(httpechoserver base net http crypto)
+scy_add_sample(httpechoserver DEPENDS base net http crypto)

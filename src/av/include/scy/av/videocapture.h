@@ -8,8 +8,7 @@
 /// @addtogroup av
 /// @{
 
-#ifndef SCY_AV_VideoCapture_H
-#define SCY_AV_VideoCapture_H
+#pragma once
 
 
 #include "scy/base.h"
@@ -27,13 +26,13 @@ namespace av {
 class AV_API VideoCapture : public MediaCapture
 {
 public:
-    typedef std::shared_ptr<VideoCapture> Ptr;
+    using Ptr = std::shared_ptr<VideoCapture>;
 
     VideoCapture();
     VideoCapture(const std::string& device, const av::VideoCodec& params);
     VideoCapture(const std::string& device, int width = 0, int height = 0,
                  double framerate = 0, const std::string& pixelFmt = "");
-    virtual ~VideoCapture();
+    virtual ~VideoCapture() noexcept;
 
     virtual void openVideo(const std::string& device, const av::VideoCodec& params);
     virtual void openVideo(const std::string& device, int width = 0,
@@ -47,7 +46,6 @@ public:
 
 
 #endif
-#endif // SCY_AV_VideoCapture_H
 
 
 /// @\}

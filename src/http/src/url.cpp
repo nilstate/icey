@@ -12,47 +12,64 @@
 #include "scy/http/url.h"
 #include "scy/util.h"
 
+#include <algorithm>
+#include <cstdio>
+#include <stdexcept>
+#include <string_view>
+
 
 namespace scy {
 namespace http {
 
 
 URL::URL()
+    : _port(0)
+    , _hasPort(false)
 {
     parse("");
 }
 
 
 URL::URL(const char* url)
+    : _port(0)
+    , _hasPort(false)
 {
     parse(url);
 }
 
 
 URL::URL(const std::string& url)
+    : _port(0)
+    , _hasPort(false)
 {
     parse(url);
 }
 
 
-URL::URL(const std::string& scheme, const std::string& authority)
+URL::URL(std::string_view scheme, std::string_view authority)
+    : _port(0)
+    , _hasPort(false)
 {
-    parse(scheme + "://" + authority);
+    parse(std::string(scheme) + "://" + std::string(authority));
 }
 
 
-URL::URL(const std::string& scheme, const std::string& authority,
-         const std::string& pathEtc)
+URL::URL(std::string_view scheme, std::string_view authority,
+         std::string_view pathEtc)
+    : _port(0)
+    , _hasPort(false)
 {
-    parse(scheme + "://" + authority + pathEtc);
+    parse(std::string(scheme) + "://" + std::string(authority) + std::string(pathEtc));
 }
 
 
-URL::URL(const std::string& scheme, const std::string& authority,
-         const std::string& path, const std::string& query,
-         const std::string& fragment)
+URL::URL(std::string_view scheme, std::string_view authority,
+         std::string_view path, std::string_view query,
+         std::string_view fragment)
+    : _port(0)
+    , _hasPort(false)
 {
-    parse(scheme + "://" + authority + path + "?" + query + "#" + fragment);
+    parse(std::string(scheme) + "://" + std::string(authority) + std::string(path) + "?" + std::string(query) + "#" + std::string(fragment));
 }
 
 
@@ -85,48 +102,130 @@ URL& URL::operator=(const char* uri)
 
 bool URL::parse(const std::string& url, bool whiny)
 {
-    LTrace("Parsing: ", url)
+    LTrace("Parsing: ", url);
     std::string src(util::trim(url));
     _buf = src;
-    if (http_parser_parse_url(src.c_str(), src.length(), 0, &_parser) == 0)
-        return true;
-    _buf.clear();
-    if (whiny)
-        throw std::runtime_error("Syntax error: Cannot parse invalid URL: " +
-                                 src);
-    return false;
+    _scheme.clear();
+    _userInfo.clear();
+    _host.clear();
+    _port = 0;
+    _hasPort = false;
+    _path.clear();
+    _query.clear();
+    _fragment.clear();
+
+    if (src.empty())
+        return false;
+
+    std::string::size_type pos = 0;
+
+    // Extract scheme
+    auto schemeEnd = src.find("://", pos);
+    if (schemeEnd != std::string::npos) {
+        _scheme = src.substr(pos, schemeEnd - pos);
+        util::toLowerInPlace(_scheme);
+        pos = schemeEnd + 3;
+    }
+
+    // Extract fragment (from the end)
+    auto fragPos = src.find('#', pos);
+    std::string remaining;
+    if (fragPos != std::string::npos) {
+        _fragment = src.substr(fragPos + 1);
+        remaining = src.substr(pos, fragPos - pos);
+    } else {
+        remaining = src.substr(pos);
+    }
+
+    // Extract query (from the end of remaining)
+    auto queryPos = remaining.find('?');
+    std::string authorityAndPath;
+    if (queryPos != std::string::npos) {
+        _query = remaining.substr(queryPos + 1);
+        authorityAndPath = remaining.substr(0, queryPos);
+    } else {
+        authorityAndPath = remaining;
+    }
+
+    // If we had a scheme, extract authority
+    if (!_scheme.empty()) {
+        auto pathStart = authorityAndPath.find('/');
+        std::string authority;
+        if (pathStart != std::string::npos) {
+            authority = authorityAndPath.substr(0, pathStart);
+            _path = authorityAndPath.substr(pathStart);
+        } else {
+            authority = authorityAndPath;
+        }
+
+        // Extract userinfo from authority
+        auto atPos = authority.find('@');
+        std::string hostPort;
+        if (atPos != std::string::npos) {
+            _userInfo = authority.substr(0, atPos);
+            hostPort = authority.substr(atPos + 1);
+        } else {
+            hostPort = authority;
+        }
+
+        // Extract host and port (handle IPv6 brackets)
+        if (!hostPort.empty() && hostPort[0] == '[') {
+            auto bracketEnd = hostPort.find(']');
+            if (bracketEnd != std::string::npos) {
+                _host = hostPort.substr(1, bracketEnd - 1);
+                if (bracketEnd + 1 < hostPort.size() && hostPort[bracketEnd + 1] == ':') {
+                    auto portStr = hostPort.substr(bracketEnd + 2);
+                    _port = static_cast<uint16_t>(std::stoi(portStr));
+                    _hasPort = true;
+                }
+            }
+        } else {
+            auto colonPos = hostPort.rfind(':');
+            if (colonPos != std::string::npos) {
+                _host = hostPort.substr(0, colonPos);
+                auto portStr = hostPort.substr(colonPos + 1);
+                if (!portStr.empty() && std::all_of(portStr.begin(), portStr.end(), ::isdigit)) {
+                    _port = static_cast<uint16_t>(std::stoi(portStr));
+                    _hasPort = true;
+                }
+            } else {
+                _host = hostPort;
+            }
+        }
+    } else {
+        // No scheme - treat entire string as path
+        _path = authorityAndPath;
+    }
+
+    if (_buf.empty()) {
+        if (whiny)
+            throw std::runtime_error("Syntax error: Cannot parse invalid URL: " + src);
+        return false;
+    }
+
+    return true;
 }
 
 
 std::string URL::scheme() const
 {
-    std::string res;
-    if (hasSchema()) {
-        res.assign(_buf.substr(_parser.field_data[UF_SCHEMA].off,
-                               _parser.field_data[UF_SCHEMA].len));
-        util::toLowerInPlace(res); // always return as lowercase
-    }
-    return res;
+    return _scheme;
 }
 
 
 std::string URL::host() const
 {
-    if (hasHost())
-        return _buf.substr(_parser.field_data[UF_HOST].off,
-                           _parser.field_data[UF_HOST].len);
-    return std::string();
+    return _host;
 }
 
 
 uint16_t URL::port() const
 {
-    if (hasPort())
-        return _parser.port;
-    std::string sc = scheme();
-    if (sc == "http")
+    if (_hasPort)
+        return _port;
+    if (_scheme == "http")
         return 80;
-    else if (sc == "https")
+    else if (_scheme == "https")
         return 443;
     return 0;
 }
@@ -142,7 +241,7 @@ std::string URL::authority() const
     res.append(host());
     if (hasPort()) {
         res.append(":");
-        res.append(util::itostr<uint16_t>(port()));
+        res.append(util::itostr<uint16_t>(_port));
     }
     return res;
 }
@@ -166,119 +265,26 @@ std::string URL::pathEtc() const
 
 std::string URL::path() const
 {
-    if (hasPath())
-        return _buf.substr(_parser.field_data[UF_PATH].off,
-                           _parser.field_data[UF_PATH].len);
-    return std::string();
+    return _path;
 }
 
 
 std::string URL::query() const
 {
-    if (hasQuery())
-        return _buf.substr(_parser.field_data[UF_QUERY].off,
-                           _parser.field_data[UF_QUERY].len);
-    return std::string();
+    return _query;
 }
 
 
 std::string URL::fragment() const
 {
-    if (hasFragment())
-        return _buf.substr(_parser.field_data[UF_FRAGMENT].off,
-                           _parser.field_data[UF_FRAGMENT].len);
-    return std::string();
+    return _fragment;
 }
 
 
 std::string URL::userInfo() const
 {
-    if (hasUserInfo())
-        return _buf.substr(_parser.field_data[UF_USERINFO].off,
-                           _parser.field_data[UF_USERINFO].len);
-    return std::string();
+    return _userInfo;
 }
-
-
-#if 0
-void URL::updateSchema(const std::string& scheme)
-{
-    if (!hasSchema())
-        throw std::runtime_error("Cannot update invalid URL");
-
-    std::string tmp(str());
-    util::replaceInPlace(tmp, this->scheme(), scheme);
-    parse(tmp);
-}
-
-
-void URL::updateHost(const std::string& host)
-{
-    if (!hasHost())
-        throw std::runtime_error("Cannot update invalid URL");
-
-    std::string tmp(str());
-    util::replaceInPlace(tmp, this->host(), host);
-    parse(tmp);
-}
-
-
-void URL::updatePort(uint16_t port)
-{
-    if (!hasPort())
-        throw std::runtime_error("Cannot update invalid URL");
-
-    std::string tmp(str());
-    util::replaceInPlace(tmp,
-        util::itostr<uint16_t>(this->port()),
-        util::itostr<uint16_t>(port));
-    parse(tmp);
-}
-
-
-void URL::updatePath(const std::string& path)
-{
-    if (!hasPath())
-        throw std::runtime_error("Cannot update invalid URL");
-
-    std::string tmp(str());
-    util::replaceInPlace(tmp, this->path(), path);
-    parse(tmp);
-}
-
-
-void URL::updateQuery(const std::string& query)
-{
-    if (!hasQuery())
-        throw std::runtime_error("Cannot update invalid URL");
-
-    std::string tmp(str());
-    util::replaceInPlace(tmp, this->query(), query);
-    parse(tmp);
-}
-
-
-void URL::updateFragment(const std::string& fragment)
-{
-    if (!hasFragment())
-        throw std::runtime_error("Cannot update invalid URL");
-
-    std::string tmp(str());
-    util::replaceInPlace(tmp, this->fragment(), fragment);
-    parse(tmp);
-}
-
-
-void URL::updateUserInfo(const std::string& info)
-{
-    if (!hasUserInfo())
-        throw std::runtime_error("Cannot update invalid URL");
-
-    std::string tmp(str());
-    util::replaceInPlace(tmp, this->userInfo(), info);
-    parse(tmp);
-}
-#endif
 
 
 bool URL::valid() const
@@ -295,59 +301,59 @@ std::string URL::str() const
 
 bool URL::hasSchema() const
 {
-    return (_parser.field_set & (1 << UF_SCHEMA)) == (1 << UF_SCHEMA);
+    return !_scheme.empty();
 }
 
 
 bool URL::hasHost() const
 {
-    return (_parser.field_set & (1 << UF_HOST)) == (1 << UF_HOST);
+    return !_host.empty();
 }
 
 
 bool URL::hasPort() const
 {
-    return (_parser.field_set & (1 << UF_PORT)) == (1 << UF_PORT);
+    return _hasPort;
 }
 
 
 bool URL::hasPath() const
 {
-    return (_parser.field_set & (1 << UF_PATH)) == (1 << UF_PATH);
+    return !_path.empty();
 }
 
 
 bool URL::hasQuery() const
 {
-    return (_parser.field_set & (1 << UF_QUERY)) == (1 << UF_QUERY);
+    return !_query.empty();
 }
 
 
 bool URL::hasFragment() const
 {
-    return (_parser.field_set & (1 << UF_FRAGMENT)) == (1 << UF_FRAGMENT);
+    return !_fragment.empty();
 }
 
 
 bool URL::hasUserInfo() const
 {
-    return (_parser.field_set & (1 << UF_USERINFO)) == (1 << UF_USERINFO);
+    return !_userInfo.empty();
 }
 
 
-std::string URL::encode(const std::string& str)
+std::string URL::encode(std::string_view str)
 {
-    const std::string unreserved =
+    const std::string_view unreserved =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.~";
 
-    std::string escaped = "";
+    std::string escaped;
     for (size_t i = 0; i < str.length(); i++) {
-        if (unreserved.find_first_of(str[i]) != std::string::npos) {
+        if (unreserved.find(str[i]) != std::string_view::npos) {
             escaped.push_back(str[i]);
         } else {
             escaped.append("%");
-            char buf[3];
-            sprintf(buf, "%.2X", str[i]);
+            char buf[4];
+            std::snprintf(buf, sizeof(buf), "%.2X", static_cast<unsigned char>(str[i]));
             escaped.append(buf);
         }
     }
@@ -355,14 +361,14 @@ std::string URL::encode(const std::string& str)
 }
 
 
-std::string URL::decode(const std::string& str)
+std::string URL::decode(std::string_view str)
 {
-    std::string clean = "";
+    std::string clean;
     for (size_t i = 0; i < str.length(); i++) {
         if (str[i] == '%') {
-            const std::string digits = "0123456789ABCDEF";
+            const std::string_view digits = "0123456789ABCDEF";
             clean +=
-                (char)(digits.find(str[i + 1]) * 16 + digits.find(str[i + 2]));
+                static_cast<char>(digits.find(str[i + 1]) * 16 + digits.find(str[i + 2]));
             i += 2;
         } else {
             clean += str[i];

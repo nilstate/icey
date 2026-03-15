@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_Pipe_H
-#define SCY_Pipe_H
+#pragma once
 
 
 #include "scy/base.h"
@@ -35,9 +34,6 @@ public:
 
 
 } // namespace scy
-
-
-#endif // SCY_Stream_H
 
 
 /// @\}

@@ -47,8 +47,7 @@ VideoCapture::VideoCapture(const std::string& device, const av::VideoCodec& para
 }
 
 
-
-VideoCapture::~VideoCapture()
+VideoCapture::~VideoCapture() noexcept
 {
 }
 
@@ -65,7 +64,7 @@ void VideoCapture::openVideo(const std::string& device, int width, int height,
     SDebug << "Opening camera: " << device << ", "
            << "width=" << width << ", "
            << "height=" << height << ", "
-           << "framerate=" << framerate  << ", "
+           << "framerate=" << framerate << ", "
            << "pixelFmt=" << pixelFmt << endl;
 
     DeviceManager devman;
@@ -74,11 +73,10 @@ void VideoCapture::openVideo(const std::string& device, int width, int height,
         throw std::runtime_error("Couldn't find camera input format.");
 
     AVDictionary* iparams = nullptr;
-    AVDictionaryCleanup cleanup{ &iparams };
+    AVDictionaryCleanup cleanup{&iparams};
 
     // NOTE: A pixel format must be passed or the capture may error out with:
     // [mjpeg @ 0x7fb5f40016c0] Specified pixel format -1 is invalid or not supported
-    // TODO: Use yuv420p default on linux, is this OK for Windows too?
     std::string pixfmt = pixelFmt.empty() ? "yuv420p" : pixelFmt;
 
     // Set custom parameters for devices.

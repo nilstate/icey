@@ -1,402 +1,277 @@
 # ============================================================================
-# CMake file for LibSourcey
+# LibSourcey build orchestrator
+#
+# Sets options, finds dependencies, discovers modules, generates config files.
+# Module targets are created by scy_add_module() in LibSourceyModules.cmake.
 # ============================================================================
 
-# ----------------------------------------------------------------------------
-# LibSourcey build paths
-# ----------------------------------------------------------------------------
-set(LibSourcey_NAME LibSourcey)
+# Paths
 set(LibSourcey_DIR ${CMAKE_CURRENT_LIST_DIR})
 set(LibSourcey_SOURCE_DIR ${LibSourcey_DIR}/src)
 set(LibSourcey_VENDOR_SOURCE_DIR ${LibSourcey_DIR}/vendor)
-set(LibSourcey_BUILD_DIR ${CMAKE_BINARY_DIR})
-set(LibSourcey_VENDOR_BUILD_DIR ${CMAKE_BINARY_DIR}/vendor)
+set(LibSourcey_VENDOR_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/share/libsourcey/vendor)
 
-set(LibSourcey_INSTALL_DIR ${CMAKE_INSTALL_PREFIX})
-set(LibSourcey_SHARED_INSTALL_DIR ${LibSourcey_INSTALL_DIR}/share/libsourcey)
-set(LibSourcey_VENDOR_INSTALL_DIR ${LibSourcey_SHARED_INSTALL_DIR}/vendor)
-set(LibSourcey_PKGCONFIG_DIR ${LibSourcey_INSTALL_DIR}/lib/pkgconfig)
+# CMake module path
+list(APPEND CMAKE_MODULE_PATH ${LibSourcey_DIR}/cmake)
 
-# Set CMake defaults
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${LibSourcey_DIR}/cmake)
-set(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} ${LibSourcey_DIR}/cmake)
-set(CMAKE_LIBRARY_PATH ${LibSourcey_VENDOR_INSTALL_DIR}/lib ${CMAKE_LIBRARY_PATH})
-set(CMAKE_SYSTEM_PREFIX_PATH ${LibSourcey_VENDOR_INSTALL_DIR}/include ${CMAKE_SYSTEM_PREFIX_PATH})
+# Include build system components
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
+include(LibSourceyModules)
+include(LibSourceyCompilerOptions)
 
-# Include CMake extensions
-include(CMakeHelpers REQUIRED)
-include(CMakeFindExtensions REQUIRED)
-include(LibSourceyUtilities REQUIRED)
-include(LibSourceyIncludes REQUIRED)
-include(LibSourceyModules REQUIRED)
-include(LibSourceyVersion REQUIRED)
+# Debug postfix
+if(WIN32)
+  set(LibSourcey_DEBUG_POSTFIX "d")
+else()
+  set(LibSourcey_DEBUG_POSTFIX "")
+endif()
 
 # ----------------------------------------------------------------------------
-# LibSourcey build components
+# Build options
 # ----------------------------------------------------------------------------
-set_option(BUILD_SHARED_LIBS          "Build shared libraries (.dll/.so) instead of static ones (.lib/.a)" NOT (WIN32 OR ANDROID OR IOS))
-set_option(BUILD_MODULES              "Build LibSourcey modules"                                 ON)
-set_option(BUILD_APPLICATIONS         "Build LibSourcey applications"                            ON   IF CMAKE_COMPILER_IS_GNUCXX)
-set_option(BUILD_DEPENDENCIES         "Build third party dependencies"                           ON)
-set_option(BUILD_TESTS                "Build module test applications?"                          ON   IF CMAKE_COMPILER_IS_GNUCXX)
-set_option(BUILD_SAMPLES              "Build module sample applications?"                        ON   IF CMAKE_COMPILER_IS_GNUCXX)
-set_option(BUILD_WITH_DEBUG_INFO      "Include debug info into debug libs"                       ON)
-set_option(BUILD_WITH_STATIC_CRT      "Enables statically linked CRT for statically linked libraries" OFF)
-set_option(BUILD_ALPHA                "Build alpha development modules"                          OFF)
+option(BUILD_SHARED_LIBS          "Build shared libraries"                    OFF)
+option(BUILD_MODULES              "Build LibSourcey modules"                  ON)
+option(BUILD_APPLICATIONS         "Build LibSourcey applications"             ON)
+option(BUILD_TESTS                "Build module tests"                        OFF)
+option(BUILD_SAMPLES              "Build module samples"                      OFF)
+option(BUILD_ALPHA                "Build alpha development modules"           OFF)
+option(ENABLE_SOLUTION_FOLDERS    "IDE solution folders"                      ON)
+option(ENABLE_LOGGING             "Enable internal debug logging"             ON)
+option(EXCEPTION_RECOVERY         "Attempt to recover from internal exceptions" OFF)
 
-# ----------------------------------------------------------------------------
-# LibSourcey build options
-# ----------------------------------------------------------------------------
-set_option(ENABLE_SOLUTION_FOLDERS    "Solution folder in Visual Studio or in other IDEs"        MSVC_IDE IF (CMAKE_VERSION VERSION_GREATER "2.8.0") )
-set_option(ENABLE_PROFILING           "Enable profiling in the GCC compiler (Add flags: -g -pg)" OFF  IF CMAKE_COMPILER_IS_GNUCXX )
-set_option(ENABLE_OMIT_FRAME_POINTER  "Enable -fomit-frame-pointer for GCC"                      ON   IF CMAKE_COMPILER_IS_GNUCXX )
-set_option(ENABLE_POWERPC             "Enable PowerPC for GCC"                                   ON   IF (CMAKE_COMPILER_IS_GNUCXX AND CMAKE_SYSTEM_PROCESSOR MATCHES powerpc.*) )
-set_option(ENABLE_FAST_MATH           "Enable -ffast-math (not recommended for GCC 4.6.x)"       OFF  IF (CMAKE_COMPILER_IS_GNUCXX AND (X86 OR X86_64)) )
-set_option(ENABLE_SSE                 "Enable SSE instructions"                                  ON   IF (MSVC OR CMAKE_COMPILER_IS_GNUCXX AND (X86 OR X86_64)) )
-set_option(ENABLE_SSE2                "Enable SSE2 instructions"                                 ON   IF (MSVC OR CMAKE_COMPILER_IS_GNUCXX AND (X86 OR X86_64)) )
-set_option(ENABLE_SSE3                "Enable SSE3 instructions"                                 OFF  IF (CMAKE_COMPILER_IS_GNUCXX AND (X86 OR X86_64)) )
-set_option(ENABLE_SSSE3               "Enable SSSE3 instructions"                                OFF  IF (CMAKE_COMPILER_IS_GNUCXX AND (X86 OR X86_64)) )
-set_option(ENABLE_SSE41               "Enable SSE4.1 instructions"                               OFF  IF (CMAKE_COMPILER_IS_GNUCXX AND (X86 OR X86_64)) )
-set_option(ENABLE_SSE42               "Enable SSE4.2 instructions"                               OFF  IF (CMAKE_COMPILER_IS_GNUCXX AND (X86 OR X86_64)) )
-set_option(ENABLE_NOISY_WARNINGS      "Show all warnings even if they are too noisy"             OFF )
-set_option(ENABLE_WARNINGS_ARE_ERRORS "Treat warnings as errors"                                 OFF )
-set_option(ENABLE_LOGGING             "Enable internal debug logging"                            ON   IF (CMAKE_BUILD_TYPE MATCHES DEBUG) )
-set_option(EXCEPTION_RECOVERY         "Attempt to recover from internal exceptions"              ON   IF (CMAKE_BUILD_TYPE MATCHES DEBUG) )
-set_option(MSG_VERBOSE                "Print verbose debug status messages"                      OFF )
+# Platform-specific shared lib default
+if(NOT DEFINED BUILD_SHARED_LIBS)
+  if(WIN32 OR ANDROID OR IOS)
+    set(BUILD_SHARED_LIBS OFF)
+  else()
+    set(BUILD_SHARED_LIBS ON)
+  endif()
+endif()
 
-
-# ----------------------------------------------------------------------------
-# LibSourcey internal options
-# ----------------------------------------------------------------------------
-set(LibSourcey_INCLUDE_DIRS           "") # CACHE INTERNAL "Global include dirs" FORCE)
-set(LibSourcey_LIBRARY_DIRS           "") # CACHE INTERNAL "Global include library dirs" FORCE)
-set(LibSourcey_INCLUDE_LIBRARIES      "") # CACHE INTERNAL "Global include libraries" FORCE)
-
-set(LibSourcey_BUILD_DEPENDENCIES     "" CACHE INTERNAL "Dependencies to build" FORCE)
-set(LibSourcey_BUILD_MODULES          "" CACHE INTERNAL "Modules to build" FORCE)
-set(LibSourcey_BUILD_SAMPLES          "" CACHE INTERNAL "Samples to build" FORCE)
-set(LibSourcey_BUILD_TESTS            "" CACHE INTERNAL "Tests to build" FORCE)
-set(LibSourcey_BUILD_APPLICATIONS     "" CACHE INTERNAL "Applications to build" FORCE)
-
-# ----------------------------------------------------------------------------
-# Solution folders:
-# ----------------------------------------------------------------------------
+# Solution folders
 if(ENABLE_SOLUTION_FOLDERS)
   set_property(GLOBAL PROPERTY USE_FOLDERS ON)
   set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "CMakeTargets")
 endif()
 
-# ----------------------------------------------------------------------------
-# C++ standard:
-# ----------------------------------------------------------------------------
-# C++ standard 14 minimum is required
-# Wait until CMake >= 3.1 is widely adopted to use CMAKE_CXX_STANDARD
-# set(CMAKE_CXX_STANDARD 14)
-# set(CMAKE_CXX_STANDARD_REQUIRED on)
-
-# ----------------------------------------------------------------------------
-# Use statically or dynamically linked CRT?
-# Default: dynamic
-# ----------------------------------------------------------------------------
-if(MSVC)
-  include(LibSourceyCRTLinkage REQUIRED)
-endif()
-
-# ----------------------------------------------------------------------------
-# Apple and iOS build options
-# ----------------------------------------------------------------------------
-if(APPLE)
-  # Remove the “MACOSX_RPATH is not specified” warning
-  # set(CMAKE_MACOSX_RPATH 1)
-
-  # Silence CMake warnings by adopting modern behavior for MACOSX_RPATH on newer
-  # versions of CMake
-  if(POLICY CMP0042)
-    cmake_policy(SET CMP0042 NEW)
-  endif()
-  if(IOS)
-    find_package(Threads REQUIRED)
-  endif()
-  if(!IOS)
-    set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
-  endif()
-endif()
-
-# ----------------------------------------------------------------------------
-# LibSourcey compiler and linker options
-# ----------------------------------------------------------------------------
-include(LibSourceyCompilerOptions REQUIRED)
-
-# ----------------------------------------------------------------------------
-# Set the LibSourcey_LIB_TYPE variable for add_library
-# ----------------------------------------------------------------------------
+# For vendor define_sourcey_dependency compatibility
 set(LibSourcey_LIB_TYPE STATIC)
 if(BUILD_SHARED_LIBS)
   set(LibSourcey_LIB_TYPE SHARED)
 endif()
 
-# ============================================================================
-# Include Dependencies, Modules and Applications
-#
-# LibSourcey automatically includes all directories inside the ./src folder.
-# Libraries in the LibSourcey source tree are broken up into three types:
-#
-# Dependency:
-#     A third party library required by a LibSourcey Modue or Application.
-#     Dependencies may be external or internal. External dependencies reside
-#     outside on the source tree, while internal dependencies generally reside
-#     in the ./deps folder. All dependencies must be built, installed, found
-#     and included by the build system before Modules and Application can be
-#     built.
-#
-# Module:
-#     A static or dynamic library which extends the LibSourcey core, and is
-#     included by Applications based on LibSourcey architecture. Modules must
-#     be built and installed before Applications.
-#
-# Application:
-#     A standalone application. These can be built once all Dependencies and
-#     Modules have been built and installed.
-#
-# ============================================================================
+# ----------------------------------------------------------------------------
+# External dependency options
+# ----------------------------------------------------------------------------
+option(WITH_OPENSSL  "Include OpenSSL support"   ON)
+option(WITH_FFMPEG   "Include FFmpeg support"     OFF)
+option(WITH_OPENCV   "Include OpenCV support"     OFF)
+
 
 # ----------------------------------------------------------------------------
-# Include standard and defult libraries
+# Platform libraries
 # ----------------------------------------------------------------------------
 if(MSVC)
-  # CMAKE_CXX_STANDARD_LIBRARIES must be a string for MSVC
-  set(CMAKE_CXX_STANDARD_LIBRARIES "${CMAKE_CXX_STANDARD_LIBRARIES} advapi32.lib iphlpapi.lib psapi.lib shell32.lib ws2_32.lib dsound.lib winmm.lib strmiids.lib")
-elseif(MSYS)
-  set(CMAKE_CXX_STANDARD_LIBRARIES "${CMAKE_CXX_STANDARD_LIBRARIES} -lws2_32 -liphlpapi") #${LibSourcey_INCLUDE_LIBRARIES}
-elseif(APPLE)
-  set(CMAKE_CXX_STANDARD_LIBRARIES "${CMAKE_CXX_STANDARD_LIBRARIES} -ldl") # -lm -lz -llibc -lglibc #${LibSourcey_INCLUDE_LIBRARIES}
-elseif(UNIX)
-  set(CMAKE_CXX_STANDARD_LIBRARIES "${CMAKE_CXX_STANDARD_LIBRARIES} -lm -ldl -lrt") # -lz -lrt -lpulse-simple -lpulse -ljack -llibc -lglibc #${LibSourcey_INCLUDE_LIBRARIES}
-endif()
-#if (CMAKE_COMPILER_IS_GNUCXX)
-#  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
-#endif()
-
-if(MSVC)
-  # Temporary workaround for "error LNK2026: module unsafe for SAFESEH image"
-  # when compiling with certain externally compiled libraries with VS2012,
-  # such as http://ffmpeg.zeranoe.com/builds/
-  # This disables safe exception handling by default.
-  if(${_MACHINE_ARCH_FLAG} MATCHES X86)
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
-    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /SAFESEH:NO")
-    set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} /SAFESEH:NO")
-  endif()
-
-  # No pesky windows min/max macros
+  set(CMAKE_CXX_STANDARD_LIBRARIES
+    "${CMAKE_CXX_STANDARD_LIBRARIES} advapi32.lib iphlpapi.lib psapi.lib shell32.lib ws2_32.lib dsound.lib winmm.lib strmiids.lib")
   add_definitions(-DNOMINMAX)
-endif()
-
-
-# ----------------------------------------------------------------------------
-# Include third party dependencies
-# ----------------------------------------------------------------------------
-
-# Set some required vendor variables for all modules
-link_directories(${LibSourcey_VENDOR_INSTALL_DIR}/lib)
-
-list(APPEND LibSourcey_INCLUDE_DIRS ${LibSourcey_VENDOR_INSTALL_DIR}/include)
-if (EXISTS ${LibSourcey_VENDOR_INSTALL_DIR}/lib)
-  list(APPEND LibSourcey_LIBRARY_DIRS ${LibSourcey_VENDOR_INSTALL_DIR}/lib)
-endif()
-
-# Prefind external dependencies so we can set defaults
-# find_package(OpenSSL)
-find_package(Threads)
-find_package(OpenCV)
-find_package(FFmpeg)
-
-# set_option(WITH_LIBUV           "Include LibUV support"                ON)
-# set_option(WITH_RTAUDIO         "Include RtAudio support"              ON)
-# set_option(WITH_HTTPPARSER      "Include HttpParser support"           ON)
-# set_option(WITH_JSONCPP         "Include JsonCpp support"              ON)
-set_option(WITH_ZLIB            "Include zlib support"                 ON)
-set_option(WITH_OPENSSL         "Include OpenSSL support"              ON) #IF (OPENSSL_FOUND)
-set_option(WITH_FFMPEG          "Include FFmpeg support"               OFF) #ON IF (FFmpeg_FOUND)
-set_option(WITH_OPENCV          "Include OpenCV support"               OFF) #ON IF (OpenCV_FOUND)
-set_option(WITH_WEBRTC          "Include WebRTC support"               OFF)
-set_option(WITH_POCO            "Include Poco support"                 OFF)
-set_option(WITH_WXWIDGETS       "Include wxWidgets support"            OFF)
-
-# Include dependencies
-if(APPLE)
-  status("Including APPLE's foundation and AVFoundation frameworks")
-
-  # Don't use RPATH's. The resulting binary could fail a security audit.
-  # if (NOT CMAKE_VERSION VERSION_LESS 2.8.12)
-  #   set(CMAKE_MACOSX_RPATH OFF)
-  # endif()
+elseif(MSYS)
+  set(CMAKE_CXX_STANDARD_LIBRARIES "${CMAKE_CXX_STANDARD_LIBRARIES} -lws2_32 -liphlpapi")
+elseif(APPLE)
   set(CMAKE_MACOSX_RPATH ON)
-
-  if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  set(CMAKE_CXX_STANDARD_LIBRARIES "${CMAKE_CXX_STANDARD_LIBRARIES} -ldl")
+  if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     find_library(FOUNDATION Foundation)
     find_library(AVFOUNDATION AVFoundation)
-
-    list(APPEND LibSourcey_BUILD_DEPENDENCIES ${FOUNDATION} ${AVFOUNDATION})
   endif()
-
-  #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -framework Foundation -framework AVFoundation")
-  #set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /SAFESEH:NO")
-  #set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} /SAFESEH:NO")
+elseif(UNIX)
+  set(CMAKE_CXX_STANDARD_LIBRARIES "${CMAKE_CXX_STANDARD_LIBRARIES} -lm -ldl -lrt")
 endif()
 
-# Build dependencies
-add_vendor_dependency(LIBUV libuv)
-if(WITH_ZLIB)
-  add_vendor_dependency(ZLIB zlib)
-  add_vendor_dependency(MINIZIP minizip)
-endif()
-# if(WITH_JSONCPP)
-#   add_vendor_dependency(JSONCPP jsoncpp)
-# endif()
-# add_vendor_dependency(JSON json)
-add_vendor_dependency(HTTPPARSER http_parser)
+# ----------------------------------------------------------------------------
+# Fetch dependencies (replaces vendored copies)
+# ----------------------------------------------------------------------------
+include(FetchContent)
 
-# External dependencies
-if(WITH_WEBRTC)
-  find_dependency(WebRTC REQUIRED)
+# libuv - event loop
+FetchContent_Declare(libuv
+  GIT_REPOSITORY https://github.com/libuv/libuv.git
+  GIT_TAG        v1.50.0
+  GIT_SHALLOW    TRUE)
+set(LIBUV_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(LIBUV_BUILD_BENCH OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(libuv)
 
-  # We will be building with BoringSSL instead of OpenSSL
-  message(STATUS "Using BoringSSL")
-  set(WITH_OPENSSL OFF)
-  set(HAVE_OPENSSL ON)
-  set(OPENSSL_IS_BORINGSSL ON)
-  unset(OPENSSL_INCLUDE_DIR CACHE)
-  unset(LIB_EAY_DEBUG CACHE)
-  unset(LIB_EAY_RELEASE CACHE)
-  unset(SSL_EAY_DEBUG CACHE)
-  unset(SSL_EAY_RELEASE CACHE)
-  find_path(OPENSSL_INCLUDE_DIR
-    NAMES openssl/ssl.h
-    PATHS
-      ${WEBRTC_ROOT_DIR}/third_party/boringssl/src/include
-      ${WEBRTC_ROOT_DIR}/include/third_party/boringssl/src/include
-    NO_DEFAULT_PATH)
-  list(APPEND LibSourcey_VENDOR_INCLUDE_DIRS ${OPENSSL_INCLUDE_DIR})
+# llhttp - HTTP parser (replaces http_parser)
+FetchContent_Declare(llhttp
+  URL      https://github.com/nodejs/llhttp/archive/refs/tags/release/v9.2.1.tar.gz
+  URL_HASH SHA256=3c163891446e529604b590f9ad097b2e98b5ef7e4d3ddcf1cf98b62ca668f23e)
+set(BUILD_SHARED_LIBS_SAVED ${BUILD_SHARED_LIBS})
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+set(BUILD_STATIC_LIBS ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(llhttp)
+set(BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS_SAVED} CACHE BOOL "" FORCE)
+
+# zlib
+FetchContent_Declare(zlib
+  GIT_REPOSITORY https://github.com/madler/zlib.git
+  GIT_TAG        v1.3.1
+  GIT_SHALLOW    TRUE)
+set(ZLIB_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(SKIP_INSTALL_ALL ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(zlib)
+set(SKIP_INSTALL_ALL OFF CACHE BOOL "" FORCE)
+
+# Fix zlib's include_directories (uses raw paths, breaks install/export)
+# Replace with generator expressions so it can be exported cleanly
+FetchContent_GetProperties(zlib SOURCE_DIR zlib_SOURCE_DIR BINARY_DIR zlib_BINARY_DIR)
+set_target_properties(zlibstatic PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "")
+target_include_directories(zlibstatic PUBLIC
+  $<BUILD_INTERFACE:${zlib_SOURCE_DIR}>
+  $<BUILD_INTERFACE:${zlib_BINARY_DIR}>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+
+install(TARGETS zlibstatic
+  EXPORT LibSourceyTargets
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT dev)
+
+# nlohmann/json - header-only JSON library
+FetchContent_Declare(nlohmann_json
+  GIT_REPOSITORY https://github.com/nlohmann/json.git
+  GIT_TAG        v3.11.3
+  GIT_SHALLOW    TRUE)
+set(JSON_BuildTests OFF CACHE BOOL "" FORCE)
+set(JSON_Install OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(nlohmann_json)
+
+# minizip - built from zlib's contrib/minizip
+set(MINIZIP_SOURCE_DIR ${zlib_SOURCE_DIR}/contrib/minizip)
+set(minizip_SOURCES
+  ${MINIZIP_SOURCE_DIR}/ioapi.c
+  ${MINIZIP_SOURCE_DIR}/mztools.c
+  ${MINIZIP_SOURCE_DIR}/unzip.c
+  ${MINIZIP_SOURCE_DIR}/zip.c)
+set(minizip_HEADERS
+  ${MINIZIP_SOURCE_DIR}/crypt.h
+  ${MINIZIP_SOURCE_DIR}/ioapi.h
+  ${MINIZIP_SOURCE_DIR}/mztools.h
+  ${MINIZIP_SOURCE_DIR}/unzip.h
+  ${MINIZIP_SOURCE_DIR}/zip.h)
+if(WIN32)
+  list(APPEND minizip_SOURCES ${MINIZIP_SOURCE_DIR}/iowin32.c)
 endif()
+add_library(minizip STATIC ${minizip_SOURCES} ${minizip_HEADERS})
+target_link_libraries(minizip PRIVATE zlibstatic)
+target_include_directories(minizip PUBLIC
+  $<BUILD_INTERFACE:${MINIZIP_SOURCE_DIR}>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+if(ENABLE_SOLUTION_FOLDERS)
+  set_target_properties(minizip PROPERTIES FOLDER "dependencies")
+endif()
+install(TARGETS minizip
+  EXPORT LibSourceyTargets
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT dev)
+install(FILES ${minizip_HEADERS}
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT dev)
+
+# ----------------------------------------------------------------------------
+# Find external dependencies
+# ----------------------------------------------------------------------------
+find_package(Threads REQUIRED)
+
 if(WITH_OPENSSL)
-  find_dependency(OpenSSL REQUIRED)
-endif()
-if(WITH_FFMPEG)
-  find_dependency(FFmpeg REQUIRED)
-endif()
-if(WITH_OPENCV)
-  find_dependency(OpenCV REQUIRED)
-endif()
-if(WITH_POCO)
-  find_dependency(Poco REQUIRED Util XML CppParser Foundation)
-endif()
-if(WITH_WXWIDGETS)
-  # TODO: specify required library options
-  find_dependency(wxWidgets REQUIRED core base adv)
-endif()
-
-# ----------------------------------------------------------------------------
-# Include the LibSourcey source tree
-# ----------------------------------------------------------------------------
-
-# Include vendor source dirs
-list(APPEND LibSourcey_VENDOR_INCLUDE_DIRS
-  ${LibSourcey_VENDOR_SOURCE_DIR}/zlib
-  ${LibSourcey_VENDOR_BUILD_DIR}/zlib
-  ${LibSourcey_VENDOR_SOURCE_DIR}/minizip
-  ${LibSourcey_VENDOR_SOURCE_DIR}/libuv/include
-  ${LibSourcey_VENDOR_SOURCE_DIR}/http_parser
-  ${LibSourcey_VENDOR_SOURCE_DIR}/json/src)
-  # ${LibSourcey_VENDOR_SOURCE_DIR}/rtaudio
-  # ${LibSourcey_VENDOR_SOURCE_DIR}/rtaudio/include
-  # ${LibSourcey_VENDOR_SOURCE_DIR}/jsoncpp
-
-# Include inttypes.h for windows
-# if (MSVC)
-#   include_directories(${LibSourcey_VENDOR_SOURCE_DIR}/msvc)
-# endif()
-
-# Enable testing if requested
-if (BUILD_TESTS)
-  enable_testing()
-endif()
-
-# Include source tree modules
-subdirlist(subdirs ${LibSourcey_SOURCE_DIR})
-foreach(name ${subdirs})
-  # This variable is so modules can set HAVE_LibSourcey_XXX for our
-  # libsourcey.h inside the child scope. See include_sourcey_modules()
-  # TODO: Need to refactor since modules may be nested.
-  set(HAVE_LibSourcey_${name} 0)
-  set(dir "${LibSourcey_SOURCE_DIR}/${name}")
-  if (EXISTS "${dir}/CMakeLists.txt")
-    add_subdirectory(${dir} ${LibSourcey_BUILD_DIR}/${name})
+  find_package(OpenSSL QUIET)
+  if(OPENSSL_FOUND)
+    set(HAVE_OPENSSL ON)
+    message(STATUS "  Found OpenSSL: ${OPENSSL_VERSION}")
+  else()
+    message(STATUS "  OpenSSL not found, disabling SSL-dependent modules")
   endif()
-endforeach()
-
-# Condense related sublists into main variables
-list(APPEND LibSourcey_INCLUDE_DIRS ${LibSourcey_MODULE_INCLUDE_DIRS} ${LibSourcey_VENDOR_INCLUDE_DIRS})
-list(APPEND LibSourcey_LIBRARY_DIRS ${LibSourcey_MODULE_LIBRARY_DIRS} ${LibSourcey_BUILD_DIR})
-list(APPEND LibSourcey_INCLUDE_LIBRARIES ${LibSourcey_MODULE_INCLUDE_LIBRARIES})
-
-# Remove any duplicates from our lists
-if(LibSourcey_LINK_LIBRARIES)
-  list(REMOVE_DUPLICATES LibSourcey_LINK_LIBRARIES)
-endif()
-if(LibSourcey_BUILD_DEPENDENCIES)
-  list(REMOVE_DUPLICATES LibSourcey_BUILD_DEPENDENCIES)
 endif()
 
-# ----------------------------------------------------------------------------
-# Install targets
-# ----------------------------------------------------------------------------
+if(WITH_FFMPEG)
+  include(FindFFmpeg)
+  if(FFMPEG_FOUND)
+    set(HAVE_FFMPEG ON)
+  endif()
+endif()
 
-# Install specific vendor headers
-install(FILES ${LibSourcey_VENDOR_SOURCE_DIR}/json/src/json.hpp
-  DESTINATION ${LibSourcey_VENDOR_INSTALL_DIR}/include
-  COMPONENT dev)
-
-# Copy CMake files to shared install directory
-install(DIRECTORY ${LibSourcey_DIR}/cmake
-  DESTINATION ${LibSourcey_SHARED_INSTALL_DIR}
-  COMPONENT dev
-  FILES_MATCHING PATTERN "CMake*"  PATTERN "Find*")
-
-# ----------------------------------------------------------------------------
-#  Install PkgConfig file
-# ----------------------------------------------------------------------------
-
-set(PKG_CONFIG_LIBS)
-foreach(module ${LibSourcey_BUILD_MODULES})
-  set(PKG_CONFIG_LIBS "${PKG_CONFIG_LIBS} -lscy_${module}")
-endforeach()
-foreach(dep ${LibSourcey_BUILD_DEPENDENCIES})
-  set(PKG_CONFIG_LIBS "${PKG_CONFIG_LIBS} -l${dep}")
-endforeach()
-
-status("Creating 'libsourcey.pc'")
-set(LibSourcey_PC ${LibSourcey_BUILD_DIR}/libsourcey.pc)
-configure_file(
-  ${LibSourcey_DIR}/cmake/libsourcey.pc.cmake.in
-	${LibSourcey_PC} @ONLY)
-install(FILES ${LibSourcey_PC} DESTINATION ${LibSourcey_PKGCONFIG_DIR} COMPONENT dev)
+if(WITH_OPENCV)
+  find_package(OpenCV QUIET)
+  if(OpenCV_FOUND)
+    set(HAVE_OPENCV ON)
+  endif()
+endif()
 
 # ----------------------------------------------------------------------------
-# Build our libsourcey.h file
-#
-# A directory will be created for each platform so the "libsourcey.h" file is
-# not overwritten if CMake generates code in the same path.
+# Auto-discover and build modules
 # ----------------------------------------------------------------------------
+if(BUILD_MODULES)
+  message(STATUS "")
+  message(STATUS "  Modules:")
 
-# Variables for libsourcey.h
+  subdirlist(_module_dirs ${LibSourcey_SOURCE_DIR})
+  foreach(_name ${_module_dirs})
+    set(_dir "${LibSourcey_SOURCE_DIR}/${_name}")
+    if(EXISTS "${_dir}/CMakeLists.txt")
+      add_subdirectory(${_dir} ${CMAKE_BINARY_DIR}/${_name})
+    endif()
+  endforeach()
+endif()
+
+# ----------------------------------------------------------------------------
+# Generate config header (libsourcey.h)
+# ----------------------------------------------------------------------------
 set(SCY_ENABLE_LOGGING ${ENABLE_LOGGING})
 set(SCY_EXCEPTION_RECOVERY ${EXCEPTION_RECOVERY})
 set(SCY_SHARED_LIBRARY ${BUILD_SHARED_LIBS})
 
-status("Creating 'libsourcey.h'")
-set(LibSourcey_CONFIG_FILE ${LibSourcey_BUILD_DIR}/libsourcey.h)
+message(STATUS "")
+message(STATUS "  Generating libsourcey.h")
 configure_file(
   ${LibSourcey_DIR}/cmake/libsourcey.h.cmake.in
-  ${LibSourcey_CONFIG_FILE})
-install(FILES ${LibSourcey_CONFIG_FILE} DESTINATION ${LibSourcey_INSTALL_DIR}/include COMPONENT dev)
+  ${CMAKE_BINARY_DIR}/libsourcey.h)
+install(FILES ${CMAKE_BINARY_DIR}/libsourcey.h
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT dev)
+
+# ----------------------------------------------------------------------------
+# Generate pkg-config file
+# ----------------------------------------------------------------------------
+set(PKG_CONFIG_LIBS)
+foreach(_mod ${LibSourcey_BUILD_MODULES})
+  string(APPEND PKG_CONFIG_LIBS " -lscy_${_mod}")
+endforeach()
+
+message(STATUS "  Generating libsourcey.pc")
+configure_file(
+  ${LibSourcey_DIR}/cmake/libsourcey.pc.cmake.in
+  ${CMAKE_BINARY_DIR}/libsourcey.pc @ONLY)
+install(FILES ${CMAKE_BINARY_DIR}/libsourcey.pc
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig COMPONENT dev)
+
+# ----------------------------------------------------------------------------
+# Install export set and config package
+# ----------------------------------------------------------------------------
+install(EXPORT LibSourceyTargets
+  NAMESPACE LibSourcey::
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/LibSourcey
+  COMPONENT dev)
+
+configure_package_config_file(
+  ${LibSourcey_DIR}/cmake/LibSourceyConfig.cmake.in
+  ${CMAKE_BINARY_DIR}/LibSourceyConfig.cmake
+  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/LibSourcey)
+
+write_basic_package_version_file(
+  ${CMAKE_BINARY_DIR}/LibSourceyConfigVersion.cmake
+  VERSION ${PROJECT_VERSION}
+  COMPATIBILITY SameMajorVersion)
+
+install(FILES
+  ${CMAKE_BINARY_DIR}/LibSourceyConfig.cmake
+  ${CMAKE_BINARY_DIR}/LibSourceyConfigVersion.cmake
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/LibSourcey
+  COMPONENT dev)
+
+# nlohmann/json installs via its own CMake config (FetchContent)

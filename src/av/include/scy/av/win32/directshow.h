@@ -8,8 +8,7 @@
 /// @addtogroup av
 /// @{
 
-#ifndef SCY_AV_DirectShow_H
-#define SCY_AV_DirectShow_H
+#pragma once
 
 
 #include "scy/av/devicemanager.h"
@@ -36,6 +35,3 @@ bool getDeviceList(Device::Type type, std::vector<av::Device>& devices);
 } // namespace dshow
 } // namespace av
 } // namespace scy
-
-
-#endif // SCY_AV_DirectShow_H

@@ -27,124 +27,43 @@ namespace net {
 PacketSocketEmitter::PacketSocketEmitter(const Socket::Ptr& socket)
     : SocketEmitter(socket)
 {
-    // LTrace("Create: ", socket)
+    // LTrace("Create: ", socket);
 }
 
 
-PacketSocketEmitter::~PacketSocketEmitter()
+PacketSocketEmitter::~PacketSocketEmitter() noexcept
 {
 }
 
 
-void PacketSocketEmitter::onSocketRecv(Socket& socket, const MutableBuffer& buffer, const Address& peerAddress)
+bool PacketSocketEmitter::onSocketRecv(Socket& socket, const MutableBuffer& buffer, const Address& peerAddress)
 {
-    // LTrace("Recv: ", buffer.size())
+    // LTrace("Recv: ", buffer.size());
 
-    IPacket* pkt = nullptr;
     const char* buf = bufferCast<const char*>(buffer);
     size_t len = buffer.size();
     size_t nread = 0;
-    while (len > 0 && (pkt = factory.createPacket(constBuffer(buf, len), nread))) {
-        assert(nread > 0);
-        pkt->info = new PacketInfo(this->impl, peerAddress);
-        onPacket(*pkt);
-        delete pkt;
+    IPacket* raw = nullptr;
+    while (len > 0 && (raw = factory.createPacket(constBuffer(buf, len), nread))) {
+        if (nread <= 0)
+            return false;
+        std::unique_ptr<IPacket> pkt(raw);
+        pkt->info = std::make_unique<PacketInfo>(this->impl, peerAddress);
+        if (onPacket(*pkt))
+            return true;
         buf += nread;
         len -= nread;
     }
+    return false;
 }
 
 
-void PacketSocketEmitter::onPacket(IPacket& pkt)
+bool PacketSocketEmitter::onPacket(IPacket& pkt)
 {
-    // LTrace("On packet: ", pkt.size())
+    // LTrace("On packet: ", pkt.size());
     PacketSignal::emit(pkt);
+    return false;
 }
-
-
-#if 0
-//
-// Packet Socket
-//
-
-
-PacketSocket::PacketSocket(const Socket& socket) :
-    Socket(socket)
-{
-    addReceiver(new PacketSocketEmitter);
-    //assert(Socket::base().refCount() >= 2);
-}
-
-
-PacketSocket::PacketSocket(Socket* base, bool shared) :
-    Socket(base, shared)
-{
-    addReceiver(new PacketSocketEmitter);
-    //assert(!shared || Socket::base().refCount() >= 2);
-}
-
-
-PacketSocket::~PacketSocket()
-{
-}
-
-
-//
-// Packet Stream Socket Adapter
-//
-
-
-PacketStreamSocketAdapter::PacketStreamSocketAdapter(Socket& socket) :
-    PacketProcessor(PacketStreamSocketAdapter::emitter),
-    _socket(socket)
-{
-}
-
-
-PacketStreamSocketAdapter::~PacketStreamSocketAdapter()
-{
-}
-
-
-void PacketStreamSocketAdapter::process(IPacket& packet)
-{
-    // LTrace("Process: ", packet.className())
-
-    //Mutex::ScopedLock lock(_mutex);
-
-    // TODO: Split packet if needed
-    _socket.send(packet);
-}
-
-
-bool PacketStreamSocketAdapter::accepts(IPacket* packet)
-{
-    return dynamic_cast<RawPacket*>(&packet) != 0;
-}
-
-
-void PacketStreamSocketAdapter::onStreamStateChange(const PacketStreamState& state)
-{
-    // LTrace("Stream state change: ", state)
-
-    // TODO: Sync socket with stream?
-
-    //Mutex::ScopedLock lock(_mutex);
-
-    switch (state.id()) {
-    case PacketStreamState::Running:
-        break;
-
-    case PacketStreamState::Stopped:
-    case PacketStreamState::Error:
-    case PacketStreamState::Resetting:
-        break;
-    //case PacketStreamState::None:
-    //case PacketStreamState::Stopping:
-    //case PacketStreamState::Closed:
-    }
-}
-#endif
 
 
 } // namespace net

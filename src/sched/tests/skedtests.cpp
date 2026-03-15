@@ -1,6 +1,7 @@
 #include "scy/base.h"
 #include "scy/datetime.h"
 #include "scy/logger.h"
+#include "scy/platform.h"
 #include "scy/sched/scheduler.h"
 #include "scy/test.h"
 
@@ -46,7 +47,7 @@ struct ScheduledTask : public sched::Task
 
 int main(int argc, char** argv)
 {
-    Logger::instance().add(new ConsoleChannel("debug", Level::Trace));
+    Logger::instance().add(std::make_unique<ConsoleChannel>("debug", Level::Trace));
     test::init();
 
     // Register tasks and triggers
@@ -88,18 +89,18 @@ int main(int argc, char** argv)
             {
                 DateTime dt;
                 dt += hundredMs;
-                json[(int)0]["trigger"]["scheduleAt"] =
+                json[0]["trigger"]["scheduleAt"] =
                     DateTimeFormatter::format(dt, DateTimeFormat::ISO8601_FORMAT);
             }
 
             // Dynamically create the task from JSON
-            LDebug("Sched Input JSON:\n", json.dump(4))
+            LDebug("Sched Input JSON:\n", json.dump(4));
             scheduler.deserialize(json);
 
             // Print to cout
-            // LDebug("##### Sched Print Output:")
+            // LDebug("##### Sched Print Output:");
             // scheduler.print(cout);
-            // LDebug("##### Sched Print Output END")
+            // LDebug("##### Sched Print Output END");
 
             // Output scheduler tasks as JSON before run
             json::value before;
@@ -120,7 +121,7 @@ int main(int argc, char** argv)
     });
 
     describe("interval task", []() {
-        LDebug("Running Scheduled Task Test")
+        LDebug("Running Scheduled Task Test");
 
         taskRunTimes = 0;
 
@@ -136,16 +137,16 @@ int main(int argc, char** argv)
             scheduler.start(task);
 
             // Print to cout
-            // LDebug("##### Sched Print Output:")
+            // LDebug("##### Sched Print Output:");
             // scheduler.print(cout);
-            // LDebug("##### Sched Print Output END")
+            // LDebug("##### Sched Print Output END");
 
             // Wait for the task to complete
             scy::sleep(1000);
             expect(taskRunTimes == 3);
         }
 
-        LDebug("Running Scheduled Task Test: END")
+        LDebug("Running Scheduled Task Test: END");
     });
 
     // // Schedule to fire once now, and in two days time.

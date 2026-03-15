@@ -8,22 +8,21 @@
 /// @addtogroup http
 /// @{
 
+#pragma once
 
-#ifndef SCY_HTTP_URL_H
-#define SCY_HTTP_URL_H
-
-
-#include "scy/http/http.h"
 #include "scy/collection.h"
-#include <http_parser.h>
+#include "scy/http/http.h"
+
+#include <cstdint>
+#include <string>
+#include <string_view>
 
 
 namespace scy {
 namespace http {
 
 
-/// An RFC 3986 based URL which uses an external c
-/// library to do the heavy lifting.
+/// An RFC 3986 based URL parser.
 /// Constructors and assignment operators will throw
 /// a SyntaxException if the URL is invalid.
 class HTTP_API URL
@@ -32,12 +31,12 @@ public:
     URL();
     URL(const char* url);
     URL(const std::string& url);
-    URL(const std::string& scheme, const std::string& authority);
-    URL(const std::string& scheme, const std::string& authority,
-        const std::string& pathEtc);
-    URL(const std::string& scheme, const std::string& authority,
-        const std::string& path, const std::string& query,
-        const std::string& fragment = "");
+    URL(std::string_view scheme, std::string_view authority);
+    URL(std::string_view scheme, std::string_view authority,
+        std::string_view pathEtc);
+    URL(std::string_view scheme, std::string_view authority,
+        std::string_view path, std::string_view query,
+        std::string_view fragment = "");
     ~URL();
 
     URL& operator=(const URL& uri);
@@ -51,34 +50,34 @@ public:
 
     /// RFC 3986 based URL encoding based on JavaScript's
     /// encodeURIComponent()
-    static std::string encode(const std::string& str);
+    static std::string encode(std::string_view str);
 
     /// RFC 3986 based URL decoding based on JavaScript's
     /// decodeURIComponent()
-    static std::string decode(const std::string& str);
+    static std::string decode(std::string_view str);
 
 public:
-    std::string scheme() const;
-    std::string userInfo() const;
-    std::string host() const;
-    uint16_t port() const;
-    std::string authority() const;
-    std::string path() const;
-    std::string pathEtc() const;
-    std::string query() const;
-    std::string fragment() const;
+    [[nodiscard]] std::string scheme() const;
+    [[nodiscard]] std::string userInfo() const;
+    [[nodiscard]] std::string host() const;
+    [[nodiscard]] uint16_t port() const;
+    [[nodiscard]] std::string authority() const;
+    [[nodiscard]] std::string path() const;
+    [[nodiscard]] std::string pathEtc() const;
+    [[nodiscard]] std::string query() const;
+    [[nodiscard]] std::string fragment() const;
 
-    bool hasSchema() const;
-    bool hasUserInfo() const;
-    bool hasHost() const;
-    bool hasPort() const;
-    bool hasPath() const;
-    bool hasQuery() const;
-    bool hasFragment() const;
+    [[nodiscard]] bool hasSchema() const;
+    [[nodiscard]] bool hasUserInfo() const;
+    [[nodiscard]] bool hasHost() const;
+    [[nodiscard]] bool hasPort() const;
+    [[nodiscard]] bool hasPath() const;
+    [[nodiscard]] bool hasQuery() const;
+    [[nodiscard]] bool hasFragment() const;
 
-    bool valid() const;
+    [[nodiscard]] bool valid() const;
 
-    std::string str() const;
+    [[nodiscard]] std::string str() const;
 
     friend std::ostream& operator<<(std::ostream& stream, const URL& url)
     {
@@ -87,8 +86,15 @@ public:
     }
 
 protected:
-    http_parser_url _parser;
     std::string _buf;
+    std::string _scheme;
+    std::string _userInfo;
+    std::string _host;
+    uint16_t _port;
+    std::string _path;
+    std::string _query;
+    std::string _fragment;
+    bool _hasPort;
 };
 
 
@@ -96,7 +102,4 @@ protected:
 } // namespace scy
 
 
-#endif // SCY_HTTP_URL_H
-
-
-/// @\}
+/// @}

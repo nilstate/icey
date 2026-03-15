@@ -11,21 +11,21 @@ public:
         : http::ServerResponder(connection)
         , options(options)
     {
-        LDebug("Create")
+        LDebug("Create");
     }
 
     virtual ~StreamingRequestHandler()
     {
-        LDebug("Destroy")
+        LDebug("Destroy");
     }
 
     virtual void onRequest(http::Request& request, http::Response& response)
     {
         SDebug << "Handle request: "
-                     //<< "\n\tOutput Format: " << options.oformat.name
-                     << "\n\tOutput Encoding: " << options.encoding
-                     << "\n\tOutput Packetizer: " << options.framing
-                     << std::endl;
+               //<< "\n\tOutput Format: " << options.oformat.name
+               << "\n\tOutput Encoding: " << options.encoding
+               << "\n\tOutput Packetizer: " << options.framing
+               << std::endl;
 
         // We will be sending our own headers
         connection().shouldSendHeader(false);
@@ -40,7 +40,7 @@ public:
 
     virtual void onClose()
     {
-        LDebug("On close")
+        LDebug("On close");
         stream.emitter -= packetSlot(this, &StreamingRequestHandler::onVideoEncoded);
         stream.stop();
     }
@@ -55,8 +55,9 @@ public:
             connection().socket()->send((const char*)packet.data(), packet.size());
             fpsCounter.tick();
         } catch (std::exception& exc) {
-            LError(exc.what())
-            connection().close();
+            LError(exc.what());
+            connection()
+                .close();
         }
     }
 

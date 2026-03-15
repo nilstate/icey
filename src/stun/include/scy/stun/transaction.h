@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_STUN_Transaction_H
-#define SCY_STUN_Transaction_H
+#pragma once
 
 
 #include "scy/net/socket.h"
@@ -34,11 +33,8 @@ public:
 protected:
     virtual ~Transaction();
 };
-}
-} // namespace scy:stun
-
-
-#endif // SCY_STUN_Transaction_H
+} // namespace stun
+} // namespace scy
 
 
 /// @\}

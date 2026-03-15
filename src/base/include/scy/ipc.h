@@ -9,16 +9,17 @@
 /// @{
 
 
-#ifndef SCY_IPC_H
-#define SCY_IPC_H
+#pragma once
 
 
 #include "scy/base.h"
 #include "scy/synchronizer.h"
 
-#include <mutex>
+#include <chrono>
 #include <deque>
+#include <mutex>
 #include <string>
+#include <thread>
 
 
 namespace scy {
@@ -31,7 +32,7 @@ namespace ipc {
 /// Default action type for executing synchronized callbacks.
 struct Action
 {
-    typedef std::function<void(const Action&)> Callback;
+    using Callback = std::function<void(const Action&)>;
 
     Callback target;
     void* arg;
@@ -88,18 +89,19 @@ public:
 
     virtual void post() {}
 
-    void waitForSync()
+    void waitForSync(std::chrono::milliseconds timeout = std::chrono::milliseconds(5000))
     {
-        // TODO: impose a time limit
-        while (true) {
+        auto deadline = std::chrono::steady_clock::now() + timeout;
+        while (std::chrono::steady_clock::now() < deadline) {
             {
                 std::lock_guard<std::mutex> guard(_mutex);
                 if (_actions.empty())
                     return;
             }
-            LDebug("Wait for sync")
-            scy::sleep(10);
+            LDebug("Wait for sync");
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
+        LWarn("waitForSync timed out after ", timeout.count(), "ms");
     }
 
 protected:
@@ -134,15 +136,12 @@ protected:
 };
 
 
-typedef ipc::Queue<ipc::Action> ActionQueue;
-typedef ipc::SyncQueue<ipc::Action> ActionSyncQueue;
+using ActionQueue = ipc::Queue<ipc::Action>;
+using ActionSyncQueue = ipc::SyncQueue<ipc::Action>;
 
 
 } // namespace ipc
 } // namespace scy
-
-
-#endif
 
 
 /// @\}

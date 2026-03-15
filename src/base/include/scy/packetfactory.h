@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_PacketFactory_H
-#define SCY_PacketFactory_H
+#pragma once
 
 
 #include "scy/base.h"
@@ -39,7 +38,7 @@ public:
 };
 
 
-typedef std::vector<IPacketCreationStrategy*> PacketCreationStrategyList;
+using PacketCreationStrategyList = std::vector<IPacketCreationStrategy*>;
 
 
 /// This template class implements an adapter that sits between
@@ -108,7 +107,7 @@ public:
     {
 
         for (auto it = _types.begin(); it != _types.end(); ++it) {
-            if (dynamic_cast<PacketCreationStrategy<PacketT>*>(*it) != 0) {
+            if (dynamic_cast<PacketCreationStrategy<PacketT>*>(*it) != nullptr) {
                 delete *it;
                 _types.erase(it);
                 return;
@@ -131,7 +130,7 @@ public:
     {
 
         for (auto it = _types.begin(); it != _types.end(); ++it) {
-            if (dynamic_cast<StrategyT*>(*it) != 0) {
+            if (dynamic_cast<StrategyT*>(*it) != nullptr) {
                 delete *it;
                 _types.erase(it);
                 return;
@@ -180,9 +179,6 @@ protected:
 
 
 } // namespace scy
-
-
-#endif // SCY_PacketFactory_H
 
 
 /// @\}

@@ -10,12 +10,10 @@
 
 
 #include "scy/symple/message.h"
-#include "assert.h"
 #include "scy/logger.h"
 #include "scy/util.h"
 
-
-using std::endl;
+#include <stdexcept>
 
 
 namespace scy {
@@ -28,7 +26,8 @@ Message::Message()
     (*this)["id"] = util::randomString(16);
     (*this)["type"] = "message";
 
-    assert(is_object());
+    if (!is_object())
+        throw std::runtime_error("Message must be a JSON object");
 }
 
 
@@ -40,7 +39,8 @@ Message::Message(const Message& root)
     if (find("type") == end())
         (*this)["type"] = "message";
 
-    assert(is_object());
+    if (!is_object())
+        throw std::runtime_error("Message must be a JSON object");
 }
 
 
@@ -52,7 +52,8 @@ Message::Message(const json::value& root)
     if (find("type") == end())
         (*this)["type"] = "message";
 
-    assert(is_object());
+    if (!is_object())
+        throw std::runtime_error("Message must be a JSON object");
 }
 
 
@@ -61,9 +62,9 @@ Message::~Message()
 }
 
 
-IPacket* Message::clone() const
+std::unique_ptr<IPacket> Message::clone() const
 {
-    return new Message(*this);
+    return std::make_unique<Message>(*this);
 }
 
 
@@ -91,7 +92,6 @@ void Message::write(Buffer& buf) const
 
 size_t Message::size() const
 {
-    // KLUDGE: is there a better way?
     return dump().size();
 }
 
@@ -104,10 +104,9 @@ void Message::print(std::ostream& os) const
 
 bool Message::valid() const
 {
-    return find("type") != end()
-        && find("id") != end();
-        // && find("from") != end()
-        // && (*this)["from"].get<std::string>().length()
+    return find("type") != end() && find("id") != end();
+    // && find("from") != end()
+    // && (*this)["from"].get<std::string>().length()
 }
 
 
@@ -215,7 +214,8 @@ void Message::setFrom(const Peer& from)
 
 void Message::setFrom(const Address& from)
 {
-    assert(is_object());
+    if (!is_object())
+        throw std::runtime_error("Message must be a JSON object");
     (*this)["from"] = from.toString();
 }
 
@@ -228,7 +228,8 @@ void Message::setFrom(const std::string& from)
 
 void Message::setStatus(int code)
 {
-    assert(code > 100 && code < 505);
+    if (code <= 100 || code >= 505)
+        throw std::invalid_argument("HTTP status code out of range: " + std::to_string(code));
     (*this)["status"] = code;
 }
 
@@ -241,7 +242,8 @@ void Message::setNote(const std::string& type, const std::string& text)
 
 void Message::addNote(const std::string& type, const std::string& text)
 {
-    assert(type == "info" || type == "warn" || type == "error");
+    if (type != "info" && type != "warn" && type != "error")
+        throw std::invalid_argument("Invalid note type: " + type);
 
     json::value note;
     note["type"] = type;

@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_Logger_H
-#define SCY_Logger_H
+#pragma once
 
 
 #include "scy/base.h"
@@ -19,14 +18,15 @@
 #include "scy/singleton.h"
 #include "scy/thread.h"
 
+#include <cstring>
 #include <ctime>
 #include <deque>
 #include <fstream>
 #include <iostream>
 #include <map>
-#include <sstream>
+#include <memory>
 #include <mutex>
-#include <string.h>
+#include <sstream>
 
 
 namespace scy {
@@ -98,7 +98,7 @@ public:
     virtual ~LogWriter();
 
     /// Writes the given log message stream.
-    virtual void write(LogStream* stream);
+    virtual void write(std::unique_ptr<LogStream> stream);
 };
 
 
@@ -108,14 +108,15 @@ public:
 
 
 /// Thread based log output stream writer.
-class Base_API AsyncLogWriter : public LogWriter, public basic::Runnable
+class Base_API AsyncLogWriter : public LogWriter
+    , public basic::Runnable
 {
 public:
     AsyncLogWriter();
     virtual ~AsyncLogWriter();
 
     /// Queues the given log message stream.
-    virtual void write(LogStream* stream) override;
+    virtual void write(std::unique_ptr<LogStream> stream) override;
 
     /// Flushes queued messages.
     void flush();
@@ -130,7 +131,7 @@ protected:
     bool writeNext();
 
     Thread _thread;
-    std::deque<LogStream*> _pending;
+    std::deque<std::unique_ptr<LogStream>> _pending;
     mutable std::mutex _mutex;
 };
 
@@ -157,12 +158,11 @@ public:
     /// Destroys the default logger singleton instance.
     static void destroy();
 
-    /// Adds the given log channel.
-    void add(LogChannel* channel);
+    /// Adds the given log channel. Takes ownership.
+    void add(std::unique_ptr<LogChannel> channel);
 
-    /// Removes the given log channel by name,
-    /// and optionally frees the pointer.
-    void remove(const std::string& name, bool freePointer = true);
+    /// Removes the given log channel by name.
+    void remove(const std::string& name);
 
     /// Returns the specified log channel.
     /// Throws an exception if the channel doesn't exist.
@@ -171,8 +171,8 @@ public:
     /// Sets the default log to the specified log channel.
     void setDefault(const std::string& name);
 
-    /// Sets the log writer instance.
-    void setWriter(LogWriter* writer);
+    /// Sets the log writer instance. Takes ownership.
+    void setWriter(std::unique_ptr<LogWriter> writer);
 
     /// Returns the default log channel, or the nullptr channel
     /// if no default channel has been set.
@@ -183,29 +183,24 @@ public:
     void write(const LogStream& stream);
 
     /// Writes the given message to the default log channel.
-    /// The stream pointer will be deleted when appropriate.
-    void write(LogStream* stream);
-
-    /// Sends to the default log using the given class instance.
-    /// Recommend using write(LogStream&) to avoid copying data.
-    // LogStream& send(const char* level = "debug", const char* realm = "",
-    //                 const void* ptr = nullptr,
-    //                 const char* channel = nullptr) const;
+    void write(std::unique_ptr<LogStream> stream);
 
 protected:
     /// NonCopyable and NonMovable
     Logger(const Logger&) = delete;
     Logger& operator=(const Logger&) = delete;
+    Logger(Logger&&) = delete;
+    Logger& operator=(Logger&&) = delete;
 
-    typedef std::map<std::string, LogChannel*> LogChannelMap;
+    using LogChannelMap = std::map<std::string, std::unique_ptr<LogChannel>>;
 
     friend class Singleton<Logger>;
     friend class Thread;
 
     mutable std::mutex _mutex;
     LogChannelMap _channels;
-    LogChannel* _defaultChannel;
-    LogWriter* _writer;
+    LogChannel* _defaultChannel; // non-owning view into _channels
+    std::unique_ptr<LogWriter> _writer;
 };
 
 
@@ -220,7 +215,7 @@ void logArgs(std::ostream& o, T&& t)
     o << t; // << ' '; // << std::endl;
 }
 
-template<typename T, typename... Args>
+template <typename T, typename... Args>
 void logArgs(std::ostream& o, T&& t, Args&&... args) // recursive variadic function
 {
     logArgs(o, std::forward<T>(t));
@@ -250,7 +245,7 @@ struct LogStream
     ~LogStream();
 
     /// Recursively log veradic arguments.
-    template<typename... Args>
+    template <typename... Args>
     void write(Args... args)
     {
         logArgs(message, args...);
@@ -258,7 +253,8 @@ struct LogStream
     }
 
     /// Write data to the log message.
-    template <typename T> LogStream& operator<<(const T& data)
+    template <typename T>
+    LogStream& operator<<(const T& data)
     {
         message << data;
         return *this;
@@ -289,7 +285,7 @@ struct LogStream
         if (!flushed) {
             flushed = true;
             message << std::endl;
-            Logger::instance().write(new LogStream(*this));
+            Logger::instance().write(std::make_unique<LogStream>(*this));
         }
     }
 };
@@ -301,12 +297,13 @@ struct LogStream
     LogStream(Level level, std::string realm, int line, const char* channel = nullptr) {};
     LogStream(const LogStream& that) {};
 
-    template<typename... Args>
+    template <typename... Args>
     void write(Args... args)
     {
     }
 
-    template <typename T> LogStream& operator<<(const T&)
+    template <typename T>
+    LogStream& operator<<(const T&)
     {
         return *this;
     }
@@ -357,7 +354,7 @@ protected:
 ///
 /// Redifine the base `LogChannel` as `NullChannel` so it can be logically used
 /// as a disabled log channel.
-typedef LogChannel NullChannel;
+using NullChannel = LogChannel;
 
 
 //
@@ -432,7 +429,7 @@ public:
     void setRotationInterval(int interval) { _rotationInterval = interval; };
 
 protected:
-    std::ofstream* _fstream;
+    std::unique_ptr<std::ofstream> _fstream;
     std::string _dir;
     std::string _filename;
     std::string _extension;
@@ -441,39 +438,17 @@ protected:
 };
 
 
-#if 0
-class Base_API EventedFileChannel: public FileChannel
-{
-public:
-    EventedFileChannel(
-        std::string name,
-        const std::string& dir,
-        Level level = Level::Debug,
-        const std::string& extension = "log",
-        int rotationInterval = 12 * 3600,
-        const char* timeFormat = "%H:%M:%S");
-    virtual ~EventedFileChannel();
-
-    virtual void write(const std::string& message, Level level = Level::Debug,
-        const char* realm = "", const void* ptr = nullptr);
-    virtual void write(const LogStream& stream);
-
-    Signal<void(const std::string&, Level&, const Polymorphic*&)> OnLogStream;
-};
-#endif
-
-
 //
 // Compile time helpers for replacing file paths with filenames
 //
 
 
-constexpr const char* str_end(const char *str)
+constexpr const char* str_end(const char* str)
 {
     return *str ? str_end(str + 1) : str;
 }
 
-constexpr bool str_slant(const char *str)
+constexpr bool str_slant(const char* str)
 {
     return *str == '/' || *str == '\\' ? true : (*str ? str_slant(str + 1) : false);
 }
@@ -513,15 +488,30 @@ inline std::string _methodName(const std::string& fsig)
 
 #define STrace LogStream(Level::Trace, _fileName(__FILE__), __LINE__)
 #define SDebug LogStream(Level::Debug, _fileName(__FILE__), __LINE__)
-#define SInfo  LogStream(Level::Info, _fileName(__FILE__), __LINE__)
-#define SWarn  LogStream(Level::Warn, _fileName(__FILE__), __LINE__)
+#define SInfo LogStream(Level::Info, _fileName(__FILE__), __LINE__)
+#define SWarn LogStream(Level::Warn, _fileName(__FILE__), __LINE__)
 #define SError LogStream(Level::Error, _fileName(__FILE__), __LINE__)
 
-#define LTrace(...) { LogStream(Level::Trace, _fileName(__FILE__), __LINE__).write(__VA_ARGS__); }
-#define LDebug(...) { LogStream(Level::Debug, _fileName(__FILE__), __LINE__).write(__VA_ARGS__); }
-#define LInfo(...)  { LogStream(Level::Info, _fileName(__FILE__), __LINE__).write(__VA_ARGS__); }
-#define LWarn(...)  { LogStream(Level::Warn, _fileName(__FILE__), __LINE__).write(__VA_ARGS__); }
-#define LError(...) { LogStream(Level::Error, _fileName(__FILE__), __LINE__).write(__VA_ARGS__); }
+#define LTrace(...)                                                                \
+    do {                                                                           \
+        LogStream(Level::Trace, _fileName(__FILE__), __LINE__).write(__VA_ARGS__); \
+    } while (0)
+#define LDebug(...)                                                                \
+    do {                                                                           \
+        LogStream(Level::Debug, _fileName(__FILE__), __LINE__).write(__VA_ARGS__); \
+    } while (0)
+#define LInfo(...)                                                                \
+    do {                                                                          \
+        LogStream(Level::Info, _fileName(__FILE__), __LINE__).write(__VA_ARGS__); \
+    } while (0)
+#define LWarn(...)                                                                \
+    do {                                                                          \
+        LogStream(Level::Warn, _fileName(__FILE__), __LINE__).write(__VA_ARGS__); \
+    } while (0)
+#define LError(...)                                                                \
+    do {                                                                           \
+        LogStream(Level::Error, _fileName(__FILE__), __LINE__).write(__VA_ARGS__); \
+    } while (0)
 
 // #define TraceS(self) LogStream(Level::Trace, _fileName(__FILE__), __LINE__, self)
 // #define DebugS(self) LogStream(Level::Debug, _fileName(__FILE__), __LINE__, self)
@@ -537,9 +527,6 @@ inline std::string _methodName(const std::string& fsig)
 
 
 } // namespace scy
-
-
-#endif
 
 
 /// @\}

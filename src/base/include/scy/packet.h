@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_Packet_H
-#define SCY_Packet_H
+#pragma once
 
 
 #include "scy/base.h"
@@ -21,6 +20,7 @@
 
 #include <cstdint>
 #include <cstring> // memcpy
+#include <memory>
 
 
 namespace scy {
@@ -33,7 +33,7 @@ struct IPacketInfo
     IPacketInfo() = default;
     virtual ~IPacketInfo() = default;
 
-    virtual IPacketInfo* clone() const = 0;
+    virtual std::unique_ptr<IPacketInfo> clone() const = 0;
 };
 
 
@@ -43,18 +43,16 @@ struct IPacketInfo
 class Base_API IPacket
 {
 public:
-    IPacket(void* source = nullptr, void* opaque = nullptr,
-            IPacketInfo* info = nullptr, unsigned flags = 0)
-        : source(source)
-        , opaque(opaque)
-        , info(info)
+    IPacket(void* opaque = nullptr,
+            std::unique_ptr<IPacketInfo> info = nullptr, unsigned flags = 0)
+        : opaque(opaque)
+        , info(std::move(info))
         , flags(flags)
     {
     }
 
     IPacket(const IPacket& r)
-        : source(r.source)
-        , opaque(r.opaque)
+        : opaque(r.opaque)
         , info(r.info ? r.info->clone() : nullptr)
         , flags(r.flags)
     {
@@ -62,33 +60,22 @@ public:
 
     IPacket& operator=(const IPacket& r)
     {
-        source = r.source;
         opaque = r.opaque;
-        info = (r.info ? r.info->clone() : nullptr);
+        info = r.info ? r.info->clone() : nullptr;
         flags = r.flags;
         return *this;
     }
 
-    virtual IPacket* clone() const = 0;
+    virtual std::unique_ptr<IPacket> clone() const = 0;
 
-    virtual ~IPacket()
-    {
-        if (info)
-            delete info;
-    }
-
-    /// Packet source pointer reference which enables processors
-    /// along the signal chain can determine the packet origin.
-    /// Often a subclass of PacketStreamSource.
-    void* source;
+    virtual ~IPacket() = default;
 
     /// Optional client data pointer.
     /// This pointer is not managed by the packet.
     void* opaque;
 
     /// Optional extra information about the packet.
-    /// This pointer is managed by the packet.
-    IPacketInfo* info;
+    std::unique_ptr<IPacketInfo> info;
 
     /// Provides basic information about the packet.
     Bitwise flags;
@@ -139,13 +126,13 @@ class Base_API FlagPacket : public IPacket
 {
 public:
     FlagPacket(unsigned flags = 0)
-        : IPacket(nullptr, nullptr, nullptr, flags)
+        : IPacket(nullptr, nullptr, flags)
     {
     }
 
-    virtual IPacket* clone() const override
+    virtual std::unique_ptr<IPacket> clone() const override
     {
-        return new FlagPacket(*this);
+        return std::make_unique<FlagPacket>(*this);
     }
 
     FlagPacket(const FlagPacket& that)
@@ -168,71 +155,49 @@ public:
 class Base_API RawPacket : public IPacket
 {
 public:
+    /// Construct with borrowed (non-owning) buffer.
     RawPacket(char* data = nullptr, size_t size = 0, unsigned flags = 0,
-              void* source = nullptr, void* opaque = nullptr,
-              IPacketInfo* info = nullptr)
-        : IPacket(source, opaque, info, flags)
+              void* opaque = nullptr,
+              std::unique_ptr<IPacketInfo> info = nullptr)
+        : IPacket(opaque, std::move(info), flags)
         , _data(data)
         , _size(size)
-        , _free(false)
     {
     }
 
+    /// Construct with const data (copied, owning).
     RawPacket(const char* data, size_t size = 0, unsigned flags = 0,
-              void* source = nullptr, void* opaque = nullptr,
-              IPacketInfo* info = nullptr)
-        : IPacket(source, opaque, info, flags)
+              void* opaque = nullptr,
+              std::unique_ptr<IPacketInfo> info = nullptr)
+        : IPacket(opaque, std::move(info), flags)
         , _data(nullptr)
-        , _size(size)
-        , _free(true)
+        , _size(0)
     {
-        copyData(data, size); // copy const data
+        copyData(data, size);
     }
 
+    /// Copy constructor (always copies data).
     RawPacket(const RawPacket& that)
         : IPacket(that)
         , _data(nullptr)
         , _size(0)
-        , _free(true)
     {
-        // Copy assigned data and set the free flag
-        // Todo: Use a simple reference counted buffer wrapper
-        // so we don't need to force memcpy here.
         copyData(that._data, that._size);
     }
 
-    virtual ~RawPacket()
-    {
-        if (_data && _free)
-            delete[] _data;
-    }
+    virtual ~RawPacket() = default;
 
-    virtual IPacket* clone() const override
+    virtual std::unique_ptr<IPacket> clone() const override
     {
-        return new RawPacket(*this);
+        return std::make_unique<RawPacket>(*this);
     }
-
-    // virtual void setData(char* data, size_t size)
-    // {
-    //    assert(size > 0);
-    //    if (_free) // copy data if reuqested
-    //        copyData(data, size);
-    //    else { // otherwise just assign the pointer
-    //        _data = data;
-    //        _size = size;
-    //    }
-    // }
 
     virtual void copyData(const void* data, size_t size)
     {
-        // traceL("RawPacket", this) << "Cloning: " << size << std::endl;
-        // assert(_free);
         if (data && size > 0) {
-            if (_data && _free)
-                delete[] _data;
+            _owned = std::make_unique<char[]>(size);
+            _data = _owned.get();
             _size = size;
-            _data = new char[size];
-            _free = true;
             std::memcpy(_data, data, size);
         }
     }
@@ -245,63 +210,51 @@ public:
 
     virtual void write(Buffer& buf) const override
     {
-        // buf.insert(a.end(), b.begin(), b.end());
-        // buf.append(_data, _size);
         buf.insert(buf.end(), _data, _data + _size);
     }
 
     virtual char* data() const override { return _data; }
 
-    // virtual char* cdata() const { return static_cast<char*>(_data); }
-
     virtual size_t size() const override { return _size; }
 
     virtual const char* className() const override { return "RawPacket"; }
 
-    bool ownsBuffer() const { return _free; }
-
-    void assignDataOwnership() { _free = true; }
+    bool ownsBuffer() const { return _owned != nullptr; }
 
 protected:
     char* _data;
     size_t _size;
-    bool _free;
+    std::unique_ptr<char[]> _owned;
 };
 
 
 inline RawPacket rawPacket(const MutableBuffer& buf, unsigned flags = 0,
-                           void* source = nullptr, void* opaque = nullptr,
-                           IPacketInfo* info = nullptr)
+                           void* opaque = nullptr,
+                           std::unique_ptr<IPacketInfo> info = nullptr)
 {
-    return RawPacket(bufferCast<char*>(buf), buf.size(), flags, source, opaque, info);
+    return RawPacket(bufferCast<char*>(buf), buf.size(), flags, opaque, std::move(info));
 }
 
 inline RawPacket rawPacket(const ConstBuffer& buf, unsigned flags = 0,
-                           void* source = nullptr, void* opaque = nullptr,
-                           IPacketInfo* info = nullptr)
+                           void* opaque = nullptr,
+                           std::unique_ptr<IPacketInfo> info = nullptr)
 {
-    return RawPacket(bufferCast<const char*>(buf), buf.size(), flags, source, opaque, info); // copy const data
+    return RawPacket(bufferCast<const char*>(buf), buf.size(), flags, opaque, std::move(info));
 }
 
 inline RawPacket rawPacket(char* data = nullptr, size_t size = 0,
-                           unsigned flags = 0, void* source = nullptr,
-                           void* opaque = nullptr, IPacketInfo* info = nullptr)
+                           unsigned flags = 0, void* opaque = nullptr,
+                           std::unique_ptr<IPacketInfo> info = nullptr)
 {
-    return RawPacket(data, size, flags, source, opaque, info);
+    return RawPacket(data, size, flags, opaque, std::move(info));
 }
 
 inline RawPacket rawPacket(const char* data = nullptr, size_t size = 0,
-                           unsigned flags = 0, void* source = nullptr,
-                           void* opaque = nullptr, IPacketInfo* info = nullptr)
+                           unsigned flags = 0, void* opaque = nullptr,
+                           std::unique_ptr<IPacketInfo> info = nullptr)
 {
-    return RawPacket(data, size, flags, source, opaque, info); // copy const data
+    return RawPacket(data, size, flags, opaque, std::move(info));
 }
 
 
 } // namespace scy
-
-
-#endif // SCY_Packet_H
-
-
-/// @\}

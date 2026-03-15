@@ -9,21 +9,21 @@
 /// @{
 
 
-#ifndef SCY_Symple_Message_H
-#define SCY_Symple_Message_H
+#pragma once
 
 
-#include "scy/symple/symple.h"
+#include "scy/packet.h"
 #include "scy/symple/address.h"
 #include "scy/symple/peer.h"
-#include "scy/packet.h"
+#include "scy/symple/symple.h"
 
 
 namespace scy {
 namespace smpl {
 
 
-class Symple_API Message : public json::value, public IPacket
+class Symple_API Message : public json::value
+    , public IPacket
 {
 public:
     Message();
@@ -31,18 +31,18 @@ public:
     Message(const Message& root);
     virtual ~Message();
 
-    virtual IPacket* clone() const;
+    virtual std::unique_ptr<IPacket> clone() const;
 
     virtual bool valid() const;
     virtual void clear();
     virtual void clearData();
     virtual void clearNotes();
 
-    std::string type() const;
-    std::string id() const;
-    Address to() const;
-    Address from() const;
-    int status() const;
+    [[nodiscard]] std::string type() const;
+    [[nodiscard]] std::string id() const;
+    [[nodiscard]] Address to() const;
+    [[nodiscard]] Address from() const;
+    [[nodiscard]] int status() const;
 
     void setType(const std::string& type);
     void setTo(const Peer& to);
@@ -77,7 +77,7 @@ public:
     virtual ssize_t read(const std::string& root);
     virtual void write(Buffer& buf) const;
 
-    bool isRequest() const;
+    [[nodiscard]] bool isRequest() const;
     virtual size_t size() const;
 
     void print(std::ostream& os) const;
@@ -88,9 +88,6 @@ public:
 
 } // namespace smpl
 } // namespace scy
-
-
-#endif // SCY_Symple_Message_H
 
 
 /// @\}

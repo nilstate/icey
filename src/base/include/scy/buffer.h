@@ -9,16 +9,15 @@
 /// @{
 
 
-#ifndef SCY_Buffer_H
-#define SCY_Buffer_H
+#pragma once
 
 
 #include "scy/base.h"
 #include "scy/byteorder.h"
 
 #include <algorithm>
-#include <ostream>
 #include <cstdint>
+#include <ostream>
 #include <string>
 #include <vector>
 
@@ -27,7 +26,7 @@ namespace scy {
 
 
 /// Core buffer type.
-typedef std::vector<char> Buffer;
+using Buffer = std::vector<char>;
 
 
 //
@@ -42,24 +41,24 @@ class Base_API MutableBuffer
 {
 public:
     /// Construct an empty buffer.
-    MutableBuffer()
-        : _data(0)
+    constexpr MutableBuffer()
+        : _data(nullptr)
         , _size(0)
     {
     }
 
     /// Construct a buffer to represent the given memory range.
-    MutableBuffer(void* data, size_t size)
+    constexpr MutableBuffer(void* data, size_t size)
         : _data(data)
         , _size(size)
     {
     }
 
-    void* data() const { return _data; }
-    size_t size() const { return _size; }
+    [[nodiscard]] constexpr void* data() const { return _data; }
+    [[nodiscard]] constexpr size_t size() const { return _size; }
 
     /// Cast the buffer as a char pointer.
-    char* cstr() const { return reinterpret_cast<char*>(_data); }
+    [[nodiscard]] char* cstr() const { return reinterpret_cast<char*>(_data); }
 
     /// Returns the buffer as a string.
     std::string str() const { return std::string(cstr(), size()); }
@@ -124,31 +123,31 @@ class Base_API ConstBuffer
 {
 public:
     /// Construct an empty buffer.
-    ConstBuffer()
-        : _data(0)
+    constexpr ConstBuffer()
+        : _data(nullptr)
         , _size(0)
     {
     }
 
     /// Construct a buffer to represent the given memory range.
-    ConstBuffer(const void* data, size_t size)
+    constexpr ConstBuffer(const void* data, size_t size)
         : _data(data)
         , _size(size)
     {
     }
 
     /// Construct a non-modifiable buffer from a modifiable one.
-    ConstBuffer(const MutableBuffer& b)
+    constexpr ConstBuffer(const MutableBuffer& b)
         : _data(b.data())
         , _size(b.size())
     {
     }
 
-    const void* data() const { return _data; }
-    size_t size() const { return _size; }
+    [[nodiscard]] constexpr const void* data() const { return _data; }
+    [[nodiscard]] constexpr size_t size() const { return _size; }
 
     /// Cast the buffer as a const char pointer.
-    const char* cstr() const { return reinterpret_cast<const char*>(_data); }
+    [[nodiscard]] const char* cstr() const { return reinterpret_cast<const char*>(_data); }
 
     /// Returns the buffer as a string.
     std::string str() const { return std::string(cstr(), size()); }
@@ -176,7 +175,7 @@ inline ConstBuffer constBuffer(const std::vector<T>& vec)
     return ConstBuffer(reinterpret_cast<const void*>(&vec[0]), vec.size()); // careful!
 }
 
-inline ConstBuffer constBuffer(const MutableBuffer& buf)
+inline constexpr ConstBuffer constBuffer(const MutableBuffer& buf)
 {
     return ConstBuffer(buf.data(), buf.size());
 }
@@ -201,7 +200,7 @@ inline ConstBuffer constBuffer(const Buffer& buf)
 
 /// Cast a non-modifiable buffer to a specified pointer to POD type.
 template <typename PointerToPodType>
-inline PointerToPodType bufferCast(const MutableBuffer& b)
+inline constexpr PointerToPodType bufferCast(const MutableBuffer& b)
 {
     return static_cast<PointerToPodType>(b.data());
 }
@@ -209,7 +208,7 @@ inline PointerToPodType bufferCast(const MutableBuffer& b)
 
 /// Cast a non-modifiable buffer to a specified pointer to POD type.
 template <typename PointerToPodType>
-inline PointerToPodType bufferCast(const ConstBuffer& b)
+inline constexpr PointerToPodType bufferCast(const ConstBuffer& b)
 {
     return static_cast<PointerToPodType>(b.data());
 }
@@ -273,17 +272,17 @@ public:
     void skip(size_t size);
 
     /// Returns the read limit.
-    size_t limit() const;
+    [[nodiscard]] size_t limit() const;
 
     /// Returns the current read position.
-    size_t position() const { return _position; }
+    [[nodiscard]] size_t position() const { return _position; }
 
     /// Returns the number of elements between the current position and the
     /// limit.
-    size_t available() const;
+    [[nodiscard]] size_t available() const;
 
-    const char* begin() const { return _bytes; }
-    const char* current() const { return _bytes + _position; }
+    [[nodiscard]] const char* begin() const { return _bytes; }
+    [[nodiscard]] const char* current() const { return _bytes + _position; }
 
     ByteOrder order() const { return _order; }
 
@@ -353,20 +352,20 @@ public:
     void skip(size_t size);
 
     /// Returns the write limit.
-    size_t limit() const;
+    [[nodiscard]] size_t limit() const;
 
     /// Returns the current write position.
-    size_t position() const { return _position; }
+    [[nodiscard]] size_t position() const { return _position; }
 
     /// Returns the number of elements between the current write position and
     /// the limit.
-    size_t available() const;
+    [[nodiscard]] size_t available() const;
 
-    char* begin() { return _bytes; }
-    char* current() { return _bytes + _position; }
+    [[nodiscard]] char* begin() { return _bytes; }
+    [[nodiscard]] char* current() { return _bytes + _position; }
 
-    const char* begin() const { return _bytes; }
-    const char* current() const { return _bytes + _position; }
+    [[nodiscard]] const char* begin() const { return _bytes; }
+    [[nodiscard]] const char* current() const { return _bytes + _position; }
 
     ByteOrder order() const { return _order; }
 
@@ -417,9 +416,3 @@ protected:
 
 
 } // namespace scy
-
-
-#endif // SCY_Buffer_H
-
-
-/// @\}

@@ -38,11 +38,10 @@ SocketEmitter::SocketEmitter(const SocketEmitter& that)
 {
     if (impl)
         impl->addReceiver(this);
-    assert(that._receivers.empty() || !_receivers.empty());
 }
 
 
-SocketEmitter::~SocketEmitter()
+SocketEmitter::~SocketEmitter() noexcept
 {
     if (impl)
         impl->removeReceiver(this);
@@ -51,7 +50,8 @@ SocketEmitter::~SocketEmitter()
 
 void SocketEmitter::swap(const Socket::Ptr& socket)
 {
-    assert(!impl && "must not be initialized");
+    if (impl)
+        throw std::logic_error("SocketEmitter: already initialized");
     if (impl)
         impl->removeReceiver(this);
     if (socket)
@@ -62,18 +62,19 @@ void SocketEmitter::swap(const Socket::Ptr& socket)
 
 void SocketEmitter::addReceiver(SocketAdapter* adapter)
 {
-    // LTrace("Remove receiver: ", adapter)
-    assert(adapter->priority <= 100);
-    Connect.attach(slot(adapter, &net::SocketAdapter::onSocketConnect, -1, adapter->priority));
-    Recv.attach(slot(adapter, &net::SocketAdapter::onSocketRecv, -1, adapter->priority));
-    Error.attach(slot(adapter, &net::SocketAdapter::onSocketError, -1, adapter->priority));
-    Close.attach(slot(adapter, &net::SocketAdapter::onSocketClose, -1, adapter->priority));
+    // LTrace("Add receiver: ", adapter);
+    if (adapter->priority > 100)
+        throw std::invalid_argument("SocketEmitter: adapter priority exceeds 100");
+    Connect.attach([adapter](Socket& s) { return adapter->onSocketConnect(s); }, adapter, -1, adapter->priority);
+    Recv.attach([adapter](Socket& s, const MutableBuffer& b, const Address& a) { return adapter->onSocketRecv(s, b, a); }, adapter, -1, adapter->priority);
+    Error.attach([adapter](Socket& s, const scy::Error& e) { return adapter->onSocketError(s, e); }, adapter, -1, adapter->priority);
+    Close.attach([adapter](Socket& s) { return adapter->onSocketClose(s); }, adapter, -1, adapter->priority);
 }
 
 
 void SocketEmitter::removeReceiver(SocketAdapter* adapter)
 {
-    // LTrace("Remove receiver: ", adapter)
+    // LTrace("Remove receiver: ", adapter);
     Connect.detach(adapter);
     Recv.detach(adapter);
     Error.detach(adapter);
@@ -86,35 +87,35 @@ void SocketEmitter::removeReceiver(SocketAdapter* adapter)
 }
 
 
-void SocketEmitter::onSocketConnect(Socket& socket)
+bool SocketEmitter::onSocketConnect(Socket& socket)
 {
-    assert(&socket == impl.get());
-    SocketAdapter::onSocketConnect(socket);
-    Connect.emit(socket);
+    if (SocketAdapter::onSocketConnect(socket))
+        return true;
+    return Connect.emit(socket);
 }
 
 
-void SocketEmitter::onSocketRecv(Socket& socket, const MutableBuffer& buffer, const Address& peerAddress)
+bool SocketEmitter::onSocketRecv(Socket& socket, const MutableBuffer& buffer, const Address& peerAddress)
 {
-    assert(&socket == impl.get());
-    SocketAdapter::onSocketRecv(socket, buffer, peerAddress);
-    Recv.emit(socket, buffer, peerAddress);
+    if (SocketAdapter::onSocketRecv(socket, buffer, peerAddress))
+        return true;
+    return Recv.emit(socket, buffer, peerAddress);
 }
 
 
-void SocketEmitter::onSocketError(Socket& socket, const scy::Error& error)
+bool SocketEmitter::onSocketError(Socket& socket, const scy::Error& error)
 {
-    assert(&socket == impl.get());
-    SocketAdapter::onSocketError(socket, error);
-    Error.emit(socket, error);
+    if (SocketAdapter::onSocketError(socket, error))
+        return true;
+    return Error.emit(socket, error);
 }
 
 
-void SocketEmitter::onSocketClose(Socket& socket)
+bool SocketEmitter::onSocketClose(Socket& socket)
 {
-    assert(&socket == impl.get());
-    SocketAdapter::onSocketClose(socket);
-    Close.emit(socket);
+    if (SocketAdapter::onSocketClose(socket))
+        return true;
+    return Close.emit(socket);
 }
 
 

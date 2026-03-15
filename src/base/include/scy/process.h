@@ -9,22 +9,21 @@
 /// @{
 
 
-#ifndef SCY_Process_H
-#define SCY_Process_H
+#pragma once
 
 
 #include "scy/base.h"
-#include "scy/pipe.h"
 #include "scy/handle.h"
+#include "scy/pipe.h"
 #include <functional>
-#include <vector>
 #include <initializer_list>
+#include <vector>
 
 
 namespace scy {
 
 
-typedef uv_process_options_t ProcessOptions;
+using ProcessOptions = uv_process_options_t;
 
 
 class Base_API Process
@@ -39,30 +38,41 @@ public:
     /// Destructor.
     ~Process();
 
+    Process(const Process&) = delete;
+    Process& operator=(const Process&) = delete;
+    Process(Process&&) = delete;
+    Process& operator=(Process&&) = delete;
+
     /// Path to the program to execute.
-    /// Cenvenience proxy for options.file.
+    /// Convenience proxy for options.file.
     /// Must be set before `spawn()`
     std::string file;
 
     /// Set the current working directory.
-    /// Cenvenience proxy for options.cwd.
+    /// Convenience proxy for options.cwd.
     /// Must be set before `spawn()`
     std::string cwd;
 
-    /// Command line agruments to pass to the process.
-    /// Cenvenience proxy for options.args.
+    /// Command line arguments to pass to the process.
+    /// Convenience proxy for options.args.
     /// Must be set before `spawn()`
     std::vector<std::string> args;
 
+    /// Environment variables for the process.
+    /// Each entry should be in "KEY=VALUE" format.
+    /// If empty, the child inherits the parent environment.
+    /// Must be set before `spawn()`
+    std::vector<std::string> env;
+
     /// Spawns the process.
     /// Options must be properly set.
-    /// Throws and exception on error.
+    /// Throws an exception on error.
     void spawn();
 
-    /// Kills the process
+    /// Kills the process.
     bool kill(int signum = SIGKILL);
 
-    /// Returns the process PID
+    /// Returns the process PID, or 0 if not spawned.
     int pid() const;
 
     /// Returns the stdin pipe.
@@ -71,12 +81,19 @@ public:
     /// Returns the stdout pipe.
     Pipe& out();
 
-    /// Stdout signal.
-    /// Signals when a line has been output from the process.
+    /// Returns the stderr pipe.
+    Pipe& err();
+
+    /// Stdout callback.
+    /// Called when a line has been output from the process.
     std::function<void(std::string)> onstdout;
 
-    /// Exit stgnals.
-    /// Signals process exit status code.
+    /// Stderr callback.
+    /// Called when a line has been output on stderr.
+    std::function<void(std::string)> onstderr;
+
+    /// Exit callback.
+    /// Called with process exit status code.
     std::function<void(std::int64_t)> onexit;
 
     /// LibUV C options.
@@ -89,15 +106,14 @@ protected:
     uv::Handle<uv_process_t> _handle;
     Pipe _stdin;
     Pipe _stdout;
-    uv_stdio_container_t _stdio[2];
+    Pipe _stderr;
+    uv_stdio_container_t _stdio[3];
     std::vector<char*> _cargs;
+    std::vector<char*> _cenv;
 };
 
 
 } // namespace scy
-
-
-#endif // SCY_Process_H
 
 
 /// @\}

@@ -11,13 +11,12 @@
 //
 
 
-#ifndef SCY_Net_SSLManager_H
-#define SCY_Net_SSLManager_H
+#pragma once
 
 
+#include "scy/net/net.h"
 #include "scy/net/sslcontext.h"
 #include "scy/net/sslsession.h"
-#include "scy/net/net.h"
 #include "scy/singleton.h"
 
 #include <openssl/ssl.h>
@@ -81,7 +80,8 @@ public:
     static void initNoVerifyClient();
 
     /// Initializes a default no verify server context that's useful for
-    /// testing.
+    /// testing. Optionally accepts private key and certificate file paths
+    /// for server identity; if omitted, no certificate is loaded.
     static void initNoVerifyServer(const std::string& privateKeyFile = "",
                                    const std::string& certificateFile = "");
 
@@ -109,7 +109,12 @@ private:
     SSLManager();
 
     /// Destroys the SSLManager.
-    ~SSLManager();
+    ~SSLManager() noexcept;
+
+    SSLManager(const SSLManager&) = delete;
+    SSLManager& operator=(const SSLManager&) = delete;
+    SSLManager(SSLManager&&) = delete;
+    SSLManager& operator=(SSLManager&&) = delete;
 
     /// The return value of this method defines how errors in
     /// verification are handled. Return 0 to terminate the handshake,
@@ -139,7 +144,7 @@ public:
                              int errNum, const std::string& errMsg);
 
     /// Destroys the VerificationErrorDetails.
-    ~VerificationErrorDetails();
+    ~VerificationErrorDetails() noexcept;
 
     /// Returns the certificate that caused the error.
     const crypto::X509Certificate& certificate() const;
@@ -208,9 +213,6 @@ inline bool VerificationErrorDetails::getIgnoreError() const
 
 } // namespace net
 } // namespace scy
-
-
-#endif // SCY_Net_SSLManager_H
 
 
 /// @\}

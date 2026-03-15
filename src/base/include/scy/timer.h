@@ -9,14 +9,13 @@
 /// @{
 
 
-#ifndef SCY_Timer_H
-#define SCY_Timer_H
+#pragma once
 
 
 #include "scy/base.h"
+#include "scy/handle.h"
 #include "scy/runner.h"
 #include "scy/signal.h"
-#include "scy/handle.h"
 #include <cstdint>
 #include <functional>
 
@@ -96,6 +95,8 @@ public:
 protected:
     Timer(const Timer&) = delete;
     Timer& operator=(const Timer&) = delete;
+    Timer(Timer&&) = delete;
+    Timer& operator=(Timer&&) = delete;
 
     void init();
 
@@ -107,9 +108,6 @@ protected:
 
 
 } // namespace scy
-
-
-#endif // SCY_Timer_H
 
 
 /// @\}

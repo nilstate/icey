@@ -9,14 +9,13 @@
 /// @{
 
 
-#ifndef SCY_Platform_H
-#define SCY_Platform_H
+#pragma once
 
 
 #include "scy/base.h"
 
-#include <string>
 #include <cstdint>
+#include <string>
 
 
 namespace scy {
@@ -64,7 +63,6 @@ Base_API bool getEnvBool(const std::string& name);
 
 #ifdef SCY_WIN
 
-Base_API bool getOsVersion(int* major, int* minor, int* build);
 Base_API bool isWindowsVistaOrLater();
 Base_API bool isWindowsXpOrLater();
 
@@ -77,9 +75,3 @@ Base_API std::string toUtf8(const std::wstring& wstr);
 
 
 } // namespace scy
-
-
-#endif // SCY_Platform_H
-
-
-/// @\}

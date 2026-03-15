@@ -10,8 +10,7 @@
 /// The `base` module contains reusable cross platform tools and utilities.
 
 
-#ifndef SCY_H
-#define SCY_H
+#pragma once
 
 
 // Include build config
@@ -19,14 +18,11 @@
 
 // Shared library exports
 #if defined(SCY_WIN) && defined(SCY_SHARED_LIBRARY)
-    #if defined(Base_EXPORTS)
-        #define Base_API __declspec(dllexport)
-    #else
-        #define Base_API __declspec(dllimport)
-    #endif
+#if defined(Base_EXPORTS)
+#define Base_API __declspec(dllexport)
 #else
-    #define Base_API // nothing
+#define Base_API __declspec(dllimport)
 #endif
-
-
-#endif // SCY_H
+#else
+#define Base_API // nothing
+#endif

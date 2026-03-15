@@ -9,20 +9,21 @@
 /// @{
 
 
-#ifndef SCY_Net_SSLContext_H
-#define SCY_Net_SSLContext_H
+#pragma once
 
 
-#include "scy/net/net.h"
 #include "scy/crypto/crypto.h"
 #include "scy/crypto/rsa.h"
 #include "scy/crypto/x509certificate.h"
-#include "scy/memory.h"
+#include "scy/net/net.h"
+#include "scy/util.h"
 
 #include <openssl/err.h>
 #include <openssl/ssl.h>
 
 #include <cstdlib>
+#include <string>
+#include <vector>
 
 
 namespace scy {
@@ -40,7 +41,7 @@ namespace net {
 class Net_API SSLContext
 {
 public:
-    typedef std::shared_ptr<SSLContext> Ptr;
+    using Ptr = std::shared_ptr<SSLContext>;
 
     enum Usage
     {
@@ -148,7 +149,7 @@ public:
         const std::string& cipherList = "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH");
 
     /// Destroys the Context.
-    ~SSLContext();
+    ~SSLContext() noexcept;
 
     /// Sets the certificate to be used by the Context.
     ///
@@ -158,10 +159,10 @@ public:
     ///
     /// Note that useCertificate() must always be called before
     /// usePrivateKey().
-    void useCertificate(const crypto::X509Certificate& certificate);
+    void useCertificate(crypto::X509Certificate& certificate);
 
     /// Adds a certificate for certificate chain validation.
-    void addChainCertificate(const crypto::X509Certificate& certificate);
+    void addChainCertificate(crypto::X509Certificate& certificate);
 
     /// Sets the private key to be used by the Context.
     ///
@@ -177,7 +178,7 @@ public:
 
     /// Adds the given certificate to the list of trusted certificates
     /// that will be used for verification.
-    void addVerificationCertificate(const crypto::X509Certificate& certificate);
+    void addVerificationCertificate(crypto::X509Certificate& certificate);
 
     /// Returns the underlying OpenSSL SSL Context object.
     SSL_CTX* sslContext() const;
@@ -260,6 +261,21 @@ public:
     ///
     /// The feature can be disabled by calling this method.
     void disableStatelessSessionResumption();
+
+    /// Set the ALPN protocols for negotiation.
+    /// Protocols should be in preference order.
+    /// Example: {"h2", "http/1.1"}
+    void setALPNProtocols(const std::vector<std::string>& protocols);
+
+    /// Enable SNI (Server Name Indication) for a specific SSL connection.
+    /// The hostname is sent during the TLS handshake to allow the server
+    /// to select the appropriate certificate.
+    static void enableSNI(SSL* ssl, const std::string& hostname);
+
+    SSLContext(const SSLContext&) = delete;
+    SSLContext& operator=(const SSLContext&) = delete;
+    SSLContext(SSLContext&&) = delete;
+    SSLContext& operator=(SSLContext&&) = delete;
 
 private:
     /// Create a SSL_CTX object according to Context configuration.
@@ -350,9 +366,6 @@ inline void clearErrorStack()
 
 } // namespace net
 } // namespace scy
-
-
-#endif // SCY_Net_SSLContext_H
 
 
 /// @\}

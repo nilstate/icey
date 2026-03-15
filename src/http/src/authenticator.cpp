@@ -65,9 +65,7 @@ void Authenticator::authenticate(http::Request& request, const http::Response& r
             BasicAuthenticator(_username, _password).authenticate(request);
             return;
         }
-        // else if (isDigestCredentials(iter->second))
-        //    ; 
-        // TODO
+        // Digest authentication not implemented
     }
 }
 
@@ -80,9 +78,7 @@ void Authenticator::updateAuthInfo(http::Request& request)
         if (isBasicCredentials(authorization)) {
             BasicAuthenticator(_username, _password).authenticate(request);
         }
-        // else if (isDigestCredentials(authorization))
-        //    ; 
-        // TODO
+        // Digest authentication not implemented
     }
 }
 
@@ -95,8 +91,7 @@ void Authenticator::proxyAuthenticate(http::Request& request, const http::Respon
             BasicAuthenticator(_username, _password).proxyAuthenticate(request);
             return;
         }
-        // else if (isDigestCredentials(iter->second))
-        //    ; // TODO
+        // Digest authentication not implemented
     }
 }
 
@@ -109,31 +104,30 @@ void Authenticator::updateProxyAuthInfo(http::Request& request)
         if (isBasicCredentials(authorization)) {
             BasicAuthenticator(_username, _password).proxyAuthenticate(request);
         }
-        // else if (isDigestCredentials(authorization))
-        //    ; // TODO
+        // Digest authentication not implemented
     }
 }
 
 
-inline void Authenticator::setUsername(const std::string& username)
+void Authenticator::setUsername(const std::string& username)
 {
     _username = username;
 }
 
 
-inline const std::string& Authenticator::username() const
+const std::string& Authenticator::username() const
 {
     return _username;
 }
 
 
-inline void Authenticator::setPassword(const std::string& password)
+void Authenticator::setPassword(const std::string& password)
 {
     _password = password;
 }
 
 
-inline const std::string& Authenticator::password() const
+const std::string& Authenticator::password() const
 {
     return _password;
 }

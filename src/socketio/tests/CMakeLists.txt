@@ -1,5 +1,4 @@
-# include_dependency(JsonCpp)
-include_dependency(SSL REQUIRED)
-
-set(socketiotests_EXCLUDE_CTEST TRUE)
-define_libsourcey_test(socketiotests base crypto net http socketio json)
+scy_add_test(socketiotests
+  DEPENDS base crypto net http socketio json
+  EXCLUDE_CTEST
+)

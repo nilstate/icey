@@ -9,14 +9,14 @@
 /// @{
 
 
-#ifndef SCY_Idler_H
-#define SCY_Idler_H
+#pragma once
 
 
 #include "scy/base.h"
-#include "scy/runner.h"
 #include "scy/handle.h"
+#include "scy/runner.h"
 
+#include <cassert>
 #include <functional>
 
 
@@ -35,7 +35,7 @@ public:
     Idler(uv::Loop* loop = uv::defaultLoop());
 
     /// Create and start the idler with the given callback.
-    template<typename Function, typename... Args>
+    template <typename Function, typename... Args>
     explicit Idler(Function&& func, Args&&... args)
         : _handle(uv::defaultLoop())
     {
@@ -44,7 +44,7 @@ public:
     }
 
     /// Create and start the idler with the given callback and event loop.
-    template<typename Function, typename... Args>
+    template <typename Function, typename... Args>
     explicit Idler(uv::Loop* loop, Function&& func, Args&&... args)
         : _handle(loop)
     {
@@ -53,10 +53,10 @@ public:
     }
 
     /// Start the idler with the given callback function.
-    template<typename Function, typename... Args>
+    template <typename Function, typename... Args>
     void start(Function&& func, Args&&... args)
     {
-        typedef internal::DeferredCallable<Function, Args...> Callback;
+        using Callback = internal::DeferredCallable<Function, Args...>;
 
         assert(!_handle.active());
         assert(!_handle.active());
@@ -72,17 +72,16 @@ public:
                                            std::forward<Function>(func),
                                            std::forward<Args>(args)...);
         _handle.invoke(&uv_idle_start, _handle.get(),
-            [](uv_idle_t* req) {
-                auto wrap = reinterpret_cast<Callback*>(req->data);
-                if (!wrap->ctx->cancelled) {
-                    wrap->invoke();
-                }
-                else {
-                    wrap->ctx->running = false;
-                    uv_idle_stop(req);
-                    delete wrap;
-                }
-           });
+                       [](uv_idle_t* req) {
+                           auto wrap = reinterpret_cast<Callback*>(req->data);
+                           if (!wrap->ctx->cancelled) {
+                               wrap->invoke();
+                           } else {
+                               wrap->ctx->running = false;
+                               uv_idle_stop(req);
+                               delete wrap;
+                           }
+                       });
         _handle.throwLastError("Cannot start idler");
     }
 
@@ -103,9 +102,6 @@ protected:
 
 
 } // namespace scy
-
-
-#endif // SCY_Idler_H
 
 
 /// @\}

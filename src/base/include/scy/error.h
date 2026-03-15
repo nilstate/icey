@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_Error_H
-#define SCY_Error_H
+#pragma once
 
 
 #include "scy/base.h"
@@ -101,9 +100,6 @@ inline void throwError(std::string message, int err = UV_UNKNOWN)
 
 } // namespace uv
 } // namespace scy
-
-
-#endif // SCY_Error_H
 
 
 /// @\}

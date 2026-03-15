@@ -1,13 +1,13 @@
-#ifndef SCY_HTTP_Tests_H
-#define SCY_HTTP_Tests_H
+#pragma once
 
 
-#include "scy/interface.h"
 #include "scy/base.h"
 #include "scy/crypto/hash.h"
 #include "scy/filesystem.h"
+#include "scy/http/authenticator.h"
 #include "scy/http/client.h"
 #include "scy/http/connection.h"
+#include "scy/http/cookie.h"
 #include "scy/http/form.h"
 #include "scy/http/packetizers.h"
 #include "scy/http/server.h"
@@ -15,6 +15,7 @@
 #include "scy/http/util.h"
 #include "scy/http/websocket.h"
 #include "scy/idler.h"
+#include "scy/interface.h"
 #include "scy/net/sslcontext.h"
 #include "scy/net/sslmanager.h"
 #include "scy/test.h"
@@ -23,10 +24,10 @@
 #include "../samples/httpechoserver/httpechoserver.h"
 
 
-using std::cout;
-using std::cerr;
-using std::endl;
 using scy::test::Test;
+using std::cerr;
+using std::cout;
+using std::endl;
 
 
 #define TEST_HTTP_PORT 1337
@@ -97,25 +98,25 @@ struct HTTPEchoTest
 
     void onConnect()
     {
-        LDebug("On connect")
+        LDebug("On connect");
     }
 
     void onHeaders(http::Response& res)
     {
-        LDebug("On headers")
+        LDebug("On headers");
     }
 
     void onComplete(const http::Response& res)
     {
         std::ostringstream os;
         res.write(os);
-        LDebug("Response complete: ", os.str())
+        LDebug("Response complete: ", os.str());
     }
 
     void onPayload(const MutableBuffer& buffer)
     {
         std::string data(bufferCast<const char*>(buffer), buffer.size());
-        LDebug("On payload: ", buffer.size(), ": ", data)
+        LDebug("On payload: ", buffer.size(), ": ", data);
 
         if (data == "PING")
             numSuccess++;
@@ -129,16 +130,13 @@ struct HTTPEchoTest
 
     void onClose(http::Connection&)
     {
-        LDebug("Connection closed")
+        LDebug("Connection closed");
         shutdown();
     }
 };
 
 
 } // namespace scy
-
-
-#endif // SCY_HTTP_Tests_H
 
 
 /// @\}

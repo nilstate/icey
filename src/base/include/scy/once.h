@@ -9,23 +9,22 @@
 /// @{
 
 
-#ifndef SCY_Once_H
-#define SCY_Once_H
+#pragma once
 
 
 #include "scy/base.h"
-#include "scy/runner.h"
 #include "scy/loop.h"
+#include "scy/runner.h"
 
 
 namespace scy {
 
 
 /// Run the given function at the beginning of the next event loop iteration.
-template<typename Function, typename... Args>
+template <typename Function, typename... Args>
 void runOnce(uv::Loop* loop, Function&& func, Args&&... args)
 {
-    typedef internal::DeferredCallable<Function, Args...> Callback;
+    using Callback = internal::DeferredCallable<Function, Args...>;
 
     auto prepare = new uv_prepare_t;
     prepare->data = new Callback(nullptr,
@@ -33,20 +32,19 @@ void runOnce(uv::Loop* loop, Function&& func, Args&&... args)
                                  std::forward<Args>(args)...);
 
     uv_prepare_init(loop, prepare);
-    uv_prepare_start(prepare, [](uv_prepare_t *req) {
+    uv_prepare_start(prepare, [](uv_prepare_t* req) {
         auto wrap = reinterpret_cast<Callback*>(req->data);
         wrap->invoke();
         delete wrap;
         uv_prepare_stop(req);
-        delete req;
+        uv_close(reinterpret_cast<uv_handle_t*>(req), [](uv_handle_t* h) {
+            delete reinterpret_cast<uv_prepare_t*>(h);
+        });
     });
 }
 
 
 } // namespace scy
-
-
-#endif // SCY_Once_H
 
 
 /// @\}

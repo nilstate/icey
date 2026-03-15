@@ -21,9 +21,9 @@
 // device captures using LibSourcey.
 
 #define OUTPUT_FILENAME "deviceoutput.mp4"
-#define OUTPUT_FORMAT av::Format("MP4 Realtime", "mp4",                        \
-            { "libx264", 400, 300, 25, 48000, 128000, "yuv420p" },             \
-            { "aac", 2, 44100, 64000, "fltp" });
+#define OUTPUT_FORMAT av::Format("MP4 Realtime", "mp4",                               \
+                                 {"libx264", 400, 300, 25, 48000, 128000, "yuv420p"}, \
+                                 {"aac", 2, 44100, 64000, "fltp"});
 
 using namespace scy;
 using std::endl;
@@ -31,7 +31,7 @@ using std::endl;
 
 int main(int argc, char** argv)
 {
-    Logger::instance().add(new ConsoleChannel("debug", Level::Trace)); // Debug
+    Logger::instance().add(std::make_unique<ConsoleChannel>("debug", Level::Trace)); // Debug
     {
         // Create a PacketStream to pass packets
         // from device captures to the encoder
@@ -50,8 +50,8 @@ int main(int argc, char** argv)
         // Create and attach the default video capture
         av::VideoCapture video;
         if (devman.getDefaultCamera(device)) {
-            LInfo("Using video device: ", device.name)
-            video.openVideo(device.id, { 640, 480 });
+            LInfo("Using video device: ", device.name);
+            video.openVideo(device.id, {640, 480});
             video.getEncoderFormat(options.iformat);
             stream.attachSource(&video, false, true);
         }
@@ -59,8 +59,8 @@ int main(int argc, char** argv)
         // Create and attach the default audio capture
         av::AudioCapture audio;
         if (devman.getDefaultMicrophone(device)) {
-            LInfo("Using audio device: ", device.name)
-            audio.openAudio(device.id, { 2, 44100 });
+            LInfo("Using audio device: ", device.name);
+            audio.openAudio(device.id, {2, 44100});
             audio.getEncoderFormat(options.iformat);
             stream.attachSource(&audio, false, true);
         }
@@ -74,10 +74,11 @@ int main(int argc, char** argv)
         stream.start();
 
         // Keep recording until Ctrl-C is pressed
-        LInfo("Recording video: ", OUTPUT_FILENAME)
+        LInfo("Recording video: ", OUTPUT_FILENAME);
         waitForShutdown([](void* opaque) {
             reinterpret_cast<PacketStream*>(opaque)->stop();
-        }, &stream);
+        },
+                        &stream);
     }
 
     // Logger::destroy();

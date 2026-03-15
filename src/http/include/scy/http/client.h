@@ -9,9 +9,7 @@
 /// @{
 
 
-#ifndef SCY_HTTP_Client_H
-#define SCY_HTTP_Client_H
-
+#pragma once
 
 #include "scy/http/connection.h"
 #include "scy/http/websocket.h"
@@ -22,16 +20,20 @@
 #include "scy/packetio.h"
 #include "scy/timer.h"
 
+#include <memory>
+
 
 namespace scy {
 namespace http {
 
 
 class HTTP_API Client;
+
+/// HTTP client connection for managing request/response lifecycle.
 class HTTP_API ClientConnection : public Connection
 {
 public:
-    typedef std::shared_ptr<ClientConnection> Ptr;
+    using Ptr = std::shared_ptr<ClientConnection>;
 
     /// Create a standalone connection with the given host.
     ClientConnection(const URL& url, const net::TCPSocket::Ptr& socket = std::make_shared<net::TCPSocket>());
@@ -59,12 +61,6 @@ public:
     ///
     /// Throws an exception if the socket is not already or connected.
     virtual ssize_t send(const char* data, size_t len, int flags = 0) override;
-    // virtual ssize_t send(const std::string& buf, int flags = 0);
-    // virtual void sendData(const char* buf, size_t len); //, int flags = 0
-    // virtual void sendData(const std::string& buf); //, int flags = 0
-
-    /// Forcefully closes the HTTP connection.
-    //virtual void close();
 
     /// Set the output stream for writing response data to.
     /// The stream pointer is managed internally,
@@ -72,7 +68,8 @@ public:
     virtual void setReadStream(std::ostream* os);
 
     /// Return the cast read stream pointer or nullptr.
-    template <class StreamT> StreamT& readStream()
+    template <class StreamT>
+    StreamT& readStream()
     {
         if (!_readStream)
             throw std::runtime_error("No stream reader associated with HTTP client.");
@@ -99,6 +96,7 @@ public:
     Signal<void(const MutableBuffer&)> Payload; ///< Signals when raw data is received
     Signal<void(const Response&)> Complete;     ///< Signals when the HTTP transaction is complete
     Signal<void(Connection&)> Close;            ///< Signals when the connection is closed
+    ProgressSignal IncomingProgress;            ///< Signals download progress (0-100%)
 
 protected:
     /// Connects to the server endpoint.
@@ -108,7 +106,7 @@ protected:
     http::Message* incomingHeader();
     http::Message* outgoingHeader();
 
-    void onSocketConnect(net::Socket& socket);
+    bool onSocketConnect(net::Socket& socket);
 
 protected:
     URL _url;
@@ -120,7 +118,7 @@ protected:
 };
 
 
-typedef std::vector<ClientConnection::Ptr> ClientConnectionPtrVec;
+using ClientConnectionPtrVec = std::vector<ClientConnection::Ptr>;
 
 
 //
@@ -135,28 +133,14 @@ inline ClientConnection::Ptr createConnectionT(const URL& url, uv::Loop* loop = 
 
     if (url.scheme() == "http") {
         conn = std::make_shared<ConnectionT>(url, std::make_shared<net::TCPSocket>(loop));
-        // conn->replaceAdapter(new ConnectionAdapter(conn, HTTP_RESPONSE));
-        // conn = std::shared_ptr<ConnectionT>(
-        //     new ConnectionT(url, std::make_shared<net::TCPSocket>(loop)),
-        //     deleter::Deferred<ConnectionT>());
     } else if (url.scheme() == "https") {
         conn = std::make_shared<ConnectionT>(url, std::make_shared<net::SSLSocket>(loop));
-        // conn->replaceAdapter(new ConnectionAdapter(conn, HTTP_RESPONSE));
-        // conn = std::shared_ptr<ConnectionT>(
-        //    new ConnectionT(url, std::make_shared<net::SSLSocket>(loop)),
-        //     deleter::Deferred<ConnectionT>());
     } else if (url.scheme() == "ws") {
         conn = std::make_shared<ConnectionT>(url, std::make_shared<net::TCPSocket>(loop));
-        conn->replaceAdapter(new ws::ConnectionAdapter(conn.get(), ws::ClientSide));
-        // conn = std::shared_ptr<ConnectionT>(
-        //     new ConnectionT(url, std::make_shared<net::TCPSocket>(loop)),
-        //    deleter::Deferred<ConnectionT>());
+        conn->replaceAdapter(std::make_unique<ws::ConnectionAdapter>(conn.get(), ws::ClientSide));
     } else if (url.scheme() == "wss") {
         conn = std::make_shared<ConnectionT>(url, std::make_shared<net::SSLSocket>(loop));
-        conn->replaceAdapter(new ws::ConnectionAdapter(conn.get(), ws::ClientSide));
-        // conn = std::shared_ptr<ConnectionT>(
-        //     new ConnectionT(url, std::make_shared<net::SSLSocket>(loop)),
-        //     deleter::Deferred<ConnectionT>());
+        conn->replaceAdapter(std::make_unique<ws::ConnectionAdapter>(conn.get(), ws::ClientSide));
     } else
         throw std::runtime_error("Unknown connection type for URL: " + url.str());
 
@@ -169,6 +153,7 @@ inline ClientConnection::Ptr createConnectionT(const URL& url, uv::Loop* loop = 
 //
 
 
+/// HTTP client for creating and managing outgoing connections.
 class HTTP_API Client
 {
 public:
@@ -228,57 +213,8 @@ inline ClientConnection::Ptr createConnection(const URL& url, http::Client* clie
 }
 
 
-#if 0
-class HTTP_API SecureClientConnection: public ClientConnection
-{
-public:
-    SecureClientConnection(Client* client, const URL& url) : //, const net::Address& address
-        ClientConnection(client, url, net::SSLSocket()) //, address
-    {
-    }
-
-    virtual ~SecureClientConnection()
-    {
-    }
-};
-
-
-class HTTP_API WebSocketClientConnection: public ClientConnection
-{
-public:
-    WebSocketClientConnection(Client* client, const URL& url) : //, const net::Address& address
-        ClientConnection(client, url) //, address
-    {
-        socket().replaceAdapter(new ws::ConnectionAdapter(*this, ws::ClientSide));    //&socket(), &request(), request(), request()
-    }
-
-    virtual ~WebSocketClientConnection()
-    {
-    }
-};
-
-
-class HTTP_API WebSocketSecureClientConnection: public ClientConnection
-{
-public:
-    WebSocketSecureClientConnection(Client* client, const URL& url) : //, const net::Address& address
-        ClientConnection(client, url, net::SSLSocket()) //, address
-    {
-        socket().replaceAdapter(new ws::ConnectionAdapter(*this, ws::ClientSide)); //(&socket(), &request()
-    }
-
-    virtual ~WebSocketSecureClientConnection()
-    {
-    }
-};
-#endif
-
-
 } // namespace http
 } // namespace scy
 
 
-#endif
-
-
-/// @\}
+/// @}

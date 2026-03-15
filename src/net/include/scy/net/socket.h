@@ -9,19 +9,19 @@
 /// @{
 
 
-#ifndef SCY_Net_Socket_H
-#define SCY_Net_Socket_H
+#pragma once
 
 
 #include "scy/base.h"
-#include "scy/memory.h"
 #include "scy/handle.h"
-#include "scy/packetstream.h"
-#include "scy/net/net.h"
 #include "scy/net/address.h"
+#include "scy/net/net.h"
 #include "scy/net/socketadapter.h"
+#include "scy/packetstream.h"
 
 #include "uv.h"
+
+#include <any>
 
 
 namespace scy {
@@ -42,11 +42,16 @@ inline std::shared_ptr<SocketT> makeSocket(uv::Loop* loop = uv::defaultLoop())
 class Net_API Socket : public SocketAdapter
 {
 public:
-    typedef std::shared_ptr<Socket> Ptr;
-    typedef std::vector<Ptr> Vec;
+    using Ptr = std::shared_ptr<Socket>;
+    using Vec = std::vector<Ptr>;
 
     Socket() = default;
-    virtual ~Socket() = default;
+    virtual ~Socket() noexcept = default;
+
+    Socket(const Socket&) = delete;
+    Socket& operator=(const Socket&) = delete;
+    Socket(Socket&&) = delete;
+    Socket& operator=(Socket&&) = delete;
 
     /// Connects to the given peer IP address.
     ///
@@ -74,7 +79,7 @@ public:
 
     /// Sends the shutdown packet which should result is socket
     /// closure via callback.
-    virtual bool shutdown()
+    [[nodiscard]] virtual bool shutdown()
     {
         assert(0 && "not implemented by protocol");
         return false;
@@ -114,11 +119,10 @@ public:
     /// Returns the socket event loop.
     virtual uv::Loop* loop() const = 0;
 
-    /// Optional client data pointer.
+    /// Optional client data.
     ///
-    /// The pointer is set to null on initialization
-    /// but not managed.
-    void* opaque { nullptr };
+    /// The value is empty on initialization.
+    std::any opaque;
 
 protected:
     /// Initializes the underlying socket context.
@@ -127,7 +131,7 @@ protected:
     /// Resets the socket context for reuse.
     virtual void reset() = 0;
 
-    int _af { AF_UNSPEC };
+    int _af{AF_UNSPEC};
 };
 
 
@@ -159,9 +163,9 @@ struct PacketInfo : public IPacketInfo
     {
     }
 
-    virtual IPacketInfo* clone() const { return new PacketInfo(*this); }
+    virtual std::unique_ptr<IPacketInfo> clone() const { return std::make_unique<PacketInfo>(*this); }
 
-    virtual ~PacketInfo(){};
+    virtual ~PacketInfo() noexcept = default;
 };
 
 
@@ -179,30 +183,31 @@ struct PacketInfo : public IPacketInfo
 class Net_API SocketPacket : public RawPacket
 {
 public:
-    /// PacketInfo pointer
-    PacketInfo* info;
-
     SocketPacket(const Socket::Ptr& socket, const MutableBuffer& buffer, const Address& peerAddress)
-        : RawPacket(bufferCast<char*>(buffer), buffer.size(), 0, socket.get(), nullptr,
-                                      new PacketInfo(socket, peerAddress))
+        : RawPacket(bufferCast<char*>(buffer), buffer.size(), 0, nullptr,
+                    std::make_unique<PacketInfo>(socket, peerAddress))
     {
-        info = (PacketInfo*)RawPacket::info;
     }
 
     SocketPacket(const SocketPacket& that)
         : RawPacket(that)
-        , info(that.info)
     {
     }
 
-    virtual ~SocketPacket() {}
+    /// Returns the PacketInfo for this socket packet.
+    PacketInfo* packetInfo() const
+    {
+        return static_cast<PacketInfo*>(info.get());
+    }
+
+    virtual ~SocketPacket() noexcept = default;
 
     virtual void print(std::ostream& os) const
     {
-        os << className() << ": " << info->peerAddress << std::endl;
+        os << className() << ": " << packetInfo()->peerAddress << std::endl;
     }
 
-    virtual IPacket* clone() const { return new SocketPacket(*this); }
+    virtual std::unique_ptr<IPacket> clone() const { return std::make_unique<SocketPacket>(*this); }
 
     virtual ssize_t read(const ConstBuffer&)
     {
@@ -222,9 +227,6 @@ public:
 
 } // namespace net
 } // namespace scy
-
-
-#endif // SCY_Net_Socket_H
 
 
 /// @\}

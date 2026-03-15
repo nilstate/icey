@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_SharedLibrary_H
-#define SCY_SharedLibrary_H
+#pragma once
 
 
 #include "scy/util.h"
@@ -70,9 +69,6 @@ protected:
 
 
 } // namespace scy
-
-
-#endif // SCY_SharedLibrary_H
 
 
 /// @\}

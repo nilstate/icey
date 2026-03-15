@@ -9,12 +9,11 @@
 /// @{
 
 
-#ifndef SCY_Symple_Form_H
-#define SCY_Symple_Form_H
+#pragma once
 
 
-#include "scy/symple/symple.h"
 #include "scy/symple/command.h"
+#include "scy/symple/symple.h"
 
 
 namespace scy {
@@ -36,9 +35,9 @@ public:
     FormElement& operator=(const FormElement& r);
     virtual ~FormElement();
 
-    std::string type() const;
-    std::string id() const;
-    std::string label() const;
+    [[nodiscard]] std::string type() const;
+    [[nodiscard]] std::string id() const;
+    [[nodiscard]] std::string label() const;
 
     /// Possible "type" values
     ///      page, section, text, text-multi,
@@ -77,7 +76,7 @@ public:
     /// Returns true if this field is live, meaning the
     /// form-processing entity should auto-update this
     /// field's value whenever it changes.
-    bool live() const;
+    [[nodiscard]] bool live() const;
 
     /// Clears child elements matching the given ID.
     bool clearElements(const std::string& id, bool partial = false);
@@ -86,7 +85,7 @@ public:
     void clear();
 
     /// Returns true if the form element is valid.
-    bool valid() const;
+    [[nodiscard]] bool valid() const;
 
     /// Returns the number of child elements.
     int numElements();
@@ -97,7 +96,7 @@ public:
     /// Returns true if the form has multiple pages.
     bool hasPages();
 
-    json::value& root() const;
+    [[nodiscard]] json::value& root() const;
 
 protected:
     /// The root pointer is just a reference to
@@ -116,8 +115,8 @@ public:
 
     bool valid();
 
-    std::string action() const;
-    bool partial() const;
+    [[nodiscard]] std::string action() const;
+    [[nodiscard]] bool partial() const;
 
     /// Possible "action" values
     /// `form` The form-processing entity is asking the form-submitting entity
@@ -167,18 +166,15 @@ public:
     /// Returns the first value.
     /// Most formats (except multi) only
     /// require single value.
-    std::string value() const;
-    int intValue() const;
-    double doubleValue() const;
-    bool boolValue() const;
+    [[nodiscard]] std::string value() const;
+    [[nodiscard]] int intValue() const;
+    [[nodiscard]] double doubleValue() const;
+    [[nodiscard]] bool boolValue() const;
 };
 
 
 } // namespace smpl
 } // namespace scy
-
-
-#endif // SCY_Symple_Form_H
 
 
 /// @\}

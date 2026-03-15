@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_AV_VideoConverter_H
-#define SCY_AV_VideoConverter_H
+#pragma once
 
 
 #include "scy/base.h"
@@ -32,7 +31,12 @@ namespace av {
 struct VideoConverter
 {
     VideoConverter();
-    virtual ~VideoConverter();
+    virtual ~VideoConverter() noexcept;
+
+    VideoConverter(const VideoConverter&) = delete;
+    VideoConverter& operator=(const VideoConverter&) = delete;
+    VideoConverter(VideoConverter&&) = delete;
+    VideoConverter& operator=(VideoConverter&&) = delete;
 
     virtual void create();
     virtual void close();
@@ -51,7 +55,6 @@ struct VideoConverter
 
 
 #endif
-#endif // SCY_AV_VideoConverter_H
 
 
 /// @\}

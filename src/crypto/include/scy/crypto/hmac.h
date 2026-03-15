@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_Crypto_HMAC_H
-#define SCY_Crypto_HMAC_H
+#pragma once
 
 
 #include "scy/crypto/crypto.h"
@@ -25,14 +24,11 @@ namespace crypto {
 /// used for message authentication, which is based on a hash function (SHA1).
 ///
 /// Input is the data to be signed, and key is the private password.
-std::string computeHMAC(const std::string& input, const std::string& key);
+[[nodiscard]] std::string computeHMAC(const std::string& input, const std::string& key);
 
 
 } // namespace crypto
 } // namespace scy
-
-
-#endif // SCY_Crypto_HMAC_H
 
 
 /// @\}

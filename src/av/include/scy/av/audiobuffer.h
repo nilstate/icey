@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_AV_AudioBuffer_H
-#define SCY_AV_AudioBuffer_H
+#pragma once
 
 
 #include <string>
@@ -31,13 +30,33 @@ namespace av {
 struct AV_API AudioBuffer
 {
     AudioBuffer();
-    ~AudioBuffer();
+    ~AudioBuffer() noexcept;
 
+    AudioBuffer(const AudioBuffer&) = delete;
+    AudioBuffer& operator=(const AudioBuffer&) = delete;
+    AudioBuffer(AudioBuffer&&) = delete;
+    AudioBuffer& operator=(AudioBuffer&&) = delete;
+
+    /// Allocate the audio FIFO buffer.
+    ///
+    /// @param sampleFmt   The sample format name (e.g. "s16", "fltp").
+    /// @param channels    The number of audio channels.
+    /// @param numSamples  The initial buffer capacity in samples per channel.
     void alloc(const std::string& sampleFmt, int channels, int numSamples = 1024);
     void reset();
     void close();
 
+    /// Write samples into the FIFO buffer.
+    ///
+    /// @param samples     Array of per-channel sample buffers.
+    /// @param numSamples  The number of samples per channel to write.
     void write(void** samples, int numSamples);
+
+    /// Read samples from the FIFO buffer.
+    ///
+    /// @param samples     Array of per-channel sample buffers to fill.
+    /// @param numSamples  The number of samples per channel to read.
+    /// @return True if enough samples were available.
     bool read(void** samples, int numSamples);
 
     int available() const;
@@ -51,7 +70,6 @@ struct AV_API AudioBuffer
 
 
 #endif
-#endif // SCY_AV_AudioBuffer_H
 
 
 /// @\}

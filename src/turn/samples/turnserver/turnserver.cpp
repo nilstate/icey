@@ -38,7 +38,7 @@ public:
 
     virtual AuthenticationState authenticateRequest(Server*, Request& request)
     {
-        LDebug("Authenticating: ", request.transactionID())
+        LDebug("Authenticating: ", request.transactionID());
 
         // The authentication information (e.g., username, password, realm, and
         // nonce) is used to both verify subsequent requests and to compute the
@@ -57,7 +57,7 @@ public:
         // authentication and message integrity for them.
         if (request.methodType() == stun::Message::SendIndication ||
             request.methodType() == stun::Message::Binding)
-            return Authorized;
+            return AuthenticationState::Authorized;
 
         // The initial packet from the client does not include the USERNAME,
         // REALM, NONCE,
@@ -69,8 +69,8 @@ public:
         auto nonceAttr = request.get<stun::Nonce>();
         auto integrityAttr = request.get<stun::MessageIntegrity>();
         if (!usernameAttr || !realmAttr || !nonceAttr || !integrityAttr) {
-            LDebug("Authenticating: Unauthorized STUN Request")
-            return turn::NotAuthorized;
+            LDebug("Authenticating: Unauthorized STUN Request");
+            return turn::AuthenticationState::NotAuthorized;
         }
 
         // Determine authentication status and return either Authorized,
@@ -85,22 +85,22 @@ public:
                << ", key=" << request.hash << endl;
 
         if (integrityAttr->verifyHmac(request.hash))
-            return turn::Authorized;
-        return turn::NotAuthorized;
+            return turn::AuthenticationState::Authorized;
+        return turn::AuthenticationState::NotAuthorized;
 #else
         // Since no authentication is required we just return Authorized.
-        return turn::Authorized;
+        return turn::AuthenticationState::Authorized;
 #endif
     }
 
     virtual void onServerAllocationCreated(Server*, IAllocation* alloc)
     {
-        LDebug("Allocation Created")
+        LDebug("Allocation Created");
     }
 
     virtual void onServerAllocationRemoved(Server*, IAllocation* alloc)
     {
-        LDebug("Allocation Removed")
+        LDebug("Allocation Removed");
     }
 };
 
@@ -111,8 +111,8 @@ int main(void)
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
 
-    Logger::instance().add(new ConsoleChannel("debug", Level::Trace));
-    Logger::instance().setWriter(new AsyncLogWriter);
+    Logger::instance().add(std::make_unique<ConsoleChannel>("debug", Level::Trace));
+    Logger::instance().setWriter(std::make_unique<AsyncLogWriter>());
     {
         Application app;
         {
@@ -130,7 +130,8 @@ int main(void)
             srv.start();
             app.waitForShutdown([](void* opaque) {
                 reinterpret_cast<RelayServer*>(opaque)->server.stop();
-            }, &srv);
+            },
+                                &srv);
         }
     }
     Logger::destroy();

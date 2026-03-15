@@ -8,21 +8,20 @@
 /// @addtogroup http
 /// @{
 
+#pragma once
 
 #include "scy/http/request.h"
 #include "scy/http/response.h"
 #include "scy/net/socket.h"
-#include <http_parser.h>
-
-
-#ifndef SCY_HTTP_Parser_H
-#define SCY_HTTP_Parser_H
+#include <llhttp.h>
 
 
 namespace scy {
 namespace http {
 
 
+/// @ingroup http
+/// Abstract observer interface for HTTP parser events.
 class HTTP_API ParserObserver
 {
 public:
@@ -35,13 +34,20 @@ public:
 };
 
 
+/// @ingroup http
+/// HTTP request/response parser using the llhttp library.
 class HTTP_API Parser
 {
 public:
     Parser(http::Response* response);
     Parser(http::Request* request);
-    Parser(http_parser_type type);
+    Parser(llhttp_type_t type);
     ~Parser();
+
+    Parser(const Parser&) = delete;
+    Parser& operator=(const Parser&) = delete;
+    Parser(Parser&&) = delete;
+    Parser& operator=(Parser&&) = delete;
 
     /// Parse a HTTP packet.
     ///
@@ -54,17 +60,17 @@ public:
 
     /// Returns true if parsing is complete, either
     /// in success or error.
-    bool complete() const;
+    [[nodiscard]] bool complete() const;
 
     /// Returns true if the connection should be upgraded.
-    bool upgrade() const;
+    [[nodiscard]] bool upgrade() const;
 
     void setRequest(http::Request* request);
     void setResponse(http::Response* response);
     void setObserver(ParserObserver* observer);
 
-    http::Message* message();
-    ParserObserver* observer() const;
+    [[nodiscard]] http::Message* message();
+    [[nodiscard]] ParserObserver* observer() const;
 
 protected:
     void init();
@@ -75,17 +81,17 @@ protected:
     void onHeadersEnd();
     void onBody(const char* buf, size_t len);
     void onMessageEnd();
-    void onError(unsigned errnum, const std::string& message = "");
+    void onError(llhttp_errno_t errnum, const std::string& message = "");
 
-    /// http_parser callbacks
-    static int on_message_begin(http_parser* parser);
-    static int on_url(http_parser* parser, const char* at, size_t len);
-    static int on_status(http_parser* parser, const char* at, size_t len);
-    static int on_header_field(http_parser* parser, const char* at, size_t len);
-    static int on_header_value(http_parser* parser, const char* at, size_t len);
-    static int on_headers_complete(http_parser* parser);
-    static int on_body(http_parser* parser, const char* at, size_t len);
-    static int on_message_complete(http_parser* parser);
+    /// llhttp callbacks
+    static int on_message_begin(llhttp_t* parser);
+    static int on_url(llhttp_t* parser, const char* at, size_t len);
+    static int on_status(llhttp_t* parser, const char* at, size_t len);
+    static int on_header_field(llhttp_t* parser, const char* at, size_t len);
+    static int on_header_value(llhttp_t* parser, const char* at, size_t len);
+    static int on_headers_complete(llhttp_t* parser);
+    static int on_body(llhttp_t* parser, const char* at, size_t len);
+    static int on_message_complete(llhttp_t* parser);
 
 protected:
     ParserObserver* _observer;
@@ -93,9 +99,9 @@ protected:
     http::Response* _response;
     http::Message* _message;
 
-    http_parser _parser;
-    http_parser_settings _settings;
-    http_parser_type _type;
+    llhttp_t _parser;
+    llhttp_settings_t _settings;
+    llhttp_type_t _type;
 
     bool _wasHeaderValue;
     std::string _lastHeaderField;
@@ -103,7 +109,7 @@ protected:
 
     bool _complete;
     bool _upgrade;
-    
+
     Error _error;
 };
 
@@ -112,7 +118,4 @@ protected:
 } // namespace scy
 
 
-#endif // SCY_HTTP_Parser_H
-
-
-/// @\}
+/// @}

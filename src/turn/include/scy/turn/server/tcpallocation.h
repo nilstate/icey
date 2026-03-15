@@ -8,9 +8,7 @@
 /// @addtogroup turn
 /// @{
 
-
-#ifndef SCY_TURN_SERVER_TCPAllocation_H
-#define SCY_TURN_SERVER_TCPAllocation_H
+#pragma once
 
 
 #include "scy/collection.h"
@@ -26,8 +24,7 @@ namespace turn {
 class TURN_API Server;
 
 
-typedef PointerCollection<uint32_t, TCPConnectionPair>
-    TCPConnectionPairMap;
+using TCPConnectionPairMap = PointerCollection<uint32_t, TCPConnectionPair>;
 
 
 class TURN_API TCPAllocation : public ServerAllocation
@@ -48,7 +45,7 @@ public:
     int sendToControl(stun::Message& message);
 
     net::TCPSocket& control();
-    net::Address relayedAddress() const;
+    [[nodiscard]] net::Address relayedAddress() const;
     TCPConnectionPairMap& pairs();
 
     bool onTimer();
@@ -58,19 +55,17 @@ public:
 
     /// Callback for handling controll connection destruction.
     /// The allocation will be deleted.
-    void onControlClosed(net::Socket& socket);
+    bool onControlClosed(net::Socket& socket);
 
 protected:
-    net::SocketEmitter _control; // net::TCPSocket
+    net::SocketEmitter _control;  // net::TCPSocket
     net::SocketEmitter _acceptor; // net::TCPSocket
     TCPConnectionPairMap _pairs;
 };
 
 
-} } //  namespace scy::turn
-
-
-#endif // SCY_TURN_SERVER_TCPAllocation_H
+} // namespace turn
+} // namespace scy
 
 
 /// @\}

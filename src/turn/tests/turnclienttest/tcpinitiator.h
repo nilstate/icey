@@ -3,12 +3,12 @@
 
 
 #include "scy/logger.h"
-#include "scy/signal.h"
-#include "scy/timer.h"
-#include "scy/time.h"
-#include "scy/util.h"
 #include "scy/net/tcpsocket.h"
+#include "scy/signal.h"
+#include "scy/time.h"
+#include "scy/timer.h"
 #include "scy/turn/client/tcpclient.h"
+#include "scy/util.h"
 
 #include <iostream>
 
@@ -39,24 +39,24 @@ struct TCPInitiator : public turn::TCPClientObserver
         , client(*this, opts)
         , success(false)
     {
-        LDebug(id, ": Creating")
+        LDebug(id, ": Creating");
     }
 
-    virtual ~TCPInitiator() 
-    { 
-        LDebug(id, ": Destroying") 
+    virtual ~TCPInitiator()
+    {
+        LDebug(id, ": Destroying");
     }
 
     void initiate(const std::string& peerIP)
     {
-        LDebug(id, ": Initializing")
+        LDebug(id, ": Initializing");
         try {
             client.addPermission(peerIP);
             client.addPermission("127.0.0.1");
             client.addPermission("192.168.1.1");
             client.initiate();
         } catch (std::exception& exc) {
-            LError(id, ": Error: ", exc.what())
+            LError(id, ": Error: ", exc.what());
         }
     }
 
@@ -82,14 +82,14 @@ struct TCPInitiator : public turn::TCPClientObserver
         // payload.append(65536, 'x');
         // payload.append(10000, 'x');
 
-        LDebug(id, ": Sending packet to responder")
+        LDebug(id, ": Sending packet to responder");
         std::string payload("initiator > responder");
         client.sendData(payload.c_str(), payload.length(), lastPeerAddr);
     }
 
     void onClientStateChange(turn::Client&, turn::ClientState& state, const turn::ClientState&)
     {
-        LDebug(id, ": State change: ", state.toString())
+        LDebug(id, ": State change: ", state.toString());
 
         switch (state.id()) {
             case turn::ClientState::None:
@@ -104,26 +104,26 @@ struct TCPInitiator : public turn::TCPClientObserver
             case turn::ClientState::Failed:
                 // assert(false);
                 success = false;
-                TestComplete.emit(success);                 
+                TestComplete.emit(success);
                 break;
         }
     }
 
     void onRelayConnectionCreated(turn::TCPClient&, const net::TCPSocket::Ptr& socket, const net::Address& peerAddr)
     {
-        LDebug(id, ": Connection Created: ", peerAddr)
-        
+        LDebug(id, ": Connection Created: ", peerAddr);
+
         // Remember the last peer
         lastPeerAddr = peerAddr;
         ConnectionCreated.emit(peerAddr);
 
-        // Send the intial data packet to responder 
+        // Send the intial data packet to responder
         sendPacketToResponder();
     }
 
     void onRelayConnectionClosed(turn::TCPClient&, const net::TCPSocket::Ptr& socket, const net::Address& peerAddr)
     {
-        LDebug(id, ": Connection Closed")
+        LDebug(id, ": Connection Closed");
     }
 
     void onRelayDataReceived(turn::Client&, const char* data, size_t size, const net::Address& peerAddr)
@@ -150,21 +150,21 @@ struct TCPInitiator : public turn::TCPClientObserver
                 << ": payload=" << payload << ", latency=" << latency << endl;
         }
         else
-            LDebug(id << ": Received dummy data from " << peerAddr << ": size=", size)
+            LDebug(id << ": Received dummy data from " << peerAddr << ": size=", size);
 
         // Echo back to peer
-        LDebug(id << ": Received data from  " << peerAddr << ": ", size)
+        LDebug(id << ": Received data from  " << peerAddr << ": ", size);
 
         client.sendData(data, size, peerAddr);
 #endif
-        LDebug(id, ": Data received from responder")
+        LDebug(id, ": Data received from responder");
 
         sendPacketToResponder();
     }
 
     void onAllocationPermissionsCreated(turn::Client&, const turn::PermissionList& permissions)
     {
-        LDebug(id, ": Permissions Created")
+        LDebug(id, ": Permissions Created");
     }
 };
 

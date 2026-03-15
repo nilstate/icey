@@ -14,14 +14,17 @@
 
 #include "uv.h"
 
-#include <stdlib.h>
-#include <string.h>
+#include <chrono>
+#include <cstdlib>
+#include <cstring>
+#include <thread>
+
+#include <vector>
 
 #ifdef SCY_WIN
+#include <versionhelpers.h>
 #include <windows.h>
 #include <winsock2.h>
-#else
-#include <unistd.h>
 #endif
 
 
@@ -67,7 +70,7 @@ uint64_t getTotalMemory()
 
 int numCpuCores()
 {
-    uv_cpu_info_t *info;
+    uv_cpu_info_t* info;
     int cpu_count;
     uv_cpu_info(&info, &cpu_count);
     uv_free_cpu_info(info, cpu_count);
@@ -77,11 +80,7 @@ int numCpuCores()
 
 void sleep(int ms)
 {
-#ifdef SCY_WIN
-    Sleep(ms);
-#else
-    usleep(ms * 1000);
-#endif
+    std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 }
 
 
@@ -112,9 +111,8 @@ std::string getEnv(const std::string& name, const std::string& defaultValue)
 bool getEnvBool(const std::string& name)
 {
     const char* value = getenv(name.c_str());
-    return value && (
-        strcmp(value, "1") == 0 ||
-        strcmp(value, "true") == 0);
+    return value && (strcmp(value, "1") == 0 ||
+                     strcmp(value, "true") == 0);
 }
 
 
@@ -124,52 +122,23 @@ bool getEnvBool(const std::string& name)
 
 #ifdef SCY_WIN
 
-enum WindowsMajorVersions
-{
-    kWindows2000 = 5,
-    kWindowsVista = 6,
-};
-
-
-bool getOsVersion(int* major, int* minor, int* build)
-{
-    OSVERSIONINFO info = {0};
-    info.dwOSVersionInfoSize = sizeof(info);
-    if (GetVersionEx(&info)) {
-        if (major)
-            *major = info.dwMajorVersion;
-        if (minor)
-            *minor = info.dwMinorVersion;
-        if (build)
-            *build = info.dwBuildNumber;
-        return true;
-    }
-    return false;
-}
-
 bool isWindowsVistaOrLater()
 {
-    int major;
-    return (getOsVersion(&major, nullptr, nullptr) && major >= kWindowsVista);
+    return ::IsWindowsVistaOrGreater();
 }
 
 bool isWindowsXpOrLater()
 {
-    int major, minor;
-    return (getOsVersion(&major, &minor, nullptr) &&
-            (major >= kWindowsVista || (major == kWindows2000 && minor >= 1)));
+    return ::IsWindowsXPOrGreater();
 }
-
-
-#define STACK_ARRAY(TYPE, LEN) static_cast<TYPE*>(::alloca((LEN) * sizeof(TYPE)))
 
 
 std::wstring toUtf16(const char* utf8, size_t len)
 {
-    auto len16 = ::MultiByteToWideChar(CP_UTF8, 0, utf8, int(len), NULL, 0);
-    wchar_t* ws = STACK_ARRAY(wchar_t, len16);
-    ::MultiByteToWideChar(CP_UTF8, 0, utf8, int(len), ws, len16);
-    return std::wstring(ws, len16);
+    auto len16 = ::MultiByteToWideChar(CP_UTF8, 0, utf8, static_cast<int>(len), nullptr, 0);
+    std::vector<wchar_t> ws(len16);
+    ::MultiByteToWideChar(CP_UTF8, 0, utf8, static_cast<int>(len), ws.data(), len16);
+    return std::wstring(ws.data(), len16);
 }
 
 std::wstring toUtf16(const std::string& str)
@@ -179,10 +148,10 @@ std::wstring toUtf16(const std::string& str)
 
 std::string toUtf8(const wchar_t* wide, size_t len)
 {
-    auto len8 = ::WideCharToMultiByte(CP_UTF8, 0, wide, int(len), NULL, 0, NULL, NULL);
-    char* ns = STACK_ARRAY(char, len8);
-    ::WideCharToMultiByte(CP_UTF8, 0, wide, int(len), ns, len8, NULL, NULL);
-    return std::string(ns, len8);
+    auto len8 = ::WideCharToMultiByte(CP_UTF8, 0, wide, static_cast<int>(len), nullptr, 0, nullptr, nullptr);
+    std::vector<char> ns(len8);
+    ::WideCharToMultiByte(CP_UTF8, 0, wide, static_cast<int>(len), ns.data(), len8, nullptr, nullptr);
+    return std::string(ns.data(), len8);
 }
 
 std::string toUtf8(const std::wstring& wstr)

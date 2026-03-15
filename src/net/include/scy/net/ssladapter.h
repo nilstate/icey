@@ -9,14 +9,13 @@
 /// @{
 
 
-#ifndef SCY_Net_SSLAdapter_H
-#define SCY_Net_SSLAdapter_H
+#pragma once
 
 
 #include "scy/crypto/crypto.h"
+#include "scy/handle.h"
 #include "scy/net/address.h"
 #include "scy/net/net.h"
-#include "scy/handle.h"
 
 #include <string>
 #include <vector>
@@ -30,16 +29,19 @@ namespace scy {
 namespace net {
 
 
-
-/// A wrapper for the OpenSSL SSL connection context
-///
-/// TODO: Decouple from SSLSocket implementation
+/// A wrapper for the OpenSSL SSL connection context.
+/// Currently coupled to SSLSocket for BIO read/write callbacks.
 class Net_API SSLSocket;
 class Net_API SSLAdapter
 {
 public:
     SSLAdapter(net::SSLSocket* socket);
-    ~SSLAdapter();
+    ~SSLAdapter() noexcept;
+
+    SSLAdapter(const SSLAdapter&) = delete;
+    SSLAdapter& operator=(const SSLAdapter&) = delete;
+    SSLAdapter(SSLAdapter&&) = delete;
+    SSLAdapter& operator=(SSLAdapter&&) = delete;
 
     /// Initializes the SSL context as a client.
     void initClient();
@@ -66,6 +68,10 @@ public:
     /// Flushes the SSL read/write buffers.
     void flush();
 
+    /// Set the expected peer hostname for certificate verification.
+    /// Must be called before initClient() to enable hostname verification.
+    void setHostname(const std::string& hostname);
+
     void addIncomingData(const char* data, size_t len);
     void addOutgoingData(const std::string& data);
     void addOutgoingData(const char* data, size_t len);
@@ -81,17 +87,15 @@ protected:
 
     net::SSLSocket* _socket;
     SSL* _ssl;
-    BIO* _readBIO;  ///< The incoming buffer we write encrypted SSL data into
-    BIO* _writeBIO; ///<  The outgoing buffer we write to the socket
+    BIO* _readBIO;                ///< The incoming buffer we write encrypted SSL data into
+    BIO* _writeBIO;               ///<  The outgoing buffer we write to the socket
     std::vector<char> _bufferOut; ///<  The outgoing payload to be encrypted and sent
+    std::string _hostname;        ///<  Expected peer hostname for verification
 };
 
 
 } // namespace net
 } // namespace scy
-
-
-#endif // SCY_Net_SSLAdapter_H
 
 
 /// @\}

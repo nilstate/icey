@@ -9,14 +9,13 @@
 /// @{
 
 
-#ifndef SCY_Net_UDPSocket_H
-#define SCY_Net_UDPSocket_H
+#pragma once
 
 
-#include "scy/net/address.h"
-#include "scy/net/socket.h"
-#include "scy/net/net.h"
 #include "scy/handle.h"
+#include "scy/net/address.h"
+#include "scy/net/net.h"
+#include "scy/net/socket.h"
 
 
 namespace scy {
@@ -24,14 +23,20 @@ namespace net {
 
 
 /// UDP socket implementation.
-class Net_API UDPSocket : public uv::Handle<uv_udp_t>, public net::Socket
+class Net_API UDPSocket : public uv::Handle<uv_udp_t>
+    , public net::Socket
 {
 public:
-    typedef std::shared_ptr<UDPSocket> Ptr;
-    typedef std::vector<Ptr> Vec;
+    using Ptr = std::shared_ptr<UDPSocket>;
+    using Vec = std::vector<Ptr>;
 
     UDPSocket(uv::Loop* loop = uv::defaultLoop());
-    virtual ~UDPSocket();
+    virtual ~UDPSocket() noexcept;
+
+    UDPSocket(const UDPSocket&) = delete;
+    UDPSocket& operator=(const UDPSocket&) = delete;
+    UDPSocket(UDPSocket&&) = delete;
+    UDPSocket& operator=(UDPSocket&&) = delete;
 
     virtual void connect(const net::Address& peerAddress) override;
     virtual void connect(const std::string& host, uint16_t port) override;
@@ -39,13 +44,13 @@ public:
 
     virtual void bind(const net::Address& address, unsigned flags = 0) override;
 
-    virtual ssize_t send(const char* data, size_t len, int flags = 0) override;
-    virtual ssize_t send(const char* data, size_t len,
-                         const net::Address& peerAddress, int flags = 0) override;
+    [[nodiscard]] virtual ssize_t send(const char* data, size_t len, int flags = 0) override;
+    [[nodiscard]] virtual ssize_t send(const char* data, size_t len,
+                                       const net::Address& peerAddress, int flags = 0) override;
 
-    bool setBroadcast(bool flag);
-    bool setMulticastLoop(bool flag);
-    bool setMulticastTTL(int ttl);
+    [[nodiscard]] bool setBroadcast(bool flag);
+    [[nodiscard]] bool setMulticastLoop(bool flag);
+    [[nodiscard]] bool setMulticastTTL(int ttl);
 
     virtual net::Address address() const override;
     virtual net::Address peerAddress() const override;
@@ -60,8 +65,6 @@ public:
     virtual bool closed() const override;
 
     virtual uv::Loop* loop() const override;
-
-    virtual void* self() override;
 
     virtual void onRecv(const MutableBuffer& buf, const net::Address& address);
 
@@ -86,9 +89,6 @@ protected:
 
 } // namespace net
 } // namespace scy
-
-
-#endif // SCY_Net_UDPSocket_H
 
 
 /// @\}

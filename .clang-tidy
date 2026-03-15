@@ -1,0 +1,45 @@
+---
+# LibSourcey clang-tidy configuration
+# Run: clang-tidy -p build src/base/src/*.cpp
+
+Checks: >
+  -*,
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-narrowing-conversions,
+  modernize-use-nullptr,
+  modernize-use-override,
+  modernize-use-using,
+  modernize-use-auto,
+  modernize-use-default-member-init,
+  modernize-use-equals-default,
+  modernize-use-equals-delete,
+  modernize-use-nodiscard,
+  modernize-use-noexcept,
+  modernize-deprecated-headers,
+  modernize-redundant-void-arg,
+  modernize-loop-convert,
+  modernize-return-braced-init-list,
+  modernize-use-emplace,
+  performance-*,
+  -performance-no-int-to-ptr,
+  readability-container-size-empty,
+  readability-implicit-bool-conversion,
+  readability-redundant-member-init,
+  readability-redundant-string-init,
+  readability-simplify-boolean-expr,
+
+WarningsAsErrors: ''
+
+HeaderFilterRegex: 'src/.*/include/scy/.*\.h$'
+
+CheckOptions:
+  - key: modernize-use-nullptr.NullMacros
+    value: 'NULL'
+  - key: modernize-use-auto.MinTypeNameLength
+    value: '5'
+  - key: modernize-loop-convert.MinConfidence
+    value: 'reasonable'
+  - key: performance-unnecessary-value-param.AllowedTypes
+    value: 'json::value'
+...

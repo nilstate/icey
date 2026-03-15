@@ -1,12 +1,12 @@
- #include "scy/base.h"
+#include "scy/base.h"
 #include "scy/logger.h"
 #include "scy/net/address.h"
+#include "scy/net/socketemitter.h"
 #include "scy/net/sslcontext.h"
 #include "scy/net/sslmanager.h"
 #include "scy/net/sslsocket.h"
 #include "scy/net/tcpsocket.h"
 #include "scy/net/udpsocket.h"
-#include "scy/net/socketemitter.h"
 #include "scy/test.h"
 #include "scy/time.h"
 
@@ -22,13 +22,15 @@ using namespace scy::test;
 
 int main(int argc, char** argv)
 {
-    Logger::instance().add(new ConsoleChannel("debug", Level::Trace));
+    Logger::instance().add(std::make_unique<ConsoleChannel>("debug", Level::Trace));
     test::init();
 
-    net::SSLManager::initNoVerifyServer();
+    net::SSLManager::initNoVerifyServer(
+        std::string(SCY_SOURCE_DIR) + "/net/tests/key.pem",
+        std::string(SCY_SOURCE_DIR) + "/net/tests/cert.pem");
     net::SSLManager::initNoVerifyClient();
 
-    
+
     // =========================================================================
     // Address Test
     //
@@ -82,6 +84,91 @@ int main(int argc, char** argv)
             expect(0 && "invalid address - must throw");
         } catch (std::exception&) {
         }
+    });
+
+
+    // =========================================================================
+    // Address: IPv6
+    //
+    describe("ipv6 address", []() {
+        net::Address sa1("::1", 8080);
+        expect(sa1.host() == "::1");
+        expect(sa1.port() == 8080);
+        expect(sa1.family() == net::Address::IPv6);
+
+        net::Address sa2("[::1]:9090");
+        expect(sa2.host() == "::1");
+        expect(sa2.port() == 9090);
+
+        net::Address sa3("::ffff:192.168.1.1", 80);
+        expect(sa3.port() == 80);
+    });
+
+
+    // =========================================================================
+    // Address: copy, assignment, comparison
+    //
+    describe("address copy and comparison", []() {
+        net::Address a1("192.168.1.100", 100);
+        net::Address a2(a1); // copy
+        expect(a1 == a2);
+        expect(!(a1 != a2));
+
+        net::Address a3("192.168.1.100", 200);
+        expect(a1 != a3);
+        expect(a1 < a3); // same host, lower port
+
+        // assignment
+        net::Address a4("10.0.0.1", 80);
+        a4 = a1;
+        expect(a4 == a1);
+
+        // swap
+        net::Address a5("10.0.0.1", 80);
+        net::Address a6("192.168.1.1", 443);
+        a5.swap(a6);
+        expect(a5.host() == "192.168.1.1");
+        expect(a5.port() == 443);
+        expect(a6.host() == "10.0.0.1");
+        expect(a6.port() == 80);
+    });
+
+
+    // =========================================================================
+    // Address: validation
+    //
+    describe("address validation", []() {
+        expect(net::Address::validateIP("192.168.1.1"));
+        expect(net::Address::validateIP("::1"));
+        expect(net::Address::validateIP("0.0.0.0"));
+        expect(!net::Address::validateIP("999.999.999.999"));
+        expect(!net::Address::validateIP("not_an_ip"));
+        expect(!net::Address::validateIP(""));
+    });
+
+
+    // =========================================================================
+    // Address: toString
+    //
+    describe("address toString", []() {
+        net::Address sa("192.168.1.100", 8080);
+        std::string str = sa.toString();
+        expect(str == "192.168.1.100:8080");
+
+        net::Address wildcard;
+        expect(wildcard.host() == "0.0.0.0");
+        expect(wildcard.port() == 0);
+    });
+
+
+    // =========================================================================
+    // Address: service resolution
+    //
+    describe("address service resolution", []() {
+        expect(net::Address::resolveService("http") == 80);
+        expect(net::Address::resolveService("https") == 443);
+        expect(net::Address::resolveService("ftp") == 21);
+        expect(net::Address::resolveService("8080") == 8080);
     });
 
 
@@ -248,16 +335,18 @@ int main(int argc, char** argv)
         int connected = 0;
         net::SocketEmitter socket(std::make_shared<net::TCPSocket>());
         socket->connect("sourcey.com", 80);
-        socket.Connect += [&](net::Socket& sock) {
+        socket.Connect += [&](net::Socket& sock) -> bool {
             connected++;
             sock.close();
+            return false;
         };
-        socket.Close += [&](net::Socket& sock) {
+        socket.Close += [&](net::Socket& sock) -> bool {
             // connect again on close
             if (connected == 1) {
                 sock.connect("sourcey.com", 80);
                 // assert(0);
             }
+            return false;
         };
 
         uv::runLoop();
@@ -275,15 +364,17 @@ int main(int argc, char** argv)
 
         int connected = 0;
         net::SocketEmitter socket(std::make_shared<net::UDPSocket>());
-        socket.Connect += [&](net::Socket& sock) {
+        socket.Connect += [&](net::Socket& sock) -> bool {
             connected++;
             sock.close();
+            return false;
         };
-        socket.Close += [&](net::Socket& sock) {
+        socket.Close += [&](net::Socket& sock) -> bool {
             // connect again on close
             if (connected == 1) {
                 sock.connect("127.0.0.1", 1337);
             }
+            return false;
         };
         socket->connect("127.0.0.1", 1337);
 

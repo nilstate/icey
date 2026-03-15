@@ -8,9 +8,7 @@
 /// @addtogroup turn
 /// @{
 
-
-#ifndef SCY_TURN_ServerAllocation_H
-#define SCY_TURN_ServerAllocation_H
+#pragma once
 
 
 #include "scy/turn/fivetuple.h"
@@ -29,6 +27,7 @@ class TURN_API ServerAllocation : public IAllocation
 public:
     ServerAllocation(Server& server, const FiveTuple& tuple,
                      const std::string& username, std::int64_t lifetime);
+    virtual ~ServerAllocation();
 
     virtual bool handleRequest(Request& request);
     virtual void handleRefreshRequest(Request& request);
@@ -37,37 +36,36 @@ public:
     /// Asynchronous timer callback for updating the allocation
     /// permissions and state etc.
     /// If this call returns false the allocation will be deleted.
-    virtual bool onTimer();
+    [[nodiscard]] virtual bool onTimer();
 
-    virtual std::int64_t timeRemaining() const;
-    virtual std::int64_t maxTimeRemaining() const;
+    [[nodiscard]] virtual std::int64_t timeRemaining() const;
+    [[nodiscard]] virtual std::int64_t maxTimeRemaining() const;
     virtual Server& server();
 
     virtual void print(std::ostream& os) const;
 
-protected:
-    /// IMPORTANT: The destructor should never be called directly
-    /// as the allocation is deleted via the timer callback.
-    /// See onTimer()
-    virtual ~ServerAllocation();
+    /// Returns true if the refresh request set lifetime to 0,
+    /// signaling the parent Server to delete this allocation.
+    [[nodiscard]] bool refreshDeleteRequested() const { return _refreshDeleteRequested; }
 
+protected:
     friend class Server;
 
     uint32_t _maxLifetime;
     Server& _server;
+    bool _refreshDeleteRequested = false;
 
 private:
     /// NonCopyable and NonMovable
     ServerAllocation(const ServerAllocation&) = delete;
     ServerAllocation& operator=(const ServerAllocation&) = delete;
+    ServerAllocation(ServerAllocation&&) = delete;
+    ServerAllocation& operator=(ServerAllocation&&) = delete;
 };
 
 
 } // namespace turn
 } // namespace scy
-
-
-#endif // SCY_TURN_ServerAllocation_H
 
 
 /// @\}
