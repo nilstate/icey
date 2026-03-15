@@ -9,16 +9,15 @@
 /// @{
 
 
-#ifndef SCY_AV_AudioDecoder_H
-#define SCY_AV_AudioDecoder_H
+#pragma once
 
 
 #include "scy/base.h"
 
 #ifdef HAVE_FFMPEG
 
-#include "scy/av/packet.h"
 #include "scy/av/audiocontext.h"
+#include "scy/av/packet.h"
 
 
 namespace scy {
@@ -28,15 +27,14 @@ namespace av {
 struct AudioDecoder : public AudioContext
 {
     AudioDecoder(AVStream* stream);
-    virtual ~AudioDecoder();
+    ~AudioDecoder() noexcept override;
 
     virtual void create() override;
     virtual void close() override;
 
     /// Decodes a the given input packet.
     /// Returns true an output packet was created, false otherwise.
-    //virtual bool decode(uint8_t* data, int size);
-    virtual bool decode(AVPacket& ipacket);
+    [[nodiscard]] virtual bool decode(AVPacket& ipacket);
 
     /// Flushes buffered frames.
     /// This method should be called once after decoding.
@@ -49,7 +47,6 @@ struct AudioDecoder : public AudioContext
 
 
 #endif
-#endif // SCY_AV_AudioDecoder_H
 
 
 /// @\}

@@ -9,13 +9,12 @@
 /// @{
 
 
-#ifndef SCY_Sched_Trigger_H
-#define SCY_Sched_Trigger_H
+#pragma once
 
 
-#include "scy/sched/sched.h"
 #include "scy/datetime.h"
 #include "scy/json/iserializable.h"
+#include "scy/sched/sched.h"
 
 
 namespace scy {
@@ -160,9 +159,6 @@ struct DailyTrigger : public Trigger
 
 } // namespace sched
 } // namespace scy
-
-
-#endif // SCY_Sched_Trigger_H
 
 
 /// @\}

@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_AV_AudioCapture_H
-#define SCY_AV_AudioCapture_H
+#pragma once
 
 
 #include "scy/base.h"
@@ -27,16 +26,16 @@ namespace av {
 class AV_API AudioCapture : public MediaCapture
 {
 public:
-    typedef std::shared_ptr<AudioCapture> Ptr;
+    using Ptr = std::shared_ptr<AudioCapture>;
 
     AudioCapture();
     AudioCapture(const std::string& device, const av::AudioCodec& params);
-    AudioCapture(const std::string& device, int channels = -1, int sampleRate = -1, 
+    AudioCapture(const std::string& device, int channels = -1, int sampleRate = -1,
                  const std::string& sampleFmt = "");
-    virtual ~AudioCapture();
+    virtual ~AudioCapture() noexcept;
 
     virtual void openAudio(const std::string& device, const av::AudioCodec& params);
-    virtual void openAudio(const std::string& device, int channels = -1, int sampleRate = -1, 
+    virtual void openAudio(const std::string& device, int channels = -1, int sampleRate = -1,
                            const std::string& sampleFmt = "");
 };
 
@@ -46,7 +45,6 @@ public:
 
 
 #endif
-#endif // SCY_AV_AudioCapture_H
 
 
 /// @\}

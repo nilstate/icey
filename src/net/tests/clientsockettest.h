@@ -20,13 +20,13 @@ public:
         : address("127.0.0.1", port)
         , passed(false)
     {
-        LTrace("Creating: ", port)
+        LTrace("Creating: ", port);
     }
 
     virtual ~ClientSocketTest()
     {
         // assert(socket.base().refCount() == 1);
-        LTrace("Destroying")
+        LTrace("Destroying");
     }
 
     void run()
@@ -42,38 +42,44 @@ public:
         //socket.shutdown();
     }
 
-    virtual void onSocketConnect(Socket& sock) override
+    virtual bool onSocketConnect(Socket& sock) override
     {
-        LDebug("Connected")
+        LDebug("Connected");
 
         sock.send("client > server", 15);
+        return false;
     }
 
-    virtual void onSocketRecv(Socket&, const MutableBuffer& buffer, const Address& peerAddress) override
+    virtual bool onSocketRecv(Socket&, const MutableBuffer& buffer, const Address& peerAddress) override
     {
         std::string data(bufferCast<const char*>(buffer), buffer.size());
-        LDebug("On recv:", data)
+        LDebug("On recv:", data);
         // Check for return packet echoing sent data
         if (data == "client > server") {
-            LTrace("Recv: Got Return Packet!")
+            LTrace("Recv: Got Return Packet!");
             passed = true;
             stop();
-        } else
-            assert(false); // fail...
+        } else {
+            LError("Unexpected data received:", data);
+            stop();
+        }
+        return false;
     }
 
-    virtual void onSocketError(Socket&, const Error& error) override
+    virtual bool onSocketError(Socket&, const Error& error) override
     {
         // assert(sender == &socket);
-        LDebug("On error:", error.message)
+        LDebug("On error:", error.message);
+        return false;
     }
 
-    virtual void onSocketClose(Socket&) override
+    virtual bool onSocketClose(Socket&) override
     {
         // The last callback to fire is the Closed signal
         // which notifies us the underlying libuv socket
         // handle is closed. Das is gut!
-        LDebug("On closed")
+        LDebug("On closed");
+        return false;
     }
 };
 

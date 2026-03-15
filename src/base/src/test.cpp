@@ -11,17 +11,16 @@
 
 #include "scy/test.h"
 #include "scy/logger.h"
-#include "scy/memory.h"
 #include "scy/singleton.h"
 #include "scy/time.h"
 #include "scy/util.h"
 
-#include <assert.h>
+#include <cassert>
 #include <iostream>
 
 
-using std::cout;
 using std::cerr;
+using std::cout;
 using std::endl;
 
 
@@ -37,7 +36,7 @@ void init()
     // Set the logger to only log warning level and above if no debug
     // channel has been set yet.
     if (!Logger::instance().get("debug", false))
-        Logger::instance().add(new ConsoleChannel("debug", Level::Warn));
+        Logger::instance().add(std::make_unique<ConsoleChannel>("debug", Level::Warn));
 
     // Initialize the default test runner.
     TestRunner::getDefault();
@@ -50,9 +49,6 @@ int finalize()
 {
     bool passed = TestRunner::getDefault().passed();
     singleton.destroy();
-
-    // Finalize the garbage collector to ensure memory if freed before exiting.
-    GarbageCollector::instance().finalize();
 
     return passed ? 0 : 1;
 }

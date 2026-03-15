@@ -9,20 +9,22 @@
 /// @{
 
 
-#ifndef SCY_STUN_Message_H
-#define SCY_STUN_Message_H
+#pragma once
 
 
 #include "scy/packet.h"
 #include "scy/stun/attributes.h"
 #include "scy/stun/stun.h"
 
+#include <memory>
+#include <vector>
+
 
 namespace scy {
 namespace stun {
 
 
-typedef std::string TransactionID;
+using TransactionID = std::string;
 
 
 class STUN_API Message : public IPacket
@@ -30,13 +32,13 @@ class STUN_API Message : public IPacket
 public:
     enum MethodType
     {
-        Undefined = 0x0000,        ///< default error type
+        Undefined = 0x0000, ///< default error type
 
         /// STUN
         Binding = 0x0001,
 
         /// TURN
-        Allocate = 0x0003,         ///< (only request/response semantics defined)
+        Allocate = 0x0003, ///< (only request/response semantics defined)
         Refresh = 0x0004,
         SendIndication = 0x0006,   ///< (only indication semantics defined)
         DataIndication = 0x0007,   ///< (only indication semantics defined)
@@ -79,29 +81,36 @@ public:
     Message();
     Message(ClassType clss, MethodType meth);
     Message(const Message& that);
+    Message(Message&& that) noexcept;
     Message& operator=(const Message& that);
+    Message& operator=(Message&& that) noexcept;
     virtual ~Message();
 
-    virtual IPacket* clone() const;
+    virtual std::unique_ptr<IPacket> clone() const;
 
     void setClass(ClassType type);
     void setMethod(MethodType type);
     void setTransactionID(const std::string& id);
 
-    ClassType classType() const;
-    MethodType methodType() const;
-    const TransactionID& transactionID() const { return _transactionID; }
-    const std::vector<Attribute*> attrs() const { return _attrs; }
-    size_t size() const { return static_cast<size_t>(_size); }
+    [[nodiscard]] ClassType classType() const;
+    [[nodiscard]] MethodType methodType() const;
+    [[nodiscard]] const TransactionID& transactionID() const { return _transactionID; }
+    [[nodiscard]] size_t size() const { return static_cast<size_t>(_size); }
 
-    std::string methodString() const;
-    std::string classString() const;
-    std::string errorString(uint16_t errorCode) const;
+    [[nodiscard]] std::string methodString() const;
+    [[nodiscard]] std::string classString() const;
+    [[nodiscard]] std::string errorString(uint16_t errorCode) const;
 
+    /// Takes ownership of the raw pointer (wraps in unique_ptr).
     void add(Attribute* attr);
-    Attribute* get(Attribute::Type type, int index = 0) const;
 
-    template <typename T> T* get(int index = 0) const
+    /// Takes ownership via unique_ptr.
+    void add(std::unique_ptr<Attribute> attr);
+
+    [[nodiscard]] Attribute* get(Attribute::Type type, int index = 0) const;
+
+    template <typename T>
+    [[nodiscard]] T* get(int index = 0) const
     {
         return reinterpret_cast<T*>(
             get(static_cast<Attribute::Type>(T::TypeID), index));
@@ -114,7 +123,7 @@ public:
     /// Writes this object into a STUN/TURN packet.
     void write(Buffer& buf) const;
 
-    std::string toString() const;
+    [[nodiscard]] std::string toString() const;
     void print(std::ostream& os) const;
 
     virtual const char* className() const { return "StunMessage"; }
@@ -124,11 +133,11 @@ protected:
     uint16_t _method;
     uint16_t _size;
     TransactionID _transactionID;
-    std::vector<Attribute*> _attrs;
+    std::vector<std::unique_ptr<Attribute>> _attrs;
 };
 
 
-inline bool isValidMethod(uint16_t methodType)
+[[nodiscard]] constexpr bool isValidMethod(uint16_t methodType)
 {
     switch (methodType) {
         case Message::Binding:
@@ -145,11 +154,8 @@ inline bool isValidMethod(uint16_t methodType)
     }
     return false;
 }
-}
-} // namespace scy:stun
-
-
-#endif // SCY_STUN_Message_H
+} // namespace stun
+} // namespace scy
 
 
 /// @\}

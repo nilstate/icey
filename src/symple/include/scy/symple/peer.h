@@ -9,13 +9,12 @@
 /// @{
 
 
-#ifndef SCY_Symple_Peer_H
-#define SCY_Symple_Peer_H
+#pragma once
 
 
-#include "scy/symple/symple.h"
-#include "scy/symple/address.h"
 #include "scy/json/json.h"
+#include "scy/symple/address.h"
+#include "scy/symple/symple.h"
 
 
 namespace scy {
@@ -34,14 +33,14 @@ public:
     Peer(const json::value& r);
     virtual ~Peer();
 
-    Address address() const;
+    [[nodiscard]] Address address() const;
 
-    std::string id() const;
-    std::string user() const;
-    std::string name() const;
+    [[nodiscard]] std::string id() const;
+    [[nodiscard]] std::string user() const;
+    [[nodiscard]] std::string name() const;
     // std::string group() const;
-    std::string type() const;
-    std::string host() const;
+    [[nodiscard]] std::string type() const;
+    [[nodiscard]] std::string host() const;
 
     void setID(const std::string& id);
     void setUser(const std::string& user);
@@ -69,9 +68,6 @@ public:
 
 } // namespace smpl
 } // namespace scy
-
-
-#endif // SCY_Symple_Peer_H
 
 
 /// @\}

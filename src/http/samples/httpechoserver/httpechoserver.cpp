@@ -1,7 +1,7 @@
 #include "httpechoserver.h"
-#include "libuvhttpserver.h"
 #include "scy/logger.h"
 #include "scy/net/sslmanager.h"
+#include <iostream>
 
 
 using namespace scy;
@@ -17,20 +17,13 @@ int main(int argc, char** argv)
     setenv("UV_THREADPOOL_SIZE", std::to_string(ncores).c_str(), 1);
 #endif
 
-    net::SSLManager::initNoVerifyServer();
+    if (argc < 3) {
+        std::cerr << "Usage: " << argv[0] << " <key.pem> <cert.pem>" << std::endl;
+        return 1;
+    }
+    net::SSLManager::initNoVerifyServer(argv[1], argv[2]);
 
-    // Logger::instance().add(new ConsoleChannel("debug", Level::Trace));
-    // Logger::instance().setWriter(new AsyncLogWriter);
-//
-// #if SCY_HAS_KERNEL_SOCKET_LOAD_BALANCING
-    // runMulticoreBenchmarkServers();
-// #else
-    // raiseBenchmarkServer();
-// #endif
-    // runMulticoreEchoServers();
     raiseHTTPSEchoServer();
-    // rlibuv::raiseBenchmarkServer();
-
 
     net::SSLManager::instance().shutdown();
 

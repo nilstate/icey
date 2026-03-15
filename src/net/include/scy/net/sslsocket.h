@@ -9,16 +9,15 @@
 /// @{
 
 
-#ifndef SCY_Net_SSLSocket_H
-#define SCY_Net_SSLSocket_H
+#pragma once
 
 
+#include "scy/handle.h"
 #include "scy/net/socket.h"
 #include "scy/net/ssladapter.h"
 #include "scy/net/sslcontext.h"
 #include "scy/net/sslsession.h"
 #include "scy/net/tcpsocket.h"
-#include "scy/handle.h"
 
 
 namespace scy {
@@ -29,15 +28,15 @@ namespace net {
 class Net_API SSLSocket : public TCPSocket
 {
 public:
-    typedef std::shared_ptr<SSLSocket> Ptr;
-    typedef std::vector<Ptr> Vec;
+    using Ptr = std::shared_ptr<SSLSocket>;
+    using Vec = std::vector<Ptr>;
 
     SSLSocket(uv::Loop* loop = uv::defaultLoop()); //, SocketMode mode = ClientSide
     SSLSocket(SSLContext::Ptr sslContext, uv::Loop* loop = uv::defaultLoop());
     SSLSocket(SSLContext::Ptr sslContext, SSLSession::Ptr session,
               uv::Loop* loop = uv::defaultLoop());
 
-    virtual ~SSLSocket();
+    virtual ~SSLSocket() noexcept;
 
     /// Initialize the SSLSocket with the given SSLContext.
     // virtual void init(SSLContext::Ptr sslContext, SocketMode mode = ClientSide);
@@ -46,22 +45,26 @@ public:
     /// the TCP server at the given address.
     ///
     /// The SSL handshake is performed when the socket is connected.
-    // virtual void connect(const Address& peerAddress);
-
+    virtual void connect(const Address& peerAddress) override;
+    virtual void connect(const std::string& host, uint16_t port) override;
     virtual void bind(const net::Address& address, unsigned flags = 0) override;
     virtual void listen(int backlog = 64) override;
 
     /// Shuts down the connection by attempting
     /// an orderly SSL shutdown, then actually
     /// shutting down the TCP connection.
-    virtual bool shutdown() override;
+    [[nodiscard]] virtual bool shutdown() override;
 
     /// Closes the socket forcefully.
     virtual void close() override;
 
-    virtual ssize_t send(const char* data, size_t len, int flags = 0) override;
-    virtual ssize_t send(const char* data, size_t len,
-                         const net::Address& peerAddress, int flags = 0) override;
+    [[nodiscard]] virtual ssize_t send(const char* data, size_t len, int flags = 0) override;
+    [[nodiscard]] virtual ssize_t send(const char* data, size_t len,
+                                       const net::Address& peerAddress, int flags = 0) override;
+
+    /// Set the expected peer hostname for certificate verification and SNI.
+    /// Must be called before connect() to enable hostname verification.
+    void setHostname(const std::string& hostname);
 
     /// Use the given SSL context for this socket.
     void useContext(SSLContext::Ptr context);
@@ -117,9 +120,6 @@ protected:
 
 } // namespace net
 } // namespace scy
-
-
-#endif // SCY_Net_SSLSocket_H
 
 
 /// @\}

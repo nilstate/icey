@@ -9,18 +9,19 @@
 /// @{
 
 
-#ifndef SCY_PacketStream_H
-#define SCY_PacketStream_H
+#pragma once
 
 
 #include "scy/base.h"
 #include "scy/error.h"
 #include "scy/interface.h"
-#include "scy/memory.h"
 #include "scy/logger.h"
+#include "scy/loop.h"
 #include "scy/packetsignal.h"
 #include "scy/stateful.h"
+#include <cassert>
 #include <cstdint>
+#include <memory>
 
 
 namespace scy {
@@ -41,7 +42,7 @@ class Base_API PacketStreamAdapter
 {
 public:
     PacketStreamAdapter(PacketSignal& emitter);
-    virtual ~PacketStreamAdapter(){};
+    virtual ~PacketStreamAdapter() {};
 
     virtual void emit(char* data, size_t len, unsigned flags = 0);
     virtual void emit(const char* data, size_t len, unsigned flags = 0);
@@ -57,18 +58,20 @@ public:
     /// On receiving the Stopped state, it is the responsibility
     /// of the adapter to have ceased all outgoing packet transmission,
     /// especially in multi-thread scenarios.
-    virtual void onStreamStateChange(const PacketStreamState&){};
+    virtual void onStreamStateChange(const PacketStreamState&) {};
 
 protected:
     /// NonCopyable and NonMovable
     PacketStreamAdapter(const PacketStreamAdapter&) = delete;
     PacketStreamAdapter& operator=(const PacketStreamAdapter&) = delete;
+    PacketStreamAdapter(PacketStreamAdapter&&) = delete;
+    PacketStreamAdapter& operator=(PacketStreamAdapter&&) = delete;
 
     PacketSignal& _emitter;
 };
 
 
-typedef PacketStreamAdapter PacketSource; ///< For 0.8.x compatibility
+using PacketSource = PacketStreamAdapter; ///< For 0.8.x compatibility
 
 
 //
@@ -104,38 +107,42 @@ public:
 };
 
 
-typedef PacketProcessor IPacketizer;
-typedef PacketProcessor IDepacketizer; /// For 0.8.x compatibility
+using IPacketizer = PacketProcessor;
+using IDepacketizer = PacketProcessor; ///< For 0.8.x compatibility
 
 
 //
 // Packet Adapter Reference
 //
 
-/// Provides a reference to a PacketSignal instance.
+/// Provides a reference to a PacketStreamAdapter with optional ownership.
 struct PacketAdapterReference
 {
-    typedef std::shared_ptr<PacketAdapterReference> Ptr;
+    using Ptr = std::shared_ptr<PacketAdapterReference>;
 
-    PacketStreamAdapter* ptr;
-    ScopedPointer* deleter;
+    PacketStreamAdapter* ptr;                // non-owning view
+    std::shared_ptr<void> _prevent_deletion; // prevent premature deletion via type erasure
     int order;
     bool syncState;
 
+    /// Construct with raw pointer (non-owning).
     PacketAdapterReference(PacketStreamAdapter* ptr = nullptr,
-                           ScopedPointer* deleter = nullptr, int order = 0,
-                           bool syncState = false)
+                           int order = 0, bool syncState = false)
         : ptr(ptr)
-        , deleter(deleter)
         , order(order)
         , syncState(syncState)
     {
     }
 
-    ~PacketAdapterReference()
+    /// Construct with shared_ptr ownership.
+    template <class C>
+    PacketAdapterReference(std::shared_ptr<C> owned, int order = 0,
+                           bool syncState = false)
+        : ptr(static_cast<PacketStreamAdapter*>(owned.get()))
+        , _prevent_deletion(std::move(owned))
+        , order(order)
+        , syncState(syncState)
     {
-        if (deleter)
-            delete deleter;
     }
 
     static bool compareOrder(const PacketAdapterReference::Ptr& l,
@@ -146,15 +153,20 @@ struct PacketAdapterReference
 };
 
 
-typedef std::vector<PacketAdapterReference::Ptr> PacketAdapterVec;
+using PacketAdapterVec = std::vector<PacketAdapterReference::Ptr>;
 
 
 /// Flags which determine how the packet is handled by the PacketStream
-enum PacketFlags
+enum class PacketFlags : unsigned
 {
     NoModify = 0x01, ///< The packet should not be modified by processors.
-    Final            ///< The final packet in the stream.
+    Final = 0x02     ///< The final packet in the stream.
 };
+
+constexpr unsigned operator|(PacketFlags lhs, PacketFlags rhs)
+{
+    return static_cast<unsigned>(lhs) | static_cast<unsigned>(rhs);
+}
 
 
 //
@@ -164,7 +176,7 @@ enum PacketFlags
 
 struct PacketStreamState : public State
 {
-    enum Type
+    enum class Type : unsigned int
     {
         None = 0,
         Locked,
@@ -177,29 +189,38 @@ struct PacketStreamState : public State
         Error,
     };
 
+    // Re-export enum values into the struct scope for backward compatibility.
+    // These are unsigned int constants so they work with State::ID (uint32_t).
+    static constexpr unsigned int None = static_cast<unsigned int>(Type::None);
+    static constexpr unsigned int Locked = static_cast<unsigned int>(Type::Locked);
+    static constexpr unsigned int Active = static_cast<unsigned int>(Type::Active);
+    static constexpr unsigned int Paused = static_cast<unsigned int>(Type::Paused);
+    static constexpr unsigned int Stopping = static_cast<unsigned int>(Type::Stopping);
+    static constexpr unsigned int Stopped = static_cast<unsigned int>(Type::Stopped);
+    static constexpr unsigned int Closed = static_cast<unsigned int>(Type::Closed);
+    static constexpr unsigned int Error = static_cast<unsigned int>(Type::Error);
+
     std::string str(unsigned int id) const
     {
-        switch (id) {
-            case None:
+        switch (static_cast<Type>(id)) {
+            case Type::None:
                 return "None";
-            case Locked:
+            case Type::Locked:
                 return "Locked";
-            case Active:
+            case Type::Active:
                 return "Active";
-            // case Resetting:
+            // case Type::Resetting:
             //    return "Resetting";
-            case Paused:
+            case Type::Paused:
                 return "Paused";
-            case Stopping:
+            case Type::Stopping:
                 return "Stopping";
-            case Stopped:
+            case Type::Stopped:
                 return "Stopped";
-            case Closed:
+            case Type::Closed:
                 return "Closed";
-            case Error:
+            case Type::Error:
                 return "Error";
-            default:
-                assert(false);
         }
         return "undefined";
     }
@@ -234,10 +255,15 @@ struct PacketStreamState : public State
 class Base_API PacketStream : public Stateful<PacketStreamState>
 {
 public:
-    typedef std::shared_ptr<PacketStream> Ptr;
+    using Ptr = std::shared_ptr<PacketStream>;
 
     PacketStream(const std::string& name = "");
     virtual ~PacketStream();
+
+    PacketStream(const PacketStream&) = delete;
+    PacketStream& operator=(const PacketStream&) = delete;
+    PacketStream(PacketStream&&) = delete;
+    PacketStream& operator=(PacketStream&&) = delete;
 
     /// Start the stream and synchronized sources.
     virtual void start();
@@ -288,12 +314,11 @@ public:
     virtual void attachSource(PacketSignal& source);
 
     /// Attaches a source packet emitter to the stream.
-    /// If freePointer is true, the pointer will be deleted when the stream is
-    /// closed.
-    /// If syncState is true and the source is a basic::Stratable, then
+    /// If owned is true, the stream takes ownership and will delete the pointer.
+    /// If syncState is true and the source is a basic::Startable, then
     /// the source's start()/stop() methods will be synchronized when
     /// calling startSources()/stopSources().
-    virtual void attachSource(PacketStreamAdapter* source, bool freePointer = true, bool syncState = false);
+    virtual void attachSource(PacketStreamAdapter* source, bool owned = true, bool syncState = false);
 
     /// Attaches a source packet emitter to the stream.
     /// This method enables compatibility with shared_ptr managed adapter
@@ -303,48 +328,41 @@ public:
     {
         auto source = dynamic_cast<PacketStreamAdapter*>(ptr.get());
         if (!source) {
-            assert(0 && "invalid adapter");
             throw std::runtime_error("Cannot attach incompatible packet source.");
         }
 
         attachSource(std::make_shared<PacketAdapterReference>(
-            source, new ScopedSharedPointer<C>(ptr), false, syncState));
+            std::move(ptr), 0, syncState));
     }
 
     /// Detaches the given source packet signal from the stream.
     virtual bool detachSource(PacketSignal& source);
 
     /// Detaches the given source packet adapter from the stream.
-    /// Note: The pointer will be forgotten about, so if the freePointer
-    /// flag set when calling attachSource() will have no effect.
     virtual bool detachSource(PacketStreamAdapter* source);
 
     /// Attaches a packet processor to the stream.
     /// Order determines the position of the processor in the stream queue.
-    /// If freePointer is true, the pointer will be deleted when the stream
-    /// closes.
-    virtual void attach(PacketProcessor* proc, int order = 0, bool freePointer = true);
+    /// If owned is true, the stream takes ownership and will delete the pointer.
+    virtual void attach(PacketProcessor* proc, int order = 0, bool owned = true);
 
     /// Attaches a packet processor to the stream.
     /// This method enables compatibility with shared_ptr managed adapter
     /// instances.
     template <class C>
-    void attach(std::shared_ptr<C> ptr, bool syncState = false)
+    void attach(std::shared_ptr<C> ptr, int order = 0, bool syncState = false)
     {
         auto proc = dynamic_cast<PacketProcessor*>(ptr.get());
         if (!proc) {
-            assert(0 && "invalid adapter");
             throw std::runtime_error(
                 "Cannot attach incompatible packet processor.");
         }
 
         attach(std::make_shared<PacketAdapterReference>(
-            proc, new ScopedSharedPointer<C>(ptr), 0, syncState));
+            std::move(ptr), order, syncState));
     }
 
     /// Detaches a packet processor from the stream.
-    /// Note: The pointer will be forgotten about, so if the freePointer
-    /// flag set when calling attach() will have no effect.
     virtual bool detach(PacketProcessor* proc);
 
     /// Synchronize stream output packets with the given event loop.
@@ -399,7 +417,8 @@ public:
     int numProcessors() const;
     int numAdapters() const;
 
-    template <class AdapterT> AdapterT* getSource(int index = 0)
+    template <class AdapterT>
+    AdapterT* getSource(int index = 0)
     {
         int x = 0;
         std::lock_guard<std::mutex> guard(_mutex);
@@ -415,7 +434,8 @@ public:
         return nullptr;
     }
 
-    template <class AdapterT> AdapterT* getProcessor(int index = 0)
+    template <class AdapterT>
+    AdapterT* getProcessor(int index = 0)
     {
         int x = 0;
         std::lock_guard<std::mutex> guard(_mutex);
@@ -444,9 +464,6 @@ public:
         }
         return nullptr;
     }
-
-    // Client data pointer
-    void* opaque;
 
 protected:
     /// Attach the source and processor delegate chain.
@@ -501,14 +518,8 @@ protected:
 };
 
 
-typedef std::vector<PacketStream*> PacketStreamVec;
-typedef std::vector<PacketStream::Ptr> PacketStreamPtrVec;
+using PacketStreamVec = std::vector<PacketStream*>;
+using PacketStreamPtrVec = std::vector<PacketStream::Ptr>;
 
 
 } // namespace scy
-
-
-#endif // SCY_PacketStream_H
-
-
-/// @\}

@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_AV_ICapture_H
-#define SCY_AV_ICapture_H
+#pragma once
 
 
 #include "scy/packetstream.h"
@@ -23,7 +22,8 @@ namespace av {
 struct Format;
 
 
-class AV_API ICapture : public PacketSource, public basic::Startable
+class AV_API ICapture : public PacketSource
+    , public basic::Startable
 {
 public:
     ICapture()
@@ -56,9 +56,6 @@ public:
 
 } // namespace av
 } // namespace scy
-
-
-#endif // SCY_AV_ICapture_H
 
 
 /// @\}

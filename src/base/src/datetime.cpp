@@ -18,14 +18,9 @@
 #include "scy/util.h"
 
 #include <cctype>
+#include <chrono>
 #include <cmath>
 #include <ctime>
-#if defined(_WIN32_WCE)
-#include "wce_time.h"
-#endif
-#if !defined(WIN32)
-#include <sys/time.h>
-#endif
 
 
 using std::endl;
@@ -80,14 +75,12 @@ DateTime::DateTime(int year, int month, int day, int hour, int minute,
     , _millisecond(millisecond)
     , _microsecond(microsecond)
 {
-    assert(year >= 0 && year <= 9999);
-    assert(month >= 1 && month <= 12);
-    assert(day >= 1 && day <= daysOfMonth(year, month));
-    assert(hour >= 0 && hour <= 23);
-    assert(minute >= 0 && minute <= 59);
-    assert(second >= 0 && second <= 59);
-    assert(millisecond >= 0 && millisecond <= 999);
-    assert(microsecond >= 0 && microsecond <= 999);
+    if (year < 0 || year > 9999 || month < 1 || month > 12 ||
+        day < 1 || day > daysOfMonth(year, month) ||
+        hour < 0 || hour > 23 || minute < 0 || minute > 59 ||
+        second < 0 || second > 59 || millisecond < 0 || millisecond > 999 ||
+        microsecond < 0 || microsecond > 999)
+        throw std::invalid_argument("DateTime: invalid date/time component");
 
     _utcTime = toUtcTime(toJulianDay(year, month, day)) +
                10 * (hour * Timespan::HOURS + minute * Timespan::MINUTES +
@@ -167,14 +160,12 @@ DateTime& DateTime::operator=(double julianDay)
 DateTime& DateTime::assign(int year, int month, int day, int hour, int minute,
                            int second, int millisecond, int microsecond)
 {
-    assert(year >= 0 && year <= 9999);
-    assert(month >= 1 && month <= 12);
-    assert(day >= 1 && day <= daysOfMonth(year, month));
-    assert(hour >= 0 && hour <= 23);
-    assert(minute >= 0 && minute <= 59);
-    assert(second >= 0 && second <= 59);
-    assert(millisecond >= 0 && millisecond <= 999);
-    assert(microsecond >= 0 && microsecond <= 999);
+    if (year < 0 || year > 9999 || month < 1 || month > 12 ||
+        day < 1 || day > daysOfMonth(year, month) ||
+        hour < 0 || hour > 23 || minute < 0 || minute > 59 ||
+        second < 0 || second > 59 || millisecond < 0 || millisecond > 999 ||
+        microsecond < 0 || microsecond > 999)
+        throw std::invalid_argument("DateTime::assign: invalid date/time component");
 
     _utcTime = toUtcTime(toJulianDay(year, month, day)) +
                10 * (hour * Timespan::HOURS + minute * Timespan::MINUTES +
@@ -225,9 +216,10 @@ int DateTime::dayOfYear() const
 
 int DateTime::daysOfMonth(int year, int month)
 {
-    assert(month >= 1 && month <= 12);
+    if (month < 1 || month > 12)
+        throw std::invalid_argument("DateTime::daysOfMonth: month out of range");
 
-    static int daysOfMonthTable[] = {0,  31, 28, 31, 30, 31, 30,
+    static int daysOfMonthTable[] = {0, 31, 28, 31, 30, 31, 30,
                                      31, 31, 30, 31, 30, 31};
 
     if (month == 2 && isLeapYear(year))
@@ -251,7 +243,8 @@ bool DateTime::isValid(int year, int month, int day, int hour, int minute,
 
 int DateTime::week(int firstDayOfWeek) const
 {
-    assert(firstDayOfWeek >= 0 && firstDayOfWeek <= 6);
+    if (firstDayOfWeek < 0 || firstDayOfWeek > 6)
+        throw std::invalid_argument("DateTime::week: firstDayOfWeek out of range");
 
     // find the first firstDayOfWeek.
     int baseDay = 1;
@@ -325,13 +318,15 @@ double DateTime::toJulianDay(int year, int month, int day, int hour, int minute,
                              int second, int millisecond, int microsecond)
 {
     // lookup table for (153*month - 457)/5 - note that 3 <= month <= 14.
-    static int lookup[] = {-91, -60, -30, 0,   31,  61,  92, 122,
+    static int lookup[] = {-91, -60, -30, 0, 31, 61, 92, 122,
                            153, 184, 214, 245, 275, 306, 337};
 
     // day to double
     double dday = double(day) +
-        ((double((hour * 60 + minute) * 60 + second) * 1000 + millisecond) *
-             1000 + microsecond) / 86400000000.0;
+                  ((double((hour * 60 + minute) * 60 + second) * 1000 + millisecond) *
+                       1000 +
+                   microsecond) /
+                      86400000000.0;
     if (month < 3) {
         month += 12;
         --year;
@@ -402,13 +397,11 @@ void DateTime::computeGregorian(double julianDay)
 
     normalize();
 
-    assert(_month >= 1 && _month <= 12);
-    assert(_day >= 1 && _day <= daysOfMonth(_year, _month));
-    assert(_hour >= 0 && _hour <= 23);
-    assert(_minute >= 0 && _minute <= 59);
-    assert(_second >= 0 && _second <= 59);
-    assert(_millisecond >= 0 && _millisecond <= 999);
-    assert(_microsecond >= 0 && _microsecond <= 999);
+    if (_month < 1 || _month > 12 || _day < 1 || _day > daysOfMonth(_year, _month) ||
+        _hour < 0 || _hour > 23 || _minute < 0 || _minute > 59 ||
+        _second < 0 || _second > 59 || _millisecond < 0 || _millisecond > 999 ||
+        _microsecond < 0 || _microsecond > 999)
+        throw std::logic_error("DateTime: internal computation produced invalid values");
 }
 
 
@@ -430,8 +423,7 @@ void DateTime::computeDaytime()
             }
             _day = daysOfMonth(_year, _month);
         }
-    }
-    else if (hour == 0 && _hour == 23) {
+    } else if (hour == 0 && _hour == 23) {
         _day++;
         if (_day > daysOfMonth(_year, _month)) {
             _month++;
@@ -856,28 +848,32 @@ std::string Timezone::dstName()
 // Timezone: Unix
 //
 
-class Base_API TZInfo
+class Base_API TZInfo{
+    public:
+        TZInfo(){tzset();
+}
+
+int timeZone()
 {
-public:
-    TZInfo() { tzset(); }
-
-    int timeZone()
-    {
 #if defined(__APPLE__) || defined(__FreeBSD__) || defined(POCO_ANDROID) // no timezone global var
-        std::time_t now = std::time(nullptr);
-        struct std::tm t;
-        gmtime_r(&now, &t);
-        std::time_t utc = std::mktime(&t);
-        return now - utc;
+    std::time_t now = std::time(nullptr);
+    struct std::tm t;
+    gmtime_r(&now, &t);
+    std::time_t utc = std::mktime(&t);
+    return now - utc;
 #elif defined(__CYGWIN__)
-        return -_timezone;
+    return -_timezone;
 #else
-        return -timezone;
+    return -timezone;
 #endif
-    }
+}
 
-    const char* name(bool dst) { return tzname[dst ? 1 : 0]; }
-};
+const char* name(bool dst)
+{
+    return tzname[dst ? 1 : 0];
+}
+}
+;
 
 
 static TZInfo tzInfo;
@@ -947,13 +943,13 @@ const std::string DateTimeFormat::SORTABLE_FORMAT("%Y-%m-%d %H:%M:%S");
 
 
 const std::string DateTimeFormat::WEEKDAY_NAMES[] = {
-    "Sunday",   "Monday", "Tuesday", "Wednesday",
+    "Sunday", "Monday", "Tuesday", "Wednesday",
     "Thursday", "Friday", "Saturday"};
 
 
 const std::string DateTimeFormat::MONTH_NAMES[] = {
-    "January", "February", "March",     "April",   "May",      "June",
-    "July",    "August",   "September", "October", "November", "December"};
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"};
 
 
 //
@@ -1038,8 +1034,7 @@ void DateTimeFormatter::append(std::string& str, const DateTime& dateTime,
                     case 's':
                         scy::numeric::format0(str, dateTime.second(), 2);
                         str += '.';
-                        scy::numeric::format0(str, dateTime.millisecond() * 1000 +
-                                                   dateTime.microsecond(), 6);
+                        scy::numeric::format0(str, dateTime.millisecond() * 1000 + dateTime.microsecond(), 6);
                         break;
                     case 'i':
                         scy::numeric::format0(str, dateTime.millisecond(), 3);
@@ -1048,8 +1043,7 @@ void DateTimeFormatter::append(std::string& str, const DateTime& dateTime,
                         scy::numeric::format(str, dateTime.millisecond() / 100);
                         break;
                     case 'F':
-                        scy::numeric::format0(str, dateTime.millisecond() * 1000 +
-                                                   dateTime.microsecond(), 6);
+                        scy::numeric::format0(str, dateTime.millisecond() * 1000 + dateTime.microsecond(), 6);
                         break;
                     case 'z':
                         tzdISO(str, timeZoneDifferential);
@@ -1105,8 +1099,7 @@ void DateTimeFormatter::append(std::string& str, const Timespan& timespan,
                         scy::numeric::format(str, timespan.milliseconds() / 100);
                         break;
                     case 'F':
-                        scy::numeric::format0(str, timespan.milliseconds() * 1000 +
-                                                   timespan.microseconds(), 6);
+                        scy::numeric::format0(str, timespan.milliseconds() * 1000 + timespan.microseconds(), 6);
                         break;
                     default:
                         str += *it;
@@ -1160,38 +1153,38 @@ void DateTimeFormatter::tzdRFC(std::string& str, int timeZoneDifferential)
 //
 
 
-#define SKIP_JUNK()                                                            \
-    while (it != end && !::isdigit(*it))                                       \
+#define SKIP_JUNK()                      \
+    while (it != end && !::isdigit(*it)) \
     ++it
 
 
-#define SKIP_DIGITS()                                                          \
-    while (it != end && ::isdigit(*it))                                        \
+#define SKIP_DIGITS()                   \
+    while (it != end && ::isdigit(*it)) \
     ++it
 
 
-#define PARSE_NUMBER(var)                                                      \
-    while (it != end && ::isdigit(*it))                                        \
+#define PARSE_NUMBER(var)               \
+    while (it != end && ::isdigit(*it)) \
     var = var * 10 + ((*it++) - '0')
 
 
-#define PARSE_NUMBER_N(var, n)                                                 \
-    {                                                                          \
-        int i = 0;                                                             \
-        while (i++ < n && it != end && ::isdigit(*it))                         \
-            var = var * 10 + ((*it++) - '0');                                  \
+#define PARSE_NUMBER_N(var, n)                         \
+    {                                                  \
+        int i = 0;                                     \
+        while (i++ < n && it != end && ::isdigit(*it)) \
+            var = var * 10 + ((*it++) - '0');          \
     }
 
 
-#define PARSE_FRACTIONAL_N(var, n)                                             \
-    {                                                                          \
-        int i = 0;                                                             \
-        while (i < n && it != end && ::isdigit(*it)) {                         \
-            var = var * 10 + ((*it++) - '0');                                  \
-            i++;                                                               \
-        }                                                                      \
-        while (i++ < n)                                                        \
-            var *= 10;                                                         \
+#define PARSE_FRACTIONAL_N(var, n)                     \
+    {                                                  \
+        int i = 0;                                     \
+        while (i < n && it != end && ::isdigit(*it)) { \
+            var = var * 10 + ((*it++) - '0');          \
+            i++;                                       \
+        }                                              \
+        while (i++ < n)                                \
+            var *= 10;                                 \
     }
 
 
@@ -1494,7 +1487,8 @@ int DateTimeParser::parseMonth(std::string::const_iterator& it,
     }
     if (month.length() < 3)
         throw std::runtime_error("Syntax error: Month name must be at least "
-                                 "three characters long: " + month);
+                                 "three characters long: " +
+                                 month);
     for (int i = 0; i < 12; ++i) {
         if (DateTimeFormat::MONTH_NAMES[i].find(month) == 0)
             return i + 1;
@@ -1620,34 +1614,9 @@ Timestamp Timestamp::fromUtcTime(UtcTimeVal val)
 
 void Timestamp::update()
 {
-#if defined(WIN32)
-
-    FILETIME ft;
-#if defined(_WIN32_WCE)
-    GetSystemTimeAsFileTimeWithMillisecondResolution(&ft);
-#else
-    GetSystemTimeAsFileTime(&ft);
-#endif
-
-    ULARGE_INTEGER epoch; // UNIX epoch (1970-01-01 00:00:00) expressed in
-                          // Windows NT FILETIME
-    epoch.LowPart = 0xD53E8000;
-    epoch.HighPart = 0x019DB1DE;
-
-    ULARGE_INTEGER ts;
-    ts.LowPart = ft.dwLowDateTime;
-    ts.HighPart = ft.dwHighDateTime;
-    ts.QuadPart -= epoch.QuadPart;
-    _ts = ts.QuadPart / 10;
-
-#else
-
-    struct timeval tv;
-    if (gettimeofday(&tv, nullptr))
-        throw std::runtime_error("System error: Cannot get time of day");
-    _ts = TimeVal(tv.tv_sec) * resolution() + tv.tv_usec;
-
-#endif
+    auto now = std::chrono::system_clock::now();
+    auto epoch = now.time_since_epoch();
+    _ts = std::chrono::duration_cast<std::chrono::microseconds>(epoch).count();
 }
 
 
@@ -1682,9 +1651,9 @@ Timespan::Timespan(long seconds, long microseconds)
 
 
 Timespan::Timespan(int days, int hours, int minutes, int seconds, int microseconds)
-    : _span(TimeDiff(microseconds) + 
+    : _span(TimeDiff(microseconds) +
             TimeDiff(seconds) * SECONDS +
-            TimeDiff(minutes) * MINUTES + 
+            TimeDiff(minutes) * MINUTES +
             TimeDiff(hours) * HOURS +
             TimeDiff(days) * DAYS)
 {

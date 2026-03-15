@@ -10,12 +10,10 @@
 
 
 #include "scy/symple/address.h"
-#include "assert.h"
 #include "scy/util.h"
-#include "sstream"
 
-
-using std::endl;
+#include <sstream>
+#include <stdexcept>
 
 
 namespace scy {
@@ -51,7 +49,6 @@ bool Address::parse(const std::string& addr)
         return false;
 
     std::vector<std::string> params = util::split(addr, '|');
-    // assert(params.size() > 1);
     if (params.empty())
         return false;
     if (params.size() > 0)

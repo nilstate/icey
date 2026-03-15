@@ -1,1 +1,1 @@
-define_libsourcey_test(sympletests base crypto net http json socketio symple util)
+scy_add_test(sympletests DEPENDS base crypto net http json socketio symple)

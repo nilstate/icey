@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_Containers_H
-#define SCY_Containers_H
+#pragma once
 
 
 #include "scy/base.h"
@@ -18,9 +17,11 @@
 #include "scy/signal.h"
 #include "scy/util.h"
 
-#include <assert.h>
+#include <cassert>
 #include <map>
-#include <sstream>
+#include <memory>
+#include <mutex>
+#include <shared_mutex>
 #include <stdexcept>
 #include <vector>
 
@@ -30,10 +31,11 @@ namespace scy {
 
 /// AbstractCollection is an abstract interface for managing a
 /// key-value store of indexed pointers.
-template <class TKey, class TValue> class AbstractCollection
+template <class TKey, class TValue>
+class AbstractCollection
 {
 public:
-    AbstractCollection(){};
+    AbstractCollection() {};
     virtual ~AbstractCollection() {}
 
     virtual bool add(const TKey& key, TValue* item, bool whiny = true) = 0;
@@ -54,18 +56,13 @@ public:
 //
 
 
-/// This collection is used to maintain an map of any pointer
-/// type indexed by key value in a thread-safe way.
-///
-/// This class allows for custom memory handling of managed
-/// pointers via the TDeleter argument.
-template <class TKey, class TValue,
-          class TDeleter = std::default_delete<TValue>>
+/// This collection is used to maintain a map of unique_ptr
+/// values indexed by key in a thread-safe way.
+template <class TKey, class TValue>
 class /* Base_API */ PointerCollection : public AbstractCollection<TKey, TValue>
 {
 public:
-    typedef std::map<TKey, TValue*> Map;
-    typedef TDeleter Deleter;
+    using Map = std::map<TKey, std::unique_ptr<TValue>>;
 
 public:
     PointerCollection() {}
@@ -74,41 +71,42 @@ public:
 
     virtual bool add(const TKey& key, TValue* item, bool whiny = true) override
     {
+        return add(key, std::unique_ptr<TValue>(item), whiny);
+    }
+
+    virtual bool add(const TKey& key, std::unique_ptr<TValue> item, bool whiny = true)
+    {
         if (exists(key)) {
-            if (whiny) {
-                // std::ostringstream ss;
-                // ss << "An item already exists: " << key << std::endl;
+            if (whiny)
                 throw std::runtime_error("Item already exists");
-            }
             return false;
         }
+        auto* raw = item.get();
         {
-            std::lock_guard<std::mutex> guard(_mutex);
-            _map[key] = item;
+            std::unique_lock<std::shared_mutex> guard(_mutex);
+            _map[key] = std::move(item);
         }
-        onAdd(key, item);
+        onAdd(key, raw);
         return true;
     }
 
-    virtual void update(const TKey& key, TValue* item)
+    virtual void update(const TKey& key, std::unique_ptr<TValue> item)
     {
-        // Note: This method will not delete existing values.
+        auto* raw = item.get();
         {
-            std::lock_guard<std::mutex> guard(_mutex);
-            _map[key] = item;
+            std::unique_lock<std::shared_mutex> guard(_mutex);
+            _map[key] = std::move(item);
         }
-        onAdd(key, item);
+        onAdd(key, raw);
     }
 
     virtual TValue* get(const TKey& key, bool whiny = true) const override
     {
-        std::lock_guard<std::mutex> guard(_mutex);
-        typename Map::const_iterator it = _map.find(key);
+        std::shared_lock<std::shared_mutex> guard(_mutex);
+        auto it = _map.find(key);
         if (it != _map.end()) {
-            return it->second;
+            return it->second.get();
         } else if (whiny) {
-            // std::ostringstream ss;
-            // ss << "Invalid item requested: " << key << std::endl;
             throw std::runtime_error("Item not found");
         }
 
@@ -117,65 +115,75 @@ public:
 
     virtual bool free(const TKey& key) override
     {
-        TValue* item = remove(key);
-        if (item) {
-            TDeleter func;
-            func(item);
-            return true;
+        std::unique_ptr<TValue> item;
+        TValue* raw = nullptr;
+        {
+            std::unique_lock<std::shared_mutex> guard(_mutex);
+            auto it = _map.find(key);
+            if (it != _map.end()) {
+                raw = it->second.get();
+                item = std::move(it->second);
+                _map.erase(it);
+            }
         }
-        return false;
+        if (raw)
+            onRemove(key, raw);
+        // item is destroyed here via unique_ptr
+        return raw != nullptr;
     }
 
     virtual TValue* remove(const TKey& key) override
     {
-        TValue* item = nullptr;
+        TValue* raw = nullptr;
+        std::unique_ptr<TValue> owned;
         {
-            std::lock_guard<std::mutex> guard(_mutex);
-            typename Map::iterator it = _map.find(key);
+            std::unique_lock<std::shared_mutex> guard(_mutex);
+            auto it = _map.find(key);
             if (it != _map.end()) {
-                item = it->second;
+                owned = std::move(it->second);
+                raw = owned.release(); // caller takes ownership
                 _map.erase(it);
             }
         }
-        if (item)
-            onRemove(key, item);
-        return item;
+        if (raw)
+            onRemove(key, raw);
+        return raw;
     }
 
     virtual bool remove(const TValue* item) override
     {
         TKey key;
-        TValue* ptr = nullptr;
+        TValue* raw = nullptr;
+        std::unique_ptr<TValue> owned;
         {
-            std::lock_guard<std::mutex> guard(_mutex);
-            for (typename Map::iterator it = _map.begin(); it != _map.end();
-                 ++it) {
-                if (item == it->second) {
+            std::unique_lock<std::shared_mutex> guard(_mutex);
+            for (auto it = _map.begin(); it != _map.end(); ++it) {
+                if (item == it->second.get()) {
                     key = it->first;
-                    ptr = it->second;
+                    raw = it->second.get();
+                    owned = std::move(it->second);
                     _map.erase(it);
                     break;
                 }
             }
         }
-        if (ptr)
-            onRemove(key, ptr);
-        return ptr != nullptr;
+        if (raw)
+            onRemove(key, raw);
+        // owned is destroyed here via unique_ptr
+        return raw != nullptr;
     }
 
     virtual bool exists(const TKey& key) const override
     {
-        std::lock_guard<std::mutex> guard(_mutex);
-        typename Map::const_iterator it = _map.find(key);
-        return it != _map.end();
+        std::shared_lock<std::shared_mutex> guard(_mutex);
+        return _map.find(key) != _map.end();
     }
 
     virtual bool exists(const TValue* item) const override
     {
-        std::lock_guard<std::mutex> guard(_mutex);
-        for (typename Map::const_iterator it = _map.begin(); it != _map.end();
-             ++it) {
-            if (item == it->second)
+        std::shared_lock<std::shared_mutex> guard(_mutex);
+        for (const auto& [key, val] : _map) {
+            if (item == val.get())
                 return true;
         }
         return false;
@@ -183,31 +191,31 @@ public:
 
     virtual bool empty() const override
     {
-        std::lock_guard<std::mutex> guard(_mutex);
+        std::shared_lock<std::shared_mutex> guard(_mutex);
         return _map.empty();
     }
 
     virtual size_t size() const override
     {
-        std::lock_guard<std::mutex> guard(_mutex);
+        std::shared_lock<std::shared_mutex> guard(_mutex);
         return _map.size();
     }
 
     virtual void clear() override
     {
-        std::lock_guard<std::mutex> guard(_mutex);
-        util::clearMap<TDeleter>(_map);
-    }
-
-    virtual Map map() const
-    {
-        std::lock_guard<std::mutex> guard(_mutex);
-        return _map;
+        std::unique_lock<std::shared_mutex> guard(_mutex);
+        _map.clear();
     }
 
     virtual Map& map()
     {
-        std::lock_guard<std::mutex> guard(_mutex);
+        std::unique_lock<std::shared_mutex> guard(_mutex);
+        return _map;
+    }
+
+    virtual const Map& map() const
+    {
+        std::shared_lock<std::shared_mutex> guard(_mutex);
         return _map;
     }
 
@@ -222,7 +230,7 @@ public:
     }
 
 protected:
-    mutable std::mutex _mutex;
+    mutable std::shared_mutex _mutex;
     Map _map;
 };
 
@@ -232,12 +240,11 @@ protected:
 //
 
 
-template <class TKey, class TValue,
-          class TDeleter = std::default_delete<TValue>>
-class /* Base_API */ LiveCollection : public PointerCollection<TKey, TValue, TDeleter>
+template <class TKey, class TValue>
+class /* Base_API */ LiveCollection : public PointerCollection<TKey, TValue>
 {
 public:
-    typedef PointerCollection<TKey, TValue> Base;
+    using Base = PointerCollection<TKey, TValue>;
 
 public:
     virtual void onAdd(const TKey&, TValue* item) override
@@ -265,7 +272,7 @@ template <class TKey, class TValue>
 class /* Base_API */ KVCollection
 {
 public:
-    typedef std::map<TKey, TValue> Map;
+    using Map = std::map<TKey, TValue>;
 
 public:
     KVCollection()
@@ -366,9 +373,9 @@ public:
         }
     };
 
-    typedef std::multimap<std::string, std::string, ILT> Map;
-    typedef Map::iterator Iterator;
-    typedef Map::const_iterator ConstIterator;
+    using Map = std::multimap<std::string, std::string, ILT>;
+    using Iterator = Map::iterator;
+    using ConstIterator = Map::const_iterator;
 
     NVCollection()
     {
@@ -379,12 +386,18 @@ public:
     {
     }
 
+    NVCollection(NVCollection&& nvc) noexcept
+        : _map(std::move(nvc._map))
+    {
+    }
+
     virtual ~NVCollection()
     {
     }
 
     /// Assigns the name-value pairs of another NVCollection to this one.
     NVCollection& operator=(const NVCollection& nvc);
+    NVCollection& operator=(NVCollection&& nvc) noexcept;
 
     /// Returns the value of the (first) name-value pair with the given name.
     ///
@@ -441,14 +454,11 @@ private:
 };
 
 
-typedef std::map<std::string, std::string> StringMap;
-typedef std::vector<std::string> StringVec;
+using StringMap = std::map<std::string, std::string>;
+using StringVec = std::vector<std::string>;
 
 
 } // namespace scy
-
-
-#endif // SCY_Containers_H
 
 
 /// @\}

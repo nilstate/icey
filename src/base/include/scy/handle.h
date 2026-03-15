@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_UV_Handle_H
-#define SCY_UV_Handle_H
+#pragma once
 
 
 #include "scy/base.h"
@@ -19,9 +18,9 @@
 
 #include "uv.h"
 
-#include <thread>
 #include <memory>
-#include <assert.h>
+#include <stdexcept>
+#include <thread>
 
 
 namespace scy {
@@ -33,7 +32,7 @@ class Base_API Handle;
 
 
 /// Shared `libuv` handle context.
-template<typename T>
+template <typename T>
 struct Context
 {
     Handle<T>* handle = nullptr;
@@ -52,8 +51,7 @@ struct Context
             uv_close(reinterpret_cast<uv_handle_t*>(ptr), [](uv_handle_t* handle) {
                 delete handle;
             });
-        }
-        else {
+        } else {
             delete ptr;
         }
     }
@@ -64,7 +62,7 @@ struct Context
 ///
 /// This class manages the handle during it's lifecycle and safely handles the
 /// asynchronous destruction mechanism.
-template<typename T>
+template <typename T>
 class Base_API Handle
 {
 public:
@@ -79,12 +77,12 @@ public:
     }
 
     /// Initialize the handle.
-    template<typename F, typename... Args>
+    template <typename F, typename... Args>
     bool init(F&& f, Args&&... args)
     {
         assertThread();
-        assert(_context);
-        assert(!initialized());
+        if (!_context || initialized())
+            throw std::logic_error("Handle not in valid state for initialization");
         int err = std::forward<F>(f)(loop(), get(), std::forward<Args>(args)...);
         if (err)
             setUVError(err, "Initialization failed");
@@ -94,11 +92,12 @@ public:
     }
 
     /// Invoke a method on the handle.
-    template<typename F, typename... Args>
+    template <typename F, typename... Args>
     bool invoke(F&& f, Args&&... args) //, const std::string& prefix = "UV Error")
     {
         assertThread();
-        assert(initialized());
+        if (!initialized())
+            throw std::logic_error("Handle not initialized");
         int err = std::forward<F>(f)(std::forward<Args>(args)...);
         if (err)
             setUVError(err, "UV Error");
@@ -108,11 +107,12 @@ public:
     /// Invoke a method on the handle.
     ///
     /// An exception will be thrown if the invoked method returns an error.
-    template<typename F, typename... Args>
+    template <typename F, typename... Args>
     void invokeOrThrow(const std::string& message, F&& f, Args&&... args)
     {
         assertThread();
-        assert(initialized());
+        if (!initialized())
+            throw std::logic_error("Handle not initialized");
         int err = std::forward<F>(f)(std::forward<Args>(args)...);
         if (err)
             setAndThrowError(message, err);
@@ -217,12 +217,6 @@ public:
         return _loop;
     }
 
-    /// Return a pointer to the current or derived instance.
-    virtual void* self()
-    {
-        return this;
-    }
-
     /// Reset the internal handle pointer and container state.
     void reset()
     {
@@ -254,12 +248,13 @@ public:
     /// Assert the call is from the parent event loop thread.
     void assertThread() const
     {
-        // assert(uv_thread_equal(&_tid, &uv_thread_self()));
-        assert(std::this_thread::get_id() == _tid);
+        if (std::this_thread::get_id() != _tid) {
+            throw std::logic_error("Handle accessed from wrong thread");
+        }
     }
 
     /// Define the native handle type.
-    typedef T Type;
+    using Type = T;
 
 protected:
     /// Error callback.
@@ -279,6 +274,8 @@ protected:
     /// NonCopyable and NonMovable
     Handle(const Handle&) = delete;
     Handle& operator=(const Handle&) = delete;
+    Handle(Handle&&) = delete;
+    Handle& operator=(Handle&&) = delete;
 
     uv::Loop* _loop;
     std::shared_ptr<Context<T>> _context;
@@ -289,9 +286,6 @@ protected:
 
 } // namespace uv
 } // namespace scy
-
-
-#endif // SCY_UV_Handle
 
 
 /// @\}

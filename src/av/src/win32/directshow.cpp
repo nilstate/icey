@@ -10,10 +10,9 @@
 
 
 #include "scy/av/win32/directshow.h"
-#include "scy/platform.h"
 #include "scy/logger.h"
+#include "scy/platform.h"
 
-#include <windows.h>
 #include <dbt.h> // DBT_* & DEV_*
 #include <dshow.h>
 #include <ks.h>
@@ -37,10 +36,10 @@ bool getDeviceCategoryList(Device::Type type, REFGUID category, std::vector<av::
     bool needCoUninitialize = SUCCEEDED(hr);
     if (FAILED(hr)) {
         if (hr != RPC_E_CHANGED_MODE) {
-            LError("CoInitialize failed, hr=", hr)
+            LError("CoInitialize failed, hr=", hr);
             return false;
         } else {
-            LWarn("CoInitialize Changed Mode")
+            LWarn("CoInitialize Changed Mode");
         }
     }
 
@@ -115,7 +114,7 @@ bool getDeviceList(Device::Type type, std::vector<av::Device>& devices)
             return getDeviceCategoryList(type, CLSID_AudioInputDeviceCategory, devices);
         default:
             // assert(0 && "unknown dshow device type");
-            LDebug("DirectShow cannot enumerate output devices: Not implemented")
+            LDebug("DirectShow cannot enumerate output devices: Not implemented");
             break;
     }
 

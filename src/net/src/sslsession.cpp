@@ -25,7 +25,7 @@ SSLSession::SSLSession(SSL_SESSION* ptr)
 }
 
 
-SSLSession::~SSLSession()
+SSLSession::~SSLSession() noexcept
 {
     SSL_SESSION_free(_ptr);
 }

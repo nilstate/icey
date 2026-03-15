@@ -1,3 +1,1 @@
-# include_dependency(SSL REQUIRED)
-
-define_libsourcey_test(nettests base net)
+scy_add_test(nettests DEPENDS base net)

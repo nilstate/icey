@@ -171,29 +171,6 @@ void splitParameters(const std::string::const_iterator& begin,
 }
 
 
-#if 0
-string parseHeader(const std::string& request, const std::string& name)
-{
-    std::string req = request;
-    toLower(req);
-    toLower(name);
-    std::string value = "";
-    string::size_type start, end = 0;
-    start = req.find(name+": ");
-    if (start != std::string::npos) {
-        start += name.length() + 2;
-        end = req.find("\r\n", start);
-        if (end == std::string::npos) return "";
-        value = request.substr(start, end-start);
-        replaceInPlace(value,"\"","");
-        replaceInPlace(value,"\r","");
-        replaceInPlace(value,"\n","");
-    }
-    return value;
-}
-#endif
-
-
 } // namespace http
 } // namespace scy
 

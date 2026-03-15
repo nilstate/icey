@@ -1,133 +1,132 @@
-# CMake build commands
+# Building LibSourcey
 
-## Doxygen
+## Prerequisites
 
-git clone https://github.com/doxygen/doxygen.git
-git checkout tags/Release_1_8_12
-cd doxygen
-mkdir build
-cd build
-cmake -G "Unix Makefiles" ..
-make
-sudo make install
+- CMake 3.21+
+- C++20 compiler (GCC 12+, Clang 15+, MSVC 2022+, AppleClang 15+)
+- OpenSSL 3.x development headers
+- pkg-config (Linux/macOS)
+- FFmpeg 6.x or 7.x (optional, for the `av` module)
 
-doxygen -g
-INPUT=/home/kam/sourcey/libsourcey/src
-OUTPUT_DIRECTORY=/home/kam/sourcey/libsourcey/build/doxygen
-PROJECT_NAME="LibSourcey"
-RECURSIVE=YES
-GENERATE_XML=NO
-GENERATE_HTML=NO
-GENERATE_LATEX=NO
-EXCLUDE_PATTERNS = */anionu* */test* */apps* */samples*
+### Platform-specific
 
-npm install moxygen
-node ./node_modules/moxygen/bin/moxygen.js --verbose --groups --output=./doc/api-%s.md ./build/doxygen/xml
+**Linux (Ubuntu/Debian):**
+```bash
+sudo apt-get install build-essential cmake pkg-config libssl-dev
+# Optional: for av module
+sudo apt-get install libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libswresample-dev
+```
 
-npm install gitbook-cli
-node ./node_modules/gitbook-cli/bin/gitbook.js init
+**macOS:**
+```bash
+brew install cmake openssl@3
+# Optional: for av module
+brew install ffmpeg
+```
 
-https://github.com/contao/docs/blob/master/cookbook/book.json
+**Windows:**
+```powershell
+choco install cmake openssl
+```
 
-## Default debug build
-cmake .. -DCMAKE_BUILD_TYPE=DEBUG -DBUILD_SHARED_LIBS=OFF \
-         -DBUILD_MODULES=ON -DBUILD_APPLICATIONS=ON \
-         -DBUILD_SAMPLES=ON -DBUILD_TESTS=ON \
-         -DWITH_FFMPEG=ON
+## Default build
 
-## All modules (selective)
-cmake .. -DCMAKE_BUILD_TYPE=DEBUG -DBUILD_SHARED_LIBS=OFF \
-         -DBUILD_APPLICATIONS=OFF -DBUILD_MODULES=OFF \
-         -DBUILD_SAMPLES=ON -DBUILD_TESTS=ON \
-         -DWITH_FFMPEG=ON -DWITH_OPENCV=OFF \
-         -DBUILD_MODULE_archo=ON \
-         -DBUILD_MODULE_base=ON -DBUILD_MODULE_crypto=ON \
-         -DBUILD_MODULE_http=ON -DBUILD_MODULE_json=ON \
-         -DBUILD_MODULE_av=ON -DBUILD_MODULE_net=ON \
-         -DBUILD_MODULE_pacm=ON -DBUILD_MODULE_pluga=ON \
-         -DBUILD_MODULE_sked=ON -DBUILD_MODULE_socketio=ON \
-         -DBUILD_MODULE_stun=ON -DBUILD_MODULE_symple=ON \
-         -DBUILD_MODULE_turn=ON -DBUILD_MODULE_util=ON \
-         -DBUILD_MODULE_webrtc=ON
+```bash
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --parallel $(nproc)
+```
 
-## Minimum build (base only)
-cmake .. -DCMAKE_BUILD_TYPE=DEBUG -DBUILD_MODULES=OFF \
-         -DBUILD_MODULE_base=ON
+## Build with tests
 
-## Media build
-cmake .. -DCMAKE_BUILD_TYPE=DEBUG -DBUILD_SHARED_LIBS=OFF \
-         -DBUILD_APPLICATIONS=OFF -DBUILD_MODULES=OFF \
-         -DBUILD_SAMPLES=ON -DBUILD_TESTS=ON \
-         -DWITH_FFMPEG=ON -DWITH_OPENCV=OFF \
-         -DBUILD_MODULE_av=ON -DBUILD_MODULE_base=ON
+```bash
+cmake -B build -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON
+cmake --build build --parallel $(nproc)
+ctest --test-dir build --output-on-failure
+```
 
-## WebRTC default debug build
-cmake .. -DCMAKE_BUILD_TYPE=DEBUG -DBUILD_SHARED_LIBS=OFF \
-         -DBUILD_MODULES=ON -DBUILD_APPLICATIONS=ON \
-         -DBUILD_SAMPLES=ON -DBUILD_TESTS=ON \
-         -DWITH_FFMPEG=ON -DWITH_WEBRTC=ON \
-         -DWEBRTC_ROOT_DIR=/home/kam/sourcey/webrtcbuilds/out/src
+## Build options
 
-## WebRTC selective module build
-cmake .. -DCMAKE_BUILD_TYPE=RELEASE -DBUILD_SHARED_LIBS=OFF \
-         -DBUILD_MODULES=ON -DBUILD_APPLICATIONS=ON \
-         -DBUILD_TESTS=OFF -DBUILD_SAMPLES=OFF -DBUILD_SAMPLES_av=ON -DBUILD_SAMPLES_webrtc=ON \
-         -DWITH_FFMPEG=ON -DWITH_WEBRTC=ON -DENABLE_LOGGING=ON \
-         -DBUILD_MODULE_base=ON -DBUILD_MODULE_av=ON \
-         -DBUILD_MODULE_crypto=ON -DBUILD_MODULE_http=ON \
-         -DBUILD_MODULE_json=ON -DBUILD_MODULE_net=ON \
-         -DBUILD_MODULE_socketio=ON -DBUILD_MODULE_symple=ON \
-         -DBUILD_MODULE_util=ON -DBUILD_MODULE_webrtc=ON \
-         -DWEBRTC_ROOT_DIR=/home/kam/sourcey/webrtcbuilds/out/webrtc-22215-ab42706-linux-x64
+| Option | Default | Description |
+| ------ | ------- | ----------- |
+| `BUILD_SHARED_LIBS` | `OFF` | Build shared libraries |
+| `BUILD_MODULES` | `ON` | Build all LibSourcey modules |
+| `BUILD_TESTS` | `OFF` | Build module tests |
+| `BUILD_SAMPLES` | `OFF` | Build module samples |
+| `BUILD_APPLICATIONS` | `ON` | Build applications |
+| `BUILD_ALPHA` | `OFF` | Build alpha development modules |
+| `ENABLE_LOGGING` | `ON` | Enable internal debug logging |
 
-## WebRTC (VS2015, Win64, Static)
-cmake -G "Visual Studio 14 Win64" .. -DCMAKE_BUILD_TYPE=DEBUG -DBUILD_SHARED_LIBS=OFF -DBUILD_MODULES=OFF -DBUILD_WITH_STATIC_CRT=ON -DBUILD_APPLICATIONS=ON -DBUILD_SAMPLES=ON -DBUILD_TESTS=ON -DWITH_WEBRTC=ON -DWITH_FFMPEG=ON -DBUILD_MODULE_base=ON -DBUILD_MODULE_crypto=ON -DBUILD_MODULE_http=ON -DBUILD_MODULE_json=ON -DBUILD_MODULE_av=ON -DBUILD_MODULE_net=ON -DBUILD_MODULE_socketio=ON -DBUILD_MODULE_symple=ON -DBUILD_MODULE_util=ON -DBUILD_MODULE_stun=ON -DBUILD_MODULE_turn=ON -DBUILD_MODULE_webrtc=ON -DFFMPEG_ROOT_DIR=E:/dev/vendor/ffmpeg-3.2.2-win64-dev -DWEBRTC_ROOT_DIR=E:/dev/vendor/webrtcbuilds/out/webrtc-17657-02ba69d-win-x64
+## Example configurations
 
-## WebRTC (VS2017, Win64, Static)
-cmake -G "Visual Studio 15 Win64" .. -DCMAKE_BUILD_TYPE=DEBUG -DBUILD_SHARED_LIBS=OFF -DBUILD_MODULES=OFF -DBUILD_WITH_STATIC_CRT=ON -DBUILD_APPLICATIONS=ON -DBUILD_SAMPLES=ON -DBUILD_TESTS=ON -DWITH_WEBRTC=ON -DWITH_FFMPEG=ON -DBUILD_MODULE_base=ON -DBUILD_MODULE_crypto=ON -DBUILD_MODULE_http=ON -DBUILD_MODULE_json=ON -DBUILD_MODULE_av=ON -DBUILD_MODULE_net=ON -DBUILD_MODULE_socketio=ON -DBUILD_MODULE_symple=ON -DBUILD_MODULE_util=ON -DBUILD_MODULE_stun=ON -DBUILD_MODULE_turn=ON -DBUILD_MODULE_webrtc=ON -DFFMPEG_ROOT_DIR=E:/dev/vendor/ffmpeg-3.2.2-win64-dev -DWEBRTC_ROOT_DIR=E:/dev/vendor/webrtcbuilds/out/webrtc-17657-02ba69d-win-x64
+### Minimum build (base only)
 
-## Symple build (no media)
-cmake .. -DCMAKE_BUILD_TYPE=DEBUG -DBUILD_SHARED_LIBS=OFF \
-         -DBUILD_APPLICATIONS=ON -DBUILD_MODULES=OFF \
-         -DBUILD_SAMPLES=ON -DBUILD_TESTS=ON \
-         -DWITH_FFMPEG=OFF -DWITH_OPENCV=OFF \
-         -DBUILD_MODULE_base=ON \
-         -DBUILD_MODULE_crypto=ON -DBUILD_MODULE_http=ON \
-         -DBUILD_MODULE_json=ON -DBUILD_MODULE_net=ON \
-         -DBUILD_MODULE_socketio=ON -DBUILD_MODULE_symple=ON \
-         -DBUILD_MODULE_util=ON
+```bash
+cmake -B build -DCMAKE_BUILD_TYPE=Debug -DBUILD_MODULES=OFF -DBUILD_MODULE_base=ON
+```
 
-## Symple build (with media)
-cmake .. -DCMAKE_BUILD_TYPE=DEBUG -DBUILD_SHARED_LIBS=OFF \
-         -DBUILD_APPLICATIONS=ON -DBUILD_MODULES=OFF \
-         -DBUILD_SAMPLES=ON -DBUILD_TESTS=ON \
-         -DWITH_FFMPEG=ON -DWITH_OPENCV=OFF \
-         -DBUILD_MODULE_archo=ON -DBUILD_MODULE_base=ON \
-         -DBUILD_MODULE_crypto=ON -DBUILD_MODULE_http=ON \
-         -DBUILD_MODULE_json=ON -DBUILD_MODULE_av=ON \
-         -DBUILD_MODULE_net=ON -DBUILD_MODULE_socketio=ON \
-         -DBUILD_MODULE_symple=ON -DBUILD_MODULE_util=ON \
-         -DBUILD_MODULE_webrtc=OFF
+### Networking build
 
-## Net build
-cmake .. -DCMAKE_BUILD_TYPE=DEBUG -DBUILD_SHARED_LIBS=OFF \
-         -DBUILD_APPLICATIONS=OFF -DBUILD_MODULES=OFF \
-         -DBUILD_SAMPLES=OFF -DBUILD_TESTS=ON \
-         -DBUILD_MODULE_base=ON \
-         -DBUILD_MODULE_crypto=ON -DBUILD_MODULE_net=ON
+```bash
+cmake -B build -DCMAKE_BUILD_TYPE=Debug \
+  -DBUILD_MODULES=OFF -DBUILD_TESTS=ON \
+  -DBUILD_MODULE_base=ON \
+  -DBUILD_MODULE_crypto=ON \
+  -DBUILD_MODULE_net=ON
+```
 
-## HTTP build
-cmake .. -DCMAKE_BUILD_TYPE=RELEASE -DBUILD_SHARED_LIBS=OFF \
-         -DBUILD_APPLICATIONS=ON -DBUILD_MODULES=OFF \
-         -DBUILD_SAMPLES=ON -DBUILD_TESTS=ON \
-         -DBUILD_MODULE_base=ON -DBUILD_MODULE_crypto=ON \
-         -DBUILD_MODULE_json=ON -DBUILD_MODULE_net=ON \
-         -DBUILD_MODULE_util=ON -DBUILD_MODULE_http=ON
+### HTTP build
 
-## STUN/TURN build
-cmake .. -DCMAKE_BUILD_TYPE=DEBUG -DBUILD_SHARED_LIBS=OFF \
-         -DBUILD_APPLICATIONS=ON -DBUILD_MODULES=OFF \
-         -DBUILD_MODULE_base=ON -DBUILD_MODULE_crypto=ON \
-         -DBUILD_MODULE_net=ON -DBUILD_MODULE_stun=ON \
-         -DBUILD_MODULE_turn=ON -DBUILD_MODULE_util=ON \
-         -DBUILD_MODULE_json=ON
+```bash
+cmake -B build -DCMAKE_BUILD_TYPE=Release \
+  -DBUILD_MODULES=OFF -DBUILD_TESTS=ON -DBUILD_SAMPLES=ON \
+  -DBUILD_MODULE_base=ON -DBUILD_MODULE_crypto=ON \
+  -DBUILD_MODULE_json=ON -DBUILD_MODULE_net=ON \
+  -DBUILD_MODULE_http=ON
+```
+
+### Media build (with FFmpeg)
+
+```bash
+cmake -B build -DCMAKE_BUILD_TYPE=Debug \
+  -DBUILD_MODULES=OFF -DBUILD_TESTS=ON \
+  -DWITH_FFMPEG=ON \
+  -DBUILD_MODULE_base=ON -DBUILD_MODULE_av=ON
+```
+
+## Installing
+
+```bash
+cmake --install build --prefix /usr/local
+```
+
+## Docker
+
+```bash
+docker build -t libsourcey .
+```
+
+## External module plugin pattern
+
+LibSourcey supports external modules that live outside the main source tree. Create a directory with a `CMakeLists.txt` that uses `scy_add_module()`:
+
+```cmake
+scy_add_module(mymodule
+  DEPENDS base net
+  PACKAGES OpenSSL::SSL
+  PRETTY_NAME MyModule
+)
+```
+
+Then pass the module path when configuring:
+
+```bash
+cmake -B build -DBUILD_MODULE_mymodule=ON -DLibSourcey_EXTRA_MODULES=/path/to/mymodule
+```
+
+## Generating API docs
+
+```bash
+# Requires: doxygen, npx (Node.js)
+doxygen Doxyfile
+npx moxygen --groups --output=./doc/api-%s.md ./build/doxygen/xml
+```

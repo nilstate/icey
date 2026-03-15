@@ -21,7 +21,7 @@ CMemLeakDetect memLeakDetect;
 int main(int argc, char** argv)
 {
     try {
-        Logger::instance().add(new ConsoleChannel("debug", STraceevel));
+        Logger::instance().add(std::make_unique<ConsoleChannel>("debug", STraceevel));
 
         VideoAnalyzer analyzer;
 

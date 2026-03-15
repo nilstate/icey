@@ -1,15 +1,17 @@
-#ifndef SCY_Symple_Tests_H
-#define SCY_Symple_Tests_H
+#pragma once
 
 
 #include "scy/base.h"
+#include "scy/filesystem.h"
 #include "scy/logger.h"
+#include "scy/net/sslmanager.h"
 #include "scy/pipe.h"
 #include "scy/process.h"
-#include "scy/filesystem.h"
-#include "scy/net/sslmanager.h"
 #include "scy/symple/client.h"
 #include "scy/test.h"
+
+#include <iostream>
+#include <stdexcept>
 
 
 #define SERVER_HOST "localhost"
@@ -63,7 +65,7 @@ public:
 
     void connect()
     {
-        LInfo(user, ": connect")
+        LInfo(user, ": connect");
         client.connect();
     }
 
@@ -90,14 +92,14 @@ public:
 
     void onRecvPacket(IPacket& raw)
     {
-        LDebug("####### On raw packet: ", raw.className())
+        LDebug("####### On raw packet: ", raw.className());
 
         // Handle incoming raw packets here
     }
 
     void onRecvPresence(smpl::Presence& presence)
     {
-        LInfo(user, ": On presence: ", presence.dump(4))
+        LInfo(user, ": On presence: ", presence.dump(4));
 
         expect(presence.data("version").get<std::string>() == "1.0.1");
         if (user == "l") {
@@ -113,14 +115,15 @@ public:
 
     void onRecvMessage(smpl::Message& message)
     {
-        LInfo(user, ": On message: ", message.dump(4))
+        LInfo(user, ": On message: ", message.dump(4));
 
         // Handle incoming Symple messages here
     }
 
     void onClientAnnounce(const int& status)
     {
-        assert(status == 200);
+        if (status != 200)
+            throw std::runtime_error("Announce failed with status: " + std::to_string(status));
     }
 
     void onClientStateChange(void*, sockio::ClientState& state, const sockio::ClientState& oldState)
@@ -145,14 +148,14 @@ public:
                 // client.send(m, true);
                 break;
             case sockio::ClientState::Error:
-                assert(0);
+                throw std::runtime_error("Client entered error state");
                 break;
         }
     }
 
     void onCreatePresence(smpl::Peer& peer)
     {
-        LInfo(user, ": Updating Client Data")
+        LInfo(user, ": Updating Client Data");
 
         // Update the peer object to be broadcast with presence.
         // Any arbitrary data can be broadcast with presence.
@@ -174,7 +177,7 @@ void setTestServerCwd(std::string& cwd)
 bool installTestServerSync()
 {
     bool success = false;
-    Process proc({ "npm", "install" });
+    Process proc({"npm", "install"});
     setTestServerCwd(proc.cwd);
     proc.onstdout = [](std::string line) {
         std::cout << "server npm stdout: " << line << std::endl;
@@ -196,8 +199,7 @@ bool openTestServer(Process& proc, bool install = true)
     if (install) {
         try {
             installTestServerSync();
-        }
-        catch (std::exception& exc) {
+        } catch (std::exception& exc) {
             // Sometimes this fails on windows, so swallow
             // and try to run the server even if npm fails
         }
@@ -206,7 +208,7 @@ bool openTestServer(Process& proc, bool install = true)
     // Run the nodejs server
     bool running = false, exited = false;
     setTestServerCwd(proc.cwd);
-    proc.args = { "node", "server.js" };
+    proc.args = {"node", "server.js"};
     proc.onstdout = [&](std::string line) {
         std::cout << "server stdout: " << line << std::endl;
         if (line.find("listening") != std::string::npos)
@@ -229,9 +231,6 @@ bool openTestServer(Process& proc, bool install = true)
 
 
 } // namespace scy
-
-
-#endif // SCY_Symple_Tests_H
 
 
 /// @\}

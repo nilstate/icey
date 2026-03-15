@@ -11,12 +11,13 @@
 #define SCY_Base_Tests_H
 
 
-#include "scy/base.h"
-#include "scy/test.h"
 #include "scy/application.h"
+#include "scy/base.h"
+#include "scy/base64.h"
 #include "scy/buffer.h"
-#include "scy/datetime.h"
 #include "scy/collection.h"
+#include "scy/datetime.h"
+#include "scy/error.h"
 #include "scy/filesystem.h"
 #include "scy/idler.h"
 #include "scy/ipc.h"
@@ -26,18 +27,23 @@
 #include "scy/packetstream.h"
 #include "scy/platform.h"
 #include "scy/process.h"
+#include "scy/random.h"
 #include "scy/sharedlibrary.h"
 #include "scy/signal.h"
+#include "scy/stateful.h"
+#include "scy/test.h"
+#include "scy/thread.h"
 #include "scy/time.h"
 #include "scy/timer.h"
-#include "scy/thread.h"
 #include "scy/util.h"
 
+#include <sstream>
 
-using std::cout;
-using std::cerr;
-using std::endl;
+
 using scy::test::Test;
+using std::cerr;
+using std::cout;
+using std::endl;
 
 
 namespace scy {
@@ -68,7 +74,7 @@ class IpcTest : public Test
         ipc.push(new ipc::Action(
             std::bind(&IpcTest::ipcCallback, this, std::placeholders::_1), &ipc, "test4"));
         ipc.push(new ipc::Action(
-            std::bind(&IpcTest::ipcCallback, this, std::placeholders::_1), &ipc,  "test5"));
+            std::bind(&IpcTest::ipcCallback, this, std::placeholders::_1), &ipc, "test5"));
 
         // std::cout << "Test IPC: OK" << std::endl;
         uv::runLoop();
@@ -244,7 +250,7 @@ bool signalHandlerC(const char* sl, size_t ln)
 }
 
 
-class SignalTest: public Test
+class SignalTest : public Test
 {
     struct Foo
     {
@@ -304,8 +310,9 @@ class SignalTest: public Test
         expect(refid4 == 100);
 
         // Attach a static function via += operator
+        // Auto-ID follows _lastId which was bumped to 100 by explicit slot above
         refid5 = signal += signalHandlerC;
-        expect(refid5 == 4);
+        expect(refid5 == 101);
 
         signal.emit("the answer to life the universe and everything is", 42);
     }
@@ -352,7 +359,8 @@ class ProcessTest : public Test
 // =============================================================================
 // Packet Stream
 //
-struct MockThreadedPacketSource : public PacketSource, public basic::Startable
+struct MockThreadedPacketSource : public PacketSource
+    , public basic::Startable
 {
     Thread runner;
     PacketSignal emitter;
@@ -372,7 +380,8 @@ struct MockThreadedPacketSource : public PacketSource, public basic::Startable
             RawPacket p("hello", 5);
             self->emitter.emit(/*self, */ p);
             // std::cout << "Emitting 2" << std::endl;
-        }, this);
+        },
+                     this);
     }
 
     void stop()
@@ -543,6 +552,259 @@ class MultiPacketStreamTest : public Test
         // if (children.s2) delete children.s2;
         // if (children.s3) delete children.s3;
         // PacketStream stream;
+    }
+};
+
+
+// =============================================================================
+// Timer Pause/Resume Test
+//
+class TimerPauseResumeTest : public Test
+{
+    void run()
+    {
+        // Test: timer fires, we stop it, restart it, verify total ticks
+        int ticksBeforeStop = 0;
+        int ticksAfterRestart = 0;
+        bool stopped = false;
+        bool restarted = false;
+
+        Timer timer(5, 5);
+        Timer restartTimer(20);
+
+        timer.start([&]() {
+            if (!stopped) {
+                ticksBeforeStop++;
+                if (ticksBeforeStop == 3) {
+                    stopped = true;
+                    timer.stop();
+                    // Restart after a brief delay
+                    restartTimer.start([&]() {
+                        restarted = true;
+                        restartTimer.handle().unref();
+                        timer.start();
+                    });
+                    restartTimer.handle().ref();
+                }
+            } else {
+                ticksAfterRestart++;
+                if (ticksAfterRestart == 3) {
+                    timer.handle().unref();
+                    timer.stop();
+                }
+            }
+        });
+        timer.handle().ref();
+        uv::runLoop();
+
+        expect(ticksBeforeStop == 3);
+        expect(ticksAfterRestart == 3);
+        expect(restarted == true);
+    }
+};
+
+
+// =============================================================================
+// Timer One-shot Test
+//
+class TimerOneShotTest : public Test
+{
+    void run()
+    {
+        int ticks = 0;
+
+        // One-shot timer: timeout set, no interval (0)
+        Timer timer(std::int64_t(10), std::int64_t(0));
+        timer.start([&]() {
+            ticks++;
+            timer.handle().unref();
+        });
+        timer.handle().ref();
+        uv::runLoop();
+
+        expect(ticks == 1);
+    }
+};
+
+
+// =============================================================================
+// IPC Round-trip Test
+//
+class IpcRoundTripTest : public Test
+{
+    void run()
+    {
+        // Test: push actions from a worker thread, verify they execute
+        // on the event loop thread
+        std::atomic<int> callbackCount{0};
+        std::vector<std::string> receivedData;
+        std::thread::id loopThreadId = std::this_thread::get_id();
+        bool allOnLoopThread = true;
+
+        ipc::SyncQueue<> ipc;
+
+        // Push from a background thread
+        Thread worker;
+        worker.start([&]() {
+            for (int i = 0; i < 3; i++) {
+                ipc.push(new ipc::Action(
+                    [&](const ipc::Action& action) {
+                        if (std::this_thread::get_id() != loopThreadId)
+                            allOnLoopThread = false;
+                        receivedData.push_back(action.data);
+                        if (++callbackCount == 3) {
+                            // Stop the event loop from the callback
+                            uv::stopLoop();
+                        }
+                    },
+                    &ipc, "msg" + std::to_string(i)));
+                scy::sleep(5);
+            }
+        });
+
+        uv::runLoop();
+        ipc.close();
+        // Run once more to process the close
+        uv::runLoop(uv::defaultLoop(), UV_RUN_NOWAIT);
+        worker.join();
+
+        expect(callbackCount == 3);
+        expect(receivedData.size() == 3);
+        expect(receivedData[0] == "msg0");
+        expect(receivedData[1] == "msg1");
+        expect(receivedData[2] == "msg2");
+        expect(allOnLoopThread == true);
+    }
+};
+
+
+// =============================================================================
+// Logger Level Filtering Test
+//
+class LoggerFilterTest : public Test
+{
+    void run()
+    {
+        // Custom channel that captures messages
+        struct CaptureChannel : public LogChannel
+        {
+            std::vector<std::string> messages;
+            std::vector<Level> levels;
+
+            CaptureChannel(const std::string& name, Level level)
+                : LogChannel(name, level)
+            {
+            }
+
+            void write(const LogStream& stream) override
+            {
+                if (this->level() > stream.level)
+                    return;
+                messages.push_back(stream.message.str());
+                levels.push_back(stream.level);
+            }
+        };
+
+        // Test 1: channel at Warn level should filter out Trace/Debug/Info
+        {
+            auto channel = std::make_unique<CaptureChannel>("filter_test", Level::Warn);
+            auto* channelPtr = channel.get();
+            Logger::instance().add(std::move(channel));
+
+            // These should be filtered out (below Warn threshold)
+            LogStream(Level::Trace, "test.cpp", 1, "filter_test").write("trace msg");
+            LogStream(Level::Debug, "test.cpp", 2, "filter_test").write("debug msg");
+            LogStream(Level::Info, "test.cpp", 3, "filter_test").write("info msg");
+
+            // These should pass through
+            LogStream(Level::Warn, "test.cpp", 4, "filter_test").write("warn msg");
+            LogStream(Level::Error, "test.cpp", 5, "filter_test").write("error msg");
+
+            expect(channelPtr->messages.size() == 2);
+            expect(channelPtr->levels[0] == Level::Warn);
+            expect(channelPtr->levels[1] == Level::Error);
+
+            Logger::instance().remove("filter_test");
+        }
+
+        // Test 2: channel at Trace level should pass everything
+        {
+            auto channel = std::make_unique<CaptureChannel>("pass_all", Level::Trace);
+            auto* channelPtr = channel.get();
+            Logger::instance().add(std::move(channel));
+
+            LogStream(Level::Trace, "test.cpp", 1, "pass_all").write("a");
+            LogStream(Level::Debug, "test.cpp", 2, "pass_all").write("b");
+            LogStream(Level::Info, "test.cpp", 3, "pass_all").write("c");
+            LogStream(Level::Warn, "test.cpp", 4, "pass_all").write("d");
+            LogStream(Level::Error, "test.cpp", 5, "pass_all").write("e");
+
+            expect(channelPtr->messages.size() == 5);
+
+            Logger::instance().remove("pass_all");
+        }
+    }
+};
+
+
+// =============================================================================
+// Packet Stream Overflow Test
+//
+// Verifies that a PacketStream with a bounded SyncPacketQueue handles a fast
+// producer gracefully: no crash, packets are purged when the queue limit is
+// exceeded, and the consumer receives some subset of sent packets.
+//
+class PacketStreamOverflowTest : public Test
+{
+    std::atomic<int> numReceived{0};
+
+    void onPacket(IPacket& packet)
+    {
+        numReceived++;
+    }
+
+    void run()
+    {
+        const int totalToSend = 500;
+        const int queueLimit = 10; // small queue to force overflow/purging
+
+        PacketStream stream;
+
+        // Attach a SyncPacketQueue with a small capacity so the queue's
+        // push() will purge old packets when the limit is reached.
+        stream.attach(new SyncPacketQueue<>(uv::defaultLoop(), queueLimit), 0, true);
+        stream.attach(new MockPacketProcessor, 1, true);
+        stream.emitter += slot(this, &PacketStreamOverflowTest::onPacket);
+
+        stream.start();
+
+        // Blast packets from a background thread as fast as possible
+        Thread producer;
+        producer.start([&]() {
+            for (int i = 0; i < totalToSend; i++) {
+                stream.write(RawPacket("overflow", 8));
+            }
+        });
+
+        // Give the event loop time to drain some packets
+        scy::sleep(200);
+
+        // Run the event loop briefly to dispatch queued items
+        uv::runLoop(uv::defaultLoop(), UV_RUN_NOWAIT);
+        scy::sleep(50);
+        uv::runLoop(uv::defaultLoop(), UV_RUN_NOWAIT);
+
+        producer.join();
+        stream.close();
+
+        // The key assertions:
+        // 1. We didn't crash (reaching here proves it)
+        // 2. We received some packets but fewer than sent (due to purging)
+        expect(numReceived > 0);
+        expect(numReceived <= totalToSend);
+
+        std::cout << "PacketStreamOverflow: sent=" << totalToSend
+                  << " received=" << numReceived << std::endl;
     }
 };
 

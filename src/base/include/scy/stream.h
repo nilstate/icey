@@ -9,16 +9,15 @@
 /// @{
 
 
-#ifndef SCY_Stream_H
-#define SCY_Stream_H
+#pragma once
 
 
 #include "scy/base.h"
-#include "scy/handle.h"
-#include "scy/request.h"
 #include "scy/buffer.h"
-#include "scy/signal.h"
+#include "scy/handle.h"
 #include "scy/logger.h"
+#include "scy/request.h"
+#include "scy/signal.h"
 
 #include <stdexcept>
 
@@ -27,11 +26,11 @@ namespace scy {
 
 
 /// Basic stream type for sockets and pipes.
-template<typename T>
+template <typename T>
 class Base_API Stream : public uv::Handle<T>
 {
 public:
-    typedef uv::Handle<T> Handle;
+    using Handle = uv::Handle<T>;
 
     Stream(uv::Loop* loop = uv::defaultLoop())
         : uv::Handle<T>(loop)
@@ -50,7 +49,7 @@ public:
     /// If the stream is already closed this call will have no side-effects.
     virtual void close() override
     {
-        // LTrace("Close: ", ptr())
+        // LTrace("Close: ", ptr());
         if (_started)
             readStop();
         Handle::close();
@@ -64,44 +63,52 @@ public:
         if (!Handle::active())
             return false;
 
-        // XXX: Sending shutdown causes an eof error to be returned via
-        // handleRead() which sets the stream to error state. This is not
-        // really an error, perhaps it should be handled differently?
         return uv_shutdown(new uv_shutdown_t, stream(),
-            [](uv_shutdown_t* req, int) {
-                delete req;
-            }) == 0;
+                           [](uv_shutdown_t* req, int) {
+                               delete req;
+                           }) == 0;
     }
 
     /// Writes data to the stream.
     ///
-    /// Return false if the underlying socket is closed.
+    /// Return false if the underlying socket is closed or if the write
+    /// queue has exceeded the high water mark (backpressure).
     /// This method does not throw an exception.
     bool write(const char* data, size_t len)
     {
-        if (!Handle::active())
+        if (!Handle::active() || !_started)
             return false;
 
-        assert(_started);
+        // Backpressure: reject writes if libuv's write queue is too large.
+        // This prevents unbounded memory growth on slow connections.
+        size_t queueSize = stream()->write_queue_size;
+        if (queueSize > _highWaterMark) {
+            LWarn("Write queue full (", queueSize, " bytes), dropping write of ", len, " bytes");
+            return false;
+        }
 
-        auto buf = uv_buf_init((char*)data, (int)len);
+        auto buf = uv_buf_init(const_cast<char*>(data), static_cast<unsigned int>(len));
         return Handle::invoke(&uv_write, new uv_write_t, stream(), &buf, 1, [](uv_write_t* req, int) {
             delete req;
         });
     }
+
+    /// Set the high water mark for the write queue (default 16MB).
+    /// When the write queue exceeds this size, write() returns false.
+    void setHighWaterMark(size_t bytes) { _highWaterMark = bytes; }
 
     /// Write data to the target stream.
     ///
     /// This method is only valid for IPC streams.
     bool write(const char* data, size_t len, uv_stream_t* send)
     {
-        if (!Handle::active())
+        if (!Handle::active() || !_started)
             return false;
 
-        assert(_started);
-        assert(stream()->type == UV_NAMED_PIPE && this->template get<uv_pipe_t>()->ipc);
+        if (stream()->type != UV_NAMED_PIPE || !this->template get<uv_pipe_t>()->ipc)
+            throw std::logic_error("write2 is only valid for IPC pipes");
 
-        auto buf = uv_buf_init((char*)data, (int)len);
+        auto buf = uv_buf_init(const_cast<char*>(data), static_cast<unsigned int>(len));
         return Handle::invoke(&uv_write2, new uv_write_t, stream(), &buf, 1, send, [](uv_write_t* req, int) {
             delete req;
         });
@@ -119,8 +126,9 @@ public:
 protected:
     virtual bool readStart()
     {
-        // LTrace("Read start: ", ptr())
-        assert(!_started);
+        // LTrace("Read start: ", ptr());
+        if (_started)
+            return false;
         _started = true;
 
         stream()->data = this;
@@ -129,8 +137,9 @@ protected:
 
     virtual bool readStop()
     {
-        // LTrace("Read stop: ", ptr())
-        assert(_started);
+        // LTrace("Read stop: ", ptr());
+        if (!_started)
+            return false;
         _started = false;
 
         return Handle::invoke(&uv_read_stop, stream());
@@ -138,12 +147,11 @@ protected:
 
     virtual void onRead(const char* data, size_t len)
     {
-        // LTrace("On read: ", len)
-        assert(Handle::initialized());
-        assert(!Handle::closed());
-        assert(_started);
+        // LTrace("On read: ", len);
+        if (!Handle::initialized() || Handle::closed() || !_started)
+            return;
 
-        Read.emit(data, (const int)len);
+        Read.emit(data, static_cast<const int>(len));
     }
 
     //
@@ -151,20 +159,23 @@ protected:
 
     static void handleRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf)
     {
-        // LTrace("Handle read: ", nread)
+        // LTrace("Handle read: ", nread);
         auto self = reinterpret_cast<Stream*>(handle->data);
 #ifdef SCY_EXCEPTION_RECOVERY
         try {
 #endif
             if (nread >= 0) {
                 self->onRead(buf->base, nread);
-            }
-            else {
-                self->setUVError((int)nread, "Stream read error");
+            } else if (nread == UV_EOF) {
+                // EOF is not an error - it's the normal result of the peer
+                // closing their end of the connection (e.g. after shutdown).
+                // Close the stream gracefully instead of setting error state.
+                self->close();
+            } else {
+                self->setUVError(static_cast<int>(nread), "Stream read error");
             }
 #ifdef SCY_EXCEPTION_RECOVERY
-        }
-        catch (std::exception& exc) {
+        } catch (std::exception& exc) {
             // Exceptions thrown inside the read callback scope will set the
             // stream error in order to keep errors in the event loop
             LError("Stream exception: ", exc.what());
@@ -176,9 +187,8 @@ protected:
     static void allocReadBuffer(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf)
     {
         auto& buffer = reinterpret_cast<Stream*>(handle->data)->_buffer;
-        assert(buffer.size() >= suggested_size);
-        // if (suggested_size > buffer.capacity())
-        //     buffer.capacity(suggested_size);
+        if (buffer.size() < suggested_size)
+            buffer.resize(suggested_size);
 
         buf->base = buffer.data();
         buf->len = buffer.size();
@@ -187,13 +197,11 @@ protected:
 protected:
     Buffer _buffer;
     bool _started{false};
+    size_t _highWaterMark{16 * 1024 * 1024}; ///< 16MB default write queue limit
 };
 
 
 } // namespace scy
-
-
-#endif // SCY_Stream_H
 
 
 /// @\}

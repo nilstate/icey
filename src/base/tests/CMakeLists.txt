@@ -1,1 +1,2 @@
-define_libsourcey_test(basetests base)
+scy_add_test(basetests DEPENDS base)
+scy_add_test(utiltests DEPENDS base)

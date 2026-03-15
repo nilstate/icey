@@ -1,16 +1,16 @@
 #include "mediaserver.h"
 #include "relayresponder.h"
+#include "scy/av/devicemanager.h"
+#include "scy/av/formatregistry.h"
+#include "scy/av/multiplexpacketencoder.h"
+#include "scy/collection.h"
 #include "snapshotresponder.h"
 #include "streamingresponder.h"
 #include "websocketresponder.h"
-#include "scy/av/formatregistry.h"
-#include "scy/av/devicemanager.h"
-#include "scy/av/multiplexpacketencoder.h"
-#include "scy/collection.h"
 
+#include "scy/base64packetencoder.h"
 #include "scy/http/packetizers.h"
 #include "scy/http/util.h"
-#include "scy/util/base64packetencoder.h"
 
 
 using namespace std;
@@ -30,7 +30,7 @@ MediaServer::MediaServer(uint16_t port)
                    net::makeSocket<net::TCPSocket>(),
                    new HTTPStreamingConnectionFactory(this))
 {
-    LDebug("Create")
+    LDebug("Create");
 
     // Register the media formats we will be using
     // FormatRegistry& formats = MediaFactory::instance().formats();
@@ -41,20 +41,20 @@ MediaServer::MediaServer(uint16_t port)
     // 64kbps, 128kbps, 160kbps or 256kbps.
     // NOTE: 128000 works fine for 44100, but 64000 is borked!
     formats.registerFormat(av::Format("MP3", "mp3",
-        av::AudioCodec("MP3", "libmp3lame", 2, 44100, 128000, "s16p")));
+                                      av::AudioCodec("MP3", "libmp3lame", 2, 44100, 128000, "s16p")));
 
     formats.registerFormat(av::Format("FLV", "flv",
-        av::VideoCodec("FLV", "flv", 320, 240)));
+                                      av::VideoCodec("FLV", "flv", 320, 240)));
 
     formats.registerFormat(av::Format("FLV-Speex", "flv",
-        av::VideoCodec("FLV", "flv", 320, 240),
-        av::AudioCodec("Speex", "libspeex", 1, 16000)));
+                                      av::VideoCodec("FLV", "flv", 320, 240),
+                                      av::AudioCodec("Speex", "libspeex", 1, 16000)));
 
     formats.registerFormat(av::Format("Speex", "flv",
-        av::AudioCodec("Speex", "libspeex", 1, 16000)));
+                                      av::AudioCodec("Speex", "libspeex", 1, 16000)));
 
     formats.registerFormat(av::Format("MJPEG", "mjpeg",
-        av::VideoCodec("MJPEG", "mjpeg", 480, 320, 20)));
+                                      av::VideoCodec("MJPEG", "mjpeg", 480, 320, 20)));
 
     // TODO: Add h264 and newer audio formats
 }
@@ -62,14 +62,14 @@ MediaServer::MediaServer(uint16_t port)
 
 MediaServer::~MediaServer()
 {
-    LDebug("Destroy")
+    LDebug("Destroy");
 }
 
 
 void MediaServer::setupPacketStream(PacketStream& stream, const StreamingOptions& options,
                                     bool freeCaptures, bool attachPacketizers)
 {
-    LDebug("Setup Packet Stream")
+    LDebug("Setup Packet Stream");
 
     // Attach capture sources
 
@@ -115,8 +115,7 @@ void MediaServer::setupPacketStream(PacketStream& stream, const StreamingOptions
             stream.attach(base64, 10, true);
         } else
             throw std::runtime_error("Unsupported encoding method: " + options.encoding);
-    }
-    else if (options.oformat.name == "FLV") {
+    } else if (options.oformat.name == "FLV") {
         // Allow mid-stream flash client connection
         // FIXME: Broken in latest flash
         // auto injector = new FLVMetadataInjector(options.oformat);
@@ -126,7 +125,7 @@ void MediaServer::setupPacketStream(PacketStream& stream, const StreamingOptions
     IPacketizer* framing = nullptr;
     if (options.framing.empty() || options.framing == "none")
         ;
-        // framing = new http::StreamingAdapter("image/jpeg");
+    // framing = new http::StreamingAdapter("image/jpeg");
 
     else if (options.framing == "chunked")
         framing = new http::ChunkedAdapter("image/jpeg");
@@ -140,9 +139,9 @@ void MediaServer::setupPacketStream(PacketStream& stream, const StreamingOptions
     if (framing)
         stream.attach(framing, 15, true);
 
-     // Attach a sync queue to synchronize output with the event loop
-     auto sync = new SyncPacketQueue<>;
-     stream.attach(sync, 20, true);
+    // Attach a sync queue to synchronize output with the event loop
+    auto sync = new SyncPacketQueue<>;
+    stream.attach(sync, 20, true);
 }
 
 
@@ -157,7 +156,7 @@ HTTPStreamingConnectionFactory::HTTPStreamingConnectionFactory(MediaServer* serv
 }
 
 
-HTTPStreamingConnectionFactory:: ~HTTPStreamingConnectionFactory()
+HTTPStreamingConnectionFactory::~HTTPStreamingConnectionFactory()
 {
 }
 
@@ -192,7 +191,7 @@ StreamingOptions HTTPStreamingConnectionFactory::createStreamingOptions(http::Se
     av::DeviceManager devman;
     if (options.oformat.video.enabled) {
         devman.getDefaultCamera(dev);
-        LInfo("Default video capture ", dev.id)
+        LInfo("Default video capture ", dev.id);
         options.videoCapture = std::make_shared<av::VideoCapture>(dev.id, options.oformat.video);
         // options.videoCapture->openVideo(dev.id, options.oformat.video.width,
         //                                   options.oformat.video.height,
@@ -201,7 +200,7 @@ StreamingOptions HTTPStreamingConnectionFactory::createStreamingOptions(http::Se
     }
     if (options.oformat.audio.enabled) {
         devman.getDefaultMicrophone(dev);
-        LInfo("Default audio capture ", dev.id)
+        LInfo("Default audio capture ", dev.id);
         options.audioCapture = std::make_shared<av::AudioCapture>(dev.id, options.oformat.audio);
         // options.audioCapture->open(dev.id, options.oformat.audio.channels,
         //                                   options.oformat.audio.sampleRate);
@@ -223,8 +222,10 @@ http::ServerResponder* HTTPStreamingConnectionFactory::createResponder(http::Ser
 
         // Log incoming requests
         SInfo << "Incoming connection from " << conn.socket()->peerAddress()
-              << ": URI:\n" << request.getURI()
-              << ": Request:\n" << request << endl;
+              << ": URI:\n"
+              << request.getURI()
+              << ": Request:\n"
+              << request << endl;
 
         // Handle websocket connections
         if (request.getURI().find("/websocket") == 0 || request.has("Sec-WebSocket-Key")) {
@@ -247,13 +248,13 @@ http::ServerResponder* HTTPStreamingConnectionFactory::createResponder(http::Ser
             return new SnapshotRequestHandler(conn, createStreamingOptions(conn));
         }
 #endif
-    }
-    catch (std::exception& exc) {
-        LError("Request error: ", exc.what())
+    } catch (std::exception& exc) {
+        LError("Request error: ", exc.what());
     }
 
-    LWarn("Bad Request")
-    conn.response().setStatus(http::StatusCode::BadRequest);
+    LWarn("Bad Request");
+    conn.response()
+        .setStatus(http::StatusCode::BadRequest);
     conn.sendHeader();
     conn.close();
     return nullptr;

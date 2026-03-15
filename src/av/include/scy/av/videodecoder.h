@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_AV_VideoDecoder_H
-#define SCY_AV_VideoDecoder_H
+#pragma once
 
 
 #include "scy/base.h"
@@ -28,7 +27,7 @@ namespace av {
 struct VideoDecoder : public VideoContext
 {
     VideoDecoder(AVStream* stream);
-    virtual ~VideoDecoder();
+    ~VideoDecoder() noexcept override;
 
     virtual void create() override;
     virtual void open() override;
@@ -38,7 +37,7 @@ struct VideoDecoder : public VideoContext
     /// Input packets should use the raw `AVStream` time base. Time base
     /// conversion will happen internally.
     /// Returns true an output packet was was decoded, false otherwise.
-    virtual bool decode(AVPacket& ipacket);
+    [[nodiscard]] virtual bool decode(AVPacket& ipacket);
 
     /// Flushes buffered frames.
     /// This method should be called after decoding
@@ -52,7 +51,6 @@ struct VideoDecoder : public VideoContext
 
 
 #endif
-#endif // SCY_AV_VideoDecoder_H
 
 
 /// @\}

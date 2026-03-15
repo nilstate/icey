@@ -9,16 +9,17 @@
 /// @{
 
 
-#ifndef SCY_Signal_H
-#define SCY_Signal_H
+#pragma once
 
 
 #include "scy/delegate.h"
-#include <mutex>
+#include <algorithm>
 #include <atomic>
 #include <memory>
+#include <mutex>
+#include <shared_mutex>
+#include <type_traits>
 #include <vector>
-#include <algorithm>
 
 
 namespace scy {
@@ -28,17 +29,10 @@ namespace scy {
 namespace internal {
 
 /// Signal slot storage class.
-template <typename RT, typename... Args> struct Slot;
+template <typename RT, typename... Args>
+struct Slot;
 
 } // namespace internal
-
-
-/// Exception to break out of the current Signal callback scope.
-class StopPropagation : public std::exception
-{
-public:
-    virtual ~StopPropagation() throw() = default;
-};
 
 
 /// Signal and slots implementation.
@@ -123,16 +117,18 @@ public:
 /// will cause any callbacks connected to the signal to be called,
 /// passing the integer `42` as the only argument.
 ///
-template <typename RT> class Signal;
-template <typename RT, typename... Args> class Signal<RT(Args...)>
+template <typename RT>
+class Signal;
+template <typename RT, typename... Args>
+class Signal<RT(Args...)>
 {
 public:
-    typedef std::function<RT(Args...)> Function;
-    typedef std::shared_ptr<internal::Slot<RT, Args...>> SlotPtr;
+    using Function = std::function<RT(Args...)>;
+    using SlotPtr = std::shared_ptr<internal::Slot<RT, Args...>>;
 
     /// Connects a `lambda` or `std::function` to the `Signal`.
     /// The returned value can be used to detach the slot.
-    int attach(Function const& func, void* instance = nullptr, int id = -1, int priority = -1) const
+    [[nodiscard]] int attach(Function const& func, void* instance = nullptr, int id = -1, int priority = -1) const
     {
         return attach(std::make_shared<internal::Slot<RT, Args...>>(
             new FunctionDelegate<RT, Args...>(func), instance, id, priority));
@@ -140,24 +136,32 @@ public:
 
     /// Connects a `SlotPtr` instance to the `Signal`.
     /// The returned value can be used to detach the slot.
-    int attach(SlotPtr slot) const
+    [[nodiscard]] int attach(SlotPtr slot) const
     {
         detach(slot); // clear duplicates
-        std::lock_guard<std::mutex> guard(_mutex);
-        if (slot->id == -1)
-            slot->id = ++_lastId; // TODO: assert unique?
+        std::unique_lock<std::shared_mutex> guard(_mutex);
+        if (slot->id == -1) {
+            slot->id = ++_lastId;
+        } else {
+            // Ensure explicit IDs don't collide with existing slots
+            for (auto const& s : _slots) {
+                if (s->alive() && s->id == slot->id)
+                    throw std::logic_error("Signal slot ID already in use");
+            }
+            if (slot->id > _lastId)
+                _lastId = slot->id;
+        }
         _slots.push_back(slot);
         //_slots.sort(Slot::ComparePrioroty);
         std::sort(_slots.begin(), _slots.end(),
-            [](SlotPtr const& l, SlotPtr const& r) {
-                return l->priority > r->priority; });
+                  [](SlotPtr const& l, SlotPtr const& r) { return l->priority > r->priority; });
         return slot->id;
     }
 
     /// Detaches a previously attached slot.
     bool detach(int id) const
     {
-        std::lock_guard<std::mutex> guard(_mutex);
+        std::unique_lock<std::shared_mutex> guard(_mutex);
         for (auto it = _slots.begin(); it != _slots.end();) {
             auto& slot = *it;
             if (slot->alive() && slot->id == id) {
@@ -173,8 +177,8 @@ public:
     /// Detaches all slots for the given instance.
     bool detach(const void* instance) const
     {
-        std::lock_guard<std::mutex> guard(_mutex);
-        bool removed = true;
+        std::unique_lock<std::shared_mutex> guard(_mutex);
+        bool removed = false;
         for (auto it = _slots.begin(); it != _slots.end();) {
             auto& slot = *it;
             if (slot->alive() && slot->instance == instance) {
@@ -190,7 +194,7 @@ public:
     /// Detaches all attached functions for the given instance.
     bool detach(SlotPtr other) const
     {
-        std::lock_guard<std::mutex> guard(_mutex);
+        std::unique_lock<std::shared_mutex> guard(_mutex);
         for (auto it = _slots.begin(); it != _slots.end();) {
             auto& slot = *it;
             if (slot->alive() && (*slot->delegate == *other->delegate)) {
@@ -206,7 +210,7 @@ public:
     /// Detaches all previously attached functions.
     void detachAll() const
     {
-        std::lock_guard<std::mutex> guard(_mutex);
+        std::unique_lock<std::shared_mutex> guard(_mutex);
         while (!_slots.empty()) {
             _slots.back()->kill();
             _slots.pop_back();
@@ -214,30 +218,39 @@ public:
     }
 
     /// Emits the signal to all attached functions.
-    virtual void emit(Args... args) //const
+    /// For Signal<bool(...)>, returns true if any slot returned true
+    /// (stops propagation to remaining slots).
+    /// For Signal<void(...)>, calls all slots unconditionally.
+    virtual RT emit(Args... args)
     {
-        try {
+        if constexpr (std::is_same_v<RT, bool>) {
+            for (auto const& slot : slots()) {
+                if (slot->alive()) {
+                    if ((*slot->delegate)(std::forward<Args>(args)...))
+                        return true;
+                }
+            }
+            return false;
+        } else {
             for (auto const& slot : slots()) {
                 if (slot->alive()) {
                     (*slot->delegate)(std::forward<Args>(args)...);
                 }
             }
         }
-        catch (StopPropagation&) {
-        }
     }
 
     /// Returns the managed slot list.
     std::vector<SlotPtr> slots() const
     {
-        std::lock_guard<std::mutex> guard(_mutex);
+        std::shared_lock<std::shared_mutex> guard(_mutex);
         return _slots;
     }
 
     /// Returns the number of active slots.
-    size_t nslots() const
+    [[nodiscard]] size_t nslots() const
     {
-        std::lock_guard<std::mutex> guard(_mutex);
+        std::shared_lock<std::shared_mutex> guard(_mutex);
         return _slots.size();
     }
 
@@ -266,7 +279,7 @@ public:
     }
 
     /// Assignment operator
-    Signal& operator = (const Signal& r)
+    Signal& operator=(const Signal& r)
     {
         if (&r != this) {
             _slots = r._slots;
@@ -276,13 +289,13 @@ public:
     }
 
 private:
-    mutable std::mutex _mutex;
+    mutable std::shared_mutex _mutex;
     mutable std::vector<SlotPtr> _slots;
     mutable int _lastId = 0;
 };
 
 
-typedef Signal<void()> NullSignal;
+using NullSignal = Signal<void()>;
 
 
 //
@@ -316,7 +329,8 @@ slot(RT (*method)(Args...), int id = -1, int priority = -1)
     return std::make_shared<internal::Slot<RT, Args...>>(
         new FunctionDelegate<RT, Args...>([method](Args... args) {
             return (*method)(std::forward<Args>(args)...);
-        }), nullptr, id, priority);
+        }),
+        nullptr, id, priority);
 }
 
 
@@ -324,9 +338,10 @@ slot(RT (*method)(Args...), int id = -1, int priority = -1)
 namespace internal {
 
 /// Signal slot storage class.
-template <typename RT, typename... Args> struct Slot
+template <typename RT, typename... Args>
+struct Slot
 {
-    AbstractDelegate<RT, Args...>* delegate;
+    std::unique_ptr<AbstractDelegate<RT, Args...>> delegate;
     void* instance;
     int id;
     int priority;
@@ -341,11 +356,7 @@ template <typename RT, typename... Args> struct Slot
         flag.test_and_set();
     }
 
-    ~Slot()
-    {
-        if (delegate)
-            delete delegate;
-    }
+    ~Slot() = default;
 
     void kill()
     {
@@ -366,9 +377,6 @@ template <typename RT, typename... Args> struct Slot
 
 
 } // namespace scy
-
-
-#endif // SCY_Signal_H
 
 
 /// @\}

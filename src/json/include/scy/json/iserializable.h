@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_JSON_ISerializable_h
-#define SCY_JSON_ISerializable_h
+#pragma once
 
 
 #include "scy/json/json.h"
@@ -50,9 +49,7 @@ inline bool deserialize(ISerializable* pObj, std::string& input)
     try {
         json::value deserializeRoot = json::value::parse(input.begin(), input.end());
         pObj->deserialize(deserializeRoot);
-    }
-    catch (std::invalid_argument&) {
-        // LError("Cannot deserialize object: ", exc.what())
+    } catch (const std::exception&) {
         return false;
     }
 
@@ -62,6 +59,3 @@ inline bool deserialize(ISerializable* pObj, std::string& input)
 
 } // namespace json
 } // namespace scy
-
-
-#endif // SCY_JSON_ISerializable_h

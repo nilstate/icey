@@ -14,7 +14,7 @@ public:
         : http::ServerResponder(connection)
         , options(options)
     {
-        LDebug("Create")
+        LDebug("Create");
 
         // Create the packet stream
         MediaServer::setupPacketStream(stream, options);
@@ -26,12 +26,12 @@ public:
 
     virtual ~WebSocketRequestHandler()
     {
-        LDebug("Destroy")
+        LDebug("Destroy");
     }
 
     void onClose()
     {
-        LDebug("On close")
+        LDebug("On close");
 
         stream.emitter -= packetSlot(this, &WebSocketRequestHandler::onVideoEncoded);
         stream.stop();
@@ -47,8 +47,9 @@ public:
             connection().send(packet.data(), packet.size(), http::ws::Binary);
             fpsCounter.tick();
         } catch (std::exception& exc) {
-            LError("Error: ", exc.what())
-            connection().close();
+            LError("Error: ", exc.what());
+            connection()
+                .close();
         }
     }
 

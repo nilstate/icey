@@ -9,16 +9,15 @@
 /// @{
 
 
-#ifndef SCY_Net_TCPSocket_H
-#define SCY_Net_TCPSocket_H
+#pragma once
 
 
+#include "scy/handle.h"
 #include "scy/net/address.h"
+#include "scy/net/net.h"
 #include "scy/net/socket.h"
 #include "scy/net/tcpsocket.h"
-#include "scy/net/net.h"
 #include "scy/stream.h"
-#include "scy/handle.h"
 
 
 namespace scy {
@@ -26,33 +25,39 @@ namespace net {
 
 
 /// TCP socket implementation.
-class Net_API TCPSocket : public Stream<uv_tcp_t>, public net::Socket
+class Net_API TCPSocket : public Stream<uv_tcp_t>
+    , public net::Socket
 {
 public:
-    typedef std::shared_ptr<TCPSocket> Ptr;
-    typedef std::vector<Ptr> Vec;
+    using Ptr = std::shared_ptr<TCPSocket>;
+    using Vec = std::vector<Ptr>;
 
     TCPSocket(uv::Loop* loop = uv::defaultLoop());
-    virtual ~TCPSocket();
+    virtual ~TCPSocket() noexcept;
 
-    virtual bool shutdown();
+    TCPSocket(const TCPSocket&) = delete;
+    TCPSocket& operator=(const TCPSocket&) = delete;
+    TCPSocket(TCPSocket&&) = delete;
+    TCPSocket& operator=(TCPSocket&&) = delete;
+
+    [[nodiscard]] virtual bool shutdown();
     virtual void close() override;
 
     virtual void connect(const net::Address& peerAddress) override;
     virtual void connect(const std::string& host, uint16_t port) override;
 
-    virtual ssize_t send(const char* data, size_t len, int flags = 0) override;
-    virtual ssize_t send(const char* data, size_t len, const net::Address& peerAddress, int flags = 0) override;
+    [[nodiscard]] virtual ssize_t send(const char* data, size_t len, int flags = 0) override;
+    [[nodiscard]] virtual ssize_t send(const char* data, size_t len, const net::Address& peerAddress, int flags = 0) override;
 
     virtual void bind(const net::Address& address, unsigned flags = 0) override;
     virtual void listen(int backlog = 64) override;
 
     virtual void acceptConnection();
 
-    bool setReusePort();
-    bool setNoDelay(bool enable);
-    bool setKeepAlive(bool enable, int delay);
-    bool setSimultaneousAccepts(bool enable);
+    [[nodiscard]] bool setReusePort();
+    [[nodiscard]] bool setNoDelay(bool enable);
+    [[nodiscard]] bool setKeepAlive(bool enable, int delay);
+    [[nodiscard]] bool setSimultaneousAccepts(bool enable);
 
     void setMode(SocketMode mode);
     const SocketMode mode() const;
@@ -76,8 +81,6 @@ public:
 
     virtual uv::Loop* loop() const override;
 
-    virtual void* self() override;
-
     Signal<void(const net::TCPSocket::Ptr&)> AcceptConnection;
 
 public:
@@ -97,9 +100,6 @@ protected:
 
 } // namespace net
 } // namespace scy
-
-
-#endif // SCY_Net_TCPSocket_H
 
 
 /// @\}

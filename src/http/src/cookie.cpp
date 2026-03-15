@@ -43,9 +43,7 @@ Cookie::Cookie(const NVCollection& nvc)
     , _maxAge(-1)
     , _httpOnly(false)
 {
-    for (NVCollection::ConstIterator it = nvc.begin(); it != nvc.end(); ++it) {
-        const std::string& name = it->first;
-        const std::string& value = it->second;
+    for (const auto& [name, value] : nvc) {
         if (util::icompare(name, "comment") == 0) {
             setComment(value);
         } else if (util::icompare(name, "domain") == 0) {
@@ -60,7 +58,7 @@ Cookie::Cookie(const NVCollection& nvc)
             int tzd;
             DateTime exp = DateTimeParser::parse(value, tzd);
             Timestamp now;
-            setMaxAge((int)((exp.timestamp() - now) / Timestamp::resolution()));
+            setMaxAge(static_cast<int>((exp.timestamp() - now) / Timestamp::resolution()));
         } else if (util::icompare(name, "version") == 0) {
             setVersion(util::strtoi<int>(value));
         } else if (util::icompare(name, "HttpOnly") == 0) {

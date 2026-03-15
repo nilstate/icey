@@ -14,40 +14,35 @@
 #include "scy/logger.h"
 #include "scy/util.h"
 
-
-using std::endl;
+#include <algorithm>
+#include <memory>
 
 
 namespace scy {
 namespace http {
 
 
-Server::Server(const std::string& host, short port, net::TCPSocket::Ptr socket, ServerConnectionFactory* factory)
+Server::Server(const std::string& host, short port, net::TCPSocket::Ptr socket, std::unique_ptr<ServerConnectionFactory> factory)
     : _address(host, port)
     , _socket(socket)
     , _timer(5000, 5000, socket->loop())
-    , _factory(factory)
+    , _factory(std::move(factory))
 {
-    // LTrace("Create")
 }
 
 
-Server::Server(const net::Address& address, net::TCPSocket::Ptr socket, ServerConnectionFactory* factory)
+Server::Server(const net::Address& address, net::TCPSocket::Ptr socket, std::unique_ptr<ServerConnectionFactory> factory)
     : _address(address)
     , _socket(socket)
     , _timer(5000, 5000, socket->loop())
-    , _factory(factory)
+    , _factory(std::move(factory))
 {
-    // LTrace("Create")
 }
 
 
 Server::~Server()
 {
-    // LTrace("Destroy")
     shutdown();
-    if (_factory)
-        delete _factory;
 }
 
 
@@ -58,7 +53,7 @@ void Server::start()
     _socket->bind(_address);
     _socket->listen(1000);
 
-    LDebug("HTTP server listening on ", _address)
+    LDebug("HTTP server listening on ", _address);
 
     _timer.Timeout += slot(this, &Server::onTimer);
     _timer.start();
@@ -67,8 +62,6 @@ void Server::start()
 
 void Server::shutdown()
 {
-    // LTrace("Shutdown")
-
     if (_socket) {
         _socket->removeReceiver(this);
         _socket->AcceptConnection -= slot(this, &Server::onClientSocketAccept);
@@ -81,7 +74,7 @@ void Server::shutdown()
 }
 
 
-ServerResponder* Server::createResponder(ServerConnection& conn)
+std::unique_ptr<ServerResponder> Server::createResponder(ServerConnection& conn)
 {
     // The initial HTTP request headers have already
     // been parsed at this point, but the request body may
@@ -92,8 +85,6 @@ ServerResponder* Server::createResponder(ServerConnection& conn)
 
 void Server::onClientSocketAccept(const net::TCPSocket::Ptr& socket)
 {
-    // LTrace("On accept socket connection")
-
     ServerConnection::Ptr conn = _factory->createConnection(*this, socket);
     conn->Close += slot(this, &Server::onConnectionClose);
     _connections.push_back(conn);
@@ -102,11 +93,9 @@ void Server::onClientSocketAccept(const net::TCPSocket::Ptr& socket)
 
 void Server::onConnectionReady(ServerConnection& conn)
 {
-    // LTrace("On connection ready")
-
-    for (auto it = _connections.begin(); it != _connections.end(); ++it) {
-        if (it->get() == &conn) {
-            Connection.emit(*it);
+    for (auto& c : _connections) {
+        if (c.get() == &conn) {
+            Connection.emit(c);
             return;
         }
     }
@@ -115,28 +104,22 @@ void Server::onConnectionReady(ServerConnection& conn)
 
 void Server::onConnectionClose(ServerConnection& conn)
 {
-    // LTrace("On connection closed")
-
-    for (auto it = _connections.begin(); it != _connections.end(); ++it) {
-        if (it->get() == &conn) {
-            _connections.erase(it);
-            return;
-        }
-    }
+    auto it = std::find_if(_connections.begin(), _connections.end(),
+                           [&conn](const ServerConnection::Ptr& c) { return c.get() == &conn; });
+    if (it != _connections.end())
+        _connections.erase(it);
 }
 
 
-void Server::onSocketClose(net::Socket& socket)
+bool Server::onSocketClose(net::Socket& socket)
 {
-    // LTrace("On server socket close")
+    return false;
 }
 
 
 void Server::onTimer()
 {
-    // LDebug("Num active HTTP server connections: ", connections.size())
-
-    // TODO: cleanup timed out pending connections
+    // Connection timeout cleanup not yet implemented
 }
 
 
@@ -154,24 +137,15 @@ net::Address& Server::address()
 ServerConnection::ServerConnection(Server& server, net::TCPSocket::Ptr socket)
     : Connection(socket)
     , _server(server)
-    , _responder(nullptr)
     , _upgrade(false)
 {
-    // LTrace("Create")
-
-    replaceAdapter(new ConnectionAdapter(this, HTTP_REQUEST));
+    replaceAdapter(std::make_unique<ConnectionAdapter>(this, HTTP_REQUEST));
 }
 
 
 ServerConnection::~ServerConnection()
 {
-    // LTrace("Destroy")
-
     close();
-
-    if (_responder) {
-        delete _responder;
-    }
 }
 
 
@@ -183,56 +157,28 @@ Server& ServerConnection::server()
 
 void ServerConnection::onHeaders()
 {
-    // LTrace("On headers")
-
-#if 0
-    // Send a raw HTTP response
-    std::ostringstream res;
-    res << "HTTP/1.1 200 OK\r\n"
-        << "Connection: close\r\n"
-        << "Content-Length: 0" << "\r\n"
-        << "\r\n";
-    std::string response(res.str());
-    send.send(response.c_str(), response.size());
-
-    // Send a test HTTP response
-    _response.add("Content-Length", "0");
-    _response.add("Connection", "close"); // "keep-alive"
-    sendHeader();
-    return;
-#endif
-
     // Upgrade the connection if required
     _upgrade = dynamic_cast<ConnectionAdapter*>(adapter())->parser().upgrade();
     if (_upgrade && util::icompare(request().get("Upgrade", ""), "websocket") == 0) {
-    // if (util::icompare(request().get("Connection", ""), "upgrade") == 0 &&
-    //     util::icompare(request().get("Upgrade", ""), "websocket") == 0) {
-        // LTrace("Upgrading to WebSocket: ", request())
-
         // Note: To upgrade the connection we need to replace the
         // underlying SocketAdapter instance. Since we are currently
         // inside the default ConnectionAdapter's HTTP parser callback
         // scope we just swap the SocketAdapter instance pointers and do
         // a deferred delete on the old adapter. No more callbacks will be
         // received from the old adapter after replaceAdapter is called.
-        auto wsAdapter = new ws::ConnectionAdapter(this, ws::ServerSide);
-        replaceAdapter(wsAdapter);
+        auto wsAdapter = std::make_unique<ws::ConnectionAdapter>(this, ws::ServerSide);
+        auto* wsAdapterRaw = wsAdapter.get();
+        replaceAdapter(std::move(wsAdapter));
 
         // Send the handshake request to the WS adapter for handling.
         // If the request fails the underlying socket will be closed
         // resulting in the destruction of the current connection.
-
-        // std::ostringstream oss;
-        // request().write(oss);
-        // request().clear();
-        // std::string buffer(oss.str());
-
         std::string buffer;
         buffer.reserve(256);
         request().write(buffer);
         request().clear();
 
-        wsAdapter->onSocketRecv(*socket().get(), mutableBuffer(buffer), socket()->peerAddress());
+        wsAdapterRaw->onSocketRecv(*socket().get(), mutableBuffer(buffer), socket()->peerAddress());
     }
 
     // Notify the server the connection is ready for data flow
@@ -249,11 +195,8 @@ void ServerConnection::onHeaders()
 
 void ServerConnection::onPayload(const MutableBuffer& buffer)
 {
-    // LTrace("On payload: ", buffer.size())
-
     // The connection may have been closed inside a previous callback.
     if (_closed) {
-        // LTrace("On payload: Closed")
         return;
     }
 
@@ -267,11 +210,8 @@ void ServerConnection::onPayload(const MutableBuffer& buffer)
 
 void ServerConnection::onComplete()
 {
-    // LTrace("On complete")
-
     // The connection may have been closed inside a previous callback.
     if (_closed) {
-        // LTrace("On complete: Closed")
         return;
     }
 
@@ -284,8 +224,6 @@ void ServerConnection::onComplete()
 
 void ServerConnection::onClose()
 {
-    // LTrace("On close")
-
     if (_responder)
         _responder->onClose();
 
@@ -295,13 +233,13 @@ void ServerConnection::onClose()
 
 http::Message* ServerConnection::incomingHeader()
 {
-    return reinterpret_cast<http::Message*>(&_request);
+    return static_cast<http::Message*>(&_request);
 }
 
 
 http::Message* ServerConnection::outgoingHeader()
 {
-    return reinterpret_cast<http::Message*>(&_response);
+    return static_cast<http::Message*>(&_response);
 }
 
 
@@ -309,4 +247,4 @@ http::Message* ServerConnection::outgoingHeader()
 } // namespace scy
 
 
-/// @\}
+/// @}

@@ -11,7 +11,6 @@
 
 #include "scy/net/address.h"
 #include "scy/logger.h"
-#include "scy/memory.h"
 #include "scy/util.h"
 #include <cstdint>
 
@@ -169,8 +168,8 @@ private:
 //
 
 
-Address::Address() :
-    _base(std::make_shared<IPv4AddressBase>())
+Address::Address()
+    : _base(std::make_shared<IPv4AddressBase>())
 {
 }
 
@@ -189,7 +188,8 @@ Address::Address(const std::string& addr, const std::string& port)
 
 Address::Address(const std::string& hostAndPort)
 {
-    assert(!hostAndPort.empty());
+    if (hostAndPort.empty())
+        throw std::invalid_argument("Address: empty host:port string");
 
     std::string host;
     std::string port;
@@ -220,11 +220,11 @@ Address::Address(const struct sockaddr* addr, socklen_t length)
 {
     if (length == sizeof(struct sockaddr_in))
         _base = std::make_shared<IPv4AddressBase>(
-                reinterpret_cast<const struct sockaddr_in*>(addr));
+            reinterpret_cast<const struct sockaddr_in*>(addr));
 #if defined(SCY_HAVE_IPv6)
     else if (length == sizeof(struct sockaddr_in6))
         _base = std::make_shared<IPv6AddressBase>(
-                reinterpret_cast<const struct sockaddr_in6*>(addr));
+            reinterpret_cast<const struct sockaddr_in6*>(addr));
 #endif
     else
         throw std::runtime_error("Invalid address length passed to Address()");
@@ -237,7 +237,7 @@ Address::Address(const Address& addr)
 }
 
 
-Address::~Address()
+Address::~Address() noexcept
 {
 }
 

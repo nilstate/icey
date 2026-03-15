@@ -9,13 +9,12 @@
 /// @{
 
 
-#ifndef SCY_Application_H
-#define SCY_Application_H
+#pragma once
 
 
 #include "scy/base.h"
-#include "scy/util.h"
 #include "scy/loop.h"
+#include "scy/util.h"
 
 #include <functional>
 #include <map>
@@ -82,6 +81,8 @@ public:
 protected:
     Application(const Application&) = delete;
     Application& operator=(const Application&) = delete;
+    Application(Application&&) = delete;
+    Application& operator=(Application&&) = delete;
 
     static void onShutdownSignal(uv_signal_t* req, int signum);
     static void onPrintHandle(uv_handle_t* handle, void* arg);
@@ -93,11 +94,11 @@ protected:
 //
 
 
-typedef std::map<std::string, std::string> OptionMap;
+using OptionMap = std::map<std::string, std::string>;
 
 struct Base_API OptionParser
 {
-    std::string exepath; // TODO: UTF8
+    std::string exepath;
     OptionMap args;
 
     OptionParser(int argc, char* argv[], const char* delim); // "--"
@@ -112,7 +113,8 @@ struct Base_API OptionParser
         return std::string();
     }
 
-    template <typename NumericType> NumericType get(const char* key)
+    template <typename NumericType>
+    NumericType get(const char* key)
     {
         OptionMap::const_iterator it = args.find(key);
         if (it != args.end())
@@ -145,11 +147,10 @@ inline void onShutdownSignal(std::function<void(void*)> callback = nullptr,
     uv_signal_init(loop, sig);
     uv_signal_start(sig, [](uv_signal_t* req, int /* signum */) {
         auto cmd = reinterpret_cast<ShutdownCmd*>(req->data);
-        uv_close((uv_handle_t*)req, [](uv_handle_t* handle) { delete handle; });
+        uv_close(reinterpret_cast<uv_handle_t*>(req), [](uv_handle_t* handle) { delete handle; });
         if (cmd->callback)
             cmd->callback(cmd->opaque);
-        delete cmd;
-    }, SIGINT);
+        delete cmd; }, SIGINT);
 }
 
 
@@ -162,9 +163,6 @@ inline void waitForShutdown(std::function<void(void*)> callback = nullptr,
 
 
 } // namespace scy
-
-
-#endif // SCY_Application_H
 
 
 /// @\}

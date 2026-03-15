@@ -24,6 +24,15 @@ NVCollection& NVCollection::operator=(const NVCollection& nvc)
 }
 
 
+NVCollection& NVCollection::operator=(NVCollection&& nvc) noexcept
+{
+    if (&nvc != this) {
+        _map = std::move(nvc._map);
+    }
+    return *this;
+}
+
+
 const std::string& NVCollection::operator[](const std::string& name) const
 {
     ConstIterator it = _map.find(name);
@@ -61,7 +70,7 @@ const std::string& NVCollection::get(const std::string& name) const
 
 
 const std::string& NVCollection::get(const std::string& name,
-    const std::string& defaultValue) const
+                                     const std::string& defaultValue) const
 {
     ConstIterator it = _map.find(name);
     if (it != _map.end())
@@ -103,7 +112,7 @@ bool NVCollection::empty() const
 
 int NVCollection::size() const
 {
-    return (int)_map.size();
+    return static_cast<int>(_map.size());
 }
 
 

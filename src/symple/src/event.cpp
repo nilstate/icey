@@ -13,9 +13,6 @@
 #include "scy/util.h"
 
 
-using std::endl;
-
-
 namespace scy {
 namespace smpl {
 
@@ -23,7 +20,7 @@ namespace smpl {
 Event::Event()
 {
     setType("event");
-    setTime(::time(0));
+    setTime(::time(nullptr));
 }
 
 
@@ -31,9 +28,9 @@ Event::Event(const Event& root)
     : Message(root)
 {
     // if (find("type") == end())
-        setType("event");
+    setType("event");
     if (find("time") == end())
-        setTime(::time(0));
+        setTime(::time(nullptr));
 }
 
 
@@ -41,9 +38,9 @@ Event::Event(const json::value& root)
     : Message(root)
 {
     // if (find("type") == end())
-        setType("event");
+    setType("event");
     if (find("time") == end())
-        setTime(::time(0));
+        setTime(::time(nullptr));
 }
 
 
@@ -54,8 +51,7 @@ Event::~Event()
 
 bool Event::valid() const
 {
-    return Message::valid()
-        && find("name") != end();
+    return Message::valid() && find("name") != end();
 }
 
 
@@ -80,9 +76,6 @@ void Event::setName(const std::string& name)
 void Event::setTime(time_t time)
 {
     (*this)["time"] = static_cast<double>(time);
-    // DateTimeFormatter::format(
-    //    Timestamp::fromEpochTime(time),
-    //    DateTimeFormat::ISO8601_FORMAT);
 }
 
 

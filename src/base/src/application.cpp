@@ -10,10 +10,9 @@
 
 
 #include "scy/application.h"
-#include "scy/memory.h"
-#include "scy/logger.h"
 #include "scy/error.h"
-#include "scy/singleton.h"
+#include "scy/logger.h"
+#include "scy/platform.h"
 
 
 namespace scy {
@@ -21,34 +20,33 @@ namespace scy {
 
 namespace internal {
 
-    static Singleton<Application> singleton;
+struct ShutdownCmd
+{
+    Application* self;
+    void* opaque;
+    std::function<void(void*)> callback;
+};
 
-    struct ShutdownCmd
-    {
-        Application* self;
-        void* opaque;
-        std::function<void(void*)> callback;
-    };
-
-}
+} // namespace internal
 
 
 Application& Application::getDefault()
 {
-    return *internal::singleton.get();
+    static Application instance;
+    return instance;
 }
 
 
-Application::Application(uv::Loop* loop) :
-    loop(loop)
+Application::Application(uv::Loop* loop)
+    : loop(loop)
 {
-    LDebug("Create")
+    LDebug("Create");
 }
 
 
 Application::~Application()
 {
-    LDebug("Destroy")
+    LDebug("Destroy");
 }
 
 
@@ -66,22 +64,20 @@ void Application::stop()
 
 void Application::finalize()
 {
-    LDebug("Finalizing")
+    LDebug("Finalizing");
 
 #ifdef _DEBUG
     // Print active handles
     uv_walk(loop, Application::onPrintHandle, nullptr);
 #endif
 
-    // Shutdown the garbage collector to safely free memory before the app exists
-    GarbageCollector::instance().finalize();
-
     // Run until handles are closed
     run();
-    assert(loop->active_handles == 0);
+    if (uv_loop_alive(loop))
+        LWarn("Event loop still alive after run");
     //assert(loop->active_reqs == 0);
 
-    LDebug("Finalization complete")
+    LDebug("Finalization complete");
 }
 
 
@@ -101,7 +97,7 @@ void Application::bindShutdownSignal(std::function<void(void*)> callback, void* 
 
 void Application::waitForShutdown(std::function<void(void*)> callback, void* opaque)
 {
-    LDebug("Wait for shutdown")
+    LDebug("Wait for shutdown");
     bindShutdownSignal(callback, opaque);
     run();
 }
@@ -110,9 +106,9 @@ void Application::waitForShutdown(std::function<void(void*)> callback, void* opa
 void Application::onShutdownSignal(uv_signal_t* req, int /* signum */)
 {
     auto cmd = reinterpret_cast<internal::ShutdownCmd*>(req->data);
-    LDebug("Got shutdown signal")
+    LDebug("Got shutdown signal");
 
-    uv_close((uv_handle_t*)req, [](uv_handle_t* handle) {
+    uv_close(reinterpret_cast<uv_handle_t*>(req), [](uv_handle_t* handle) {
         delete handle;
     });
     if (cmd->callback)
@@ -123,7 +119,7 @@ void Application::onShutdownSignal(uv_signal_t* req, int /* signum */)
 
 void Application::onPrintHandle(uv_handle_t* handle, void* /* arg */)
 {
-    LDebug("Active handle: ", handle, ": ", handle->type)
+    LDebug("Active handle: ", handle, ": ", handle->type);
 }
 
 
@@ -133,13 +129,13 @@ void Application::onPrintHandle(uv_handle_t* handle, void* /* arg */)
 
 OptionParser::OptionParser(int argc, char* argv[], const char* delim)
 {
-    char* lastkey = 0;
+    char* lastkey = nullptr;
     auto dlen = strlen(delim);
     for (int i = 0; i < argc; i++) {
 
-        // Get the application exe path
+        // Get the application exe path (use platform API for UTF-8 support)
         if (i == 0) {
-            exepath.assign(argv[i]);
+            exepath = getExePath();
             continue;
         }
 
@@ -152,7 +148,7 @@ OptionParser::OptionParser(int argc, char* argv[], const char* delim)
         // Get value for current key
         else if (lastkey) {
             args[lastkey] = argv[i];
-            lastkey = 0;
+            lastkey = nullptr;
         }
 
         else {

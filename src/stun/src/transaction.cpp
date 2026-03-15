@@ -15,13 +15,6 @@
 #include <iostream>
 
 
-using namespace std;
-
-using scy::net::Transaction;
-using scy::net::Address;
-using scy::net::Socket;
-
-
 namespace scy {
 namespace stun {
 
@@ -30,7 +23,7 @@ Transaction::Transaction(const net::Socket::Ptr& socket,
                          const net::Address& peerAddress, long timeout, int retries)
     : net::Transaction<Message>(socket, peerAddress, timeout, retries)
 {
-    LDebug("Create")
+    LDebug("Create");
 
     // Register STUN message creation strategy
     net::Transaction<Message>::factory.registerPacketType<stun::Message>(0);
@@ -39,7 +32,7 @@ Transaction::Transaction(const net::Socket::Ptr& socket,
 
 Transaction::~Transaction()
 {
-    LDebug("Destroy")
+    LDebug("Destroy");
 }
 
 
@@ -52,11 +45,11 @@ bool Transaction::checkResponse(const Message& message)
 
 void Transaction::onResponse()
 {
-    LDebug("On response")
+    LDebug("On response");
 
     _response.setMethod(_request.methodType());
     _response.setClass(Message::SuccessResponse);
-    if (_response.get<stun::ErrorCode>())
+    if (_response.get<stun::ErrorCode>() != nullptr)
         _response.setClass(Message::ErrorResponse);
     else if (_response.methodType() == Message::SendIndication ||
              _response.methodType() == Message::DataIndication)
@@ -64,8 +57,8 @@ void Transaction::onResponse()
 
     net::Transaction<Message>::onResponse();
 }
-}
-} // namespace scy:stun
+} // namespace stun
+} // namespace scy
 
 
 /// @\}

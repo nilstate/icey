@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_AV_VideoEncoder_H
-#define SCY_AV_VideoEncoder_H
+#pragma once
 
 
 #include "scy/base.h"
@@ -30,23 +29,29 @@ namespace av {
 struct VideoEncoder : public VideoContext
 {
     VideoEncoder(AVFormatContext* format = nullptr);
-    virtual ~VideoEncoder();
+    ~VideoEncoder() noexcept override;
 
     virtual void create() override;
     virtual void close() override;
 
     /// Encode a single video frame.
-    /// The pts argument should be in stream base time format.
     /// This method is for interleaved video formats.
-    virtual bool encode(uint8_t* data, int size, int64_t pts);
+    ///
+    /// @param data  The raw video frame buffer.
+    /// @param size  The buffer size in bytes.
+    /// @param pts   The presentation timestamp in stream time base units.
+    [[nodiscard]] virtual bool encode(uint8_t* data, int size, int64_t pts);
 
     /// Encode a single video frame.
-    /// The pts argument should be in stream base time format.
     /// This method is for planar video formats.
-    virtual bool encode(uint8_t* data[4], int linesize[4], int64_t pts);
+    ///
+    /// @param data      Array of per-plane data pointers (up to 4 planes).
+    /// @param linesize  Array of per-plane byte strides.
+    /// @param pts       The presentation timestamp in stream time base units.
+    [[nodiscard]] virtual bool encode(uint8_t* data[4], int linesize[4], int64_t pts);
 
     /// Encode a single AVFrame.
-    virtual bool encode(AVFrame* iframe);
+    [[nodiscard]] virtual bool encode(AVFrame* iframe);
 
     /// Flush remaining packets to be encoded.
     /// This method should be called once before stream closure.
@@ -61,7 +66,6 @@ struct VideoEncoder : public VideoContext
 
 
 #endif
-#endif // SCY_AV_VideoEncoder_H
 
 
 /// @\}

@@ -45,7 +45,7 @@ AudioCapture::AudioCapture(const std::string& device, const av::AudioCodec& para
 }
 
 
-AudioCapture::~AudioCapture()
+AudioCapture::~AudioCapture() noexcept
 {
 }
 
@@ -59,10 +59,10 @@ void AudioCapture::openAudio(const std::string& device, const av::AudioCodec& pa
 void AudioCapture::openAudio(const std::string& device, int channels, int sampleRate, const std::string& sampleFmt)
 {
     STrace << "Opening microphone: "
-                 << "device=" << device << ", "
-                 << "channels=" << channels << ", "
-                 << "sampleRate=" << sampleRate << ", "
-                 << "sampleFmt=" << sampleFmt << endl;
+           << "device=" << device << ", "
+           << "channels=" << channels << ", "
+           << "sampleRate=" << sampleRate << ", "
+           << "sampleFmt=" << sampleFmt << endl;
 
     DeviceManager devman;
     auto iformat = devman.findAudioInputFormat();
@@ -70,7 +70,7 @@ void AudioCapture::openAudio(const std::string& device, int channels, int sample
         throw std::runtime_error("Couldn't find microphone input format.");
 
     AVDictionary* iparams = nullptr;
-    AVDictionaryCleanup cleanup{ &iparams };
+    AVDictionaryCleanup cleanup{&iparams};
 
     // Set custom parameters for devices.
     // NOTE: This doesn't work for DirectShow

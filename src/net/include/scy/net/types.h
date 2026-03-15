@@ -9,11 +9,7 @@
 /// @{
 
 
-#ifndef SCY_Net_Types_H
-#define SCY_Net_Types_H
+#pragma once
 
 
 #include "scy/net/net.h"
-
-
-#endif

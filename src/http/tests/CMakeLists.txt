@@ -1,6 +1,1 @@
-# include_dependency(SSL REQUIRED)
-# include_dependency(LibUV)
-# include_dependency(JsonCpp)
-# include_dependency(HttpParser)
-
-define_libsourcey_test(httptests base crypto net http)
+scy_add_test(httptests DEPENDS base crypto net http)

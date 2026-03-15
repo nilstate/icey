@@ -4,9 +4,10 @@
 * [Getting Started](getting-started.md)
 * [Installation](installation.md)
     * [Linux Guide](installation-linux.md)
-    * [OS X Guide](installation-osx.md)
+    * [macOS Guide](installation-osx.md)
     * [Windows Guide](installation-windows.md)
 * [Examples](examples.md)
+* [Modules](modules.md)
 
 ----
 
@@ -19,14 +20,11 @@
 * [Net](api-net.md)
 * [Pacm](api-pacm.md)
 * [Pluga](api-pluga.md)
-* [Sked](api-sked.md)
+* [Sched](api-sched.md)
 * [SocketIO](api-socketio.md)
 * [STUN](api-stun.md)
 * [Symple](api-symple.md)
 * [TURN](api-turn.md)
-* [Util](api-util.md)
-* [UV](api-uv.md)
-* [WebRTC](api-webrtc.md)
 
 ---
 

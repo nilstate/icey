@@ -10,11 +10,9 @@
 
 
 #include "scy/symple/form.h"
-#include "assert.h"
 #include "scy/util.h"
 
-
-using std::endl;
+#include <stdexcept>
 
 
 namespace scy {
@@ -65,8 +63,8 @@ void Form::setPartial(bool flag)
 
 void Form::setAction(const std::string& action)
 {
-    assert(action == "form" || action == "submit" || action == "cancel" ||
-           action == "result");
+    if (action != "form" && action != "submit" && action != "cancel" && action != "result")
+        throw std::invalid_argument("Invalid form action: " + action);
     root()["action"] = action;
 }
 
@@ -182,10 +180,11 @@ FormElement FormElement::addSection(const std::string& id,
 FormField FormElement::addField(const std::string& type, const std::string& id,
                                 const std::string& label)
 {
-    assert(type == "text" || type == "text-multi" || type == "list" ||
-           type == "list-multi" || type == "boolean" || type == "number" ||
-           type == "media" || type == "date" || type == "time" ||
-           type == "datetime" || type == "horizontal-set" || type == "custom");
+    if (type != "text" && type != "text-multi" && type != "list" &&
+        type != "list-multi" && type != "boolean" && type != "number" &&
+        type != "media" && type != "date" && type != "time" &&
+        type != "datetime" && type != "horizontal-set" && type != "custom")
+        throw std::invalid_argument("Invalid form field type: " + type);
 
     return FormField(root()["elements"][root()["elements"].size()], type, id,
                      label);
@@ -241,15 +240,16 @@ bool FormElement::clearElements(const std::string& id, bool partial)
             for (unsigned x = 0; x < root()["elements"].size(); x++) {
                 json::value& element = root()["elements"][x];
                 std::string curID = element["id"].get<std::string>();
-                if (// element.is_object() &&
+                if ( // element.is_object() &&
                     // element.isMember("id") &&
                     partial ? curID.find(id) != std::string::npos
                             : curID == id) {
-                    LTrace("Symple form: Removing redundant: ", curID)
+                    LTrace("Symple form: Removing redundant: ", curID);
                     match = true;
                 } else {
-                    LTrace("Symple form: Keeping: ", curID)
-                    result["elements"].push_back(element);
+                    LTrace("Symple form: Keeping: ", curID);
+                    result["elements"]
+                        .push_back(element);
                 }
             }
         }

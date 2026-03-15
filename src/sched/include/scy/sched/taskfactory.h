@@ -9,16 +9,15 @@
 /// @{
 
 
-#ifndef SCY_Sched_TaskFactory_H
-#define SCY_Sched_TaskFactory_H
+#pragma once
 
 
+#include "scy/logger.h"
 #include "scy/sched/sched.h"
 #include "scy/sched/task.h"
 #include "scy/sched/trigger.h"
-#include "scy/logger.h"
-#include "scy/singleton.h"
 
+#include <memory>
 #include <vector>
 
 
@@ -29,14 +28,16 @@ namespace sched {
 class Sched_API Scheduler;
 
 
-template <typename T> sched::Task* instantiateTask()
+template <typename T>
+std::unique_ptr<sched::Task> instantiateTask()
 {
-    return new T;
+    return std::make_unique<T>();
 }
 
-template <typename T> sched::Trigger* instantiateTrigger()
+template <typename T>
+std::unique_ptr<sched::Trigger> instantiateTrigger()
 {
-    return new T;
+    return std::make_unique<T>();
 }
 
 
@@ -49,15 +50,15 @@ public:
     /// Returns the default TaskFactory singleton.
     static TaskFactory& getDefault()
     {
-        static Singleton<TaskFactory> sh;
-        return *sh.get();
+        static TaskFactory instance;
+        return instance;
     }
 
     /// Scheduled Tasks
 
-    typedef std::map<std::string, sched::Task* (*)(/*Scheduler&*/)> TaskMap;
+    using TaskMap = std::map<std::string, std::unique_ptr<sched::Task> (*)(/*Scheduler&*/)>;
 
-    sched::Task* createTask(const std::string& type/*, Scheduler& scheduler*/)
+    std::unique_ptr<sched::Task> createTask(const std::string& type /*, Scheduler& scheduler*/)
     {
         std::lock_guard<std::mutex> guard(_mutex);
         auto it = _tasks.find(type);
@@ -66,7 +67,8 @@ public:
         return it->second();
     }
 
-    template <typename T> void registerTask(const std::string& type)
+    template <typename T>
+    void registerTask(const std::string& type)
     {
         std::lock_guard<std::mutex> guard(_mutex);
         _tasks[type] = &instantiateTask<T>;
@@ -90,9 +92,9 @@ public:
     //
     /// Schedule Triggers
 
-    typedef std::map<std::string, sched::Trigger* (*)()> TriggerMap;
+    using TriggerMap = std::map<std::string, std::unique_ptr<sched::Trigger> (*)()>;
 
-    sched::Trigger* createTrigger(const std::string& type)
+    std::unique_ptr<sched::Trigger> createTrigger(const std::string& type)
     {
         std::lock_guard<std::mutex> guard(_mutex);
         auto it = _triggers.find(type);
@@ -101,7 +103,8 @@ public:
         return it->second();
     }
 
-    template <typename T> void registerTrigger(const std::string& type)
+    template <typename T>
+    void registerTrigger(const std::string& type)
     {
         std::lock_guard<std::mutex> guard(_mutex);
         _triggers[type] = &instantiateTrigger<T>;
@@ -132,9 +135,6 @@ protected:
 
 } // namespace sched
 } // namespace scy
-
-
-#endif // SCY_Sched_TaskFactory_H
 
 
 /// @\}

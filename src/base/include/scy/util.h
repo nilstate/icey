@@ -11,13 +11,13 @@
 /// @{
 
 
-#ifndef SCY_Util_H
-#define SCY_Util_H
+#pragma once
 
 
 #include "scy/base.h"
 #include "scy/error.h"
 
+#include <cassert>
 #include <cstdint>
 #include <cstring>
 #include <list>
@@ -25,8 +25,8 @@
 #include <queue>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <vector>
-#include <assert.h>
 
 
 namespace scy {
@@ -41,10 +41,10 @@ Base_API std::string format(const char* fmt, ...);
 Base_API void toUnderscore(std::string& str);
 
 /// Checks if the string is a number
-Base_API bool isNumber(const std::string& str);
+Base_API bool isNumber(std::string_view str);
 
 /// Returns true if the string ends with the given substring.
-Base_API bool endsWith(const std::string& str, const std::string& suffix);
+Base_API bool endsWith(std::string_view str, std::string_view suffix);
 
 /// Replaces non-alphanumeric characters.
 Base_API void removeSpecialCharacters(std::string& str, bool allowSpaces = false);
@@ -79,7 +79,8 @@ std::string memAddress(const void* ptr);
 //
 
 /// Converts integer T to string.
-template <typename T> std::string itostr(const T& t)
+template <typename T>
+std::string itostr(const T& t)
 {
     std::ostringstream oss;
     oss << t;
@@ -89,7 +90,8 @@ template <typename T> std::string itostr(const T& t)
 /// Converts string to integer T.
 /// Ensure the integer type has
 /// sufficient storage capacity.
-template <typename T> T strtoi(const std::string& s)
+template <typename T>
+T strtoi(const std::string& s)
 {
     std::istringstream iss(s);
     T x;
@@ -97,18 +99,6 @@ template <typename T> T strtoi(const std::string& s)
         return 0;
     return x;
 }
-
-#if 0
-/// Interger to double
-double intToDouble(std::int64_t v);
-
-/// Interger to float
-float intToFloat(std::int32_t v);
-
-/// Double to interger
-std::int64_t doubleToInt(double d);
-#endif
-
 
 //
 // Random generators
@@ -141,6 +131,8 @@ Base_API std::vector<std::string> split(const std::string& str, char delim, int 
 // String replace methods (Poco)
 //
 
+/// Replace all occurrences of `from` in `str` with `to`, starting at position `start`.
+/// Modifies and returns `str` in place. `from` must not be empty.
 template <class S>
 S& replaceInPlace(S& str, const S& from, const S& to,
                   typename S::size_type start = 0)
@@ -163,6 +155,8 @@ S& replaceInPlace(S& str, const S& from, const S& to,
     return str;
 }
 
+/// Replace all occurrences of `from` in `str` with `to`, starting at position `start`.
+/// C-string overload. Modifies and returns `str` in place.
 template <class S>
 S& replaceInPlace(S& str, const typename S::value_type* from,
                   const typename S::value_type* to,
@@ -214,7 +208,8 @@ S replace(const S& str, const typename S::value_type* from,
 
 /// Returns a copy of str with all leading
 /// whitespace removed.
-template <class S> S trimLeft(const S& str)
+template <class S>
+S trimLeft(const S& str)
 {
     typename S::const_iterator it = str.begin();
     typename S::const_iterator end = str.end();
@@ -225,7 +220,8 @@ template <class S> S trimLeft(const S& str)
 }
 
 /// Removes all leading whitespace in str.
-template <class S> S& trimLeftInPlace(S& str)
+template <class S>
+S& trimLeftInPlace(S& str)
 {
     typename S::iterator it = str.begin();
     typename S::iterator end = str.end();
@@ -238,7 +234,8 @@ template <class S> S& trimLeftInPlace(S& str)
 
 /// Returns a copy of str with all trailing
 /// whitespace removed.
-template <class S> S trimRight(const S& str)
+template <class S>
+S trimRight(const S& str)
 {
     int pos = int(str.size()) - 1;
 
@@ -248,7 +245,8 @@ template <class S> S trimRight(const S& str)
 }
 
 /// Removes all trailing whitespace in str.
-template <class S> S& trimRightInPlace(S& str)
+template <class S>
+S& trimRightInPlace(S& str)
 {
     int pos = int(str.size()) - 1;
 
@@ -261,7 +259,8 @@ template <class S> S& trimRightInPlace(S& str)
 
 /// Returns a copy of str with all leading and
 /// trailing whitespace removed.
-template <class S> S trim(const S& str)
+template <class S>
+S trim(const S& str)
 {
     int first = 0;
     int last = int(str.size()) - 1;
@@ -275,7 +274,8 @@ template <class S> S trim(const S& str)
 }
 
 /// Removes all leading and trailing whitespace in str.
-template <class S> S& trimInPlace(S& str)
+template <class S>
+S& trimInPlace(S& str)
 {
     int first = 0;
     int last = int(str.size()) - 1;
@@ -297,7 +297,8 @@ template <class S> S& trimInPlace(S& str)
 //
 
 /// Returns a copy of str containing all upper-case characters.
-template <class S> S toUpper(const S& str)
+template <class S>
+S toUpper(const S& str)
 {
     typename S::const_iterator it = str.begin();
     typename S::const_iterator end = str.end();
@@ -310,7 +311,8 @@ template <class S> S toUpper(const S& str)
 }
 
 /// Replaces all characters in str with their upper-case counterparts.
-template <class S> S& toUpperInPlace(S& str)
+template <class S>
+S& toUpperInPlace(S& str)
 {
     typename S::iterator it = str.begin();
     typename S::iterator end = str.end();
@@ -323,7 +325,8 @@ template <class S> S& toUpperInPlace(S& str)
 }
 
 /// Returns a copy of str containing all lower-case characters.
-template <class S> S toLower(const S& str)
+template <class S>
+S toLower(const S& str)
 {
     typename S::const_iterator it = str.begin();
     typename S::const_iterator end = str.end();
@@ -336,7 +339,8 @@ template <class S> S toLower(const S& str)
 }
 
 /// Replaces all characters in str with their lower-case counterparts.
-template <class S> S& toLowerInPlace(S& str)
+template <class S>
+S& toLowerInPlace(S& str)
 {
     typename S::iterator it = str.begin();
     typename S::iterator end = str.end();
@@ -353,7 +357,8 @@ template <class S> S& toLowerInPlace(S& str)
 // String case-insensative comparators (POCO)
 //
 
-/// Case-insensitive string comparison
+/// Case-insensitive string comparison.
+/// Returns negative if str < str2, zero if equal, positive if str > str2.
 template <class S, class It>
 int icompare(const S& str, typename S::size_type pos, typename S::size_type n, It it2, It end2)
 {
@@ -381,7 +386,7 @@ int icompare(const S& str, typename S::size_type pos, typename S::size_type n, I
         return 1;
 }
 
-template <class S> 
+template <class S>
 int icompare(const S& str1, const S& str2)
 {
     typename S::const_iterator it1(str1.begin());
@@ -490,7 +495,7 @@ int icompare(const S& str, typename S::size_type pos,
     return icompare(str, pos, str.size() - pos, ptr);
 }
 
-template <class S> 
+template <class S>
 int icompare(const S& str, const typename S::value_type* ptr)
 {
     return icompare(str, 0, str.size(), ptr);
@@ -501,9 +506,14 @@ int icompare(const S& str, const typename S::value_type* ptr)
 // Stream copiers
 //
 
+/// Copy all data from istr to ostr one byte at a time.
 Base_API std::streamsize copyStreamUnbuffered(std::istream& istr, std::ostream& ostr);
+
+/// Copy all data from istr to ostr using a buffer of the given size.
 Base_API std::streamsize copyStream(std::istream& istr, std::ostream& ostr,
                                     size_t bufferSize = 8192);
+
+/// Read all data from istr into str using a buffer of the given size.
 Base_API std::streamsize copyToString(std::istream& istr, std::string& str,
                                       size_t bufferSize = 8192);
 
@@ -569,7 +579,7 @@ struct Version
 
 /// Delete all elements from a list of pointers.
 /// @param L List of pointers to delete.
-template <typename Val> 
+template <typename Val>
 inline void clearList(std::list<Val*>& L)
 {
     typename std::list<Val*>::iterator it = L.begin();
@@ -581,7 +591,7 @@ inline void clearList(std::list<Val*>& L)
 
 /// Delete all elements from a list of pointers.
 /// @param D List of pointers to delete.
-template <typename Val> 
+template <typename Val>
 inline void clearDeque(std::deque<Val*>& D)
 {
     typename std::deque<Val*>::iterator it = D.begin();
@@ -604,7 +614,7 @@ inline void clearDeque(std::deque<Val*>& D)
 
 /// Delete all elements from a vector of pointers.
 /// @param V Vector of pointers to delete.
-template <typename Val> 
+template <typename Val>
 inline void clearVector(std::vector<Val*>& V)
 {
     typename std::vector<Val*>::iterator it = V.begin();
@@ -664,9 +674,6 @@ inline void clearMap(std::map<const Key, Val*>& M)
 
 } // namespace util
 } // namespace scy
-
-
-#endif // SCY_Util_H
 
 
 /// @\}

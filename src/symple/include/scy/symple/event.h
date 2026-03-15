@@ -9,12 +9,11 @@
 /// @{
 
 
-#ifndef SCY_Symple_Event_H
-#define SCY_Symple_Event_H
+#pragma once
 
 
-#include "scy/symple/symple.h"
 #include "scy/symple/message.h"
+#include "scy/symple/symple.h"
 #include <ctime>
 
 
@@ -30,11 +29,11 @@ public:
     Event(const Event& root);
     virtual ~Event();
 
-    bool valid() const;
+    [[nodiscard]] bool valid() const;
 
-    std::string name() const;
+    [[nodiscard]] std::string name() const;
     // std::string message() const;
-    std::time_t time() const;
+    [[nodiscard]] std::time_t time() const;
 
     void setName(const std::string& name);
     // void setMessage(const std::string& message);
@@ -47,9 +46,6 @@ public:
 
 } // namespace smpl
 } // namespace scy
-
-
-#endif // SCY_Symple_Event_H
 
 
 /// @\}

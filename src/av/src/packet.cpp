@@ -14,8 +14,8 @@
 #ifdef HAVE_FFMPEG
 
 extern "C" {
-#include <libavutil/imgutils.h>
 #include <libavformat/avformat.h>
+#include <libavutil/imgutils.h>
 }
 
 
@@ -51,30 +51,30 @@ PlanarVideoPacket::PlanarVideoPacket(uint8_t* data[4], const int linesize[4], co
 PlanarVideoPacket::PlanarVideoPacket(const PlanarVideoPacket& r)
     : VideoPacket(r)
     , pixelFmt(r.pixelFmt)
+    , owns_buffer(true)
 {
-    assert(!pixelFmt.empty() && "pixel format required to copy");
+    if (pixelFmt.empty())
+        throw std::runtime_error("PlanarVideoPacket: pixel format required to copy");
     auto pixfmt = av_get_pix_fmt(pixelFmt.c_str());
 
-    // Allocate image where the data image will copied
-    _size = av_image_alloc((uint8_t**)r.buffer, (int*)r.linesize,
-        width, height, pixfmt, 1);
+    // Allocate into this packet's buffer arrays
+    _size = av_image_alloc(buffer, linesize, width, height, pixfmt, 1);
     if (_size < 0) {
-        LError("Could not allocate raw video buffer");
-        assert(0);
+        throw std::runtime_error("PlanarVideoPacket: av_image_alloc failed");
     }
 
-    // Copy image data from other frame
+    // Deep copy image data from source frame
     av_image_copy(buffer, linesize,
-        (const uint8_t* *)r.buffer, (int*)r.linesize,
-        pixfmt, width, height);
+                  const_cast<const uint8_t**>(r.buffer),
+                  const_cast<const int*>(r.linesize),
+                  pixfmt, width, height);
 }
 
 
-PlanarVideoPacket::~PlanarVideoPacket()
+PlanarVideoPacket::~PlanarVideoPacket() noexcept
 {
-    if (_free) {
+    if (owns_buffer) {
         av_freep(&buffer[0]);
-        av_freep(buffer);
     }
 }
 
@@ -105,29 +105,28 @@ PlanarAudioPacket::PlanarAudioPacket(const PlanarAudioPacket& r)
     : AudioPacket(r)
     , channels(r.channels)
     , sampleFmt(r.sampleFmt)
+    , owns_buffer(true)
 {
-    assert(!sampleFmt.empty() && "sample format required to copy");
+    if (sampleFmt.empty())
+        throw std::runtime_error("PlanarAudioPacket: sample format required to copy");
     auto fmt = av_get_sample_fmt(sampleFmt.c_str());
 
-    // Allocate image where the data image will copied
-    int ret = av_samples_alloc_array_and_samples((uint8_t***)&buffer,
-        nullptr, channels, (int)numSamples, fmt, 0);
+    // Allocate audio buffers into this packet's buffer array
+    int ret = av_samples_alloc(buffer, &linesize, channels, (int)numSamples, fmt, 0);
     if (ret < 0) {
-        LError("Could not allocate raw audio buffer");
-        assert(0);
+        throw std::runtime_error("PlanarAudioPacket: av_samples_alloc failed");
     }
 
-    // Copy image data from other frame
-    av_samples_copy(buffer, (uint8_t* const*)r.buffer, 0, 0,
-        channels, (int)numSamples, fmt);
+    // Deep copy audio data from source frame
+    av_samples_copy(buffer, const_cast<uint8_t* const*>(r.buffer), 0, 0,
+                    channels, (int)numSamples, fmt);
 }
 
 
-PlanarAudioPacket::~PlanarAudioPacket()
+PlanarAudioPacket::~PlanarAudioPacket() noexcept
 {
-    if (_free) {
+    if (owns_buffer) {
         av_freep(&buffer[0]);
-        av_freep(buffer);
     }
 }
 

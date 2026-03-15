@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_AV_AudioContext_H
-#define SCY_AV_AudioContext_H
+#pragma once
 
 
 #include "scy/base.h"
@@ -39,7 +38,12 @@ struct AudioResampler;
 struct AudioContext
 {
     AudioContext();
-    virtual ~AudioContext();
+    virtual ~AudioContext() noexcept;
+
+    AudioContext(const AudioContext&) = delete;
+    AudioContext& operator=(const AudioContext&) = delete;
+    AudioContext(AudioContext&&) = delete;
+    AudioContext& operator=(AudioContext&&) = delete;
 
     /// Initialize the `AVCodecContext` with default values
     virtual void create() = 0;
@@ -55,28 +59,26 @@ struct AudioContext
 
     PacketSignal emitter;
 
-    AudioCodec iparams;  ///< input parameters
-    AudioCodec oparams;  ///< output parameters
-    AVStream* stream;    ///< encoder or decoder stream
-    AVCodecContext* ctx; ///< encoder or decoder context
-    AVCodec* codec;      ///< encoder or decoder codec
-    AVFrame* frame;      ///< last encoded or decoded frame
-    AudioResampler* resampler; ///< audio resampler
-    int outputFrameSize; ///< encoder or decoder output frame size
-    int64_t time;        ///< stream time in codec time base
-    int64_t pts;         ///< last packet pts value
-    double seconds;      ///< video time in seconds
-    std::string error;   ///< error message
+    AudioCodec iparams;                        ///< input parameters
+    AudioCodec oparams;                        ///< output parameters
+    AVStream* stream;                          ///< encoder or decoder stream
+    AVCodecContext* ctx;                       ///< encoder or decoder context
+    const AVCodec* codec;                      ///< encoder or decoder codec
+    AVFrame* frame;                            ///< last encoded or decoded frame
+    std::unique_ptr<AudioResampler> resampler; ///< audio resampler
+    int outputFrameSize;                       ///< encoder or decoder output frame size
+    int64_t time;                              ///< stream time in codec time base
+    int64_t pts;                               ///< last packet pts value
+    double seconds;                            ///< audio time in seconds
+    std::string error;                         ///< error message
 };
 
 
 void initAudioCodecFromContext(const AVCodecContext* ctx, AudioCodec& params);
-AVSampleFormat selectSampleFormat(AVCodec* codec, av::AudioCodec& params);
-bool isSampleFormatSupported(AVCodec* codec, enum AVSampleFormat sampleFormat);
-void initDecodedAudioPacket(const AVStream* stream, const AVCodecContext* ctx,
-                            const AVFrame* frame, AVPacket* opacket);
-bool frameIsPlanar(const std::string& pixfmt);
-bool frameIsPlanar(AVSampleFormat format);
+AVSampleFormat selectSampleFormat(const AVCodec* codec, av::AudioCodec& params);
+bool isSampleFormatSupported(const AVCodec* codec, enum AVSampleFormat sampleFormat);
+bool formatIsPlanar(const std::string& pixfmt);
+bool formatIsPlanar(AVSampleFormat format);
 
 
 } // namespace av
@@ -84,7 +86,6 @@ bool frameIsPlanar(AVSampleFormat format);
 
 
 #endif
-#endif // SCY_AV_AudioContext_H
 
 
 /// @\}

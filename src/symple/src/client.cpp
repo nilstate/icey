@@ -13,8 +13,8 @@
 #include "scy/net/sslsocket.h"
 #include "scy/net/tcpsocket.h"
 
-
-using std::endl;
+#include <memory>
+#include <stdexcept>
 
 
 namespace scy {
@@ -65,21 +65,23 @@ Client::Client(const net::Socket::Ptr& socket, const Client::Options& options)
     , _options(options)
     , _announceStatus(0)
 {
-    LTrace("Create")
+    LTrace("Create");
 }
 
 
 Client::~Client()
 {
-    LTrace("Destroy")
+    LTrace("Destroy");
 }
 
 
 void Client::connect()
 {
-    LTrace("Connecting")
-    assert(!_options.host.empty());
-    assert(!_options.user.empty());
+    LTrace("Connecting");
+    if (_options.host.empty())
+        throw std::runtime_error("Symple client host must not be empty");
+    if (_options.user.empty())
+        throw std::runtime_error("Symple client user must not be empty");
 
     // Update the Socket.IO options with local values before connecting
     sockio::Client::options().host = _options.host;
@@ -93,7 +95,7 @@ void Client::connect()
 
 void Client::close()
 {
-    LTrace("Closing")
+    LTrace("Closing");
     sockio::Client::close();
 }
 
@@ -104,22 +106,21 @@ void assertCanSend(Client* client, Message& m)
         throw std::runtime_error("Cannot send message while offline.");
     }
 
-    assert(client->ourPeer());
+    if (!client->ourPeer())
+        throw std::runtime_error("No active peer session is available.");
     m.setFrom(client->ourPeer()->address());
 
     if (m.to().id == m.from().id) {
-        LError("Invalid Symple address: ", m.to().id, ": ", m.from().id)
-        assert(0);
+        LError("Invalid Symple address: ", m.to().id, ": ", m.from().id);
         throw std::runtime_error("Cannot send message with matching sender and recipient.");
     }
 
     if (!m.valid()) {
-        assert(0);
         throw std::runtime_error("Cannot send invalid message.");
     }
 
 #ifdef _DEBUG
-    LTrace("Sending message:", m.dump(4))
+    LTrace("Sending message:", m.dump(4));
 #endif
 }
 
@@ -157,22 +158,25 @@ int Client::respond(Message& m, bool ack)
 
 void Client::createPresence(Presence& p)
 {
-    LTrace("Create presence")
+    LTrace("Create presence");
 
     auto peer = ourPeer();
     if (peer) {
         CreatePresence.emit(*peer);
-        assert(peer->is_object());
+        if (!peer->is_object())
+            throw std::runtime_error("Peer must be a JSON object");
         p["data"] = (json::value&)*peer;
-        assert(p["data"].is_object());
-    } else
-        assert(0 && "no peer session object");
+        if (!p["data"].is_object())
+            throw std::runtime_error("Presence data must be a JSON object");
+    } else {
+        throw std::runtime_error("No peer session object available for presence");
+    }
 }
 
 
 int Client::sendPresence(bool probe)
 {
-    LTrace("Broadcasting presence")
+    LTrace("Broadcasting presence");
 
     Presence p;
     createPresence(p);
@@ -183,7 +187,7 @@ int Client::sendPresence(bool probe)
 
 int Client::sendPresence(const Address& to, bool probe)
 {
-    LTrace("Sending presence")
+    LTrace("Sending presence");
 
     Presence p;
     createPresence(p);
@@ -195,7 +199,7 @@ int Client::sendPresence(const Address& to, bool probe)
 
 int Client::announce()
 {
-    LTrace("Announcing")
+    LTrace("Announcing");
 
     json::value data;
     data["user"] = _options.user;
@@ -211,7 +215,7 @@ int Client::announce()
 
 int Client::joinRoom(const std::string& room)
 {
-    LDebug("Join room:", room)
+    LDebug("Join room:", room);
 
     _rooms.push_back(room);
     sockio::Packet pkt("join", "\"" + room + "\"");
@@ -221,7 +225,7 @@ int Client::joinRoom(const std::string& room)
 
 int Client::leaveRoom(const std::string& room)
 {
-    LDebug("Leave room:", room)
+    LDebug("Leave room:", room);
 
     _rooms.erase(std::remove(_rooms.begin(), _rooms.end(), room), _rooms.end());
     sockio::Packet pkt("leave", "\"" + room + "\"");
@@ -231,9 +235,9 @@ int Client::leaveRoom(const std::string& room)
 
 void Client::onAnnounceState(void* sender, TransactionState& state, const TransactionState&)
 {
-    LTrace("On announce response:", state)
+    LTrace("On announce response:", state);
 
-    auto transaction = reinterpret_cast<sockio::Transaction*>(sender);
+    auto transaction = static_cast<sockio::Transaction*>(sender);
     switch (state.id()) {
         case TransactionState::Success:
             try {
@@ -287,42 +291,45 @@ void Client::onOnline()
 
 void Client::emit(IPacket& raw)
 {
-    auto packet = reinterpret_cast<sockio::Packet&>(raw);
-    LTrace("Emit packet:", packet.toString())
+    auto& packet = static_cast<sockio::Packet&>(raw);
+    LTrace("Emit packet:", packet.toString());
 
     // Parse Symple messages from Socket.IO packets
-    if (packet.type() == sockio::Packet::Type::Event) {
-        LTrace("JSON packet:", packet.toString())
+    if (packet.type() == sockio::Type::Event) {
+        LTrace("JSON packet:", packet.toString());
 
         json::value data = packet.json();
 #ifdef _DEBUG
-        LTrace("Received ", data.dump(4))
+        LTrace("Received ", data.dump(4));
 #endif
-        assert(data.is_object());
+        if (!data.is_object()) {
+            LWarn("Invalid Symple message: expected JSON object");
+            return;
+        }
         std::string type(data.value("type", ""));
         if (!type.empty()) {
 
-            // KLUDGE: Note we are currently creating the JSON object
-            // twice with these polymorphic message classes. Perhaps
-            // free functions are a better for working with messages.
+            // NOTE: The polymorphic message classes re-parse the JSON
+            // data since they each construct from a json::value.
+            // Consider free functions for working with messages.
             if (type == "message") {
                 Message m(data);
                 if (!m.valid()) {
-                    LWarn("Dropping invalid message: ", data.dump())
+                    LWarn("Dropping invalid message: ", data.dump());
                     return;
                 }
                 PacketSignal::emit(m);
             } else if (type == "event") {
                 Event e(data);
                 if (!e.valid()) {
-                    LWarn("Dropping invalid event: ", data.dump())
+                    LWarn("Dropping invalid event: ", data.dump());
                     return;
                 }
                 PacketSignal::emit(e);
             } else if (type == "presence") {
                 Presence p(data);
                 if (!p.valid()) {
-                    LWarn("Dropping invalid presence: ", data.dump())
+                    LWarn("Dropping invalid presence: ", data.dump());
                     return;
                 }
                 PacketSignal::emit(p);
@@ -334,35 +341,34 @@ void Client::emit(IPacket& raw)
             } else if (type == "command") {
                 Command c(data);
                 if (!c.valid()) {
-                    LWarn("Dropping invalid command: ", data.dump())
+                    LWarn("Dropping invalid command: ", data.dump());
                     return;
                 }
                 PacketSignal::emit(c);
                 if (c.isRequest()) {
                     c.setStatus(404);
-                    LWarn("Command not handled: " ,  c.id(),  ": ", c.node())
+                    LWarn("Command not handled: ", c.id(), ": ", c.node());
                     respond(c);
                 }
             } else {
-                LDebug("Received non-standard message:", type)
+                LDebug("Received non-standard message:", type);
 
                 // Attempt to parse custom packets as a message type
                 Message m(data);
                 if (!m.valid()) {
-                    LWarn("Dropping invalid message: ", data.dump())
+                    LWarn("Dropping invalid message: ", data.dump());
                     return;
                 }
                 PacketSignal::emit(m);
             }
         } else {
-            assert(0 && "invalid packet");
-            LWarn("Invalid Symple message")
+            LWarn("Invalid Symple message: missing type field");
         }
     }
 
     // Other packet types are proxied directly
     else {
-        LTrace("Proxying packet:", PacketSignal::nslots())
+        LTrace("Proxying packet:", PacketSignal::nslots());
         PacketSignal::emit(packet);
     }
 }
@@ -370,7 +376,7 @@ void Client::emit(IPacket& raw)
 
 void Client::onPresenceData(const json::value& data, bool whiny)
 {
-    LTrace("Updating:", data.dump(4))
+    LTrace("Updating:", data.dump(4));
 
     if (data.is_object() &&
         data.find("id") != data.end() &&
@@ -382,57 +388,28 @@ void Client::onPresenceData(const json::value& data, bool whiny)
         auto peer = _roster.get(id, false);
         if (online) {
             if (!peer) {
-                peer = new Peer(data);
-                _roster.add(id, peer);
-                LDebug("Peer connected:", peer->address().toString())
+                _roster.add(id, std::make_unique<Peer>(data));
+                peer = _roster.get(id, false);
+                LDebug("Peer connected:", peer->address().toString());
                 PeerConnected.emit(*peer);
             } else {
                 static_cast<json::value&>(*peer) = data;
             }
         } else {
             if (peer) {
-                LDebug("Peer disconnected:", peer->address().toString())
+                LDebug("Peer disconnected:", peer->address().toString());
                 PeerDisconnected.emit(*peer);
                 _roster.free(id);
             } else {
-                LWarn("Unknown peer disconnected")
+                LWarn("Unknown peer disconnected");
             }
         }
     } else {
         std::string error("Bad presence data: " + data.dump());
-        LError(error)
+        LError(error);
         if (whiny)
             throw std::runtime_error(error);
     }
-
-#if 0
-    if (data.is_object() &&
-        data.isMember("id") &&
-        data.isMember("user") &&
-        data.isMember("name") //&&
-        //data.isMember("type")
-        ) {
-        LTrace("Updating:", json::stringify(data, true))
-        std::string id = data["id"].get<std::string>();
-        Peer* peer = get(id, false);
-        if (!peer) {
-            peer = new Peer(data);
-            add(id, peer);
-        } else
-            static_cast<json::value&>(*peer) = data;
-    }
-    else if (data.isArray()) {
-        for (auto it = data.begin(); it != data.end(); it++) {
-            onPresenceData(*it, whiny);
-        }
-    }
-    else {
-        std::string error("Bad presence data: " + json::stringify(data));
-        LError(error, )
-        if (whiny)
-            throw std::runtime_error(error);
-    }
-#endif
 }
 
 
@@ -485,7 +462,7 @@ Peer* Client::ourPeer()
 {
     if (_ourID.empty())
         return nullptr;
-        // throw std::runtime_error("No active peer session is available.");
+    // throw std::runtime_error("No active peer session is available.");
 
     return _roster.get(_ourID, false);
 }

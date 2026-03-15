@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_AV_AudioEncoder_H
-#define SCY_AV_AudioEncoder_H
+#pragma once
 
 
 #include "scy/base.h"
@@ -37,7 +36,7 @@ namespace av {
 struct AudioEncoder : public AudioContext
 {
     AudioEncoder(AVFormatContext* format = nullptr);
-    virtual ~AudioEncoder();
+    ~AudioEncoder() noexcept override;
 
     virtual void create() override;
     virtual void close() override;
@@ -48,7 +47,7 @@ struct AudioEncoder : public AudioContext
     /// @param numSamples The number of input samples per channel.
     /// @param pts        The input samples presentation timestamp.
     /// @param opacket    The output packet data will be encoded to.
-    virtual bool encode(uint8_t* samples, const int numSamples, const int64_t pts);
+    [[nodiscard]] virtual bool encode(uint8_t* samples, const int numSamples, const int64_t pts);
 
     /// Encode planar audio samples.
     ///
@@ -56,10 +55,10 @@ struct AudioEncoder : public AudioContext
     /// @param numSamples The number of input samples per channel.
     /// @param pts        The input samples presentation timestamp.
     /// @param opacket    The output packet data will be encoded to.
-    virtual bool encode(uint8_t* samples[4], const int numSamples, const int64_t pts);
+    [[nodiscard]] virtual bool encode(uint8_t* samples[4], const int numSamples, const int64_t pts);
 
     /// Encode a single AVFrame from the decoder.
-    virtual bool encode(AVFrame* iframe);
+    [[nodiscard]] virtual bool encode(AVFrame* iframe);
 
     /// Flush remaining packets to be encoded.
     /// This method should be called once before stream closure.
@@ -75,7 +74,6 @@ struct AudioEncoder : public AudioContext
 
 
 #endif
-#endif // SCY_AV_AudioEncoder_H
 
 
 /// @\}

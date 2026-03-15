@@ -8,10 +8,7 @@
 /// @addtogroup http
 /// @{
 
-
-#ifndef SCY_HTTP_Util_h
-#define SCY_HTTP_Util_h
-
+#pragma once
 
 #include "scy/base.h"
 #include "scy/collection.h"
@@ -23,9 +20,6 @@ namespace http {
 
 /// Parses the URI part from a HTTP request.
 std::string parseURI(const std::string& request);
-
-/// Parses the URI against the expression.
-bool matchURL(const std::string& uri, const std::string& expression);
 
 /// Parses the URI against the expression.
 bool matchURL(const std::string& uri, const std::string& expression);
@@ -63,7 +57,4 @@ void splitParameters(const std::string::const_iterator& begin,
 } // namespace scy
 
 
-#endif // SCY_HTTP_Util_H
-
-
-/// @\}
+/// @}

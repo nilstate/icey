@@ -28,19 +28,18 @@ VideoContext::VideoContext()
     , ctx(nullptr)
     , codec(nullptr)
     , frame(nullptr)
-    , conv(nullptr)
     , time(0)
     , pts(AV_NOPTS_VALUE)
     , seconds(0)
 {
-    LTrace("Create")
+    LTrace("Create");
     initializeFFmpeg();
 }
 
 
-VideoContext::~VideoContext()
+VideoContext::~VideoContext() noexcept
 {
-    LTrace("Destroy")
+    LTrace("Destroy");
 
     close();
     uninitializeFFmpeg();
@@ -55,17 +54,11 @@ void VideoContext::create()
 void VideoContext::open()
 {
     SDebug << "Open: "
-                 << "\n\tInput: " << iparams.toString()
-                 << "\n\tOutput: " << oparams.toString() << endl;
+           << "\n\tInput: " << iparams.toString()
+           << "\n\tOutput: " << oparams.toString() << endl;
 
-    assert(ctx);
-    assert(avcodec_is_open(ctx) && "avcodec_open2 must be called");
-    assert(codec);
-
-    // NOTE: The codec must be opened prior to calling open()
-    // // Open the video codec
-    // if (avcodec_open2(ctx, codec, nullptr) < 0)
-    //     throw std::runtime_error("Cannot open the video codec.");
+    if (!ctx || !avcodec_is_open(ctx) || !codec)
+        throw std::runtime_error("Video codec not open");
 
     // Create the video conversion context if required
     recreateConverter();
@@ -74,73 +67,51 @@ void VideoContext::open()
 
 void VideoContext::close()
 {
-    LTrace("Closing")
+    LTrace("Closing");
 
     if (frame) {
-        av_free(frame);
+        av_frame_free(&frame);
         frame = nullptr;
     }
 
     if (ctx) {
-        avcodec_close(ctx);
+        avcodec_free_context(&ctx);
         ctx = nullptr;
     }
 
-    if (conv) {
-        delete conv;
-        conv = nullptr;
-    }
+    conv.reset();
 
-    // Streams are managed differently by the external impl
-    // if (stream)    {
-    //     stream = nullptr;
-    //     Note: The stream is managed by the AVFormatContext
-    //     av_freep(stream);
-    //}
+    // Streams are managed by the AVFormatContext
+    stream = nullptr;
 
     time = 0;
     pts = AV_NOPTS_VALUE;
     seconds = 0;
     error = "";
 
-    LTrace("Closing: OK")
+    LTrace("Closing: OK");
 }
 
 
-AVFrame* VideoContext::convert(AVFrame* iframe) //, VideoCodec& cparams
+AVFrame* VideoContext::convert(AVFrame* iframe)
 {
     // While flushing the input frame may be null
     if (!iframe)
         return nullptr;
 
-    assert(iframe->width == iparams.width);
-    assert(iframe->height == iparams.height);
+    if (iframe->width != iparams.width || iframe->height != iparams.height)
+        throw std::runtime_error("Input frame dimensions mismatch");
 
     // Recreate the video conversion context on the fly
     // if the input resolution changes.
-
-    //if (iframe->width != /*conv->*/ oparams.width ||
-    //    iframe->height != /*conv->*/ oparams.height ||
-    //    iframe->format != /*conv->*/ av_get_pix_fmt(oparams.pixelFmt.c_str())) {
-    //if (iframe->width != conv->iparams.width ||
-    //    iframe->height != conv->iparams.height ||
-    //    iframe->format != av_get_pix_fmt(conv->iparams.pixelFmt.c_str()) ||
-    //    oparams.width != conv->oparams.width ||
-    //    oparams.height != conv->oparams.height ||
-    //    av_get_pix_fmt(oparams.pixelFmt.c_str()) != av_get_pix_fmt(conv->oparams.pixelFmt.c_str())) {
-        iparams.width = iframe->width;
-        iparams.height = iframe->height;
-        iparams.pixelFmt = av_get_pix_fmt_name((AVPixelFormat)iframe->format);
-        recreateConverter();
-    //}
+    iparams.width = iframe->width;
+    iparams.height = iframe->height;
+    iparams.pixelFmt = av_get_pix_fmt_name((AVPixelFormat)iframe->format);
+    recreateConverter();
 
     // Return the input frame if no conversion is required
     if (!conv)
         return iframe;
-
-    // // Set the input PTS or a monotonic value to keep the encoder happy.
-    // // The actual setting of the PTS is outside the scope of this encoder.
-    // cframe->pts = iframe->pts != AV_NOPTS_VALUE ? iframe->pts : ctx->frame_number;
 
     // Convert the input frame and return the result
     return conv->convert(iframe);
@@ -149,20 +120,8 @@ AVFrame* VideoContext::convert(AVFrame* iframe) //, VideoCodec& cparams
 
 bool VideoContext::recreateConverter()
 {
-    // if (conv)
-    //     throw std::runtime_error("Conversion context already exists.");
-
-    // NOTE: the input output `width`, `height`, and `pixelFmt` parameters work
-    // slightly differently for encoders and decoders.
-    // For encoders `iparams` is the picture format from the application and
-    // `oparams` is the picture format passed into the encoder.
-    // For decoders `iparams` is the picture format from the decoder and
-    // `oparams` is the picture format passed into the application.
-
     // Check if conversion is required
-    // This check if only for when unitialized
-    // If iparams or oparams is changed after initialization a conversion
-    // context must be created
+    // This check is only for when uninitialized
     if (!conv &&
         iparams.width == oparams.width &&
         iparams.height == oparams.height &&
@@ -171,9 +130,7 @@ bool VideoContext::recreateConverter()
     }
 
     // Check if the conversion context needs to be recreated
-    if (conv && (conv->iparams.width == iparams.width &&
-                 conv->iparams.height == iparams.height &&
-                 conv->iparams.pixelFmt == iparams.pixelFmt) &&
+    if (conv && (conv->iparams.width == iparams.width && conv->iparams.height == iparams.height && conv->iparams.pixelFmt == iparams.pixelFmt) &&
         (conv->oparams.width == oparams.width &&
          conv->oparams.height == oparams.height &&
          conv->oparams.pixelFmt == oparams.pixelFmt)) {
@@ -181,10 +138,8 @@ bool VideoContext::recreateConverter()
     }
 
     // Recreate the conversion context
-    LDebug("Recreating video conversion context")
-    if (conv)
-        delete conv;
-    conv = new VideoConverter();
+    LDebug("Recreating video conversion context");
+    conv = std::make_unique<VideoConverter>();
     conv->iparams = iparams;
     conv->oparams = oparams;
     conv->create();
@@ -203,20 +158,15 @@ AVFrame* createVideoFrame(AVPixelFormat pixelFmt, int width, int height)
     if (!picture)
         return nullptr;
 
-    // TODO: Replace with AVFrameHolder
-    int size = av_image_get_buffer_size(pixelFmt, width, height, 16);
-    auto buffer = reinterpret_cast<uint8_t*>(av_malloc(size));
-    if (!buffer) {
-        av_free(picture);
-        return nullptr;
-    }
-
-    av_image_fill_arrays(picture->data, picture->linesize, buffer, pixelFmt, width, height, 1);
-
-    // FFmpeg v3.1.4 does not set width and height values for us anymore
     picture->width = width;
     picture->height = height;
     picture->format = pixelFmt;
+
+    // Allocate frame buffer via av_frame_get_buffer for proper refcounting
+    if (av_frame_get_buffer(picture, 16) < 0) {
+        av_frame_free(&picture);
+        return nullptr;
+    }
 
     return picture;
 }
@@ -228,8 +178,12 @@ AVFrame* cloneVideoFrame(AVFrame* source)
     copy->format = source->format;
     copy->width = source->width;
     copy->height = source->height;
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 28, 100)
+    av_channel_layout_copy(&copy->ch_layout, &source->ch_layout);
+#else
     copy->channels = source->channels;
     copy->channel_layout = source->channel_layout;
+#endif
     copy->nb_samples = source->nb_samples;
     av_frame_get_buffer(copy, 32);
     av_frame_copy(copy, source);
@@ -252,7 +206,7 @@ void initVideoCodecFromContext(const AVStream* stream, const AVCodecContext* ctx
     }
 }
 
-AVPixelFormat selectPixelFormat(AVCodec* codec, VideoCodec& params)
+AVPixelFormat selectPixelFormat(const AVCodec* codec, VideoCodec& params)
 {
     enum AVPixelFormat compatible = AV_PIX_FMT_NONE;
     enum AVPixelFormat requested = av_get_pix_fmt(params.pixelFmt.c_str());

@@ -9,14 +9,14 @@
 /// @{
 
 
-#ifndef SCY_Time_H
-#define SCY_Time_H
+#pragma once
 
 
 #include "scy/base.h"
-#include <string>
-#include <ctime>
+#include <chrono>
 #include <cstdint>
+#include <ctime>
+#include <string>
 
 
 namespace scy {
@@ -75,20 +75,9 @@ Base_API std::string getUTC();
 /// Return the current high-resolution real time in nanoseconds.
 Base_API uint64_t hrtime();
 
-#if 0
-/// Retrieves the number of milliseconds that have elapsed since the system was started, up to 49.7 days.
-uint64_t ticks();
-
-/// Return the current real time in milliseconds.
-uint64_t getTimeMS();
-#endif
-
 
 } // namespace time
 } // namespace scy
-
-
-#endif // SCY_Time_H
 
 
 /// @\}

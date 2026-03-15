@@ -115,6 +115,58 @@ int main(int argc, char** argv)
         fs::unlink(output);
     });
 
+
+    describe("zip file open/close lifecycle", []() {
+        archo::ZipFile zip;
+        expect(!zip.opened());
+
+        std::string path(testDataDir("test.zip"));
+        zip.open(path);
+        expect(zip.opened());
+
+        zip.close();
+        expect(!zip.opened());
+    });
+
+
+    describe("zip file enumerate entries", []() {
+        std::string path(testDataDir("test.zip"));
+        archo::ZipFile zip(path);
+        expect(zip.opened());
+
+        // Iterate through all files in the archive
+        int count = 0;
+        if (zip.goToFirstFile()) {
+            do {
+                std::string name = zip.currentFileName();
+                expect(!name.empty());
+                count++;
+            } while (zip.goToNextFile());
+        }
+        expect(count > 0);
+    });
+
+
+    describe("zip file info populated on open", []() {
+        std::string path(testDataDir("test.zip"));
+        archo::ZipFile zip(path);
+
+        // The info vector should be populated after open
+        expect(!zip.info.empty());
+        for (const auto& fi : zip.info) {
+            expect(!fi.path.empty());
+        }
+    });
+
+
+    describe("zip file invalid path throws", []() {
+        try {
+            archo::ZipFile zip("/nonexistent/path/fake.zip");
+            expect(0 && "opening nonexistent zip - must throw");
+        } catch (std::exception&) {
+        }
+    });
+
     test::runAll();
     return test::finalize();
 }

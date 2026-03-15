@@ -10,13 +10,12 @@
 
 
 #include "scy/turn/server/tcpconnectionpair.h"
+#include "scy/crypto/crypto.h"
+#include "scy/net/util.h"
 #include "scy/turn/server/server.h"
 #include "scy/turn/server/tcpallocation.h"
-#include "scy/net/util.h"
-#include "scy/crypto/crypto.h"
 
-
-using namespace std;
+#include <stdexcept>
 
 
 namespace scy {
@@ -34,13 +33,13 @@ TCPConnectionPair::TCPConnectionPair(TCPAllocation& allocation)
     while (!allocation.pairs().add(connectionID, this, false)) {
         connectionID = util::randomNumber();
     }
-    LTrace("Create: ", connectionID)
+    LTrace("Create: ", connectionID);
 }
 
 
 TCPConnectionPair::~TCPConnectionPair()
 {
-    LTrace("Destroy: ", connectionID)
+    LTrace("Destroy: ", connectionID);
 
     if (client.impl) {
         client.Recv -= slot(this, &TCPConnectionPair::onClientDataReceived);
@@ -55,17 +54,20 @@ TCPConnectionPair::~TCPConnectionPair()
         peer->close();
     }
 
-    assert(allocation.pairs().exists(connectionID));
-    allocation.pairs().remove(connectionID);
+    if (!allocation.pairs().exists(connectionID))
+        LWarn("Connection pair not found in allocation pairs during destruction: ", connectionID);
+    allocation.pairs()
+        .remove(connectionID);
 }
 
 
 bool TCPConnectionPair::doPeerConnect(const net::Address& peerAddr)
 {
     try {
-        assert(!transactionID.empty());
+        if (transactionID.empty())
+            throw std::logic_error("transactionID must be set before doPeerConnect");
         peer.swap(std::make_shared<net::TCPSocket>());
-        peer.impl->opaque = this;
+        peer.impl->opaque = static_cast<void*>(this);
         peer.Close += slot(this, &TCPConnectionPair::onConnectionClosed);
 
         // Start receiving early media
@@ -77,8 +79,7 @@ bool TCPConnectionPair::doPeerConnect(const net::Address& peerAddr)
 
         client->connect(peerAddr);
     } catch (std::exception& exc) {
-        LError("Peer connect error: ", exc.what())
-        assert(0);
+        LError("Peer connect error: ", exc.what());
         return false;
     }
     return true;
@@ -88,9 +89,10 @@ bool TCPConnectionPair::doPeerConnect(const net::Address& peerAddr)
 void TCPConnectionPair::setPeerSocket(const net::TCPSocket::Ptr& socket)
 {
     STrace << "Set peer socket: " << connectionID << ": "
-                 << socket->peerAddress() << endl;
+           << socket->peerAddress() << std::endl;
 
-    assert(!peer.impl);
+    if (peer.impl)
+        throw std::logic_error("peer socket already set for connection pair");
     peer.swap(socket);
     peer.Close += slot(this, &TCPConnectionPair::onConnectionClosed);
 
@@ -98,27 +100,28 @@ void TCPConnectionPair::setPeerSocket(const net::TCPSocket::Ptr& socket)
     peer.Recv += slot(this, &TCPConnectionPair::onPeerDataReceived);
 
     net::setServerSocketRecvBufSize<uv_tcp_t>(
-        *socket.get(), SERVER_SOCK_BUF_SIZE); // TODO: make option
+        *socket.get(), SERVER_SOCK_BUF_SIZE);
 }
 
 
 void TCPConnectionPair::setClientSocket(const net::TCPSocket::Ptr& socket)
 {
     STrace << "Set client socket: " << connectionID << ": "
-                 << socket->peerAddress() << endl;
+           << socket->peerAddress() << std::endl;
 
-    assert(!client.impl);
+    if (client.impl)
+        throw std::logic_error("client socket already set for connection pair");
     client.swap(socket);
     client.Close += slot(this, &TCPConnectionPair::onConnectionClosed);
 
     net::setServerSocketRecvBufSize<uv_tcp_t>(
-        *socket.get(), SERVER_SOCK_BUF_SIZE); // TODO: make option
+        *socket.get(), SERVER_SOCK_BUF_SIZE);
 }
 
 
 bool TCPConnectionPair::makeDataConnection()
 {
-    LTrace("Make data connection: ", connectionID)
+    LTrace("Make data connection: ", connectionID);
     if (!peer.impl || !client.impl)
         return false;
 
@@ -133,7 +136,7 @@ bool TCPConnectionPair::makeDataConnection()
 
     // Send early data from peer to client
     if (earlyPeerData.size()) {
-        LTrace("Flushing early media: ", earlyPeerData.size())
+        LTrace("Flushing early media: ", earlyPeerData.size());
         client->send(earlyPeerData.data(), earlyPeerData.size());
         earlyPeerData.clear();
     }
@@ -142,87 +145,63 @@ bool TCPConnectionPair::makeDataConnection()
 }
 
 
-void TCPConnectionPair::onPeerDataReceived(net::Socket&,
+bool TCPConnectionPair::onPeerDataReceived(net::Socket&,
                                            const MutableBuffer& buffer,
                                            const net::Address& peerAddress)
 {
-    LTrace("Peer > Client: ", buffer.size())
-    // assert(pkt.buffer.position() == 0);
-    // if (pkt.buffer.available() < 300)
-    //    LTrace("Peer => Client: ", pkt.buffer)
-    // auto socket = reinterpret_cast<net::Socket*>(sender);
-    // char* buf = bufferCast<char*>(buf);
+    LTrace("Peer > Client: ", buffer.size());
 
-    // Buffer& buf = pkt.buffer;
     const char* buf = bufferCast<const char*>(buffer);
     size_t len = buffer.size();
     if (client.impl) {
 
         allocation.updateUsage(len);
         if (allocation.deleted())
-            return;
+            return false;
 
-        // assert(buf.position() == 0);
         client->send(buf, len);
     }
 
-#if 0
-    // Flash policy requests
-    // TODO: Handle elsewhere? Bloody flash...
-    else if (len == 23 && (strcmp(buf, "<policy-file-request/>") == 0)) {
-        LTrace("Handle flash policy")
-        std::string policy(
-            "<?xml version=\"1.0\"?><cross-domain-policy><allow-access-from "
-            "domain=\"*\" to-ports=\"*\" /></cross-domain-policy>");
-        // assert(peer->get() == pkt.info->socket);
-        peer->send(policy.c_str(), policy.length() + 1);
-        peer->close();
-    }
-#endif
-
     // Buffer early media
-    // TODO: Make buffer size server option
     else {
         size_t maxSize =
             allocation.server().options().earlyMediaBufferSize;
-        LDebug("Buffering early data: ", len)
-        //#ifdef _DEBUG
-        //    LDebug("Printing early data: ", std::string(buf, len))
-        //#endif
+        LDebug("Buffering early data: ", len);
         if (len > maxSize)
-            LWarn("Dropping early media: Oversize packet: ", len)
+            ;
+        LWarn("Dropping early media: Oversize packet: ", len);
         if (earlyPeerData.size() > maxSize)
-            LWarn("Dropping early media: Buffer at capacity >= ", maxSize)
+            ;
+        LWarn("Dropping early media: Buffer at capacity >= ", maxSize);
 
-        // earlyPeerData.append(static_cast<const char*>(pkt.data()), len);
         earlyPeerData.insert(earlyPeerData.end(), buf, buf + len);
     }
+    return false;
 }
 
 
-void TCPConnectionPair::onClientDataReceived(net::Socket&,
+bool TCPConnectionPair::onClientDataReceived(net::Socket&,
                                              const MutableBuffer& buffer,
                                              const net::Address& peerAddress)
 {
-    LTrace("Client > Peer: ", buffer.size())
-    // assert(packet.buffer.position() == 0);
-    // if (packet.size() < 300)
-    //    LTrace("Client > Peer: ", packet.buffer)
+    LTrace("Client > Peer: ", buffer.size());
 
     if (peer.impl) {
         allocation.updateUsage(buffer.size());
         if (allocation.deleted())
-            return;
+            return false;
 
         peer->send(bufferCast<char*>(buffer), buffer.size());
     }
+    return false;
 }
 
 
-void TCPConnectionPair::onPeerConnectSuccess(net::Socket& socket)
+bool TCPConnectionPair::onPeerConnectSuccess(net::Socket& socket)
 {
-    LTrace("Peer Connect request success")
-    assert(&socket == peer.impl.get());
+    LTrace("Peer Connect request success");
+    if (&socket != peer.impl.get())
+        throw std::logic_error("onPeerConnectSuccess called with unexpected socket");
     peer.Connect -= slot(this, &TCPConnectionPair::onPeerConnectSuccess);
     peer.Error -= slot(this, &TCPConnectionPair::onPeerConnectError);
 
@@ -232,25 +211,35 @@ void TCPConnectionPair::onPeerConnectSuccess(net::Socket& socket)
 
     allocation.sendPeerConnectResponse(this, true);
 
-    // TODO: Ensure this is implemented properly
     startTimeout();
+    return false;
 }
 
 
-void TCPConnectionPair::onPeerConnectError(net::Socket& socket, const Error& error)
+bool TCPConnectionPair::onPeerConnectError(net::Socket& socket, const Error& error)
 {
-    LTrace("Peer Connect request error: ", error.message)
-    assert(&socket == peer.impl.get());
+    LTrace("Peer Connect request error: ", error.message);
+    if (&socket != peer.impl.get())
+        throw std::logic_error("onPeerConnectError called with unexpected socket");
     allocation.sendPeerConnectResponse(this, false);
 
-    // The TCPConnectionPair will be deleted on next call to onConnectionClosed
+    // The TCPConnectionPair will be cleaned up on next timer tick
+    return false;
 }
 
 
-void TCPConnectionPair::onConnectionClosed(net::Socket& socket)
+bool TCPConnectionPair::onConnectionClosed(net::Socket& socket)
 {
-    LTrace("Connection pair socket closed: ",  connectionID,  ": ", &socket)
-    delete this; // kill
+    LTrace("Connection pair socket closed: ", connectionID, ": ", &socket);
+    // Flag for deletion by the parent allocation's timer instead of `delete this`
+    requestDeletion();
+    return false;
+}
+
+
+void TCPConnectionPair::requestDeletion()
+{
+    pendingDelete = true;
 }
 
 

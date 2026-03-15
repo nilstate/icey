@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_AV_Codec_H
-#define SCY_AV_Codec_H
+#pragma once
 
 
 #include "scy/av/av.h"
@@ -36,6 +35,7 @@ struct AV_API Codec
     int sampleRate;      ///< The sampling rate or RTP clock rate.
     int bitRate;         ///< The bit rate to encode at.
     int quality;         ///< Optional quality value, variable range depending on codec.
+    int compliance;      ///< FFmpeg strict_std_compliance level (default: FF_COMPLIANCE_EXPERIMENTAL).
     bool enabled;        ///< Weather or not the codec is available for use.
 
     //
@@ -47,7 +47,7 @@ struct AV_API Codec
     Codec(const std::string& name, const std::string& encoder,
           int sampleRate = 0, int bitRate = 0, bool enabled = true);
     /// Codec(const Codec& r);
-    virtual ~Codec();
+    virtual ~Codec() noexcept;
 
     //
     // Methods
@@ -75,10 +75,10 @@ struct AV_API AudioCodec : public Codec
     std::string sampleFmt; ///< One of: u8, s16, s32, flt, dbl, u8p, s16p, s32p, fltp, dblp
 
     AudioCodec();
-    AudioCodec(int channels,                       // = DEFAULT_AUDIO_CHANNELS
-               int sampleRate,                     // = DEFAULT_AUDIO_SAMPLE_RATE
-               const std::string& sampleFmt = "",  // = DEFAULT_AUDIO_SAMPLE_FMT
-               int bitRate = 0);                   // = DEFAULT_AUDIO_BIT_RATE
+    AudioCodec(int channels,                      // = DEFAULT_AUDIO_CHANNELS
+               int sampleRate,                    // = DEFAULT_AUDIO_SAMPLE_RATE
+               const std::string& sampleFmt = "", // = DEFAULT_AUDIO_SAMPLE_FMT
+               int bitRate = 0);                  // = DEFAULT_AUDIO_BIT_RATE
     AudioCodec(const std::string& name,
                int channels = 0,
                int sampleRate = 0,
@@ -91,7 +91,7 @@ struct AV_API AudioCodec : public Codec
                int bitRate = 0,
                const std::string& sampleFmt = "");
     // AudioCodec(const AudioCodec& r);
-    virtual ~AudioCodec();
+    virtual ~AudioCodec() noexcept;
 
     virtual std::string toString() const override;
     virtual void print(std::ostream& ost) override;
@@ -119,8 +119,8 @@ struct AV_API VideoCodec : public Codec
     VideoCodec();
     VideoCodec(int width, int height, double fps = 0.0,
                const std::string& pixelFmt = DEFAULT_VIDEO_PIXEL_FMT,
-               int bitRate = 0,                  // = DEFAULT_VIDEO_BIT_RATE
-               int sampleRate = 0);              // = DEFAULT_VIDEO_SAMPLE_RATE
+               int bitRate = 0,     // = DEFAULT_VIDEO_BIT_RATE
+               int sampleRate = 0); // = DEFAULT_VIDEO_SAMPLE_RATE
     VideoCodec(const std::string& name, int width = 0, int height = 0, double fps = 0.0,
                int bitRate = 0,
                int sampleRate = 0,
@@ -131,22 +131,22 @@ struct AV_API VideoCodec : public Codec
                int sampleRatee = 0,
                const std::string& pixelFmt = DEFAULT_VIDEO_PIXEL_FMT);
     VideoCodec(const VideoCodec& r);
-    virtual ~VideoCodec();
+    virtual ~VideoCodec() noexcept;
 
     virtual std::string toString() const override;
     virtual void print(std::ostream& ost) override;
 };
 
 
-typedef std::list<Codec> CodecList;
-typedef std::list<Codec*> CodecPList;
+using CodecList = std::list<Codec>;
+using CodecPList = std::list<Codec*>;
 
 
 // ---------------------------------------------------------------------
 //
 inline int64_t fpsToInterval(int fps)
 {
-    static const int64_t kMinimumInterval = time::kNumNanosecsPerSec / 10000;  // 10k fps.
+    static const int64_t kMinimumInterval = time::kNumNanosecsPerSec / 10000; // 10k fps.
     return fps ? time::kNumNanosecsPerSec / fps : kMinimumInterval;
 }
 
@@ -171,6 +171,3 @@ inline float intervalToFpsFloat(int64_t interval)
 
 } // namespace av
 } // namespace scy
-
-
-#endif

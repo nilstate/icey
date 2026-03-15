@@ -9,12 +9,10 @@
 /// @{
 
 
-#ifndef SCY_Net_SocketAdapter_H
-#define SCY_Net_SocketAdapter_H
+#pragma once
 
 
 #include "scy/base.h"
-#include "scy/memory.h"
 #include "scy/net/address.h"
 #include "scy/net/dns.h"
 #include "scy/net/net.h"
@@ -44,15 +42,15 @@ public:
     SocketAdapter(SocketAdapter* sender = nullptr);
 
     /// Destroys the SocketAdapter.
-    virtual ~SocketAdapter();
+    virtual ~SocketAdapter() noexcept;
 
     /// Sends the given data buffer to the connected peer.
     /// Returns the number of bytes sent or -1 on error.
     /// No exception will be thrown.
     /// For TCP sockets the given peer address must match the
     /// connected peer address.
-    virtual ssize_t send(const char* data, size_t len, int flags = 0);
-    virtual ssize_t send(const char* data, size_t len, const Address& peerAddress, int flags = 0);
+    [[nodiscard]] virtual ssize_t send(const char* data, size_t len, int flags = 0);
+    [[nodiscard]] virtual ssize_t send(const char* data, size_t len, const Address& peerAddress, int flags = 0);
 
     /// Sends the given packet to the connected peer.
     /// Returns the number of bytes sent or -1 on error.
@@ -93,10 +91,11 @@ public:
 
     /// These virtual methods can be overridden as necessary
     /// to intercept socket events before they hit the application.
-    virtual void onSocketConnect(Socket& socket);
-    virtual void onSocketRecv(Socket& socket, const MutableBuffer& buffer, const Address& peerAddress);
-    virtual void onSocketError(Socket& socket, const Error& error);
-    virtual void onSocketClose(Socket& socket);
+    /// Return true to stop propagation to subsequent receivers.
+    virtual bool onSocketConnect(Socket& socket);
+    virtual bool onSocketRecv(Socket& socket, const MutableBuffer& buffer, const Address& peerAddress);
+    virtual bool onSocketError(Socket& socket, const Error& error);
+    virtual bool onSocketClose(Socket& socket);
 
     /// The priority of this adapter for STL sort operations.
     int priority = 0;
@@ -106,7 +105,7 @@ protected:
 
     struct Ref
     {
-		typedef std::shared_ptr<Ref> ptr_t;
+        using ptr_t = std::shared_ptr<Ref>;
 
         SocketAdapter* ptr;
         bool alive;
@@ -120,9 +119,6 @@ protected:
 
 } // namespace net
 } // namespace scy
-
-
-#endif // SCY_Net_SocketAdapter_H
 
 
 /// @\}

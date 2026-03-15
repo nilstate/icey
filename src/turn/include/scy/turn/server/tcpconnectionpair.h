@@ -8,17 +8,15 @@
 /// @addtogroup turn
 /// @{
 
-
-#ifndef SCY_TURN_TCPClientConnection_H
-#define SCY_TURN_TCPClientConnection_H
+#pragma once
 
 
-#include "scy/turn/turn.h"
-#include "scy/stun/message.h"
-#include "scy/net/tcpsocket.h"
-#include "scy/net/socketemitter.h"
 #include "scy/collection.h"
-#include "scy/util/timeout.h"
+#include "scy/net/socketemitter.h"
+#include "scy/net/tcpsocket.h"
+#include "scy/stun/message.h"
+#include "scy/timeout.h"
+#include "scy/turn/turn.h"
 
 
 namespace scy {
@@ -26,6 +24,9 @@ namespace turn {
 
 
 class TURN_API TCPAllocation;
+
+/// ConnectionBind request timeout (30 seconds, in milliseconds)
+static constexpr int kConnectionBindTimeout = 30 * 1000;
 
 
 class TURN_API TCPConnectionPair
@@ -46,19 +47,19 @@ public:
     void setClientSocket(const net::TCPSocket::Ptr& socket);
 
     /// Connection success callback for Connect request.
-    void onPeerConnectSuccess(net::Socket& socket);
+    bool onPeerConnectSuccess(net::Socket& socket);
 
     /// Connection error callback for Connect request.
-    void onPeerConnectError(net::Socket& socket, const Error& error);
+    bool onPeerConnectError(net::Socket& socket, const Error& error);
 
-    void onClientDataReceived(net::Socket& socket, const MutableBuffer& buffer,
+    bool onClientDataReceived(net::Socket& socket, const MutableBuffer& buffer,
                               const net::Address& peerAddress);
-    void onPeerDataReceived(net::Socket& socket, const MutableBuffer& buffer,
+    bool onPeerDataReceived(net::Socket& socket, const MutableBuffer& buffer,
                             const net::Address& peerAddress);
 
     /// Callback for handing either client or peer connections
     /// which result in the destruction of the TCPConnectionPair.
-    void onConnectionClosed(net::Socket& socket);
+    bool onConnectionClosed(net::Socket& socket);
 
     /// Starts the ConnectionBind request timeout.
     ///
@@ -66,6 +67,10 @@ public:
     /// connection is received after 30 seconds, the peer data
     /// connection MUST be closed.
     void startTimeout();
+
+    /// Signals the parent allocation to handle deletion instead
+    /// of destroying ourselves directly.
+    void requestDeletion();
 
     TCPAllocation& allocation;
 
@@ -76,7 +81,7 @@ public:
     net::SocketEmitter peer; // net::TCPSocket
 
     /// Return true if the peer `ConnectionBind` request timed out.
-    bool expired() const;
+    [[nodiscard]] bool expired() const;
 
     /// Stores early peer > client data.
     Buffer earlyPeerData;
@@ -87,6 +92,9 @@ public:
     /// True when p2p relay is flowing.
     bool isDataConnection;
 
+    /// True when this pair has been flagged for deletion.
+    bool pendingDelete = false;
+
     /// The ConnectionBind request timeout counter.
     Timeout timeout;
 
@@ -96,14 +104,13 @@ private:
     /// NonCopyable and NonMovable
     TCPConnectionPair(const TCPConnectionPair&) = delete;
     TCPConnectionPair& operator=(const TCPConnectionPair&) = delete;
+    TCPConnectionPair(TCPConnectionPair&&) = delete;
+    TCPConnectionPair& operator=(TCPConnectionPair&&) = delete;
 };
 
 
 } // namespace turn
 } // namespace scy
-
-
-#endif // SCY_TURN_TCPClientConnection_H
 
 
 /// @\}

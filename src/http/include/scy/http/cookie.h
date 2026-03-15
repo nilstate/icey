@@ -8,20 +8,18 @@
 /// @addtogroup http
 /// @{
 
+#pragma once
 
-#ifndef SCY_HTTP_Cookie_H
-#define SCY_HTTP_Cookie_H
-
-
+#include "scy/collection.h"
 #include "scy/http/http.h"
 #include "scy/net/net.h"
-#include "scy/collection.h"
 
 
 namespace scy {
 namespace http {
 
 
+/// @ingroup http
 /// This class represents a HTTP Cookie.
 ///
 /// A cookie is a small amount of information sent by a Web
@@ -74,13 +72,13 @@ public:
 
     /// Returns the version of the cookie, which is
     /// either 0 or 1.
-    int getVersion() const;
+    [[nodiscard]] int getVersion() const;
 
     /// Sets the name of the cookie.
     void setName(const std::string& name);
 
     /// Returns the name of the cookie.
-    const std::string& getName() const;
+    [[nodiscard]] const std::string& getName() const;
 
     /// Sets the value of the cookie.
     ///
@@ -93,7 +91,7 @@ public:
     void setValue(const std::string& value);
 
     /// Returns the value of the cookie.
-    const std::string& getValue() const;
+    [[nodiscard]] const std::string& getValue() const;
 
     /// Sets the comment for the cookie.
     ///
@@ -101,19 +99,19 @@ public:
     void setComment(const std::string& comment);
 
     /// Returns the comment for the cookie.
-    const std::string& getComment() const;
+    [[nodiscard]] const std::string& getComment() const;
 
     /// Sets the domain for the cookie.
     void setDomain(const std::string& domain);
 
     /// Returns the domain for the cookie.
-    const std::string& getDomain() const;
+    [[nodiscard]] const std::string& getDomain() const;
 
     /// Sets the path for the cookie.
     void setPath(const std::string& path);
 
     /// Returns the path for the cookie.
-    const std::string& getPath() const;
+    [[nodiscard]] const std::string& getPath() const;
 
     /// Sets the value of the secure flag for
     /// the cookie.
@@ -121,7 +119,7 @@ public:
 
     /// Returns the value of the secure flag
     /// for the cookie.
-    bool getSecure() const;
+    [[nodiscard]] bool getSecure() const;
 
     /// Sets the maximum age in seconds for
     /// the cookie.
@@ -135,40 +133,22 @@ public:
 
     /// Returns the maximum age in seconds for
     /// the cookie.
-    int getMaxAge() const;
+    [[nodiscard]] int getMaxAge() const;
 
     /// Sets the HttpOnly flag for the cookie.
     void setHttpOnly(bool flag = true);
 
     /// Returns true if the cookie's HttpOnly flag is set.
-    bool getHttpOnly() const;
+    [[nodiscard]] bool getHttpOnly() const;
 
     /// Returns a std::string representation of the cookie,
     /// suitable for use in a Set-Cookie header.
-    std::string toString() const;
+    [[nodiscard]] std::string toString() const;
 
     /// Escapes the given std::string by replacing all
     /// non-alphanumeric characters with escape
     /// sequences in the form %xx, where xx is the
     /// hexadecimal character code.
-    ///
-    /// The following characters will be replaced
-    /// with escape sequences:
-    ///   - percent sign %
-    ///   - less-than and greater-than < and >
-    ///   - curly brackets { and }
-    ///   - square brackets [ and ]
-    ///   - parenthesis ( and )
-    ///   - solidus /
-    ///   - vertical line |
-    ///   - reverse solidus (backslash /)
-    ///   - quotation mark "
-    ///   - apostrophe '
-    ///   - circumflex accent ^
-    ///   - grave accent `
-    ///   - comma and semicolon , and ;
-
-    ///   - whitespace and control characters
     static std::string escape(const std::string& str);
 
     /// Unescapes the given std::string by replacing all
@@ -247,10 +227,7 @@ inline bool Cookie::getHttpOnly() const
 } // namespace scy
 
 
-#endif // SCY_HTTP_Cookie_H
-
-
-/// @\}
+/// @}
 
 
 //

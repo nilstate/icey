@@ -1,6 +1,5 @@
 #include "scy/net/socketadapter.h"
 #include "scy/net/udpsocket.h"
-#include "scy/time.h"
 
 
 namespace scy {
@@ -34,35 +33,25 @@ public:
         server->close();
     }
 
-    void onSocketRecv(Socket&, const MutableBuffer& buffer, const net::Address& peerAddress) override
+    bool onSocketRecv(Socket&, const MutableBuffer& buffer, const net::Address& peerAddress) override
     {
-        LDebug("On recv: ", peerAddress, ": ", buffer.size())
+        LDebug("On recv: ", peerAddress, ": ", buffer.size());
 
-#if 0
-        std::string payload(bufferCast<const char*>(buffer), buffer.size());
-        payload.erase(std::remove(payload.begin(), payload.end(), 'x'), payload.end());
-        if (payload.length() < 12) {
-            uint64_t sentAt = util::strtoi<uint64_t>(payload);
-            uint64_t latency = time::ticks() - sentAt;
-
-            SDebug << "Recv latency packet from " << peerAddress << ": "
-                << "payload=" << payload.length() << ", "
-                << "latency=" << latency
-                << std::endl;
-        }
-#endif
         // Echo back to client
         server->send(bufferCast<const char*>(buffer), buffer.size(), peerAddress);
+        return false;
     }
 
-    void onSocketError(Socket&, const scy::Error& error) override
+    bool onSocketError(Socket&, const scy::Error& error) override
     {
-        LError("On error: ", error.message)
+        LError("On error: ", error.message);
+        return false;
     }
 
-    void onSocketClose(Socket&) override
+    bool onSocketClose(Socket&) override
     {
-        LDebug("On close")
+        LDebug("On close");
+        return false;
     }
 };
 

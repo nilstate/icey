@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_Symple_H
-#define SCY_Symple_H
+#pragma once
 
 
 #include "scy/base.h"
@@ -18,17 +17,14 @@
 
 // Shared library exports
 #if defined(SCY_WIN) && defined(SCY_SHARED_LIBRARY)
-    #if defined(Symple_EXPORTS)
-        #define Symple_API __declspec(dllexport)
-    #else
-        #define Symple_API __declspec(dllimport)
-    #endif
+#if defined(Symple_EXPORTS)
+#define Symple_API __declspec(dllexport)
 #else
-    #define Symple_API // nothing
+#define Symple_API __declspec(dllimport)
 #endif
-
-
-#endif // SCY_Symple_Roster_H
+#else
+#define Symple_API // nothing
+#endif
 
 
 /// @\}

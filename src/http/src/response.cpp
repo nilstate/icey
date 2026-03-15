@@ -13,8 +13,7 @@
 #include "scy/datetime.h"
 #include "scy/http/util.h"
 
-
-using std::endl;
+#include <stdexcept>
 
 
 namespace scy {
@@ -107,12 +106,10 @@ void Response::addCookie(const Cookie& cookie)
 void Response::getCookies(std::vector<Cookie>& cookies) const
 {
     cookies.clear();
-    NVCollection::ConstIterator it = find("Set-Cookie");
-    while (it != end() && util::icompare(it->first, "Set-Cookie") == 0) {
+    for (auto it = find("Set-Cookie"); it != end() && util::icompare(it->first, "Set-Cookie") == 0; ++it) {
         NVCollection nvc;
         http::splitParameters(it->second.begin(), it->second.end(), nvc);
         cookies.push_back(Cookie(nvc));
-        ++it;
     }
 }
 
@@ -129,7 +126,7 @@ void Response::write(std::string& str) const
 {
     str.append(_version);
     str.append(" ");
-    str.append(std::to_string(int(_status)));
+    str.append(std::to_string(static_cast<int>(_status)));
     str.append(" ");
     str.append(_reason);
     str.append("\r\n");
@@ -193,7 +190,7 @@ const char* getStatusCodeReason(StatusCode status)
         case StatusCode::UseProxy:
             return "Use Proxy";
         case StatusCode::TemporaryRedirect:
-            return "OK";
+            return "Temporary Redirect";
 
         // 400 range: client errors
         case StatusCode::BadRequest:
@@ -251,7 +248,6 @@ const char* getStatusCodeReason(StatusCode status)
         case StatusCode::VersionNotSupported:
             return "Version Not Supported";
     }
-    assert(0);
     return "Unknown";
 }
 
@@ -260,4 +256,4 @@ const char* getStatusCodeReason(StatusCode status)
 } // namespace scy
 
 
-/// @\}
+/// @}

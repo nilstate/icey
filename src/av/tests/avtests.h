@@ -17,10 +17,15 @@
 #include "scy/av/audioencoder.h"
 #include "scy/av/audioresampler.h"
 #include "scy/av/devicemanager.h"
+#include "scy/av/format.h"
+#include "scy/av/formatregistry.h"
+#include "scy/av/fpscounter.h"
 #include "scy/av/mediacapture.h"
 #include "scy/av/multiplexpacketencoder.h"
 #include "scy/av/realtimepacketqueue.h"
 #include "scy/av/videocapture.h"
+#include "scy/av/videodecoder.h"
+#include "scy/av/videoencoder.h"
 #include "scy/base.h"
 #include "scy/filesystem.h"
 #include "scy/logger.h"
@@ -28,11 +33,18 @@
 #include "scy/util.h"
 #include <random>
 
+#ifdef HAVE_FFMPEG
+extern "C" {
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+}
+#endif
 
-using std::cout;
-using std::cerr;
-using std::endl;
+
 using scy::test::Test;
+using std::cerr;
+using std::cout;
+using std::endl;
 
 
 namespace scy {
@@ -42,26 +54,20 @@ static const int kNumberFramesWanted = 200;
 static const int kInNumSamples = 1024;
 
 #ifdef SCY_WIN
-    // Use native aac encoder on Windows since newer FFmpeg
-    // version should always be available.
+// Use native aac encoder on Windows since newer FFmpeg
+// version should always be available.
 #define ACC_ENCODER "aac"
 #else
-    // Use libfdk_aac on Linux since native FFmpeg aac
-    // encoder is shaky on older versions.
+// Use libfdk_aac on Linux since native FFmpeg aac
+// encoder is shaky on older versions.
 #define ACC_ENCODER "libfdk_aac"
 #endif
 
-#define MP4_H264_AAC_TRANSCODER_FORMAT av::Format{"MP4 Default", "mp4",        \
-            { "libx264", 400, 300 },                                           \
-            { ACC_ENCODER }};
+#define MP4_H264_AAC_TRANSCODER_FORMAT av::Format{"MP4 Default", "mp4", {"libx264", 400, 300}, {ACC_ENCODER}};
 
-#define MP4_H264_AAC_REALTIME_FORMAT av::Format{"MP4 Realtime", "mp4",         \
-            { "libx264", 400, 300, 25, 48000, 128000, "yuv420p" },             \
-            { ACC_ENCODER, 2, 44100, 64000, "fltp" }};
+#define MP4_H264_AAC_REALTIME_FORMAT av::Format{"MP4 Realtime", "mp4", {"libx264", 400, 300, 25, 48000, 128000, "yuv420p"}, {ACC_ENCODER, 2, 44100, 64000, "fltp"}};
 
-#define VP8_H264_AAC_REALTIME_FORMAT av::Format{"MP4 VP8 Realtime", "mp4",     \
-            { "vp8", 400, 300, 25, 48000, 128000, "yuv420p" },                 \
-            { ACC_ENCODER, 2, 44100, 64000, "fltp" }};
+#define VP8_H264_AAC_REALTIME_FORMAT av::Format{"MP4 VP8 Realtime", "mp4", {"vp8", 400, 300, 25, 48000, 128000, "yuv420p"}, {ACC_ENCODER, 2, 44100, 64000, "fltp"}};
 
 
 // =============================================================================
@@ -200,7 +206,7 @@ class VideoFileTranscoderTest : public Test
         stream.start();
 
         while (!capture->stopping()) {
-            LDebug("Waiting for completion")
+            LDebug("Waiting for completion");
             scy::sleep(10);
         }
 
@@ -267,7 +273,7 @@ class MultiplexCaptureEncoderTest : public Test
         // Create and attach the default video capture
         av::VideoCapture video;
         if (devman.getDefaultCamera(device)) {
-            LInfo("Using video device: ", device.name)
+            LInfo("Using video device: ", device.name);
             video.openVideo(device.id, 640, 480);
             video.getEncoderFormat(options.iformat);
             stream.attachSource(&video, false, true);
@@ -276,7 +282,7 @@ class MultiplexCaptureEncoderTest : public Test
         // Create and attach the default audio capture
         av::AudioCapture audio;
         if (devman.getDefaultMicrophone(device)) {
-            LInfo("Using audio device: ", device.name)
+            LInfo("Using audio device: ", device.name);
             audio.openAudio(device.id, 2, 44100);
             audio.getEncoderFormat(options.iformat);
             stream.attachSource(&audio, false, true);
@@ -295,7 +301,7 @@ class MultiplexCaptureEncoderTest : public Test
 
         // Encode 100 frames and break
         while (video.video()->seconds < 10 && !video.stopping() && !audio.stopping()) {
-            // LDebug("Waiting for completion: ", numFramesRemaining)
+            // LDebug("Waiting for completion: ", numFramesRemaining);
             scy::sleep(10);
         }
 
@@ -467,7 +473,7 @@ class AudioCaptureTest : public Test
         expect(oparams.sampleRate == inSampleRate);
 
         while (numFramesRemaining > 0 && !capture.stopping()) {
-            LDebug("Waiting for completion: ", numFramesRemaining)
+            LDebug("Waiting for completion: ", numFramesRemaining);
             scy::sleep(10);
         }
 
@@ -534,11 +540,11 @@ class AudioCaptureEncoderTest : public Test
         expect(iparams.sampleRate == inSampleRate);
 
         while (numFramesRemaining > 0 && !capture.stopping()) {
-            LDebug("Waiting for completion: ", numFramesRemaining)
+            LDebug("Waiting for completion: ", numFramesRemaining);
             scy::sleep(10);
         }
 
-        LDebug("Number samples remaining: ", encoder.fifo.available())
+        LDebug("Number samples remaining: ", encoder.fifo.available());
         // assert(encoder.fifo.available() == 0);
         expect(encoder.fifo.available() < 1024);
 
@@ -610,14 +616,14 @@ class AudioCaptureResamplerTest : public Test
         capture.emitter.attach(packetSlot(this, &AudioCaptureResamplerTest::onAudioCaptured));
 
         while (numFramesRemaining > 0) {
-            LDebug("Waiting for completion: ", numFramesRemaining)
+            LDebug("Waiting for completion: ", numFramesRemaining);
             scy::sleep(10);
         }
 
         capture.stop();
         resampler.close();
         output.close();
-        LDebug("numFramesRemaining: ", numFramesRemaining)
+        LDebug("numFramesRemaining: ", numFramesRemaining);
 
         // TODO: verify data integrity
         expect(numFramesRemaining == 0);
@@ -627,7 +633,7 @@ class AudioCaptureResamplerTest : public Test
     {
         if (numFramesRemaining) {
             numFramesRemaining--;
-            LDebug("On audio packet: ", packet.size())
+            LDebug("On audio packet: ", packet.size());
             auto data = reinterpret_cast<uint8_t*>(packet.data());
             if (resampler.resample(&data, packet.numSamples)) {
                 output.write(
@@ -654,7 +660,7 @@ class AudioCaptureResamplerTest : public Test
 //         stream.emitter += packetSlot(this, &RealtimeMediaQueueEncoderTest::onPacketPlayout);
 //
 //         while (numFramesRemaining > 0) {
-//             LDebug("Waiting for completion: ", numFramesRemaining)
+//             LDebug("Waiting for completion: ", numFramesRemaining);
 //             scy::sleep(10);
 //         }
 //
@@ -666,8 +672,8 @@ class AudioCaptureResamplerTest : public Test
 //     {
 //         if (numFramesRemaining) {
 //             numFramesRemaining--;
-//             LDebug("On packet: ", numFramesRemaining, ": ", packet.time)
-//             // LDebug("On packet: ", numFramesRemaining, ": ", packet.time)
+//             LDebug("On packet: ", numFramesRemaining, ": ", packet.time);
+//             // LDebug("On packet: ", numFramesRemaining, ": ", packet.time);
 //         }
 //         else {
 //             stream.stop();
@@ -682,7 +688,8 @@ class AudioCaptureResamplerTest : public Test
 // =============================================================================
 // Realtime Media Queue Test
 //
-struct MockMediaPacketSource : public PacketSource, public basic::Startable
+struct MockMediaPacketSource : public PacketSource
+    , public basic::Startable
 {
     Thread runner;
     PacketSignal emitter;
@@ -696,7 +703,7 @@ struct MockMediaPacketSource : public PacketSource, public basic::Startable
 
     void start()
     {
-        LDebug("Start")
+        LDebug("Start");
         runner.start([](void* arg) {
             auto self = reinterpret_cast<MockMediaPacketSource*>(arg);
             if (self->numFramesRemaining) {
@@ -707,23 +714,24 @@ struct MockMediaPacketSource : public PacketSource, public basic::Startable
                 std::mt19937 rng(rd());
                 std::uniform_int_distribution<int> uni(1000, 1000000 * 5);
                 auto time = uni(rng);
-                // LDebug("Emitting: ", self->numFramesRemaining, ": ", time)
-                av::MediaPacket p(new uint8_t[10], 10, time);
-                p.assignDataOwnership();
+                // LDebug("Emitting: ", self->numFramesRemaining, ": ", time);
+                uint8_t buf[10] = {};
+                av::MediaPacket p(static_cast<const uint8_t*>(buf), 10, time);
                 self->emitter.emit(p);
             }
-        }, this);
+        },
+                     this);
     }
 
     void stop()
     {
-        LDebug("Stop")
+        LDebug("Stop");
         runner.cancel();
     }
 
     void onStreamStateChange(const PacketStreamState& state)
     {
-        LDebug("Stream state: ", state)
+        LDebug("Stream state: ", state);
 
         if (state.equals(PacketStreamState::Closed) ||
             state.equals(PacketStreamState::Error)) {
@@ -750,7 +758,7 @@ class RealtimeMediaQueueTest : public Test
         stream.emitter += packetSlot(this, &RealtimeMediaQueueTest::onPacketPlayout);
 
         while (numFramesRemaining > 0) {
-            // LDebug("Waiting for completion: ", numFramesRemaining)
+            // LDebug("Waiting for completion: ", numFramesRemaining);
             scy::sleep(10);
         }
 
@@ -763,7 +771,7 @@ class RealtimeMediaQueueTest : public Test
         // auto pkt = reinterpret_cast<av::MediaPacket*>(packet);
         if (numFramesRemaining) {
             numFramesRemaining--;
-            LDebug("On packet: ", numFramesRemaining, ": ", packet.time)
+            LDebug("On packet: ", numFramesRemaining, ": ", packet.time);
         } else {
             stream.stop();
         }
@@ -778,7 +786,7 @@ class RealtimeMediaQueueTest : public Test
 //
 //     Tests(Application& app) : app(app)
 //     {
-//         LDebug("Running tests...")
+//         LDebug("Running tests...");
 //
 //         try {
 //
@@ -819,7 +827,7 @@ class RealtimeMediaQueueTest : public Test
 // #endif
 //         }
 //         catch (std::exception& exc) {
-//             LError("Error: ", exc.what())
+//             LError("Error: ", exc.what());
 //         }
 //     };
 //
@@ -831,7 +839,7 @@ class RealtimeMediaQueueTest : public Test
 //     //
 //     void onVideoCaptureStreamFrame(void* sender, av::MatrixPacket& packet)
 //     {
-//         LDebug("On stream packet: ", packet.size())
+//         LDebug("On stream packet: ", packet.size());
 //     }
 //
 //
@@ -897,12 +905,12 @@ class RealtimeMediaQueueTest : public Test
 //             &VideoCaptureThread::onVideo);
 //             capture.stop();
 //
-//             LDebug(" Ended..................")
+//             LDebug(" Ended..................");
 //         }
 //
 //         void onVideo(void* sender, MatrixPacket& packet)
 //         {
-//             LDebug("On thread frame: ", packet.size())
+//             LDebug("On thread frame: ", packet.size());
 //             cv::imshow(_name, *packet.mat);
 //             frames++;
 //         }
@@ -918,7 +926,7 @@ class RealtimeMediaQueueTest : public Test
 //
 //     void runVideoCaptureThreadTest()
 //     {
-//         LDebug("Running video capture test...")
+//         LDebug("Running video capture test...");
 //
 //
 //         // start and destroy multiple receivers
@@ -929,10 +937,10 @@ class RealtimeMediaQueueTest : public Test
 //                 threads.push_back(new VideoCaptureThread(0));
 //             }
 //
-//             LDebug(" Ending..................")
+//             LDebug(" Ending..................");
 //         }
 //         catch (std::exception& exc) {
-//             LError("[VideoCaptureThread] Error: ", exc.what())
+//             LError("[VideoCaptureThread] Error: ", exc.what());
 //         }
 //
 //         std::puts("Press any key to continue...");
@@ -948,7 +956,7 @@ class RealtimeMediaQueueTest : public Test
 //     //
 //     void testVideoThumbnailer()
 //     {
-//         LDebug("Starting")
+//         LDebug("Starting");
 //
 //         try {
 //             assert(0 && "fixme");
@@ -957,13 +965,13 @@ class RealtimeMediaQueueTest : public Test
 //             //thumb.grab();
 //         }
 //         catch (std::exception& exc) {
-//             LError("VideoThumbnailer: ", exc.what())
+//             LError("VideoThumbnailer: ", exc.what());
 //         }
 //         catch (...) {
-//             LError("VideoThumbnailer: Unknown error")
+//             LError("VideoThumbnailer: Unknown error");
 //         }
 //
-//         LDebug("Complete")
+//         LDebug("Complete");
 //     }
 //
 //
@@ -1100,7 +1108,7 @@ class RealtimeMediaQueueTest : public Test
 //
 //             // Init captures
 //             if (options.oformat.video.enabled) {
-//                 LDebug("Video device: ", 0)
+//                 LDebug("Video device: ", 0);
 //                 videoCapture =
 //                 MediaFactory::instance().createVideoCapture(0); //0
 //                 //videoCapture =
@@ -1118,7 +1126,7 @@ class RealtimeMediaQueueTest : public Test
 //                 if
 //                 (MediaFactory::instance().devices().getDefaultMicrophone(device))
 //                 {
-//                     LDebug("Audio device: ", device.id)
+//                     LDebug("Audio device: ", device.id);
 //                     audioCapture =
 //                     MediaFactory::instance().createAudioCapture(device.id,
 //                         options.oformat.audio.channels,
@@ -1150,14 +1158,14 @@ class RealtimeMediaQueueTest : public Test
 //
 //         virtual ~StreamEncoderTest()
 //         {
-//             LDebug("Destroying")
+//             LDebug("Destroying");
 //             close();
-//             LDebug("Destroying: OK")
+//             LDebug("Destroying: OK");
 //         }
 //
 //         void close()
 //         {
-//             LDebug("########### Closing: ", frames)
+//             LDebug("########### Closing: ", frames);
 //             closed = true;
 //
 //             // Close the stream
@@ -1199,7 +1207,7 @@ class RealtimeMediaQueueTest : public Test
 //
 //         void onVideoCapture(void* sender, av::MatrixPacket& packet)
 //         {
-//             LDebug("On packet: ", packet.size())
+//             LDebug("On packet: ", packet.size());
 //
 //             //cv::imshow("StreamEncoderTest", *packet.mat);
 //         }
@@ -1231,7 +1239,7 @@ class RealtimeMediaQueueTest : public Test
 //
 //     void runStreamEncoderTest()
 //     {
-//         LDebug("Running")
+//         LDebug("Running");
 //         try
 //         {
 //             // Setup encoding format
@@ -1274,13 +1282,13 @@ class RealtimeMediaQueueTest : public Test
 //
 //             // Shutdown the garbage collector so we can free memory.
 //             //GarbageCollector::instance().shutdown();
-//             //LDebug("#################### Finalizing")
+//             //LDebug("#################### Finalizing");
 //             //GarbageCollector::instance().shutdown();
-//             //LDebug("#################### Exiting")
+//             //LDebug("#################### Exiting");
 //
-//             //LDebug("#################### Finalizing")
+//             //LDebug("#################### Finalizing");
 //             //app.cleanup();
-//             //LDebug("#################### Exiting")
+//             //LDebug("#################### Exiting");
 //
 //             // Wait for enter keypress
 //             //scy::pause();
@@ -1291,17 +1299,17 @@ class RealtimeMediaQueueTest : public Test
 //         }
 //         catch (std::exception& exc)
 //         {
-//             LError("Error: ", exc.what())
+//             LError("Error: ", exc.what());
 //             assert(0);
 //         }
 //
-//         LDebug("Ended")
+//         LDebug("Ended");
 //     }
 //
 //
 //     void runCaptureRecorderTest()
 //     {
-//         LDebug("Starting")
+//         LDebug("Starting");
 //
 //         /*
 //         av::VideoCapture::Ptr capture(0);
@@ -1329,7 +1337,7 @@ class RealtimeMediaQueueTest : public Test
 //         encoder.stop();
 //         */
 //
-//         LDebug("Complete")
+//         LDebug("Complete");
 //     }
 //
 //
@@ -1338,7 +1346,7 @@ class RealtimeMediaQueueTest : public Test
 //     //
 //     void runOpenCVCaptureTest()
 //     {
-//         LDebug("Starting")
+//         LDebug("Starting");
 //
 //         cv::VideoCapture cap(0);
 //         if (!cap.isOpened())
@@ -1356,7 +1364,7 @@ class RealtimeMediaQueueTest : public Test
 //             if (cv::waitKey(30) >= 0) break;
 //         }
 //
-//         LDebug("Complete")
+//         LDebug("Complete");
 //     }
 //
 //
@@ -1404,7 +1412,7 @@ class RealtimeMediaQueueTest : public Test
 //                 endl;
 //             }
 //
-//             LDebug("[AudioCaptureThread] Ended..................")
+//             LDebug("[AudioCaptureThread] Ended..................");
 //             //delete this;
 //         }
 //
@@ -1423,7 +1431,7 @@ class RealtimeMediaQueueTest : public Test
 //
 //     void runAudioCaptureThreadTest()
 //     {
-//         LDebug("Running Audio Capture Thread test...")
+//         LDebug("Running Audio Capture Thread test...");
 //
 //         // start and destroy multiple receivers
 //         list<AudioCaptureThread*> threads;
@@ -1443,13 +1451,13 @@ class RealtimeMediaQueueTest : public Test
 //     //
 //     void onCaptureTestAudioCapture(void*, AudioPacket& packet)
 //     {
-//         LDebug("onCaptureTestAudioCapture: ", packet.size())
+//         LDebug("onCaptureTestAudioCapture: ", packet.size());
 //         //cv::imshow("Target", *packet.mat);
 //     }
 //
 //     void runAudioCaptureTest()
 //     {
-//         LDebug("Running Audio Capture test...")
+//         LDebug("Running Audio Capture test...");
 //
 //         AudioCapture* capture = new AudioCapture(0, 1, 16000);
 //         capture.attach(packetSlot(this, &Tests::onCaptureTestAudioCapture));
@@ -1558,7 +1566,7 @@ class RealtimeMediaQueueTest : public Test
 //             StreamSocket& ss = socket();
 //
 //             fpsCounter.tick();
-//             LDebug("On Video Packet Encoded: ", fpsCounter.fps)
+//             LDebug("On Video Packet Encoded: ", fpsCounter.fps);
 //
 //             //if (fpsCounter.frames < 10)
 //             //    return;
@@ -1585,7 +1593,7 @@ class RealtimeMediaQueueTest : public Test
 //
 //     void runMediaSocketTest()
 //     {
-//         LDebug("Running Media Socket Test")
+//         LDebug("Running Media Socket Test");
 //
 //         ServerSocket svs(666);
 //         TCPServer srv(new TCPServerConnectionFactoryImpl<MediaConnection>(),
@@ -1602,7 +1610,7 @@ class RealtimeMediaQueueTest : public Test
 //
 //     void runCaptureRecorderTest()
 //     {
-//         LDebug("Running Capture Encoder Test")
+//         LDebug("Running Capture Encoder Test");
 //
 //         av::EncoderOptions options;
 //         options.ofile = "enctest.mp4";
@@ -1626,14 +1634,14 @@ class RealtimeMediaQueueTest : public Test
 //         //scy::pause();
 //         enc.stop();
 //
-//         LDebug("Running Capture Encoder Test: END")
+//         LDebug("Running Capture Encoder Test: END");
 //     }
 //
 //     FPSCounter fpsCounter;
 //     void onCaptureRecorderTestVideoEncoded(void* sender, MediaPacket& packet)
 //     {
 //         fpsCounter.tick();
-//         LDebug("On Video Packet Encoded: ", fpsCounter.fps)
+//         LDebug("On Video Packet Encoded: ", fpsCounter.fps);
 //     }
 //
 //     // ---------------------------------------------------------------------
@@ -1713,7 +1721,7 @@ class RealtimeMediaQueueTest : public Test
 //
 //         void onFrame(void* sender, RawPacket& packet)
 //         {
-//             LDebug("On packet: ", packet.size())
+//             LDebug("On packet: ", packet.size());
 //             assert(!closed);
 //             try
 //             {
@@ -1721,7 +1729,7 @@ class RealtimeMediaQueueTest : public Test
 //             }
 //             catch (std::exception& exc)
 //             {
-//                 LError("Capture Recorder Error: ", exc.what())
+//                 LError("Capture Recorder Error: ", exc.what());
 //                 stop();
 //             }
 //         }
@@ -1745,7 +1753,7 @@ class RealtimeMediaQueueTest : public Test
 //         av::Device dev;
 //         auto& media = av::MediaFactory::instance();
 //         media.devices().getDefaultMicrophone(dev);
-//         LInfo("Default audio capture ", dev.id)
+//         LInfo("Default audio capture ", dev.id);
 //         av::MediaCapture::Ptr audioCapture = media.createAudioCapture(0,
 //         //dev.id
 //             options.oformat.audio.channels,
@@ -1813,7 +1821,7 @@ class RealtimeMediaQueueTest : public Test
 //         av::Device dev;
 //         auto& media = av::MediaFactory::instance();
 //         media.devices().getDefaultMicrophone(dev);
-//         LInfo("Default audio capture ", dev.id)
+//         LInfo("Default audio capture ", dev.id);
 //         av::MediaCapture::Ptr audioCapture = media.createAudioCapture(0,
 //         //dev.id
 //             options.oformat.audio.channels,
@@ -1835,6 +1843,230 @@ class RealtimeMediaQueueTest : public Test
 //         stream.stop();
 //     }
 // };
+
+
+#ifdef HAVE_FFMPEG
+
+// =============================================================================
+// Standalone Video Encoder Test
+//
+// Generates synthetic YUV420P frames, encodes them with libx264,
+// and verifies output packets are produced.
+//
+class VideoEncoderTest : public Test
+{
+    int numPacketsEncoded = 0;
+
+    void run()
+    {
+        av::VideoEncoder encoder;
+
+        encoder.iparams.width = 320;
+        encoder.iparams.height = 240;
+        encoder.iparams.pixelFmt = "yuv420p";
+
+        encoder.oparams.encoder = "libx264";
+        encoder.oparams.pixelFmt = "yuv420p";
+        encoder.oparams.width = 320;
+        encoder.oparams.height = 240;
+        encoder.oparams.fps = 25;
+        encoder.oparams.bitRate = 400000;
+        encoder.oparams.enabled = true;
+
+        encoder.emitter += packetSlot(this, &VideoEncoderTest::onVideoEncoded);
+        encoder.create();
+        encoder.open();
+
+        // Generate and encode synthetic frames
+        const int numFrames = 50;
+        for (int i = 0; i < numFrames; i++) {
+            AVFrame* frame = encoder.frame;
+
+            // Fill Y plane with gradient pattern
+            for (int y = 0; y < encoder.iparams.height; y++) {
+                for (int x = 0; x < encoder.iparams.width; x++) {
+                    frame->data[0][y * frame->linesize[0] + x] =
+                        static_cast<uint8_t>((x + y + i * 3) % 256);
+                }
+            }
+            // Fill U and V planes
+            for (int y = 0; y < encoder.iparams.height / 2; y++) {
+                for (int x = 0; x < encoder.iparams.width / 2; x++) {
+                    frame->data[1][y * frame->linesize[1] + x] =
+                        static_cast<uint8_t>((128 + y + i * 2) % 256);
+                    frame->data[2][y * frame->linesize[2] + x] =
+                        static_cast<uint8_t>((64 + x + i * 5) % 256);
+                }
+            }
+
+            frame->pts = i;
+            encoder.encode(frame);
+        }
+
+        encoder.flush();
+        encoder.close();
+
+        LDebug("Video encoder test: encoded ", numPacketsEncoded, " packets from ", numFrames, " frames");
+        expect(numPacketsEncoded > 0);
+    }
+
+    void onVideoEncoded(av::VideoPacket& packet)
+    {
+        numPacketsEncoded++;
+        expect(packet.size() > 0);
+        expect(packet.width > 0);
+        expect(packet.height > 0);
+    }
+};
+
+
+// =============================================================================
+// Standalone Video Decoder Test
+//
+// Decodes video frames from test.mp4, verifies frame dimensions and count.
+//
+class VideoDecoderTest : public Test
+{
+    int numFramesDecoded = 0;
+
+    void run()
+    {
+        std::string inputFile = sampleDataDir("test.mp4");
+
+        // Open the file and find the video stream
+        AVFormatContext* formatCtx = nullptr;
+        if (avformat_open_input(&formatCtx, inputFile.c_str(), nullptr, nullptr) < 0) {
+            std::cout << "Cannot open " << inputFile << ", skipping..." << endl;
+            return;
+        }
+        if (avformat_find_stream_info(formatCtx, nullptr) < 0) {
+            avformat_close_input(&formatCtx);
+            std::cout << "Cannot find stream info, skipping..." << endl;
+            return;
+        }
+
+        // Find video stream
+        AVStream* videoStream = nullptr;
+        for (unsigned i = 0; i < formatCtx->nb_streams; i++) {
+            if (formatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
+                videoStream = formatCtx->streams[i];
+                break;
+            }
+        }
+        expect(videoStream != nullptr);
+
+        // Create decoder
+        av::VideoDecoder decoder(videoStream);
+        decoder.emitter += packetSlot(this, &VideoDecoderTest::onVideoDecoded);
+        decoder.create();
+        decoder.open();
+
+        int width = decoder.oparams.width;
+        int height = decoder.oparams.height;
+        expect(width > 0);
+        expect(height > 0);
+
+        // Decode all video packets
+        AVPacket* pkt = av_packet_alloc();
+        while (av_read_frame(formatCtx, pkt) >= 0) {
+            if (pkt->stream_index == videoStream->index) {
+                decoder.decode(*pkt);
+            }
+            av_packet_unref(pkt);
+        }
+        decoder.flush();
+        av_packet_free(&pkt);
+
+        avformat_close_input(&formatCtx);
+
+        LDebug("Video decoder test: decoded ", numFramesDecoded, " frames (", width, "x", height, ")");
+        expect(numFramesDecoded > 0);
+    }
+
+    void onVideoDecoded(av::VideoPacket& packet)
+    {
+        numFramesDecoded++;
+        expect(packet.width > 0);
+        expect(packet.height > 0);
+        expect(packet.size() > 0);
+    }
+};
+
+
+// =============================================================================
+// Standalone Audio Decoder Test
+//
+// Decodes audio from test.mp4, verifies sample output.
+//
+class AudioDecoderTest : public Test
+{
+    int numFramesDecoded = 0;
+
+    void run()
+    {
+        std::string inputFile = sampleDataDir("test.mp4");
+
+        // Open the file and find the audio stream
+        AVFormatContext* formatCtx = nullptr;
+        if (avformat_open_input(&formatCtx, inputFile.c_str(), nullptr, nullptr) < 0) {
+            std::cout << "Cannot open " << inputFile << ", skipping..." << endl;
+            return;
+        }
+        if (avformat_find_stream_info(formatCtx, nullptr) < 0) {
+            avformat_close_input(&formatCtx);
+            std::cout << "Cannot find stream info, skipping..." << endl;
+            return;
+        }
+
+        // Find audio stream
+        AVStream* audioStream = nullptr;
+        for (unsigned i = 0; i < formatCtx->nb_streams; i++) {
+            if (formatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
+                audioStream = formatCtx->streams[i];
+                break;
+            }
+        }
+
+        if (!audioStream) {
+            avformat_close_input(&formatCtx);
+            std::cout << "No audio stream in test file, skipping..." << endl;
+            return;
+        }
+
+        // Create decoder
+        av::AudioDecoder decoder(audioStream);
+        decoder.emitter += packetSlot(this, &AudioDecoderTest::onAudioDecoded);
+        decoder.create();
+        decoder.open();
+
+        expect(decoder.oparams.channels > 0);
+        expect(decoder.oparams.sampleRate > 0);
+
+        // Decode all audio packets
+        AVPacket* pkt = av_packet_alloc();
+        while (av_read_frame(formatCtx, pkt) >= 0) {
+            if (pkt->stream_index == audioStream->index) {
+                decoder.decode(*pkt);
+            }
+            av_packet_unref(pkt);
+        }
+        decoder.flush();
+        av_packet_free(&pkt);
+
+        avformat_close_input(&formatCtx);
+
+        LDebug("Audio decoder test: decoded ", numFramesDecoded, " frames");
+        expect(numFramesDecoded > 0);
+    }
+
+    void onAudioDecoded(av::AudioPacket& packet)
+    {
+        numFramesDecoded++;
+        expect(packet.size() > 0);
+    }
+};
+
+#endif // HAVE_FFMPEG
 
 
 } // namespace scy

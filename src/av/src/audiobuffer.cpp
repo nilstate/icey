@@ -27,13 +27,13 @@ namespace av {
 AudioBuffer::AudioBuffer()
     : fifo(nullptr)
 {
-    LTrace("Create")
+    LTrace("Create");
 }
 
 
-AudioBuffer::~AudioBuffer()
+AudioBuffer::~AudioBuffer() noexcept
 {
-    LTrace("Destroy")
+    LTrace("Destroy");
     close();
 }
 
@@ -47,9 +47,12 @@ void AudioBuffer::alloc(const std::string& sampleFmt, int channels, int numSampl
            << endl;
 
     enum AVSampleFormat format = av_get_sample_fmt(sampleFmt.c_str());
-    assert(!fifo);
-    assert(channels);
-    assert(format != AV_SAMPLE_FMT_NONE);
+    if (fifo)
+        throw std::runtime_error("AudioBuffer: already allocated");
+    if (!channels)
+        throw std::runtime_error("AudioBuffer: channels must be non-zero");
+    if (format == AV_SAMPLE_FMT_NONE)
+        throw std::runtime_error("AudioBuffer: invalid sample format");
 
     // Create the FIFO buffer based on the specified sample format.
     fifo = av_audio_fifo_alloc(format, channels, numSamples);
@@ -61,7 +64,7 @@ void AudioBuffer::alloc(const std::string& sampleFmt, int channels, int numSampl
 
 void AudioBuffer::reset()
 {
-    LTrace("Reset")
+    LTrace("Reset");
 
     if (fifo) {
         av_audio_fifo_reset(fifo);
@@ -71,7 +74,7 @@ void AudioBuffer::reset()
 
 void AudioBuffer::close()
 {
-    LTrace("Close")
+    LTrace("Close");
 
     if (fifo) {
         av_audio_fifo_free(fifo);
@@ -83,9 +86,8 @@ void AudioBuffer::close()
 void AudioBuffer::write(void** samples, int numSamples)
 {
     int error;
-    assert(fifo);
-    assert(samples);
-    assert(samples[0]);
+    if (!fifo || !samples || !samples[0])
+        throw std::runtime_error("AudioBuffer: write called with invalid state");
 
     // Make the FIFO as large as it needs to be to hold both
     // the old and the new samples.
@@ -102,7 +104,7 @@ void AudioBuffer::write(void** samples, int numSamples)
 
 bool AudioBuffer::read(void** samples, int numSamples)
 {
-    LTrace("Read samples: ", numSamples)
+    LTrace("Read samples: ", numSamples);
 
     // Make sure that there is one frame worth of samples in the FIFO
     // buffer so that the encoder can do its work.
@@ -110,7 +112,7 @@ bool AudioBuffer::read(void** samples, int numSamples)
     // need to FIFO buffer to store as many frames worth of input samples
     // that they make up at least one frame worth of output samples.
     if (available() < numSamples) {
-        LTrace("No packets in buffer")
+        LTrace("No packets in buffer");
         return false;
     }
 

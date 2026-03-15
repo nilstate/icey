@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_AV_Format_H
-#define SCY_AV_Format_H
+#pragma once
 
 
 #include "scy/av/codec.h"
@@ -82,12 +81,9 @@ struct AV_API Format
 };
 
 
-typedef std::vector<Format> FormatList;
-typedef std::vector<Format*> FormatPList;
+using FormatList = std::vector<Format>;
+using FormatPList = std::vector<Format*>;
 
 
 } // namespace av
 } // namespace scy
-
-
-#endif

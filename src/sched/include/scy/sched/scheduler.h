@@ -9,16 +9,14 @@
 /// @{
 
 
-#ifndef SCY_Sched_Scheduler_H
-#define SCY_Sched_Scheduler_H
+#pragma once
 
 
+#include "scy/json/iserializable.h"
+#include "scy/logger.h"
 #include "scy/sched/sched.h"
 #include "scy/sched/task.h"
 #include "scy/sched/taskfactory.h"
-#include "scy/json/iserializable.h"
-#include "scy/logger.h"
-#include "scy/singleton.h"
 #include "scy/task.h"
 
 #include <vector>
@@ -30,7 +28,8 @@ namespace sched {
 
 /// The Scheduler manages and runs tasks
 /// that need to be executed at specific times.
-class Sched_API Scheduler : public TaskRunner, public json::ISerializable
+class Sched_API Scheduler : public TaskRunner
+    , public json::ISerializable
 {
 public:
     Scheduler();
@@ -64,9 +63,6 @@ protected:
 
 } // namespace sched
 } // namespace scy
-
-
-#endif // SCY_Sched_Scheduler_H
 
 
 /// @\}

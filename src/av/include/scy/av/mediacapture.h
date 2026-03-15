@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_AV_MediaCapture_H
-#define SCY_AV_MediaCapture_H
+#pragma once
 
 
 #include "scy/base.h"
@@ -25,6 +24,8 @@
 #include "scy/interface.h"
 #include "scy/packetsignal.h"
 
+#include <atomic>
+
 
 namespace scy {
 namespace av {
@@ -32,13 +33,19 @@ namespace av {
 
 /// This class implements a cross platform audio, video, screen and
 /// video file capturer.
-class AV_API MediaCapture : public ICapture, public basic::Runnable
+class AV_API MediaCapture : public ICapture
+    , public basic::Runnable
 {
 public:
-    typedef std::shared_ptr<MediaCapture> Ptr;
+    using Ptr = std::shared_ptr<MediaCapture>;
 
     MediaCapture();
-    virtual ~MediaCapture();
+    ~MediaCapture() noexcept override;
+
+    MediaCapture(const MediaCapture&) = delete;
+    MediaCapture& operator=(const MediaCapture&) = delete;
+    MediaCapture(MediaCapture&&) = delete;
+    MediaCapture& operator=(MediaCapture&&) = delete;
 
     virtual void openFile(const std::string& file);
     // #ifdef HAVE_FFMPEG_AVDEVICE
@@ -78,7 +85,12 @@ public:
     NullSignal Closing;
 
 protected:
-    virtual void openStream(const std::string& filename, AVInputFormat* inputFormat, AVDictionary** formatParams);
+    /// Open the underlying media stream.
+    ///
+    /// @param filename      The file path or device name to open.
+    /// @param inputFormat   The forced input format, or nullptr for auto-detect.
+    /// @param formatParams  Optional format parameters; may be updated by FFmpeg on return.
+    virtual void openStream(const std::string& filename, const AVInputFormat* inputFormat, AVDictionary** formatParams);
 
     void emit(IPacket& packet);
 
@@ -86,13 +98,13 @@ protected:
     mutable std::mutex _mutex;
     Thread _thread;
     AVFormatContext* _formatCtx;
-    VideoDecoder* _video;
-    AudioDecoder* _audio;
+    std::unique_ptr<VideoDecoder> _video;
+    std::unique_ptr<AudioDecoder> _audio;
     std::string _error;
-    bool _stopping;
-    bool _looping;
-    bool _realtime;
-    bool _ratelimit;
+    std::atomic<bool> _stopping;
+    std::atomic<bool> _looping;
+    std::atomic<bool> _realtime;
+    std::atomic<bool> _ratelimit;
 };
 
 
@@ -101,7 +113,6 @@ protected:
 
 
 #endif
-#endif // SCY_AV_MediaCapture_H
 
 
 /// @\}

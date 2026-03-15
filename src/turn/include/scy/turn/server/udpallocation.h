@@ -8,9 +8,7 @@
 /// @addtogroup turn
 /// @{
 
-
-#ifndef SCY_TURN_SERVER_UDPAllocation_H
-#define SCY_TURN_SERVER_UDPAllocation_H
+#pragma once
 
 
 #include "scy/net/packetsocket.h"
@@ -35,7 +33,7 @@ public:
     virtual ~UDPAllocation();
 
     // void onPacketReceived(void* sender, RawPacket& packet);
-    void onPeerDataReceived(net::Socket& socket, const MutableBuffer& buffer,
+    bool onPeerDataReceived(net::Socket& socket, const MutableBuffer& buffer,
                             const net::Address& peerAddress);
 
     bool handleRequest(Request& request);
@@ -44,16 +42,14 @@ public:
     ssize_t send(const char* data, size_t size,
                  const net::Address& peerAddress);
 
-    net::Address relayedAddress() const;
+    [[nodiscard]] net::Address relayedAddress() const;
 
 private:
     net::SocketEmitter _relaySocket; // net::UDPSocket
 };
-}
-} //  namespace scy::turn
 
-
-#endif // SCY_TURN_SERVER_UDPAllocation_H
+} // namespace turn
+} // namespace scy
 
 
 /// @\}

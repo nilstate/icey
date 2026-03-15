@@ -11,8 +11,6 @@
 
 #include "scy/thread.h"
 #include "scy/logger.h"
-#include "scy/platform.h"
-#include <assert.h>
 #include <memory>
 
 
@@ -25,8 +23,8 @@ namespace scy {
 const std::thread::id Thread::mainID = std::this_thread::get_id();
 
 
-Thread::Thread() :
-    // Call the default constructor explicitly to
+Thread::Thread()
+    : // Call the default constructor explicitly to
     // underline the fact that it does get called
     _thread()
 {
@@ -49,10 +47,12 @@ void Thread::start(std::function<void()> target)
 
 void Thread::join()
 {
-    assert(this->tid() != Thread::currentID());
+    if (this->tid() == Thread::currentID())
+        throw std::logic_error("Thread: cannot join from own thread");
     // assert(this->cancelled()); // should probably be cancelled
     _thread.join();
-    assert(!this->running());
+    if (this->running())
+        LWarn("Thread still running after join");
 }
 
 

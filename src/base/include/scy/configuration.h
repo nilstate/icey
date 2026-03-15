@@ -9,14 +9,13 @@
 /// @{
 
 
-#ifndef SCY_Configuration_H
-#define SCY_Configuration_H
+#pragma once
 
 
 #include "scy/base.h"
 #include "scy/signal.h"
-#include <string>
 #include <mutex>
+#include <string>
 
 
 namespace scy {
@@ -157,6 +156,8 @@ protected:
 protected:
     Configuration(const Configuration&) = delete;
     Configuration& operator=(const Configuration&) = delete;
+    Configuration(Configuration&&) = delete;
+    Configuration& operator=(Configuration&&) = delete;
 
 private:
     mutable std::mutex _mutex;
@@ -217,9 +218,6 @@ private:
 
 
 } // namespace scy
-
-
-#endif // SCY_Configuration_H
 
 
 /// @\}

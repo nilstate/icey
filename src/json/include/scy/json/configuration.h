@@ -9,12 +9,11 @@
 /// @{
 
 
-#ifndef SCY_JSON_Configuration_H
-#define SCY_JSON_Configuration_H
+#pragma once
 
 
-#include "scy/json/json.h"
 #include "scy/configuration.h"
+#include "scy/json/json.h"
 #include "scy/util.h"
 #include <mutex>
 
@@ -59,9 +58,6 @@ protected:
 
 } // namespace json
 } // namespace scy
-
-
-#endif // SCY_JSON_Configuration_H
 
 
 /// @\}
