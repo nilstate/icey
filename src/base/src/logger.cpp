@@ -13,7 +13,7 @@
 #include "scy/datetime.h"
 #include "scy/platform.h"
 
-#include <filesystem>
+#include "scy/filesystem.h"
 #include "scy/time.h"
 #include "scy/util.h"
 
@@ -416,7 +416,7 @@ void FileChannel::open()
         throw std::runtime_error("Log file path must be set.");
 
     // Create directories if needed
-    std::filesystem::create_directories(std::filesystem::path(_path).parent_path());
+    fs::mkdirr(fs::dirname(_path));
 
     // Open the file stream
     _fstream.close();
@@ -535,14 +535,14 @@ void RotatingFileChannel::rotate()
         _fstream->close();
 
     // Always try to create the directory
-    std::filesystem::create_directories(_dir);
+    fs::mkdirr(_dir);
 
     // Open the next log file
     _filename = util::format("%s_%ld.%s", _name.c_str(),
                              static_cast<long>(Timestamp().epochTime()),
                              _extension.c_str());
 
-    std::string path = (std::filesystem::path(_dir) / _filename).string();
+    std::string path = fs::makePath(_dir, _filename);
     _fstream = std::make_unique<std::ofstream>(path);
     _rotatedAt = time::now();
 }
