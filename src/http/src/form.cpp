@@ -13,7 +13,7 @@
 #include "scy/crypto/crypto.h"
 #include "scy/http/client.h"
 
-#include <filesystem>
+#include "scy/filesystem.h"
 #include "scy/http/packetizers.h"
 #include "scy/http/url.h"
 #include "scy/idler.h"
@@ -436,7 +436,7 @@ void FormPart::reset()
 
 FilePart::FilePart(const std::string& path)
     : _path(path)
-    , _filename(std::filesystem::path(path).filename().string())
+    , _filename(fs::filename(path))
     , _fileSize(0)
 {
     open();
@@ -446,7 +446,7 @@ FilePart::FilePart(const std::string& path)
 FilePart::FilePart(const std::string& path, const std::string& contentType)
     : FormPart(contentType)
     , _path(path)
-    , _filename(std::filesystem::path(path).filename().string())
+    , _filename(fs::filename(path))
     , _fileSize(0)
 {
     open();

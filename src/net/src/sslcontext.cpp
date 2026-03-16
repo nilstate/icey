@@ -15,8 +15,6 @@
 #include "scy/filesystem.h"
 #include "scy/net/sslmanager.h"
 
-#include <filesystem>
-
 
 using namespace std;
 
@@ -41,7 +39,7 @@ SSLContext::SSLContext(Usage usage, const std::string& privateKeyFile,
 
     int errCode = 0;
     if (!caLocation.empty()) {
-        if (std::filesystem::is_directory(caLocation))
+        if (fs::isdir(caLocation))
             errCode = SSL_CTX_load_verify_locations(
                 _sslContext, nullptr, fs::transcode(caLocation).c_str());
         else
@@ -119,7 +117,7 @@ SSLContext::SSLContext(Usage usage, const std::string& caLocation,
 
     int errCode = 0;
     if (!caLocation.empty()) {
-        if (std::filesystem::is_directory(caLocation))
+        if (fs::isdir(caLocation))
             errCode = SSL_CTX_load_verify_locations(
                 _sslContext, nullptr, fs::transcode(caLocation).c_str());
         else
