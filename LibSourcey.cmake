@@ -161,9 +161,11 @@ if(WIN32)
   list(APPEND minizip_SOURCES ${MINIZIP_SOURCE_DIR}/iowin32.c)
 endif()
 add_library(minizip STATIC ${minizip_SOURCES} ${minizip_HEADERS})
-target_link_libraries(minizip PRIVATE zlibstatic)
+target_link_libraries(minizip PUBLIC zlibstatic)
 target_include_directories(minizip PUBLIC
   $<BUILD_INTERFACE:${MINIZIP_SOURCE_DIR}>
+  $<BUILD_INTERFACE:${zlib_SOURCE_DIR}>
+  $<BUILD_INTERFACE:${zlib_BINARY_DIR}>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 if(ENABLE_SOLUTION_FOLDERS)
   set_target_properties(minizip PROPERTIES FOLDER "dependencies")
