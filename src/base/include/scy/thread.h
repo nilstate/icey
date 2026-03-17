@@ -42,10 +42,10 @@ public:
     /// This constructor starts the thread with the given function.
     template <typename Function, typename... Args>
     explicit Thread(Function&& func, Args&&... args)
-        : _thread(internal::runAsync<Function, Args...>, _context,
-                  std::forward<Function>(func),
-                  std::forward<Args>(args)...)
     {
+        _thread = std::thread(internal::runAsync<Function, Args...>, _context,
+                              std::forward<Function>(func),
+                              std::forward<Args>(args)...);
     }
 
     /// Destructor.
@@ -63,7 +63,7 @@ public:
     }
 
     /// Start the asynchronous context with the given void function.
-    virtual void start(std::function<void()> func);
+    void start(std::function<void()> func) override;
 
     /// Wait until the thread exits.
     void join();

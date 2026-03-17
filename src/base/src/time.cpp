@@ -41,7 +41,7 @@ double clockSecs()
 std::tm toLocal(const std::time_t& time)
 {
     std::tm tm_snapshot;
-#if defined(WIN32)
+#if defined(_WIN32)
     localtime_s(&tm_snapshot, &time); // thread-safe?
 #else
     localtime_r(&time, &tm_snapshot); // POSIX
@@ -53,7 +53,7 @@ std::tm toLocal(const std::time_t& time)
 std::tm toUTC(const std::time_t& time)
 {
     std::tm tm_snapshot;
-#if defined(WIN32)
+#if defined(_WIN32)
     gmtime_s(&tm_snapshot, &time); // thread-safe?
 #else
     gmtime_r(&time, &tm_snapshot); // POSIX

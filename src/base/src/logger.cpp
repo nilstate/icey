@@ -377,7 +377,7 @@ void ConsoleChannel::write(const LogStream& stream)
 
     std::ostringstream ss;
     format(stream, ss);
-#if !defined(WIN32) || defined(_CONSOLE) || defined(_DEBUG)
+#if !defined(_WIN32) || defined(_CONSOLE) || defined(_DEBUG)
     std::cout << ss.str() << std::flush;
 #endif
 //#if defined(_MSC_VER) && defined(_DEBUG)

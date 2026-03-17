@@ -22,6 +22,7 @@
 #include "uv.h"
 
 #include <any>
+#include <stdexcept>
 
 
 namespace scy {
@@ -81,7 +82,7 @@ public:
     /// closure via callback.
     [[nodiscard]] virtual bool shutdown()
     {
-        assert(0 && "not implemented by protocol");
+        throw std::logic_error("Socket::shutdown not implemented by protocol");
         return false;
     };
 
@@ -211,7 +212,7 @@ public:
 
     virtual ssize_t read(const ConstBuffer&)
     {
-        assert(0 && "write only");
+        throw std::logic_error("SocketPacket::read not supported; write only");
         return 0;
     }
 

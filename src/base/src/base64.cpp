@@ -66,6 +66,7 @@ ssize_t encode_block(const char* plaintext_in, size_t length_in, char* code_out,
                 result = (fragment & 0x0fc) >> 2;
                 *codechar++ = encode_value(result);
                 result = (fragment & 0x003) << 4;
+                [[fallthrough]];
             case step_B:
                 if (plainchar == plaintextend) {
                     state_in->result = result;
@@ -76,6 +77,7 @@ ssize_t encode_block(const char* plaintext_in, size_t length_in, char* code_out,
                 result |= (fragment & 0x0f0) >> 4;
                 *codechar++ = encode_value(result);
                 result = (fragment & 0x00f) << 2;
+                [[fallthrough]];
             case step_C:
                 if (plainchar == plaintextend) {
                     state_in->result = result;
@@ -175,6 +177,7 @@ ssize_t decode_block(const char* code_in, const size_t length_in, char* plaintex
                     fragment = static_cast<char>(decode_value(*codechar++));
                 } while (fragment < 0);
                 *plainchar = (fragment & 0x03f) << 2;
+                [[fallthrough]];
             case step_b:
                 do {
                     if (codechar == code_in + length_in) {
@@ -186,6 +189,7 @@ ssize_t decode_block(const char* code_in, const size_t length_in, char* plaintex
                 } while (fragment < 0);
                 *plainchar++ |= (fragment & 0x030) >> 4;
                 *plainchar = (fragment & 0x00f) << 4;
+                [[fallthrough]];
             case step_c:
                 do {
                     if (codechar == code_in + length_in) {
@@ -197,6 +201,7 @@ ssize_t decode_block(const char* code_in, const size_t length_in, char* plaintex
                 } while (fragment < 0);
                 *plainchar++ |= (fragment & 0x03c) >> 2;
                 *plainchar = (fragment & 0x003) << 6;
+                [[fallthrough]];
             case step_d:
                 do {
                     if (codechar == code_in + length_in) {

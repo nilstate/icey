@@ -179,16 +179,16 @@ void BitReader::get(char* val, size_t len)
 }
 
 
-const char BitReader::peek()
+char BitReader::peek()
 {
     if (_limit > _position)
-        return (const char)_bytes[_position];
+        return static_cast<char>(_bytes[_position]);
     // LDebug("Peeking next character is NULL");
     return 0;
 }
 
 
-const uint8_t BitReader::peekU8()
+uint8_t BitReader::peekU8()
 {
     try {
         uint8_t v;
@@ -202,7 +202,7 @@ const uint8_t BitReader::peekU8()
 }
 
 
-const uint16_t BitReader::peekU16()
+uint16_t BitReader::peekU16()
 {
     try {
         uint16_t v;
@@ -217,7 +217,7 @@ const uint16_t BitReader::peekU16()
 }
 
 
-const uint32_t BitReader::peekU24()
+uint32_t BitReader::peekU24()
 {
     try {
         uint32_t v;
@@ -232,7 +232,7 @@ const uint32_t BitReader::peekU24()
 }
 
 
-const uint32_t BitReader::peekU32()
+uint32_t BitReader::peekU32()
 {
     try {
         uint32_t v;
@@ -247,7 +247,7 @@ const uint32_t BitReader::peekU32()
 }
 
 
-const uint64_t BitReader::peekU64()
+uint64_t BitReader::peekU64()
 {
     try {
         uint64_t v;

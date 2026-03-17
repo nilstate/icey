@@ -16,8 +16,8 @@
 #include "scy/handle.h"
 #include "scy/runner.h"
 
-#include <cassert>
 #include <functional>
+#include <stdexcept>
 
 
 namespace scy {
@@ -58,9 +58,10 @@ public:
     {
         using Callback = internal::DeferredCallable<Function, Args...>;
 
-        assert(!_handle.active());
-        assert(!_handle.active());
-        assert(!_context->running);
+        if (_handle.active())
+            throw std::logic_error("Idler handle is already active");
+        if (_context->running)
+            throw std::logic_error("Idler is already running");
 
         _context->reset();
         _context->running = true;

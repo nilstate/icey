@@ -19,12 +19,9 @@
 
 
 #include <ctime>
-#if defined(WIN32)
+#if defined(_WIN32)
 #include <wincrypt.h>
 #include <windows.h>
-#if defined(_WIN32_WCE)
-#include <wce_time.h>
-#endif
 #else
 #include <fcntl.h>
 #include <unistd.h>
@@ -133,11 +130,7 @@ Random::Random(int stateSize)
         throw std::invalid_argument("Random: state size out of range");
 
     _buffer = std::make_unique<char[]>(stateSize);
-#if defined(_WIN32_WCE)
-    initState(static_cast<uint32_t>(wceex_time(nullptr)), _buffer.get(), stateSize);
-#else
     initState(static_cast<uint32_t>(std::time(nullptr)), _buffer.get(), stateSize);
-#endif
 }
 
 

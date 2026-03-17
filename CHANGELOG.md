@@ -4,6 +4,32 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.0.1] - Unreleased
+
+### Fixed
+
+- macOS build: added missing `<unistd.h>` and `<cstdio>` includes in platform.cpp
+- Windows build: added missing `<ostream>` include in error.h (MSVC string_view needs full definition)
+- Windows build: replaced `SIGKILL` with `SIGTERM` in process.h (SIGKILL not defined on MSVC)
+- Windows build: added `<csignal>` to application.cpp and process.h
+- macOS linker: removed unnecessary `-ldl` from Apple config in LibSourcey.cmake
+- CI: fixed sanitizer env var syntax (split matrix.env into env_name/env_value)
+- CI: removed ccache from coverage job (incompatible with gcov instrumentation)
+- CI: added `submodules: recursive` to all checkout steps
+- CI: added `BUILD_APPLICATIONS=OFF` to all jobs
+- pacm: fixed apps/CMakeLists.txt referencing `pacmconsole` instead of `pacm-cli`
+
+### Changed
+
+- Replaced all `assert()` calls in production code with exceptions or early returns (40+ occurrences)
+- Removed all `_WIN32_WCE` (Windows CE) compatibility code
+- Standardised Windows platform guard from `WIN32` to `_WIN32`
+- Fixed `const` on value return types in buffer.h (12 compiler warnings)
+- Added `[[fallthrough]]` annotations to base64.cpp switch cases (5 warnings)
+- Added `override` to Thread::start() and AsyncLogWriter::run()
+- Fixed Thread template constructor init order warning (two-phase init)
+- Zero compiler warnings in project code (excluding third-party deps)
+
 ## [2.0.0] - Unreleased
 
 ### Build system

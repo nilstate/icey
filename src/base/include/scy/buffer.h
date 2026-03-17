@@ -240,15 +240,15 @@ public:
 
     void getU64(uint64_t& val);
 
-    const char peek();
-    const uint8_t peekU8();
-    const uint16_t peekU16();
-    const uint32_t peekU24();
-    const uint32_t peekU32();
+    char peek();
+    uint8_t peekU8();
+    uint16_t peekU16();
+    uint32_t peekU24();
+    uint32_t peekU32();
 
     /// Peeks data from the BitReader.
     /// -1 is returned if reading past boundary.
-    const uint64_t peekU64();
+    uint64_t peekU64();
 
     //
     // String parsing methods.

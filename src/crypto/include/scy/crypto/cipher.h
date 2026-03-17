@@ -19,8 +19,9 @@
 
 #include <openssl/evp.h>
 
-#include <assert.h>
 #include <cstdint>
+#include <stdexcept>
+#include <string>
 #include <memory>
 
 
@@ -131,7 +132,9 @@ public:
     template <typename T>
     void setKey(const T& key)
     {
-        assert(int(key.size()) == keySize());
+        if (int(key.size()) != keySize())
+            throw std::logic_error("Cipher::setKey: key size mismatch (got " +
+                std::to_string(key.size()) + ", expected " + std::to_string(keySize()) + ")");
         _key.clear();
         for (typename T::const_iterator it = key.begin(); it != key.end(); ++it)
             _key.push_back(static_cast<unsigned char>(*it));
@@ -141,7 +144,9 @@ public:
     template <typename T>
     void setIV(const T& iv)
     {
-        assert(int(iv.size()) == ivSize());
+        if (int(iv.size()) != ivSize())
+            throw std::logic_error("Cipher::setIV: IV size mismatch (got " +
+                std::to_string(iv.size()) + ", expected " + std::to_string(ivSize()) + ")");
         _iv.clear();
         for (typename T::const_iterator it = iv.begin(); it != iv.end(); ++it)
             _iv.push_back(static_cast<unsigned char>(*it));

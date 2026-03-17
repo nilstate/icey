@@ -17,6 +17,8 @@
 #include "scy/packetsignal.h"
 #include "scy/util.h"
 
+#include <stdexcept>
+
 
 namespace scy {
 
@@ -49,7 +51,8 @@ struct PacketCreationStrategy : public IPacketCreationStrategy
     PacketCreationStrategy(int priority = 0)
         : _priority(priority)
     {
-        assert(_priority <= 100);
+        if (_priority > 100)
+            throw std::logic_error("PacketCreationStrategy priority must be <= 100");
     }
 
     virtual ~PacketCreationStrategy()
@@ -157,7 +160,8 @@ public:
     virtual IPacket* createPacket(const ConstBuffer& buffer, size_t& nread)
     {
         // size_t offset = reader.position();
-        assert(!_types.empty() && "no packet types registered");
+        if (_types.empty())
+            throw std::logic_error("No packet types registered");
 
         for (unsigned i = 0; i < _types.size(); i++) {
             auto packet = _types[i]->create(buffer, nread);

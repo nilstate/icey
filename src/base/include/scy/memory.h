@@ -15,7 +15,6 @@
 #include "scy/base.h"
 #include "scy/loop.h"
 
-#include <cassert>
 #include <memory>
 
 
@@ -52,7 +51,7 @@ struct Dispose
 {
     void operator()(T* ptr)
     {
-        assert(ptr);
+        if (!ptr) return;
         static_assert(0 < sizeof(T), "can't delete an incomplete type");
         ptr->dispose();
     }
@@ -65,7 +64,7 @@ struct Array
 {
     void operator()(T* ptr)
     {
-        assert(ptr);
+        if (!ptr) return;
         static_assert(0 < sizeof(T), "can't delete an incomplete type");
         delete[] ptr;
     }

@@ -16,6 +16,8 @@
 #include "scy/collection.h"
 #include "scy/timeout.h"
 
+#include <stdexcept>
+
 
 namespace scy {
 
@@ -91,7 +93,7 @@ protected:
             }
             return true;
         }
-        assert(0 && "unknown item");
+        throw std::logic_error("TimedManager::setTimeout: unknown item");
         return false;
     }
 

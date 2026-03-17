@@ -18,8 +18,8 @@
 #include "scy/logger.h"
 #include "scy/platform.h"
 
-#include <cassert>
 #include <deque>
+#include <stdexcept>
 
 
 namespace scy {
@@ -72,7 +72,8 @@ public:
         using Callback = internal::DeferredCallable<Function, Args...>;
 
         // assert(!_handle.active());
-        assert(!_context->running);
+        if (_context->running)
+            throw std::logic_error("Synchronizer is already running");
 
         _context->reset();
         _context->running = true;
@@ -80,7 +81,8 @@ public:
 
         // Use a Callback instance since we can't pass the capture lambda
         // to the libuv callback without compiler trickery.
-        assert(_handle.get());
+        if (!_handle.get())
+            throw std::logic_error("Synchronizer handle is null");
         _handle.get()->data = new Callback(_context,
                                            std::forward<Function>(func),
                                            std::forward<Args>(args)...);
@@ -95,7 +97,8 @@ public:
             }
         });
         _handle.throwLastError("Cannot initialize async");
-        assert(_handle.active());
+        if (!_handle.active())
+            throw std::logic_error("Synchronizer handle failed to become active");
     }
 
     /// Start the synchronizer with the given callback function.

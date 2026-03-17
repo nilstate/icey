@@ -113,6 +113,57 @@ All tests passing. Standalone VideoEncoder, VideoDecoder, AudioDecoder tests add
 
 ---
 
+## 2.0.1 - Production Readiness
+
+Make libsourcey confidently recommendable to external users. No new features; fix what's there.
+
+### P0: CI Green (all platforms)
+
+- [x] Fix macOS build: missing `<unistd.h>`, `<cstdio>` in platform.cpp
+- [x] Fix Windows build: missing `<ostream>` in error.h, `SIGKILL` -> `SIGTERM` in process.h
+- [x] Fix sanitizer CI: split `matrix.env` into `env_name`/`env_value` (invalid YAML)
+- [x] Fix coverage CI: remove ccache (incompatible with gcov instrumentation)
+- [x] Fix CI checkout: add `submodules: recursive`, `BUILD_APPLICATIONS=OFF`
+- [x] Fix pacm apps/CMakeLists.txt: `pacmconsole` -> `pacm-cli`
+- [ ] Fix sanitizer test failures (ASan/TSan/UBSan) - need runtime logs to diagnose
+- [ ] Verify all 9 CI jobs green
+
+### P1: Zero Warnings - DONE
+
+- [x] Fix `const` on value return types in buffer.h (12 warnings)
+- [x] Add `[[fallthrough]]` to base64.cpp switch cases (5 warnings)
+- [x] Add `override` to Thread::start() in thread.h and Logger::run() in logger.h
+- [x] Fix Thread template constructor `_context` init order warning (two-phase init)
+- [ ] Add `-Werror` to CI builds (enforce zero warnings going forward)
+
+### P2: Remove assert() from Production Code - DONE
+
+All 40+ assert() calls replaced with exceptions or early returns across 13 files.
+
+### P3: Clean Up Legacy Cruft - PARTIAL
+
+- [x] Remove all `#if defined(_WIN32_WCE)` code (Windows CE dead since 2013)
+- [x] Standardise Windows guard: `WIN32` -> `_WIN32` everywhere
+- [ ] Remove dead `#if 0` test blocks (basetests.h process test placeholder)
+- [ ] Clean up remaining TODO/FIXME comments (27 remain; resolve or add as TODO tasks)
+- [ ] Generate SocketIO API docs (api-socketio.md is empty)
+
+### P4: Test Gaps
+
+- [ ] Cross-platform process test (currently `#if 0` in basetests.h)
+- [ ] AV frame data integrity verification (avtests.cpp TODOs)
+- [ ] Test edge cases in TURN channel binding
+- [ ] Add integration tests for SSL hostname verification
+
+### P5: Polish
+
+- [ ] Add inline comments to sample programs
+- [ ] Add README.md to each samples/ directory
+- [ ] Review and update vcpkg port for 2.0.1
+- [ ] Tag 2.0.1 release with changelog
+
+---
+
 ## Post-2.0 Roadmap
 
 Major features deferred to future releases.
@@ -139,6 +190,22 @@ Major features deferred to future releases.
 - VideoPacket/AudioPacket ownership semantics
 
 ### 2.3 - C++ Modernisation
+
+#### Replace POCO-derived code with std:: equivalents
+
+Keep existing public API (`Timestamp`, `DateTime`, `LocalDateTime`, `Timespan`, `DateTimeFormatter`, `DateTimeParser`, `Random`); rewrite internals to wrap standard C++20 types. Removes ~1200 lines of legacy code, the POCO license dependency, and all platform-specific timezone/RNG hacks.
+
+- `Timestamp` -> wrap `std::chrono::system_clock::time_point`
+- `Timespan` -> wrap `std::chrono::microseconds`
+- `DateTime` -> store `time_point`, extract fields via `std::chrono::year_month_day`
+- `LocalDateTime` -> use `std::chrono::zoned_time`
+- `Timezone` -> use `std::chrono::current_zone()` (replaces raw `tzset()`/`tzname`/`gmtime_r`)
+- `DateTimeFormatter`/`DateTimeParser` -> use `std::chrono::format`/`std::chrono::parse` or keep manual formatting if format string compatibility required
+- `Random` -> replace BSD PRNG with `std::mt19937_64`, seed via `std::random_device`
+- Delete all `_WIN32_WCE` branches
+- Remove `/dev/urandom` and `CryptGenRandom` manual seeding
+
+#### Other modernisation
 
 - `std::jthread` + `std::stop_token` replacing Thread/Runner
 - Coroutine-based scheduling (C++20)

@@ -217,7 +217,8 @@ std::string Cipher::encryptString(const std::string& str, Encoding encoding)
 {
 #if 0 // fixme for faster encoding
     const int N = std::max<int>(str.length() + blockSize(), str.length() * 2);
-    assert(N >= (str.length() + blockSize() - 1));
+    if (N < int(str.length() + blockSize() - 1))
+        throw std::logic_error("Cipher::encryptString: output buffer too small");
 
     std::unique_ptr<char[]> outbuf(new char[N]);
     int len = encrypt(

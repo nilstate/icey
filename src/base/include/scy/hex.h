@@ -15,8 +15,8 @@
 #include "scy/error.h"
 #include "scy/interface.h"
 #include "scy/logger.h"
-#include <cassert>
 #include <cstring>
+#include <stdexcept>
 #include <iostream>
 
 
@@ -134,7 +134,8 @@ struct Decoder : public basic::Decoder
                   char& c)
     {
         if (rpos == 0 && lastbyte != '\0') {
-            assert(!iswspace(lastbyte));
+            if (iswspace(lastbyte))
+                throw std::logic_error("Hex decoder: stored last byte must not be whitespace");
             c = lastbyte;
             lastbyte = '\0';
         } else {

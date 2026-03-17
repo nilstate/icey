@@ -16,6 +16,8 @@
 #include "scy/stateful.h"
 #include "scy/thread.h"
 
+#include <stdexcept>
+
 
 namespace scy {
 
@@ -42,9 +44,8 @@ struct DiagnosticState : public State
             case Failed:
                 return "Failed";
             default:
-                assert(false);
+                throw std::logic_error("Unknown DiagnosticState id: " + std::to_string(id));
         }
-        return "undefined";
     }
 };
 

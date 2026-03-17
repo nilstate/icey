@@ -55,7 +55,8 @@ struct SharedLibrary
     void setError(const std::string& prefix)
     {
         std::string err(uv_dlerror(&_lib));
-        assert(!err.empty());
+        if (err.empty())
+            err = "unknown error";
         _error = prefix + ": " + err;
         throw std::runtime_error(prefix + ": " + err);
     }

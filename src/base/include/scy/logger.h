@@ -122,7 +122,7 @@ public:
     void flush();
 
     /// Writes queued messages asynchronously.
-    void run();
+    void run() override;
 
     /// Clears all queued messages.
     void clear();

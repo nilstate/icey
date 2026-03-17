@@ -15,6 +15,8 @@
 #include "scy/net/packetsocket.h"
 #include "scy/packettransaction.h"
 
+#include <stdexcept>
+
 
 namespace scy {
 namespace net {
@@ -89,9 +91,8 @@ protected:
     /// The base implementation only performs address matching.
     virtual bool checkResponse(const PacketT& packet) override
     {
-        assert(packet.info && "socket must provide packet info");
         if (!packet.info)
-            return false;
+            throw std::logic_error("Transaction::checkResponse: socket must provide packet info");
         auto info = static_cast<net::PacketInfo*>(packet.info.get());
         return impl->address() == info->socket->address() && _peerAddress == info->peerAddress;
     }

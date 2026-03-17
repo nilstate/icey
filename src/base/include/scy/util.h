@@ -17,8 +17,8 @@
 #include "scy/base.h"
 #include "scy/error.h"
 
-#include <cassert>
 #include <cstdint>
+#include <stdexcept>
 #include <cstring>
 #include <list>
 #include <map>
@@ -137,7 +137,8 @@ template <class S>
 S& replaceInPlace(S& str, const S& from, const S& to,
                   typename S::size_type start = 0)
 {
-    assert(from.size() > 0);
+    if (from.size() == 0)
+        throw std::logic_error("replaceInPlace: 'from' string must not be empty");
 
     S result;
     typename S::size_type pos = 0;
@@ -162,7 +163,8 @@ S& replaceInPlace(S& str, const typename S::value_type* from,
                   const typename S::value_type* to,
                   typename S::size_type start = 0)
 {
-    assert(*from);
+    if (!*from)
+        throw std::logic_error("replaceInPlace: 'from' string must not be empty");
 
     S result;
     typename S::size_type pos = 0;
@@ -463,7 +465,8 @@ template <class S>
 int icompare(const S& str, typename S::size_type pos, typename S::size_type n,
              const typename S::value_type* ptr)
 {
-    assert(ptr);
+    if (!ptr)
+        throw std::logic_error("icompare: pointer must not be null");
     typename S::size_type sz = str.size();
     if (pos > sz)
         pos = sz;

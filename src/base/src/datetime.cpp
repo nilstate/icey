@@ -687,11 +687,7 @@ void LocalDateTime::determineTzd(bool adjust)
     if (adjust) {
         std::time_t epochTime = _dateTime.timestamp().epochTime();
 #if defined(_WIN32)
-#if defined(_WIN32_WCE)
-        std::tm* broken = wceex_localtime(&epochTime);
-#else
         std::tm* broken = std::localtime(&epochTime);
-#endif
         if (!broken)
             throw std::runtime_error("System error: Cannot get local time");
         _tzd = (Timezone::utcOffset() + ((broken->tm_isdst == 1) ? 3600 : 0));
@@ -722,11 +718,7 @@ std::time_t LocalDateTime::dstOffset(int& dstOffset) const
     broken.tm_min = _dateTime.minute();
     broken.tm_sec = _dateTime.second();
     broken.tm_isdst = -1;
-#if defined(_WIN32_WCE)
-    local = wceex_mktime(&broken);
-#else
     local = std::mktime(&broken);
-#endif
 
     dstOffset = (broken.tm_isdst == 1) ? 3600 : 0;
     return local;
