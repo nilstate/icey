@@ -123,7 +123,7 @@ jobs:
         run: cmake --build build --config Release --parallel
 
       - name: Test
-        run: ctest --test-dir build --config Release --output-on-failure --parallel
+        run: ctest --test-dir build -C Release --output-on-failure --parallel
 
   sanitizers:
     runs-on: ubuntu-24.04
