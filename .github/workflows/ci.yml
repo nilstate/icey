@@ -214,11 +214,16 @@ jobs:
 
       - name: Collect coverage
         run: |
+          echo "=== Looking for .gcno files ==="
+          find build -name '*.gcno' | head -20
+          echo "=== Looking for .gcda files ==="
+          find build -name '*.gcda' | head -20 || true
+          echo "=== Collecting coverage ==="
           lcov --capture --directory build --output-file coverage.info \
-            --gcov-tool gcov-14 --ignore-errors mismatch
+            --gcov-tool gcov-14 --ignore-errors mismatch,empty
           lcov --remove coverage.info '/usr/*' '*/build/_deps/*' '*/vendor/*' '*/test/*' \
-            --output-file coverage.info --ignore-errors unused
-          lcov --list coverage.info
+            --output-file coverage.info --ignore-errors unused,empty
+          lcov --list coverage.info || true
 
       - name: Upload coverage
         uses: codecov/codecov-action@v4

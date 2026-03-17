@@ -17,6 +17,7 @@
 #include <codecvt>
 #include <locale>
 #include <memory>
+#include <windows.h>
 #endif
 
 
