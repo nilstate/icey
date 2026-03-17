@@ -14,6 +14,8 @@
 #include "scy/logger.h"
 #include "scy/platform.h"
 
+#include <csignal>
+
 
 namespace scy {
 

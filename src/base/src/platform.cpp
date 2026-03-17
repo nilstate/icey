@@ -15,6 +15,7 @@
 #include "uv.h"
 
 #include <chrono>
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <thread>
@@ -25,6 +26,8 @@
 #include <versionhelpers.h>
 #include <windows.h>
 #include <winsock2.h>
+#else
+#include <unistd.h>
 #endif
 
 

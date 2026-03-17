@@ -15,6 +15,7 @@
 #include "scy/base.h"
 #include "scy/handle.h"
 #include "scy/pipe.h"
+#include <csignal>
 #include <functional>
 #include <initializer_list>
 #include <vector>
@@ -70,7 +71,7 @@ public:
     void spawn();
 
     /// Kills the process.
-    bool kill(int signum = SIGKILL);
+    bool kill(int signum = SIGTERM);
 
     /// Returns the process PID, or 0 if not spawned.
     int pid() const;

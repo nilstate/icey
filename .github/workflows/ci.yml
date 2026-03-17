@@ -29,6 +29,8 @@ jobs:
     name: Linux (${{ matrix.cxx }})
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Install dependencies
         run: |
@@ -49,7 +51,8 @@ jobs:
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DBUILD_TESTS=ON \
-            -DBUILD_SAMPLES=OFF
+            -DBUILD_SAMPLES=OFF \
+            -DBUILD_APPLICATIONS=OFF
 
       - name: Build
         run: cmake --build build --parallel $(nproc)
@@ -62,6 +65,8 @@ jobs:
     name: macOS (AppleClang)
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Install dependencies
         run: brew install openssl@3
@@ -79,7 +84,8 @@ jobs:
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DOPENSSL_ROOT_DIR=$(brew --prefix openssl@3) \
             -DBUILD_TESTS=ON \
-            -DBUILD_SAMPLES=OFF
+            -DBUILD_SAMPLES=OFF \
+            -DBUILD_APPLICATIONS=OFF
 
       - name: Build
         run: cmake --build build --parallel $(sysctl -n hw.logicalcpu)
@@ -92,6 +98,8 @@ jobs:
     name: Windows (MSVC 2022)
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Install OpenSSL
         run: choco install openssl -y --no-progress
@@ -107,6 +115,7 @@ jobs:
           cmake -B build -G "Visual Studio 17 2022" -A x64 `
             -DBUILD_TESTS=ON `
             -DBUILD_SAMPLES=OFF `
+            -DBUILD_APPLICATIONS=OFF `
             -DCMAKE_C_COMPILER_LAUNCHER=sccache `
             -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
 
@@ -125,16 +134,21 @@ jobs:
         include:
           - sanitizer: address
             flags: -fsanitize=address -fno-omit-frame-pointer
-            env: ASAN_OPTIONS=detect_leaks=1
+            env_name: ASAN_OPTIONS
+            env_value: detect_leaks=1
           - sanitizer: thread
             flags: -fsanitize=thread
-            env: TSAN_OPTIONS=second_deadlock_stack=1
+            env_name: TSAN_OPTIONS
+            env_value: second_deadlock_stack=1
           - sanitizer: undefined
             flags: -fsanitize=undefined -fno-sanitize-recover=all
-            env: UBSAN_OPTIONS=print_stacktrace=1
+            env_name: UBSAN_OPTIONS
+            env_value: print_stacktrace=1
     name: Sanitizer (${{ matrix.sanitizer }})
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Install dependencies
         run: sudo apt-get update && sudo apt-get install -y libssl-dev clang-18
@@ -155,14 +169,15 @@ jobs:
             -DCMAKE_C_FLAGS="${{ matrix.flags }}" \
             -DCMAKE_CXX_FLAGS="${{ matrix.flags }}" \
             -DBUILD_TESTS=ON \
-            -DBUILD_SAMPLES=OFF
+            -DBUILD_SAMPLES=OFF \
+            -DBUILD_APPLICATIONS=OFF
 
       - name: Build
         run: cmake --build build --parallel $(nproc)
 
       - name: Test
         env:
-          ${{ matrix.env }}
+          ${{ matrix.env_name }}: ${{ matrix.env_value }}
         run: ctest --test-dir build --output-on-failure --parallel $(nproc)
 
   coverage:
@@ -170,16 +185,13 @@ jobs:
     name: Coverage
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y libssl-dev lcov
-
-      - name: Setup ccache
-        uses: hendrikmuhs/ccache-action@v1
-        with:
-          key: coverage
 
       - name: Configure
         run: |
@@ -187,13 +199,12 @@ jobs:
             -DCMAKE_BUILD_TYPE=Debug \
             -DCMAKE_C_COMPILER=gcc-14 \
             -DCMAKE_CXX_COMPILER=g++-14 \
-            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
-            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_C_FLAGS="--coverage" \
             -DCMAKE_CXX_FLAGS="--coverage" \
             -DCMAKE_EXE_LINKER_FLAGS="--coverage" \
             -DBUILD_TESTS=ON \
-            -DBUILD_SAMPLES=OFF
+            -DBUILD_SAMPLES=OFF \
+            -DBUILD_APPLICATIONS=OFF
 
       - name: Build
         run: cmake --build build --parallel $(nproc)

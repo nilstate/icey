@@ -17,6 +17,7 @@
 #include "uv.h"
 
 #include <exception>
+#include <ostream>
 #include <stdexcept>
 #include <string>
 
