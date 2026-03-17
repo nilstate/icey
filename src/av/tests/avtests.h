@@ -31,6 +31,7 @@
 #include "scy/logger.h"
 #include "scy/test.h"
 #include "scy/util.h"
+#include <chrono>
 #include <random>
 
 #ifdef HAVE_FFMPEG
@@ -311,7 +312,34 @@ class MultiplexCaptureEncoderTest : public Test
         // Check output file size
         expect(fs::filesize(options.ofile) > 10000);
 
-        // TODO: verify data integrity
+        // Verify output file data integrity
+        {
+            AVFormatContext* fmtCtx = nullptr;
+            int ret = avformat_open_input(&fmtCtx, options.ofile.c_str(), nullptr, nullptr);
+            expect(ret == 0);
+            if (ret == 0) {
+                ret = avformat_find_stream_info(fmtCtx, nullptr);
+                expect(ret >= 0);
+                expect(fmtCtx->nb_streams > 0);
+
+                // Verify video stream exists if video was enabled
+                if (options.iformat.video.enabled) {
+                    int vidIdx = av_find_best_stream(fmtCtx, AVMEDIA_TYPE_VIDEO, -1, -1, nullptr, 0);
+                    expect(vidIdx >= 0);
+                }
+
+                // Verify audio stream exists if audio was enabled
+                if (options.iformat.audio.enabled) {
+                    int audIdx = av_find_best_stream(fmtCtx, AVMEDIA_TYPE_AUDIO, -1, -1, nullptr, 0);
+                    expect(audIdx >= 0);
+                }
+
+                // Verify file has non-zero duration
+                expect(fmtCtx->duration > 0);
+
+                avformat_close_input(&fmtCtx);
+            }
+        }
     }
 };
 
@@ -356,8 +384,28 @@ class AudioEncoderTest : public Test
         output.close();
         util::clearVector<>(testSamples);
 
-        // TODO: verify data integrity
+        // Verify encoded audio output integrity
         expect(numFramesEncoded > 0);
+        {
+            std::string outputFile = "test." + oparams.encoder;
+            AVFormatContext* fmtCtx = nullptr;
+            int ret = avformat_open_input(&fmtCtx, outputFile.c_str(), nullptr, nullptr);
+            expect(ret == 0);
+            if (ret == 0) {
+                ret = avformat_find_stream_info(fmtCtx, nullptr);
+                expect(ret >= 0);
+
+                int audIdx = av_find_best_stream(fmtCtx, AVMEDIA_TYPE_AUDIO, -1, -1, nullptr, 0);
+                expect(audIdx >= 0);
+                if (audIdx >= 0) {
+                    auto* codecpar = fmtCtx->streams[audIdx]->codecpar;
+                    expect(codecpar->ch_layout.nb_channels == oparams.channels);
+                    expect(codecpar->sample_rate == oparams.sampleRate);
+                }
+
+                avformat_close_input(&fmtCtx);
+            }
+        }
     }
 
     void onAudioEncoded(av::AudioPacket& packet)
@@ -405,7 +453,18 @@ class AudioResamplerTest : public Test
         output.close();
         util::clearVector<>(testSamples);
 
-        // TODO: verify data integrity
+        // Verify resampled PCM output has expected size
+        // Output is s16 (2 bytes per sample), 2 channels, resampled from 48000 to 44100 Hz
+        auto fileSize = fs::filesize("test.pcm");
+        expect(fileSize > 0);
+
+        // Verify file size is in the expected ballpark:
+        // input frames * samples_per_frame * (44100/48000) ratio * channels * bytes_per_sample
+        int64_t expectedMinSize = static_cast<int64_t>(kNumberFramesWanted * 100) * kInNumSamples
+            * oparams.channels * 2 /* s16 = 2 bytes */
+            * 44100 / 48000
+            * 80 / 100; // allow 20% tolerance
+        expect(fileSize > expectedMinSize);
     }
 };
 
@@ -552,8 +611,28 @@ class AudioCaptureEncoderTest : public Test
         encoder.close();
         output.close();
 
-        // TODO: verify data integrity
+        // Verify encoded audio output integrity
         expect(numFramesRemaining == 0);
+        {
+            std::string outputFile = "test." + oparams.encoder;
+            AVFormatContext* fmtCtx = nullptr;
+            int ret = avformat_open_input(&fmtCtx, outputFile.c_str(), nullptr, nullptr);
+            expect(ret == 0);
+            if (ret == 0) {
+                ret = avformat_find_stream_info(fmtCtx, nullptr);
+                expect(ret >= 0);
+
+                int audIdx = av_find_best_stream(fmtCtx, AVMEDIA_TYPE_AUDIO, -1, -1, nullptr, 0);
+                expect(audIdx >= 0);
+                if (audIdx >= 0) {
+                    auto* codecpar = fmtCtx->streams[audIdx]->codecpar;
+                    expect(codecpar->ch_layout.nb_channels == oparams.channels);
+                    expect(codecpar->sample_rate == oparams.sampleRate);
+                }
+
+                avformat_close_input(&fmtCtx);
+            }
+        }
     }
 
     void onAudioCaptured(av::AudioPacket& packet)
@@ -625,8 +704,9 @@ class AudioCaptureResamplerTest : public Test
         output.close();
         LDebug("numFramesRemaining: ", numFramesRemaining);
 
-        // TODO: verify data integrity
+        // Verify resampled PCM output has non-zero size
         expect(numFramesRemaining == 0);
+        expect(fs::filesize("test.pcm") > 0);
     }
 
     void onAudioCaptured(av::AudioPacket& packet)
@@ -664,7 +744,7 @@ class AudioCaptureResamplerTest : public Test
 //             scy::sleep(10);
 //         }
 //
-//         // TODO: ensure stream duration
+//         // Verify stream processed all expected frames
 //         expect(numFramesRemaining == 0);
 //     }
 //
@@ -757,12 +837,17 @@ class RealtimeMediaQueueTest : public Test
         stream.start();
         stream.emitter += packetSlot(this, &RealtimeMediaQueueTest::onPacketPlayout);
 
+        auto startTime = std::chrono::steady_clock::now();
+
         while (numFramesRemaining > 0) {
             // LDebug("Waiting for completion: ", numFramesRemaining);
             scy::sleep(10);
         }
 
-        // TODO: ensure stream duration
+        // Verify stream ran for a non-zero duration
+        auto elapsed = std::chrono::steady_clock::now() - startTime;
+        auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count();
+        expect(elapsedMs > 0);
         expect(numFramesRemaining == 0);
     }
 

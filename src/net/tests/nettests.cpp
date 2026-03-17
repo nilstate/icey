@@ -355,6 +355,49 @@ int main(int argc, char** argv)
 
 
     // =========================================================================
+    // SSL Hostname Verification Test
+    //
+    // NOTE: This test requires network access to connect to an external host.
+    // It will fail in environments without internet connectivity (e.g. some CI).
+    //
+    describe("ssl hostname verification", []() {
+        // Create a client SSL context with certificate verification enabled
+        // and system CA certificates loaded
+        auto ctx = std::make_shared<net::SSLContext>(
+            net::SSLContext::CLIENT_USE, "", // no caLocation, use default CAs
+            net::SSLContext::VERIFY_RELAXED,
+            9,     // verification depth
+            true,  // loadDefaultCAs
+            "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH");
+
+        bool connected = false;
+        bool gotError = false;
+
+        auto sslSock = std::make_shared<net::SSLSocket>(ctx);
+        net::SocketEmitter socket(sslSock);
+
+        socket.Connect += [&](net::Socket& sock) -> bool {
+            connected = true;
+            sock.close();
+            return false;
+        };
+        socket.Error += [&](net::Socket& sock, const scy::Error& err) -> bool {
+            LError("SSL hostname verification error: ", err.message);
+            gotError = true;
+            return false;
+        };
+
+        // connect() sets the hostname automatically for SNI and verification
+        socket->connect("www.google.com", 443);
+
+        uv::runLoop();
+
+        expect(connected);
+        expect(!gotError);
+    });
+
+
+    // =========================================================================
     // UDP Socket Reconnection Test
     //
     describe("udp socket reconnection test", []() {

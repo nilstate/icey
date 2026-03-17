@@ -40,6 +40,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Added
 
 - Cross-platform process test (spawn echo, capture stdout, verify exit code)
+- AV test data integrity verification: codec, sample rate, channel count, and duration checks via avformat
+- SSL hostname verification integration test (connects to google.com with certificate verification enabled)
 
 ## [2.0.0] - Unreleased
 

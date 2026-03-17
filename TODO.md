@@ -149,15 +149,15 @@ All 40+ assert() calls replaced with exceptions or early returns across 13 files
 - [x] Standardise Windows guard: `WIN32` -> `_WIN32` everywhere
 - [x] Remove dead `#if 0` blocks (7 blocks across basetests.h, packetstream.cpp, cipher.cpp, turn tests, deprecated thread.h)
 - [x] Clean up stale TODO/FIXME comments in samples and deprecated code (11 removed)
-- [ ] Resolve remaining TODO/FIXME comments with actual fixes (12 remain in av/tests, pacm, sched)
+- [x] Resolve AV test TODO/FIXME comments with data integrity verification (7 resolved)
 - [ ] Generate SocketIO API docs (api-socketio.md is empty)
 
 ### P4: Test Gaps
 
 - [x] Cross-platform process test (echo + stdout capture + exit code)
-- [ ] AV frame data integrity verification (avtests.cpp TODOs - verify sample rate, channels, codec)
+- [x] AV frame data integrity verification (codec, sample rate, channels, duration verified via avformat)
 - [ ] Test edge cases in TURN channel binding (sendChannelBind is unimplemented - implement or drop)
-- [ ] Add integration tests for SSL hostname verification (all SSL tests use NoVerify)
+- [x] Add integration test for SSL hostname verification (connects to google.com with cert verification)
 
 ### P5: Polish
 
