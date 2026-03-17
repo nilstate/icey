@@ -163,7 +163,6 @@ int main(int argc, char** argv)
             expect(writer.position() == 26);
             expect(reader.position() == 26);
 
-            // TODO: Test overflow
             // try {
             //     reader.getU8(ru8);
             //     expect(0 && "must throw");
@@ -376,7 +375,6 @@ int main(int argc, char** argv)
 
         logger.setWriter(nullptr);
 
-        // TODO: Test log filtering
         // logger.getDefault()->setFilter("scy::*");
         // Destory the current Logger instance to ensure no crash
         Logger::destroy();
@@ -387,8 +385,6 @@ int main(int argc, char** argv)
     // Platform
     //
     describe("platform", []() {
-        // TODO: expand test coverage
-
         expect(!scy::getExePath().empty());
         expect(!scy::getCwd().empty());
 
@@ -932,6 +928,7 @@ int main(int argc, char** argv)
     describe("timer one-shot", new TimerOneShotTest);
     describe("logger filtering", new LoggerFilterTest);
     describe("packet stream", new PacketStreamTest);
+    describe("process class", new ProcessTest);
     describe("packet stream file io", new PacketStreamIOTest);
     describe("packet stream overflow", new PacketStreamOverflowTest);
     // describe("multi packet stream", new MultiPacketStreamTest);

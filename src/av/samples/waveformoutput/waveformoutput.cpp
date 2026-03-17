@@ -227,8 +227,6 @@ double min = 0, double max = 0, double avg = 0)
             sum += level;
         }
 
-        // TODO: Better way of gathering avg?
-        // Not all FFT values are useful.
         avg = sum / frequencies.size();
 
         writeLine("audio", packet.time, sum, min, max, avg);

@@ -143,17 +143,23 @@ This runs Doxygen to parse the C++ source into XML, then Moxygen to convert it i
 
 ## Contributors
 
-A massive thanks to everyone who has contributed to making LibSourcey awesome:
+LibSourcey has been shaped by contributions from developers around the world. Thanks to everyone who has helped make it better:
 
-* Kam Low ([@auscaster](https://github.com/auscaster)) - Primary developer
-* Yury Shulbn ([@yuryshubin](https://github.com/yuryshubin)) - iOS build toolchain and platform fixes
+* Kam Low ([@auscaster](https://github.com/auscaster)) - Creator and primary developer
+* Sergey Parfenyuk ([@sparfenyuk](https://github.com/sparfenyuk)) - Extensive compile fixes across macOS, type corrections, and buffer handling
+* Yury Shubin ([@yuryshubin](https://github.com/yuryshubin)) - iOS build toolchain and platform fixes
+* Norm Ovenseri ([@normano](https://github.com/normano)) - Apple/FFmpeg builds, AVFoundation support, verbose logging
+* Igor Lutsyk ([@lutsykigor](https://github.com/lutsykigor)) - WebRTC/WebSocket fixes, OpenCV+WebRTC sample app, Firefox compatibility
+* Kryton ([@Malesio](https://github.com/Malesio)) - Fixed segfaults in samples and tidied up Valgrind warnings
 * Vinci Xu ([@VinciShark](https://github.com/VinciShark)) - Windows documentation, testing and updates
 * Michael Fig ([@michael-fig](https://github.com/michael-fig)) - Fixed compiler flags to build without FFmpeg
+* Kapulkin Stanislav ([@kapulkin](https://github.com/kapulkin)) - WebRTC modernisation and macOS compile definitions
+* Thomas Reichhart ([@blackforest-tom](https://github.com/blackforest-tom)) - FFmpeg constant updates and ARM build fixes
+* Artem Suprunov ([@artemiuzzz](https://github.com/artemiuzzz)) - WebRTC null pointer fix and library path resolution
 * Hyunuk Kim ([@surinkim](https://github.com/surinkim)) - Fixed `std::codecvt` unicode character conversion on Windows
+* Cameron Smith ([@cksmith](https://github.com/cksmith)) - Git line ending normalisation
 * Damian Zelim ([@ZelimDamian](https://github.com/ZelimDamian)) - Fixed compiler flags for OS X build
-* Norm Ovenseri ([@normano](https://github.com/normano)) - Added verbose logging output to build system
 * Alexey ([@deilos](https://github.com/deilos)) - Fixed cross-platform FFmpeg build script
-* Kryton ([@Malesio](https://github.com/Malesio)) - Fixed segfaults in samples and tidied up Valgrind warnings
 
 ## Contributing
 

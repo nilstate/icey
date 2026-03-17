@@ -92,28 +92,6 @@ public:
         return false;
     }
 
-#if 0
-    void sendPacketToInitiator()
-    {
-        std::string payload;
-
-        // Send the unix ticks milisecond for checking latency
-        // payload.append(":");
-        // payload.append(util::itostr(time::ticks()));
-
-        // Send large packets to test throttling
-        // payload.append(65536, 'x');
-
-        payload.append(10000, 'x');
-        socket.send(payload.c_str(), payload.length());
-    }
-
-    void onSendTimer() 
-    { 
-        sendPacketToInitiator();
-        timer.stop();
-    }
-#endif
 };
 
 

@@ -104,33 +104,6 @@ protected:
 
     void onRelayDataReceived(turn::Client&, const char* data, size_t size, const net::Address& peerAddr)
     {
-#if 0 && TEST_RESPONDER_TO_INITIATOR
-        std::string payload(data, size);
-        payload.erase(std::remove(payload.begin(), payload.end(), 'x'), payload.end());
-        if (payload.length() == 9) {
-            uint64_t sentAt = util::strtoi<uint64_t>(payload);
-            uint64_t latency = time::ticks() - sentAt;
-
-            SDebug << id << ": Received data from " << peerAddr
-                         << ": payload=" << payload << ", latency=" << latency
-                         << endl;
-        } else
-            SDebug << id << ": Received dummy data from " << peerAddr
-                         << ": payloadLength=" << payload.length() << endl;
-
-        if (size < 150) {
-            std::string payload(data, size);
-            uint64_t sentAt = util::strtoi<uint64_t>(payload);
-            uint64_t latency = time::ticks() - sentAt;
-
-            LDebug(id << ": Received data from " << peerAddr << ": payload=" << payload << ", latency=", latency);
-        }
-        else
-            LDebug(id << ": Received dummy data from " << peerAddr << ": size=", size);
-        
-        // Echo back to peer
-        // client.sendData(data, size, peerAddr);
-#endif
         LDebug(id, ": Received response data from ", peerAddr, ": size=", size);
 
         // Send the intial data packet to responder

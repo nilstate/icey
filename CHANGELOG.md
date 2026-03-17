@@ -18,8 +18,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - CI: added `submodules: recursive` to all checkout steps
 - CI: added `BUILD_APPLICATIONS=OFF` to all jobs
 - pacm: fixed apps/CMakeLists.txt referencing `pacmconsole` instead of `pacm-cli`
+- Windows build: added missing `<windows.h>` include in filesystem.cpp
+- Windows build: fixed winsock.h/winsock2.h include order conflict in x509certificate.cpp
+- Windows build: added zlib include path for minizip in archo module
+- Windows CI: fixed ctest syntax (`--config` -> `-C Release`)
 
 ### Changed
+
+- Removed 7 dead `#if 0` code blocks (packetstream.cpp, cipher.cpp, turn tests, deprecated thread.h)
+- Cleaned up 11 stale TODO/FIXME comments in samples and deprecated code
 
 - Replaced all `assert()` calls in production code with exceptions or early returns (40+ occurrences)
 - Removed all `_WIN32_WCE` (Windows CE) compatibility code
@@ -29,6 +36,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Added `override` to Thread::start() and AsyncLogWriter::run()
 - Fixed Thread template constructor init order warning (two-phase init)
 - Zero compiler warnings in project code (excluding third-party deps)
+
+### Added
+
+- Cross-platform process test (spawn echo, capture stdout, verify exit code)
 
 ## [2.0.0] - Unreleased
 

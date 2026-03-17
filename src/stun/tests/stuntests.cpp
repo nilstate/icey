@@ -13,7 +13,6 @@ using namespace scy;
 using namespace scy::test;
 
 
-// TODO: Test vectors from http://tools.ietf.org/html/rfc5769
 
 
 int main(int argc, char** argv)

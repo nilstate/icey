@@ -65,49 +65,6 @@ protected:
 };
 
 
-#if 0
-/// This class is an invisible wrapper around a TStartable instance,
-/// which provides asynchronous access to the TStartable start() and
-/// stop() methods. TStartable is an instance of basic::Startable.
-/// @deprecated
-template <class TStartable>
-class AsyncStartable: public TStartable
-{
-public:
-    AsyncStartable() = default;
-    virtual ~AsyncStartable() = default;
-
-    static void runAsync(void* arg) {
-        try {
-            // Call the blocking start() function once only
-            static_cast<TStartable*>(arg)->start();
-        }
-        catch (std::exception& exc) {
-            // errorL("AsyncLtartable")(exc.what(), )
-#ifdef _DEBUG
-            throw exc;
-#endif
-        }
-    }
-
-    virtual bool start()
-    {
-        _thread.start(*this);
-        return true;
-    }
-
-    virtual void stop()
-    {
-        TStartable::stop();
-        _thread.join();
-    }
-
-protected:
-    Thread _thread;
-};
-#endif
-
-
 } // namespace scy
 
 

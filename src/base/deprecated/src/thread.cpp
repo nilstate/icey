@@ -63,7 +63,7 @@ void Thread::startAsync()
             ptr->exit = false;
             do {
                 runAsync(ptr.get());
-                scy::sleep(1); // TODO: uv_thread_yield when available
+                scy::sleep(1);
             } while (ptr->repeating && !ptr->cancelled());
             ptr->running = false;
             ptr->started = false;

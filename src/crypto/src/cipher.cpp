@@ -215,19 +215,6 @@ ssize_t Cipher::encrypt(const unsigned char* inbuf, size_t inlen,
 
 std::string Cipher::encryptString(const std::string& str, Encoding encoding)
 {
-#if 0 // fixme for faster encoding
-    const int N = std::max<int>(str.length() + blockSize(), str.length() * 2);
-    if (N < int(str.length() + blockSize() - 1))
-        throw std::logic_error("Cipher::encryptString: output buffer too small");
-
-    std::unique_ptr<char[]> outbuf(new char[N]);
-    int len = encrypt(
-        reinterpret_cast<const unsigned char*>(&str[0]), str.length(),
-        reinterpret_cast<unsigned char*>(outbuf.get()), N,
-        encoding);
-    return std::string(outbuf.get(), len);
-#endif
-
     std::string res;
     std::istringstream source(str);
     std::ostringstream sink;

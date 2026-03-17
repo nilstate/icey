@@ -549,13 +549,6 @@ void PacketStream::startSources()
                 startable->start();
             } else
                 throw std::runtime_error("PacketStream: unknown synchronizable source");
-#if 0
-            auto runnable = dynamic_cast<basic::Runnable*>(source);
-            if (runnable) {
-                LTrace("Starting runnable: ", source);
-                runnable->run();
-            }
-#endif
         }
     }
 }
@@ -572,13 +565,6 @@ void PacketStream::stopSources()
                 startable->stop();
             } else
                 throw std::runtime_error("PacketStream: unknown synchronizable source");
-#if 0
-            auto runnable = dynamic_cast<basic::Runnable*>(source);
-            if (runnable) {
-                LTrace("Stop runnable: ", source);
-                runnable->cancel();
-            }
-#endif
         }
     }
 }

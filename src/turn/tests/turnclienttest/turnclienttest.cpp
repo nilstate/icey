@@ -64,7 +64,6 @@ int main(int argc, char** argv)
 #endif
         };
 
-        // TODO: Use STUN binding request to get IP
         initiator.initiate(TURN_AUTHORIZE_PEER_IP);
 
         uv::runLoop();
@@ -102,7 +101,6 @@ int main(int argc, char** argv)
 #endif
         };
 
-        // TODO: Use STUN binding request to get IP
         initiator.initiate(TURN_AUTHORIZE_PEER_IP);
 
         uv::runLoop();

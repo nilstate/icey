@@ -21,8 +21,7 @@ using namespace Scy::TURN;
 using namespace Scy::Util;
 
 
-// TODO: Simplify this to an echo client.
-// Use the Symple MediaServer for media streaming example.
+
 
 /*
 // Detect Memory Leaks

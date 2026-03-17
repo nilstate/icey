@@ -56,7 +56,6 @@ MediaServer::MediaServer(uint16_t port)
     formats.registerFormat(av::Format("MJPEG", "mjpeg",
                                       av::VideoCodec("MJPEG", "mjpeg", 480, 320, 20)));
 
-    // TODO: Add h264 and newer audio formats
 }
 
 
@@ -117,7 +116,6 @@ void MediaServer::setupPacketStream(PacketStream& stream, const StreamingOptions
             throw std::runtime_error("Unsupported encoding method: " + options.encoding);
     } else if (options.oformat.name == "FLV") {
         // Allow mid-stream flash client connection
-        // FIXME: Broken in latest flash
         // auto injector = new FLVMetadataInjector(options.oformat);
         // stream.attach(injector, 10);
     }

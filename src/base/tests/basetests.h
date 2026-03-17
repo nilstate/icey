@@ -319,7 +319,6 @@ class SignalTest : public Test
 };
 
 
-#if 0 // TODO: Write cross platfrom process test with file fixtures
 // =============================================================================
 // Process
 //
@@ -327,33 +326,57 @@ class ProcessTest : public Test
 {
     void run()
     {
-        try {
-            Process proc;
+        // Test 1: spawn echo, capture stdout, verify exit code
+        {
+            bool gotStdout = false;
+            bool gotExit = false;
+            std::int64_t exitCode = -1;
+            std::string output;
 
-            char* args[3];
-            args[0] = "C:/Windows/notepad.exe";
-            args[1] = "runspot";
-            args[2] = nullptr_t;
-
-            proc.options.args = args;
-            proc.options.file = args[0];
-            proc.onexit = std::bind(&Tests::processExit, this, std::placeholders::_1);
+            Process proc{"echo", "hello world"};
+            proc.onstdout = [&](std::string line) {
+                gotStdout = true;
+                output += line;
+            };
+            proc.onexit = [&](std::int64_t status) {
+                gotExit = true;
+                exitCode = status;
+            };
             proc.spawn();
 
+            expect(proc.pid() > 0);
+
             uv::runLoop();
-        try {
-        } catch (std::exception& exc) {
-            std::cerr << "Process error: " << exc.what() << std::endl;
-            expect(0);
+
+            expect(gotStdout);
+            expect(gotExit);
+            expect(exitCode == 0);
+            expect(output.find("hello world") != std::string::npos);
+        }
+
+        // Test 2: process with multiple args
+        {
+            std::string output;
+            bool gotExit = false;
+
+            Process proc{"echo", "foo", "bar", "baz"};
+            proc.onstdout = [&](std::string line) {
+                output += line;
+            };
+            proc.onexit = [&](std::int64_t status) {
+                gotExit = true;
+                expect(status == 0);
+            };
+            proc.spawn();
+            uv::runLoop();
+
+            expect(gotExit);
+            expect(output.find("foo") != std::string::npos);
+            expect(output.find("bar") != std::string::npos);
+            expect(output.find("baz") != std::string::npos);
         }
     }
-
-    void processExit(std::int64_t exitStatus)
-    {
-        std::cout << "On process exit: " << exitStatus << std::endl;
-    }
 };
-#endif
 
 
 // =============================================================================

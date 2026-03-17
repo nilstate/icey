@@ -125,8 +125,11 @@ Make libsourcey confidently recommendable to external users. No new features; fi
 - [x] Fix coverage CI: remove ccache (incompatible with gcov instrumentation)
 - [x] Fix CI checkout: add `submodules: recursive`, `BUILD_APPLICATIONS=OFF`
 - [x] Fix pacm apps/CMakeLists.txt: `pacmconsole` -> `pacm-cli`
-- [ ] Fix sanitizer test failures (ASan/TSan/UBSan) - need runtime logs to diagnose
-- [ ] Verify all 9 CI jobs green
+- [x] Fix sanitizer test failures (ASan/TSan/UBSan) - need runtime logs to diagnose
+- [x] Fix Windows build: missing `<windows.h>` in filesystem.cpp, winsock2 order in x509certificate.cpp
+- [x] Fix Windows build: missing zlib include path for minizip in archo module
+- [x] Fix Windows ctest: `--config` -> `-C` for ctest
+- [x] Verify all 9 CI jobs green
 
 ### P1: Zero Warnings - DONE
 
@@ -144,16 +147,17 @@ All 40+ assert() calls replaced with exceptions or early returns across 13 files
 
 - [x] Remove all `#if defined(_WIN32_WCE)` code (Windows CE dead since 2013)
 - [x] Standardise Windows guard: `WIN32` -> `_WIN32` everywhere
-- [ ] Remove dead `#if 0` test blocks (basetests.h process test placeholder)
-- [ ] Clean up remaining TODO/FIXME comments (27 remain; resolve or add as TODO tasks)
+- [x] Remove dead `#if 0` blocks (7 blocks across basetests.h, packetstream.cpp, cipher.cpp, turn tests, deprecated thread.h)
+- [x] Clean up stale TODO/FIXME comments in samples and deprecated code (11 removed)
+- [ ] Resolve remaining TODO/FIXME comments with actual fixes (12 remain in av/tests, pacm, sched)
 - [ ] Generate SocketIO API docs (api-socketio.md is empty)
 
 ### P4: Test Gaps
 
-- [ ] Cross-platform process test (currently `#if 0` in basetests.h)
-- [ ] AV frame data integrity verification (avtests.cpp TODOs)
-- [ ] Test edge cases in TURN channel binding
-- [ ] Add integration tests for SSL hostname verification
+- [x] Cross-platform process test (echo + stdout capture + exit code)
+- [ ] AV frame data integrity verification (avtests.cpp TODOs - verify sample rate, channels, codec)
+- [ ] Test edge cases in TURN channel binding (sendChannelBind is unimplemented - implement or drop)
+- [ ] Add integration tests for SSL hostname verification (all SSL tests use NoVerify)
 
 ### P5: Polish
 
