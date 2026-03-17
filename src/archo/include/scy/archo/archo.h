@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_Archo_H
-#define SCY_Archo_H
+#pragma once
 
 
 #include "scy/base.h"
@@ -18,17 +17,14 @@
 
 /// Shared library exports
 #if defined(SCY_WIN) && defined(SCY_SHARED_LIBRARY)
-    #if defined(Archo_EXPORTS)
-        #define Archo_API __declspec(dllexport)
-    #else
-        #define Archo_API __declspec(dllimport)
-    #endif
+#if defined(Archo_EXPORTS)
+#define Archo_API __declspec(dllexport)
 #else
-    #define Archo_API // nothing
+#define Archo_API __declspec(dllimport)
 #endif
-
-
-#endif // SCY_Archo_H
+#else
+#define Archo_API // nothing
+#endif
 
 
 /// @\}

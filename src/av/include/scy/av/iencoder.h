@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_AV_IEncoder_H
-#define SCY_AV_IEncoder_H
+#pragma once
 
 
 #include "scy/av/format.h"
@@ -102,14 +101,11 @@ public:
 };
 
 
-typedef IEncoder IPacketEncoder; ///< 0.8.x compatibility
+using IPacketEncoder = IEncoder; ///< 0.8.x compatibility
 
 
 } // namespace av
 } // namespace scy
-
-
-#endif // SCY_AV_IEncoder_H
 
 
 /// @\}

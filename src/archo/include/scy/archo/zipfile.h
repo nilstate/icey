@@ -9,12 +9,12 @@
 /// @{
 
 
-#ifndef SCY_Archo_ZipFile_H
-#define SCY_Archo_ZipFile_H
+#pragma once
 
 
 #include "scy/archo/archo.h"
-#include "scy/base64.h"
+#include <filesystem>
+#include <string>
 #include <unzip.h> // zlib
 #include <vector>
 
@@ -26,24 +26,29 @@ namespace archo {
 struct Archo_API ZipFile
 {
     ZipFile();
-    ZipFile(const std::string& file);
+    explicit ZipFile(const std::filesystem::path& file);
     ~ZipFile();
 
-    void open(const std::string& file);
-    bool opened() const;
+    ZipFile(const ZipFile&) = delete;
+    ZipFile& operator=(const ZipFile&) = delete;
+    ZipFile(ZipFile&&) = delete;
+    ZipFile& operator=(ZipFile&&) = delete;
+
+    void open(const std::filesystem::path& file);
+    [[nodiscard]] bool opened() const;
     void close();
 
     /// Extracts the archive contents to the given directory path.
-    void extract(const std::string& path);
-    bool extractCurrentFile(const std::string& path, bool whiny = true);
+    void extract(const std::filesystem::path& path);
+    [[nodiscard]] bool extractCurrentFile(const std::filesystem::path& path, bool whiny = true);
 
-    bool goToFirstFile();
-    bool goToNextFile();
+    [[nodiscard]] bool goToFirstFile();
+    [[nodiscard]] bool goToNextFile();
 
     void openCurrentFile();
     void closeCurrentFile();
 
-    std::string currentFileName();
+    [[nodiscard]] std::string currentFileName();
 
     struct FileInfo
     {
@@ -57,11 +62,8 @@ struct Archo_API ZipFile
 };
 
 
-} // namespace arc
+} // namespace archo
 } // namespace scy
-
-
-#endif // SCY_Archo_ZipFile_H
 
 
 /// @\}

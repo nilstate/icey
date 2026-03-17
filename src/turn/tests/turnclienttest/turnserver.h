@@ -18,8 +18,8 @@ struct TestServer : public turn::ServerObserver
     {
     }
 
-    virtual ~TestServer() 
-    { 
+    virtual ~TestServer()
+    {
     }
 
     void start()
@@ -27,41 +27,41 @@ struct TestServer : public turn::ServerObserver
         server.start();
     }
 
-    void stop() 
-    { 
-        server.stop(); 
+    void stop()
+    {
+        server.stop();
     }
 
     turn::AuthenticationState authenticateRequest(turn::Server*, turn::Request& request)
     {
-        return turn::Authorized;
+        return turn::AuthenticationState::Authorized;
     }
 
     void onServerAllocationCreated(turn::Server*, turn::IAllocation* alloc)
     {
-        LDebug("Allocation created")
+        LDebug("Allocation created");
     }
 
     void onServerAllocationRemoved(turn::Server*, turn::IAllocation* alloc)
     {
-        LDebug("Allocation removed")
+        LDebug("Allocation removed");
     }
 };
 
 
-#define RunTestServer()                                                        \
-    LDebug("Running TURN Server")                                   \
-    turn::ServerOptions so;                                                    \
-    so.software = "Sourcey STUN/TURN Server [rfc5766]";                        \
-    so.realm = "sourcey.com";                                                  \
-    so.allocationDefaultLifetime = 1 * 60 * 1000;                              \
-    so.allocationMaxLifetime = 15 * 60 * 1000;                                 \
-    so.timerInterval = 5 * 1000;                                               \
-    so.listenAddr = net::Address("127.0.0.1", 3478);                           \
-    so.externalIP = TURN_SERVER_EXTERNAL_IP;                                   \
-    TestServer srv(so);                                                        \
+#define RunTestServer() \
+    LDebug("Running TURN Server"); \
+    turn::ServerOptions so; \
+    so.software = "Sourcey STUN/TURN Server [rfc5766]"; \
+    so.realm = "sourcey.com"; \
+    so.allocationDefaultLifetime = 1 * 60 * 1000; \
+    so.allocationMaxLifetime = 15 * 60 * 1000; \
+    so.timerInterval = 5 * 1000; \
+    so.listenAddr = net::Address("127.0.0.1", 3478); \
+    so.externalIP = TURN_SERVER_EXTERNAL_IP; \
+    TestServer srv(so); \
     srv.start();
-    
+
 
 } //  namespace scy
 

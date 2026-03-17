@@ -18,11 +18,8 @@
 #include "scy/net/udpsocket.h"
 
 #include <algorithm>
-#include <assert.h>
 #include <iostream>
-
-
-using namespace std;
+#include <stdexcept>
 
 
 namespace scy {
@@ -39,24 +36,23 @@ Client::Client(ClientObserver& observer, const Options& options, const net::Sock
 
 Client::~Client()
 {
-    LTrace("Destroy")
+    LTrace("Destroy");
     shutdown();
-    // assert(_socket->/*base().*/refCount() == 1);
-    // assert(closed());
 }
 
 
 void Client::initiate()
 {
-    LDebug("TURN client connecting to ", _options.serverAddr)
+    LDebug("TURN client connecting to ", _options.serverAddr);
 
-    assert(!_permissions.empty() && "must set permissions");
-    assert(_socket.impl && "must set socket");
+    if (_permissions.empty())
+        throw std::runtime_error("permissions not set before initiating TURN client");
+    if (!_socket.impl)
+        throw std::runtime_error("socket not set before initiating TURN client");
 
     auto udpSocket = dynamic_cast<net::UDPSocket*>(_socket.impl.get());
     if (udpSocket) {
         udpSocket->bind(net::Address("0.0.0.0", 0));
-        // udpSocket->setBroadcast(true);
     }
 
     _socket.Recv += slot(this, &Client::onSocketRecv, -1, -1);
@@ -71,7 +67,7 @@ void Client::shutdown()
     _timer.stop();
 
     for (auto it = _transactions.begin(); it != _transactions.end();) {
-        LTrace("Shutdown base: Delete transaction: ", *it)
+        LTrace("Shutdown base: Delete transaction: ", *it);
         (*it)->StateChange -= slot(this, &Client::onTransactionProgress);
         // delete *it;
         (*it)->dispose();
@@ -88,24 +84,24 @@ void Client::shutdown()
 }
 
 
-void Client::onSocketConnect(net::Socket& socket)
+bool Client::onSocketConnect(net::Socket& socket)
 {
-    LTrace("Client connected")
+    LTrace("Client connected");
     _socket.Connect -= slot(this, &Client::onSocketConnect);
 
     _timer.setInterval(_options.timerInterval);
     _timer.start(std::bind(&Client::onTimer, this));
 
     sendAllocate();
+    return false;
 }
 
 
-void Client::onSocketRecv(net::Socket& socket, const MutableBuffer& buffer, const net::Address& peerAddress)
+bool Client::onSocketRecv(net::Socket& socket, const MutableBuffer& buffer, const net::Address& peerAddress)
 {
-    LTrace("Control socket recv: ", buffer.size())
+    LTrace("Control socket recv: ", buffer.size());
 
     stun::Message message;
-    // auto socket = reinterpret_cast<net::Socket*>(sender);
     char* buf = bufferCast<char*>(buffer);
     size_t len = buffer.size();
     size_t nread = 0;
@@ -115,25 +111,21 @@ void Client::onSocketRecv(net::Socket& socket, const MutableBuffer& buffer, cons
         len -= nread;
     }
     if (len == buffer.size())
-        LWarn("Non STUN packet received")
-
-#if 0
-    stun::Message message;
-    if (message.read(constBuffer(packet.data(), packet.size())))
-        handleResponse(message);
-    else
-        LWarn("Non STUN packet received")
-#endif
+        LWarn("Non STUN packet received");
+    return false;
 }
 
 
-void Client::onSocketClose(net::Socket& socket)
+bool Client::onSocketClose(net::Socket& socket)
 {
-    assert(&socket == _socket.impl.get());
-    LTrace("Control socket closed")
-    assert(_socket->closed());
+    if (&socket != _socket.impl.get())
+        throw std::logic_error("onSocketClose called with unexpected socket");
+    LTrace("Control socket closed");
+    if (!_socket->closed())
+        throw std::logic_error("socket reported close but is not in closed state");
     shutdown();
     setError(_socket->error());
+    return false;
 }
 
 
@@ -152,13 +144,13 @@ void Client::sendRefresh()
     // explicitly delete the allocation. A client MAY refresh an allocation
     // at any time for other reasons.
 
-    LTrace("Send refresh allocation request")
+    LTrace("Send refresh allocation request");
 
     auto transaction = createTransaction();
     transaction->request().setClass(stun::Message::Request);
     transaction->request().setMethod(stun::Message::Refresh);
 
-    stun::Lifetime* lifetimeAttr = new stun::Lifetime;
+    auto lifetimeAttr = new stun::Lifetime;
     lifetimeAttr->setValue((uint32_t)_options.lifetime / 1000);
     transaction->request().add(lifetimeAttr);
 
@@ -168,9 +160,10 @@ void Client::sendRefresh()
 
 void Client::handleRefreshResponse(const stun::Message& response)
 {
-    LTrace("Received a Refresh Response: ", response.toString())
+    LTrace("Received a Refresh Response: ", response.toString());
 
-    assert(response.methodType() == stun::Message::Refresh);
+    if (response.methodType() != stun::Message::Refresh)
+        throw std::logic_error("handleRefreshResponse called with non-Refresh message");
 
     // 7.3. Receiving a Refresh Response
     //
@@ -185,19 +178,23 @@ void Client::handleRefreshResponse(const stun::Message& response)
     // succeeded.
     auto errorAttr = response.get<stun::ErrorCode>();
     if (errorAttr) {
-        assert(errorAttr->errorCode() == 437);
+        if (errorAttr->errorCode() == kErrorAllocationMismatch) {
+            // Allocation already gone, treat as success
+            return;
+        }
+        LWarn("Unexpected error in Refresh response: ", errorAttr->errorCode());
         return;
     }
 
     auto lifetimeAttr = response.get<stun::Lifetime>();
     if (!lifetimeAttr) {
-        assert(0);
+        LWarn("Refresh response missing Lifetime attribute");
         return;
     }
 
     setLifetime(lifetimeAttr->value());
 
-    LTrace("Refreshed allocation expires in: ", timeRemaining())
+    LTrace("Refreshed allocation expires in: ", timeRemaining());
 
     // If lifetime is 0 the allocation will be cleaned up by garbage collection.
 }
@@ -205,8 +202,7 @@ void Client::handleRefreshResponse(const stun::Message& response)
 
 bool Client::removeTransaction(stun::Transaction* transaction)
 {
-    LTrace("Removing transaction: ", transaction)
-
+    LTrace("Removing transaction: ", transaction);
 
     for (auto it = _transactions.begin(); it != _transactions.end(); ++it) {
         if (*it == transaction) {
@@ -215,7 +211,7 @@ bool Client::removeTransaction(stun::Transaction* transaction)
             return true;
         }
     }
-    assert(0 && "unknown transaction");
+    LWarn("Attempted to remove unknown transaction: ", transaction);
     return false;
 }
 
@@ -249,12 +245,9 @@ void Client::authenticateRequest(stun::Message& request)
         crypto::Hash engine("md5");
         engine.update(_options.username + ":" + _realm + ":" +
                       _options.password);
-        // return hex::encode(engine.digest());
-        // std::string key(crypto::hash("MD5", _options.username + ":" + _realm
-        // + ":" + _options.password));
         STrace << "Generating HMAC: data="
                << (_options.username + ":" + _realm + ":" + _options.password)
-               << ", key=" << engine.digestStr() << endl;
+               << ", key=" << engine.digestStr() << std::endl;
         auto integrityAttr = new stun::MessageIntegrity;
         integrityAttr->setKey(engine.digestStr());
         request.add(integrityAttr);
@@ -266,16 +259,13 @@ bool Client::sendAuthenticatedTransaction(stun::Transaction* transaction)
 {
     authenticateRequest(transaction->request());
     STrace << "Send authenticated transaction: "
-           << transaction->request().toString() << endl;
+           << transaction->request().toString() << std::endl;
     return transaction->send();
 }
 
 
 stun::Transaction* Client::createTransaction(const net::Socket::Ptr& socket)
 {
-
-    // socket = socket ? socket : _socket;
-    // assert(socket && !socket->isNull());
     auto transaction = new stun::Transaction(
         socket ? socket : _socket.impl, _options.serverAddr, _options.timeout, 1);
     transaction->StateChange += slot(this, &Client::onTransactionProgress);
@@ -286,7 +276,7 @@ stun::Transaction* Client::createTransaction(const net::Socket::Ptr& socket)
 
 bool Client::handleResponse(const stun::Message& response)
 {
-    LTrace("Handle response: ", response.toString())
+    LTrace("Handle response: ", response.toString());
 
     // Send this response to the appropriate handler.
     if (response.methodType() == stun::Message::Allocate) {
@@ -297,17 +287,14 @@ bool Client::handleResponse(const stun::Message& response)
             handleAllocateErrorResponse(response);
 
         // Must be a Transaction response
-        else
-            assert(0 && "no response state");
+        else {
+            LWarn("Unexpected Allocate response class: ", response.classType());
+            return false;
+        }
     }
 
     else if (response.methodType() == stun::Message::Refresh)
         handleRefreshResponse(response);
-
-    // else if (response.methodType() ==  stun::Message::Refresh &&
-    //    response.classType() == stun::Message::ErrorResponse)&&
-    //    response.classType() == stun::Message::SuccessResponse
-    //    handleRefreshErrorResponse(response);
 
     else if (response.methodType() == stun::Message::CreatePermission &&
              response.classType() == stun::Message::SuccessResponse)
@@ -329,90 +316,26 @@ bool Client::handleResponse(const stun::Message& response)
 
 void Client::sendAllocate()
 {
-    LTrace("Send allocation request")
+    LTrace("Send allocation request");
 
-    assert(!_options.username.empty());
-    assert(!_options.password.empty());
-    // assert(_options.lifetime);
-    //_lifetime = _options.lifetime;
+    if (_options.username.empty())
+        throw std::runtime_error("username must be set before sending Allocate");
+    if (_options.password.empty())
+        throw std::runtime_error("password must be set before sending Allocate");
 
-    // The client forms an Allocate request as follows.
-    //
-    // The client first picks a host transport address. It is RECOMMENDED
-    // that the client pick a currently unused transport address, typically
-    // by allowing the underlying OS to pick a currently unused port for a
-    // new socket.
-    //
-    // The client then picks a transport protocol to use between the client
-    // and the server. The transport protocol MUST be one of UDP, TCP, or
-    // TLS-over-TCP. Since this specification only allows UDP between the
-    // server and the peers, it is RECOMMENDED that the client pick UDP
-    // unless it has a reason to use a different transport. One reason to
-    // pick a different transport would be that the client believes, either
-    // through configuration or by experiment, that it is unable to contact
-    // any TURN server using UDP. See Section 2.1 for more discussion.
-    //
-    // The client also picks a server transport address, which SHOULD be
-    // done as follows. The client receives (perhaps through configuration)
-    // a domain name for a TURN server. The client then uses the DNS
-    // procedures described in [RFC5389], but using an SRV service name of
-    // "turn" (or "turns" for TURN over TLS) instead of "stun" (or "stuns").
-    // For example, to find servers in the example.com domain, the client
-    // performs a lookup for '_turn._udp.example.com',
-    // '_turn._tcp.example.com', and '_turns._tcp.example.com' if the client
-    // wants to communicate with the server using UDP, TCP, or TLS-over-TCP,
-    // respectively.
-    //
     auto transaction = createTransaction();
-    // stun::Message request(stun::Message::Request, stun::Message::Allocate);
     transaction->request().setClass(stun::Message::Request);
     transaction->request().setMethod(stun::Message::Allocate);
 
-    // The client MUST include a REQUESTED-TRANSPORT attribute in the
-    // request. This attribute specifies the transport protocol between the
-    // server and the peers (note that this is NOT the transport protocol
-    // that appears in the 5-tuple).
-    //
     auto transportAttr = new stun::RequestedTransport;
     transportAttr->setValue(transportProtocol() << 24);
     transaction->request().add(transportAttr);
 
-    // If the client wishes the server to initialize the time-to-expiry
-    // field of the allocation to some value other than the default
-    // lifetime, then it MAY include a LIFETIME attribute specifying its
-    // desired value. This is just a request, and the server may elect to
-    // use a different value. Note that the server will ignore requests to
-    // initialize the field to less than the default value.
-    //
     if (_options.lifetime) {
         auto lifetimeAttr = new stun::Lifetime;
         lifetimeAttr->setValue((uint32_t)_options.lifetime / 1000);
         transaction->request().add(lifetimeAttr);
     }
-
-    // If the client wishes to later use the DONT-FRAGMENT attribute in one
-    // or more Send indications on this allocation, then the client SHOULD
-    // include the DONT-FRAGMENT attribute in the Allocate
-    // transaction->request(). This
-    // allows the client to test whether this attribute is supported by the
-    // server.
-    //
-    // If the client requires the port number of the relayed transport
-    // address be even, the client includes the EVEN-PORT attribute. If
-    // this attribute is not included, then the port can be even or odd. By
-    // setting the R bit in the EVEN-PORT attribute to 1, the client can
-    // request that the server reserve the next highest port number (on the
-    // same IP address) for a subsequent allocation. If the R bit is 0, no
-    // such request is made.
-    //
-    // The client MAY also include a RESERVATION-TOKEN attribute in the
-    // request to ask the server to use a previously reserved port for the
-    // allocation. If the RESERVATION-TOKEN attribute is included, then the
-    // client MUST omit the EVEN-PORT attribute.
-    //
-    // Once constructed, the client sends the Allocate request on the
-    // 5-tuple.
-    //
 
     sendAuthenticatedTransaction(transaction);
 }
@@ -422,74 +345,43 @@ void Client::sendAllocate()
 //  have not checked for existing allocations on this 5 tuple.
 void Client::handleAllocateResponse(const stun::Message& response)
 {
-    LTrace("Allocate success response")
-    assert(response.methodType() == stun::Message::Allocate);
+    LTrace("Allocate success response");
+    if (response.methodType() != stun::Message::Allocate)
+        throw std::logic_error("handleAllocateResponse called with non-Allocate message");
 
-    // If the client receives an Allocate success response, then it MUST
-    // check that the mapped address and the relayed transport address are
-    // in an address family that the client understands and is prepared to
-    // handle. This specification only covers the case where these two
-    // addresses are IPv4 addresses. If these two addresses are not in an
-    // address family which the client is prepared to handle, then the
-    // client MUST delete the allocation (Section 7) and MUST NOT attempt to
-    // create another allocation on that server until it believes the
-    // mismatch has been fixed.
-    //
-    //    The IETF is currently considering mechanisms for transitioning
-    //    between IPv4 and IPv6 that could result in a client originating an
-    //    Allocate request over IPv6, but the request would arrive at the
-    //    server over IPv4, or vice versa.
-    //
-    // Otherwise, the client creates its own copy of the allocation data
-    // structure to track what is happening on the server. In particular,
-    // the client needs to remember the actual lifetime received back from
-    // the server, rather than the value sent to the server in the request.
-    //
     auto lifetimeAttr = response.get<stun::Lifetime>();
     if (!lifetimeAttr) {
-        assert(0);
+        LWarn("Allocate response missing Lifetime attribute");
         return;
     }
 
     auto mappedAttr = response.get<stun::XorMappedAddress>();
-    if (!mappedAttr || mappedAttr->family() != 1) {
-        assert(0);
+    if (!mappedAttr || mappedAttr->family() != stun::AddressFamily::IPv4) {
+        LWarn("Allocate response missing or invalid XorMappedAddress");
         return;
     }
     _mappedAddress = mappedAttr->address();
 
-    // The client must also remember the 5-tuple used for the request and
-    // the username and password it used to authenticate the request to
-    // ensure that it reuses them for subsequent messages. The client also
-    // needs to track the channels and permissions it establishes on the
-    // server.
-    //
-    // The client will probably wish to send the relayed transport address
-    // to peers (using some method not specified here) so the peers can
-    // communicate with it. The client may also wish to use the server-
-    // reflexive address it receives in the XOR-MAPPED-ADDRESS attribute in
-    // its ICE processing.
-    //
     auto relayedAttr = response.get<stun::XorRelayedAddress>();
-    if (!relayedAttr || (relayedAttr && relayedAttr->family() != 1)) {
-        assert(0);
+    if (!relayedAttr || relayedAttr->family() != stun::AddressFamily::IPv4) {
+        LWarn("Allocate response missing or invalid XorRelayedAddress");
         return;
     }
 
     if (relayedAttr->address().host() == "0.0.0.0") {
-        assert(0 && "invalid loopback address");
+        LError("Allocate response contains invalid loopback relay address");
         return;
     }
 
     // Use the relay server host and relayed port
     _relayedAddress = net::Address(
         relayedAttr->address().host(),
-        relayedAttr->address().port()); //_options.serverAddr.host()
+        relayedAttr->address().port());
 
     STrace << "Allocation created:"
-           << "\n\tRelayed address: " << _relayedAddress //.toString()
-           << "\n\tMapped address: " << _mappedAddress   //.toString()
-           << "\n\tLifetime: " << lifetimeAttr->value() << endl;
+           << "\n\tRelayed address: " << _relayedAddress
+           << "\n\tMapped address: " << _mappedAddress
+           << "\n\tLifetime: " << lifetimeAttr->value() << std::endl;
 
     // Once the allocation is created we transition to Authorizing while
     // peer permissions are created.
@@ -504,62 +396,33 @@ void Client::handleAllocateResponse(const stun::Message& response)
 
 void Client::handleAllocateErrorResponse(const stun::Message& response)
 {
-    LTrace("Allocate error response")
+    LTrace("Allocate error response");
 
-    assert(response.methodType() == stun::Message::Allocate &&
-           response.classType() == stun::Message::ErrorResponse);
+    if (response.methodType() != stun::Message::Allocate ||
+        response.classType() != stun::Message::ErrorResponse) {
+        LWarn("Unexpected message in handleAllocateErrorResponse");
+        return;
+    }
 
     auto errorAttr = response.get<stun::ErrorCode>();
     if (!errorAttr) {
-        assert(0);
+        LWarn("Allocate error response missing ErrorCode attribute");
         return;
     }
 
     STrace << "Allocation error response: " << errorAttr->errorCode() << ": "
-           << errorAttr->reason() << endl;
-
-    // If the client receives an Allocate error response, then the
-    // processing depends on the actual error code returned:
-
-    // o  (Request timed out): There is either a problem with the server, or
-    //    a problem reaching the server with the chosen transport. The
-    //    client considers the current transaction as having failed but MAY
-    //    choose to retry the Allocate request using a different transport
-    //    (e.g., TCP instead of UDP).
+           << errorAttr->reason() << std::endl;
 
     switch (errorAttr->errorCode()) {
-        // 300 (Try Alternate): The server would like the client to use the
-        // server specified in the ALTERNATE-SERVER attribute instead. The
-        // client considers the current transaction as having failed, but
-        // SHOULD try the Allocate request with the alternate server before
-        // trying any other servers (e.g., other servers discovered using the
-        // SRV procedures). When trying the Allocate request with the
-        // alternate server, the client follows the ALTERNATE-SERVER
-        // procedures specified in [RFC5389].
-        case 300:
-            // Return the error to the client.
-            assert(0);
+        case kErrorTryAlternate:
+            LWarn("Server requested Try Alternate (300)");
             break;
 
-        // 400 (Bad Request): The server believes the client's request is
-        // malformed for some reason. The client considers the current
-        // transaction as having failed. The client MAY notify the client or
-        // operator and SHOULD NOT retry the request with this server until
-        // it believes the problem has been fixed.
-        case 400:
-            // Return the error to the client.
-            assert(0);
+        case kErrorBadRequest:
+            LWarn("Server returned Bad Request (400)");
             break;
 
-        // 401 (NotAuthorized): If the client has followed the procedures of
-        // the long-term credential mechanism and still gets this error, then
-        // the server is not accepting the client's credentials. In this
-        // case, the client considers the current transaction as having
-        // failed and SHOULD notify the client or operator. The client SHOULD
-        // NOT send any further requests to this server until it believes the
-        // problem has been fixed.
-        case 401: {
-
+        case kErrorNotAuthorized: {
             if (_realm.empty() || _nonce.empty()) {
 
                 // REALM
@@ -577,7 +440,7 @@ void Client::handleAllocateErrorResponse(const stun::Message& response)
                 // Now that our realm and nonce are set we can re-send the
                 // allocate request.
                 if (_realm.size() && _nonce.size()) {
-                    LTrace("Resending authenticated allocation request")
+                    LTrace("Resending authenticated allocation request");
                     sendAllocate();
                     return;
                 }
@@ -586,96 +449,41 @@ void Client::handleAllocateErrorResponse(const stun::Message& response)
 
         break;
 
-        // 403 (Forbidden): The request is valid, but the server is refusing
-        // to perform it, likely due to administrative restrictions. The
-        // client considers the current transaction as having failed. The
-        // client MAY notify the client or operator and SHOULD NOT retry the
-        // same request with this server until it believes the problem has
-        // been fixed.
-        case 403:
-            // Return the error to the client.
-            assert(0);
+        case kErrorForbidden:
+            LWarn("Server returned Forbidden (403)");
             break;
 
-        // 420 (Unknown Attribute): If the client included a DONT-FRAGMENT
-        // attribute in the request and the server rejected the request with
-        // a 420 error code and listed the DONT-FRAGMENT attribute in the
-        // UNKNOWN-ATTRIBUTES attribute in the error response, then the
-        // client now knows that the server does not support the DONT-
-        // FRAGMENT attribute. The client considers the current transaction
-        // as having failed but MAY choose to retry the Allocate request
-        // without the DONT-FRAGMENT attribute.
-        case 420:
-            assert(0);
+        case kErrorUnknownAttribute:
+            LWarn("Server returned Unknown Attribute (420)");
             break;
 
-        // 437 (Allocation Mismatch): This indicates that the client has
-        // picked a 5-tuple that the server sees as already in use. One way
-        // this could happen is if an intervening NAT assigned a mapped
-        // transport address that was used by another client that recently
-        // crashed. The client considers the current transaction as having
-        // failed. The client SHOULD pick another client transport address
-        // and retry the Allocate request (using a different transaction id).
-        // The client SHOULD try three different client transport addresses
-        // before giving up on this server. Once the client gives up on the
-        // server, it SHOULD NOT try to create another allocation on the
-        // server for 2 minutes.
-        case 437:
-            assert(0);
+        case kErrorAllocationMismatch:
+            LWarn("Server returned Allocation Mismatch (437)");
             break;
 
-        // 438 (Stale Nonce): See the procedures for the long-term credential
-        // mechanism [RFC5389].
-        case 438:
-            assert(0);
+        case kErrorStaleNonce:
+            LWarn("Server returned Stale Nonce (438)");
             break;
 
-        // 441 (Wrong Credentials): The client should not receive this error
-        // in response to a Allocate request. The client MAY notify the client
-        // or operator and SHOULD NOT retry the same request with this server
-        // until it believes the problem has been fixed.
-        case 441:
-            assert(0);
+        case kErrorWrongCredentials:
+            LWarn("Server returned Wrong Credentials (441)");
             break;
 
-        // 442 (Unsupported Transport Address): The client should not receive
-        // this error in response to a request for a UDP allocation. The
-        // client MAY notify the client or operator and SHOULD NOT reattempt
-        // the request with this server until it believes the problem has
-        // been fixed.
-        case 442:
-            assert(0);
+        case kErrorUnsupportedTransport:
+            LWarn("Server returned Unsupported Transport (442)");
             break;
 
-        // 486 (Allocation Quota Reached): The server is currently unable to
-        // create any more allocations with this username. The client
-        // considers the current transaction as having failed. The client
-        // SHOULD wait at least 1 minute before trying to create any more
-        // allocations on the server.
-        case 486:
-            // controlConn.disconnect();
-            // controlConn.startConnectionTimer(60000);
-            // assert(0);
+        case kErrorAllocationQuotaReached:
+            LWarn("Server returned Allocation Quota Reached (486)");
             break;
 
-        // 508 (Insufficient Capacity): The server has no more relayed
-        // transport addresses available, or has none with the requested
-        // properties, or the one that was reserved is no longer available.
-        // The client considers the current operation as having failed. If
-        // the client is using either the EVEN-PORT or the RESERVATION-TOKEN
-        // attribute, then the client MAY choose to remove or modify this
-        // attribute and try again immediately. Otherwise, the client SHOULD
-        // wait at least 1 minute before trying to create any more
-        // allocations on this server.
-        case 508:
-            // controlConn.disconnect();
-            // controlConn.startConnectionTimer(60000);
-            // assert(0);
+        case kErrorInsufficientCapacity:
+            LWarn("Server returned Insufficient Capacity (508)");
             break;
 
         // An unknown error response MUST be handled as described in [RFC5389].
         default:
-            assert(0);
+            LWarn("Server returned unknown error: ", errorAttr->errorCode());
             break;
     }
 
@@ -699,8 +507,8 @@ void Client::setError(const scy::Error& error)
 
 void Client::addPermission(const IPList& peerIPs)
 {
-    for (auto it = peerIPs.begin(); it != peerIPs.end(); ++it) {
-        addPermission(*it);
+    for (const auto& ip : peerIPs) {
+        addPermission(ip);
     }
 }
 
@@ -713,33 +521,19 @@ void Client::addPermission(const std::string& peerIP)
 
 void Client::sendCreatePermission()
 {
-    LTrace("Send Create Permission Request")
+    LTrace("Send Create Permission Request");
 
-    assert(!_permissions.empty());
-
-    // The client who wishes to install or refresh one or more permissions
-    // can send a CreatePermission request to the server.
-    //
-    // When forming a CreatePermission request, the client MUST include at
-    // least one XOR-PEER-ADDRESS attribute, and MAY include more than one
-    // such attribute. The IP address portion of each XOR-PEER-ADDRESS
-    // attribute contains the IP address for which a permission should be
-    // installed or refreshed. The port portion of each XOR-PEER-ADDRESS
-    // attribute will be ignored and can be any arbitrary value. The
-    // various XOR-PEER-ADDRESS attributes can appear in any order.
+    if (_permissions.empty())
+        throw std::runtime_error("no permissions set for CreatePermission request");
 
     auto transaction = createTransaction();
-    // stun::Message request(stun::Message::Request, stun::Message::Allocate);
     transaction->request().setClass(stun::Message::Request);
     transaction->request().setMethod(stun::Message::CreatePermission);
 
-    for (auto it = _permissions.begin(); it != _permissions.end(); ++it) {
-        LTrace("Create permission request: ", (*it).ip)
+    for (const auto& perm : _permissions) {
+        LTrace("Create permission request: ", perm.ip);
         auto peerAttr = new stun::XorPeerAddress;
-        peerAttr->setAddress(net::Address((*it).ip, 0));
-        // peerAttr->setFamily(1);
-        // peerAttr->setPort(0);
-        // peerAttr->setIP((*it).ip);
+        peerAttr->setAddress(net::Address(perm.ip, 0));
         transaction->request().add(peerAttr);
     }
 
@@ -752,12 +546,10 @@ void Client::handleCreatePermissionResponse(const stun::Message& /* response */)
     // If the client receives a valid CreatePermission success response,
     // then the client updates its data structures to indicate that the
     // permissions have been installed or refreshed.
-    LTrace("Permission created")
+    LTrace("Permission created");
 
     // Send all queued requests...
-    // TODO: To via onStateChange Success callback
     {
-
         while (!_pendingIndications.empty()) {
             _socket->sendPacket(_pendingIndications.front());
             _pendingIndications.pop_front();
@@ -766,28 +558,18 @@ void Client::handleCreatePermissionResponse(const stun::Message& /* response */)
 
     if (!closed()) {
         _observer.onAllocationPermissionsCreated(*this, _permissions);
-
-        // auto transaction =
-        // reinterpret_cast<stun::Transaction*>(response.opaque);
-        // for (int i = 0; i < 100; i++) {
-        //     auto peerAttr = transaction->request().get<stun::XorPeerAddress>(i);
-        //     if (!peerAttr || (peerAttr && peerAttr->family() != 1))
-        //         break;
-        //     _observer.onAllocationPermissionsCreated(*this,
-        // std::string(peerAttr->address().host()));
-        // }
     }
 
     // Once permissions have been created the allocation
     // process is considered a success.
-    LTrace("Allocation Success")
+    LTrace("Allocation Success");
     setState(this, ClientState::Success);
 }
 
 
 void Client::handleCreatePermissionErrorResponse(const stun::Message& /* response */)
 {
-    LWarn("Permission Creation Failed")
+    LWarn("Permission Creation Failed");
 
     removeAllPermissions();
 
@@ -797,56 +579,20 @@ void Client::handleCreatePermissionErrorResponse(const stun::Message& /* respons
 
 void Client::sendChannelBind(const std::string& /* peerIP */)
 {
-    // A channel binding is created or refreshed using a ChannelBind
-    // transaction. A ChannelBind transaction also creates or refreshes a
-    // permission towards the peer (see Section 8).
-    //
-    // To initiate the ChannelBind transaction, the client forms a
-    // ChannelBind request. The channel to be bound is specified in a
-    // CHANNEL-NUMBER attribute, and the peer's transport address is
-    // specified in an XOR-PEER-ADDRESS attribute. Section 11.2 describes
-    // the restrictions on these attributes.
-    //
-    // Rebinding a channel to the same transport address that it is already
-    // bound to provides a way to refresh a channel binding and the
-    // corresponding permission without sending data to the peer. Note
-    // however, that permissions need to be refreshed more frequently than
-    // channels.
-    assert(0 && "not implemented");
+    throw std::logic_error("sendChannelBind not implemented");
 }
 
 
 void Client::sendData(const char* data, size_t size, const net::Address& peerAddress)
 {
-    LTrace("Send Data Indication to peer: ", peerAddress)
+    LTrace("Send Data Indication to peer: ", peerAddress);
 
-    // auto request = new stun::Message;
     stun::Message request;
     request.setClass(stun::Message::Indication);
     request.setMethod(stun::Message::SendIndication);
 
-    // The client can use a Send indication to pass data to the server for
-    // relaying to a peer. A client may use a Send indication even if a
-    // channel is bound to that peer. However, the client MUST ensure that
-    // there is a permission installed for the IP address of the peer to
-    // which the Send indication is being sent; this prevents a third party
-    // from using a TURN server to send data to arbitrary destinations.
-    //
-    // When forming a Send indication, the client MUST include an XOR-PEER-
-    // ADDRESS attribute and a DATA attribute. The XOR-PEER-ADDRESS
-    // attribute contains the transport address of the peer to which the
-    // data is to be sent, and the DATA attribute contains the actual
-    // application data to be sent to the peer.
-    //
-    // The client MAY include a DONT-FRAGMENT attribute in the Send
-    // indication if it wishes the server to set the DF bit on the UDP
-    // datagram sent to the peer.
-
     auto peerAttr = new stun::XorPeerAddress;
     peerAttr->setAddress(peerAddress);
-    // peerAttr->setFamily(1);
-    // peerAttr->setPort(peerAddress.port());
-    // peerAttr->setIP(peerAddress.host());
     request.add(peerAttr);
 
     auto dataAttr = new stun::Data;
@@ -855,7 +601,6 @@ void Client::sendData(const char* data, size_t size, const net::Address& peerAdd
 
     // Ensure permissions exist for the peer.
     if (!hasPermission(peerAddress.host())) {
-        // delete request;
         throw std::runtime_error("No permission exists for peer IP: " + peerAddress.host());
     }
 
@@ -864,52 +609,35 @@ void Client::sendData(const char* data, size_t size, const net::Address& peerAdd
     // Queued requests will be sent when the CreatePermission
     // callback is received from the server.
     else if (stateEquals(ClientState::Authorizing)) {
-        LTrace("Queueing outgoing request: ", request.toString())
+        LTrace("Queueing outgoing request: ", request.toString());
 
         _pendingIndications.push_back(request);
-        assert(_pendingIndications.size() < 100); // something is wrong...
+        if (_pendingIndications.size() >= 100)
+            LWarn("Excessive pending indications queued: ", _pendingIndications.size());
     }
 
     // If a permission exists on server and client send our data!
     else {
         _socket->sendPacket(request, _options.serverAddr);
-        // delete request;
     }
 }
 
 
 void Client::handleDataIndication(const stun::Message& response)
 {
-    // When the client receives a Data indication, it checks that the Data
-    // indication contains both an XOR-PEER-ADDRESS and a DATA attribute,
-    // and discards the indication if it does not. The client SHOULD also
-    // check that the XOR-PEER-ADDRESS attribute value contains an IP
-    // address with which the client believes there is an active permission,
-    // and discard the Data indication otherwise. Note that the DATA
-    // attribute is allowed to contain zero bytes of data.
-    //
-    //    NOTE: The latter check protects the client against an attacker who
-    //    somehow manages to trick the server into installing permissions
-    //    not desired by the client.
-    //
-    // If the Data indication passes the above checks, the client delivers
-    // the data octets inside the DATA attribute to the application, along
-    // with an indication that they were received from the peer whose
-    // transport address is given by the XOR-PEER-ADDRESS attribute.
-
     auto peerAttr = response.get<stun::XorPeerAddress>();
-    if (!peerAttr || (peerAttr && peerAttr->family() != 1)) {
-        assert(0);
+    if (!peerAttr || peerAttr->family() != stun::AddressFamily::IPv4) {
+        LWarn("Data indication missing or invalid XorPeerAddress");
         return;
     }
 
     auto dataAttr = response.get<stun::Data>();
     if (!dataAttr) {
-        assert(0);
+        LWarn("Data indication missing Data attribute");
         return;
     }
 
-    LTrace("Handle Data indication: ", response.toString())
+    LTrace("Handle Data indication: ", response.toString());
 
     if (!closed()) {
         _observer.onRelayDataReceived(*this, dataAttr->bytes(), dataAttr->size(), peerAttr->address());
@@ -919,9 +647,9 @@ void Client::handleDataIndication(const stun::Message& response)
 
 void Client::onTransactionProgress(void* sender, TransactionState& state, const TransactionState&)
 {
-    LTrace("Transaction state change: ", sender, ": ", state)
+    LTrace("Transaction state change: ", sender, ": ", state);
 
-    auto transaction = reinterpret_cast<stun::Transaction*>(sender);
+    auto transaction = static_cast<stun::Transaction*>(sender);
     transaction->response().opaque = transaction;
 
     if (!closed())
@@ -937,12 +665,12 @@ void Client::onTransactionProgress(void* sender, TransactionState& state, const 
                    << "\n\tFrom: " << transaction->peerAddress().toString()
                    << "\n\tRequest: " << transaction->request().toString()
                    << "\n\tResponse: " << transaction->response().toString()
-                   << endl;
+                   << std::endl;
 
             if (removeTransaction(transaction)) {
                 if (!handleResponse(transaction->response())) {
                     STrace << "Unhandled STUN response: "
-                           << transaction->response().toString() << endl;
+                           << transaction->response().toString() << std::endl;
                 }
             }
         } break;
@@ -951,9 +679,8 @@ void Client::onTransactionProgress(void* sender, TransactionState& state, const 
             SWarn << "STUN transaction error:"
                   << "\n\tState: " << state.toString()
                   << "\n\tFrom: " << transaction->peerAddress().toString()
-                  << "\n\tData: " << transaction->response().toString() << endl;
+                  << "\n\tData: " << transaction->response().toString() << std::endl;
 
-            // TODO: More flexible response error handling
             if (removeTransaction(transaction)) {
                 setError("Transaction failed");
             }
@@ -983,7 +710,7 @@ void Client::onStateChange(ClientState& state, const ClientState& oldState)
 
 int Client::transportProtocol()
 {
-    return 17; // UDP
+    return kProtocolUDP;
 }
 
 
@@ -1011,7 +738,8 @@ net::Address Client::relayedAddress() const
 }
 
 
-} } // namespace scy::turn
+} // namespace turn
+} // namespace scy
 
 
 /// @\}

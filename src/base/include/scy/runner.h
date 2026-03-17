@@ -9,22 +9,21 @@
 /// @{
 
 
-#ifndef SCY_Runner_H
-#define SCY_Runner_H
+#pragma once
 
 
 #include "scy/base.h"
 #include "scy/interface.h"
-#include "scy/platform.h"
-#include "scy/util.h"
 
-#include <cstdint>
-#include <thread>
 #include <atomic>
+#include <chrono>
+#include <cstdint>
 #include <functional>
+#include <iostream>
 #include <memory>
 #include <stdexcept>
-#include <iostream>
+#include <thread>
+#include <tuple>
 
 
 namespace scy {
@@ -106,6 +105,8 @@ protected:
     /// NonCopyable and NonMovable
     Runner(const Runner&) = delete;
     Runner& operator=(const Runner&) = delete;
+    Runner(Runner&&) = delete;
+    Runner& operator=(Runner&&) = delete;
 
     /// Shared pointer to the internal Context.
     std::shared_ptr<Context> _context;
@@ -121,10 +122,9 @@ namespace internal {
 
 
 /// Helper function for running an async context.
-template<typename Function, typename... Args>
+template <typename Function, typename... Args>
 inline void runAsync(std::shared_ptr<Runner::Context> c, Function func, Args... args)
 {
-    // std::cout << "Runner::runAsync" << std::endl;
     c->tid = std::this_thread::get_id();
     c->running = true;
     do {
@@ -137,39 +137,16 @@ inline void runAsync(std::shared_ptr<Runner::Context> c, Function func, Args... 
             std::cerr << "Runner exception: " << exc.what() << std::endl;
         }
 #endif
-        scy::sleep(1);
+        if (c->repeating && !c->cancelled)
+            std::this_thread::yield();
     } while (c->repeating && !c->cancelled);
     c->running = false;
 }
 
 
-/// Call a function with the given argument tuple.
-///
-/// Note: This will become redundant once C++17 `std::apply` is fully supported.
-template<typename Function, typename Tuple, size_t ... I>
-auto invoke(Function f, Tuple t, std::index_sequence<I ...>)
-{
-     return f(std::get<I>(t)...);
-}
-
-
-/// Call a function with the given argument tuple.
-///
-/// Create an index sequence for the array, and pass it to the
-/// implementation `invoke` function.
-///
-/// Note: This will become redundant once C++17 `std::apply` is fully supported.
-template<typename Function, typename Tuple>
-auto invoke(Function f, Tuple t)
-{
-    static constexpr auto size = std::tuple_size<Tuple>::value;
-    return invoke(f, t, std::make_index_sequence<size>{});
-}
-
-
-/// Helper class that stores a function pointer and veradic arguments as a tuple
+/// Helper class that stores a function pointer and variadic arguments as a tuple
 /// for deferred invocation.
-template<typename Function, typename... Args>
+template <typename Function, typename... Args>
 struct DeferredCallable
 {
     std::shared_ptr<Runner::Context> ctx;
@@ -185,16 +162,13 @@ struct DeferredCallable
 
     void invoke()
     {
-        internal::invoke(func, args);
+        std::apply(func, args);
     }
 };
 
 
 } // namespace internal
 } // namespace scy
-
-
-#endif // SCY_Runner_H
 
 
 /// @\}

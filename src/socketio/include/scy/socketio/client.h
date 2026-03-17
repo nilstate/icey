@@ -8,16 +8,16 @@
 /// @addtogroup socketio
 /// @{
 
-
-#ifndef SCY_SocketIO_Client_H
-#define SCY_SocketIO_Client_H
-
+#pragma once
 
 #include "scy/collection.h"
 #include "scy/http/websocket.h"
 #include "scy/json/json.h"
 #include "scy/socketio/packet.h"
 #include "scy/socketio/transaction.h"
+
+#include <cstdint>
+#include <string>
 
 
 namespace scy {
@@ -35,57 +35,46 @@ struct ClientState : public State
         Error = 0x08
     };
 
-    std::string str(unsigned int id) const
+    std::string str(unsigned int id) const override
     {
         switch (id) {
-            case Closed:
-                return "Closed";
-            case Connecting:
-                return "Connecting";
-            case Connected:
-                return "Connected";
-            case Online:
-                return "Online";
-            case Error:
-                return "Error";
-            default:
-                assert(false);
+            case Closed: return "Closed";
+            case Connecting: return "Connecting";
+            case Connected: return "Connected";
+            case Online: return "Online";
+            case Error: return "Error";
+            default: return "undefined";
         }
-        return "undefined";
-    };
+    }
 };
 
 
-class SocketIO_API Client :
-    public Stateful<ClientState>,
-    public net::SocketAdapter,
-    public PacketSignal
+struct SocketIO_API ClientOptions
+{
+    std::string host = "127.0.0.1";
+    uint16_t port = 4500;
+
+    /// Whether or not to reconnect if disconnected from the server.
+    bool reconnection = true;
+
+    /// The number of times to attempt to reconnect if disconnected
+    /// from the server. (0 = unlimited)
+    int reconnectAttempts = 0;
+    int reconnectDelay = 6 * 1000; // 6 secs
+};
+
+
+class SocketIO_API Client : public Stateful<ClientState>
+    , public net::SocketAdapter
+    , public PacketSignal
 {
 public:
-    struct Options
-    {
-        std::string host = "127.0.0.1";
-        uint16_t port = 4500;
-
-        /// Weather or not to reconnect if disconnected from the server.
-        bool reconnection = true;
-
-        /// The number of times to attempt to reconnect if disconnected
-        /// from the server. (0 = unlimited)
-        int reconnectAttempts = 0;
-        int reconnectDelay = 6 * 1000; // 6 secs
-
-        Options() {
-            // Required on gcc 6
-            // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=70528
-        }
-    };
+    using Options = ClientOptions;
 
 public:
     Client(const net::Socket::Ptr& socket, const Options& options = Options());
     virtual ~Client();
 
-    // virtual void connect(const std::string& host, uint16_t port);
     virtual void connect();
     virtual void close();
 
@@ -105,26 +94,25 @@ public:
     Transaction* createTransaction(const sockio::Packet& request, long timeout = 10000);
 
     /// Return a reference to the client options object.
-    Client::Options& options();
+    [[nodiscard]] Options& options();
 
     /// Return the underlying WebSocket instance.
-    http::ws::WebSocket& ws();
+    [[nodiscard]] http::ws::WebSocket& ws();
 
     /// Return the current session ID assigned by the server.
-    std::string sessionID() const;
+    [[nodiscard]] std::string sessionID() const;
 
     /// Return the error object (if any).
-    scy::Error error() const;
+    [[nodiscard]] scy::Error error() const;
 
-    /// Return true if the client is is Online state.
-    bool isOnline() const;
+    /// Return true if the client is in Online state.
+    [[nodiscard]] bool isOnline() const;
 
     /// Return true if currently reconnecting.
-    bool reconnecting() const;
+    [[nodiscard]] bool reconnecting() const;
 
     /// Return true if the client was previously in the Online state.
-    /// Useful for delegates handling the Error state.
-    bool wasOnline() const;
+    [[nodiscard]] bool wasOnline() const;
 
     virtual const char* className() const { return "SocketIO::Client"; }
 
@@ -141,29 +129,30 @@ protected:
     virtual void onHandshake(sockio::Packet& packet);
     virtual void onMessage(sockio::Packet& packet);
 
-    virtual void onSocketConnect(net::Socket& socket);
-    virtual void onSocketRecv(net::Socket& socket, const MutableBuffer& buffer, const net::Address& peerAddress);
-    virtual void onSocketError(net::Socket& socket, const scy::Error& error);
-    virtual void onSocketClose(net::Socket& socket);
+    virtual bool onSocketConnect(net::Socket& socket);
+    virtual bool onSocketRecv(net::Socket& socket, const MutableBuffer& buffer, const net::Address& peerAddress);
+    virtual bool onSocketError(net::Socket& socket, const scy::Error& error);
+    virtual bool onSocketClose(net::Socket& socket);
 
-    virtual void onPingTimer();
+    /// Send the Socket.IO CONNECT packet for the default namespace.
+    virtual void sendConnect();
+
+    /// Handle a server ping by responding with pong.
+    virtual void onServerPing();
+
+    /// Called when no ping received within the expected interval.
     virtual void onPingTimeoutTimer();
 
     virtual void startReconnectTimer();
     virtual void stopReconnectTimer();
     virtual void onReconnectTimer();
 
-    virtual int sendPing();
-    virtual void onPong();
-
 protected:
-    // mutable std::mutex _mutex;
-    Timer _pingTimer;
     Timer _pingTimeoutTimer;
     Timer _reconnectTimer;
     scy::Error _error;
     std::string _sessionID;
-    Client::Options _options;
+    Options _options;
     http::ws::WebSocket _ws;
     int _pingTimeout;
     int _pingInterval;
@@ -175,7 +164,6 @@ protected:
 //
 // TCP Client
 //
-
 
 Client* createTCPClient(const Client::Options& options = Client::Options(),
                         uv::Loop* loop = uv::defaultLoop());
@@ -192,7 +180,6 @@ public:
 // SSL Client
 //
 
-
 Client* createSSLClient(const Client::Options& options = Client::Options(),
                         uv::Loop* loop = uv::defaultLoop());
 
@@ -208,7 +195,4 @@ public:
 } // namespace scy
 
 
-#endif // SCY_SocketIO_Client_H
-
-
-/// @\}
+/// @}

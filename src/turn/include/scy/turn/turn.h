@@ -9,24 +9,18 @@
 ///
 /// The `turn` module contains TURN (rfc5766) client and server implementations.
 
-
-#ifndef SCY_TURN_H
-#define SCY_TURN_H
-
+#pragma once
 
 
 // Shared library exports
 #if defined(SCY_WIN) && defined(SCY_SHARED_LIBRARY)
-    #if defined(TURN_EXPORTS)
-        #define TURN_API __declspec(dllexport)
-    #else
-        #define TURN_API __declspec(dllimport)
-    #endif
+#if defined(TURN_EXPORTS)
+#define TURN_API __declspec(dllexport)
 #else
-    #define TURN_API // nothing
+#define TURN_API __declspec(dllimport)
 #endif
-
-
+#else
+#define TURN_API // nothing
 #endif
 
 

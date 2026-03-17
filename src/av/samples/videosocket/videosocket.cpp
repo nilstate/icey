@@ -35,7 +35,7 @@ public:
     MPEGResponder(http::ServerConnection& conn)
         : http::ServerResponder(conn)
     {
-        LDebug("Creating")
+        LDebug("Creating");
 
         auto stream = new PacketStream;
 
@@ -48,8 +48,7 @@ public:
         // Setup the encoder options
         av::EncoderOptions options;
         options.oformat = av::Format(
-            "MJPEG", "mjpeg", av::VideoCodec("MJPEG", "mjpeg", 400, 300, 25,
-                                             48000, 128000, "yuvj420p"));
+            "MJPEG", "mjpeg", av::VideoCodec("MJPEG", "mjpeg", 400, 300, 25, 48000, 128000, "yuvj420p"));
         gVideoCapture->getEncoderFormat(options.iformat);
 
         // Create and attach the encoder
@@ -70,26 +69,26 @@ public:
 
     ~MPEGResponder()
     {
-        LDebug("Destroying")
+        LDebug("Destroying");
         // stream->destroy();
         delete stream;
     }
 
     void onPayload(const Buffer& body)
     {
-        LDebug("On recv payload: ", body.size())
+        LDebug("On recv payload: ", body.size());
 
         // do something with data from peer
     }
 
     void onClose()
     {
-        LDebug("On close")
+        LDebug("On close");
 
         stream->emitter -= packetSlot(this, &MPEGResponder::onVideoEncoded);
-        LDebug("On close 1")
+        LDebug("On close 1");
         stream->stop();
-        LDebug("On close 2")
+        LDebug("On close 2");
     }
 
     void onVideoEncoded(void* sender, RawPacket& packet)
@@ -132,7 +131,7 @@ static void onShutdownSignal(void* opaque)
 
 int main(int argc, char** argv)
 {
-    Logger::instance().add(new ConsoleChannel("debug", Level::Trace));
+    Logger::instance().add(std::make_unique<ConsoleChannel>("debug", Level::Trace));
 
 #if USE_AVDEVICE_CAPTURE
     gVideoCapture = new av::MediaCapture();

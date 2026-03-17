@@ -9,13 +9,12 @@
 /// @{
 
 
-#ifndef SCY_Net_Util_H
-#define SCY_Net_Util_H
+#pragma once
 
 
-#include "scy/net/net.h"
-#include "scy/net/address.h"
 #include "scy/handle.h"
+#include "scy/net/address.h"
+#include "scy/net/net.h"
 
 #include <vector>
 
@@ -52,8 +51,7 @@ inline void getNetworkInterfaces(std::vector<net::Address>& hosts)
 //
 
 
-
-#if  defined(SCY_WIN)
+#if defined(SCY_WIN)
 #define nativeSocketFd(handle) ((handle)->socket)
 #else
 // uv__stream_fd taken from libuv unix/internal.h
@@ -99,9 +97,6 @@ int setServerSocketRecvBufSize(uv::Handle<T>& handle, int size)
 
 } // namespace net
 } // namespace scy
-
-
-#endif // SCY_Net_Util_H
 
 
 /// @\}

@@ -9,15 +9,14 @@
 /// @{
 
 
-#ifndef SCY_AV_H
-#define SCY_AV_H
+#pragma once
 
 
 #include "scy/base.h"
 
 
 #define MAX_VIDEO_PACKET_SIZE (3 * 1024 * 1024)
-#define MAX_AUDIO_PACKET_SIZE (128 * 1500) ///< 1 second of 48khz 32bit audio
+#define MAX_AUDIO_PACKET_SIZE (128 * 1500)       ///< 1 second of 48khz 32bit audio
 #define MAX_ENCODE_DURATION (3 * 60 * 60 * 1000) ///< 3 hours
 
 
@@ -37,17 +36,14 @@
 
 // Shared library exports
 #if defined(SCY_WIN) && defined(SCY_SHARED_LIBRARY)
-    #if defined(AV_EXPORTS)
-        #define AV_API __declspec(dllexport)
-    #else
-        #define AV_API __declspec(dllimport)
-    #endif
+#if defined(AV_EXPORTS)
+#define AV_API __declspec(dllexport)
 #else
-    #define AV_API // nothing
+#define AV_API __declspec(dllimport)
 #endif
-
-
-#endif // SCY_AV_H
+#else
+#define AV_API // nothing
+#endif
 
 
 /// @\}

@@ -15,10 +15,7 @@
 #include "scy/logger.h"
 #include "scy/memory.h"
 
-#include <assert.h>
-
-
-using std::endl;
+#include <stdexcept>
 
 
 namespace scy {
@@ -28,28 +25,20 @@ namespace http {
 Connection::Connection(const net::TCPSocket::Ptr& socket)
     : _socket(socket)
     , _adapter(nullptr)
-    //, _timeout(30 * 60 * 1000),
     , _closed(false)
     , _shouldSendHeader(true)
 {
-    // LTrace("Create: ", _socket)
 }
 
 
-Connection::~Connection()
+Connection::~Connection() noexcept
 {
-    // LTrace("Destroy")
     replaceAdapter(nullptr);
-
-    // NOTE: Call close from impl to avoid pure virtual
-    // close();
 }
 
 
 ssize_t Connection::send(const char* data, size_t len, int flags)
 {
-    // LTrace("Send: ", len)
-    assert(!_closed);
     if (_closed)
         return -1;
 
@@ -62,11 +51,9 @@ ssize_t Connection::sendHeader()
     if (!_shouldSendHeader)
         return 0;
     _shouldSendHeader = false;
-    assert(outgoingHeader());
-
-    // std::ostringstream os;
-    // outgoingHeader()->write(os);
-    // std::string head(os.str().c_str(), os.str().length());
+    if (!outgoingHeader()) {
+        throw std::runtime_error("Connection::sendHeader: no outgoing header");
+    }
 
     std::string head;
     head.reserve(256);
@@ -80,7 +67,6 @@ ssize_t Connection::sendHeader()
 
 void Connection::close()
 {
-    // LTrace("Close: ", _closed)
     if (_closed)
         return;
     _closed = true;
@@ -92,80 +78,76 @@ void Connection::close()
 }
 
 
-void Connection::replaceAdapter(net::SocketAdapter* adapter)
+void Connection::replaceAdapter(std::unique_ptr<net::SocketAdapter> adapter)
 {
-    // LTrace("Replace adapter: ", adapter)
-
-    // Detach the old adapter form all callbacks
+    // Detach the old adapter from all callbacks
     if (_adapter) {
         _socket->removeReceiver(_adapter);
         _adapter->removeReceiver(this);
         _adapter->setSender(nullptr);
 
-        // LTrace("Replace adapter: Delete existing: ", _adapter)
-        deleteLater<net::SocketAdapter>(_adapter, _socket->loop());
+        deleteLater(_adapter, _socket->loop());
         _adapter = nullptr;
     }
 
     // Setup the data flow: Connection <-> ConnectionAdapter <-> Socket
     if (adapter) {
-        adapter->addReceiver(this);
-        adapter->setSender(_socket.get());
+        _adapter = adapter.release(); // ownership transfers to deleteLater on next replace
+        _adapter->addReceiver(this);
+        _adapter->setSender(_socket.get());
 
         // Attach the ConnectionAdapter to receive Socket callbacks.
         // The given adapter will process raw packets into HTTP or
         // WebSocket frames depending on the adapter type.
-        _socket->addReceiver(adapter);
-        _adapter = adapter;
+        _socket->addReceiver(_adapter);
     }
+}
+
+
+void Connection::replaceAdapter(std::nullptr_t)
+{
+    replaceAdapter(std::unique_ptr<net::SocketAdapter>(nullptr));
 }
 
 
 void Connection::setError(const scy::Error& err)
 {
-    // LTrace("Set error: ", err.message)
-
     _error = err;
 }
 
 
-void Connection::onSocketConnect(net::Socket& socket)
+bool Connection::onSocketConnect(net::Socket& socket)
 {
-    // LTrace("On socket connect")
-
     // Only useful for client connections
+    return false;
 }
 
 
-void Connection::onSocketRecv(net::Socket& socket, const MutableBuffer& buffer, const net::Address& peerAddress)
+bool Connection::onSocketRecv(net::Socket& socket, const MutableBuffer& buffer, const net::Address& peerAddress)
 {
-    // LTrace("On socket recv")
-
     // Handle payload data
     onPayload(buffer);
+    return false;
 }
 
 
-void Connection::onSocketError(net::Socket& socket, const scy::Error& error)
+bool Connection::onSocketError(net::Socket& socket, const scy::Error& error)
 {
-    // LDebug("On socket error: " << error.err << ": ", error.message)
-
     if (error.err == UV_EOF) {
         // Close the connection when the other side does
-        // close();
     } else {
         // Other errors will set the error state
         setError(error);
     }
+    return false;
 }
 
 
-void Connection::onSocketClose(net::Socket& socket)
+bool Connection::onSocketClose(net::Socket& socket)
 {
-    // LTrace("On socket close")
-
     // Close the connection when the socket closes
     close();
+    return false;
 }
 
 
@@ -219,8 +201,7 @@ void Connection::shouldSendHeader(bool flag)
 
 bool Connection::secure() const
 {
-    return _socket
-        && _socket->transport() == net::SSLTCP;
+    return _socket && _socket->transport() == net::SSLTCP;
 }
 
 
@@ -229,13 +210,11 @@ bool Connection::secure() const
 //
 
 
-ConnectionAdapter::ConnectionAdapter(Connection* connection, http_parser_type type)
+ConnectionAdapter::ConnectionAdapter(Connection* connection, llhttp_type_t type)
     : SocketAdapter(connection->socket().get())
     , _connection(connection)
     , _parser(type)
 {
-    // LTrace("Create: ", connection)
-
     // Set the connection as the default receiver
     SocketAdapter::addReceiver(connection);
 
@@ -250,38 +229,28 @@ ConnectionAdapter::ConnectionAdapter(Connection* connection, http_parser_type ty
 
 ConnectionAdapter::~ConnectionAdapter()
 {
-    // LTrace("Destroy: ", _connection)
 }
 
 
 ssize_t ConnectionAdapter::send(const char* data, size_t len, int flags)
 {
-    // LTrace("Send: ", len)
+    // Send headers on initial send
+    if (_connection &&
+        _connection->shouldSendHeader()) {
+        ssize_t res = _connection->sendHeader();
 
-    // try {
-        // Send headers on initial send
-        if (_connection &&
-            _connection->shouldSendHeader()) {
-            ssize_t res = _connection->sendHeader();
+        // The initial packet may be empty to push the headers through
+        if (len == 0)
+            return res;
+    }
 
-            // The initial packet may be empty to push the headers through
-            if (len == 0)
-                return res;
-        }
+    // Other packets should not be empty
+    if (len == 0) {
+        throw std::runtime_error("ConnectionAdapter::send: empty payload after headers");
+    }
 
-        // Other packets should not be empty
-        assert(len > 0);
-
-        // Send body / chunk
-        return SocketAdapter::send(data, len, flags);
-    // }
-    // catch (std::exception& exc) {
-    //     LError("Send error: ", exc.what())
-    //
-    //     // Swallow the exception, the socket error will
-    //     // cause the connection to close on next iteration.
-    //     return -1;
-    // }
+    // Send body / chunk
+    return SocketAdapter::send(data, len, flags);
 }
 
 
@@ -294,22 +263,20 @@ void ConnectionAdapter::removeReceiver(SocketAdapter* adapter)
 }
 
 
-void ConnectionAdapter::onSocketRecv(net::Socket& socket, const MutableBuffer& buf, const net::Address&)
+bool ConnectionAdapter::onSocketRecv(net::Socket& socket, const MutableBuffer& buf, const net::Address&)
 {
-    // LTrace("On socket recv: ", buf.size())
-
     if (_parser.complete()) {
         // Buggy HTTP servers might send late data or multiple responses,
         // in which case the parser state might already be HPE_OK.
         // In this case we discard the late message and log the error here,
         // rather than complicate the app with this error handling logic.
-        // This issue was noted using Webrick with Ruby 1.9.
-        LWarn("Dropping late HTTP response: ", buf.str())
-        return;
+        LWarn("Dropping late HTTP response: ", buf.str());
+        return false;
     }
 
     // Parse incoming HTTP messages
     _parser.parse(bufferCast<const char*>(buf), buf.size());
+    return false;
 }
 
 
@@ -324,64 +291,37 @@ void ConnectionAdapter::onParserHeader(const std::string& /* name */,
 
 void ConnectionAdapter::onParserHeadersEnd(bool upgrade)
 {
-    // LTrace("On headers end: ", _parser.upgrade())
-
-    if (_connection/* && _receiver */)
+    if (_connection)
         _connection->onHeaders();
-
-    // Set the position to the end of the headers once
-    // they have been handled. Subsequent body chunks will
-    // now start at the correct position.
-    // _connection.incomingBuffer().position(_parser._parser.nread);
 }
 
 
 void ConnectionAdapter::onParserChunk(const char* buf, size_t len)
 {
-    // LTrace("On parser chunk: ", len)
-
     // Dispatch the payload
-    if (_connection/* && _receiver */) {
+    if (_connection) {
         net::SocketAdapter::onSocketRecv(*_connection->socket().get(),
-            mutableBuffer(const_cast<char*>(buf), len),
-            _connection->socket()->peerAddress());
+                                         mutableBuffer(const_cast<char*>(buf), len),
+                                         _connection->socket()->peerAddress());
     }
 }
 
 
 void ConnectionAdapter::onParserError(const scy::Error& err)
 {
-    LWarn("On parser error: ", err.message)
-
-#if 0
-    // HACK: Handle those peski flash policy requests here
-    auto base = dynamic_cast<net::TCPSocket*>(_connection.socket().get());
-    if (base && std::string(base->buffer().data(), 22) == "<policy-file-request/>") {
-
-        // Send an all access policy file by default
-        // TODO: User specified flash policy
-        std::string policy;
-
-        // Add the following headers for HTTP policy response
-        // policy += "HTTP/1.1 200 OK\r\nContent-Type: text/x-cross-domain-policy\r\nX-Permitted-Cross-Domain-Policies: all\r\n\r\n";
-        policy += "<?xml version=\"1.0\"?><cross-domain-policy><allow-access-from domain=\"*\" to-ports=\"*\" /></cross-domain-policy>";
-        base->send(policy.c_str(), policy.length() + 1);
-    }
-#endif
+    LWarn("On parser error: ", err.message);
 
     // Set error and close the connection on parser error
-    if (_connection/* && _receiver */) {
+    if (_connection) {
         _connection->setError(err.message);
-        _connection->close(); // do we want to force this?
+        _connection->close();
     }
 }
 
 
 void ConnectionAdapter::onParserEnd()
 {
-    // LTrace("On parser end")
-
-    if (_connection/* && _receiver */)
+    if (_connection)
         _connection->onComplete();
 }
 
@@ -406,8 +346,6 @@ Connection* ConnectionAdapter::connection()
 ConnectionStream::ConnectionStream(Connection::Ptr connection)
     : _connection(connection)
 {
-    // LTrace("Create: ", connection)
-
     IncomingProgress.sender = this;
     OutgoingProgress.sender = this;
 
@@ -417,18 +355,15 @@ ConnectionStream::ConnectionStream(Connection::Ptr connection)
     // The Outgoing stream pumps data into the ConnectionAdapter,
     // which in turn proxies to the output Socket.
     Outgoing.emitter += slot(_connection->adapter(),
-        static_cast<void (net::SocketAdapter::*)(IPacket&)>(&net::SocketAdapter::sendPacket));
+                             static_cast<void (net::SocketAdapter::*)(IPacket&)>(&net::SocketAdapter::sendPacket));
 
     // The Incoming stream receives data from the ConnectionAdapter.
-    //_connection->adapter()->Recv += slot(this, &ConnectionStream::onRecv);
     _connection->adapter()->addReceiver(this);
 }
 
 
 ConnectionStream::~ConnectionStream()
 {
-    // LTrace("Destroy")
-
     Outgoing.close();
     Incoming.close();
 }
@@ -436,8 +371,6 @@ ConnectionStream::~ConnectionStream()
 
 ssize_t ConnectionStream::send(const char* data, size_t len, int flags)
 {
-    // LTrace("Send: ", len)
-
     // Send outgoing data to the stream if adapters are attached,
     // or just proxy to the connection.
     if (Outgoing.numAdapters() > 0) {
@@ -449,10 +382,11 @@ ssize_t ConnectionStream::send(const char* data, size_t len, int flags)
 }
 
 
-void ConnectionStream::onSocketRecv(net::Socket& socket, const MutableBuffer& buffer, const net::Address& peerAddress)
+bool ConnectionStream::onSocketRecv(net::Socket& socket, const MutableBuffer& buffer, const net::Address& peerAddress)
 {
     // Push received data onto the Incoming stream.
     Incoming.write(bufferCast<const char*>(buffer), buffer.size());
+    return false;
 }
 
 
@@ -466,4 +400,4 @@ Connection::Ptr ConnectionStream::connection()
 } // namespace scy
 
 
-/// @\}
+/// @}

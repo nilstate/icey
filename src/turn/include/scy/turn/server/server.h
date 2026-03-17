@@ -9,9 +9,7 @@
 /// @addtogroup turn
 /// @{
 
-
-#ifndef SCY_TURN_Server_H
-#define SCY_TURN_Server_H
+#pragma once
 
 
 #include "scy/net/tcpsocket.h"
@@ -23,15 +21,31 @@
 #include "scy/turn/server/udpallocation.h"
 #include "scy/turn/turn.h"
 
-
 #include <algorithm>
-#include <assert.h>
 #include <iostream>
+#include <memory>
+#include <mutex>
 #include <string>
 
 
 namespace scy {
 namespace turn {
+
+
+/// Default server allocation lifetime (2 minutes, in milliseconds)
+static constexpr uint32_t kServerDefaultLifetime = 2 * 60 * 1000;
+
+/// Maximum server allocation lifetime (15 minutes, in milliseconds)
+static constexpr uint32_t kServerMaxLifetime = 15 * 60 * 1000;
+
+/// Maximum number of permissions per allocation
+static constexpr int kServerMaxPermissions = 10;
+
+/// Server timer interval (10 seconds)
+static constexpr int kServerTimerInterval = 10 * 1000;
+
+/// Early media buffer size
+static constexpr int kServerEarlyMediaBufferSize = 8192;
 
 
 /// Configuration options for the TURN server.
@@ -47,7 +61,7 @@ struct ServerOptions
     int earlyMediaBufferSize;
 
     net::Address listenAddr; ///< The TCP and UDP bind() address
-    std::string externalIP; ///< The external public facing IP address of the server
+    std::string externalIP;  ///< The external public facing IP address of the server
 
     bool enableTCP;
     bool enableUDP;
@@ -58,11 +72,11 @@ struct ServerOptions
         realm = "sourcey.com";
         listenAddr = net::Address("0.0.0.0", 3478);
         externalIP = "";
-        allocationDefaultLifetime = 2 * 60 * 1000;
-        allocationMaxLifetime = 15 * 60 * 1000;
-        allocationMaxPermissions = 10;
-        timerInterval = 10 * 1000;
-        earlyMediaBufferSize = 8192;
+        allocationDefaultLifetime = kServerDefaultLifetime;
+        allocationMaxLifetime = kServerMaxLifetime;
+        allocationMaxPermissions = kServerMaxPermissions;
+        timerInterval = kServerTimerInterval;
+        earlyMediaBufferSize = kServerEarlyMediaBufferSize;
         enableTCP = true;
         enableUDP = true;
     }
@@ -96,7 +110,7 @@ struct ServerObserver
 };
 
 
-typedef std::map<FiveTuple, ServerAllocation*> ServerAllocationMap;
+using ServerAllocationMap = std::map<FiveTuple, std::unique_ptr<ServerAllocation>>;
 
 
 /// TURN server rfc5766 implementation
@@ -118,12 +132,15 @@ public:
     void respond(Request& request, stun::Message& response);
     void respondError(Request& request, int errorCode, const char* errorDesc);
 
-    ServerAllocationMap allocations() const;
-    void addAllocation(ServerAllocation* alloc);
+    /// Returns a snapshot copy of the allocation map for safe iteration.
+    /// Callers receive raw pointers that are valid only while the
+    /// corresponding unique_ptr in _allocations is alive.
+    std::map<FiveTuple, ServerAllocation*> allocations() const;
+    void addAllocation(std::unique_ptr<ServerAllocation> alloc);
     void removeAllocation(ServerAllocation* alloc);
-    ServerAllocation* getAllocation(const FiveTuple& tuple);
-    TCPAllocation* getTCPAllocation(const uint32_t& connectionID);
-    net::TCPSocket::Ptr getTCPSocket(const net::Address& remoteAddr);
+    [[nodiscard]] ServerAllocation* getAllocation(const FiveTuple& tuple);
+    [[nodiscard]] TCPAllocation* getTCPAllocation(const uint32_t& connectionID);
+    [[nodiscard]] net::TCPSocket::Ptr getTCPSocket(const net::Address& remoteAddr);
     void releaseTCPSocket(const net::Socket& socket);
 
     ServerObserver& observer();
@@ -133,12 +150,13 @@ public:
     Timer& timer();
 
     void onTCPAcceptConnection(const net::TCPSocket::Ptr& sock);
-    void onTCPSocketClosed(net::Socket& socket);
-    void onSocketRecv(net::Socket& socket, const MutableBuffer& buffer,
+    bool onTCPSocketClosed(net::Socket& socket);
+    bool onSocketRecv(net::Socket& socket, const MutableBuffer& buffer,
                       const net::Address& peerAddress);
     void onTimer();
 
 private:
+    mutable std::mutex _mutex;
     ServerObserver& _observer;
     ServerOptions _options;
     net::SocketEmitter _udpSocket; // net::UDPSocket
@@ -149,10 +167,8 @@ private:
 };
 
 
-} } //  namespace scy::turn
-
-
-#endif // SCY_TURN_Server_H
+} // namespace turn
+} // namespace scy
 
 
 /// @\}

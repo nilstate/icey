@@ -30,7 +30,7 @@ SSLContext::SSLContext(Usage usage, const std::string& privateKeyFile,
                        bool loadDefaultCAs, const std::string& cipherList)
     : _usage(usage)
     , _mode(verificationMode)
-    , _sslContext(0)
+    , _sslContext(nullptr)
     , _extendedVerificationErrorDetails(true)
 {
     crypto::initializeEngine();
@@ -41,10 +41,10 @@ SSLContext::SSLContext(Usage usage, const std::string& privateKeyFile,
     if (!caLocation.empty()) {
         if (fs::isdir(caLocation))
             errCode = SSL_CTX_load_verify_locations(
-                _sslContext, 0, fs::transcode(caLocation).c_str());
+                _sslContext, nullptr, fs::transcode(caLocation).c_str());
         else
             errCode = SSL_CTX_load_verify_locations(
-                _sslContext, fs::transcode(caLocation).c_str(), 0);
+                _sslContext, fs::transcode(caLocation).c_str(), nullptr);
         if (errCode != 1) {
             std::string msg = getLastError();
             SSL_CTX_free(_sslContext);
@@ -108,7 +108,7 @@ SSLContext::SSLContext(Usage usage, const std::string& caLocation,
                        bool loadDefaultCAs, const std::string& cipherList)
     : _usage(usage)
     , _mode(verificationMode)
-    , _sslContext(0)
+    , _sslContext(nullptr)
     , _extendedVerificationErrorDetails(true)
 {
     crypto::initializeEngine();
@@ -119,10 +119,10 @@ SSLContext::SSLContext(Usage usage, const std::string& caLocation,
     if (!caLocation.empty()) {
         if (fs::isdir(caLocation))
             errCode = SSL_CTX_load_verify_locations(
-                _sslContext, 0, fs::transcode(caLocation).c_str());
+                _sslContext, nullptr, fs::transcode(caLocation).c_str());
         else
             errCode = SSL_CTX_load_verify_locations(
-                _sslContext, fs::transcode(caLocation).c_str(), 0);
+                _sslContext, fs::transcode(caLocation).c_str(), nullptr);
         if (errCode != 1) {
             std::string msg = getLastError();
             SSL_CTX_free(_sslContext);
@@ -156,7 +156,7 @@ SSLContext::SSLContext(Usage usage, const std::string& caLocation,
 }
 
 
-SSLContext::~SSLContext()
+SSLContext::~SSLContext() noexcept
 {
     SSL_CTX_free(_sslContext);
 
@@ -164,9 +164,9 @@ SSLContext::~SSLContext()
 }
 
 
-void SSLContext::useCertificate(const crypto::X509Certificate& certificate)
+void SSLContext::useCertificate(crypto::X509Certificate& certificate)
 {
-    int errCode = SSL_CTX_use_certificate(_sslContext, const_cast<X509*>(certificate.certificate()));
+    int errCode = SSL_CTX_use_certificate(_sslContext, certificate.certificate());
     if (errCode != 1) {
         std::string msg = getLastError();
         throw std::runtime_error(
@@ -175,10 +175,16 @@ void SSLContext::useCertificate(const crypto::X509Certificate& certificate)
 }
 
 
-void SSLContext::addChainCertificate(const crypto::X509Certificate& certificate)
+void SSLContext::addChainCertificate(crypto::X509Certificate& certificate)
 {
-    int errCode = SSL_CTX_add_extra_chain_cert(_sslContext, const_cast<X509*>(certificate.certificate()));
+    // SSL_CTX_add_extra_chain_cert takes ownership of the X509 pointer,
+    // so we must duplicate it to avoid double-free with X509Certificate's RAII.
+    X509* dup = X509_dup(certificate.certificate());
+    if (!dup)
+        throw std::runtime_error("SSL Error: X509_dup failed");
+    int errCode = SSL_CTX_add_extra_chain_cert(_sslContext, dup);
     if (errCode != 1) {
+        X509_free(dup);
         std::string msg = getLastError();
         throw std::runtime_error(
             "SSL Error: Cannot add chain certificate to Context: " + msg);
@@ -200,11 +206,11 @@ void SSLContext::addChainCertificate(const crypto::X509Certificate& certificate)
 
 
 void SSLContext::addVerificationCertificate(
-    const crypto::X509Certificate& certificate)
+    crypto::X509Certificate& certificate)
 {
     int errCode =
         X509_STORE_add_cert(SSL_CTX_get_cert_store(_sslContext),
-                            const_cast<X509*>(certificate.certificate()));
+                            certificate.certificate());
     if (errCode != 1) {
         std::string msg = getLastError();
         throw std::runtime_error(
@@ -256,7 +262,8 @@ bool SSLContext::sessionCacheEnabled() const
 
 void SSLContext::setSessionCacheSize(size_t size)
 {
-    assert(isForServerUse());
+    if (!isForServerUse())
+        throw std::logic_error("setSessionCacheSize requires a server context");
 
     SSL_CTX_sess_set_cache_size(_sslContext, static_cast<long>(size));
 }
@@ -264,7 +271,8 @@ void SSLContext::setSessionCacheSize(size_t size)
 
 size_t SSLContext::getSessionCacheSize() const
 {
-    assert(isForServerUse());
+    if (!isForServerUse())
+        throw std::logic_error("getSessionCacheSize requires a server context");
 
     return static_cast<size_t>(SSL_CTX_sess_get_cache_size(_sslContext));
 }
@@ -272,7 +280,8 @@ size_t SSLContext::getSessionCacheSize() const
 
 void SSLContext::setSessionTimeout(long seconds)
 {
-    assert(isForServerUse());
+    if (!isForServerUse())
+        throw std::logic_error("setSessionTimeout requires a server context");
 
     SSL_CTX_set_timeout(_sslContext, seconds);
 }
@@ -280,7 +289,8 @@ void SSLContext::setSessionTimeout(long seconds)
 
 long SSLContext::getSessionTimeout() const
 {
-    assert(_usage == SERVER_USE);
+    if (!isForServerUse())
+        throw std::logic_error("getSessionTimeout requires a server context");
 
     return SSL_CTX_get_timeout(_sslContext);
 }
@@ -288,7 +298,8 @@ long SSLContext::getSessionTimeout() const
 
 void SSLContext::flushSessionCache()
 {
-    assert(_usage == SERVER_USE);
+    if (!isForServerUse())
+        throw std::logic_error("flushSessionCache requires a server context");
 
     Timestamp now;
     SSL_CTX_flush_sessions(_sslContext, static_cast<long>(now.epochTime()));
@@ -305,18 +316,16 @@ void SSLContext::disableStatelessSessionResumption()
 
 void SSLContext::createSSLContext()
 {
+    // OpenSSL 1.1.0+ / 3.x: use TLS_method() for all cases.
+    // Protocol version constraints are set via SSL_CTX_set_min/max_proto_version().
     switch (_usage) {
         case CLIENT_USE:
-            _sslContext = SSL_CTX_new(SSLv23_client_method());
+        case TLSV1_CLIENT_USE:
+            _sslContext = SSL_CTX_new(TLS_client_method());
             break;
         case SERVER_USE:
-            _sslContext = SSL_CTX_new(SSLv23_server_method());
-            break;
-        case TLSV1_CLIENT_USE:
-            _sslContext = SSL_CTX_new(TLSv1_client_method());
-            break;
         case TLSV1_SERVER_USE:
-            _sslContext = SSL_CTX_new(TLSv1_server_method());
+            _sslContext = SSL_CTX_new(TLS_server_method());
             break;
         default:
             throw std::runtime_error("SSL Exception: Invalid usage");
@@ -325,12 +334,44 @@ void SSLContext::createSSLContext()
         unsigned long err = ERR_get_error();
         throw std::runtime_error(
             "SSL Exception: Cannot create SSL_CTX object: " +
-            std::string(ERR_error_string(err, 0)));
+            std::string(ERR_error_string(err, nullptr)));
     }
+
+    // Enforce TLS 1.2 as the minimum for all usage modes.
+    // The legacy TLSV1_* enum values are preserved for API compatibility
+    // but no longer permit TLS 1.0/1.1 (deprecated, RFC 8996).
+    SSL_CTX_set_min_proto_version(_sslContext, TLS1_2_VERSION);
 
     SSL_CTX_set_default_passwd_cb(_sslContext, &SSLManager::privateKeyPassphraseCallback);
     clearErrorStack();
     SSL_CTX_set_options(_sslContext, SSL_OP_ALL);
+}
+
+
+void SSLContext::setALPNProtocols(const std::vector<std::string>& protocols)
+{
+    // Build wire format: each protocol prefixed by its length byte
+    std::vector<unsigned char> wire;
+    for (const auto& proto : protocols) {
+        if (proto.empty() || proto.size() > 255)
+            throw std::invalid_argument("Invalid ALPN protocol name");
+        wire.push_back(static_cast<unsigned char>(proto.size()));
+        wire.insert(wire.end(), proto.begin(), proto.end());
+    }
+
+    if (SSL_CTX_set_alpn_protos(_sslContext, wire.data(), static_cast<unsigned int>(wire.size())) != 0)
+        throw std::runtime_error("SSL Error: Cannot set ALPN protocols");
+}
+
+
+void SSLContext::enableSNI(SSL* ssl, const std::string& hostname)
+{
+    if (!ssl)
+        throw std::invalid_argument("SSL object is null");
+    if (hostname.empty())
+        return;
+
+    SSL_set_tlsext_host_name(ssl, hostname.c_str());
 }
 
 

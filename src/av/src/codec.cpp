@@ -31,6 +31,7 @@ Codec::Codec()
     , sampleRate(0)
     , bitRate(0)
     , quality(0)
+    , compliance(-2) // FF_COMPLIANCE_EXPERIMENTAL
     , enabled(false)
 {
 }
@@ -40,6 +41,7 @@ Codec::Codec(const std::string& name, int sampleRate, int bitRate, bool enabled)
     , sampleRate(sampleRate)
     , bitRate(bitRate)
     , quality(0)
+    , compliance(-2) // FF_COMPLIANCE_EXPERIMENTAL
     , enabled(enabled)
 {
 }
@@ -51,6 +53,7 @@ Codec::Codec(const std::string& name, const std::string& encoder,
     , encoder(encoder)
     , sampleRate(sampleRate)
     , bitRate(bitRate)
+    , compliance(-2) // FF_COMPLIANCE_EXPERIMENTAL
     , enabled(enabled)
 {
 }
@@ -82,7 +85,7 @@ Codec::Codec(const std::string& name, const std::string& encoder,
 // }
 
 
-Codec::~Codec()
+Codec::~Codec() noexcept
 {
 }
 
@@ -118,7 +121,7 @@ AudioCodec::AudioCodec()
 }
 
 
-AudioCodec::AudioCodec(int channels, int sampleRate, 
+AudioCodec::AudioCodec(int channels, int sampleRate,
                        const std::string& sampleFmt, int bitRate)
     : Codec("Unknown", sampleRate, bitRate, true)
     , channels(channels)
@@ -161,7 +164,7 @@ AudioCodec::AudioCodec(const std::string& name, const std::string& encoder,
 // }
 
 
-AudioCodec::~AudioCodec()
+AudioCodec::~AudioCodec() noexcept
 {
 }
 
@@ -200,7 +203,7 @@ VideoCodec::VideoCodec()
 }
 
 
-VideoCodec::VideoCodec(int width, int height, double fps, 
+VideoCodec::VideoCodec(int width, int height, double fps,
                        const std::string& pixelFmt, int sampleRate, int bitRate)
     : Codec("Unknown", sampleRate, bitRate, true)
     , width(width)
@@ -245,7 +248,7 @@ VideoCodec::VideoCodec(const VideoCodec& r)
 }
 
 
-VideoCodec::~VideoCodec()
+VideoCodec::~VideoCodec() noexcept
 {
 }
 

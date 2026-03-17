@@ -22,8 +22,7 @@ namespace av {
 
 
 Format::Format()
-    : name("Unknown")
-    , priority(0)
+    : priority(0)
 {
 }
 

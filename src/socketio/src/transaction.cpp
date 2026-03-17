@@ -12,10 +12,6 @@
 #include "scy/socketio/transaction.h"
 #include "scy/logger.h"
 #include "scy/socketio/client.h"
-#include <iostream>
-
-
-using std::endl;
 
 
 namespace scy {
@@ -26,7 +22,7 @@ Transaction::Transaction(Client& client, long timeout)
     : PacketTransaction<Packet>(timeout, 0, client.ws().socket->loop())
     , client(client)
 {
-    LTrace("Create")
+    LTrace("Create");
 }
 
 
@@ -34,19 +30,19 @@ Transaction::Transaction(Client& client, const Packet& request, long timeout)
     : PacketTransaction<Packet>(request, timeout, 0, client.ws().socket->loop())
     , client(client)
 {
-    LTrace("Create")
+    LTrace("Create");
 }
 
 
 Transaction::~Transaction()
 {
-    LTrace("Destroy")
+    LTrace("Destroy");
 }
 
 
 bool Transaction::send()
 {
-    LTrace("Send: ", _request.id())
+    LTrace("Send: ", _request.id());
     _request.setAck(true);
     client += packetSlot(this, &Transaction::onPotentialResponse, -1, 100);
     if (client.send(_request))
@@ -57,21 +53,21 @@ bool Transaction::send()
 
 void Transaction::onPotentialResponse(sockio::Packet& packet)
 {
-    LTrace("On potential response: ", packet.id())
+    LTrace("On potential response: ", packet.id());
     PacketTransaction<Packet>::handlePotentialResponse(packet);
 }
 
 
 bool Transaction::checkResponse(const Packet& packet)
 {
-    LTrace("Check response: ", packet.id())
+    LTrace("Check response: ", packet.id());
     return _request.id() == packet.id();
 }
 
 
 void Transaction::onResponse()
 {
-    LTrace("On success")
+    LTrace("On success");
     client -= packetSlot(this, &Transaction::onPotentialResponse);
     PacketTransaction<Packet>::onResponse();
 }
@@ -81,4 +77,4 @@ void Transaction::onResponse()
 } // namespace scy
 
 
-/// @\}
+/// @}

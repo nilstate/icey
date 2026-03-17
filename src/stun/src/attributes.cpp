@@ -18,8 +18,9 @@
 #include "scy/stun/attributes.h"
 #include "scy/stun/message.h"
 
-
-using namespace std;
+#include <cstdio>
+#include <cstring>
+#include <stdexcept>
 
 
 namespace scy {
@@ -156,159 +157,137 @@ void Attribute::writePadding(BitWriter& writer) const
 }
 
 
-Attribute* Attribute::create(uint16_t type, uint16_t size)
+std::unique_ptr<Attribute> Attribute::create(uint16_t type, uint16_t size)
 {
-    // Attribute* attr = get(type);
-    // if (attr)
-    //    return attr;
-
     switch (type) {
         case Attribute::MappedAddress:
             if (size != AddressAttribute::IPv4Size &&
                 size != AddressAttribute::IPv6Size)
                 return nullptr;
-            return new stun::MappedAddress();
+            return std::make_unique<stun::MappedAddress>();
 
         case Attribute::XorMappedAddress:
             if (size != AddressAttribute::IPv4Size &&
                 size != AddressAttribute::IPv6Size)
                 return nullptr;
-            return new stun::XorMappedAddress();
+            return std::make_unique<stun::XorMappedAddress>();
 
         case Attribute::XorRelayedAddress:
             if (size != AddressAttribute::IPv4Size &&
                 size != AddressAttribute::IPv6Size)
                 return nullptr;
-            return new stun::XorRelayedAddress();
+            return std::make_unique<stun::XorRelayedAddress>();
 
         case Attribute::XorPeerAddress:
             if (size != AddressAttribute::IPv4Size &&
                 size != AddressAttribute::IPv6Size)
                 return nullptr;
-            return new stun::XorPeerAddress();
+            return std::make_unique<stun::XorPeerAddress>();
 
         case Attribute::AlternateServer:
             if (size != AddressAttribute::IPv4Size &&
                 size != AddressAttribute::IPv6Size)
                 return nullptr;
-            return new stun::AlternateServer();
+            return std::make_unique<stun::AlternateServer>();
 
         case Attribute::ErrorCode:
             if (size < ErrorCode::MinSize)
                 return nullptr;
-            return new stun::ErrorCode(size);
+            return std::make_unique<stun::ErrorCode>(size);
 
         case Attribute::UnknownAttributes:
-            return new stun::UnknownAttributes(size);
+            return std::make_unique<stun::UnknownAttributes>(size);
 
         case Attribute::Fingerprint:
             if (size != Fingerprint::Size)
                 return nullptr;
-            return new stun::Fingerprint();
+            return std::make_unique<stun::Fingerprint>();
 
         case Attribute::RequestedTransport:
             if (size != RequestedTransport::Size)
                 return nullptr;
-            return new stun::RequestedTransport();
+            return std::make_unique<stun::RequestedTransport>();
 
         case Attribute::Lifetime:
             if (size != Lifetime::Size)
                 return nullptr;
-            return new stun::Lifetime();
+            return std::make_unique<stun::Lifetime>();
 
         case Attribute::Bandwidth:
             if (size != Bandwidth::Size)
                 return nullptr;
-            return new stun::Bandwidth();
+            return std::make_unique<stun::Bandwidth>();
 
         case Attribute::ChannelNumber:
-            if (size != ICEUseCandidate::Size)
+            if (size != ChannelNumber::Size)
                 return nullptr;
-            return new stun::ICEUseCandidate();
+            return std::make_unique<stun::ChannelNumber>();
 
         case Attribute::ConnectionID:
             if (size != ConnectionID::Size)
                 return nullptr;
-            return new stun::ConnectionID();
+            return std::make_unique<stun::ConnectionID>();
 
         case Attribute::MessageIntegrity:
-            return (size == 20) ? new stun::MessageIntegrity() : nullptr;
+            return (size == 20) ? std::make_unique<stun::MessageIntegrity>() : nullptr;
 
         case Attribute::Nonce:
-            return (size <= 128) ? new stun::Nonce(size) : nullptr;
+            return (size <= 128) ? std::make_unique<stun::Nonce>(size) : nullptr;
 
         case Attribute::Realm:
-            return (size <= 128) ? new stun::Realm(size) : nullptr;
+            return (size <= 128) ? std::make_unique<stun::Realm>(size) : nullptr;
 
         case Attribute::Software:
-            return (size <= 128) ? new stun::Software(size) : nullptr;
+            return (size <= 128) ? std::make_unique<stun::Software>(size) : nullptr;
 
         case Attribute::ReservationToken:
-            return (size == 8) ? new stun::ReservationToken() : nullptr;
+            return (size == 8) ? std::make_unique<stun::ReservationToken>() : nullptr;
 
         case Attribute::MagicCookie:
-            return (size == 4) ? new stun::MagicCookie() : nullptr;
+            return (size == 4) ? std::make_unique<stun::MagicCookie>() : nullptr;
 
         case Attribute::Data:
-            return new stun::Data(size);
+            return std::make_unique<stun::Data>(size);
 
         case Attribute::Username:
-            return (size <= 128) ? new stun::Username(size) : nullptr;
+            return (size <= 128) ? std::make_unique<stun::Username>(size) : nullptr;
 
         case Attribute::Password:
-            return (size <= 128) ? new stun::Password(size) : nullptr;
+            return (size <= 128) ? std::make_unique<stun::Password>(size) : nullptr;
 
         case Attribute::ICEPriority:
             if (size != ICEPriority::Size)
                 return nullptr;
-            return new stun::ICEPriority();
+            return std::make_unique<stun::ICEPriority>();
 
         case Attribute::ICEControlled:
             if (size != ICEControlled::Size)
                 return nullptr;
-            return new stun::ICEControlled();
+            return std::make_unique<stun::ICEControlled>();
 
         case Attribute::ICEControlling:
             if (size != ICEControlling::Size)
                 return nullptr;
-            return new stun::ICEControlling();
+            return std::make_unique<stun::ICEControlling>();
 
         case Attribute::ICEUseCandidate:
-            return (size == 0) ? new stun::ICEUseCandidate() : nullptr;
+            return (size == 0) ? std::make_unique<stun::ICEUseCandidate>() : nullptr;
 
         case Attribute::DontFragment:
             if (size != DontFragment::Size)
                 return nullptr;
-            return new stun::DontFragment();
+            return std::make_unique<stun::DontFragment>();
 
         case Attribute::EventPort:
             if (size != EventPort::Size)
                 return nullptr;
-            return new stun::EventPort();
-
-        // case Attribute::UnknownAttributes:
-        //    return (size % 2 == 0) ? new stun::UnknownAttributes(size) :
-        //    nullptr;
-        //    break;
-
-        // case Attribute::TransportPrefs:
-        //    if ((size != TransportPrefs::Size1) &&
-        //        (size != TransportPrefs::Size2))
-        //        return nullptr;
-        //    return new stun::TransportPrefs(size);
-
-        // case Attribute::MagicCookie:
-        //    return (size == 4) ? new stun::MagicCookie() : nullptr;
-        //    break;
+            return std::make_unique<stun::EventPort>();
 
         default:
-            LError("Cannot create attribute for type: ", type)
+            LError("Cannot create attribute for type: ", type);
             break;
     }
 
-    //_attrs.push_back(attr);
-    // return attr;
-    // assert(false);
     return nullptr;
 }
 
@@ -328,9 +307,9 @@ AddressAttribute::AddressAttribute(const AddressAttribute& r)
 }
 
 
-Attribute* AddressAttribute::clone()
+std::unique_ptr<Attribute> AddressAttribute::clone()
 {
-    return new AddressAttribute(*this);
+    return std::make_unique<AddressAttribute>(*this);
 }
 
 
@@ -343,23 +322,11 @@ net::Address AddressAttribute::address() const
 std::string intToIPv4(uint32_t ip)
 {
     // Input should be in host network order
-    // ip = ntohl(ip);
     char str[20];
-    sprintf(str, "%d.%d.%d.%d", (ip >> 24) & 0xff, (ip >> 16) & 0xff,
-            (ip >> 8) & 0xff, ip & 0xff);
+    std::snprintf(str, sizeof(str), "%d.%d.%d.%d",
+                  (ip >> 24) & 0xff, (ip >> 16) & 0xff,
+                  (ip >> 8) & 0xff, ip & 0xff);
     return std::string(str);
-
-#if 0
-    ostringstream ost;
-    ost << ((ip >> 24) & 0xff);
-    ost << '.';
-    ost << ((ip >> 16) & 0xff);
-    ost << '.';
-    ost << ((ip >> 8) & 0xff);
-    ost << '.';
-    ost << ((ip >> 0) & 0xff);
-    return ost.str();
-#endif
 }
 
 
@@ -382,25 +349,68 @@ void AddressAttribute::read(BitReader& reader)
     uint16_t port;
     reader.getU16(port);
     port = ntohs(port) ^ ntohs(kMagicCookie >> 16); // XOR
-    // port ^= (kMagicCookie >> 16);
 
-    if (family == AddressFamily::IPv4) {
+    if (family == static_cast<uint8_t>(AddressFamily::IPv4)) {
         if (size() != IPv4Size) {
-            assert(0 && "invalid IPv4 address");
-            return;
+            throw std::runtime_error("invalid IPv4 address attribute size");
         }
 
         uint32_t ip;
         reader.getU32(ip);
         ip = ntohl(ip) ^ ntohl(kMagicCookie); // XOR
-        // ip ^= ntohl(kMagicCookie);
-        // ip ^= kMagicCookie;
 
         _address = net::Address(intToIPv4(ntohl(ip)), ntohs(port));
-    } else if (family == AddressFamily::IPv6) {
-        assert(0 && "IPv6 not supported");
+    } else if (family == static_cast<uint8_t>(AddressFamily::IPv6)) {
+        if (size() != IPv6Size) {
+            throw std::runtime_error("invalid IPv6 address attribute size");
+        }
+
+        // RFC 5389 Section 15.2: For IPv6, X-Address is computed by taking
+        // the mapped IP address in host byte order, XOR'ing it with the
+        // concatenation of the magic cookie (32 bits) and the transaction
+        // ID (96 bits), and converting the result to network byte order.
+
+        // Read the 16 raw bytes of the IPv6 address from the wire
+        uint8_t xored[16];
+        for (int i = 0; i < 16; i++) {
+            uint8_t b;
+            reader.getU8(b);
+            xored[i] = b;
+        }
+
+        // Build the 16-byte XOR mask: magic cookie (4 bytes) + transaction ID (12 bytes)
+        // We need to get the transaction ID from the message header which
+        // starts at offset 8 in the reader's buffer (after type + length + cookie).
+        // The reader.begin() points to the start of the STUN message.
+        const uint8_t* msgBegin = reinterpret_cast<const uint8_t*>(reader.begin());
+        uint8_t xorMask[16];
+        // First 4 bytes: magic cookie in network byte order
+        xorMask[0] = static_cast<uint8_t>((kMagicCookie >> 24) & 0xff);
+        xorMask[1] = static_cast<uint8_t>((kMagicCookie >> 16) & 0xff);
+        xorMask[2] = static_cast<uint8_t>((kMagicCookie >> 8) & 0xff);
+        xorMask[3] = static_cast<uint8_t>(kMagicCookie & 0xff);
+        // Next 12 bytes: transaction ID from offset 8 in the message
+        std::memcpy(xorMask + 4, msgBegin + kTransactionIdOffset, kTransactionIdLength);
+
+        // XOR the address bytes with the mask
+        uint8_t addr[16];
+        for (int i = 0; i < 16; i++) {
+            addr[i] = xored[i] ^ xorMask[i];
+        }
+
+        // Build IPv6 address string from the decoded bytes
+        char addrStr[64];
+        std::snprintf(addrStr, sizeof(addrStr),
+                      "%02x%02x:%02x%02x:%02x%02x:%02x%02x:"
+                      "%02x%02x:%02x%02x:%02x%02x:%02x%02x",
+                      addr[0], addr[1], addr[2], addr[3],
+                      addr[4], addr[5], addr[6], addr[7],
+                      addr[8], addr[9], addr[10], addr[11],
+                      addr[12], addr[13], addr[14], addr[15]);
+
+        _address = net::Address(std::string(addrStr), ntohs(port));
     } else {
-        assert(0 && "invalid address");
+        throw std::runtime_error("invalid address family in STUN attribute");
     }
 }
 
@@ -408,10 +418,7 @@ void AddressAttribute::read(BitReader& reader)
 void AddressAttribute::write(BitWriter& writer) const
 {
     writer.putU8(0);
-    writer.putU8(family());
-    // writer.putU8(_family);
-    // writer.putU16(_port);
-    // writer.putU32(_ip);
+    writer.putU8(static_cast<uint8_t>(family()));
 
     switch (_address.family()) {
         case net::Address::IPv4: {
@@ -420,11 +427,7 @@ void AddressAttribute::write(BitWriter& writer) const
 
             // Port
             uint16_t port = ntohs(v4addr->sin_port);
-            // assert(port == 5555);
-            // assert(port == 0x15B3);
             port ^= (kMagicCookie >> 16); // XOR
-            // port = port ^ (kMagicCookie >> 16); // XOR
-            // assert(port == 0x34A1);
             writer.putU16(port);
 
             // Address
@@ -434,7 +437,32 @@ void AddressAttribute::write(BitWriter& writer) const
             break;
         }
         case net::Address::IPv6: {
-            assert(0 && "IPv6 not supported");
+            auto v6addr = reinterpret_cast<sockaddr_in6*>(
+                const_cast<sockaddr*>(_address.addr()));
+
+            // Port: XOR with high 16 bits of magic cookie
+            uint16_t port = ntohs(v6addr->sin6_port);
+            port ^= (kMagicCookie >> 16); // XOR
+            writer.putU16(port);
+
+            // Address: XOR with magic cookie + transaction ID
+            // Build the XOR mask from the message header already written
+            const uint8_t* msgBegin = reinterpret_cast<const uint8_t*>(writer.begin());
+            uint8_t xorMask[16];
+            xorMask[0] = static_cast<uint8_t>((kMagicCookie >> 24) & 0xff);
+            xorMask[1] = static_cast<uint8_t>((kMagicCookie >> 16) & 0xff);
+            xorMask[2] = static_cast<uint8_t>((kMagicCookie >> 8) & 0xff);
+            xorMask[3] = static_cast<uint8_t>(kMagicCookie & 0xff);
+            std::memcpy(xorMask + 4, msgBegin + kTransactionIdOffset, kTransactionIdLength);
+
+            // Get raw IPv6 address bytes in network order
+            const uint8_t* addrBytes = reinterpret_cast<const uint8_t*>(
+                &v6addr->sin6_addr);
+
+            // XOR each byte and write
+            for (int i = 0; i < 16; i++) {
+                writer.putU8(addrBytes[i] ^ xorMask[i]);
+            }
             break;
         }
     }
@@ -457,22 +485,24 @@ UInt8Attribute::UInt8Attribute(const UInt8Attribute& r)
 }
 
 
-Attribute* UInt8Attribute::clone()
+std::unique_ptr<Attribute> UInt8Attribute::clone()
 {
-    return new UInt8Attribute(*this);
+    return std::make_unique<UInt8Attribute>(*this);
 }
 
 
 bool UInt8Attribute::getBit(int index) const
 {
-    assert((0 <= index) && (index < 32));
+    if (index < 0 || index >= 8)
+        throw std::runtime_error("UInt8Attribute::getBit: index out of range");
     return static_cast<bool>((_bits >> index) & 0x1);
 }
 
 
 void UInt8Attribute::setBit(int index, bool value)
 {
-    assert((0 <= index) && (index < 32));
+    if (index < 0 || index >= 8)
+        throw std::runtime_error("UInt8Attribute::setBit: index out of range");
     _bits &= ~(1 << index);
     _bits |= value ? (1 << index) : 0;
 }
@@ -506,24 +536,26 @@ UInt32Attribute::UInt32Attribute(const UInt32Attribute& r)
 }
 
 
-Attribute* UInt32Attribute::clone()
+std::unique_ptr<Attribute> UInt32Attribute::clone()
 {
-    return new UInt32Attribute(*this);
+    return std::make_unique<UInt32Attribute>(*this);
 }
 
 
 bool UInt32Attribute::getBit(int index) const
 {
-    assert((0 <= index) && (index < 32));
+    if (index < 0 || index >= 32)
+        throw std::runtime_error("UInt32Attribute::getBit: index out of range");
     return static_cast<bool>((_bits >> index) & 0x1);
 }
 
 
 void UInt32Attribute::setBit(int index, bool value)
 {
-    assert((0 <= index) && (index < 32));
-    _bits &= ~(1 << index);
-    _bits |= value ? (1 << index) : 0;
+    if (index < 0 || index >= 32)
+        throw std::runtime_error("UInt32Attribute::setBit: index out of range");
+    _bits &= ~(1u << index);
+    _bits |= value ? (1u << index) : 0;
 }
 
 
@@ -554,24 +586,26 @@ UInt64Attribute::UInt64Attribute(const UInt64Attribute& r)
 }
 
 
-Attribute* UInt64Attribute::clone()
+std::unique_ptr<Attribute> UInt64Attribute::clone()
 {
-    return new UInt64Attribute(*this);
+    return std::make_unique<UInt64Attribute>(*this);
 }
 
 
 bool UInt64Attribute::getBit(int index) const
 {
-    assert((0 <= index) && (index < 32));
+    if (index < 0 || index >= 64)
+        throw std::runtime_error("UInt64Attribute::getBit: index out of range");
     return static_cast<bool>((_bits >> index) & 0x1);
 }
 
 
 void UInt64Attribute::setBit(int index, bool value)
 {
-    assert((0 <= index) && (index < 32));
-    _bits &= ~(1 << index);
-    _bits |= value ? (1 << index) : 0;
+    if (index < 0 || index >= 64)
+        throw std::runtime_error("UInt64Attribute::setBit: index out of range");
+    _bits &= ~(1ull << index);
+    _bits |= value ? (1ull << index) : 0;
 }
 
 
@@ -595,9 +629,9 @@ FlagAttribute::FlagAttribute(uint16_t type)
 }
 
 
-Attribute* FlagAttribute::clone()
+std::unique_ptr<Attribute> FlagAttribute::clone()
 {
-    return new FlagAttribute(type());
+    return std::make_unique<FlagAttribute>(type());
 }
 
 
@@ -605,77 +639,73 @@ Attribute* FlagAttribute::clone()
 //
 StringAttribute::StringAttribute(uint16_t type, uint16_t size)
     : Attribute(type, size)
-    , _bytes(0)
 {
 }
 
 
 StringAttribute::StringAttribute(const StringAttribute& r)
     : Attribute(r._type, r._size)
-    , _bytes(0)
+    , _bytes(r._bytes)
 {
-    copyBytes(r._bytes, r._size);
 }
 
 
 StringAttribute::~StringAttribute()
 {
-    if (_bytes)
-        delete[] _bytes;
 }
 
 
-Attribute* StringAttribute::clone()
+std::unique_ptr<Attribute> StringAttribute::clone()
 {
-    return new StringAttribute(*this);
+    return std::make_unique<StringAttribute>(*this);
 }
 
 
-void StringAttribute::setBytes(char* bytes, unsigned size)
+void StringAttribute::setBytes(const char* bytes, unsigned size)
 {
-    if (_bytes)
-        delete[] _bytes;
-    _bytes = bytes;
+    _bytes.assign(bytes, bytes + size);
     setLength(size);
 }
 
 
 void StringAttribute::copyBytes(const char* bytes)
 {
-    copyBytes(bytes, static_cast<uint16_t>(strlen(bytes)));
+    copyBytes(bytes, static_cast<uint16_t>(std::strlen(bytes)));
 }
 
 
 void StringAttribute::copyBytes(const void* bytes, unsigned size)
 {
-    char* newBytes = new char[size];
-    memcpy(newBytes, bytes, size);
-    setBytes(newBytes, size);
+    const char* src = static_cast<const char*>(bytes);
+    _bytes.assign(src, src + size);
+    setLength(size);
 }
 
 
 uint8_t StringAttribute::getByte(int index) const
 {
-    assert(_bytes != nullptr);
-    assert((0 <= index) && (index < size()));
+    if (_bytes.empty())
+        throw std::runtime_error("StringAttribute::getByte: no data");
+    if (index < 0 || index >= static_cast<int>(Attribute::size()))
+        throw std::runtime_error("StringAttribute::getByte: index out of range");
     return static_cast<uint8_t>(_bytes[index]);
 }
 
 
 void StringAttribute::setByte(int index, uint8_t value)
 {
-    assert(_bytes != nullptr);
-    assert((0 <= index) && (index < size()));
-    _bytes[index] = value;
+    if (_bytes.empty())
+        throw std::runtime_error("StringAttribute::setByte: no data");
+    if (index < 0 || index >= static_cast<int>(Attribute::size()))
+        throw std::runtime_error("StringAttribute::setByte: index out of range");
+    _bytes[index] = static_cast<char>(value);
 }
 
 
 void StringAttribute::read(BitReader& reader)
 {
-    if (_bytes)
-        delete[] _bytes;
-    _bytes = new char[size()];
-    reader.get(_bytes, size());
+    _bytes.resize(Attribute::size());
+    reader.get(_bytes.data(), Attribute::size());
 
     consumePadding(reader);
 }
@@ -683,8 +713,8 @@ void StringAttribute::read(BitReader& reader)
 
 void StringAttribute::write(BitWriter& writer) const
 {
-    if (_bytes)
-        writer.put(_bytes, size());
+    if (!_bytes.empty())
+        writer.put(_bytes.data(), Attribute::size());
 
     writePadding(writer);
 }
@@ -692,27 +722,8 @@ void StringAttribute::write(BitWriter& writer) const
 
 std::string StringAttribute::asString() const
 {
-    return std::string(_bytes, size());
+    return std::string(_bytes.data(), Attribute::size());
 }
-
-
-/*
-//--------------- Fingerprint ----------------
-Fingerprint::Fingerprint() :
-    UInt32Attribute(Attribute::Fingerprint) {
-}
-
-
-//void Fingerprint::setCRC32(unsigned int crc) {
-//    _crc32 = crc;
-//}
-
-
-//unsigned int Fingerprint::crc32() {
-//    return _crc32;
-//}
-*/
-
 
 
 // ---------------------------------------------------------------------------
@@ -737,28 +748,24 @@ MessageIntegrity::~MessageIntegrity()
 }
 
 
-Attribute* MessageIntegrity::clone()
+std::unique_ptr<Attribute> MessageIntegrity::clone()
 {
-    return new MessageIntegrity(*this);
+    return std::make_unique<MessageIntegrity>(*this);
 }
 
 
 bool MessageIntegrity::verifyHmac(const std::string& key) const
 {
-    // LDebug("Message: Verify HMAC: ", key)
-
-    assert(!key.empty());
-    assert(!_hmac.empty());
-    assert(!_input.empty());
-
-    // LDebug("Message: Packet integrity input (", _input, ")")
-    // LDebug("Message: Packet integrity key (", key, ")")
+    if (key.empty())
+        throw std::runtime_error("MessageIntegrity::verifyHmac: empty key");
+    if (_hmac.empty())
+        throw std::runtime_error("MessageIntegrity::verifyHmac: empty hmac");
+    if (_input.empty())
+        throw std::runtime_error("MessageIntegrity::verifyHmac: empty input");
 
     std::string hmac = crypto::computeHMAC(_input, key);
-    assert(hmac.size() == MessageIntegrity::Size);
-
-    // SDebug << "Message: Verifying message integrity (" << hmac << ": " <<
-    // _hmac << ")" << endl;
+    if (hmac.size() != MessageIntegrity::Size)
+        throw std::runtime_error("MessageIntegrity::verifyHmac: unexpected HMAC size");
 
     return _hmac == hmac;
 }
@@ -766,13 +773,7 @@ bool MessageIntegrity::verifyHmac(const std::string& key) const
 
 void MessageIntegrity::read(BitReader& reader)
 {
-    // LDebug("Message: Read HMAC")
     int sizeBeforeMessageIntegrity = reader.position() - kAttributeHeaderSize;
-
-    // Read the HMAC value.
-    // reader.get(_hmac, MessageIntegrity::Size);
-
-    // _input.assign(reader.begin(), sizeBeforeMessageIntegrity);
 
     // Get the message prior to the current attribute and fill the
     // attribute with dummy content.
@@ -780,7 +781,6 @@ void MessageIntegrity::read(BitReader& reader)
     BitWriter hmacWriter(hmacBuf);
 
     hmacWriter.put(reader.begin(), reader.position() - kAttributeHeaderSize);
-    // hmacWriter.put("00000000000000000000");
 
     // Ensure the STUN message size reflects the message up to and
     // including the MessageIntegrity attribute.
@@ -790,30 +790,6 @@ void MessageIntegrity::read(BitReader& reader)
     _hmac.assign(reader.current(), MessageIntegrity::Size);
 
     reader.skip(MessageIntegrity::Size);
-
-#if 0
-    //LDebug("Message: Parsed message integrity (", _hmac, ")")
-
-    // Remember the original position and set the buffer position back to 0.
-    int originalPos = reader.position();
-    reader.seek(0);
-
-    // Get the message prior to the current attribute and fill the
-    // attribute with dummy content.
-    Buffer hmacBuf;
-    BitWriter hmacWriter(hmacBuf);
-
-    hmacWriter.put(reader.begin(), reader.available() - MessageIntegrity::Size);
-    hmacWriter.put("00000000000000000000");
-
-    // Ensure the STUN message size value represents the real
-    // size of the buffered message.
-    hmacWriter.updateU32((uint32_t)hmacWriter.position(), 2);
-    _input.assign(hmacWriter.begin(), hmacWriter.position());
-
-    // Reset the original buffer position.
-    reader.seek(originalPos);
-#endif
 }
 
 
@@ -832,12 +808,9 @@ void MessageIntegrity::write(BitWriter& writer) const
 
         // Get the message prior to the current attribute and
         // fill the attribute with dummy content.
-        //  + MessageIntegrity::Size
         Buffer hmacBuf(sizeBeforeMessageIntegrity);
         BitWriter hmacWriter(hmacBuf);
         hmacWriter.put(writer.begin(), sizeBeforeMessageIntegrity);
-
-        // hmacWriter.put("00000000000000000000");
 
         // The length MUST then
         // be set to point to the length of the message up to, and including,
@@ -853,37 +826,19 @@ void MessageIntegrity::write(BitWriter& writer) const
         hmacWriter.updateU32((uint32_t)sizeBeforeMessageIntegrity + MessageIntegrity::Size, 2);
 
         std::string input(hmacWriter.begin(), hmacWriter.position());
-        assert(input.size() == sizeBeforeMessageIntegrity); // + MessageIntegrity::Size
+        if (input.size() != static_cast<size_t>(sizeBeforeMessageIntegrity))
+            throw std::runtime_error("MessageIntegrity::write: input size mismatch");
 
-        // std::string input(writer.begin(), sizeBeforeMessageIntegrity);
         std::string hmac(crypto::computeHMAC(input, _key));
-        assert(hmac.size() == MessageIntegrity::Size);
+        if (hmac.size() != MessageIntegrity::Size)
+            throw std::runtime_error("MessageIntegrity::write: unexpected HMAC size");
 
-        // Append the real HAMC to the buffer.
+        // Append the real HMAC to the buffer.
         writer.put(hmac.c_str(), hmac.length());
 
-#if 0
-        // Get the message prior to the current attribute and
-        // fill the attribute with dummy content.
-        Buffer hmacBuf; // TODO: alloc exact size
-        BitWriter hmacWriter(hmacBuf);
-        hmacWriter.put(writer.begin(), writer.position());
-        hmacWriter.put("00000000000000000000");
-
-        // Ensure the STUN message size value represents the real
-        // size of the buffered message.
-        hmacWriter.updateU32((uint32_t)hmacWriter.position() + MessageIntegrity::Size, 2);
-
-        //string input(hmacBuf.data(), hmacBuf.available());
-        std::string input(hmacWriter.begin(), hmacWriter.position());
-        std::string hmac(crypto::computeHMAC(input, _key));
-        assert(hmac.size() == MessageIntegrity::Size);
-
-        // Append the real HAMC to the buffer.
-        writer.put(hmac.c_str(), MessageIntegrity::Size);
-#endif
     } else {
-        assert(_hmac.size() == MessageIntegrity::Size);
+        if (_hmac.size() != MessageIntegrity::Size)
+            throw std::runtime_error("MessageIntegrity::write: HMAC not set");
         writer.put(_hmac.c_str(), MessageIntegrity::Size);
     }
 }
@@ -896,7 +851,8 @@ ErrorCode::ErrorCode(uint16_t size)
     , _class(0)
     , _number(0)
 {
-    assert(size >= MinSize);
+    if (size < MinSize)
+        throw std::runtime_error("ErrorCode: size too small");
 }
 
 
@@ -914,9 +870,9 @@ ErrorCode::~ErrorCode()
 }
 
 
-Attribute* ErrorCode::clone()
+std::unique_ptr<Attribute> ErrorCode::clone()
 {
-    return new ErrorCode(*this);
+    return std::make_unique<ErrorCode>(*this);
 }
 
 
@@ -984,9 +940,9 @@ UInt16ListAttribute::~UInt16ListAttribute()
 }
 
 
-Attribute* UInt16ListAttribute::clone()
+std::unique_ptr<Attribute> UInt16ListAttribute::clone()
 {
-    return new UInt16ListAttribute(*this);
+    return std::make_unique<UInt16ListAttribute>(*this);
 }
 
 
@@ -1017,7 +973,7 @@ void UInt16ListAttribute::addType(uint16_t value)
 
 void UInt16ListAttribute::read(BitReader& reader)
 {
-    for (unsigned i = 0; i < size() / 2; i++) {
+    for (size_t i = 0; i < size() / 2; i++) {
         uint16_t attr;
         reader.getU16(attr);
         _attrTypes.push_back(attr);
@@ -1033,13 +989,14 @@ void UInt16ListAttribute::read(BitReader& reader)
 
 void UInt16ListAttribute::write(BitWriter& writer) const
 {
-    for (unsigned i = 0; i < _attrTypes.size(); i++)
-        writer.putU16(_attrTypes[i]);
+    for (const auto& attrType : _attrTypes)
+        writer.putU16(attrType);
     writePadding(writer);
 }
 
 
-} } // namespace scy:stun
+} // namespace stun
+} // namespace scy
 
 
 /// @\}

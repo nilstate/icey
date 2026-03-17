@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_UV_Request_H
-#define SCY_UV_Request_H
+#pragma once
 
 
 #include "scy/base.h"
@@ -42,11 +41,11 @@ struct BasicEvent
 /// This class povides safe access to the parent handle incase the handle gets
 /// destroyed before the request callback returns, and should be used whenever
 /// the handle pointer is accessed via the callback.
-template<typename T, typename E = BasicEvent>
+template <typename T, typename E = BasicEvent>
 struct Request
 {
-    typedef T Type;
-    typedef E Event;
+    using Type = T;
+    using Event = E;
 
     T req;
     std::function<void(const E&)> callback;
@@ -64,18 +63,19 @@ struct Request
         delete wrap;
     }
 
-    template<typename F, typename... Args>
+    template <typename F, typename... Args>
     auto invoke(F&& f, Args&&... args)
-    -> std::enable_if_t<!std::is_void<std::result_of_t<F(Args...)>>::value, int>
+        -> std::enable_if_t<!std::is_void<std::invoke_result_t<F, Args...>>::value, int>
     {
         auto err = std::forward<F>(f)(std::forward<Args>(args)...);
-        if (err && callback) callback(E{err});
+        if (err && callback)
+            callback(E{err});
         return !err;
     }
 
-    template<typename F, typename... Args>
+    template <typename F, typename... Args>
     auto invoke(F&& f, Args&&... args)
-    -> std::enable_if_t<std::is_void<std::result_of_t<F(Args...)>>::value>
+        -> std::enable_if_t<std::is_void<std::invoke_result_t<F, Args...>>::value>
     {
         std::forward<F>(f)(std::forward<Args>(args)...);
     }
@@ -83,7 +83,7 @@ struct Request
 
 
 /// Generic helper for instantiating requests.
-template<typename T>
+template <typename T>
 inline T& createRequest(std::function<void(const typename T::Event&)> callback)
 {
     auto req = new T();
@@ -123,7 +123,7 @@ struct GetAddrInfoEvent
 /// DNS resolver request to get the IP address of a hostname.
 struct GetAddrInfoReq : public uv::Request<uv_getaddrinfo_t, GetAddrInfoEvent>
 {
-    typedef uv::Request<uv_getaddrinfo_t, GetAddrInfoEvent> Request;
+    using Request = uv::Request<uv_getaddrinfo_t, GetAddrInfoEvent>;
 
     GetAddrInfoReq()
     {
@@ -147,13 +147,8 @@ struct GetAddrInfoReq : public uv::Request<uv_getaddrinfo_t, GetAddrInfoEvent>
 };
 
 
-
-
 } // namespace uv
 } // namespace scy
-
-
-#endif // SCY_UV_Request
 
 
 /// @\}

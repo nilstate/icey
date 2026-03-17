@@ -9,12 +9,11 @@
 /// @{
 
 
-#ifndef SCY_Symple_Command_H
-#define SCY_Symple_Command_H
+#pragma once
 
 
-#include "scy/symple/symple.h"
 #include "scy/symple/message.h"
+#include "scy/symple/symple.h"
 
 
 namespace scy {
@@ -29,25 +28,22 @@ public:
     Command(const Command& root);
     virtual ~Command();
 
-    std::string node() const;
-    std::string action() const;
+    [[nodiscard]] std::string node() const;
+    [[nodiscard]] std::string action() const;
 
     void setNode(const std::string& node);
     void setAction(const std::string& action);
 
     bool valid() const override;
 
-    std::string param(int n) const;
+    [[nodiscard]] std::string param(int n) const;
     std::vector<std::string> params();
-    bool matches(const std::string& xnode) const;
+    [[nodiscard]] bool matches(const std::string& xnode) const;
 };
 
 
 } // namespace smpl
 } // namespace scy
-
-
-#endif // SCY_Symple_Command_H
 
 
 /// @\}

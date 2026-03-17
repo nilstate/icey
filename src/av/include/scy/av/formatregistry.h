@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_AV_FormatRegistry_H
-#define SCY_AV_FormatRegistry_H
+#pragma once
 
 
 #include "scy/av/format.h"
@@ -28,14 +27,14 @@ public:
     static FormatRegistry& instance();
 
     FormatRegistry();
-    virtual ~FormatRegistry();
+    virtual ~FormatRegistry() noexcept;
 
     virtual Format& get(const std::string& name);
     virtual Format& getByID(const std::string& id);
 
     /// Returns the default media format.
     virtual Format& getOrDefault(const std::string& name);
-    
+
     /// If a default has been specified it will be
     /// returned, other the format with the highest
     /// priority will take precedence.
@@ -58,8 +57,13 @@ public:
     virtual FormatList formats() const;
 
 private:
-    FormatRegistry(FormatRegistry const&) = delete;
-    FormatRegistry& operator=(FormatRegistry const&) = delete;
+    FormatRegistry(const FormatRegistry&) = delete;
+    FormatRegistry& operator=(const FormatRegistry&) = delete;
+    FormatRegistry(FormatRegistry&&) = delete;
+    FormatRegistry& operator=(FormatRegistry&&) = delete;
+
+    Format& findByName(const std::string& name);  // requires _mutex held
+    Format& defaultLocked();                        // requires _mutex held
 
     FormatList _formats;
     std::string _default;
@@ -69,9 +73,6 @@ private:
 
 } // namespace av
 } // namespace scy
-
-
-#endif // SCY_AV_FormatRegistry_H
 
 
 /// @\}

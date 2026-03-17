@@ -12,12 +12,11 @@
 //
 
 
-#ifndef SCY_Numeric_H
-#define SCY_Numeric_H
+#pragma once
 
 
-#include <string>
 #include <cstdint>
+#include <string>
 
 
 namespace scy {
@@ -160,36 +159,8 @@ void formatHex(std::string& str, uint64_t value);
 void formatHex(std::string& str, uint64_t value, int width);
 
 
-#if 0
-/// Formats a float value in decimal floating-point notation,
-/// according to std::printf's %g format with a precision of 8 fractional digits.
-void format(std::string& str, float value);
-
-/// Formats a double value in decimal floating-point notation,
-/// according to std::printf's %g format with a precision of 16 fractional digits.
-void format(std::string& str, double value);
-
-/// Formats a double value in decimal floating-point notation,
-/// according to std::printf's %f format with the given precision.
-void format(std::string& str, double value, int precision);
-
-/// Formats a double value in decimal floating-point notation,
-/// right justified in a field of the specified width,
-/// with the number of fractional digits given in precision.
-void format(std::string& str, double value, int width, int precision);
-
-/// Formats a pointer in an eight (32-bit architectures) or
-/// sixteen (64-bit architectures) characters wide
-/// field in hexadecimal notation.
-void format(std::string& str, const void* ptr);
-#endif
-
-
 } // namespace numeric
 } // namespace scy
-
-
-#endif // SCY_Numeric_H
 
 
 /// @\}

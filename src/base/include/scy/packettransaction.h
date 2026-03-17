@@ -9,14 +9,12 @@
 /// @{
 
 
-#ifndef SCY_PacketTransaction_H
-#define SCY_PacketTransaction_H
+#pragma once
 
 
 #include "scy/base.h"
 #include "scy/interface.h"
 #include "scy/packet.h"
-#include "scy/memory.h"
 #include "scy/stateful.h"
 #include "scy/timer.h"
 
@@ -59,8 +57,8 @@ struct TransactionState : public State
 /// PacketTransactions are fire and forget. The object will be deleted
 /// after a successful response or a timeout.
 template <class PacketT>
-class PacketTransaction : public basic::Sendable,
-                          public Stateful<TransactionState>
+class PacketTransaction : public basic::Sendable
+    , public Stateful<TransactionState>
 {
 public:
     PacketTransaction(long timeout = 10000, int retries = 0,
@@ -122,7 +120,7 @@ public:
             _timer.Timeout -= slot(this, &PacketTransaction::onTimeout);
             _timer.stop();
 
-            deleteLater<PacketTransaction>(this);
+            delete this;
         }
     }
 
@@ -200,56 +198,62 @@ protected:
 };
 
 
-template <class T> inline void PacketTransaction<T>::cancel()
+template <class T>
+inline void PacketTransaction<T>::cancel()
 {
     setState(this, TransactionState::Cancelled);
 }
 
-template <class T> inline bool PacketTransaction<T>::cancelled() const
+template <class T>
+inline bool PacketTransaction<T>::cancelled() const
 {
     return stateEquals(TransactionState::Cancelled);
 }
 
-template <class T> inline bool PacketTransaction<T>::canResend()
+template <class T>
+inline bool PacketTransaction<T>::canResend()
 {
     return !cancelled() && attempts() <= retries();
 }
 
-template <class T> inline int PacketTransaction<T>::attempts() const
+template <class T>
+inline int PacketTransaction<T>::attempts() const
 {
     return _attempts;
 }
 
-template <class T> inline int PacketTransaction<T>::retries() const
+template <class T>
+inline int PacketTransaction<T>::retries() const
 {
     return _retries;
 }
 
-template <class T> inline T& PacketTransaction<T>::request()
+template <class T>
+inline T& PacketTransaction<T>::request()
 {
     return _request;
 }
 
-template <class T> inline T PacketTransaction<T>::request() const
+template <class T>
+inline T PacketTransaction<T>::request() const
 {
     return _request;
 }
 
-template <class T> inline T& PacketTransaction<T>::response()
+template <class T>
+inline T& PacketTransaction<T>::response()
 {
     return _response;
 }
 
-template <class T> inline T PacketTransaction<T>::response() const
+template <class T>
+inline T PacketTransaction<T>::response() const
 {
     return _response;
 }
 
 
 } // namespace scy
-
-
-#endif // SCY_PacketTransaction_H
 
 
 /// @\}

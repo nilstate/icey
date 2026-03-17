@@ -6,14 +6,7 @@
 #include "scy/util.h"
 
 #include <iostream>
-
-
-using std::cout;
-using std::cerr;
-using std::endl;
-using namespace scy;
-using namespace scy::net;
-using namespace scy::util;
+#include <stdexcept>
 
 
 //
@@ -33,11 +26,11 @@ class SympleApplication : public scy::Application
 {
 public:
 #if USE_SSL
-    smpl::SSLClient client;
+    scy::smpl::SSLClient client;
 #else
-    smpl::TCPClient client;
+    scy::smpl::TCPClient client;
 #endif
-    ipc::SyncQueue<> ipc;
+    scy::ipc::SyncQueue<> ipc;
     bool showHelp;
 
     SympleApplication()
@@ -49,7 +42,7 @@ public:
 
     void printHelp()
     {
-        cout
+        std::cout
             << "\nSymple Console Client v0.1.0"
                "\n(c) Sourcey"
                "\nhttps://sourcey.com/symple"
@@ -65,23 +58,23 @@ public:
                "\n  -user           User ID to register on the server with"
                "\n  -name           Display name to register on the server with"
                "\n  -type           User type to register on the server with (optional)"
-            << endl;
+            << std::endl;
     }
 
     void parseOptions(int argc, char* argv[])
     {
-        OptionParser optparse(argc, argv, "-");
+        scy::util::OptionParser optparse(argc, argv, "-");
         for (auto& kv : optparse.args) {
             const std::string& key = kv.first;
             const std::string& value = kv.second;
-            LDebug("Setting option: ", key, ": ", value)
+            LDebug("Setting option: ", key, ": ", value);
 
             if (key == "help") {
                 showHelp = true;
             } else if (key == "host") {
                 client.options().host = value;
             } else if (key == "port") {
-                client.options().port = util::strtoi<uint16_t>(value);
+                client.options().port = scy::util::strtoi<uint16_t>(value);
             } else if (key == "token") {
                 client.options().token = value;
             } else if (key == "user") {
@@ -91,10 +84,10 @@ public:
             } else if (key == "type") {
                 client.options().type = value;
             } else if (key == "logfile") {
-                auto log = dynamic_cast<FileChannel*>(scy::Logger::instance().get("Symple"));
+                auto log = dynamic_cast<scy::FileChannel*>(scy::Logger::instance().get("Symple"));
                 log->setPath(value);
             } else {
-                LWarn("Unknown option: ", key, "=", value)
+                LWarn("Unknown option: ", key, "=", value);
             }
         }
     }
@@ -116,15 +109,6 @@ public:
                 return;
             }
 
-            // client.options().host = "chat.mytommy.com";
-            // client.options().port = 443;
-            // client.options().token = "g5A2VIcQJQ3FTdQJB1JFDwtt";
-            // client.options().user = "2";
-
-            // client.options().host = "localhost";
-            // client.options().port = 4500;
-            // client.options().user = "2";
-
             // Setup the client
             client += packetSlot(this, &SympleApplication::onRecvMessage);
             client += packetSlot(this, &SympleApplication::onRecvPresence);
@@ -135,86 +119,88 @@ public:
             client.connect();
 
             // Start the console thread
-            Thread console([](void* arg) {
-                auto app = reinterpret_cast<SympleApplication*>(arg);
+            scy::Thread console([](void* arg) {
+                auto app = static_cast<SympleApplication*>(arg);
 
                 char o = 0;
                 while (o != 'Q') {
-                    cout << "COMMANDS:\n"
-                            "  M    Send a message.\n"
-                            "  J    Join a room.\n"
-                            "  L    Leave a room.\n"
-                            "  C    Print contacts list.\n"
-                            "  Q    Quit.\n";
+                    std::cout << "COMMANDS:\n"
+                                 "  M    Send a message.\n"
+                                 "  J    Join a room.\n"
+                                 "  L    Leave a room.\n"
+                                 "  C    Print contacts list.\n"
+                                 "  Q    Quit.\n";
 
                     o = char(toupper(std::getchar()));
                     std::cin.ignore();
 
                     // Send a message
                     if (o == 'M') {
-                        cout << "Compose your message: " << endl;
+                        std::cout << "Compose your message: " << std::endl;
                         std::string data;
                         std::getline(std::cin, data);
 
-                        auto message = new smpl::Message();
+                        auto message = new scy::smpl::Message();
                         message->setData(data);
 
-                        cout << "Lending message: " << data << endl;
+                        std::cout << "Sending message: " << data << std::endl;
                         // app->client.send(message, true);
 
                         // Synchronize the message with the main thread
-                        app->ipc.push(new ipc::Action(
+                        app->ipc.push(new scy::ipc::Action(
                             std::bind(&SympleApplication::onSyncMessage, app, std::placeholders::_1),
                             message));
                     }
 
                     // Join a room
                     else if (o == 'J') {
-                        cout << "Join a room: " << endl;
+                        std::cout << "Join a room: " << std::endl;
                         auto data = new std::string();
                         std::getline(std::cin, *data);
 
-                        app->ipc.push(new ipc::Action(
+                        app->ipc.push(new scy::ipc::Action(
                             std::bind(&SympleApplication::onSyncCommand, app, std::placeholders::_1),
                             data, "join"));
                     }
 
                     // Leave a room
                     else if (o == 'L') {
-                        cout << "Leave a room: " << endl;
+                        std::cout << "Leave a room: " << std::endl;
                         auto data = new std::string();
                         std::getline(std::cin, *data);
 
-                        app->ipc.push(new ipc::Action(
+                        app->ipc.push(new scy::ipc::Action(
                             std::bind(&SympleApplication::onSyncCommand, app, std::placeholders::_1),
                             data, "leave"));
                     }
 
                     // List contacts
                     else if (o == 'C') {
-                        cout << "Listing contacts:" << endl;
-                        app->client.roster().print(cout);
-                        cout << endl;
+                        std::cout << "Listing contacts:" << std::endl;
+                        app->client.roster().print(std::cout);
+                        std::cout << std::endl;
                     }
                 }
 
-                cout << "Quiting" << endl;
+                std::cout << "Quiting" << std::endl;
                 app->shutdown();
-            }, this);
+            },
+                                this);
 
             // Run the event loop
             waitForShutdown([](void* opaque) {
-                reinterpret_cast<SympleApplication*>(opaque)->shutdown();
-            }, this);
+                static_cast<SympleApplication*>(opaque)->shutdown();
+            },
+                            this);
         } catch (std::exception& exc) {
-            cerr << "Symple runtime error: " << exc.what() << endl;
+            std::cerr << "Symple runtime error: " << exc.what() << std::endl;
         }
     }
 
-    void onSyncMessage(const ipc::Action& action)
+    void onSyncMessage(const scy::ipc::Action& action)
     {
         // Send the message on the main thread
-        auto message = reinterpret_cast<smpl::Message*>(action.arg);
+        auto message = static_cast<scy::smpl::Message*>(action.arg);
 
         // Send without transaction
         // client.send(*message);
@@ -227,9 +213,9 @@ public:
         delete message;
     }
 
-    void onSyncCommand(const ipc::Action& action)
+    void onSyncCommand(const scy::ipc::Action& action)
     {
-        auto arg = reinterpret_cast<std::string*>(action.arg);
+        auto arg = static_cast<std::string*>(action.arg);
 
         if (action.data == "join") {
             client.joinRoom(*arg);
@@ -238,91 +224,75 @@ public:
         }
     }
 
-    void onAckState(void* sender, TransactionState& state, const TransactionState&)
+    void onAckState(void* sender, scy::TransactionState& state, const scy::TransactionState&)
     {
-        LDebug("####### On announce response: ", state)
+        LDebug("####### On announce response: ", state);
 
-        // auto transaction = reinterpret_cast<sockio::Transaction*>(sender);
+        // auto transaction = static_cast<scy::sockio::Transaction*>(sender);
         switch (state.id()) {
-            case TransactionState::Success:
+            case scy::TransactionState::Success:
                 // Handle transaction success
                 break;
 
-            case TransactionState::Failed:
+            case scy::TransactionState::Failed:
                 // Handle transaction failure
                 break;
         }
     }
 
-    //void onRecvPacket(IPacket& raw)
-    //{
-    //    LDebug("####### On raw packet: ", raw.className())
-
-    //    auto message = dynamic_cast<smpl::Message*>(&raw);
-    //    if (message) {
-    //        return onRecvMessage(*message);
-    //    }
-
-    //    auto packet = dynamic_cast<sockio::Packet*>(&raw);
-    //    if (packet) {
-    //        return onRecvPacket(*packet);
-    //    }
-
-    //    // Handle incoming raw packets here
-    //}
-
-    void onRecvMessage(smpl::Message& message)
+    void onRecvMessage(scy::smpl::Message& message)
     {
-        LDebug("####### On message: ", message.className())
+        LDebug("####### On message: ", message.className());
 
         // Handle incoming Symple messages here
     }
 
-    void onRecvPresence(smpl::Presence& presence)
+    void onRecvPresence(scy::smpl::Presence& presence)
     {
-        LDebug("####### On presence: ", presence.className())
+        LDebug("####### On presence: ", presence.className());
 
         // Handle incoming Symple presences here
     }
 
-    void onRecvEvent(smpl::Event& event)
+    void onRecvEvent(scy::smpl::Event& event)
     {
-        LDebug("####### On event: ", event.className())
+        LDebug("####### On event: ", event.className());
 
         // Handle incoming Symple events here
     }
 
     void onClientAnnounce(const int& status)
     {
-        LDebug("####### On announce: ", status)
-        assert(status == 200);
+        LDebug("####### On announce: ", status);
+        if (status != 200)
+            throw std::runtime_error("Announce failed with status: " + std::to_string(status));
     }
 
-    void onClientStateChange(void*, sockio::ClientState& state, const sockio::ClientState& oldState)
+    void onClientStateChange(void*, scy::sockio::ClientState& state, const scy::sockio::ClientState& oldState)
     {
         SDebug << "Client state changed: " << state << ": "
-               << client.ws().socket->address() << endl;
+               << client.ws().socket->address() << std::endl;
 
         switch (state.id()) {
-            case sockio::ClientState::Connecting:
+            case scy::sockio::ClientState::Connecting:
                 break;
-            case sockio::ClientState::Connected:
+            case scy::sockio::ClientState::Connected:
                 break;
-            case sockio::ClientState::Online:
-                cout << "Client online" << endl;
+            case scy::sockio::ClientState::Online:
+                std::cout << "Client online" << std::endl;
 
                 // Join the public room
                 client.joinRoom("public");
                 break;
-            case sockio::ClientState::Error:
-                cout << "Client disconnected" << endl;
+            case scy::sockio::ClientState::Error:
+                std::cout << "Client disconnected" << std::endl;
                 break;
         }
     }
 
-    void onCreatePresence(smpl::Peer& peer)
+    void onCreatePresence(scy::smpl::Peer& peer)
     {
-        LDebug("####### Updating presence data")
+        LDebug("####### Updating presence data");
 
         // Update the peer object to be broadcast with presence.
         // Any arbitrary data can be broadcast with presence.
@@ -335,15 +305,11 @@ public:
 int main(int argc, char** argv)
 {
     // Setup the logger
-    // std::string logPath(getCwd());
-    // fs::addnode(logPath, util::format("Symple_%Ld.log", static_cast<long>(Timestamp().epochTime())));
-    // cout << "Log path: " << logPath << endl;
-    // Logger::instance().add(new FileChannel("Symple", logPath, Level::Debug));
-    Logger::instance().add(new ConsoleChannel("debug", Level::Trace));
+    scy::Logger::instance().add(std::make_unique<scy::ConsoleChannel>("debug", scy::Level::Trace));
 
     // Init SSL client context
 #if USE_SSL
-    net::SSLManager::initNoVerifyClient();
+    scy::net::SSLManager::initNoVerifyClient();
 #endif
 
     // Run the application
@@ -354,11 +320,9 @@ int main(int argc, char** argv)
     }
 
     // Cleanup all singletons
-    // http::Client::destroy();
 #if USE_SSL
-    net::SSLManager::destroy();
+    scy::net::SSLManager::destroy();
 #endif
-    GarbageCollector::destroy();
-    Logger::destroy();
+    scy::Logger::destroy();
     return 0;
 }

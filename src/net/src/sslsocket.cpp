@@ -27,7 +27,7 @@ SSLSocket::SSLSocket(uv::Loop* loop)
     , _sslSession(nullptr)
     , _sslAdapter(this)
 {
-    // LTrace("Create")
+    // LTrace("Create");
 }
 
 
@@ -37,7 +37,7 @@ SSLSocket::SSLSocket(SSLContext::Ptr context, uv::Loop* loop)
     , _sslSession(nullptr)
     , _sslAdapter(this)
 {
-    // LTrace("Create")
+    // LTrace("Create");
 }
 
 
@@ -47,13 +47,33 @@ SSLSocket::SSLSocket(SSLContext::Ptr context, SSLSession::Ptr session, uv::Loop*
     , _sslSession(session)
     , _sslAdapter(this)
 {
-    // LTrace("Create")
+    // LTrace("Create");
 }
 
 
-SSLSocket::~SSLSocket()
+SSLSocket::~SSLSocket() noexcept
 {
-    // LTrace("Destroy")
+    // LTrace("Destroy");
+}
+
+
+void SSLSocket::setHostname(const std::string& hostname)
+{
+    _sslAdapter.setHostname(hostname);
+}
+
+
+void SSLSocket::connect(const Address& peerAddress)
+{
+    TCPSocket::connect(peerAddress);
+}
+
+
+void SSLSocket::connect(const std::string& host, uint16_t port)
+{
+    // Capture the hostname for SNI and certificate verification
+    _sslAdapter.setHostname(host);
+    TCPSocket::connect(host, port);
 }
 
 
@@ -71,7 +91,7 @@ void SSLSocket::close()
 
 bool SSLSocket::shutdown()
 {
-    // LTrace("Shutdown")
+    // LTrace("Shutdown");
     try {
         // Try to gracefully shutdown the SSL connection
         _sslAdapter.shutdown();
@@ -89,32 +109,34 @@ ssize_t SSLSocket::send(const char* data, size_t len, int flags)
 
 void SSLSocket::bind(const net::Address& address, unsigned flags)
 {
-    assert(_sslContext->isForServerUse());
+    if (!_sslContext->isForServerUse())
+        throw std::logic_error("SSLSocket: server context required");
     TCPSocket::bind(address, flags);
 }
 
 
 void SSLSocket::listen(int backlog)
 {
-    assert(_sslContext->isForServerUse());
+    if (!_sslContext->isForServerUse())
+        throw std::logic_error("SSLSocket: server context required");
     TCPSocket::listen(backlog);
 }
 
 
 ssize_t SSLSocket::send(const char* data, size_t len, const net::Address& /* peerAddress */, int /* flags */)
 {
-    // LTrace("Send: ", len)
-    assert(Thread::currentID() == tid());
+    // LTrace("Send: ", len);
     // assert(len <= net::MAX_TCP_PACKET_SIZE);
 
     if (!active()) {
-        LWarn("Send error")
+        LWarn("Send error");
         return -1;
     }
 
     // Send unencrypted data to the SSL context
 
-    assert(_sslAdapter._ssl);
+    if (!_sslAdapter._ssl)
+        throw std::logic_error("SSLSocket: SSL not initialized");
 
     _sslAdapter.addOutgoingData(data, len);
     _sslAdapter.flush();
@@ -124,13 +146,14 @@ ssize_t SSLSocket::send(const char* data, size_t len, const net::Address& /* pee
 
 void SSLSocket::acceptConnection()
 {
-    assert(_sslContext->isForServerUse());
+    if (!_sslContext->isForServerUse())
+        throw std::logic_error("SSLSocket: server context required");
 
     // Create the shared socket pointer so the if the socket handle is not
     // incremented the accepted socket will be destroyed.
     auto socket = std::make_shared<net::SSLSocket>(_sslContext, loop());
 
-    // LTrace("Accept SSL connection: ", socket->ptr())
+    // LTrace("Accept SSL connection: ", socket->ptr());
     // invoke(&uv_tcp_init, loop(), socket->get()); // "Cannot initialize SSL socket"
 
     if (uv_accept(get<uv_stream_t>(), socket->get<uv_stream_t>()) == 0) {
@@ -138,9 +161,8 @@ void SSLSocket::acceptConnection()
         socket->_sslAdapter.initServer();
 
         AcceptConnection.emit(socket);
-    }
-    else {
-        assert(0 && "uv_accept should not fail");
+    } else {
+        LError("uv_accept failed");
     }
 }
 
@@ -163,7 +185,7 @@ SSLSession::Ptr SSLSocket::currentSession()
                 return std::make_shared<SSLSession>(session); // new SSLSession(session);
         }
     }
-    return 0;
+    return nullptr;
 }
 
 
@@ -203,7 +225,7 @@ net::TransportType SSLSocket::transport() const
 
 void SSLSocket::onRead(const char* data, size_t len)
 {
-    // LTrace("On SSL read: ", len)
+    // LTrace("On SSL read: ", len);
 
     // SSL encrypted data is sent to the SSL context
     _sslAdapter.addIncomingData(data, len);
@@ -213,7 +235,7 @@ void SSLSocket::onRead(const char* data, size_t len)
 
 void SSLSocket::onConnect()
 {
-    // LTrace("On connect")
+    // LTrace("On connect");
     if (readStart()) {
         _sslAdapter.initClient();
         // _sslAdapter.start();

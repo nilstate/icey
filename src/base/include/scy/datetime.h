@@ -12,8 +12,7 @@
 //
 
 
-#ifndef SCY_DateTime_H
-#define SCY_DateTime_H
+#pragma once
 
 
 #include "scy/base.h"
@@ -39,9 +38,9 @@ namespace scy {
 class Base_API Timestamp
 {
 public:
-    typedef std::int64_t TimeVal;    ///< monotonic UTC time value in microsecond resolution
-    typedef std::int64_t UtcTimeVal; ///< monotonic UTC time value in 100 nanosecond resolution
-    typedef std::int64_t TimeDiff;   ///< difference between two timestamps in microseconds
+    using TimeVal = std::int64_t;    ///< monotonic UTC time value in microsecond resolution
+    using UtcTimeVal = std::int64_t; ///< monotonic UTC time value in 100 nanosecond resolution
+    using TimeDiff = std::int64_t;   ///< difference between two timestamps in microseconds
 
     /// Creates a timestamp with the current time.
     Timestamp();
@@ -122,7 +121,7 @@ private:
 class Base_API Timespan
 {
 public:
-    typedef Timestamp::TimeDiff TimeDiff;
+    using TimeDiff = Timestamp::TimeDiff;
 
     /// Creates a zero Timespan.
     Timespan();
@@ -1777,9 +1776,6 @@ private:
 
 
 } // namespace scy
-
-
-#endif // SCY_DateTime_H
 
 
 /// @\}

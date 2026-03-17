@@ -10,9 +10,9 @@
 
 
 #include "scy/thread.h"
+#include "assert.h"
 #include "scy/logger.h"
 #include "scy/platform.h"
-#include "assert.h"
 #include <memory>
 
 

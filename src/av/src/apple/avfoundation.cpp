@@ -9,9 +9,9 @@
 /// @{
 
 
+#include "scy/av/apple/avfoundation.h"
 #include "scy/logger.h"
 #include <ostream>
-#include "scy/av/apple/avfoundation.h"
 
 
 using std::endl;
@@ -32,7 +32,7 @@ bool getDeviceList(Device::Type type, std::vector<av::Device>& devices)
         case Device::AudioInput:
             return GetAVFoundationVideoDevices(type, &devices);
         default:
-            LWarn("AVFoundation cannot enumerate output devices: Not implemented")
+            LWarn("AVFoundation cannot enumerate output devices: Not implemented");
             break;
     }
 

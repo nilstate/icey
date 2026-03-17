@@ -9,3 +9,14 @@ build*
 private
 doxygen2md
 _book
+
+# Test output
+*.mp2
+*.mp4
+*.flv
+*.mkv
+*.avi
+*.pcm
+*.wav
+*.aac
+*.raw

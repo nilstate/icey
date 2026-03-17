@@ -10,258 +10,180 @@
 
 
 #include "scy/filesystem.h"
-#include "scy/logger.h"
-#include "scy/util.h"
-#include "scy/util.h"
-#include <algorithm>
+#include <filesystem>
 #include <fstream>
-#include <memory>
-#include <sstream>
+#include <stdexcept>
 #if defined(_MSC_VER) && defined(SCY_UNICODE)
 #include <codecvt>
 #include <locale>
+#include <memory>
 #endif
+
+
+namespace stdfs = std::filesystem;
 
 
 namespace scy {
 namespace fs {
 
 
-static const char* separatorWin = "\\";
-static const char* separatorUnix = "/";
 #ifdef SCY_WIN
 const char delimiter = '\\';
-const char* separator = separatorWin;
-static const char* sepPattern = "/\\";
+const char* separator = "\\";
 #else
 const char delimiter = '/';
-const char* separator = separatorUnix;
-static const char* sepPattern = "/";
+const char* separator = "/";
 #endif
 
 
 std::string filename(const std::string& path)
 {
-    size_t dirp = path.find_last_of(fs::sepPattern);
-    if (dirp == std::string::npos)
-        return path;
-    return path.substr(dirp + 1);
+    return stdfs::path(path).filename().string();
 }
 
 
 std::string dirname(const std::string& path)
 {
-    size_t dirp = path.find_last_of(sepPattern);
-    if (dirp == std::string::npos)
+    auto parent = stdfs::path(path).parent_path();
+    if (parent.empty())
         return ".";
-    return path.substr(0, dirp);
+    return parent.string();
 }
 
 
 std::string basename(const std::string& path)
 {
-    size_t dotp = path.find_last_of(".");
-    if (dotp == std::string::npos)
-        return path;
-
-    size_t dirp = path.find_last_of(fs::sepPattern);
-    if (dirp != std::string::npos && dotp < dirp)
-        return path;
-
-    return path.substr(0, dotp);
+    return stdfs::path(path).stem().string();
 }
 
 
 std::string extname(const std::string& path, bool includeDot)
 {
-    size_t dotp = path.find_last_of(".");
-    if (dotp == std::string::npos)
+    auto ext = stdfs::path(path).extension().string();
+    if (ext.empty())
         return "";
-
-    // Ensure the dot was not part of the pathname
-    size_t dirp = path.find_last_of(fs::sepPattern);
-    if (dirp != std::string::npos && dotp < dirp)
-        return "";
-
-    return path.substr((dotp + includeDot) ? 0 : 1);
+    if (!includeDot && !ext.empty() && ext[0] == '.')
+        return ext.substr(1);
+    return ext;
 }
 
 
 bool exists(const std::string& path)
 {
-// Normalize is needed to ensure no
-// trailing slash for directories or
-// stat fails to recognize validity.
-// TODO: Do we need transcode here?
-#ifdef SCY_WIN
-    struct _stat s;
-    return _stat(fs::normalize(path).c_str(), &s) != -1;
-#else
-    struct stat s;
-    return stat(fs::normalize(path).c_str(), &s) != -1;
-#endif
+    std::error_code ec;
+    return stdfs::exists(path, ec);
 }
 
 
 bool isdir(const std::string& path)
 {
-// TODO: Do we need transcode here?
-#ifdef SCY_WIN
-    struct _stat s;
-    _stat(fs::normalize(path).c_str(), &s);
-#else
-    struct stat s;
-    stat(fs::normalize(path).c_str(), &s);
-#endif
-    // S_IFDIR: directory file.
-    // S_IFCHR: character-oriented device file
-    // S_IFBLK: block-oriented device file
-    // S_IFREG: regular file
-    // S_IFLNK: symbolic link
-    // S_IFSOCK: socket
-    // S_IFIFO: FIFO or pipe
-    return (s.st_mode & S_IFDIR) != 0;
+    std::error_code ec;
+    return stdfs::is_directory(path, ec);
 }
 
 
 std::int64_t filesize(const std::string& path)
 {
-#ifdef SCY_WIN
-    struct _stat s;
-    if (_stat(path.c_str(), &s) == 0)
-#else
-    struct stat s;
-    if (stat(path.c_str(), &s) == 0)
-#endif
-        return s.st_size;
-    return -1;
+    std::error_code ec;
+    auto size = stdfs::file_size(path, ec);
+    if (ec)
+        return -1;
+    return static_cast<std::int64_t>(size);
 }
-
-
-namespace internal {
-
-struct FSReq
-{
-    FSReq() {}
-    ~FSReq() { uv_fs_req_cleanup(&req); }
-    FSReq(const FSReq& req) = delete;
-    FSReq& operator=(const FSReq& req) = delete;
-    uv_fs_t req;
-};
-
-#define FSapi(func, ...)                                                       \
-    FSReq wrap;                                                                \
-    int err =                                                                  \
-        uv_fs_##func(uv_default_loop(), &wrap.req, __VA_ARGS__, nullptr);      \
-    if (err < 0)                                                               \
-        uv::throwError(std::string("Filesystem error: ") + #func +             \
-                       std::string(" failed"), err);
-
-} // namespace internal
 
 
 void readdir(const std::string& path, std::vector<std::string>& res)
 {
-    internal::FSapi(scandir, path.c_str(), 0)
-
-    uv_dirent_t dent;
-    while (UV_EOF != uv_fs_scandir_next(&wrap.req, &dent)) {
-        res.push_back(dent.name);
+    std::error_code ec;
+    for (const auto& entry : stdfs::directory_iterator(path, ec)) {
+        res.push_back(entry.path().filename().string());
     }
+    if (ec)
+        throw std::runtime_error("Filesystem error: scandir failed: " + path);
 }
 
 
-void mkdir(const std::string& path, int mode)
+void mkdir(const std::string& path, int /*mode*/)
 {
-    internal::FSapi(mkdir, path.c_str(), mode)
+    std::error_code ec;
+    stdfs::create_directory(path, ec);
+    if (ec)
+        throw std::runtime_error("Filesystem error: mkdir failed: " + path + ": " + ec.message());
 }
 
 
-void mkdirr(const std::string& path, int mode)
+void mkdirr(const std::string& path, int /*mode*/)
 {
-    std::string current;
-    std::string level;
-    std::istringstream istr(fs::normalize(path));
-
-    while (std::getline(istr, level, fs::delimiter)) {
-        if (level.empty())
-            continue;
-
-#ifdef SCY_WIN
-        current += level;
-        if (level.at(level.length() - 1) == ':') {
-            current += fs::separator;
-            continue; // skip drive letter
-        }
-#else
-        if (current.empty())
-            current += fs::separator;
-        current += level;
-#endif
-        // create current level
-        if (!fs::exists(current))
-            fs::mkdir(current.c_str(), mode); // create or throw
-
-        current += fs::separator;
-    }
+    std::error_code ec;
+    stdfs::create_directories(path, ec);
+    if (ec)
+        throw std::runtime_error("Filesystem error: mkdir failed: " + path + ": " + ec.message());
 }
 
 
 void rmdir(const std::string& path)
 {
-    internal::FSapi(rmdir, path.c_str())
+    std::error_code ec;
+    stdfs::remove(path, ec);
+    if (ec)
+        throw std::runtime_error("Filesystem error: rmdir failed: " + path + ": " + ec.message());
 }
 
 
 void unlink(const std::string& path)
 {
-    internal::FSapi(unlink, path.c_str())
+    std::error_code ec;
+    stdfs::remove(path, ec);
+    if (ec)
+        throw std::runtime_error("Filesystem error: unlink failed: " + path + ": " + ec.message());
 }
 
 
 void rename(const std::string& path, const std::string& target)
 {
-    internal::FSapi(rename, path.c_str(), target.c_str())
+    std::error_code ec;
+    stdfs::rename(path, target, ec);
+    if (ec)
+        throw std::runtime_error("Filesystem error: rename failed: " + path + ": " + ec.message());
 }
 
 
-void trimslash(std::string& path)
+void addsep(std::string& path)
 {
-    if (path.empty()) return;
-    size_t dirp = path.find_last_of(sepPattern);
-    if (dirp == path.length() - 1)
-        path.resize(dirp);
+    if (!path.empty() && path.back() != '/' && path.back() != '\\')
+        path.append(fs::separator, 1);
+}
+
+
+void addnode(std::string& path, const std::string& node)
+{
+    fs::addsep(path);
+    path += node;
+}
+
+
+std::string makePath(const std::string& base, const std::string& node)
+{
+    return (stdfs::path(base) / node).string();
 }
 
 
 std::string normalize(const std::string& path)
 {
-    std::string s(util::replace(path,
-#ifdef SCY_WIN
-                                separatorUnix, separatorWin
-#else
-                                separatorWin, separatorUnix
-#endif
-                                ));
-
-    // Trim the trailing slash for stat compatability
-    trimslash(s);
-    return s;
+    return stdfs::path(path).lexically_normal().string();
 }
 
 
 std::string transcode(const std::string& path)
 {
 #if defined(_MSC_VER) && defined(SCY_UNICODE)
-    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>>
-        convert; // conversion between UTF-16 and UTF-8
-    std::wstring uniPath = convert.from_bytes(
-        path); // convert UTF-8 std::string to UTF-16 std::wstring
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> convert;
+    std::wstring uniPath = convert.from_bytes(path);
     DWORD len = WideCharToMultiByte(
         CP_ACP, WC_NO_BEST_FIT_CHARS, uniPath.c_str(),
         static_cast<int>(uniPath.length()), nullptr, 0, nullptr, nullptr);
     if (len > 0) {
-        std::unique_ptr<char[]> buffer(new char[len]);
+        auto buffer = std::make_unique<char[]>(len);
         DWORD rc = WideCharToMultiByte(
             CP_ACP, WC_NO_BEST_FIT_CHARS, uniPath.c_str(),
             static_cast<int>(uniPath.length()), buffer.get(),
@@ -272,20 +194,6 @@ std::string transcode(const std::string& path)
     }
 #endif
     return path;
-}
-
-
-void addsep(std::string& path)
-{
-    if (!path.empty() && path.at(path.length() - 1) != fs::separator[0])
-        path.append(fs::separator, 1);
-}
-
-
-void addnode(std::string& path, const std::string& node)
-{
-    fs::addsep(path);
-    path += node;
 }
 
 

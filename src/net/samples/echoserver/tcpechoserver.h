@@ -1,6 +1,8 @@
 #include "scy/net/sslsocket.h"
 #include "scy/net/tcpsocket.h"
 
+#include <algorithm>
+
 
 namespace scy {
 namespace net {
@@ -49,54 +51,44 @@ public:
         // socket->Error += slot(this, &EchoServer::onClientSocketError);
         // socket->Close += slot(this, &EchoServer::onClientSocketClose);
         sockets.push_back(socket);
-        // LDebug("On accept: ", socket)
+        // LDebug("On accept: ", socket);
     }
 
-    void onSocketRecv(Socket& socket, const MutableBuffer& buffer, const Address& peerAddress)
+    bool onSocketRecv(Socket& socket, const MutableBuffer& buffer, const Address& peerAddress)
     {
-        // LDebug("On recv: ", &socket, ": ", buffer.str())
+        // LDebug("On recv: ", &socket, ": ", buffer.str());
 
         // Echo it back
         socket.send(bufferCast<const char*>(buffer), buffer.size());
-
-        // Send a HTTP packet
-        // std::ostringstream res;
-        // res << "HTTP/1.1 200 OK\r\n"
-        //     << "Connection: close\r\n"
-        //     << "Content-Length: 0" << "\r\n"
-        //     << "\r\n";
-        // std::string response(res.str());
-        // socket.send(response.c_str(), response.size());
+        return false;
     }
 
-    void onSocketError(Socket& socket, const Error& error)
+    bool onSocketError(Socket& socket, const Error& error)
     {
-        LDebug("On error: ", error.err, ": ", error.message)
+        LDebug("On error: ", error.err, ": ", error.message);
+        return false;
     }
 
-    void onSocketClose(Socket& socket)
+    bool onSocketClose(Socket& socket)
     {
-        LDebug("On close")
+        LDebug("On close");
 
-        for (typename Socket::Vec::iterator it = sockets.begin();
-            it != sockets.end(); ++it) {
-            if (it->get() == &socket) {
-                LDebug("Removing: ", &socket)
-
-                // All we need to do is erase the socket in order to
-                // deincrement the ref counter and destroy the socket
-                sockets.erase(it);
-                return;
-            }
+        auto it = std::find_if(sockets.begin(), sockets.end(),
+                               [&](const auto& s) { return s.get() == &socket; });
+        if (it != sockets.end()) {
+            LDebug("Removing: ", &socket);
+            sockets.erase(it);
+            return false;
         }
-        assert(0 && "unknown socket");
+        LError("Unknown socket on close:", &socket);
+        return false;
     }
 };
 
 
 // Some generic server types
-typedef EchoServer<TCPSocket> TCPEchoServer;
-typedef EchoServer<SSLSocket> SSLEchoServer;
+using TCPEchoServer = EchoServer<TCPSocket>;
+using SSLEchoServer = EchoServer<SSLSocket>;
 
 
 } // namespace net

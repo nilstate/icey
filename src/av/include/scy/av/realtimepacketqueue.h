@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_RealtimePacketQueue_H
-#define SCY_RealtimePacketQueue_H
+#pragma once
 
 
 #include "scy/av/packet.h"
@@ -27,14 +26,14 @@ template <class PacketT>
 class RealtimePacketQueue : public AsyncPacketQueue<PacketT>
 {
 public:
-    typedef AsyncPacketQueue<PacketT> BaseQueue;
+    using BaseQueue = AsyncPacketQueue<PacketT>;
 
     RealtimePacketQueue(int maxSize = 1024)
         : BaseQueue(maxSize)
     {
     }
 
-    virtual ~RealtimePacketQueue()
+    virtual ~RealtimePacketQueue() noexcept
     {
     }
 
@@ -63,13 +62,13 @@ protected:
         BaseQueue::pop();
 
         STrace << "Pop next: " << BaseQueue::size() << ": "
-            << realTime() << " > " << next->time << std::endl;
+               << realTime() << " > " << next->time << std::endl;
         return next;
     }
 
     virtual void onStreamStateChange(const PacketStreamState& state) override
     {
-        LTrace("Stream state changed: ", state)
+        LTrace("Stream state changed: ", state);
 
         if (state.equals(PacketStreamState::Active)) {
             _startTime = time::hrtime();
@@ -80,7 +79,8 @@ protected:
 
     struct MediaPacketTimeCompare
     {
-        bool operator()(const MediaPacket* a, const MediaPacket* b) {
+        bool operator()(const MediaPacket* a, const MediaPacket* b)
+        {
             return a->time < b->time;
         }
     };
@@ -91,9 +91,6 @@ protected:
 
 } // namespace av
 } // namespace scy
-
-
-#endif // SCY_RealtimePacketQueue_H
 
 
 /// @\}

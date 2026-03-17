@@ -10,7 +10,11 @@
 
 
 #include "scy/archo/zipfile.h"
-#include "scy/filesystem.h"
+#include "scy/logger.h"
+
+#include <cstring>
+#include <filesystem>
+#include <fstream>
 
 
 using std::endl;
@@ -72,7 +76,7 @@ ZipFile::ZipFile()
 }
 
 
-ZipFile::ZipFile(const std::string& file)
+ZipFile::ZipFile(const std::filesystem::path& file)
     : fp(nullptr)
 {
     this->open(file);
@@ -91,12 +95,12 @@ bool ZipFile::opened() const
 }
 
 
-void ZipFile::open(const std::string& file)
+void ZipFile::open(const std::filesystem::path& file)
 {
     this->close();
-    this->fp = unzOpen(fs::transcode(file).c_str());
+    this->fp = unzOpen(file.string().c_str());
     if (this->fp == nullptr)
-        internal::throwError("Cannot open archive file: " + file);
+        internal::throwError("Cannot open archive file: " + file.string());
 
     for (int ret = unzGoToFirstFile(this->fp); ret == UNZ_OK;
          ret = unzGoToNextFile(this->fp)) {
@@ -108,11 +112,11 @@ void ZipFile::open(const std::string& file)
 
         FileInfo finfo;
         finfo.path = fileName;
-        finfo.compressedSize = static_cast<size_t>(fileInfo.uncompressed_size);
-        finfo.uncompressedSize = static_cast<size_t>(fileInfo.compressed_size);
+        finfo.compressedSize = static_cast<size_t>(fileInfo.compressed_size);
+        finfo.uncompressedSize = static_cast<size_t>(fileInfo.uncompressed_size);
         this->info.push_back(finfo);
 
-        LTrace("Zip file contains: ", fileName)
+        LTrace("Zip file contains: ", fileName);
     }
 
     unzGoToFirstFile(this->fp); // rewind
@@ -128,9 +132,9 @@ void ZipFile::close()
 }
 
 
-void ZipFile::extract(const std::string& path)
+void ZipFile::extract(const std::filesystem::path& path)
 {
-    LTrace("Extracting zip to: ", path)
+    LTrace("Extracting zip to: ", path.string());
 
     if (!opened())
         throw std::runtime_error("The archive must be opened for extraction.");
@@ -146,7 +150,7 @@ void ZipFile::extract(const std::string& path)
 }
 
 
-bool ZipFile::extractCurrentFile(const std::string& path, bool whiny)
+bool ZipFile::extractCurrentFile(const std::filesystem::path& path, bool whiny)
 {
     int ret;
     unz_file_info finfo;
@@ -157,24 +161,30 @@ bool ZipFile::extractCurrentFile(const std::string& path, bool whiny)
                       unzGetCurrentFileInfo(this->fp, &finfo, fname, 1024,
                                             nullptr, 0, nullptr, 0));
 
-        std::string outPath(path);
-        fs::addnode(outPath, fname);
+        auto outPath = path / fname;
 
-        LTrace("Extracting asset: ", outPath)
+        // Validate against path traversal attacks (e.g. "../../../etc/passwd")
+        auto canonical = std::filesystem::weakly_canonical(outPath);
+        auto canonicalBase = std::filesystem::weakly_canonical(path);
+        auto [rootEnd, nothing] = std::mismatch(canonicalBase.begin(), canonicalBase.end(), canonical.begin());
+        if (rootEnd != canonicalBase.end())
+            throw std::runtime_error("Zip entry attempts path traversal: " + std::string(fname));
+
+        LTrace("Extracting asset: ", outPath.string());
 
 // Create directory
 #if !WIN32
         const int FILE_ATTRIBUTE_DIRECTORY = 0x10;
 #endif
         if (finfo.external_fa & FILE_ATTRIBUTE_DIRECTORY ||
-            fname[strlen(fname) - 1] == fs::delimiter) {
-            LTrace("Create directory: ", outPath)
-            fs::mkdirr(outPath);
+            fname[strlen(fname) - 1] == '/') {
+            LTrace("Create directory: ", outPath.string());
+            std::filesystem::create_directories(outPath);
         }
 
         // Create file
         else {
-            LTrace("Create file: ", outPath)
+            LTrace("Create file: ", outPath.string());
 
             // Note: If this fails the file we are trying
             // to write may be in use on the filesystem.
@@ -186,12 +196,12 @@ bool ZipFile::extractCurrentFile(const std::string& path, bool whiny)
             // need to be ready to create directories if the output file
             // fails to open.
             if (!ofs.is_open()) {
-                fs::mkdirr(fs::dirname(outPath));
+                std::filesystem::create_directories(outPath.parent_path());
                 ofs.open(outPath);
             }
 
             if (!ofs.is_open())
-                throw std::runtime_error("Cannot open zip output file: " + outPath);
+                throw std::runtime_error("Cannot open zip output file: " + outPath.string());
 
             char buffer[16384];
             while ((ret = unzReadCurrentFile(this->fp, buffer, 16384)) > 0)
@@ -203,7 +213,7 @@ bool ZipFile::extractCurrentFile(const std::string& path, bool whiny)
             closeCurrentFile();
         }
     } catch (std::exception& exc) {
-        LError("Cannot unzip file: ", exc.what())
+        LError("Cannot unzip file: ", exc.what());
         if (whiny)
             throw exc;
         return false;
@@ -232,7 +242,7 @@ void ZipFile::openCurrentFile()
 
 void ZipFile::closeCurrentFile()
 {
-    internal::api("unzCloseCurrentFile", unzOpenCurrentFile(this->fp));
+    internal::api("unzCloseCurrentFile", unzCloseCurrentFile(this->fp));
 }
 
 

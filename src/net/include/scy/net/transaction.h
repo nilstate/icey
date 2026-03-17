@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_Net_Transaction_H
-#define SCY_Net_Transaction_H
+#pragma once
 
 
 #include "scy/net/packetsocket.h"
@@ -24,11 +23,11 @@ namespace net {
 /// This class provides request/response functionality for IPacket
 /// types emitted from a Socket.
 template <class PacketT>
-class Net_API Transaction : public PacketTransaction<PacketT>,
-                            public PacketSocketEmitter
+class Net_API Transaction : public PacketTransaction<PacketT>
+    , public PacketSocketEmitter
 {
 public:
-	typedef PacketTransaction<PacketT> BaseT;
+    using BaseT = PacketTransaction<PacketT>;
 
     Transaction(const net::Socket::Ptr& socket, const Address& peerAddress,
                 int timeout = 10000, int retries = 1)
@@ -36,12 +35,12 @@ public:
         , PacketSocketEmitter(socket)
         , _peerAddress(peerAddress)
     {
-        LTrace("Create")
+        LTrace("Create");
     }
 
     virtual bool send() override
     {
-        LTrace("Send")
+        LTrace("Send");
         if (impl->sendPacket(BaseT::_request, _peerAddress) > 0)
             return BaseT::send();
         BaseT::setState(this, TransactionState::Failed);
@@ -50,13 +49,13 @@ public:
 
     virtual void cancel() override
     {
-        LTrace("Cancel")
+        LTrace("Cancel");
         BaseT::cancel();
     }
 
     virtual void dispose() override
     {
-        LTrace("Dispose")
+        LTrace("Dispose");
         BaseT::dispose(); // gc
     }
 
@@ -70,21 +69,18 @@ protected:
 
     /// Overrides the PacketSocketEmitter::onPacket
     /// callback for checking potential response candidates.
-    virtual void onPacket(IPacket& packet) override
+    /// Returns true to stop socket data propagation.
+    virtual bool onPacket(IPacket& packet) override
     {
-        LTrace("On packet: ", packet.size())
-        if (BaseT::handlePotentialResponse(static_cast<PacketT&>(packet))) {
-
-            // Stop socket data propagation since
-            // we have handled the packet
-            throw StopPropagation();
-        }
+        LTrace("On packet: ", packet.size());
+        // Stop socket data propagation if we handled the packet
+        return BaseT::handlePotentialResponse(static_cast<PacketT&>(packet));
     }
 
     /// Called when a successful response match is received.
     virtual void onResponse() override
     {
-        LTrace("On success: ", BaseT::_response.toString())
+        LTrace("On success: ", BaseT::_response.toString());
         PacketSignal::emit(BaseT::_response);
     }
 
@@ -96,9 +92,8 @@ protected:
         assert(packet.info && "socket must provide packet info");
         if (!packet.info)
             return false;
-        auto info = reinterpret_cast<net::PacketInfo*>(packet.info);
-        return impl->address() == info->socket->address()
-            && _peerAddress == info->peerAddress;
+        auto info = static_cast<net::PacketInfo*>(packet.info.get());
+        return impl->address() == info->socket->address() && _peerAddress == info->peerAddress;
     }
 
     Address _peerAddress;
@@ -107,9 +102,6 @@ protected:
 
 } // namespace net
 } // namespace scy
-
-
-#endif // SCY_Net_Transaction_H
 
 
 /// @\}

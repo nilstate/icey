@@ -9,18 +9,16 @@
 /// @{
 
 
-#ifndef SCY_Thread_H
-#define SCY_Thread_H
+#pragma once
 
 
 #include "scy/base.h"
 #include "scy/runner.h"
-#include "scy/util.h"
 
+#include <mutex>
 #include <thread>
 #include <tuple>
 #include <utility>
-#include <mutex>
 
 
 namespace scy {
@@ -34,7 +32,7 @@ namespace scy {
 class Base_API Thread : public Runner
 {
 public:
-    typedef std::shared_ptr<Thread> Ptr;
+    using Ptr = std::shared_ptr<Thread>;
 
     /// Default constructor.
     Thread();
@@ -42,11 +40,11 @@ public:
     /// Templated constructor.
     ///
     /// This constructor starts the thread with the given function.
-    template<typename Function, typename... Args>
-    explicit Thread(Function&& func, Args&&... args) :
-        _thread(internal::runAsync<Function, Args...>, _context,
-                std::forward<Function>(func),
-                std::forward<Args>(args)...)
+    template <typename Function, typename... Args>
+    explicit Thread(Function&& func, Args&&... args)
+        : _thread(internal::runAsync<Function, Args...>, _context,
+                  std::forward<Function>(func),
+                  std::forward<Args>(args)...)
     {
     }
 
@@ -56,7 +54,7 @@ public:
     /// Start a function with veradic arguments.
     ///
     /// This method starts the thread with the given function.
-    template<typename Function, typename... Args>
+    template <typename Function, typename... Args>
     void start(Function&& func, Args&&... args)
     {
         _thread = std::thread(internal::runAsync<Function, Args...>, _context,
@@ -83,6 +81,8 @@ protected:
     /// NonCopyable and NonMovable
     Thread(const Thread&) = delete;
     Thread& operator=(const Thread&) = delete;
+    Thread(Thread&&) = delete;
+    Thread& operator=(Thread&&) = delete;
 
     bool async() const override;
 
@@ -90,55 +90,7 @@ protected:
 };
 
 
-#if 0
-/// This class is an invisible wrapper around a Startable instance,
-/// which provides asynchronous access to the Startable start() and
-/// stop() methods.
-///
-/// TStartable is an instance of basic::Startable.
-/// @deprecated
-template <class TStartable>
-class Base_API AsyncStartable: public TStartable
-{
-public:
-    AsyncStartable() = default;
-    virtual ~AsyncStartable() = default;
-
-    static void runAsync(void* arg) {
-        try {
-            // Call the blocking start() function once only
-            static_cast<TStartable*>(arg)->start();
-        }
-        catch (std::exception& exc) {
-            // errorL("AsyncLtartable")(exc.what(), )
-#ifdef _DEBUG
-            throw exc;
-#endif
-        }
-    }
-
-    virtual bool start()
-    {
-        _thread.start(*this);
-        return true;
-    }
-
-    virtual void stop()
-    {
-        TStartable::stop();
-        _thread.join();
-    }
-
-protected:
-    Thread _thread;
-};
-#endif
-
-
 } // namespace scy
-
-
-#endif
 
 
 /// @\}

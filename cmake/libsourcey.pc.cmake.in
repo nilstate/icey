@@ -2,13 +2,11 @@ Name: LibSourcey
 Description: LibSourcey C++ Networking Evolved
 Version: @LibSourcey_VERSION@
 
-prefix=@LibSourcey_INSTALL_DIR@
-exec_prefix=@LibSourcey_INSTALL_DIR@/bin
-libdir=@LibSourcey_INSTALL_DIR@/lib
-includedir=@LibSourcey_INSTALL_DIR@/include
-vendorlibdir=@LibSourcey_VENDOR_INSTALL_DIR@/lib
-vendorincludedir=@LibSourcey_VENDOR_INSTALL_DIR@/include
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+libdir=${prefix}/@CMAKE_INSTALL_LIBDIR@
+includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
 
 Requires:
-Libs: -L${libdir} -L${vendorlibdir} @PKG_CONFIG_LIBS@
-Cflags: -I${includedir} -I${vendorincludedir}
+Libs: -L${libdir} @PKG_CONFIG_LIBS@
+Cflags: -I${includedir}

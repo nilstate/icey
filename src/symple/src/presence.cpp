@@ -10,11 +10,7 @@
 
 
 #include "scy/symple/presence.h"
-#include "assert.h"
 #include "scy/util.h"
-
-
-using std::endl;
 
 
 namespace scy {
@@ -31,7 +27,7 @@ Presence::Presence(const Presence& root)
     : Message(root)
 {
     // if (find("type") == end())
-        (*this)["type"] = "presence";
+    (*this)["type"] = "presence";
 }
 
 
@@ -39,7 +35,7 @@ Presence::Presence(const json::value& root)
     : Message(root)
 {
     // if (find("type") == end())
-        (*this)["type"] = "presence";
+    (*this)["type"] = "presence";
 }
 
 

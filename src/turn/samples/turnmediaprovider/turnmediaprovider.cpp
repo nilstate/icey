@@ -57,8 +57,7 @@ Format MP311000 = Format("MP3", "mp3", VideoCodec(),
                          AudioCodec("MP3", "libmp3lame", 1, 11000, 16000));
 
 Format MP348000 =
-    Format("MP3", "mp3", VideoCodec(), AudioCodec("MP3", "libmp3lame", 2, 48000,
-                                                  128000, "s16p")); //, "s16p")
+    Format("MP3", "mp3", VideoCodec(), AudioCodec("MP3", "libmp3lame", 2, 48000, 128000, "s16p")); //, "s16p")
 
 Format FLVNoAudio =
     Format("FLV", "flv", VideoCodec("FLV", "flv", 320, 240)); //, 6, 9000, 64000
@@ -178,7 +177,8 @@ protected:
         LogDebug() << "[TURNMediaProvider: " << this
                    << "] Ltate Changed: "(state.toString(), )
 
-        switch (state.id()) {
+                          switch (state.id())
+        {
             case TURN::ClientState::Waiting:
                 break;
             case TURN::ClientState::Allocating:
@@ -248,7 +248,7 @@ protected:
         } catch (std::exception /*Exception*/& exc) {
             LogError() << "[TURNMediaProvider: " << this
                        << "] Lend Error: "(exc.displayText(), )
-            terminate();
+                              terminate();
         }
     }
 };
@@ -374,7 +374,7 @@ public:
 
 int main(int argc, char** argv)
 {
-    Logger::instance().add(new ConsoleChannel("debug", STraceevel));
+    Logger::instance().add(std::make_unique<ConsoleChannel>("debug", STraceevel));
 
     // MediaFactory::initialize();
     // MediaFactory::instance()->loadVideo();

@@ -9,14 +9,13 @@
 /// @{
 
 
-#ifndef SCY_JSON_H
-#define SCY_JSON_H
+#pragma once
 
 
 #include "scy/base.h"
 #include "scy/error.h"
 
-#include "json.hpp" // include nlohmann json
+#include <nlohmann/json.hpp>
 
 #include <cstdint>
 #include <fstream>
@@ -24,13 +23,13 @@
 
 // Shared library exports
 #if defined(SCY_WIN) && defined(SCY_SHARED_LIBRARY)
-    #if defined(JSON_EXPORTS)
-        #define JSON_API __declspec(dllexport)
-    #else
-        #define JSON_API __declspec(dllimport)
-    #endif
+#if defined(JSON_EXPORTS)
+#define JSON_API __declspec(dllexport)
 #else
-    #define JSON_API // nothing
+#define JSON_API __declspec(dllimport)
+#endif
+#else
+#define JSON_API // nothing
 #endif
 
 
@@ -100,6 +99,8 @@ inline void assertMember(const json::value& root, const std::string& name)
 inline void countNestedKeys(json::value& root, const std::string& key,
                             int& count, int depth = 0)
 {
+    if (!root.is_object() && !root.is_array())
+        return;
     depth++;
     for (auto it = root.begin(); it != root.end(); ++it) {
         if ((*it).is_object() && (*it).find(key) != (*it).end())
@@ -111,6 +112,8 @@ inline void countNestedKeys(json::value& root, const std::string& key,
 
 inline bool hasNestedKey(json::value& root, const std::string& key, int depth = 0)
 {
+    if (!root.is_object() && !root.is_array())
+        return false;
     depth++;
     for (auto it = root.begin(); it != root.end(); it++) {
         if ((*it).is_object() && (*it).find(key) != (*it).end())
@@ -131,7 +134,7 @@ inline bool hasNestedKey(json::value& root, const std::string& key, int depth = 
 inline bool findNestedObjectWithProperty(
     json::value& root, json::value*& result, const std::string& key,
     const std::string& value, bool partial = true, int index = 0,
-    int depth = 0) 
+    int depth = 0)
 {
     depth++;
     if (root.is_object()) {
@@ -170,9 +173,6 @@ inline bool findNestedObjectWithProperty(
 
 } // namespace json
 } // namespace scy
-
-
-#endif // SCY_JSON_H
 
 
 /// @\}

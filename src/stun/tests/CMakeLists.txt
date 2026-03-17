@@ -1,1 +1,1 @@
-define_libsourcey_test(stuntests base stun crypto net)
+scy_add_test(stuntests DEPENDS base stun crypto net)

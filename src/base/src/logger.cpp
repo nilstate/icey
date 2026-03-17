@@ -11,13 +11,15 @@
 
 #include "scy/logger.h"
 #include "scy/datetime.h"
-#include "scy/filesystem.h"
 #include "scy/platform.h"
+
+#include "scy/filesystem.h"
 #include "scy/time.h"
 #include "scy/util.h"
 
-#include <assert.h>
+#include <chrono>
 #include <iterator>
+#include <thread>
 
 
 using std::endl;
@@ -31,19 +33,15 @@ static Singleton<Logger> singleton;
 
 Logger::Logger()
     : _defaultChannel(nullptr)
-    , _writer(new LogWriter)
+    , _writer(std::make_unique<LogWriter>())
 {
-    // Decouple C and C++ streams for performance increase.
-    // std::cout.sync_with_stdio(false);
 }
 
 
 Logger::~Logger()
-  {
-  if (_writer)
-      delete _writer;
-    util::clearMap(_channels);
+{
     _defaultChannel = nullptr;
+    _channels.clear();
 }
 
 
@@ -67,26 +65,26 @@ void Logger::destroy()
 }
 
 
-void Logger::add(LogChannel* channel)
+void Logger::add(std::unique_ptr<LogChannel> channel)
 {
     std::lock_guard<std::mutex> guard(_mutex);
+    auto* raw = channel.get();
     // The first channel added will be the default channel.
     if (_defaultChannel == nullptr)
-        _defaultChannel = channel;
-    _channels[channel->name()] = channel;
+        _defaultChannel = raw;
+    _channels[raw->name()] = std::move(channel);
 }
 
 
-void Logger::remove(const std::string& name, bool freePointer)
+void Logger::remove(const std::string& name)
 {
     std::lock_guard<std::mutex> guard(_mutex);
-    LogChannelMap::iterator it = _channels.find(name);
-    assert(it != _channels.end());
-    if (it != _channels.end()) {
-        if (_defaultChannel == it->second)
+    auto it = _channels.find(name);
+    if (it == _channels.end())
+        throw std::runtime_error("Logger: channel not found: " + name);
+    {
+        if (_defaultChannel == it->second.get())
             _defaultChannel = nullptr;
-        if (freePointer)
-            delete it->second;
         _channels.erase(it);
     }
 }
@@ -95,9 +93,9 @@ void Logger::remove(const std::string& name, bool freePointer)
 LogChannel* Logger::get(const std::string& name, bool whiny) const
 {
     std::lock_guard<std::mutex> guard(_mutex);
-    LogChannelMap::const_iterator it = _channels.find(name);
+    auto it = _channels.find(name);
     if (it != _channels.end())
-        return it->second;
+        return it->second.get();
     if (whiny)
         throw std::runtime_error("Not found: No log channel named: " + name);
     return nullptr;
@@ -118,26 +116,22 @@ LogChannel* Logger::getDefault() const
 }
 
 
-void Logger::setWriter(LogWriter* writer)
+void Logger::setWriter(std::unique_ptr<LogWriter> writer)
 {
     // NOTE: Cannot lock here as writer may
     // attempt to flush pending on destruction.
-    // std::lock_guard<std::mutex> guard(_mutex);
-    if (_writer) {
-        delete _writer;
-    }
-    _writer = writer;
+    _writer = std::move(writer);
 }
 
 
 void Logger::write(const LogStream& stream)
 {
     // avoid if possible, requires extra copy
-    write(new LogStream(stream));
+    write(std::make_unique<LogStream>(stream));
 }
 
 
-void Logger::write(LogStream* stream)
+void Logger::write(std::unique_ptr<LogStream> stream)
 {
 #ifdef SCY_ENABLE_LOGGING
     std::lock_guard<std::mutex> guard(_mutex);
@@ -145,11 +139,9 @@ void Logger::write(LogStream* stream)
         stream->channel = _defaultChannel;
 
     // Drop messages if there is no output channel
-    if (stream->channel == nullptr) {
-        delete stream;
+    if (stream->channel == nullptr)
         return;
-    }
-    _writer->write(stream);
+    _writer->write(std::move(stream));
 #endif
 }
 
@@ -176,13 +168,10 @@ LogWriter::~LogWriter()
 }
 
 
-void LogWriter::write(LogStream* stream)
+void LogWriter::write(std::unique_ptr<LogStream> stream)
 {
 #ifdef SCY_ENABLE_LOGGING
-    // TODO: Make safer; if the app exists and async stuff
-    // is still logging we can end up with a crash here.
     stream->channel->write(*stream);
-    delete stream;
 #endif
 }
 
@@ -212,40 +201,38 @@ AsyncLogWriter::~AsyncLogWriter()
 
     // Flush remaining items synchronously
     flush();
-    assert(_pending.empty());
+    if (!_pending.empty())
+        LWarn("AsyncLogWriter: pending messages on close");
 }
 
 
-void AsyncLogWriter::write(LogStream* stream)
+void AsyncLogWriter::write(std::unique_ptr<LogStream> stream)
 {
     std::lock_guard<std::mutex> guard(_mutex);
-    _pending.push_back(stream);
+    _pending.push_back(std::move(stream));
 }
 
 
 void AsyncLogWriter::clear()
 {
     std::lock_guard<std::mutex> guard(_mutex);
-    LogStream* next = nullptr;
-    while (!_pending.empty()) {
-        next = _pending.front();
-        delete next;
-        _pending.pop_front();
-    }
+    _pending.clear();
 }
 
 
 void AsyncLogWriter::flush()
 {
     while (writeNext())
-        scy::sleep(1);
+        std::this_thread::yield();
 }
 
 
 void AsyncLogWriter::run()
 {
+    using namespace std::chrono_literals;
     while (!cancelled()) {
-        scy::sleep(writeNext() ? 1 : 50);
+        if (!writeNext())
+            std::this_thread::sleep_for(50ms);
     }
 }
 
@@ -253,17 +240,16 @@ void AsyncLogWriter::run()
 bool AsyncLogWriter::writeNext()
 {
 #ifdef SCY_ENABLE_LOGGING
-    LogStream* next;
+    std::unique_ptr<LogStream> next;
     {
         std::lock_guard<std::mutex> guard(_mutex);
         if (_pending.empty())
             return false;
 
-        next = _pending.front();
+        next = std::move(_pending.front());
         _pending.pop_front();
     }
     next->channel->write(*next);
-    delete next;
     return true;
 #else
     return false;
@@ -500,7 +486,6 @@ RotatingFileChannel::RotatingFileChannel(std::string name,
                                          int rotationInterval,
                                          std::string timeFormat)
     : LogChannel(std::move(name), level, std::move(timeFormat))
-    , _fstream(nullptr)
     , _dir(std::move(dir))
     , _extension(std::move(extension))
     , _rotationInterval(rotationInterval)
@@ -512,10 +497,8 @@ RotatingFileChannel::RotatingFileChannel(std::string name,
 
 RotatingFileChannel::~RotatingFileChannel()
 {
-    if (_fstream) {
+    if (_fstream)
         _fstream->close();
-        delete _fstream;
-    }
 }
 
 
@@ -525,7 +508,7 @@ void RotatingFileChannel::write(const LogStream& stream)
     if (this->level() > stream.level)
         return;
 
-    if (_fstream == nullptr || stream.ts - _rotatedAt > _rotationInterval)
+    if (!_fstream || stream.ts - _rotatedAt > _rotationInterval)
         rotate();
 
     std::ostringstream ss;
@@ -548,10 +531,8 @@ void RotatingFileChannel::write(const LogStream& stream)
 
 void RotatingFileChannel::rotate()
 {
-    if (_fstream) {
+    if (_fstream)
         _fstream->close();
-        delete _fstream;
-    }
 
     // Always try to create the directory
     fs::mkdirr(_dir);
@@ -561,42 +542,10 @@ void RotatingFileChannel::rotate()
                              static_cast<long>(Timestamp().epochTime()),
                              _extension.c_str());
 
-    std::string path(_dir);
-    fs::addnode(path, _filename);
-    _fstream = new std::ofstream(path);
+    std::string path = fs::makePath(_dir, _filename);
+    _fstream = std::make_unique<std::ofstream>(path);
     _rotatedAt = time::now();
 }
-
-
-#if 0
-// ---------------------------------------------------------------------
-// Evented File Channel
-//
-EventedFileChannel::EventedFileChannel(std::string name,
-                         const std::string& dir,
-                         Level level,
-                         const std::string& extension,
-                         int rotationInterval,
-                         const char* timeFormat) :
-    FileChannel(name, dir, level, extension, rotationInterval, timeFormat)
-{
-}
-
-
-EventedFileChannel::~EventedFileChannel()
-{
-}
-
-
-void EventedFileChannel::write(const LogStream& stream, Level level, const char* realm, const void* ptr)
-{
-    if (this->level() > level)
-        return;
-
-    FileChannel::write(message, level, ptr);
-    OnLogStream.emit(message, level, ptr);
-}
-#endif
 
 
 } // namespace scy

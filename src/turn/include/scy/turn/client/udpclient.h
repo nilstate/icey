@@ -8,9 +8,7 @@
 /// @addtogroup turn
 /// @{
 
-
-#ifndef SCY_TURN_UDPClient_H
-#define SCY_TURN_UDPClient_H
+#pragma once
 
 
 #include "scy/net/udpsocket.h"
@@ -18,7 +16,6 @@
 #include "scy/stun/transaction.h"
 #include "scy/turn/client/client.h"
 #include "scy/turn/iallocation.h"
-#include "scy/turn/turn.h"
 #include "scy/turn/turn.h"
 
 #include <deque>
@@ -34,11 +31,8 @@ public:
     UDPClient(ClientObserver& observer, const Options& options = Options());
     virtual ~UDPClient();
 };
-}
-} //  namespace scy::turn
-
-
-#endif // SCY_TURN_Client_H
+} // namespace turn
+} // namespace scy
 
 
 /// @\}

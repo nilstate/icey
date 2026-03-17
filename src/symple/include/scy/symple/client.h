@@ -9,11 +9,13 @@
 /// @{
 
 
-#ifndef SCY_Symple_Client_H
-#define SCY_Symple_Client_H
+#pragma once
 
 
-#include "scy/symple/symple.h"
+#include "scy/bitwise.h"
+#include "scy/http/websocket.h"
+#include "scy/net/socket.h"
+#include "scy/socketio/client.h"
 #include "scy/symple/command.h"
 #include "scy/symple/event.h"
 #include "scy/symple/form.h"
@@ -21,18 +23,15 @@
 #include "scy/symple/peer.h"
 #include "scy/symple/presence.h"
 #include "scy/symple/roster.h"
-#include "scy/socketio/client.h"
-#include "scy/bitwise.h"
-#include "scy/http/websocket.h"
-#include "scy/net/socket.h"
-#include "scy/util/timedmanager.h"
+#include "scy/symple/symple.h"
+#include "scy/timedmanager.h"
 
 
 namespace scy {
 namespace smpl {
 
 
-typedef TimedManager<std::string, Message> PersistenceT;
+using PersistenceT = TimedManager<std::string, Message>;
 
 
 //
@@ -60,7 +59,8 @@ public:
         std::string type;
         std::string token;
 
-        Options() {
+        Options()
+        {
             // Required on gcc 6
             // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=70528
         }
@@ -105,10 +105,10 @@ public:
 
     /// Return the session ID of our current peer object.
     /// Return an empty string when offline.
-    virtual std::string ourID() const;
+    [[nodiscard]] virtual std::string ourID() const;
 
     /// Return a list of rooms the client has joined.
-    StringVec rooms() const;
+    [[nodiscard]] StringVec rooms() const;
 
     /// Return the peer object for the current session,
     /// or throws an exception when offline.
@@ -253,92 +253,8 @@ struct Filter //: public Flaggable
 //
 
 
-#if 0
-struct MessageDelegate: public PacketDelegateBase
-{
-    typedef Filter DataT;
-    Filter filter;
-
-    MessageDelegate(const Filter& filter = Filter()) : filter(filter) {};
-    MessageDelegate(const MessageDelegate& r) : filter(r.filter) {};
-
-    virtual bool accepts(void* /* sender */, IPacket& data, void*, void*, void*)
-    {
-        auto packet = dynamic_cast<Message*>(&data);
-        if (packet &&
-            (!filter.flags.has(AcceptRequests) ||
-                (filter.flags.has(AcceptRequests) && packet->isRequest())) &&
-            (!filter.flags.has(AcceptResponses) ||
-                (filter.flags.has(AcceptResponses) && !packet->isRequest()))) {
-            return true;
-        }
-        return false;
-    }
-};
-
-
-struct CommandDelegate: public MessageDelegate
-{
-    CommandDelegate(const Filter& filter = Filter()) : MessageDelegate(filter) {};
-    CommandDelegate(const CommandDelegate& r) : MessageDelegate(r) {};
-
-    virtual bool accepts(void* sender, IPacket& data, void* empty2, void* empty3, void* empty4)
-    {
-        if (MessageDelegate::accepts(sender, data, empty2, empty3, empty4)) {
-            auto c = dynamic_cast<Command*>(&data);
-            return c && c->matches(filter.path);
-        }
-        return false;
-    }
-};
-
-
-struct PresenceDelegate: public MessageDelegate
-{
-    PresenceDelegate() : MessageDelegate(AcceptRequests) {};
-    PresenceDelegate(const PresenceDelegate& r) : MessageDelegate(r) {};
-
-    virtual bool accepts(void* sender, IPacket& data, void* empty2, void* empty3, void* empty4)
-    {
-        if (MessageDelegate::accepts(sender, data, empty2, empty3, empty4)) {
-            auto p = dynamic_cast<Presence*>(&data);
-            return p && p->type() == "presence";
-        }
-        return false;
-    }
-};
-
-
-struct EventDelegate: public MessageDelegate
-{
-    EventDelegate() : MessageDelegate(AcceptRequests) {};
-    EventDelegate(const EventDelegate& r) : MessageDelegate(r) {};
-
-    virtual bool accepts(void* sender, IPacket& data, void* empty2, void* empty3, void* empty4)
-    {
-        if (MessageDelegate::accepts(sender, data, empty2, empty3, empty4)) {
-            auto e = dynamic_cast<Event*>(&data);
-            return e && e->type() == "event" && (
-                filter.path.empty() || filter.path == "*" ||
-                util::matchNodes(e->name(), filter.path, ":"));
-        }
-        return false;
-    }
-};
-
-
-DefinePolymorphicDelegateWithArg(messageDelegate, IPacket, MessageDelegate, const Filter&, Filter())
-DefinePolymorphicDelegateWithArg(commandDelegate, IPacket, CommandDelegate, const Filter&, Filter())
-DefinePolymorphicDelegate(presenceDelegate, IPacket, PresenceDelegate)
-DefinePolymorphicDelegate(eventDelegate, IPacket, EventDelegate)
-#endif
-
-
 } // namespace smpl
 } // namespace scy
-
-
-#endif // SCY_Symple_Client_H
 
 
 /// @\}

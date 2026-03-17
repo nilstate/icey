@@ -8,13 +8,11 @@
 /// @addtogroup turn
 /// @{
 
-
-#ifndef SCY_TURN_FiveTuple_H
-#define SCY_TURN_FiveTuple_H
+#pragma once
 
 
-#include "scy/turn/turn.h"
 #include "scy/net/socket.h"
+#include "scy/turn/turn.h"
 
 #include <sstream>
 
@@ -71,9 +69,9 @@ public:
               net::TransportType transport);
     FiveTuple(const FiveTuple& r);
 
-    const net::Address& remote() const { return _remote; }
-    const net::Address& local() const { return _local; }
-    const net::TransportType& transport() const { return _transport; }
+    [[nodiscard]] const net::Address& remote() const { return _remote; }
+    [[nodiscard]] const net::Address& local() const { return _local; }
+    [[nodiscard]] const net::TransportType& transport() const { return _transport; }
 
     void remote(const net::Address& remote) { _remote = remote; }
     void local(const net::Address& local) { _local = local; }
@@ -85,7 +83,7 @@ public:
     bool operator==(const FiveTuple& r) const;
     bool operator<(const FiveTuple& r) const;
 
-    std::string toString() const;
+    [[nodiscard]] std::string toString() const;
 
     friend std::ostream& operator<<(std::ostream& stream,
                                     const FiveTuple& tuple)
@@ -103,9 +101,6 @@ private:
 
 } // namespace turn
 } // namespace scy
-
-
-#endif // SCY_TURN_FiveTuple_H
 
 
 /// @\}

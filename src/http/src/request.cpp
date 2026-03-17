@@ -12,10 +12,7 @@
 #include "scy/http/request.h"
 #include "scy/http/util.h"
 
-#include <assert.h>
-
-
-using std::endl;
+#include <stdexcept>
 
 
 namespace scy {
@@ -117,13 +114,14 @@ const std::string& Request::getURI() const
 void Request::setCookies(const NVCollection& cookies)
 {
     std::string cookie;
-    for (NVCollection::ConstIterator it = cookies.begin(); it != cookies.end();
-         ++it) {
-        if (it != cookies.begin())
+    bool first = true;
+    for (const auto& [key, val] : cookies) {
+        if (!first)
             cookie.append("; ");
-        cookie.append(it->first);
+        first = false;
+        cookie.append(key);
         cookie.append("=");
-        cookie.append(it->second);
+        cookie.append(val);
     }
     add("Cookie", cookie);
 }
@@ -131,10 +129,8 @@ void Request::setCookies(const NVCollection& cookies)
 
 void Request::getCookies(NVCollection& cookies) const
 {
-    NVCollection::ConstIterator it = find("Cookie");
-    while (it != end() && util::icompare(it->first, "Cookie") == 0) {
+    for (auto it = find("Cookie"); it != end() && util::icompare(it->first, "Cookie") == 0; ++it) {
         http::splitParameters(it->second.begin(), it->second.end(), cookies);
-        ++it;
     }
 }
 
@@ -186,7 +182,9 @@ void Request::setProxyCredentials(const std::string& scheme,
 
 void Request::write(std::ostream& ostr) const
 {
-    assert(_uri.length());
+    if (_uri.empty()) {
+        throw std::runtime_error("Request::write: empty URI");
+    }
     ostr << _method << " " << _uri << " " << _version << "\r\n";
     http::Message::write(ostr);
     ostr << "\r\n";
@@ -195,7 +193,9 @@ void Request::write(std::ostream& ostr) const
 
 void Request::write(std::string& str) const
 {
-    assert(_uri.length());
+    if (_uri.empty()) {
+        throw std::runtime_error("Request::write: empty URI");
+    }
     str.append(_method);
     str.append(" ");
     str.append(_uri);
@@ -244,4 +244,4 @@ void Request::setCredentials(const std::string& header,
 } // namespace scy
 
 
-/// @\}
+/// @}

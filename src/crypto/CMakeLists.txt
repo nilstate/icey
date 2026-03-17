@@ -1,8 +1,6 @@
-ask_build_sourcey_module(crypto)
-if(BUILD_MODULES OR (NOT BUILD_MODULES AND BUILD_MODULE_crypto))
-  #include_dependency(OpenSSL REQUIRED)
-  include_dependency(SSL REQUIRED)
-  #include_dependency(LibUV REQUIRED)
-
-  define_sourcey_module(crypto base)
+if(HAVE_OPENSSL)
+  scy_add_module(crypto
+    DEPENDS base
+    PACKAGES OpenSSL::SSL OpenSSL::Crypto
+  )
 endif()

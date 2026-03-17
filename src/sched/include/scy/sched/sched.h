@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_Sched_h
-#define SCY_Sched_h
+#pragma once
 
 
 #include "scy/base.h"
@@ -18,17 +17,14 @@
 
 // Shared library exports
 #if defined(SCY_WIN) && defined(SCY_SHARED_LIBRARY)
-    #if defined(Sched_EXPORTS)
-        #define Sched_API __declspec(dllexport)
-    #else
-        #define Sched_API __declspec(dllimport)
-    #endif
+#if defined(Sched_EXPORTS)
+#define Sched_API __declspec(dllexport)
 #else
-    #define Sched_API // nothing
+#define Sched_API __declspec(dllimport)
 #endif
-
-
-#endif // SCY_Sched_H
+#else
+#define Sched_API // nothing
+#endif
 
 
 /// @\}

@@ -11,12 +11,12 @@
 //
 
 
-#ifndef SCY_Random_H
-#define SCY_Random_H
+#pragma once
 
 
 #include "scy/base.h"
 #include <cstdint>
+#include <memory>
 
 
 namespace scy {
@@ -92,14 +92,11 @@ private:
     int _randDeg;
     int _randSep;
     uint32_t* _endPtr;
-    char* _buffer;
+    std::unique_ptr<char[]> _buffer;
 };
 
 
 } // namespace scy
-
-
-#endif // SCY_Random_H
 
 
 /// @\}

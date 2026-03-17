@@ -8,19 +8,16 @@
 /// @addtogroup http
 /// @{
 
-
-#ifndef SCY_NET_WebSocket_H
-#define SCY_NET_WebSocket_H
-
+#pragma once
 
 #include "scy/base.h"
 #include "scy/buffer.h"
+#include "scy/http/connection.h"
 #include "scy/http/parser.h"
 #include "scy/http/request.h"
 #include "scy/http/response.h"
-#include "scy/http/connection.h"
-#include "scy/net/socketemitter.h"
 #include "scy/net/socket.h"
+#include "scy/net/socketemitter.h"
 #include "scy/net/tcpsocket.h"
 #include "scy/random.h"
 
@@ -30,10 +27,11 @@ namespace http {
 namespace ws {
 
 
-enum Mode
+/// WebSocket endpoint mode.
+enum class Mode
 {
-    ServerSide,  ///< Server-side WebSocket.
-    ClientSide   ///< Client-side WebSocket.
+    ServerSide, ///< Server-side WebSocket.
+    ClientSide  ///< Client-side WebSocket.
 };
 
 
@@ -70,43 +68,50 @@ enum SendFlags
 
 
 /// StatusCodes for CLOSE frames sent with shutdown().
-enum StatusCodes
+enum class CloseStatusCode
 {
-    StatusNormalClose = 1000,
-    StatusEndpointGoingAway = 1001,
-    StatusProtocolError = 1002,
-    StatusPayloadNotAcceptable = 1003,
-    StatusReserved = 1004,
-    StatusReservedNoStatusCode = 1005,
-    StatusReservedAbnormalClose = 1006,
-    StatusMalformedPayload = 1007,
-    StatusPolicyViolation = 1008,
-    StatusPayloadTooBig = 1009,
-    StatusExtensionRequired = 1010,
-    StatusUnexpectedCondition = 1011,
-    StatusReservedTLSFailure = 1015
+    NormalClose = 1000,
+    EndpointGoingAway = 1001,
+    ProtocolError = 1002,
+    PayloadNotAcceptable = 1003,
+    Reserved = 1004,
+    ReservedNoStatusCode = 1005,
+    ReservedAbnormalClose = 1006,
+    MalformedPayload = 1007,
+    PolicyViolation = 1008,
+    PayloadTooBig = 1009,
+    ExtensionRequired = 1010,
+    UnexpectedCondition = 1011,
+    ReservedTLSFailure = 1015
 };
 
 
 /// These error codes can be obtained from WebSocket exceptions
 /// to determine the exact cause of the error.
-enum ErrorCodes
+enum class ErrorCode
 {
-    ErrorNoHandshake = 1, ///< No Connection: Upgrade or Upgrade: websocket header in handshake request.
-    ErrorHandshakeNoVersion = 2, ///< No Sec-WebSocket-Version header in handshake request.
-    ErrorHandshakeUnsupportedVersion = 3, ///< Unsupported WebSocket version requested by client.
-    ErrorHandshakeNoKey = 4, ///< No Sec-WebSocket-Key header in handshake request.
-    ErrorHandshakeAccept = 5, ///< No Sec-WebSocket-Accept header or wrong value.
-    ErrorUnauthorized = 6, ///< The server rejected the username or password for authentication.
-    ErrorPayloadTooBig = 10,  ///< Payload too big for supplied buffer.
-    ErrorIncompleteFrame = 11 ///< Incomplete frame received.
+    NoHandshake = 1,                 ///< No Connection: Upgrade or Upgrade: websocket header in handshake request.
+    HandshakeNoVersion = 2,          ///< No Sec-WebSocket-Version header in handshake request.
+    HandshakeUnsupportedVersion = 3, ///< Unsupported WebSocket version requested by client.
+    HandshakeNoKey = 4,              ///< No Sec-WebSocket-Key header in handshake request.
+    HandshakeAccept = 5,             ///< No Sec-WebSocket-Accept header or wrong value.
+    Unauthorized = 6,                ///< The server rejected the username or password for authentication.
+    PayloadTooBig = 10,              ///< Payload too big for supplied buffer.
+    IncompleteFrame = 11,            ///< Incomplete frame received.
+    InvalidRsvBits = 12,             ///< RSV bits set without extension negotiation.
+    InvalidOpcode = 13,              ///< Unknown or reserved opcode received.
+    UnmaskedClientFrame = 14         ///< Client-to-server frame not masked (RFC 6455 violation).
 };
 
 
-static std::string ProtocolGuid = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+// Keep old names as constants for backward compatibility
+static constexpr auto ServerSide = Mode::ServerSide;
+static constexpr auto ClientSide = Mode::ClientSide;
+
+inline constexpr char ProtocolGuid[] = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
 /// The WebSocket protocol version supported (13).
-static std::string ProtocolVersion = "13";
+inline constexpr char ProtocolVersion[] = "13";
 
 
 //
@@ -136,7 +141,7 @@ public:
     /// Return true when the handshake has completed successfully.
     virtual uint64_t readFrame(BitReader& frame, char*& payload);
 
-    bool handshakeComplete() const;
+    [[nodiscard]] bool handshakeComplete() const;
 
     //
     /// Server side
@@ -145,9 +150,6 @@ public:
 
     //
     /// Client side
-
-    /// Sends the initial WS handshake HTTP request.
-    /// void sendHandshakeRequest();
 
     /// Appends the WS hanshake HTTP request hearers.
     void createClientHandshakeRequest(http::Request& request);
@@ -163,13 +165,13 @@ public:
 protected:
     /// Returns the frame flags of the most recently received frame.
     /// Set by readFrame()
-    int frameFlags() const;
+    [[nodiscard]] int frameFlags() const;
 
     /// Returns true if the payload must be masched.
     /// Used by writeFrame()
-    bool mustMaskPayload() const;
+    [[nodiscard]] bool mustMaskPayload() const;
 
-    ws::Mode mode() const;
+    [[nodiscard]] ws::Mode mode() const;
 
     enum
     {
@@ -185,7 +187,19 @@ private:
     Random _rnd;
     std::string _key; // client handshake key
 
+    // Fragmentation state (RFC 6455 Section 5.4)
+    bool _fragmented{false};       ///< Currently receiving a fragmented message
+    int _fragmentOpcode{0};        ///< Opcode of the first frame in the fragment sequence
+    Buffer _fragmentBuffer;        ///< Accumulated payload from continuation frames
+
+    // Partial frame buffering (when TCP segment doesn't contain a full frame)
+    Buffer _incompleteFrame;       ///< Buffer for incomplete frame data across TCP segments
+
     friend class WebSocketAdapter;
+
+    // Allow direct member access for unit testing
+    friend void wsFramerTestAccess(WebSocketFramer& f, int state);
+    friend int wsFramerGetFlags(const WebSocketFramer& f);
 };
 
 
@@ -194,13 +208,14 @@ private:
 //
 
 
+/// WebSocket protocol adapter for both client and server endpoints.
 class HTTP_API WebSocketAdapter : public net::SocketEmitter
 {
 public:
     WebSocketAdapter(const net::Socket::Ptr& socket, ws::Mode mode,
                      http::Request& request, http::Response& response);
 
-    virtual ssize_t send(const char* data, size_t len, int flags = 0) override; // flags = ws::Text || ws::Binary
+    virtual ssize_t send(const char* data, size_t len, int flags = 0) override;                               // flags = ws::Text || ws::Binary
     virtual ssize_t send(const char* data, size_t len, const net::Address& peerAddr, int flags = 0) override; // flags = ws::Text || ws::Binary
 
     virtual bool shutdown(uint16_t statusCode, const std::string& statusMessage);
@@ -214,20 +229,15 @@ public:
 
     virtual void sendClientRequest();
     virtual void handleClientResponse(const MutableBuffer& buffer, const net::Address& peerAddr);
-    // virtual void prepareClientRequest(http::Request& request);
-    // virtual void verifyClientResponse(http::Response& response);
 
     //
     /// Server side
 
     virtual void handleServerRequest(const MutableBuffer& buffer, const net::Address& peerAddr);
-    // virtual void sendConnectResponse();
-    // virtual void verifyServerRequest(http::Request& request);
-    // virtual void prepareClientResponse(http::Response& response);
 
-    virtual void onSocketConnect(net::Socket& socket) override;
-    virtual void onSocketRecv(net::Socket& socket, const MutableBuffer& buffer, const net::Address& peerAddress) override;
-    virtual void onSocketClose(net::Socket& socket) override;
+    virtual bool onSocketConnect(net::Socket& socket) override;
+    virtual bool onSocketRecv(net::Socket& socket, const MutableBuffer& buffer, const net::Address& peerAddress) override;
+    virtual bool onSocketClose(net::Socket& socket) override;
 
     virtual void onHandshakeComplete();
 
@@ -251,7 +261,7 @@ protected:
 class HTTP_API WebSocket : public WebSocketAdapter
 {
 public:
-    typedef std::vector<WebSocket> Vec;
+    using Vec = std::vector<WebSocket>;
 
     /// Creates the WebSocket with the given Socket.
     /// The Socket should be a TCPSocket or a SSLSocket,
@@ -260,8 +270,8 @@ public:
 
     virtual ~WebSocket();
 
-    http::Request& request();
-    http::Response& response();
+    [[nodiscard]] http::Request& request();
+    [[nodiscard]] http::Response& response();
 
 protected:
     http::Request _request;
@@ -281,8 +291,6 @@ public:
     ConnectionAdapter(Connection* connection, ws::Mode mode);
     virtual ~ConnectionAdapter();
 
-    // virtual ssize_t sendHeader();
-
     virtual void onHandshakeComplete();
 
 protected:
@@ -295,7 +303,4 @@ protected:
 } // namespace scy
 
 
-#endif // SCY_NET_WebSocket_H
-
-
-/// @\}
+/// @}

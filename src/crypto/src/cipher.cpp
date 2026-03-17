@@ -32,7 +32,7 @@ Cipher::Cipher(const std::string& name, const std::string& passphrase,
     : _initialized(false)
     , _encrypt(false)
     , _cipher(nullptr)
-    , _ctx(EVP_CIPHER_CTX_new())
+    , _ctx(EVP_CIPHER_CTX_new(), EVP_CIPHER_CTX_free)
     , _name(name)
     , _key()
     , _iv()
@@ -54,7 +54,7 @@ Cipher::Cipher(const std::string& name, const ByteVec& key, const ByteVec& iv)
     : _initialized(false)
     , _encrypt(false)
     , _cipher(nullptr)
-    , _ctx(EVP_CIPHER_CTX_new())
+    , _ctx(EVP_CIPHER_CTX_new(), EVP_CIPHER_CTX_free)
     , _name(name)
     , _key(key)
     , _iv(iv)
@@ -72,7 +72,7 @@ Cipher::Cipher(const std::string& name)
     : _initialized(false)
     , _encrypt(false)
     , _cipher(nullptr)
-    , _ctx(EVP_CIPHER_CTX_new())
+    , _ctx(EVP_CIPHER_CTX_new(), EVP_CIPHER_CTX_free)
     , _name(name)
     , _key()
     , _iv()
@@ -96,8 +96,7 @@ Cipher::~Cipher()
     crypto::uninitializeEngine();
 
     if (_initialized)
-        EVP_CIPHER_CTX_cleanup(_ctx);
-    EVP_CIPHER_CTX_free(_ctx);
+        EVP_CIPHER_CTX_reset(_ctx.get());
 }
 
 
@@ -116,10 +115,10 @@ void Cipher::initDecryptor()
 void Cipher::init(bool encrypt)
 {
     if (_initialized)
-        EVP_CIPHER_CTX_cleanup(_ctx);
+        EVP_CIPHER_CTX_reset(_ctx.get());
 
-    EVP_CipherInit(_ctx, _cipher, &_key[0], _iv.empty() ? 0 : &_iv[0],
-                   encrypt ? 1 : 0);
+    EVP_CipherInit_ex(_ctx.get(), _cipher, nullptr, &_key[0],
+                      _iv.empty() ? nullptr : &_iv[0], encrypt ? 1 : 0);
 
     _encrypt = encrypt;
     _initialized = true;
@@ -129,18 +128,20 @@ void Cipher::init(bool encrypt)
 ssize_t Cipher::update(const unsigned char* input, size_t inputLength,
                        unsigned char* output, size_t outputLength)
 {
-    assert(outputLength >= (inputLength + blockSize() - 1));
+    if (outputLength < (inputLength + blockSize() - 1))
+        throw std::runtime_error("Cipher: output buffer too small");
     int len;
-    internal::api(EVP_CipherUpdate(_ctx, output, &len, input, (int)inputLength));
+    internal::api(EVP_CipherUpdate(_ctx.get(), output, &len, input, (int)inputLength));
     return (ssize_t)len;
 }
 
 
 ssize_t Cipher::final(unsigned char* output, size_t length)
 {
-    assert(length >= (size_t)blockSize());
+    if (length < (size_t)blockSize())
+        throw std::runtime_error("Cipher: input length less than block size");
     int len;
-    internal::api(EVP_CipherFinal_ex(_ctx, output, &len));
+    internal::api(EVP_CipherFinal_ex(_ctx.get(), output, &len));
     return (ssize_t)len;
 }
 
@@ -355,7 +356,7 @@ void Cipher::decryptStream(std::istream& source, std::ostream& sink, Encoding en
 
 int Cipher::setPadding(int padding)
 {
-    return EVP_CIPHER_CTX_set_padding(_ctx, padding);
+    return EVP_CIPHER_CTX_set_padding(_ctx.get(), padding);
 }
 
 
@@ -432,9 +433,9 @@ void Cipher::generateKey(const std::string& password, const std::string& salt,
             saltBytes[i % 8] ^= salt.at(i);
     }
 
-    // Now create the key and IV, using the MD5 digest algorithm.
+    // Now create the key and IV, using the SHA-256 digest algorithm.
     int keySize = EVP_BytesToKey(
-        _cipher, EVP_md5(), (salt.empty() ? 0 : saltBytes),
+        _cipher, EVP_sha256(), (salt.empty() ? 0 : saltBytes),
         reinterpret_cast<const unsigned char*>(password.data()),
         static_cast<int>(password.size()), iterationCount, keyBytes, ivBytes);
 

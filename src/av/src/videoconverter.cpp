@@ -30,7 +30,7 @@ VideoConverter::VideoConverter()
 }
 
 
-VideoConverter::~VideoConverter()
+VideoConverter::~VideoConverter() noexcept
 {
     close();
 }
@@ -38,15 +38,15 @@ VideoConverter::~VideoConverter()
 
 void VideoConverter::create()
 {
-//#if 0
+    //#if 0
     STrace << "Create:"
-                 << "\n\tInput Width: " << iparams.width
-                 << "\n\tInput Height: " << iparams.height
-                 << "\n\tInput Pixel Format: " << iparams.pixelFmt
-                 << "\n\tOutput Width: " << oparams.width
-                 << "\n\tOutput Height: " << oparams.height
-                 << "\n\tOutput Pixel Format: " << oparams.pixelFmt << endl;
-//#endif
+           << "\n\tInput Width: " << iparams.width
+           << "\n\tInput Height: " << iparams.height
+           << "\n\tInput Pixel Format: " << iparams.pixelFmt
+           << "\n\tOutput Width: " << oparams.width
+           << "\n\tOutput Height: " << oparams.height
+           << "\n\tOutput Pixel Format: " << oparams.pixelFmt << endl;
+    //#endif
 
     if (ctx)
         throw std::runtime_error("Conversion context already initialized.");
@@ -65,10 +65,10 @@ void VideoConverter::create()
 
 void VideoConverter::close()
 {
-    LTrace("Closing")
+    LTrace("Closing");
 
     if (oframe) {
-        av_free(oframe);
+        av_frame_free(&oframe);
         oframe = nullptr;
     }
 
@@ -82,20 +82,19 @@ void VideoConverter::close()
 AVFrame* VideoConverter::convert(AVFrame* iframe)
 {
     STrace << "Convert:"
-                 << "\n\tIn Format: " << iparams.pixelFmt
-                 << "\n\tIn Size: " << iframe->width << "x" << iframe->height
-                 << "\n\tOut Format: " << oparams.pixelFmt
-                 << "\n\tOut Size: " << oparams.width << "x" << oparams.height
-                 << "\n\tPTS: " << iframe->pts
-                 << "\n\tPacket PTS: " << iframe->pkt_pts
-                 << endl;
+           << "\n\tIn Format: " << iparams.pixelFmt
+           << "\n\tIn Size: " << iframe->width << "x" << iframe->height
+           << "\n\tOut Format: " << oparams.pixelFmt
+           << "\n\tOut Size: " << oparams.width << "x" << oparams.height
+           << "\n\tPTS: " << iframe->pts
+           << endl;
 
-    assert(iframe);
-    assert(iframe->data[0]);
-    assert(iframe->width == iparams.width);
-    assert(iframe->height == iparams.height);
-    assert(iframe);
-    assert(oframe->format == av_get_pix_fmt(oparams.pixelFmt.c_str()));
+    if (!iframe || !iframe->data[0])
+        throw std::runtime_error("Invalid input frame for conversion");
+    if (iframe->width != iparams.width || iframe->height != iparams.height)
+        throw std::runtime_error("Input frame dimensions do not match converter input parameters");
+    if (oframe->format != av_get_pix_fmt(oparams.pixelFmt.c_str()))
+        throw std::runtime_error("Output frame pixel format mismatch");
 
     if (!ctx)
         throw std::runtime_error("Conversion context must be initialized.");

@@ -16,8 +16,8 @@
 
 #include <cstddef>
 #include <cstring>
-#include <stdexcept>
 #include <iterator>
+#include <stdexcept>
 
 
 namespace scy {
@@ -151,10 +151,10 @@ void BitReader::get(std::string& val, size_t len)
 {
     if (len > available()) {
         SError << "index out of range: "
-                     << "len=" << len << ", "
-                     << "available=" << available() << ", "
-                     << "position=" << position() << ", "
-                     << "limit=" << limit() << std::endl;
+               << "len=" << len << ", "
+               << "available=" << available() << ", "
+               << "position=" << position() << ", "
+               << "limit=" << limit() << std::endl;
         throw std::out_of_range("index out of range");
     }
 
@@ -167,10 +167,10 @@ void BitReader::get(char* val, size_t len)
 {
     if (len > available()) {
         SError << "index out of range: "
-                     << "len=" << len << ", "
-                     << "available=" << available() << ", "
-                     << "position=" << position() << ", "
-                     << "limit=" << limit() << std::endl;
+               << "len=" << len << ", "
+               << "available=" << available() << ", "
+               << "position=" << position() << ", "
+               << "limit=" << limit() << std::endl;
         throw std::out_of_range("index out of range");
     }
 
@@ -183,7 +183,7 @@ const char BitReader::peek()
 {
     if (_limit > _position)
         return (const char)_bytes[_position];
-    // LDebug("Peeking next character is NULL")
+    // LDebug("Peeking next character is NULL");
     return 0;
 }
 
@@ -196,7 +196,7 @@ const uint8_t BitReader::peekU8()
         _position -= 1;
         return v;
     } catch (std::out_of_range&) {
-        LDebug("Peeking uint8_t: NULL")
+        LDebug("Peeking uint8_t: NULL");
     }
     return 0;
 }
@@ -210,7 +210,7 @@ const uint16_t BitReader::peekU16()
         _position -= 2;
         return v;
     } catch (std::out_of_range&) {
-        LDebug("Peeking uint16_t: NULL")
+        LDebug("Peeking uint16_t: NULL");
     }
 
     return 0;
@@ -225,7 +225,7 @@ const uint32_t BitReader::peekU24()
         _position -= 3;
         return v;
     } catch (std::out_of_range&) {
-        LDebug("Peeking UInt24: NULL")
+        LDebug("Peeking UInt24: NULL");
     }
 
     return 0;
@@ -240,7 +240,7 @@ const uint32_t BitReader::peekU32()
         _position -= 4;
         return v;
     } catch (std::out_of_range&) {
-        LDebug("Peeking uint32_t: NULL")
+        LDebug("Peeking uint32_t: NULL");
     }
 
     return 0;
@@ -255,7 +255,7 @@ const uint64_t BitReader::peekU64()
         _position -= 8;
         return v;
     } catch (std::out_of_range&) {
-        LDebug("Peeking uint64_t: NULL")
+        LDebug("Peeking uint64_t: NULL");
     }
 
     return 0;
@@ -426,10 +426,10 @@ void BitWriter::skip(size_t val)
 {
     if (_position + val > _limit) {
         SError << "index out of range: "
-                     << "val=" << val << ", "
-                     << "available=" << available() << ", "
-                     << "position=" << position() << ", "
-                     << "limit=" << limit() << std::endl;
+               << "val=" << val << ", "
+               << "available=" << available() << ", "
+               << "position=" << position() << ", "
+               << "limit=" << limit() << std::endl;
         throw std::out_of_range("index out of range");
     }
 
@@ -441,10 +441,10 @@ void BitWriter::seek(size_t val)
 {
     if (val > _limit) {
         SError << "index out of range: "
-                     << "val=" << val << ", "
-                     << "available=" << available() << ", "
-                     << "position=" << position() << ", "
-                     << "limit=" << limit() << std::endl;
+               << "val=" << val << ", "
+               << "available=" << available() << ", "
+               << "position=" << position() << ", "
+               << "limit=" << limit() << std::endl;
         throw std::out_of_range("index out of range");
     }
 
@@ -522,10 +522,10 @@ void BitWriter::put(const char* val, size_t len)
 {
     if ((_position + len) > _limit) {
         SError << "insufficient buffer capacity: "
-                        << "len=" << len << ", "
-                        << "available=" << available() << ", "
-                        << "position=" << position() << ", "
-                        << "limit=" << limit() << std::endl;
+               << "len=" << len << ", "
+               << "available=" << available() << ", "
+               << "position=" << position() << ", "
+               << "limit=" << limit() << std::endl;
         throw std::out_of_range("insufficient buffer capacity");
     }
 

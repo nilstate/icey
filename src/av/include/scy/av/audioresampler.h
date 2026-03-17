@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_AV_AudioResampler_H
-#define SCY_AV_AudioResampler_H
+#pragma once
 
 
 #include "scy/base.h"
@@ -23,13 +22,10 @@
 
 extern "C" {
 #include <libavcodec/avcodec.h>
+#include <libavutil/channel_layout.h>
 #include <libavutil/opt.h>
-#include <libswscale/swscale.h>
-#ifdef HAVE_FFMPEG_SWRESAMPLE
 #include <libswresample/swresample.h>
-#else
-#include <libavresample/avresample.h>
-#endif
+#include <libswscale/swscale.h>
 }
 
 
@@ -43,7 +39,12 @@ struct AudioResampler
 {
     AudioResampler(const AudioCodec& iparams = AudioCodec(),
                    const AudioCodec& oparams = AudioCodec());
-    ~AudioResampler();
+    ~AudioResampler() noexcept;
+
+    AudioResampler(const AudioResampler&) = delete;
+    AudioResampler& operator=(const AudioResampler&) = delete;
+    AudioResampler(AudioResampler&&) = delete;
+    AudioResampler& operator=(AudioResampler&&) = delete;
 
     void open();
     void close();
@@ -52,24 +53,21 @@ struct AudioResampler
     /// NOTE: Input buffers must be contiguous, therefore only interleaved
     /// input formats are accepted at this point.
     ///
-    /// Return the number of converted samples or zero if samples
-    /// were internally buffered. An exception will be thrown on error.
+    /// Converted samples are accessible via the `outSamples` class member.
     ///
-    /// Converted samples are accessable via the `outSamples` class member.
+    /// @param inSamples     Pointer to the input sample buffer array.
+    /// @param inNumSamples  The number of input samples per channel.
+    /// @return The number of converted samples, or zero if samples were internally buffered.
     int resample(uint8_t** inSamples, int inNumSamples);
 
-#ifdef HAVE_FFMPEG_SWRESAMPLE
     SwrContext* ctx; ///< the conversion context
-#else
-    AVAudioResampleContext* ctx;
-#endif
 
-    AudioCodec iparams;     ///< input audio parameters
-    AudioCodec oparams;     ///< output audio parameters
-    uint8_t** outSamples;   ///< the output samples buffer
-    int outNumSamples;      ///< the number of samples currently in the output buffer
-    int outBufferSize;      ///< the number of bytes currently in the buffer
-    int maxNumSamples;      ///< the maximum number of samples that can be stored in
+    AudioCodec iparams;               ///< input audio parameters
+    AudioCodec oparams;               ///< output audio parameters
+    uint8_t** outSamples;             ///< the output samples buffer
+    int outNumSamples;                ///< the number of samples currently in the output buffer
+    int outBufferSize;                ///< the number of bytes currently in the buffer
+    int maxNumSamples;                ///< the maximum number of samples that can be stored in
     enum AVSampleFormat inSampleFmt;  ///< input sample format
     enum AVSampleFormat outSampleFmt; ///< output sample format
 };
@@ -80,7 +78,6 @@ struct AudioResampler
 
 
 #endif
-#endif // SCY_AV_AudioResampler_H
 
 
 /// @\}

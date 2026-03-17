@@ -9,8 +9,8 @@
 /// @{
 
 
-#ifndef SCY_AV_DeviceManager_H
-#define SCY_AV_DeviceManager_H
+#pragma once
+
 
 #include <string>
 #include <vector>
@@ -91,7 +91,7 @@ class AV_API DeviceWatcher
 {
 public:
     explicit DeviceWatcher(DeviceManager*) {}
-    virtual ~DeviceWatcher() {}
+    virtual ~DeviceWatcher() noexcept {}
     virtual bool start() { return true; }
     virtual void stop() {}
 };
@@ -106,7 +106,7 @@ class AV_API DeviceManager
 {
 public:
     DeviceManager();
-    ~DeviceManager();
+    ~DeviceManager() noexcept;
 
     /// Device enumeration
     bool getCameras(std::vector<Device>& devices);
@@ -147,8 +147,8 @@ public:
 
 #ifdef HAVE_FFMPEG
     /// Find base FFmpeg formats
-    AVInputFormat* findVideoInputFormat();
-    AVInputFormat* findAudioInputFormat();
+    const AVInputFormat* findVideoInputFormat();
+    const AVInputFormat* findAudioInputFormat();
 #endif
 
 protected:
@@ -158,6 +158,3 @@ protected:
 
 } // namespace av
 } // namespace scy
-
-
-#endif // SCY_AV_DeviceManager_H

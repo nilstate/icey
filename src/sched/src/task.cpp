@@ -27,24 +27,23 @@ Task::Task(const std::string& type, const std::string& name)
     , _scheduler(nullptr)
     , _trigger(nullptr)
 {
-    LTrace("Create")
+    LTrace("Create");
 }
 
 
-Task::Task(sched::Scheduler& scheduler, const std::string& type,
-           const std::string& name)
+Task::Task(sched::Scheduler& scheduler, const std::string& type, const std::string& name)
     : _type(type)
     , _name(name)
     , _scheduler(&scheduler)
     , _trigger(nullptr)
 {
-    LTrace("Create")
+    LTrace("Create");
 }
 
 
 Task::~Task()
 {
-    LTrace("Destroy")
+    LTrace("Destroy");
 }
 
 
@@ -59,9 +58,10 @@ void Task::start()
 
 void Task::serialize(json::value& root)
 {
-    LTrace("Serializing")
+    LTrace("Serializing");
 
-    std::lock_guard<std::mutex> guard(_mutex);
+    std::lock_guard<std::mutex>
+        guard(_mutex);
 
     root["id"] = _id;
     root["type"] = _type;
@@ -71,9 +71,10 @@ void Task::serialize(json::value& root)
 
 void Task::deserialize(json::value& root)
 {
-    LTrace("Deserializing")
+    LTrace("Deserializing");
 
-    std::lock_guard<std::mutex> guard(_mutex);
+    std::lock_guard<std::mutex>
+        guard(_mutex);
 
     json::assertMember(root, "id");
     json::assertMember(root, "type");
@@ -103,12 +104,10 @@ bool Task::afterRun()
 }
 
 
-void Task::setTrigger(sched::Trigger* trigger)
+void Task::setTrigger(std::unique_ptr<sched::Trigger> trigger)
 {
     std::lock_guard<std::mutex> guard(_mutex);
-    if (_trigger)
-        delete _trigger;
-    _trigger = trigger;
+    _trigger = std::move(trigger);
 }
 
 

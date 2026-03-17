@@ -15,6 +15,7 @@
 #include "scy/net/sslsocket.h"
 #include <algorithm>
 #include <iterator>
+#include <openssl/x509v3.h>
 #include <stdexcept>
 #include <vector>
 
@@ -31,33 +32,45 @@ SSLAdapter::SSLAdapter(net::SSLSocket* socket)
     , _readBIO(nullptr)
     , _writeBIO(nullptr)
 {
-    // LTrace("Create")
+    // LTrace("Create");
 }
 
 
-SSLAdapter::~SSLAdapter()
+SSLAdapter::~SSLAdapter() noexcept
 {
-    // LTrace("Destroy")
+    // LTrace("Destroy");
     if (_ssl) {
         SSL_free(_ssl);
         _ssl = nullptr;
     }
-    // LTrace("Destroy: OK")
+    // LTrace("Destroy: OK");
 }
 
 
 void SSLAdapter::initClient()
 {
-    // LTrace("Init client")
-    assert(_socket);
+    // LTrace("Init client");
+    if (!_socket)
+        throw std::runtime_error("SSLAdapter: socket is null");
     if (!_socket->context())
         _socket->useContext(SSLManager::instance().defaultClientContext());
-    assert(!_socket->context()->isForServerUse());
+    if (_socket->context()->isForServerUse())
+        throw std::logic_error("SSLAdapter: client init called with server context");
 
     _ssl = SSL_new(_socket->context()->sslContext());
 
-    // TODO: Improve automatic SSL session handling.
-    // Maybe add a stored session to the network manager.
+    // Enable hostname verification if a hostname was set
+    if (!_hostname.empty()) {
+        // Set SNI hostname for the TLS handshake
+        SSL_set_tlsext_host_name(_ssl, _hostname.c_str());
+
+        // Enable certificate hostname verification (OpenSSL 1.1.0+)
+        SSL_set_hostflags(_ssl, X509_CHECK_FLAG_NO_PARTIAL_WILDCARDS);
+        if (!SSL_set1_host(_ssl, _hostname.c_str()))
+            LWarn("Failed to set hostname verification for: ", _hostname);
+    }
+
+    // Reuse previous SSL session if available
     if (_socket->currentSession())
         SSL_set_session(_ssl, _socket->currentSession()->sslSession());
 
@@ -71,11 +84,13 @@ void SSLAdapter::initClient()
 
 void SSLAdapter::initServer() //(SSL* ssl)
 {
-    // LTrace("Init server")
-    assert(_socket);
+    // LTrace("Init server");
+    if (!_socket)
+        throw std::runtime_error("SSLAdapter: socket is null");
     if (!_socket->context())
         _socket->useContext(SSLManager::instance().defaultServerContext());
-    assert(_socket->context()->isForServerUse());
+    if (!_socket->context()->isForServerUse())
+        throw std::logic_error("SSLAdapter: server init called with client context");
 
     _ssl = SSL_new(_socket->context()->sslContext());
     _readBIO = BIO_new(BIO_s_mem());
@@ -88,9 +103,9 @@ void SSLAdapter::initServer() //(SSL* ssl)
 
 void SSLAdapter::shutdown()
 {
-    // LTrace("Shutdown")
+    // LTrace("Shutdown");
     if (_ssl) {
-        // LTrace("Shutdown SSL")
+        // LTrace("Shutdown SSL");
 
         // Don't shut down the socket more than once.
         int shutdownState = SSL_get_shutdown(_ssl);
@@ -126,15 +141,23 @@ bool SSLAdapter::ready() const
 
 int SSLAdapter::available() const
 {
-    assert(_ssl);
+    if (!_ssl)
+        return 0;
     return SSL_pending(_ssl);
+}
+
+
+void SSLAdapter::setHostname(const std::string& hostname)
+{
+    _hostname = hostname;
 }
 
 
 void SSLAdapter::addIncomingData(const char* data, size_t len)
 {
-    // LTrace("Add incoming data: ", len)
-    assert(_readBIO);
+    // LTrace("Add incoming data: ", len);
+    if (!_readBIO)
+        throw std::runtime_error("SSLAdapter: read BIO not initialized");
     BIO_write(_readBIO, data, (int)len);
     flush();
 }
@@ -162,7 +185,7 @@ void SSLAdapter::handshake()
 
 void SSLAdapter::flush()
 {
-    LTrace("Flushing")
+    LTrace("Flushing");
 
     // Keep trying to handshake until initialized
     if (!ready())
@@ -191,9 +214,9 @@ void SSLAdapter::flushReadBIO()
     size_t npending = BIO_ctrl_pending(_readBIO);
     if (npending > 0) {
         int nread;
-        char buffer[npending];
-        while ((nread = SSL_read(_ssl, buffer, npending)) > 0) {
-            _socket->onRecv(mutableBuffer(buffer, nread));
+        std::vector<char> buffer(npending);
+        while ((nread = SSL_read(_ssl, buffer.data(), npending)) > 0) {
+            _socket->onRecv(mutableBuffer(buffer.data(), nread));
         }
     }
 }
@@ -203,10 +226,10 @@ void SSLAdapter::flushWriteBIO()
 {
     size_t npending = BIO_ctrl_pending(_writeBIO);
     if (npending > 0) {
-        char buffer[npending];
-        int nread = BIO_read(_writeBIO, buffer, npending);
+        std::vector<char> buffer(npending);
+        int nread = BIO_read(_writeBIO, buffer.data(), npending);
         if (nread > 0) {
-            _socket->write(buffer, nread);
+            _socket->write(buffer.data(), nread);
         }
     }
 }
@@ -219,20 +242,20 @@ void SSLAdapter::handleError(int rc)
     int error = SSL_get_error(_ssl, rc);
     switch (error) {
         case SSL_ERROR_ZERO_RETURN:
-            // LTrace("SSL_ERROR_ZERO_RETURN")
+            // LTrace("SSL_ERROR_ZERO_RETURN");
             return;
         case SSL_ERROR_WANT_READ:
-            // LTrace("SSL_ERROR_WANT_READ")
+            // LTrace("SSL_ERROR_WANT_READ");
             flushWriteBIO();
             break;
         case SSL_ERROR_WANT_WRITE:
-            // LTrace("SSL_ERROR_WANT_WRITE")
-            assert(0 && "not implemented");
+            // LTrace("SSL_ERROR_WANT_WRITE");
+            flushWriteBIO();
             break;
         case SSL_ERROR_WANT_CONNECT:
         case SSL_ERROR_WANT_ACCEPT:
         case SSL_ERROR_WANT_X509_LOOKUP:
-            assert(0 && "should not occur");
+            LWarn("Unexpected SSL error state: ", error);
             break;
         default:
             char buffer[256];

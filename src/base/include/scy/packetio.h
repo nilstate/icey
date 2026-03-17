@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_PACKET_IO_H
-#define SCY_PACKET_IO_H
+#pragma once
 
 
 #include "scy/base.h"
@@ -29,7 +28,8 @@ namespace scy {
 /// class that derives from `std::istream`. It's most regularly used for reading
 /// input files.
 ///
-class ThreadedStreamReader : public PacketSource, public basic::Startable
+class ThreadedStreamReader : public PacketSource
+    , public basic::Startable
 {
 public:
     ThreadedStreamReader(std::istream* is)
@@ -57,9 +57,10 @@ public:
                 self->emit(line);
             }
             if (self->stream().eof()) {
-                self->emit(PacketFlags::Final);
+                self->emit(static_cast<unsigned>(PacketFlags::Final));
             }
-        }, this);
+        },
+                      this);
     }
 
     void stop() override
@@ -67,7 +68,8 @@ public:
         _runner.cancel();
     }
 
-    template <class StreamT> StreamT& stream()
+    template <class StreamT>
+    StreamT& stream()
     {
         auto stream = dynamic_cast<StreamT*>(_istream);
         if (!stream)
@@ -123,7 +125,8 @@ public:
         emit(packet);
     }
 
-    template <class StreamT> StreamT& stream()
+    template <class StreamT>
+    StreamT& stream()
     {
         auto stream = dynamic_cast<StreamT*>(_ostream);
         if (!stream)
@@ -134,21 +137,21 @@ public:
 
     void onStreamStateChange(const PacketStreamState& state) override
     {
-        //LTrace("Stream state: ", state)
+        //LTrace("Stream state: ", state);
 
         switch (state.id()) {
-        // case PacketStreamState::None:
-        // case PacketStreamState::Active:
-        // case PacketStreamState::Resetting:
-        // case PacketStreamState::Stopping:
-        // case PacketStreamState::Stopped:
-        case PacketStreamState::Closed:
-        case PacketStreamState::Error:
-            // Close file handles
-            auto fstream = dynamic_cast<std::ofstream*>(_ostream);
-            if (fstream)
-                fstream->close();
-            break;
+            // case PacketStreamState::None:
+            // case PacketStreamState::Active:
+            // case PacketStreamState::Resetting:
+            // case PacketStreamState::Stopping:
+            // case PacketStreamState::Stopped:
+            case PacketStreamState::Closed:
+            case PacketStreamState::Error:
+                // Close file handles
+                auto fstream = dynamic_cast<std::ofstream*>(_ostream);
+                if (fstream)
+                    fstream->close();
+                break;
         }
     }
 
@@ -167,9 +170,6 @@ protected:
 
 
 } // namespace scy
-
-
-#endif // SCY_PACKET_IO_H
 
 
 /// @\}

@@ -9,14 +9,15 @@
 /// @{
 
 
-#ifndef SCY_Task_H
-#define SCY_Task_H
+#pragma once
 
 
 #include "scy/base.h"
 #include "scy/runner.h"
 #include "scy/signal.h"
-#include "scy/task.h"
+
+#include <deque>
+#include <memory>
 
 
 namespace scy {
@@ -48,19 +49,20 @@ public:
     /// Unique task ID.
     virtual uint32_t id() const;
 
+    virtual ~Task();
+
     // Inherits basic::Runnable:
     //
     // virtual void run();
     // virtual void cancel();
     // virtual bool cancelled() const;
 
-protected:
     Task(const Task& task) = delete;
     Task& operator=(Task const&) = delete;
+    Task(Task&&) = delete;
+    Task& operator=(Task&&) = delete;
 
-    /// Destroctor.
-    /// Should remain protected.
-    virtual ~Task();
+protected:
 
     /// Called by the TaskRunner to run the task.
     /// Override this method to implement task action.
@@ -92,6 +94,11 @@ class Base_API TaskRunner : public basic::Runnable
 public:
     TaskRunner(std::shared_ptr<Runner> runner = nullptr);
     virtual ~TaskRunner();
+
+    TaskRunner(const TaskRunner&) = delete;
+    TaskRunner& operator=(const TaskRunner&) = delete;
+    TaskRunner(TaskRunner&&) = delete;
+    TaskRunner& operator=(TaskRunner&&) = delete;
 
     /// Starts a task, adding it if it doesn't exist.
     virtual bool start(Task* task);
@@ -163,7 +170,7 @@ protected:
     virtual void onRun(Task* task);
 
 protected:
-    typedef std::deque<Task*> TaskList;
+    using TaskList = std::deque<std::unique_ptr<Task>>;
 
     mutable std::mutex _mutex;
     std::shared_ptr<Runner> _runner;
@@ -172,9 +179,6 @@ protected:
 
 
 } // namespace scy
-
-
-#endif // SCY_Task_H
 
 
 /// @\}

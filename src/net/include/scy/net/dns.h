@@ -9,14 +9,13 @@
 /// @{
 
 
-#ifndef SCY_Net_DNS_H
-#define SCY_Net_DNS_H
+#pragma once
 
 
-#include "scy/net/net.h"
-#include "scy/net/address.h"
-#include "scy/request.h"
 #include "scy/logger.h"
+#include "scy/net/address.h"
+#include "scy/net/net.h"
+#include "scy/request.h"
 #include "scy/util.h"
 
 
@@ -28,26 +27,23 @@ namespace dns {
 
 
 inline auto resolve(const std::string& host, int port,
-                    std::function<void(int,const net::Address&)> callback,
+                    std::function<void(int, const net::Address&)> callback,
                     uv::Loop* loop = uv::defaultLoop())
 {
     return uv::createRequest<uv::GetAddrInfoReq>([=](const uv::GetAddrInfoEvent& event) {
-        if (event.status) {
-            LWarn("Cannot resolve DNS for ", host, ": ", uv_strerror(event.status))
-            callback(event.status, net::Address{});
-        }
-        else
-            callback(event.status, net::Address{event.addr->ai_addr, static_cast<socklen_t>(event.addr->ai_addrlen)});
-    }).resolve(host, port, loop);
+               if (event.status) {
+                   LWarn("Cannot resolve DNS for ", host, ": ", uv_strerror(event.status));
+                   callback(event.status, net::Address{});
+               } else
+                   callback(event.status, net::Address{event.addr->ai_addr, static_cast<socklen_t>(event.addr->ai_addrlen)});
+           })
+        .resolve(host, port, loop);
 }
 
 
 } // namespace dns
 } // namespace net
 } // namespace scy
-
-
-#endif // SCY_Net_DNS_H
 
 
 /// @\}

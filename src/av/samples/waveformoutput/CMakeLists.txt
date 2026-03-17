@@ -1,1 +1,2 @@
-define_sourcey_module_sample(waveformoutput anionu base media)
+# Legacy sample - depends on modules that no longer exist (anionu, media)
+# scy_add_sample(waveformoutput DEPENDS base av)

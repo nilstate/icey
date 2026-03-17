@@ -9,16 +9,15 @@
 /// @{
 
 
-#ifndef SCY_Test_H
-#define SCY_Test_H
+#pragma once
 
 
 #include "scy/base.h"
 #include "scy/interface.h"
-#include <mutex>
 #include <iostream>
 #include <list>
 #include <map>
+#include <mutex>
 
 
 namespace scy {
@@ -31,9 +30,9 @@ namespace test {
 class Base_API Test;
 class Base_API TestRunner;
 
-typedef std::list<Test*> TestList;
-typedef std::list<std::string> SErrorist;
-typedef std::map<Test*, SErrorist> ErrorMap;
+using TestList = std::list<Test*>;
+using SErrorist = std::list<std::string>;
+using ErrorMap = std::map<Test*, SErrorist>;
 
 /// Initialize the test environment.
 Base_API void init();
@@ -57,9 +56,9 @@ Base_API void expectImpl(bool passed, const char* assert, const char* file, long
 
 // Shamelessly define macros to aesthetic name :)
 #ifdef NDEBUG
-#define expect(x) test::expectImpl(true, "", "", 0)
+#define expect(x) scy::test::expectImpl(true, "", "", 0)
 #else
-#define expect(x) test::expectImpl(x, #x, __FILE__, __LINE__)
+#define expect(x) scy::test::expectImpl(x, #x, __FILE__, __LINE__)
 #endif
 
 
@@ -181,9 +180,6 @@ protected:
 
 } // namespace test
 } // namespace scy
-
-
-#endif // SCY_Test_H
 
 
 /// @\}

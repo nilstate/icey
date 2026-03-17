@@ -56,7 +56,7 @@ void Message::setVersion(const std::string& version)
 
 void Message::setContentLength(uint64_t length)
 {
-    if (int(length) != UNKNOWN_CONTENT_LENGTH)
+    if (static_cast<int>(length) != UNKNOWN_CONTENT_LENGTH)
         set(CONTENT_LENGTH, util::itostr<uint64_t>(length));
     else
         erase(CONTENT_LENGTH);
@@ -69,7 +69,7 @@ uint64_t Message::getContentLength() const
     if (!contentLength.empty()) {
         return util::strtoi<uint64_t>(contentLength);
     } else
-        return uint64_t(UNKNOWN_CONTENT_LENGTH);
+        return static_cast<uint64_t>(UNKNOWN_CONTENT_LENGTH);
 }
 
 
@@ -151,23 +151,19 @@ bool Message::hasContentLength() const
 
 void Message::write(std::ostream& ostr) const
 {
-    NVCollection::ConstIterator it = begin();
-    while (it != end()) {
-        ostr << it->first << ": " << it->second << "\r\n";
-        ++it;
+    for (const auto& [name, value] : *this) {
+        ostr << name << ": " << value << "\r\n";
     }
 }
 
 
 void Message::write(std::string& str) const
 {
-    NVCollection::ConstIterator it = begin();
-    while (it != end()) {
-        str.append(it->first);
+    for (const auto& [name, value] : *this) {
+        str.append(name);
         str.append(": ");
-        str.append(it->second);
+        str.append(value);
         str.append("\r\n");
-        ++it;
     }
 }
 

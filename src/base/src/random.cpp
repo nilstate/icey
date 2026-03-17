@@ -15,14 +15,13 @@
 #include "scy/random.h"
 #include "scy/error.h"
 
-#include <assert.h>
 #include <stdexcept>
 
 
 #include <ctime>
 #if defined(WIN32)
-#include <windows.h>
 #include <wincrypt.h>
+#include <windows.h>
 #if defined(_WIN32_WCE)
 #include <wce_time.h>
 #endif
@@ -130,21 +129,19 @@ namespace scy {
 
 Random::Random(int stateSize)
 {
-    assert(BREAK_0 <= stateSize && stateSize <= BREAK_4);
+    if (stateSize < BREAK_0 || stateSize > BREAK_4)
+        throw std::invalid_argument("Random: state size out of range");
 
-    _buffer = new char[stateSize];
+    _buffer = std::make_unique<char[]>(stateSize);
 #if defined(_WIN32_WCE)
-    initState((uint32_t)wceex_time(nullptr), _buffer, stateSize);
+    initState(static_cast<uint32_t>(wceex_time(nullptr)), _buffer.get(), stateSize);
 #else
-    initState((uint32_t)std::time(nullptr), _buffer, stateSize);
+    initState(static_cast<uint32_t>(std::time(nullptr)), _buffer.get(), stateSize);
 #endif
 }
 
 
-Random::~Random()
-{
-    delete[] _buffer;
-}
+Random::~Random() = default;
 
 
 /*
@@ -218,7 +215,7 @@ void Random::seed()
     else
         len = _randDeg * sizeof _state[0];
 
-    getSeed((char*)_state, len);
+    getSeed(reinterpret_cast<char*>(_state), len);
 }
 
 
@@ -229,7 +226,7 @@ void Random::getSeed(char* seed, unsigned length)
 #ifdef SCY_WIN
     HCRYPTPROV hProvider = 0;
     CryptAcquireContext(&hProvider, 0, 0, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT);
-    CryptGenRandom(hProvider, (DWORD)length, (BYTE*)seed);
+    CryptGenRandom(hProvider, static_cast<DWORD>(length), reinterpret_cast<BYTE*>(seed));
     CryptReleaseContext(hProvider, 0);
     n = static_cast<int>(length);
 #else
@@ -271,10 +268,10 @@ void Random::getSeed(char* seed, unsigned length)
  */
 void Random::initState(uint32_t s, char* argState, std::int32_t n)
 {
-    uint32_t* intArgState = (uint32_t*)argState;
+    auto intArgState = reinterpret_cast<uint32_t*>(argState);
 
     if (n < BREAK_0) {
-        assert(0 && "not enough state");
+        throw std::logic_error("Random: not enough state");
         return;
     }
     if (n < BREAK_1) {
@@ -304,7 +301,7 @@ void Random::initState(uint32_t s, char* argState, std::int32_t n)
     if (_randType == TYPE_0)
         intArgState[0] = _randType;
     else
-        intArgState[0] = MAX_TYPES * (int)(_rptr - _state) + _randType;
+        intArgState[0] = MAX_TYPES * static_cast<int>(_rptr - _state) + _randType;
 }
 
 

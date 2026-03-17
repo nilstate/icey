@@ -49,14 +49,14 @@ set(CPACK_SOURCE_PACKAGE_FILE_NAME "libsourcey-${LibSourcey_VERSION}-${LibSource
 set(CPACK_RPM_COMPONENT_INSTALL TRUE)
 set(CPACK_RPM_PACKAGE_SUMMARY ${CPACK_PACKAGE_DESCRIPTION_SUMMARY})
 set(CPACK_RPM_PACKAGE_DESCRIPTION ${CPACK_PACKAGE_DESCRIPTION})
-set(CPACK_RPM_PACKAGE_URL "https://sourcey.com")
+set(CPACK_RPM_PACKAGE_URL "https://github.com/sourcey/libsourcey")
 set(CPACK_RPM_PACKAGE_LICENSE "LGPL-2.1+")
 
 # deb options
 set(CPACK_DEB_COMPONENT_INSTALL TRUE)
 # set(CPACK_DEBIAN_PACKAGE_SECTION "devel")
 # set(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
-set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://sourcey.com")
+set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://github.com/sourcey/libsourcey")
 
 # display names
 set(CPACK_COMPONENT_LIBS_DISPLAY_NAME    "Libraries and data")

@@ -8,14 +8,12 @@
 /// @addtogroup turn
 /// @{
 
-
-#ifndef SCY_TURN_Permission_H
-#define SCY_TURN_Permission_H
+#pragma once
 
 
-#include "scy/turn/fivetuple.h"
 #include "scy/net/address.h"
-#include "scy/util/timeout.h"
+#include "scy/timeout.h"
+#include "scy/turn/fivetuple.h"
 
 #include <string>
 #include <vector>
@@ -26,7 +24,7 @@ namespace turn {
 
 
 /// Permission Lifetime MUST be 300 seconds (= 5 minutes).
-const int PERMISSION_LIFETIME = 3 * 60 * 1000;
+static constexpr int PERMISSION_LIFETIME = 5 * 60 * 1000;
 
 
 /// TURN permission for a user session
@@ -48,14 +46,11 @@ struct Permission
 };
 
 
-typedef std::vector<Permission> PermissionList;
+using PermissionList = std::vector<Permission>;
 
 
 } // namespace turn
 } // namespace scy
-
-
-#endif // SCY_TURN_Permission_H
 
 
 /// @\}

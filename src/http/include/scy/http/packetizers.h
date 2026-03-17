@@ -8,10 +8,7 @@
 /// @addtogroup http
 /// @{
 
-
-#ifndef SCY_HTTP_Packetizers_H
-#define SCY_HTTP_Packetizers_H
-
+#pragma once
 
 #include "scy/http/connection.h"
 #include "scy/signal.h"
@@ -27,6 +24,8 @@ namespace http {
 //
 
 
+/// @ingroup http
+/// HTTP chunked transfer encoding adapter for streaming responses.
 class HTTP_API ChunkedAdapter : public IPacketizer
 {
 public:
@@ -78,10 +77,6 @@ public:
         else {
             std::ostringstream hst;
             hst << "HTTP/1.1 200 OK\r\n"
-                // Note: If Cache-Control: no-store is not used Chrome's
-                // (27.0.1453.110)
-                // memory usage grows exponentially for HTTP streaming:
-                // https://code.google.com/p/chromium/issues/detail?id=28035
                 << "Cache-Control: no-store, no-cache, max-age=0, "
                    "must-revalidate\r\n"
                 << "Cache-Control: post-check=0, pre-check=0, FALSE\r\n"
@@ -143,6 +138,8 @@ public:
 //
 
 
+/// @ingroup http
+/// HTTP multipart encoding adapter for multipart/x-mixed-replace streaming.
 class HTTP_API MultipartAdapter : public IPacketizer
 {
 public:
@@ -241,7 +238,4 @@ public:
 } // namespace scy
 
 
-#endif
-
-
-/// @\}
+/// @}

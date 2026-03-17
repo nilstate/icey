@@ -8,19 +8,17 @@
 /// @addtogroup http
 /// @{
 
+#pragma once
 
-#ifndef SCY_HTTP_Message_H
-#define SCY_HTTP_Message_H
-
-
-#include "scy/http/http.h"
 #include "scy/collection.h"
+#include "scy/http/http.h"
 
 
 namespace scy {
 namespace http {
 
 
+/// @ingroup http
 /// The base class for Request and Response.
 ///
 /// Defines the common properties of all HTTP messages.
@@ -33,7 +31,7 @@ public:
     void setVersion(const std::string& version);
 
     /// Returns the HTTP version for this message.
-    const std::string& getVersion() const;
+    [[nodiscard]] const std::string& getVersion() const;
 
     /// Sets the Content-Length header.
     ///
@@ -44,10 +42,10 @@ public:
     /// Returns the content length for this message,
     /// which may be UNKNOWN_CONTENT_LENGTH if
     /// no Content-Length header is present.
-    uint64_t getContentLength() const;
+    [[nodiscard]] uint64_t getContentLength() const;
 
     /// Returns true if a Content-Length header is present.
-    bool hasContentLength() const;
+    [[nodiscard]] bool hasContentLength() const;
 
     /// Sets the transfer encoding for this message.
     ///
@@ -60,7 +58,7 @@ public:
     /// Normally, this is the value of the Transfer-Encoding
     /// header field. If no such field is present,
     /// returns IDENTITY_TRANSFER_CODING.
-    const std::string& getTransferEncoding() const;
+    [[nodiscard]] const std::string& getTransferEncoding() const;
 
     /// If flag is true, sets the Transfer-Encoding header to
     /// chunked. Otherwise, removes the Transfer-Encoding header.
@@ -68,7 +66,7 @@ public:
 
     /// Returns true if the Transfer-Encoding header is set
     /// and its value is chunked.
-    bool isChunkedTransferEncoding() const;
+    [[nodiscard]] bool isChunkedTransferEncoding() const;
 
     /// Sets the content type for this message.
     ///
@@ -80,7 +78,7 @@ public:
     ///
     /// If no Content-Type header is present,
     /// returns UNKNOWN_CONTENT_TYPE.
-    const std::string& getContentType() const;
+    [[nodiscard]] const std::string& getContentType() const;
 
     /// Sets the value of the Connection header field.
     ///
@@ -92,7 +90,7 @@ public:
     ///   * the message has a Connection header field and its value is "Keep-Alive"
     ///   * the message is a HTTP/1.1 message and not Connection header is set
     /// Returns false otherwise.
-    bool getKeepAlive() const;
+    [[nodiscard]] bool getKeepAlive() const;
 
     /// Writes the message header to the given output stream.
     ///
@@ -143,7 +141,4 @@ protected:
 } // namespace scy
 
 
-#endif // SCY_HTTP_Message_H
-
-
-/// @\}
+/// @}

@@ -8,10 +8,7 @@
 /// @addtogroup http
 /// @{
 
-
-#ifndef SCY_Request_H
-#define SCY_Request_H
-
+#pragma once
 
 #include "scy/base.h"
 #include "scy/collection.h"
@@ -66,13 +63,13 @@ public:
     void setMethod(const std::string& method);
 
     /// Returns the method.
-    const std::string& getMethod() const;
+    [[nodiscard]] const std::string& getMethod() const;
 
     /// Sets the request URI.
     void setURI(const std::string& uri);
 
     /// Returns the request URI.
-    const std::string& getURI() const;
+    [[nodiscard]] const std::string& getURI() const;
 
     /// Sets the value of the Host header field.
     void setHost(const std::string& host);
@@ -88,7 +85,7 @@ public:
     ///
     /// Throws a NotFoundException if the request
     /// does not have a Host header field.
-    const std::string& getHost() const;
+    [[nodiscard]] const std::string& getHost() const;
 
     /// Adds a Cookie header with the names and
     /// values from cookies.
@@ -103,7 +100,7 @@ public:
 
     /// Returns true if the request contains authentication
     /// information in the form of an Authorization header.
-    bool hasCredentials() const;
+    [[nodiscard]] bool hasCredentials() const;
 
     /// Returns the authentication scheme and additional authentication
     /// information contained in this request.
@@ -118,7 +115,7 @@ public:
 
     /// Returns true if the request contains proxy authentication
     /// information in the form of an Proxy-Authorization header.
-    bool hasProxyCredentials() const;
+    [[nodiscard]] bool hasProxyCredentials() const;
 
     /// Returns the proxy authentication scheme and additional proxy
     /// authentication
@@ -166,7 +163,4 @@ private:
 } // namespace scy
 
 
-#endif
-
-
-/// @\}
+/// @}

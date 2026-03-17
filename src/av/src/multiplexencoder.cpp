@@ -13,16 +13,9 @@
 
 #ifdef HAVE_FFMPEG
 
-#include "assert.h"
-
 extern "C" {
-#include "libavutil/time.h" // av_gettime (deprecated)
+#include "libavutil/time.h"
 }
-
-#ifdef SCY_WIN
-#define snprintf _snprintf
-#endif
-
 
 using std::endl;
 
@@ -34,20 +27,17 @@ namespace av {
 MultiplexEncoder::MultiplexEncoder(const EncoderOptions& options)
     : _options(options)
     , _formatCtx(nullptr)
-    , _video(nullptr)
-    , _audio(nullptr)
     , _ioCtx(nullptr)
-    , _ioBuffer(nullptr)
     , _pts(0)
 {
-    LTrace("Create")
+    LTrace("Create");
     initializeFFmpeg();
 }
 
 
-MultiplexEncoder::~MultiplexEncoder()
+MultiplexEncoder::~MultiplexEncoder() noexcept
 {
-    LTrace("Destroy")
+    LTrace("Destroy");
     uninit();
     uninitializeFFmpeg();
 }
@@ -55,18 +45,18 @@ MultiplexEncoder::~MultiplexEncoder()
 
 static int dispatchOutputPacket(void* opaque, uint8_t* buffer, int bufferSize)
 {
-    // Callback example at:
-    // http://lists.mplayerhq.hu/pipermail/libav-client/2009-May/003034.html
     auto klass = reinterpret_cast<MultiplexEncoder*>(opaque);
     if (klass) {
-        LTrace("Dispatching packet: ", bufferSize)
-        if (!klass->isActive()) {
-            LWarn("Dropping packet: " ,  bufferSize,  ": ", klass->state())
+        LTrace("Dispatching packet: ", bufferSize);
+        if (!klass->isActive())
+            ;
+        {
+            LWarn("Dropping packet: ", bufferSize, ": ", klass->state());
             return bufferSize;
         }
         MediaPacket packet(buffer, bufferSize);
         klass->emitter.emit(packet);
-        LTrace("Dispatching packet: OK: ", bufferSize)
+        LTrace("Dispatching packet: OK: ", bufferSize);
     }
 
     return bufferSize;
@@ -75,12 +65,13 @@ static int dispatchOutputPacket(void* opaque, uint8_t* buffer, int bufferSize)
 
 void MultiplexEncoder::init()
 {
-    assert(!isActive());
+    if (isActive())
+        throw std::runtime_error("Encoder already active");
 
     STrace << "Initialize:"
-                 << "\n\tInput Format: " << _options.iformat.toString()
-                 << "\n\tOutput Format: " << _options.oformat.toString()
-                 << "\n\tDuration: " << _options.duration << endl;
+           << "\n\tInput Format: " << _options.iformat.toString()
+           << "\n\tOutput Format: " << _options.oformat.toString()
+           << "\n\tDuration: " << _options.duration << endl;
 
     try {
         _options.oformat.video.enabled = _options.iformat.video.enabled;
@@ -92,13 +83,14 @@ void MultiplexEncoder::init()
             throw std::runtime_error("The output container format must be specified.");
 
         // Allocate the output media context
-        assert(!_formatCtx);
+        if (_formatCtx)
+            throw std::runtime_error("Format context already allocated");
         _formatCtx = avformat_alloc_context();
         if (!_formatCtx)
             throw std::runtime_error("Cannot allocate format context.");
 
         if (!_options.ofile.empty())
-            snprintf(_formatCtx->filename, sizeof(_formatCtx->filename), "%s", _options.ofile.c_str());
+            _formatCtx->url = av_strdup(_options.ofile.c_str());
 
         // Set the container codec
         _formatCtx->oformat = av_guess_format(_options.oformat.id.c_str(),
@@ -117,9 +109,9 @@ void MultiplexEncoder::init()
             // Operating in streaming mode. Generated packets can be
             // obtained by connecting to the outgoing PacketSignal.
             // Setup the output IO context for our output stream.
-            int ioBufferSize(MAX_VIDEO_PACKET_SIZE); // * 10
-            _ioBuffer = new unsigned char[ioBufferSize];
-            _ioCtx = avio_alloc_context(_ioBuffer, ioBufferSize,
+            int ioBufferSize(MAX_VIDEO_PACKET_SIZE);
+            _ioBuffer = std::make_unique<uint8_t[]>(ioBufferSize);
+            _ioCtx = avio_alloc_context(_ioBuffer.get(), ioBufferSize,
                                         AVIO_FLAG_WRITE, this, nullptr,
                                         dispatchOutputPacket, nullptr);
             if (!_ioCtx)
@@ -131,7 +123,6 @@ void MultiplexEncoder::init()
             // Operating in file mode.
             // Open the output file...
             if (!(_formatCtx->oformat->flags & AVFMT_NOFILE)) {
-                // if (url_fopen(&_formatCtx->pb, _options.ofile.c_str(), URL_WRONLY) < 0) {
                 if (avio_open(&_formatCtx->pb, _options.ofile.c_str(), AVIO_FLAG_WRITE) < 0) {
                     throw std::runtime_error("AVWriter: Unable to open the output file");
                 }
@@ -139,48 +130,52 @@ void MultiplexEncoder::init()
         }
 
         // Write the stream header (if any)
-        // TODO: After Ready state
-        avformat_write_header(_formatCtx, nullptr);
+        int ret = avformat_write_header(_formatCtx, nullptr);
+        if (ret < 0)
+            throw std::runtime_error("Cannot write format header: " + averror(ret));
 
         // Send the format information to sdout
         av_dump_format(_formatCtx, 0, _options.ofile.c_str(), 1);
 
         // Get realtime presentation timestamp
-        _formatCtx->start_time_realtime = av_gettime();
+        _formatCtx->start_time_realtime = av_gettime_relative();
 
         setState(this, EncoderState::Ready);
     } catch (std::exception& exc) {
-        LError("Error: ", exc.what())
-        setState(this, EncoderState::Error); //, exc.what()
+        LError("Error: ", exc.what());
+        setState(this, EncoderState::Error);
         cleanup();
         throw exc;
     }
 
-    LTrace("Initialize: OK")
+    LTrace("Initialize: OK");
 }
 
 
 void MultiplexEncoder::uninit()
 {
-    LTrace("Uninitialize")
+    LTrace("Uninitialize");
 
     // Write the trailer and dispatch the tail packet if any
-    if (_formatCtx && _formatCtx->pb)
-        av_write_trailer(_formatCtx);
+    if (_formatCtx && _formatCtx->pb) {
+        int ret = av_write_trailer(_formatCtx);
+        if (ret < 0)
+            LWarn("Cannot write format trailer: ", averror(ret));
+    }
 
-    LTrace("Uninitializing: Wrote trailer")
+    LTrace("Uninitializing: Wrote trailer");
 
     // Free memory
     cleanup();
     setState(this, EncoderState::Stopped);
 
-    LTrace("Uninitialize: OK")
+    LTrace("Uninitialize: OK");
 }
 
 
 void MultiplexEncoder::cleanup()
 {
-    LTrace("Cleanup")
+    LTrace("Cleanup");
 
     // Delete stream encoders
     freeVideo();
@@ -189,35 +184,28 @@ void MultiplexEncoder::cleanup()
     // Close the format
     if (_formatCtx) {
 
-        // Free all remaining streams
-        for (unsigned int i = 0; i < _formatCtx->nb_streams; i++) {
-            av_freep(&_formatCtx->streams[i]->codec);
-            av_freep(&_formatCtx->streams[i]);
-        }
-
         // Close the output file (if any)
         if (!_options.ofile.empty() && _formatCtx->pb && _formatCtx->oformat &&
-            !(_formatCtx->oformat->flags & AVFMT_NOFILE))
-            avio_close(_formatCtx->pb);
-        // avio_url_fclose(_formatCtx->pb);
+            !(_formatCtx->oformat->flags & AVFMT_NOFILE)) {
+            int ret = avio_close(_formatCtx->pb);
+            if (ret < 0)
+                LWarn("Cannot close output file: ", averror(ret));
+        }
 
-        // Free the format context
-        av_free(_formatCtx);
+        // Free the format context (also frees streams)
+        avformat_free_context(_formatCtx);
         _formatCtx = nullptr;
     }
 
-    if (_ioBuffer) {
-        delete _ioBuffer;
-        _ioBuffer = nullptr;
-    }
+    _ioBuffer.reset();
 
-    LTrace("Cleanup: OK")
+    LTrace("Cleanup: OK");
 }
 
 
 void MultiplexEncoder::flush()
 {
-    LTrace("Flushing")
+    LTrace("Flushing");
 
     if (_video) {
         _video->flush();
@@ -236,13 +224,13 @@ EncoderOptions& MultiplexEncoder::options()
 
 VideoEncoder* MultiplexEncoder::video()
 {
-    return _video;
+    return _video.get();
 }
 
 
 AudioEncoder* MultiplexEncoder::audio()
 {
-    return _audio;
+    return _audio.get();
 }
 
 
@@ -254,10 +242,12 @@ AudioEncoder* MultiplexEncoder::audio()
 // Write a packet to the output stream.
 bool MultiplexEncoder::writeOutputPacket(AVPacket& packet)
 {
-    assert(packet.data);
-    assert(packet.size);
-    assert(packet.pts != AV_NOPTS_VALUE);
-    assert(isActive());
+    if (!packet.data || !packet.size)
+        return false;
+    if (packet.pts == AV_NOPTS_VALUE)
+        return false;
+    if (!isActive())
+        return false;
 
     STrace << "Writing packet:"
            << "\n\tPacket Size: " << packet.size
@@ -268,7 +258,7 @@ bool MultiplexEncoder::writeOutputPacket(AVPacket& packet)
 
     // Write the encoded frame to the output file
     if (av_interleaved_write_frame(_formatCtx, &packet) != 0) {
-        LWarn("Cannot write packet")
+        LWarn("Cannot write packet");
         return false;
     }
     return true;
@@ -277,28 +267,25 @@ bool MultiplexEncoder::writeOutputPacket(AVPacket& packet)
 
 bool MultiplexEncoder::updateStreamPts(AVStream* stream, int64_t* pts)
 {
-    LTrace("Update PTS: last=",  _pts,  ", input=", *pts)
+    std::lock_guard<std::mutex> guard(_mutex);
 
-    // https://docs.thefoundry.co.uk/products/nuke/developers/63/ndkdevguide/examples/ffmpegReader.cpp
-    // https://ffmpeg.org/doxygen/trunk/doc_2examples_2muxing_8c-example.html
-    // https://ffmpeg.org/doxygen/trunk/doc_2examples_2transcoding_8c-example.html
+    LTrace("Update PTS: last=", _pts, ", input=", *pts);
+
     int64_t next;
     if (*pts == AV_NOPTS_VALUE) {
         // Set a realtime pts value if not specified
-        int64_t delta(av_gettime() - _formatCtx->start_time_realtime);
+        int64_t delta(av_gettime_relative() - _formatCtx->start_time_realtime);
         next = delta * (double)stream->time_base.den / (double)stream->time_base.num / AV_TIME_BASE;
-    }
-    else {
+    } else {
         // Convert from input microseconds to encoder stream time base
         next = *pts * (double)stream->time_base.den / (double)stream->time_base.num / AV_TIME_BASE;
     }
 
     if (next < _pts) {
-        LWarn("Invalid pts (", next ,") <= last (", _pts, ")")
+        LWarn("Invalid pts (", next, ") <= last (", _pts, ")");
         return false;
-    }
-    else if (next == _pts) {
-        LWarn("Dropping frame at duplicate PTS: ", next)
+    } else if (next == _pts) {
+        LWarn("Dropping frame at duplicate PTS: ", next);
         return false;
     }
 
@@ -314,10 +301,14 @@ bool MultiplexEncoder::updateStreamPts(AVStream* stream, int64_t* pts)
 
 void MultiplexEncoder::createVideo()
 {
-    assert(!_video);
-    assert(_options.oformat.video.enabled);
-    assert(_formatCtx->oformat->video_codec != AV_CODEC_ID_NONE);
-    _video = new VideoEncoder(_formatCtx);
+    std::lock_guard<std::mutex> guard(_mutex);
+    if (_video)
+        throw std::runtime_error("Video encoder already created");
+    if (!_options.oformat.video.enabled)
+        throw std::runtime_error("Video output is not enabled");
+    if (_formatCtx->oformat->video_codec == AV_CODEC_ID_NONE)
+        throw std::runtime_error("No video codec available for this format");
+    _video = std::make_unique<VideoEncoder>(_formatCtx);
     _video->emitter.attach(packetSlot(this, &MultiplexEncoder::onVideoEncoded));
     _video->iparams = _options.iformat.video;
     _video->oparams = _options.oformat.video;
@@ -328,19 +319,13 @@ void MultiplexEncoder::createVideo()
 
 void MultiplexEncoder::freeVideo()
 {
-    if (_video) {
-        delete _video;
-        _video = nullptr;
-    }
+    _video.reset();
 }
 
 
 bool MultiplexEncoder::encodeVideo(AVFrame* frame)
 {
-    LTrace("Encoding video: ", frame->pts)
-
-    assert(isActive());
-    assert(_video && _video->frame);
+    LTrace("Encoding video: ", frame->pts);
 
     if (!isActive())
         throw std::runtime_error("The encoder is not initialized");
@@ -362,12 +347,7 @@ bool MultiplexEncoder::encodeVideo(AVFrame* frame)
 bool MultiplexEncoder::encodeVideo(uint8_t* data[4], int linesize[4],
                                    int width, int height, int64_t time)
 {
-    LTrace("Encoding video: ", time)
-
-    assert(isActive());
-    assert(_video && _video->frame);
-    assert(data[0]);
-    assert(linesize[0]);
+    LTrace("Encoding video: ", time);
 
     if (!isActive())
         throw std::runtime_error("The encoder is not initialized");
@@ -389,12 +369,7 @@ bool MultiplexEncoder::encodeVideo(uint8_t* data[4], int linesize[4],
 bool MultiplexEncoder::encodeVideo(uint8_t* buffer, int bufferSize,
                                    int width, int height, int64_t time)
 {
-    LTrace("Encoding video: ", time)
-
-    assert(isActive());
-    assert(_video && _video->frame);
-    assert(buffer);
-    assert(bufferSize);
+    LTrace("Encoding video: ", time);
 
     if (!isActive())
         throw std::runtime_error("The encoder is not initialized");
@@ -416,7 +391,7 @@ bool MultiplexEncoder::encodeVideo(uint8_t* buffer, int bufferSize,
 void MultiplexEncoder::onVideoEncoded(av::VideoPacket& packet)
 {
     std::lock_guard<std::mutex> guard(_mutex);
-    writeOutputPacket(*reinterpret_cast<AVPacket*>(packet.source));
+    writeOutputPacket(*packet.avpacket);
 }
 
 
@@ -427,13 +402,17 @@ void MultiplexEncoder::onVideoEncoded(av::VideoPacket& packet)
 
 void MultiplexEncoder::createAudio()
 {
-    LTrace("Create Audio")
+    std::lock_guard<std::mutex> guard(_mutex);
+    LTrace("Create Audio");
 
-    assert(!_audio);
-    assert(_options.oformat.audio.enabled);
-    assert(_formatCtx->oformat->audio_codec != AV_CODEC_ID_NONE);
+    if (_audio)
+        throw std::runtime_error("Audio encoder already created");
+    if (!_options.oformat.audio.enabled)
+        throw std::runtime_error("Audio output is not enabled");
+    if (_formatCtx->oformat->audio_codec == AV_CODEC_ID_NONE)
+        throw std::runtime_error("No audio codec available for this format");
 
-    _audio = new AudioEncoder(_formatCtx);
+    _audio = std::make_unique<AudioEncoder>(_formatCtx);
     _audio->emitter.attach(packetSlot(this, &MultiplexEncoder::onAudioEncoded));
     _audio->iparams = _options.iformat.audio;
     _audio->oparams = _options.oformat.audio;
@@ -444,28 +423,13 @@ void MultiplexEncoder::createAudio()
 
 void MultiplexEncoder::freeAudio()
 {
-    if (_audio) {
-        delete _audio;
-        _audio = nullptr;
-    }
-
-    // if (_audioFifo) {
-    //     av_fifo_free(_audioFifo);
-    //     _audioFifo = nullptr;
-    // }
-
-    // if (_audioBuffer) {
-    //     av_free(_audioBuffer);
-    //     _audioBuffer = nullptr;
-    // }
+    _audio.reset();
 }
 
 
 bool MultiplexEncoder::encodeAudio(uint8_t* buffer, int numSamples, int64_t time)
 {
-    LTrace("Encoding audio packet: samples=",  numSamples,  ", time=", time)
-    assert(buffer);
-    assert(numSamples);
+    LTrace("Encoding audio packet: samples=", numSamples, ", time=", time);
 
     if (!buffer || !numSamples)
         throw std::runtime_error("Invalid audio input");
@@ -484,9 +448,7 @@ bool MultiplexEncoder::encodeAudio(uint8_t* buffer, int numSamples, int64_t time
 
 bool MultiplexEncoder::encodeAudio(uint8_t* buffer[4], int numSamples, int64_t time)
 {
-    LTrace("Encoding audio packet: samples=",  numSamples,  ", time=", time)
-    assert(buffer[0]);
-    assert(numSamples);
+    LTrace("Encoding audio packet: samples=", numSamples, ", time=", time);
 
     if (!buffer[0] || !numSamples)
         throw std::runtime_error("Invalid audio input");
@@ -506,7 +468,7 @@ bool MultiplexEncoder::encodeAudio(uint8_t* buffer[4], int numSamples, int64_t t
 void MultiplexEncoder::onAudioEncoded(av::AudioPacket& packet)
 {
     std::lock_guard<std::mutex> guard(_mutex);
-    writeOutputPacket(*reinterpret_cast<AVPacket*>(packet.source));
+    writeOutputPacket(*packet.avpacket);
 }
 
 

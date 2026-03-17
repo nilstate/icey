@@ -16,11 +16,11 @@
 #include <memory>
 
 #include <algorithm>
-#include <assert.h>
 #include <cstdarg>
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <string_view>
 
 
 using std::endl;
@@ -33,7 +33,7 @@ namespace util {
 std::string string_vprintf(const char* fmt, va_list args)
 {
     size_t size = 500;
-    char* buf = (char*)malloc(size);
+    char* buf = static_cast<char*>(malloc(size));
     // Grow the buffer size until the output is no longer truncated
     while (true) {
         va_list args_copy;
@@ -53,7 +53,7 @@ std::string string_vprintf(const char* fmt, va_list args)
             return ret;
         }
         size *= 2;
-        buf = (char*)realloc(buf, size);
+        buf = static_cast<char*>(realloc(buf, size));
     }
 }
 
@@ -68,10 +68,12 @@ std::string format(const char* fmt, ...)
 }
 
 
-bool isNumber(const std::string& str)
+bool isNumber(std::string_view str)
 {
+    if (str.empty())
+        return false;
     for (size_t i = 0; i < str.length(); i++) {
-        if (!::isdigit(str[i]))
+        if (!::isdigit(static_cast<unsigned char>(str[i])))
             return false;
     }
     return true;
@@ -137,18 +139,18 @@ uint32_t randomNumber()
 void split(const std::string& s, const std::string& delim,
            std::vector<std::string>& elems, int limit)
 {
-    bool final = false;
     std::string::size_type prev = 0, pos = 0;
-    while ((pos = s.find(delim, pos)) != std::string::npos) {
-        final = limit && static_cast<int>(elems.size() + 1) == limit;
-        elems.push_back(
-            s.substr(prev, final ? (s.size() - prev) : (pos - prev)));
-        prev = ++pos;
-        if (final)
+    while ((pos = s.find(delim, prev)) != std::string::npos) {
+        if (limit > 0 && static_cast<int>(elems.size()) == limit - 1) {
+            // Last allowed element: take everything from prev to end
             break;
-    }
-    if (prev != std::string::npos)
+        }
         elems.push_back(s.substr(prev, pos - prev));
+        prev = pos + delim.size();
+    }
+    // Remaining portion (or entire string if no delimiter found)
+    if (prev <= s.size())
+        elems.push_back(s.substr(prev));
 }
 
 
@@ -181,43 +183,17 @@ void split(const std::string& s, char delim, std::vector<std::string>& elems,
 std::vector<std::string> split(const std::string& s, char delim, int limit)
 {
     std::vector<std::string> elems;
-    split(s, (char)delim, elems, limit);
+    split(s, delim, elems, limit);
     return elems;
 }
 
 
-bool endsWith(const std::string& str, const std::string& suffix)
+bool endsWith(std::string_view str, std::string_view suffix)
 {
-    return std::equal(suffix.rbegin(), suffix.rend(), str.rbegin());
+    if (suffix.size() > str.size())
+        return false;
+    return str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
 }
-
-
-#if 0
-double intToDouble(std::int64_t v)
-{
-    if (v+v > 0xFFEULL<<52)
-        return 0;
-    return ldexp((double)((v&((1LL<<52)-1)) + (1LL<<52)) * (v>>63|1), (int)(v>>52&0x7FF)-1075);
-}
-
-
-float intToFloat(std::int32_t v)
-{
-    if (v+v > 0xFF000000U)
-        return 0;
-    return ldexp((float)((v&0x7FFFFF) + (1<<23)) * (v>>31|1), (int)(v>>23&0xFF)-150);
-}
-
-
-std::int64_t doubleToInt(double d)
-{
-    int e;
-    if     ( !d) return 0;
-    else if(d-d) return 0x7FF0000000000000LL + ((std::int64_t)(d<0)<<63) + (d!=d);
-    d = frexp(d, &e);
-    return (std::int64_t)(d<0)<<63 | (e+1022LL)<<52 | (std::int64_t)((fabs(d)-0.5)*(1LL<<53));
-}
-#endif
 
 
 std::string dumpbin(const char* data, size_t len)
@@ -329,9 +305,10 @@ bool matchNodes(const std::vector<std::string>& params,
 std::streamsize copyStream(std::istream& istr, std::ostream& ostr,
                            size_t bufferSize)
 {
-    assert(bufferSize > 0);
+    if (bufferSize <= 0)
+        throw std::invalid_argument("Buffer size must be positive");
 
-    std::unique_ptr<char[]> buffer(new char[bufferSize]);
+    auto buffer = std::make_unique<char[]>(bufferSize);
     std::streamsize len = 0;
     istr.read(buffer.get(), bufferSize);
     std::streamsize n = istr.gcount();
@@ -365,9 +342,10 @@ std::streamsize copyStreamUnbuffered(std::istream& istr, std::ostream& ostr)
 std::streamsize copyToString(std::istream& istr, std::string& str,
                              size_t bufferSize)
 {
-    assert(bufferSize > 0);
+    if (bufferSize <= 0)
+        throw std::invalid_argument("Buffer size must be positive");
 
-    std::unique_ptr<char[]> buffer(new char[bufferSize]);
+    auto buffer = std::make_unique<char[]>(bufferSize);
     std::streamsize len = 0;
     istr.read(buffer.get(), bufferSize);
     std::streamsize n = istr.gcount();

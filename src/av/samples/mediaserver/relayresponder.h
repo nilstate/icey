@@ -1,7 +1,7 @@
 #include "mediaserver.h"
 
+#include "scy/streammanager.h"
 #include "scy/turn/client/tcpclient.h"
-#include "scy/util/streammanager.h"
 
 
 namespace scy {
@@ -52,24 +52,25 @@ public:
 
     void initiate()
     {
-        LDebug("Initiating")
+        LDebug("Initiating");
         try {
             // Initiate the TRUN client allocation
             client.addPermission(peerIP);
             client.addPermission("127.0.0.1");   // for proxy
             client.addPermission("192.168.1.1"); // for proxy
             client.initiate();
-        }
-        catch (std::exception& exc) {
-            LError("Error: ", exc.what())
+        } catch (std::exception& exc) {
+            LError("Error: ", exc.what());
             assert(0);
         }
     }
 
     void dispose()
     {
-        LDebug("Terminating")
-        if (deleted) {
+        LDebug("Terminating");
+        if (deleted)
+            ;
+        {
             // assert(0);
             return;
         }
@@ -80,14 +81,14 @@ public:
         streams.closeAll();
 
         // Destroy the client when the allocation is lost
-        scy::deleteLater<RelayedStreamingAllocation>(this);
+        delete this;
         deleted = true;
     }
 
 protected:
     void onClientStateChange(turn::Client&, turn::ClientState& state, const turn::ClientState&)
     {
-        LDebug("Relay state changed: ", state.toString())
+        LDebug("Relay state changed: ", state.toString());
 
         switch (state.id()) {
             case turn::ClientState::None:
@@ -101,22 +102,22 @@ protected:
                 break;
             case turn::ClientState::Failed:
                 // assert(0 && "Allocation failed");
-                LWarn("Relay connection lost")
+                LWarn("Relay connection lost");
                 // AllocationFailed.emit(this->client);
                 // dispose();
                 break;
-            // case turn::ClientState::Terminated:
-            //    break;
+                // case turn::ClientState::Terminated:
+                //    break;
         }
     }
 
     void onRelayConnectionCreated(turn::TCPClient&, const net::TCPSocket::Ptr& socket,
                                   const net::Address& peerAddr) // uint32_t connectionID,
     {
-        LDebug("Connection created: ", peerAddr)
+        LDebug("Connection created: ", peerAddr);
         // Just allow one stream for now
         if (this->streams.size() == 1) {
-            LDebug("Rejecting connection")
+            LDebug("Rejecting connection");
             return;
         }
 
@@ -145,14 +146,14 @@ protected:
 
             this->streams.addStream(stream);
         } catch (std::exception& exc) {
-            LError("Stream error: ", exc.what())
+            LError("Stream error: ", exc.what());
             assert(0);
         }
     }
 
     void onRelayConnectionClosed(turn::TCPClient&, const net::TCPSocket::Ptr& socket, const net::Address& peerAddress)
     {
-        LDebug("Connection closed: ", peerAddress)
+        LDebug("Connection closed: ", peerAddress);
 
         try {
             // Destroy the media stream for the closed connection (if any).
@@ -168,7 +169,7 @@ protected:
                 // stream->destroy();
             }
         } catch (std::exception& exc) {
-            LError("Stream error: ", exc.what())
+            LError("Stream error: ", exc.what());
             assert(0);
         }
 
@@ -179,14 +180,14 @@ protected:
     void onRelayDataReceived(turn::Client&, const char* data, std::size_t size, const net::Address& peerAddr)
     {
         SDebug << "Received data from peer: " << std::string(data, size)
-                     << ": " << peerAddr << std::endl;
+               << ": " << peerAddr << std::endl;
         // If the remove peer is a web browser then the HTTP request sent
         // to the relayed address will be the first thing we see here...
     }
 
     void onAllocationPermissionsCreated(turn::Client&, const turn::PermissionList& permissions)
     {
-        LDebug("Permissions created")
+        LDebug("Permissions created");
     }
 };
 
@@ -240,9 +241,11 @@ public:
         allocation->AllocationCreated -= slot(this, &RelayedStreamingResponder::onAllocationCreated);
         std::string address(allocation->client.relayedAddress().toString());
 
-        LDebug("Allocation Created: ", address)
+        LDebug("Allocation Created: ", address);
         // Send the relay address response to the initiator
-        connection().response().set("Access-Control-Allow-Origin", "*");
+        connection()
+            .response()
+            .set("Access-Control-Allow-Origin", "*");
         connection().send(address.c_str(), address.length());
         connection().close();
     }
@@ -251,7 +254,7 @@ public:
     // {
     //     allocation->AllocationFailed -= sdelegate(this, &RelayedStreamingResponder::onAllocationFailed);
     //
-    //     LDebug("Allocation Failed")
+    //     LDebug("Allocation Failed");
     //
     //     // Send the relay address response to the initiator
     //     //connection().socket()->send(address.c_str(), address.length());

@@ -8,9 +8,7 @@
 /// @addtogroup turn
 /// @{
 
-
-#ifndef SCY_TURN_Types_H
-#define SCY_TURN_Types_H
+#pragma once
 
 
 #include "scy/net/address.h"
@@ -23,11 +21,31 @@ namespace scy {
 namespace turn {
 
 
-const int CLIENT_SOCK_BUF_SIZE = 65536;
-const int SERVER_SOCK_BUF_SIZE = CLIENT_SOCK_BUF_SIZE * 32;
+static constexpr int CLIENT_SOCK_BUF_SIZE = 65536;
+static constexpr int SERVER_SOCK_BUF_SIZE = CLIENT_SOCK_BUF_SIZE * 32;
+
+/// TURN protocol numbers
+static constexpr uint8_t kProtocolUDP = 17;
+static constexpr uint8_t kProtocolTCP = 6;
+
+/// TURN/STUN error codes used in this module
+static constexpr int kErrorTryAlternate = 300;
+static constexpr int kErrorBadRequest = 400;
+static constexpr int kErrorNotAuthorized = 401;
+static constexpr int kErrorForbidden = 403;
+static constexpr int kErrorUnknownAttribute = 420;
+static constexpr int kErrorUnsupportedTransport = 442;
+static constexpr int kErrorAllocationMismatch = 437;
+static constexpr int kErrorStaleNonce = 438;
+static constexpr int kErrorWrongCredentials = 441;
+static constexpr int kErrorConnectionAlreadyExists = 446;
+static constexpr int kErrorConnectionTimeoutOrFailure = 447;
+static constexpr int kErrorAllocationQuotaReached = 486;
+static constexpr int kErrorInsufficientCapacity = 508;
+static constexpr int kErrorOperationNotSupported = 600;
 
 
-enum AuthenticationState
+enum class AuthenticationState
 {
     Authenticating = 1,
     Authorized = 2,
@@ -56,14 +74,11 @@ public:
 };
 
 
-typedef std::vector<std::string> IPList;
+using IPList = std::vector<std::string>;
 
 
 } // namespace turn
 } // namespace scy
-
-
-#endif // SCY_TURN_Types_H
 
 
 /// @\}

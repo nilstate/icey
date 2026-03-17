@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_AV_VideoContext_H
-#define SCY_AV_VideoContext_H
+#pragma once
 
 
 #include "scy/base.h"
@@ -27,7 +26,6 @@
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
-// #include <libavutil/fifo.h>
 #include <libavutil/avutil.h>
 #include <libavutil/imgutils.h>
 #include <libavutil/opt.h>
@@ -44,7 +42,12 @@ namespace av {
 struct VideoContext
 {
     VideoContext();
-    virtual ~VideoContext();
+    virtual ~VideoContext() noexcept;
+
+    VideoContext(const VideoContext&) = delete;
+    VideoContext& operator=(const VideoContext&) = delete;
+    VideoContext(VideoContext&&) = delete;
+    VideoContext& operator=(VideoContext&&) = delete;
 
     /// Create the `AVCodecContext` using default values
     virtual void create();
@@ -67,19 +70,17 @@ struct VideoContext
 
     PacketSignal emitter;
 
-    VideoCodec iparams;   ///< input parameters
-    VideoCodec oparams;   ///< output parameters
-    AVStream* stream;     ///< encoder or decoder stream
-    AVCodecContext* ctx;  ///< encoder or decoder context
-    AVCodec* codec;       ///< encoder or decoder codec
-    AVFrame* frame;       ///< encoder or decoder frame
-    VideoConverter* conv; ///< video conversion context
-    // FPSCounter fps;          ///< encoder or decoder fps rate
-    // double pts;              ///< pts in decimal seconds
-    int64_t time;         ///< stream time in codec time base
-    int64_t pts;          ///< last packet pts value
-    double seconds;       ///< video time in seconds
-    std::string error;    ///< error message
+    VideoCodec iparams;                   ///< input parameters
+    VideoCodec oparams;                   ///< output parameters
+    AVStream* stream;                     ///< encoder or decoder stream
+    AVCodecContext* ctx;                  ///< encoder or decoder context
+    const AVCodec* codec;                 ///< encoder or decoder codec
+    AVFrame* frame;                       ///< encoder or decoder frame
+    std::unique_ptr<VideoConverter> conv; ///< video conversion context
+    int64_t time;                         ///< stream time in codec time base
+    int64_t pts;                          ///< last packet pts value
+    double seconds;                       ///< video time in seconds
+    std::string error;                    ///< error message
 };
 
 
@@ -91,8 +92,7 @@ struct VideoContext
 AVFrame* createVideoFrame(AVPixelFormat pixelFmt, int width, int height);
 AVFrame* cloneVideoFrame(AVFrame* source);
 void initVideoCodecFromContext(const AVStream* stream, const AVCodecContext* ctx, VideoCodec& params);
-AVPixelFormat selectPixelFormat(AVCodec* codec, VideoCodec& params);
-
+AVPixelFormat selectPixelFormat(const AVCodec* codec, VideoCodec& params);
 
 
 } // namespace av
@@ -100,7 +100,6 @@ AVPixelFormat selectPixelFormat(AVCodec* codec, VideoCodec& params);
 
 
 #endif
-#endif // SCY_AV_VideoContext_H
 
 
 /// @\}

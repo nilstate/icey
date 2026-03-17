@@ -13,10 +13,10 @@
 #include "scy/http/client.h"
 #include "scy/net/sslsocket.h"
 #include "scy/net/tcpsocket.h"
+
+#include <ctime>
+#include <sstream>
 #include <stdexcept>
-
-
-using std::endl;
 
 
 namespace scy {
@@ -63,11 +63,13 @@ SSLClient::SSLClient(const Client::Options& options, uv::Loop* loop)
 
 
 Client::Client(const net::Socket::Ptr& socket, const Client::Options& options)
-    : _pingTimer(socket->loop())
-    , _pingTimeoutTimer(socket->loop())
+    : _pingTimeoutTimer(socket->loop())
     , _reconnectTimer(socket->loop())
     , _options(options)
     , _ws(socket)
+    , _pingTimeout(0)
+    , _pingInterval(0)
+    , _reconnecting(false)
     , _wasOnline(false)
 {
     _ws.addReceiver(this);
@@ -77,14 +79,13 @@ Client::Client(const net::Socket::Ptr& socket, const Client::Options& options)
 Client::~Client()
 {
     _ws.removeReceiver(this);
-
     close();
 }
 
 
 void Client::connect()
 {
-    LTrace("Socket.IO Connecting")
+    LTrace("Socket.IO Connecting");
 
     if (_options.host.empty() || !_options.port)
         throw std::runtime_error("The Socket.IO server address is not set.");
@@ -93,16 +94,14 @@ void Client::connect()
 
     setState(this, ClientState::Connecting);
 
-    // Build the request
-    // TODO: Allow custom URI params
+    // Build the request URI
+    // Engine.IO v4: EIO=4, transport=websocket
     std::ostringstream url;
     url << "/socket.io/?EIO=4&transport=websocket";
     if (!_sessionID.empty()) {
-        url << "&sid=";
-        url << _sessionID;
+        url << "&sid=" << _sessionID;
     }
-    url << "&t=";
-    url << std::time(NULL);
+    url << "&t=" << std::time(nullptr);
 
     _ws.request().setURI(url.str());
     _ws.request().setHost(_options.host, _options.port);
@@ -112,13 +111,13 @@ void Client::connect()
 
 void Client::close()
 {
-    LTrace("Closing")
+    LTrace("Closing");
     if (_sessionID.empty())
         return;
 
     reset();
     onClose();
-    LTrace("Closing: OK")
+    LTrace("Closing: OK");
 }
 
 
@@ -169,15 +168,27 @@ Transaction* Client::createTransaction(const sockio::Packet& request, long timeo
 }
 
 
-int Client::sendPing()
+void Client::sendConnect()
 {
-    // Start the ping timeout
-    _pingTimeoutTimer.stop();
-    _pingTimeoutTimer.setTimeout(_pingTimeout);
-    _pingTimeoutTimer.start();
+    // Send Socket.IO CONNECT packet for default namespace
+    // Wire format: "40" (frame=4 Message, type=0 Connect)
+    LTrace("Sending Socket.IO CONNECT");
+    _ws.send("40", 2);
+}
 
-    LTrace("Sending ping")
-    return _ws.send("2", 1);
+
+void Client::onServerPing()
+{
+    // Engine.IO v4: server sends ping ("2"), client responds with pong ("3")
+    LTrace("Received server ping, sending pong");
+    _ws.send("3", 1);
+
+    // Reset the ping timeout timer - we know the connection is alive
+    _pingTimeoutTimer.stop();
+    if (_pingInterval > 0 && _pingTimeout > 0) {
+        _pingTimeoutTimer.setTimeout(_pingInterval + _pingTimeout);
+        _pingTimeoutTimer.start();
+    }
 }
 
 
@@ -185,9 +196,6 @@ void Client::reset()
 {
     // Note: Only reset session related variables here.
     // Do not reset host and port variables.
-
-    _pingTimer.Timeout -= slot(this, &Client::onPingTimer);
-    _pingTimer.stop();
 
     _pingTimeoutTimer.Timeout -= slot(this, &Client::onPingTimeoutTimer);
     _pingTimeoutTimer.stop();
@@ -201,13 +209,12 @@ void Client::reset()
     _sessionID = "";
     _pingInterval = 0;
     _pingTimeout = 0;
-    // _wasOnline = false; // Reset via onClose()
 }
 
 
 void Client::setError(const scy::Error& error)
 {
-    LError("Set error: ", error.message)
+    LError("Set error: ", error.message);
 
     // Set the wasOnline flag if previously online before error
     if (stateEquals(ClientState::Online))
@@ -219,8 +226,6 @@ void Client::setError(const scy::Error& error)
     // Start the reconnection timer if required
     if (_options.reconnection) {
         startReconnectTimer();
-
-        // Note: Do not call close() here, since we will be trying to reconnect...
     } else {
         close();
     }
@@ -229,7 +234,7 @@ void Client::setError(const scy::Error& error)
 
 void Client::onConnect()
 {
-    LTrace("On connect")
+    LTrace("On connect");
 
     setState(this, ClientState::Connected);
 
@@ -240,7 +245,9 @@ void Client::onConnect()
 
 void Client::startReconnectTimer()
 {
-    assert(_options.reconnection);
+    if (!_options.reconnection)
+        return;
+
     _reconnectTimer.Timeout += slot(this, &Client::onReconnectTimer);
     _reconnectTimer.setTimeout(_options.reconnectDelay);
     _reconnectTimer.start();
@@ -262,27 +269,24 @@ void Client::stopReconnectTimer()
 
 void Client::onOnline()
 {
-    LTrace("On online")
+    LTrace("On online");
 
-    assert(stateEquals(ClientState::Connected));
     setState(this, ClientState::Online);
 
-    // Setup and start the ping timer
-    assert(_pingInterval);
-    _pingTimer.Timeout += slot(this, &Client::onPingTimer);
-    _pingTimer.setTimeout(_pingInterval);
-    _pingTimer.setInterval(_pingInterval);
-    _pingTimer.start();
-
-    // Setup the ping timeout timer
-    assert(_pingTimeout);
-    _pingTimeoutTimer.Timeout += slot(this, &Client::onPingTimeoutTimer);
+    // Start the ping timeout timer.
+    // Engine.IO v4: server pings us. If we don't receive a ping within
+    // pingInterval + pingTimeout, the connection is dead.
+    if (_pingInterval > 0 && _pingTimeout > 0) {
+        _pingTimeoutTimer.Timeout += slot(this, &Client::onPingTimeoutTimer);
+        _pingTimeoutTimer.setTimeout(_pingInterval + _pingTimeout);
+        _pingTimeoutTimer.start();
+    }
 }
 
 
 void Client::onClose()
 {
-    LTrace("On close")
+    LTrace("On close");
 
     stopReconnectTimer();
 
@@ -295,35 +299,38 @@ void Client::onClose()
 //
 // Socket Callbacks
 
-void Client::onSocketConnect(net::Socket& socket)
+bool Client::onSocketConnect(net::Socket& socket)
 {
     onConnect();
+    return false;
 }
 
 
-void Client::onSocketError(net::Socket& socket, const scy::Error& error)
+bool Client::onSocketError(net::Socket& socket, const scy::Error& error)
 {
-    LTrace("On socket error: ", error.message)
-
+    LTrace("On socket error: ", error.message);
     setError(error);
-}
-//
-
-void Client::onSocketClose(net::Socket& socket)
-{
-    LTrace("On socket close")
-
-    // Nothing to do since the error is set via onSocketError
-
-    // If no socket error was set we have an EOF
-    // if (!error().any())
-    //    setError("Disconnected from the server");
+    return false;
 }
 
 
-void Client::onSocketRecv(net::Socket& socket, const MutableBuffer& buffer, const net::Address& peerAddress)
+bool Client::onSocketClose(net::Socket& socket)
 {
-    LTrace("On socket recv: ", buffer.size())
+    LTrace("On socket close");
+
+    // If no error was set, treat as unexpected disconnect
+    if (!_error.any()) {
+        scy::Error err;
+        err.message = "Disconnected from server";
+        setError(err);
+    }
+    return false;
+}
+
+
+bool Client::onSocketRecv(net::Socket& socket, const MutableBuffer& buffer, const net::Address& peerAddress)
+{
+    LTrace("On socket recv: ", buffer.size());
 
     sockio::Packet pkt;
     char* buf = bufferCast<char*>(buffer);
@@ -335,140 +342,144 @@ void Client::onSocketRecv(net::Socket& socket, const MutableBuffer& buffer, cons
         len -= nread;
     }
     if (len == buffer.size())
-        LWarn("Failed to parse incoming Socket.IO packet.")
-
-#if 0
-    sockio::Packet pkt;
-    if (pkt.read(constBuffer(packet.data(), packet.size())))
-        onPacket(pkt);
-    else
-        LWarn("Failed to parse incoming Socket.IO packet.")
-#endif
+        LWarn("Failed to parse incoming Socket.IO packet.");
+    return false;
 }
 
 
 void Client::onHandshake(sockio::Packet& packet)
 {
-    LTrace("On handshake: ", state())
-    // assert(stateEquals(ClientState::Connected));
-    assert(packet.frame() == sockio::Packet::Frame::Open);
+    LTrace("On handshake: ", state());
 
     json::value json = packet.json();
-    if (json.find("sid") != json.end())
-        _sessionID = json["sid"].get<std::string>();
-    if (json.find("pingInterval") != json.end())
-        _pingInterval = json["pingInterval"].get<int>();
-    if (json.find("pingTimeout") != json.end())
-        _pingTimeout = json["pingTimeout"].get<int>();
+    if (json.is_object()) {
+        if (json.contains("sid"))
+            _sessionID = json["sid"].get<std::string>();
+        if (json.contains("pingInterval"))
+            _pingInterval = json["pingInterval"].get<int>();
+        if (json.contains("pingTimeout"))
+            _pingTimeout = json["pingTimeout"].get<int>();
+    }
 
-    SDebug << "On handshake: "
-                 << "sid=" << _sessionID << ", "
-                 << "pingInterval=" << _pingInterval << ", "
-                 << "pingTimeout=" << _pingTimeout << endl;
+    LDebug("On handshake: "
+           "sid=",
+           _sessionID, ", "
+                       "pingInterval=",
+           _pingInterval, ", "
+                          "pingTimeout=",
+           _pingTimeout);
 
+    // After receiving the Engine.IO Open packet, send Socket.IO CONNECT
+    sendConnect();
 }
 
 
 void Client::onMessage(sockio::Packet& packet)
 {
-    LTrace("On message: ", packet.toString())
+    LTrace("On message: ", packet.toString());
 
     switch (packet.type()) {
-        case Packet::Packet::Type::Connect:
-            // Transition to online state
+        case Type::Connect:
+            // Server confirmed namespace connection - we're online
             onOnline();
             break;
-        case Packet::Packet::Type::Disconnect:
-            // Do nothing, attempt to reconnect after ping timeout
+
+        case Type::Disconnect:
+            // Server disconnected us from the namespace
+            {
+                scy::Error err;
+                err.message = "Server disconnected";
+                setError(err);
+            }
             break;
-        case Packet::Packet::Type::Event:
-            // assert(stateEquals(ClientState::Online));
+
+        case Type::Event:
             emit(packet);
             break;
-        case Packet::Packet::Type::Ack:
-            // assert(stateEquals(ClientState::Online));
+
+        case Type::Ack:
             emit(packet);
             break;
-        case Packet::Packet::Type::Error:
-            // assert(stateEquals(ClientState::Online));
-            emit(packet);
+
+        case Type::ConnectError: {
+            std::string msg = "Connection rejected";
+            json::value json = packet.json();
+            if (json.is_object() && json.contains("message"))
+                msg = json["message"].get<std::string>();
+            scy::Error err;
+            err.message = msg;
+            setError(err);
+        } break;
+
+        case Type::BinaryEvent:
+        case Type::BinaryAck:
+            LWarn("Binary packets not yet implemented");
             break;
-        case Packet::Packet::Type::BinaryEvent:
-            assert(0 && "not implemented");
-            break;
-        case Packet::Packet::Type::BinaryAck:
-            assert(0 && "not implemented");
-            break;
+
         default:
-            assert(0 && "unknown type");
+            LWarn("Unknown Socket.IO packet type: ", static_cast<int>(packet.type()));
+            break;
     }
 }
 
 
 void Client::onPacket(sockio::Packet& packet)
 {
-    LTrace("On packet: ", packet.toString())
+    LTrace("On packet: ", packet.frameString(), " ", packet.typeString());
 
-    // Handle packets by frame type
+    // Handle packets by Engine.IO frame type
     switch (packet.frame()) {
-        case Packet::Frame::Open:
+        case Frame::Open:
             onHandshake(packet);
             break;
-        case Packet::Frame::Close:
-            reset(); // close everything down
+
+        case Frame::Close:
+            reset();
+            onClose();
             break;
-        case Packet::Frame::Pong:
+
+        case Frame::Ping:
+            // Engine.IO v4: server sends ping, client responds with pong
+            onServerPing();
             break;
-        case Packet::Frame::Message:
+
+        case Frame::Pong:
+            // Shouldn't happen in EIO v4 (client doesn't send pings)
+            // but handle gracefully
+            break;
+
+        case Frame::Message:
             onMessage(packet);
             break;
-        case Packet::Frame::Ping:
-        case Packet::Frame::Upgrade:
-        case Packet::Frame::Noop:
+
+        case Frame::Upgrade:
+        case Frame::Noop:
             break;
+
         default:
-            assert(0 && "unknown type");
+            LWarn("Unknown Engine.IO frame type: ", static_cast<int>(packet.frame()));
+            break;
     }
-}
-
-
-void Client::onPong()
-{
-    LTrace("On pong")
-
-    // Pong received, stop the ping timeout
-    _pingTimeoutTimer.stop();
-}
-
-
-void Client::onPingTimer()
-{
-    LTrace("On heartbeat")
-
-    // Do nothing unless online
-    if (!isOnline())
-        return;
-
-    sendPing();
-    //_pingTimer.again();
 }
 
 
 void Client::onPingTimeoutTimer()
 {
-    LTrace("On ping timeout")
+    LWarn("Ping timeout - no ping from server within expected interval");
 
-    // assert(0 && "implement me");
+    scy::Error err;
+    err.message = "Ping timeout";
+    setError(err);
 }
 
 
 void Client::onReconnectTimer()
 {
-    LTrace("On reconnect timer")
+    LTrace("On reconnect timer");
     try {
         connect();
     } catch (std::exception& exc) {
-        LError("Reconnection attempt failed: ", exc.what())
+        LError("Reconnection attempt failed: ", exc.what());
     }
     _reconnectTimer.again();
 }
@@ -488,7 +499,6 @@ std::string Client::sessionID() const
 
 Error Client::error() const
 {
-    // return _ws.socket->error();
     return _error;
 }
 
@@ -513,7 +523,6 @@ bool Client::reconnecting() const
 
 bool Client::wasOnline() const
 {
-
     return _wasOnline;
 }
 
@@ -522,4 +531,4 @@ bool Client::wasOnline() const
 } // namespace scy
 
 
-/// @\}
+/// @}

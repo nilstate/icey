@@ -2,13 +2,8 @@
 #include "scy/net/sslmanager.h"
 #include "scy/socketio/client.h"
 #include "scy/socketio/transaction.h"
+#include "scy/test.h"
 #include "scy/util.h"
-
-
-using namespace std;
-using namespace scy;
-using namespace scy::net;
-using namespace scy::util;
 
 
 namespace scy {
@@ -30,39 +25,10 @@ class Tests
 public:
     Tests()
     {
-        // #if USE_SSL
-        //         // Init SSL Context
-        //         SSLContext::Ptr ptrContext = new
-        //         SSLContext(SSLContext::CLIENT_USE, "", "", "",
-        //             SSLContext::VERIFY_NONE, 9, true,
-        //             "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH");
-        //         SSLManager::instance().initializeClient(ptrContext);
-        //
-        //         sockio::SSLClient client(app.loop);
-        // #else
-        //         sockio::TCPClient client(app.loop);
-        // #endif
-        //
-        //         client.StateChange += sdelegate(this,
-        //         &Tests::onClientStateChange);
-        //         client.connect(SERVER_HOST, SERVER_PORT);
-        //
-        //         app.run();
-        //
-        //         // TODO: Benchmarks
-        //         // TODO: Transaction tests
-        //
-        // #if USE_SSL
-        //     SSLManager::instance().shutdown();
-        // #endif
-        //         app.finalize();
-
         testClient();
     }
 
-
     ~Tests() { app.finalize(); }
-
 
     void testClient()
     {
@@ -79,34 +45,31 @@ public:
         client.StateChange += slot(this, &Tests::onClientStateChange);
         client.connect();
 
-        // app.run();
         app.waitForShutdown(
             [](void* opaque) {
-                reinterpret_cast<sockio::Client*>(opaque)->close();
+                static_cast<sockio::Client*>(opaque)->close();
             },
             &client);
-
-        // TODO: Benchmarks
-        // TODO: Transaction tests
     }
 
     void onClientStateChange(void* sender, sockio::ClientState& state,
                              const sockio::ClientState& oldState)
     {
-        auto client = reinterpret_cast<sockio::Client*>(sender);
-        LDebug("Connection state changed: ", state.toString())
+        auto client = static_cast<sockio::Client*>(sender);
+        LDebug("Connection state changed: ", state.toString());
 
         switch (state.id()) {
             case sockio::ClientState::Connecting:
                 break;
             case sockio::ClientState::Connected:
-                LDebug("Connected")
+                LDebug("Connected");
                 break;
             case sockio::ClientState::Online:
-                // TODO: Send message
-                client->send("ping", "hello", true);
+                // Send a test event with ack
+                client->send("ping", "\"hello\"", true);
                 break;
             case sockio::ClientState::Error:
+                LError("Error: ", client->error().message);
                 break;
         }
     }
@@ -119,16 +82,113 @@ public:
 
 int main(int argc, char** argv)
 {
-    Logger::instance().add(new ConsoleChannel("debug", Level::Trace));
+    using namespace scy;
+    Logger::instance().add(std::make_unique<ConsoleChannel>("debug", Level::Trace));
+    test::init();
+
 #if USE_SSL
-    SSLManager::initNoVerifyClient();
+    scy::net::SSLManager::initNoVerifyClient();
 #endif
-    {
-        scy::sockio::Tests run;
-    }
+
+    // =========================================================================
+    // Packet Type Strings
+    //
+    scy::test::describe("packet type strings", []() {
+        scy::sockio::Packet pkt;
+        expect(std::string(pkt.frameString()) != "");
+        expect(std::string(pkt.typeString()) != "");
+    });
+
+    // =========================================================================
+    // Packet Event Construction
+    //
+    scy::test::describe("packet event", []() {
+        scy::sockio::Packet pkt(scy::sockio::Packet::Frame::Message,
+                                scy::sockio::Packet::Type::Event,
+                                scy::sockio::Packet::nextID(), "/",
+                                "chat message", "\"hello world\"", true);
+
+        expect(pkt.frame() == scy::sockio::Packet::Frame::Message);
+        expect(pkt.type() == scy::sockio::Packet::Type::Event);
+        expect(pkt.event() == "chat message");
+        expect(pkt.message() == "\"hello world\"");
+        expect(pkt.valid());
+        expect(pkt.size() > 0);
+    });
+
+    // =========================================================================
+    // Packet Write and Read Round-trip
+    //
+    scy::test::describe("packet write and read", []() {
+        scy::sockio::Packet original(scy::sockio::Packet::Frame::Message,
+                                     scy::sockio::Packet::Type::Event,
+                                     -1, "/", "test", "[1,2,3]", false);
+
+        scy::Buffer buf;
+        original.write(buf);
+        expect(buf.size() > 0);
+
+        scy::sockio::Packet parsed;
+        parsed.read(scy::constBuffer(buf));
+
+        expect(parsed.frame() == scy::sockio::Packet::Frame::Message);
+        expect(parsed.type() == scy::sockio::Packet::Type::Event);
+    });
+
+    // =========================================================================
+    // Packet Namespace
+    //
+    scy::test::describe("packet namespace", []() {
+        scy::sockio::Packet pkt;
+        pkt.setNamespace("/chat");
+        expect(pkt.nsp() == "/chat");
+    });
+
+    // =========================================================================
+    // Packet ID
+    //
+    scy::test::describe("packet id", []() {
+        scy::sockio::Packet pkt;
+        pkt.setID(42);
+        expect(pkt.id() == 42);
+    });
+
+    // =========================================================================
+    // Packet Next ID
+    //
+    scy::test::describe("packet next id", []() {
+        int id1 = scy::sockio::Packet::nextID();
+        int id2 = scy::sockio::Packet::nextID();
+        expect(id2 == id1 + 1);
+    });
+
+    // =========================================================================
+    // Packet Connect Type
+    //
+    scy::test::describe("packet connect type", []() {
+        scy::sockio::Packet pkt(scy::sockio::Packet::Frame::Message,
+                                scy::sockio::Packet::Type::Connect);
+        expect(pkt.frame() == scy::sockio::Packet::Frame::Message);
+        expect(pkt.type() == scy::sockio::Packet::Type::Connect);
+    });
+
+    // =========================================================================
+    // Packet toString
+    //
+    scy::test::describe("packet toString", []() {
+        scy::sockio::Packet pkt(scy::sockio::Packet::Frame::Message,
+                                scy::sockio::Packet::Type::Event,
+                                -1, "/", "hello", "\"data\"", false);
+        std::string str = pkt.toString();
+        expect(!str.empty());
+    });
+
+
+    scy::test::runAll();
+
 #if USE_SSL
-    SSLManager::instance().shutdown();
+    scy::net::SSLManager::instance().shutdown();
 #endif
-    Logger::destroy();
-    return 0;
+    scy::Logger::destroy();
+    return scy::test::finalize();
 }

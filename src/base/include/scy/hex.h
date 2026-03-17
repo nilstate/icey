@@ -9,14 +9,13 @@
 /// @{
 
 
-#ifndef SCY_Hex_H
-#define SCY_Hex_H
+#pragma once
 
 
 #include "scy/error.h"
 #include "scy/interface.h"
 #include "scy/logger.h"
-#include <assert.h>
+#include <cassert>
 #include <cstring>
 #include <iostream>
 
@@ -61,7 +60,7 @@ struct Encoder : public basic::Encoder
         return nwrite;
     }
 
-    virtual ssize_t finalize(char* /* outbuf */) override  { return 0; }
+    virtual ssize_t finalize(char* /* outbuf */) override { return 0; }
 
     void setUppercase(bool flag) { _uppercase = flag ? 16 : 0; }
 
@@ -169,9 +168,6 @@ struct Decoder : public basic::Decoder
 
 } // namespace hex
 } // namespace scy
-
-
-#endif // SCY_Hex_H
 
 
 /// @\}

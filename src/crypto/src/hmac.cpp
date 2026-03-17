@@ -11,7 +11,7 @@
 
 #include "scy/crypto/hmac.h"
 #include "scy/util.h"
-#include <assert.h>
+#include <stdexcept>
 
 #ifdef SCY_WIN
 // hack for name collision of OCSP_RESPONSE and wincrypto.h in openssl release
@@ -37,7 +37,8 @@ std::string computeHMAC(const std::string& input, const std::string& key)
     HMAC(EVP_sha1(), key.c_str(), key.length(),
          reinterpret_cast<const unsigned char*>(input.c_str()), input.length(),
          reinterpret_cast<unsigned char*>(&buf), &len);
-    assert(len == 20);
+    if (len != 20)
+        throw std::runtime_error("HMAC: unexpected digest length");
     return std::string(buf, len);
 }
 

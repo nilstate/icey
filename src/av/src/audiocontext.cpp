@@ -30,7 +30,6 @@ AudioContext::AudioContext()
     : stream(nullptr)
     , codec(nullptr)
     , frame(nullptr)
-    , resampler(nullptr)
     , outputFrameSize(0)
     , time(0)
     , pts(AV_NOPTS_VALUE)
@@ -40,7 +39,7 @@ AudioContext::AudioContext()
 }
 
 
-AudioContext::~AudioContext()
+AudioContext::~AudioContext() noexcept
 {
     close();
     uninitializeFFmpeg();
@@ -53,13 +52,8 @@ void AudioContext::open()
            << "\n\tInput: " << iparams.toString()
            << "\n\tOutput: " << oparams.toString() << endl;
 
-    assert(ctx);
-    assert(avcodec_is_open(ctx) && "avcodec_open2 must be called");
-    assert(codec);
-
-    // // Open the audio codec
-    // if (avcodec_open2(ctx, codec, nullptr) < 0)
-    //      throw std::runtime_error("Cannot open the audio codec.");
+    if (!ctx || !avcodec_is_open(ctx) || !codec)
+        throw std::runtime_error("Audio codec not open");
 
     // Create the resampler if resampling is required
     if (iparams.channels != oparams.channels ||
@@ -77,81 +71,26 @@ void AudioContext::close()
         frame = nullptr;
     }
     if (ctx) {
-        avcodec_close(ctx);
+        avcodec_free_context(&ctx);
         ctx = nullptr;
     }
     if (stream) {
         // The stream pointer is managed by the AVFormatContext
         stream = nullptr;
     }
-    if (resampler) {
-        delete resampler;
-        resampler = nullptr;
-    }
+    resampler.reset();
 
     time = 0;
     pts = AV_NOPTS_VALUE;
     seconds = 0;
-    // error = "";
 }
-
-
-// double AudioContext::ptsSeconds()
-// {
-//     double val = 0.0;
-//
-//     // Local PTS value represented as decimal seconds
-//     // if (opacket->dts != AV_NOPTS_VALUE) {
-//     //     *pts = (double)opacket->pts;
-//     //     *pts *= av_q2d(stream->time_base);
-//     // }
-//
-//     // Local PTS value represented as decimal seconds
-//     if (stream && pts > 0 && pts != AV_NOPTS_VALUE) {
-//         val = (double)pts;
-//         val *= av_q2d(stream->time_base);
-//     }
-//
-//     return val;
-// }
 
 
 bool AudioContext::recreateResampler()
 {
-    // if (resampler)
-    //     throw std::runtime_error("Conversion context already exists.");
-
-    // NOTE: the input output `channels`, `sampleRate`, and `sampleFmt`
-    // parameters work
-    // slightly differently for encoders and decoders.
-    // For encoders `iparams` is the picture format from the application and
-    // `oparams` is the picture format passed into the encoder.
-    // For decoders `iparams` is the picture format from the decoder and
-    // `oparams` is the picture format passed into the application.
-
-    // // Check if resampler is required
-    // if (iparams.channels == oparams.channels &&
-    //     iparams.sampleRate == oparams.sampleRate &&
-    //     iparams.sampleFmt == oparams.sampleFmt) {
-    //     return false;
-    // }
-    //
-    // // Check if the resampler context needs to be recreated
-    // if (resampler && (
-    //     resampler->iparams.channels == iparams.channels &&
-    //     resampler->iparams.sampleRate == iparams.sampleRate &&
-    //     resampler->iparams.sampleFmt == iparams.sampleFmt) && (
-    //     resampler->oparams.channels == oparams.channels &&
-    //     resampler->oparams.sampleRate == oparams.sampleRate &&
-    //     resampler->oparams.sampleFmt == oparams.sampleFmt)) {
-    //     return false;
-    // }
-
     // Recreate the resampler context
-    LDebug("Recreating audio resampler context")
-    if (resampler)
-        delete resampler;
-    resampler = new AudioResampler();
+    LDebug("Recreating audio resampler context");
+    resampler = std::make_unique<AudioResampler>();
     resampler->iparams = iparams;
     resampler->oparams = oparams;
     resampler->open();
@@ -169,13 +108,17 @@ void initAudioCodecFromContext(const AVCodecContext* ctx, AudioCodec& params)
     params.enabled = true;
     params.encoder = avcodec_get_name(ctx->codec_id);
     params.sampleFmt = av_get_sample_fmt_name(ctx->sample_fmt);
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 28, 100)
+    params.channels = ctx->ch_layout.nb_channels;
+#else
     params.channels = ctx->channels;
+#endif
     params.sampleRate = ctx->sample_rate;
     params.bitRate = ctx->bit_rate;
 }
 
 
-bool isSampleFormatSupported(AVCodec* codec, enum AVSampleFormat sampleFormat)
+bool isSampleFormatSupported(const AVCodec* codec, enum AVSampleFormat sampleFormat)
 {
     const enum AVSampleFormat* p = codec->sample_fmts;
     while (*p != AV_SAMPLE_FMT_NONE) {
@@ -200,7 +143,7 @@ bool formatIsPlanar(const std::string& pixfmt)
 }
 
 
-AVSampleFormat selectSampleFormat(AVCodec* codec, av::AudioCodec& params)
+AVSampleFormat selectSampleFormat(const AVCodec* codec, av::AudioCodec& params)
 {
     enum AVSampleFormat compatible = AV_SAMPLE_FMT_NONE;
     enum AVSampleFormat requested = av_get_sample_fmt(params.sampleFmt.c_str());

@@ -1,0 +1,6 @@
+[submodule "src/pacm"]
+	path = src/pacm
+	url = https://github.com/sourcey/pacm.git
+[submodule "src/pluga"]
+	path = src/pluga
+	url = https://github.com/sourcey/pluga.git

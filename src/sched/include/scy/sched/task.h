@@ -9,14 +9,15 @@
 /// @{
 
 
-#ifndef SCY_Sched_Task_H
-#define SCY_Sched_Task_H
+#pragma once
 
 
+#include "scy/json/iserializable.h"
 #include "scy/sched/sched.h"
 #include "scy/sched/trigger.h"
-#include "scy/json/iserializable.h"
 #include "scy/task.h"
+
+#include <memory>
 
 
 namespace scy {
@@ -28,7 +29,8 @@ class Sched_API Scheduler;
 
 /// This class extends the Task class to implement
 /// scheduling capabilities.
-class Sched_API Task : public scy::Task, public json::ISerializable
+class Sched_API Task : public scy::Task
+    , public json::ISerializable
 {
 public:
     Task(const std::string& type = "", const std::string& name = "");
@@ -42,14 +44,16 @@ public:
     /// Deserializes the task from JSON.
     virtual void deserialize(json::value& root) override;
 
-    template <typename T> T* createTrigger()
+    template <typename T>
+    T* createTrigger()
     {
-        T* p = new T();
-        setTrigger(p);
-        return p;
+        auto p = std::make_unique<T>();
+        auto* raw = p.get();
+        setTrigger(std::move(p));
+        return raw;
     }
-    
-    void setTrigger(sched::Trigger* trigger);
+
+    void setTrigger(std::unique_ptr<sched::Trigger> trigger);
 
     /// Returns a reference to the associated
     /// sched::Trigger or throws an exception.
@@ -69,10 +73,9 @@ public:
     std::string name() const;
     void setName(const std::string& name);
 
-protected:
-    // Task& operator=(Task const&) {}
     virtual ~Task();
 
+protected:
     virtual bool beforeRun();
     virtual void run() = 0;
     virtual bool afterRun();
@@ -89,19 +92,16 @@ protected:
     std::string _type;
     std::string _name;
     sched::Scheduler* _scheduler;
-    sched::Trigger* _trigger;
+    std::unique_ptr<sched::Trigger> _trigger;
     mutable std::mutex _mutex;
 };
 
 
-typedef std::vector<sched::Task*> TaskList;
+using TaskList = std::vector<sched::Task*>;
 
 
 } // namespace sched
 } // namespace scy
-
-
-#endif // SCY_Sched_Task_H
 
 
 /// @\}

@@ -9,12 +9,11 @@
 /// @{
 
 
-#ifndef SCY_AV_FPSCounter_H
-#define SCY_AV_FPSCounter_H
+#pragma once
 
 
-#include "scy/packetstream.h"
 #include "scy/av/packet.h"
+#include "scy/packetstream.h"
 
 #include <time.h>
 
@@ -85,9 +84,9 @@ struct FPSCounter
     double total;
     double fps;
 
-    FPSCounter() 
-    { 
-        reset(); 
+    FPSCounter()
+    {
+        reset();
     }
 
     void tick()
@@ -106,14 +105,14 @@ struct FPSCounter
         frames = 0;
     }
 
-    bool started() 
-    { 
-        return start != 0; 
+    bool started()
+    {
+        return start != 0;
     }
 
-    void startFrame() 
-    { 
-        start = clock(); 
+    void startFrame()
+    {
+        start = clock();
     }
 
     double endFrame()
@@ -126,7 +125,7 @@ struct FPSCounter
     }
 };
 
-} // legacy
+} // namespace legacy
 
 
 /// This class limits the throughput rate of IPackets
@@ -157,7 +156,7 @@ public:
         if (_counter.started())
             _counter.endFrame();
         if (static_cast<int>(_counter.fps) > _max) {
-            STrace << "Dropping packet: " 
+            STrace << "Dropping packet: "
                    << _counter.fps << " > " << _max << std::endl;
             return;
         }
@@ -181,9 +180,6 @@ protected:
 
 } // namespace av
 } // namespace scy
-
-
-#endif // SCY_AV_FPSCounter_H
 
 
 /// @\}

@@ -10,7 +10,6 @@
 
 
 #include "scy/timer.h"
-#include "assert.h"
 #include "scy/logger.h"
 #include "scy/platform.h"
 
@@ -27,7 +26,7 @@ Timer::Timer(uv::Loop* loop)
     , _interval(0)
     , _count(0)
 {
-    // LTrace("Create")
+    // LTrace("Create");
     init();
 }
 
@@ -38,7 +37,7 @@ Timer::Timer(std::int64_t timeout, uv::Loop* loop, std::function<void()> func)
     , _interval(0)
     , _count(0)
 {
-    // LTrace("Create")
+    // LTrace("Create");
     init();
     if (func)
         start(func);
@@ -51,7 +50,7 @@ Timer::Timer(std::int64_t timeout, std::int64_t interval, uv::Loop* loop, std::f
     , _interval(interval)
     , _count(0)
 {
-    // LTrace("Create")
+    // LTrace("Create");
     init();
     if (func)
         start(func);
@@ -60,20 +59,20 @@ Timer::Timer(std::int64_t timeout, std::int64_t interval, uv::Loop* loop, std::f
 
 Timer::~Timer()
 {
-    // LTrace("Destroy")
+    // LTrace("Destroy");
 }
 
 
 void Timer::init()
 {
-    // LTrace("Init")
+    // LTrace("Init");
 
     // _count = 0;
     // _timeout = 0;
     // _interval = 0;
 
-    assert(!_handle.initialized());
-    assert(_handle.get());
+    if (!_handle.get())
+        throw std::logic_error("Timer handle not allocated");
     _handle.get()->data = this;
     _handle.init(&uv_timer_init);
     _handle.throwLastError("Cannot initialize timer");
@@ -96,28 +95,28 @@ void Timer::start(std::function<void()> func)
 
 void Timer::start()
 {
-    // LTrace("Starting: ",,  timeout, ": ", interval)
-    assert(!active());
-    assert(_handle.get());
-    assert(_timeout > 0 || _interval > 0);
+    // LTrace("Starting: ",,  timeout, ": ", interval);
+    if (active()) return;
+    if (!_handle.get())
+        throw std::logic_error("Timer handle not allocated");
+    if (_timeout <= 0 && _interval <= 0)
+        throw std::logic_error("Timer: no timeout or interval set");
 
     // _timeout = timeout;
     // _interval = interval;
     _count = 0;
 
-    _handle.invoke(&uv_timer_start, _handle.get(),
-        [](uv_timer_t* req) {
+    _handle.invoke(&uv_timer_start, _handle.get(), [](uv_timer_t* req) {
             auto self = reinterpret_cast<Timer*>(req->data);
             self->_count++;
-            self->Timeout.emit();
-        }, _timeout, _interval);
+            self->Timeout.emit(); }, _timeout, _interval);
     _handle.throwLastError("Cannot start timer");
 }
 
 
 void Timer::stop()
 {
-    // LTrace("Stopping")
+    // LTrace("Stopping");
 
     if (!active())
         return; // do nothing
@@ -125,7 +124,6 @@ void Timer::stop()
     _count = 0;
     _handle.invoke(&uv_timer_stop, _handle.get());
     _handle.throwLastError("Cannot stop timer");
-    assert(!active());
 }
 
 
@@ -140,9 +138,10 @@ void Timer::restart()
 
 void Timer::again()
 {
-    // LTrace("Again")
+    // LTrace("Again");
 
-    assert(_handle.get());
+    if (!_handle.get())
+        throw std::logic_error("Timer handle not allocated");
     _handle.invoke(&uv_timer_again, _handle.get());
     _handle.throwLastError("Cannot run timer again");
 
@@ -153,14 +152,15 @@ void Timer::again()
 
 void Timer::setTimeout(std::int64_t timeout)
 {
-    assert(!active());
+    if (active()) return;
     _timeout = timeout;
 }
 
 
 void Timer::setInterval(std::int64_t interval)
 {
-    assert(_handle.get());
+    if (!_handle.get())
+        throw std::logic_error("Timer handle not allocated");
     _interval = interval;
     uv_timer_set_repeat(_handle.get(), interval);
 }
@@ -180,7 +180,8 @@ std::int64_t Timer::timeout() const
 
 std::int64_t Timer::interval() const
 {
-    assert(_handle.get());
+    if (!_handle.get())
+        throw std::logic_error("Timer handle not allocated");
     return std::min<std::int64_t>(
         uv_timer_get_repeat(_handle.get()), 0);
 }

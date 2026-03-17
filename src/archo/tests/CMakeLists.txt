@@ -1,1 +1,1 @@
-define_libsourcey_test(archotests base archo)
+scy_add_test(archotests DEPENDS base archo)

@@ -12,9 +12,6 @@
 #include "scy/turn/fivetuple.h"
 
 
-using namespace std;
-
-
 namespace scy {
 namespace turn {
 
@@ -44,9 +41,7 @@ FiveTuple::FiveTuple(const FiveTuple& r)
 
 bool FiveTuple::operator==(const FiveTuple& r) const
 {
-    return _remote == r._remote
-        && _local == r._local
-        && _transport == r._transport;
+    return _remote == r._remote && _local == r._local && _transport == r._transport;
 }
 
 
@@ -64,9 +59,9 @@ bool FiveTuple::operator<(const FiveTuple& r) const
 }
 
 
-string FiveTuple::toString() const
+std::string FiveTuple::toString() const
 {
-    ostringstream ost;
+    std::ostringstream ost;
     ost << "FiveTuple[" << _remote.toString() << ":" << _local.toString() << ":" << _transport << "]";
     return ost.str();
 }

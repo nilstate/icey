@@ -20,7 +20,7 @@ namespace scy {
 
 State::State(State::ID id) //, const std::string& message
     : _id(id)
-    // , _message(message)
+// , _message(message)
 {
 }
 

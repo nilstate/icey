@@ -1,1 +1,1 @@
-define_sourcey_module_sample(echoserver base net)
+scy_add_sample(echoserver DEPENDS base net)

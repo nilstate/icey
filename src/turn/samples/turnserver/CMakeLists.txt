@@ -1,1 +1,1 @@
-define_sourcey_module_sample(turnserver stun turn net base crypto)
+scy_add_sample(turnserver DEPENDS stun turn net base crypto)

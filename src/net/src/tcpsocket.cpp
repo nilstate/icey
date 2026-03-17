@@ -23,14 +23,14 @@ namespace net {
 TCPSocket::TCPSocket(uv::Loop* loop)
     : Stream(loop)
 {
-    // LTrace("Create")
+    // LTrace("Create");
     init();
 }
 
 
-TCPSocket::~TCPSocket()
+TCPSocket::~TCPSocket() noexcept
 {
-    // LTrace("Destroy")
+    // LTrace("Destroy");
     close();
 }
 
@@ -40,7 +40,7 @@ void TCPSocket::init()
     if (initialized())
         return;
 
-    // LTrace("Init")
+    // LTrace("Init");
     if (!get())
         Stream::reset();
     Stream::init(&uv_tcp_init_ex, _af);
@@ -58,7 +58,7 @@ void TCPSocket::reset()
 
 void TCPSocket::connect(const net::Address& peerAddress)
 {
-    // LTrace("Connecting to", peerAddress)
+    // LTrace("Connecting to", peerAddress);
     init();
 
     uv::createRequest<uv::ConnectReq>([ptr = context()](const uv::BasicEvent& event) {
@@ -99,7 +99,7 @@ void TCPSocket::connect(const net::Address& peerAddress)
     //             // handle->onConnect(req, status);
     //         }
     //         else {
-    //             LDebug("Dropping request for closed TCP socket")
+    //             LDebug("Dropping request for closed TCP socket");
     //         }
     //         delete wrap;
     //     });
@@ -108,18 +108,15 @@ void TCPSocket::connect(const net::Address& peerAddress)
 
 void TCPSocket::connect(const std::string& host, uint16_t port)
 {
-    // LTrace("Connecting to", peerAddress)
+    // LTrace("Connecting to", peerAddress);
 
     if (Address::validateIP(host)) {
         connect(Address(host, port));
-    }
-    else if (host == "localhost") {
-        // NOTE: Forcefully translate localhost to 127.0.0.1 since
-        // the DNS service returns 0.0.0.0 on some systems resulting
-        // in connection failure.
+    } else if (host == "localhost") {
+        // Resolve localhost directly to loopback: some systems' getaddrinfo
+        // returns 0.0.0.0 for "localhost" which causes connection failure.
         connect(Address("127.0.0.1", port));
-    }
-    else {
+    } else {
         init();
 
         net::dns::resolve(host, port, [ptr = context()](int err, const net::Address& addr) {
@@ -129,15 +126,14 @@ void TCPSocket::connect(const std::string& host, uint16_t port)
                     handle->setUVError(err, "DNS failed to resolve");
                 else
                     handle->connect(addr);
-            }
-        }, loop());
+            } }, loop());
     }
 }
 
 
 void TCPSocket::bind(const net::Address& address, unsigned flags)
 {
-    // LTrace("Binding on", address)
+    // LTrace("Binding on", address);
 
     // Reset the handle if the address family has changed
     if (_af != address.af()) {
@@ -154,53 +150,55 @@ void TCPSocket::bind(const net::Address& address, unsigned flags)
 
 void TCPSocket::listen(int backlog)
 {
-    // LTrace("Listening")
+    // LTrace("Listening");
     init();
 
     invoke(&uv_listen, get<uv_stream_t>(), backlog,
-        [](uv_stream_t* handle, int status) {
-            auto self = reinterpret_cast<TCPSocket*>(handle->data);
-            if (status == 0) {
-                self->acceptConnection();
-            }
-            else {
-                LError("Accept connection failed:", uv_strerror(status));
-            }
-        }); // "TCP listen failed"
+           [](uv_stream_t* handle, int status) {
+               auto self = reinterpret_cast<TCPSocket*>(handle->data);
+               if (status == 0) {
+                   self->acceptConnection();
+               } else {
+                   LError("Accept connection failed:", uv_strerror(status));
+               }
+           }); // "TCP listen failed"
 }
 
 
 bool TCPSocket::shutdown()
 {
-    // LTrace("Shutdown")
+    // LTrace("Shutdown");
     return Stream::shutdown();
 }
 
 
 void TCPSocket::close()
 {
-    // LTrace("Close")
+    // LTrace("Close");
     Stream::close();
 }
 
 
 bool TCPSocket::setNoDelay(bool enable)
 {
-    assert(initialized());
+    if (!initialized())
+        return false;
     return uv_tcp_nodelay(get(), enable ? 1 : 0) == 0;
 }
 
 
 bool TCPSocket::setKeepAlive(bool enable, int delay)
 {
-    assert(initialized());
+    if (!initialized())
+        return false;
     return uv_tcp_keepalive(get(), enable ? 1 : 0, delay) == 0;
 }
 
 
 bool TCPSocket::setSimultaneousAccepts(bool enable)
 {
-    assert(initialized());
+    if (!initialized())
+        return false;
 #ifdef SCY_WIN
     return uv_tcp_simultaneous_accepts(get(), enable ? 1 : 0) == 0;
 #else
@@ -211,10 +209,11 @@ bool TCPSocket::setSimultaneousAccepts(bool enable)
 
 bool TCPSocket::setReusePort()
 {
-    assert(initialized());
+    if (!initialized())
+        return false;
 #if SCY_HAS_KERNEL_SOCKET_LOAD_BALANCING
     if (_af == AF_UNSPEC) {
-        assert(0 && "bind() must be called first");
+        LError("bind() must be called before setReusePort()");
         return false;
     }
 
@@ -222,7 +221,7 @@ bool TCPSocket::setReusePort()
     uv_fileno(get<uv_handle_t>(), &fd);
     int on = 1;
     if (setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, &on, sizeof(int)) < 0) {
-        LError("setsockopt(SO_REUSEPORT) failed")
+        LError("setsockopt(SO_REUSEPORT) failed");
         return false;
     }
 
@@ -241,20 +240,18 @@ ssize_t TCPSocket::send(const char* data, size_t len, int flags)
 
 ssize_t TCPSocket::send(const char* data, size_t len, const net::Address& /* peerAddress */, int /* flags */)
 {
-    // LTrace("Send:", len, ":", std::string(data, len))
-    assert(Thread::currentID() == tid());
-    assert(initialized());
-
-    // NOTE: libuv handles this for us
-    // assert(len <= net::MAX_TCP_PACKET_SIZE);
-
-    if (!Stream::write(data, len)) {
-        LWarn("TCP send error")
+    // LTrace("Send:", len, ":", std::string(data, len));
+    if (!initialized()) {
+        LWarn("TCP send on uninitialized socket");
         return -1;
     }
 
-    // TODO: Return native error code
-    return len;
+    if (!Stream::write(data, len)) {
+        LWarn("TCP send error");
+        return -1;
+    }
+
+    return static_cast<ssize_t>(len);
 }
 
 
@@ -284,7 +281,8 @@ net::Address TCPSocket::peerAddress() const
 
 void TCPSocket::setError(const scy::Error& err)
 {
-    assert(!error().any());
+    if (error().any())
+        return; // don't overwrite existing error
     Stream::setError(err);
 }
 
@@ -319,12 +317,6 @@ void TCPSocket::setMode(SocketMode mode)
 }
 
 
-void* TCPSocket::self()
-{
-    return this;
-}
-
-
 const SocketMode TCPSocket::mode() const
 {
     return _mode;
@@ -336,7 +328,7 @@ const SocketMode TCPSocket::mode() const
 
 void TCPSocket::onRead(const char* data, size_t len)
 {
-    // LTrace("On read:", len)
+    // LTrace("On read:", len);
 
     // Note: The const_cast here is relatively safe since the given
     // data pointer is the underlying _buffer.data() pointer, but
@@ -347,14 +339,14 @@ void TCPSocket::onRead(const char* data, size_t len)
 
 void TCPSocket::onRecv(const MutableBuffer& buf)
 {
-    // LTrace("On recv:", buf.size())
+    // LTrace("On recv:", buf.size());
     onSocketRecv(*this, buf, peerAddress());
 }
 
 
 void TCPSocket::onConnect()
 {
-    // LTrace("On connect")
+    // LTrace("On connect");
 
     if (readStart()) // will set error on failure
         onSocketConnect(*this);
@@ -366,16 +358,15 @@ void TCPSocket::acceptConnection()
     // Create the shared socket pointer so the if the socket handle is not
     // incremented the accepted socket will be destroyed.
     auto socket = net::makeSocket<net::TCPSocket>(loop());
-    // LTrace("Accept connection:", socket->get())
+    // LTrace("Accept connection:", socket->get());
 
     // invoke(&uv_tcp_init, loop(), socket->get()); // "Cannot initialize TCP socket"
 
     if (uv_accept(get<uv_stream_t>(), socket->get<uv_stream_t>()) == 0) {
         socket->readStart();
         AcceptConnection.emit(socket);
-    }
-    else {
-        assert(0 && "uv_accept should not fail");
+    } else {
+        LError("uv_accept failed");
     }
 }
 
@@ -383,7 +374,7 @@ void TCPSocket::acceptConnection()
 // void TCPSocket::onAcceptConnection(uv_stream_t*, int status)
 // {
 //     if (status == 0) {
-//         // LTrace("On accept connection")
+//         // LTrace("On accept connection");
 //         acceptConnection();
 //     }
 //     else {
@@ -402,7 +393,7 @@ void TCPSocket::onError(const scy::Error& error)
 
 void TCPSocket::onClose()
 {
-    // LTrace("On close")
+    // LTrace("On close");
     onSocketClose(*this);
 }
 

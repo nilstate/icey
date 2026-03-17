@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_Symple_Address_H
-#define SCY_Symple_Address_H
+#pragma once
 
 
 #include "scy/symple/symple.h"
@@ -32,14 +31,14 @@ public:
     Address(const std::string& addr);
     Address(const std::string& user,
             const std::string& id);
-            // const std::string& group,
+    // const std::string& group,
     virtual ~Address();
 
     bool parse(const std::string& addr);
 
-    bool valid() const;
+    [[nodiscard]] bool valid() const;
     void print(std::ostream& os) const;
-    std::string toString() const;
+    [[nodiscard]] std::string toString() const;
 
     bool operator==(const Address& r);
     bool operator==(std::string& r);
@@ -56,11 +55,8 @@ public:
 };
 
 
-} // namespace scy
 } // namespace smpl
-
-
-#endif // SCY_Symple_Address_H
+} // namespace scy
 
 
 /// @\}

@@ -4,11 +4,11 @@
 
 #include "config.h"
 #include "scy/application.h"
-#include "scy/av/videocapture.h"
 #include "scy/av/audiocapture.h"
-#include "scy/av/multiplexencoder.h"
 #include "scy/av/devicemanager.h"
 #include "scy/av/formatregistry.h"
+#include "scy/av/multiplexencoder.h"
+#include "scy/av/videocapture.h"
 #include "scy/http/server.h"
 #include "scy/logger.h"
 #include "scy/packetstream.h"

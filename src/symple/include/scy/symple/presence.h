@@ -9,12 +9,11 @@
 /// @{
 
 
-#ifndef SCY_Symple_Presence_H
-#define SCY_Symple_Presence_H
+#pragma once
 
 
-#include "scy/symple/symple.h"
 #include "scy/symple/message.h"
+#include "scy/symple/symple.h"
 
 
 namespace scy {
@@ -36,9 +35,6 @@ public:
 
 } // namespace smpl
 } // namespace scy
-
-
-#endif // SCY_Symple_Presence_H
 
 
 /// @\}

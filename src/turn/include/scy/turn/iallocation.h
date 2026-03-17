@@ -8,23 +8,25 @@
 /// @addtogroup turn
 /// @{
 
-
-#ifndef SCY_TURN_IAllocation_H
-#define SCY_TURN_IAllocation_H
+#pragma once
 
 
 #include "scy/logger.h"
-#include <mutex>
 #include "scy/net/address.h"
 #include "scy/timer.h"
 #include "scy/turn/fivetuple.h"
 #include "scy/turn/permission.h"
 #include "scy/turn/turn.h"
 #include "scy/turn/types.h"
+#include <mutex>
 
 
 namespace scy {
 namespace turn {
+
+
+/// Default allocation lifetime: 10 minutes (in milliseconds)
+static constexpr std::int64_t kDefaultAllocationLifetime = 10 * 60 * 1000;
 
 
 /// All TURN operations revolve around allocations, and all TURN messages
@@ -75,8 +77,13 @@ class TURN_API IAllocation
 public:
     IAllocation(const FiveTuple& tuple = FiveTuple(),
                 const std::string& username = "",
-                std::int64_t lifetime = 10 * 60 * 1000);
+                std::int64_t lifetime = kDefaultAllocationLifetime);
     virtual ~IAllocation();
+
+    IAllocation(const IAllocation&) = delete;
+    IAllocation& operator=(const IAllocation&) = delete;
+    IAllocation(IAllocation&&) = delete;
+    IAllocation& operator=(IAllocation&&) = delete;
 
     /// Updates the allocation's internal timeout and bandwidth
     /// usage each time the allocation is used.
@@ -90,7 +97,7 @@ public:
 
     /// Returns true if the allocation is expired ie. is timed
     /// out or the bandwidth limit has been reached.
-    virtual bool expired() const;
+    [[nodiscard]] virtual bool expired() const;
 
     /// Returns true if the allocation's deleted flag is set
     /// and or if the allocation has expired.
@@ -98,19 +105,19 @@ public:
     /// This signifies that the allocation is ready to be
     /// destroyed via async garbage collection.
     /// See Server::onTimer() and Client::onTimer()
-    virtual bool deleted() const;
+    [[nodiscard]] virtual bool deleted() const;
 
-    virtual std::int64_t bandwidthLimit() const;
-    virtual std::int64_t bandwidthUsed() const;
-    virtual std::int64_t bandwidthRemaining() const;
-    virtual std::int64_t timeRemaining() const;
+    [[nodiscard]] virtual std::int64_t bandwidthLimit() const;
+    [[nodiscard]] virtual std::int64_t bandwidthUsed() const;
+    [[nodiscard]] virtual std::int64_t bandwidthRemaining() const;
+    [[nodiscard]] virtual std::int64_t timeRemaining() const;
 
     virtual FiveTuple& tuple();
-    virtual std::string username() const;
-    virtual std::int64_t lifetime() const;
-    virtual PermissionList permissions() const;
+    [[nodiscard]] virtual std::string username() const;
+    [[nodiscard]] virtual std::int64_t lifetime() const;
+    [[nodiscard]] virtual PermissionList permissions() const;
 
-    virtual net::Address relayedAddress() const = 0;
+    [[nodiscard]] virtual net::Address relayedAddress() const = 0;
 
     virtual void addPermission(const std::string& ip);
     virtual void addPermissions(const IPList& ips);
@@ -118,7 +125,7 @@ public:
     virtual void removeAllPermissions();
     virtual void removeExpiredPermissions();
     // virtual void refreshAllPermissions();
-    virtual bool hasPermission(const std::string& peerIP);
+    [[nodiscard]] virtual bool hasPermission(const std::string& peerIP);
 
     virtual void print(std::ostream& os) const
     {
@@ -133,7 +140,7 @@ public:
     }
 
 protected:
-    // mutable std::mutex _mutex;
+    mutable std::mutex _mutex;
     FiveTuple _tuple;
     std::string _username;
     PermissionList _permissions;
@@ -148,9 +155,6 @@ protected:
 
 } // namespace turn
 } // namespace scy
-
-
-#endif // SCY_TURN_IAllocation_H
 
 
 /// @\}

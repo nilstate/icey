@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_Interfaces_H
-#define SCY_Interfaces_H
+#pragma once
 
 
 #include "scy/base.h"
@@ -103,9 +102,6 @@ public:
 
 } // namespace basic
 } // namespace scy
-
-
-#endif // SCY_Interfaces_H
 
 
 /// @\}

@@ -8,15 +8,15 @@
 /// @addtogroup http
 /// @{
 
+#pragma once
 
-#ifndef SCY_HTTP_Form_H
-#define SCY_HTTP_Form_H
-
-
-#include "scy/http/http.h"
 #include "scy/collection.h"
+#include "scy/http/http.h"
 #include "scy/packetstream.h"
 #include "scy/thread.h"
+
+#include <deque>
+#include <memory>
 
 
 namespace scy {
@@ -32,16 +32,16 @@ class HTTP_API FormPart;
 // HTML Form Writer
 //
 
+/// @ingroup http
 /// FormWriter is a HTTP client connection adapter for writing HTML forms.
 ///
 /// This class runs in its own thread so as not to block the event loop
 /// while uploading big files. Class members are not synchronized hence
 /// they should not be accessed while the form is sending, not that there
 /// would be any reason to do so.
-class HTTP_API FormWriter :
-    public NVCollection,
-    public PacketSource,
-    public basic::Startable
+class HTTP_API FormWriter : public NVCollection
+    , public PacketSource
+    , public basic::Startable
 {
 public:
     /// Creates the FormWriter that uses the given connection and
@@ -68,24 +68,12 @@ public:
     void stop();
 
     /// Returns true if the request is complete.
-    bool complete() const;
+    [[nodiscard]] bool complete() const;
 
     /// Returns true if the request is cancelled.
-    bool cancelled() const;
+    [[nodiscard]] bool cancelled() const;
 
     /// Prepares the outgoing HTTP request object for submitting the form.
-    ///
-    /// If the request method is GET, the encoded form is appended to the
-    /// request URI as query std::string. Otherwise (the method is
-    /// POST), the form's content type is set to the form's encoding.
-    /// The form's parameters must be written to the
-    /// request body separately, with a call to write.
-    /// If the request's HTTP version is HTTP/1.0:
-    ///    - persistent connections are disabled
-    ///    - the content transfer encoding is set to identity encoding
-    /// Otherwise, if the request's HTTP version is HTTP/1.1:
-    ///    - the request's persistent connection state is left unchanged
-    ///    - the content transfer encoding is set to chunked
     void prepareSubmit();
 
     /// Processes the entire stream and calculates the content length.
@@ -96,43 +84,29 @@ public:
     /// the client connection.
     void writeUrl(std::ostream& ostr);
 
-#if 0
-    /// Writes the complete "multipart/form-data" request to the
-    /// client connection. This method is blocking, and should be
-    /// called from a thread, especially when sending large files.
-    void writeMultipart();
-#endif
-
     /// Writes the next multipart "multipart/form-data" encoded
-    /// to the client connection. This method is non-blocking,    // and is
-    /// suitable for use with the event loop.
+    /// to the client connection. This method is non-blocking,
+    /// and is suitable for use with the event loop.
     void writeMultipartChunk();
 
     /// Called asynchronously by the Runner to write the next message chunk.
-    /// If "multipart/form-data" the next multipart chunk will be written.
-    /// If "application/x-www-form-urlencoded" the entire message will be
-    /// written.
-    /// The complete flag will be set when the entire request has been written.
     void writeAsync();
 
     /// Sets the encoding used for posting the form.
-    ///
-    /// Encoding must be either "application/x-www-form-urlencoded"
-    /// (which is the default) or "multipart/form-data".
     void setEncoding(const std::string& encoding);
 
     /// Returns the encoding used for posting the form.
-    const std::string& encoding() const;
+    [[nodiscard]] const std::string& encoding() const;
 
     /// Sets the boundary to use for separating form parts.
     /// Must be set before prepareSubmit() is called.
     void setBoundary(const std::string& boundary);
 
     /// Returns the MIME boundary used for writing multipart form data.
-    const std::string& boundary() const;
+    [[nodiscard]] const std::string& boundary() const;
 
     /// The associated HTTP client connection.
-    ConnectionStream& connection();
+    [[nodiscard]] ConnectionStream& connection();
 
     /// The outgoing packet emitter.
     PacketSignal emitter;
@@ -143,14 +117,13 @@ public:
 
 protected:
     /// Creates the FormWriter that uses the given encoding.
-    ///
-    /// Encoding must be either "application/x-www-form-urlencoded"
-    /// (which is the default) or "multipart/form-data".
     FormWriter(ConnectionStream& conn, std::shared_ptr<Runner> runner,
                const std::string& encoding = FormWriter::ENCODING_URL);
 
     FormWriter(const FormWriter&) = delete;
     FormWriter& operator=(const FormWriter&) = delete;
+    FormWriter(FormWriter&&) = delete;
+    FormWriter& operator=(FormWriter&&) = delete;
 
     /// Writes the message boundary std::string, followed
     /// by the message header to the output stream.
@@ -160,9 +133,6 @@ protected:
     void writeEnd(std::ostream& ostr);
 
     /// Creates a random boundary std::string.
-    ///
-    /// The std::string always has the form boundary-XXXXXXXXXXXX,
-    /// where XXXXXXXXXXXX is a randomly generate number.
     static std::string createBoundary();
 
     /// Updates the upload progress via the associated
@@ -176,10 +146,10 @@ protected:
     struct Part
     {
         std::string name;
-        FormPart* part;
+        std::unique_ptr<FormPart> part;
     };
 
-    typedef std::deque<Part> PartQueue;
+    using PartQueue = std::deque<Part>;
 
     ConnectionStream& _stream;
     std::shared_ptr<Runner> _runner;
@@ -197,6 +167,7 @@ protected:
 // Form Part
 //
 
+/// @ingroup http
 /// An implementation of FormPart.
 class HTTP_API FormPart
 {
@@ -222,16 +193,16 @@ public:
 
     /// Returns a NVCollection containing additional header
     /// fields for the part.
-    NVCollection& headers();
+    [[nodiscard]] NVCollection& headers();
 
     /// Returns true if this is the initial write.
-    virtual bool initialWrite() const;
+    [[nodiscard]] virtual bool initialWrite() const;
 
     /// Returns the MIME type for this part or attachment.
-    const std::string& contentType() const;
+    [[nodiscard]] const std::string& contentType() const;
 
     /// Returns the length of the current part.
-    virtual uint64_t length() const = 0;
+    [[nodiscard]] virtual uint64_t length() const = 0;
 
 protected:
     std::string _contentType;
@@ -245,6 +216,7 @@ protected:
 // File Part
 //
 
+/// @ingroup http
 /// An implementation of FilePart for plain files.
 class HTTP_API FilePart : public FormPart
 {
@@ -292,32 +264,19 @@ public:
     virtual void write(std::ostream& ostr);
 
     /// Returns the filename portion of the path.
-    const std::string& filename() const;
+    [[nodiscard]] const std::string& filename() const;
 
     /// Returns the file input stream.
-    std::ifstream& stream();
+    [[nodiscard]] std::ifstream& stream();
 
     /// Returns the length of the current part.
-    virtual uint64_t length() const;
-
-    // /// Returns a NVCollection containing additional header
-    // /// fields for the part.
-    // NVCollection& headers();
-    //
-    // /// Returns the MIME type for this part or attachment.
-    // const std::string& contentType() const;
-    //
-    // /// Returns the file size.
-    // uint64_t fileSize() const;
+    [[nodiscard]] virtual uint64_t length() const;
 
 protected:
-    // std::string _contentType;
     std::string _path;
     std::string _filename;
     std::ifstream _istr;
     uint64_t _fileSize;
-    // uint64_t _nWritten;
-    // NVCollection _headers;
 };
 
 
@@ -325,6 +284,7 @@ protected:
 // String Part
 //
 
+/// @ingroup http
 /// An implementation of StringPart for plain files.
 class HTTP_API StringPart : public FormPart
 {
@@ -349,7 +309,7 @@ public:
     virtual void write(std::ostream& ostr);
 
     /// Returns the length of the current part.
-    virtual uint64_t length() const;
+    [[nodiscard]] virtual uint64_t length() const;
 
 protected:
     std::string _data;
@@ -360,10 +320,7 @@ protected:
 } // namespace scy
 
 
-#endif // SCY_HTTP_Form_H
-
-
-/// @\}
+/// @}
 
 
 // Copyright (c) 2005-2006, Applied Informatics Software Engineering GmbH.

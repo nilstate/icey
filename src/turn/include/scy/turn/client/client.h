@@ -8,9 +8,7 @@
 /// @addtogroup turn
 /// @{
 
-
-#ifndef SCY_TURN_Client_H
-#define SCY_TURN_Client_H
+#pragma once
 
 
 #include "scy/net/udpsocket.h"
@@ -85,7 +83,18 @@ struct ClientObserver
 };
 
 
-class TURN_API Client : public Stateful<ClientState>, protected IAllocation
+/// Timer interval for client maintenance (30 seconds)
+static constexpr std::int64_t kClientTimerInterval = 30 * 1000;
+
+/// Default client allocation lifetime (5 minutes, in milliseconds)
+static constexpr std::int64_t kClientDefaultLifetime = 5 * 60 * 1000;
+
+/// Default client transaction timeout (10 seconds)
+static constexpr long kClientDefaultTimeout = 10 * 1000;
+
+
+class TURN_API Client : public Stateful<ClientState>
+    , protected IAllocation
 {
 public:
     struct Options
@@ -105,9 +114,9 @@ public:
             username = util::randomString(4);
             password = util::randomString(22);
             // realm                    = "sourcey.com";
-            lifetime = 5 * 60 * 1000; // 5 minutes
-            timeout = 10 * 1000;
-            timerInterval = 30 * 1000; // 30 seconds
+            lifetime = kClientDefaultLifetime;
+            timeout = kClientDefaultTimeout;
+            timerInterval = kClientTimerInterval;
             serverAddr = net::Address("127.0.0.1", 3478);
         }
     };
@@ -156,10 +165,10 @@ public:
     virtual bool sendAuthenticatedTransaction(stun::Transaction* transaction);
     virtual bool removeTransaction(stun::Transaction* transaction);
 
-    net::Address mappedAddress() const;
-    net::Address relayedAddress() const;
+    [[nodiscard]] net::Address mappedAddress() const;
+    [[nodiscard]] net::Address relayedAddress() const;
 
-    bool closed() const;
+    [[nodiscard]] bool closed() const;
 
     ClientObserver& observer();
     Options& options();
@@ -167,9 +176,9 @@ public:
 protected:
     virtual void setError(const scy::Error& error);
 
-    virtual void onSocketConnect(net::Socket& socket);
-    virtual void onSocketRecv(net::Socket& socket, const MutableBuffer& buffer, const net::Address& peerAddress);
-    virtual void onSocketClose(net::Socket& socket);
+    virtual bool onSocketConnect(net::Socket& socket);
+    virtual bool onSocketRecv(net::Socket& socket, const MutableBuffer& buffer, const net::Address& peerAddress);
+    virtual bool onSocketClose(net::Socket& socket);
     virtual void onTransactionProgress(void* sender, TransactionState& state, const TransactionState&);
     virtual void onStateChange(ClientState& state, const ClientState& oldState);
     virtual void onTimer();
@@ -194,10 +203,8 @@ protected:
 };
 
 
-} } //  namespace scy::turn
-
-
-#endif // SCY_TURN_Client_H
+} // namespace turn
+} // namespace scy
 
 
 /// @\}

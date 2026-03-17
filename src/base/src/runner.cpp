@@ -11,14 +11,16 @@
 
 #include "scy/interface.h"
 #include "scy/logger.h"
+#include <chrono>
 #include <memory>
+#include <thread>
 
 
 namespace scy {
 
 
-Runner::Runner() :
-    _context(std::make_shared<Runner::Context>())
+Runner::Runner()
+    : _context(std::make_shared<Runner::Context>())
 {
 }
 
@@ -32,7 +34,8 @@ Runner::~Runner()
 
 void Runner::setRepeating(bool flag)
 {
-    assert(!_context->running);
+    if (_context->running)
+        throw std::logic_error("Runner already running");
     _context->repeating = flag;
 }
 
@@ -69,15 +72,18 @@ std::thread::id Runner::tid() const
 
 bool Runner::waitForExit(int timeout)
 {
-    assert(Thread::currentID() != tid());
-    int times = 0;
-    int interval = 10;
+    if (Thread::currentID() == tid())
+        throw std::logic_error("Runner: cannot join from own thread");
+    using namespace std::chrono;
+    auto start = steady_clock::now();
     while (!cancelled() || running()) {
-        scy::sleep(interval);
-        times++;
-        if (timeout && ((times * interval) > timeout)) {
-            assert(0 && "deadlock; calling inside thread scope?");
-            return false;
+        std::this_thread::sleep_for(milliseconds(10));
+        if (timeout > 0) {
+            auto elapsed = duration_cast<milliseconds>(steady_clock::now() - start).count();
+            if (elapsed > timeout) {
+                throw std::logic_error("Runner: join timed out, possible deadlock");
+                return false;
+            }
         }
     }
     return true;
