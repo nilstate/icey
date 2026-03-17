@@ -24,7 +24,7 @@ endif()
 
 # Unicode on Windows
 if(WIN32)
-  add_definitions(-DUNICODE -D_UNICODE -DNOMINMAX)
+  add_definitions(-DUNICODE -D_UNICODE -DNOMINMAX -DWIN32_LEAN_AND_MEAN)
 endif()
 
 # Include the main build orchestrator
