@@ -128,6 +128,45 @@ jobs:
       - name: Test
         run: ctest --test-dir build -C Release --output-on-failure --parallel
 
+  webrtc:
+    runs-on: ubuntu-24.04
+    name: WebRTC (libdatachannel + FFmpeg)
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libssl-dev \
+            libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libswresample-dev
+
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@v1
+        with:
+          key: webrtc
+
+      - name: Configure
+        run: |
+          cmake -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_COMPILER=gcc-14 \
+            -DCMAKE_CXX_COMPILER=g++-14 \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DWITH_FFMPEG=ON \
+            -DWITH_LIBDATACHANNEL=ON \
+            -DBUILD_TESTS=ON \
+            -DBUILD_SAMPLES=OFF \
+            -DBUILD_APPLICATIONS=OFF
+
+      - name: Build
+        run: cmake --build build --parallel $(nproc)
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure --parallel $(nproc)
+
   sanitizers:
     runs-on: ubuntu-24.04
     strategy:
