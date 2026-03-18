@@ -5,18 +5,28 @@ Benchmarks LibSourcey's HTTP server against Node.js and Go using [wrk](https://g
 ## Variants
 
 **LibSourcey:**
-- `single` - single-threaded benchmark server
+
+- `single` - single-threaded, Connection: close
+- `keepalive` - single-threaded, HTTP/1.1 keep-alive
 - `multi` - one server per CPU core with SO_REUSEPORT kernel load balancing
 - `echo` - single-threaded echo server
 
+**Raw libuv+llhttp (baseline):**
+
+- `raw` - hand-rolled C server, Connection: close (theoretical maximum)
+- `raw-keepalive` - same, with keep-alive
+
 **Node.js:**
-- `minimal` - single-process minimal response
+
+- `minimal` - single-process, Connection: close
+- `keepalive` - single-process, keep-alive
 - `echo` - single-process echo
 - `cluster` - one worker per CPU core
 
 **Go** (optional, included if `go` is on PATH):
 
-- `minimal` - single-process minimal response (goroutine-per-connection)
+- `minimal` - single-process, Connection: close
+- `keepalive` - single-process, keep-alive (goroutine-per-connection)
 - `echo` - single-process echo
 
 ## Build
@@ -30,10 +40,10 @@ cmake --build build --target httpbenchmark -j$(nproc)
 
 ```bash
 # Automated comparison (runs all variants + wrk)
-./src/http/samples/httpbenchmark/benchmark.sh build/bin/httpbenchmark
+./src/http/samples/httpbenchmark/benchmark.sh build/http/samples/httpbenchmark/httpbenchmark
 
 # Manual (run server then benchmark separately)
-build/bin/httpbenchmark single &
+build/http/samples/httpbenchmark/httpbenchmark keepalive &
 wrk -t4 -c100 -d10s http://localhost:1337/
 ```
 
@@ -44,27 +54,45 @@ wrk -t4 -c100 -d10s http://localhost:1337/
 - `go` (optional): for Go comparison
 - Build in Release mode with logging disabled for accurate results
 
+## Methodology
+
+The benchmark script runs each server variant with `wrk -t4 -c100 -d10s` (4 threads, 100 connections, 10 seconds). All servers return an empty 200 OK response. `wrk` uses HTTP/1.1 keep-alive by default.
+
+**Connection: close** variants measure per-connection overhead: TCP accept, socket creation, adapter wiring, HTTP parsing, response formatting, and teardown on every request.
+
+**Keep-alive** variants measure per-request overhead only: HTTP parsing, handler dispatch, response formatting, and socket write. Connection setup is amortised across many requests on the same TCP connection. This is the realistic production scenario for most HTTP APIs.
+
+The raw libuv+llhttp baseline is a hand-rolled C server with zero abstractions (no connection management, no header building, no dispatch), representing the theoretical maximum for this I/O stack.
+
 ## Results
 
 ```text
 System: Linux 6.8.0-106-generic x86_64
 CPU:    11th Gen Intel(R) Core(TM) i7-11800H @ 2.30GHz
-Cores:  1
+Cores:  1 vCPU
 Node:   v20.19.5
+Go:     go1.25.0
 wrk:    wrk 4.1.0 [epoll]
 
 wrk -t4 -c100 -d10s --timeout 5s http://localhost:1337/
-All servers return an empty 200 with Connection: close.
 
+Connection: close (per-connection overhead)
 Server                                 Req/sec     Avg Latency
 ------------------------------  --------------  --------------
-Raw libuv+llhttp (baseline)          19,329.44         4.59ms
-LibSourcey (single-core)             13,513.67         8.14ms
-LibSourcey (multi-core)              14,222.61         7.72ms
-Node.js (single)                      8,777.72        11.44ms
-Node.js (cluster)                     5,037.59        20.08ms
+Raw libuv+llhttp (baseline)          18,468          4.88ms
+LibSourcey (single-core)             14,330          8.19ms
+Go 1.25 (single)                     14,723          6.28ms
+Node.js v20 (single)                  9,309         10.71ms
+
+HTTP/1.1 keep-alive (per-request overhead)
+Server                                 Req/sec     Avg Latency
+------------------------------  --------------  --------------
+Raw libuv+llhttp (baseline)          96,088          1.04ms
+LibSourcey (keep-alive)              72,209          1.43ms
+Go 1.25 (keep-alive)                53,878          2.31ms
+Node.js v20 (keep-alive)            45,514          3.56ms
 ```
 
-The raw libuv + llhttp baseline is a hand-rolled C server with zero abstractions (no connection management, no header building, no dispatch), representing the theoretical maximum for this stack. LibSourcey's HTTP layer retains ~70% of that throughput. Node.js uses the same underlying primitives (libuv, llhttp) and reaches ~45%.
+With Connection: close, LibSourcey matches Go at ~14,300 req/s (77% of raw libuv). Both pay the same per-connection overhead; the gap to raw libuv is TCP accept, socket allocation, HTTP parsing into data structures, and signal dispatch.
 
-Node.js cluster performs worse than single on 1 core due to IPC overhead. On a multi-core system, both `multi` and `cluster` modes scale with core count via SO_REUSEPORT.
+With keep-alive, LibSourcey pulls ahead of Go by 34% (72,209 vs 53,878). Connection setup is amortised; the per-request cost is just parse + format + write. LibSourcey's event loop has less overhead than Go's goroutine scheduler and garbage collector on this tight loop.

@@ -145,6 +145,13 @@ fi
 # --- Keep-alive benchmarks ---
 echo -e "\n${BOLD}--- Keep-Alive Benchmarks ---${NC}"
 
+# --- Raw libuv+llhttp keep-alive ---
+"$HTTPBENCH" raw-keepalive &
+SERVER_PID=$!
+wait_for_port
+run_wrk "Raw libuv+llhttp (keep-alive)"
+kill_server
+
 # --- LibSourcey keep-alive ---
 "$HTTPBENCH" keepalive &
 SERVER_PID=$!

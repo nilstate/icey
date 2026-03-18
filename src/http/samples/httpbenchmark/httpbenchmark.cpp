@@ -56,7 +56,7 @@ void runKeepAlive()
     srv.start();
 
     srv.Connection += [&](http::ServerConnection::Ptr conn) {
-        conn->response().add("Content-Length", "0");
+        conn->response().set("Content-Length", "0");
         conn->sendHeader();
     };
 
@@ -133,13 +133,20 @@ void runEcho()
 
 namespace rawuv {
 
-// Pre-built HTTP response: "HTTP/1.1 200 OK\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n"
-static constexpr char RESPONSE[] =
+static constexpr char RESPONSE_CLOSE[] =
     "HTTP/1.1 200 OK\r\n"
     "Content-Length: 0\r\n"
     "Connection: close\r\n"
     "\r\n";
-static constexpr size_t RESPONSE_LEN = sizeof(RESPONSE) - 1;
+static constexpr size_t RESPONSE_CLOSE_LEN = sizeof(RESPONSE_CLOSE) - 1;
+
+static constexpr char RESPONSE_KEEPALIVE[] =
+    "HTTP/1.1 200 OK\r\n"
+    "Content-Length: 0\r\n"
+    "\r\n";
+static constexpr size_t RESPONSE_KEEPALIVE_LEN = sizeof(RESPONSE_KEEPALIVE) - 1;
+
+static bool keepalive = false;
 
 struct Client
 {
@@ -157,20 +164,31 @@ void on_close(uv_handle_t* handle)
     delete static_cast<Client*>(handle->data);
 }
 
-void on_write(uv_write_t* req, int /*status*/)
+void on_write_close(uv_write_t* req, int /*status*/)
 {
     uv_close(reinterpret_cast<uv_handle_t*>(req->handle), on_close);
+}
+
+void on_write_keepalive(uv_write_t* /*req*/, int /*status*/)
+{
+    // Connection stays open for next request
 }
 
 int on_message_complete(llhttp_t* parser)
 {
     auto* client = static_cast<Client*>(parser->data);
 
-    // Send pre-built response directly, no allocation
-    uv_buf_t buf = uv_buf_init(const_cast<char*>(RESPONSE), RESPONSE_LEN);
-    uv_write(&client->write_req,
-             reinterpret_cast<uv_stream_t*>(&client->handle),
-             &buf, 1, on_write);
+    if (keepalive) {
+        uv_buf_t buf = uv_buf_init(const_cast<char*>(RESPONSE_KEEPALIVE), RESPONSE_KEEPALIVE_LEN);
+        uv_write(&client->write_req,
+                 reinterpret_cast<uv_stream_t*>(&client->handle),
+                 &buf, 1, on_write_keepalive);
+    } else {
+        uv_buf_t buf = uv_buf_init(const_cast<char*>(RESPONSE_CLOSE), RESPONSE_CLOSE_LEN);
+        uv_write(&client->write_req,
+                 reinterpret_cast<uv_stream_t*>(&client->handle),
+                 &buf, 1, on_write_close);
+    }
     return 0;
 }
 
@@ -229,8 +247,9 @@ void run()
     uv_tcp_bind(&server, reinterpret_cast<const struct sockaddr*>(&addr), 0);
     uv_listen(reinterpret_cast<uv_stream_t*>(&server), 1000, on_connection);
 
-    std::cout << "Raw libuv+llhttp benchmark (single-core) listening on port "
-              << BenchmarkPort << std::endl;
+    std::cout << "Raw libuv+llhttp benchmark ("
+              << (keepalive ? "keep-alive" : "single-core")
+              << ") listening on port " << BenchmarkPort << std::endl;
 
     uv_run(loop, UV_RUN_DEFAULT);
 }
@@ -262,8 +281,11 @@ int main(int argc, char** argv)
         runEcho();
     } else if (mode == "raw") {
         rawuv::run();
+    } else if (mode == "raw-keepalive") {
+        rawuv::keepalive = true;
+        rawuv::run();
     } else {
-        std::cerr << "Usage: " << argv[0] << " [single|keepalive|multi|echo|raw]" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " [single|keepalive|multi|echo|raw|raw-keepalive]" << std::endl;
         return 1;
     }
 

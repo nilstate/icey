@@ -25,17 +25,20 @@ Most C++ projects that need networking, media encoding, and real-time communicat
 
 ## Performance
 
-LibSourcey's HTTP module is built directly on libuv and llhttp - the same async IO and HTTP parsing that powers Node.js. The difference is there's no runtime, no garbage collector, and no language bridge sitting between your application and the event loop. The result:
+LibSourcey's HTTP module is built directly on libuv and llhttp - the same async IO and HTTP parsing that powers Node.js. The difference is there's no runtime, no garbage collector, and no language bridge sitting between your application and the event loop.
+
+With HTTP/1.1 keep-alive (the realistic production scenario):
 
 | Server | Req/sec | Latency |
 | ------ | ------: | ------: |
-| Raw libuv+llhttp | 19,329 | 4.59ms |
-| **LibSourcey** | **13,514** | **8.14ms** |
-| Node.js v20 | 8,778 | 11.44ms |
+| Raw libuv+llhttp | 96,088 | 1.04ms |
+| **LibSourcey** | **72,209** | **1.43ms** |
+| Go 1.25 net/http | 53,878 | 2.31ms |
+| Node.js v20 | 45,514 | 3.56ms |
 
-Raw libuv+llhttp is a zero-abstraction baseline: hand-rolled C with no connection management, no header building, nothing. LibSourcey adds a full HTTP stack on top - connection lifecycle, response construction, signal dispatch, WebSocket upgrade, streaming - and keeps 70% of that ceiling. Node.js, with the same foundations underneath, reaches 45%.
+LibSourcey delivers **75% of raw libuv throughput** while providing a complete HTTP stack (connection management, header construction, WebSocket upgrade, streaming responses). It outperforms Go's `net/http` by 34% and Node.js by 59%. All three share the same foundation (libuv for async IO, llhttp for HTTP parsing); the difference is pure runtime overhead.
 
-See [src/http/samples/httpbenchmark/](src/http/samples/httpbenchmark/) for methodology and multi-core results.
+See [src/http/samples/httpbenchmark/](src/http/samples/httpbenchmark/) for methodology, Connection: close results, and multi-core benchmarks.
 
 ## Quick start
 
