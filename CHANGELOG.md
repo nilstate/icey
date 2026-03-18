@@ -4,7 +4,54 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [2.0.1] - Unreleased
+## [2.1.0] - Unreleased
+
+### Added
+
+- `USE_SYSTEM_DEPS` CMake option for vcpkg/system package integration (switches FetchContent to find_package for libuv, llhttp, zlib, minizip)
+- Vendored nlohmann/json single header (v3.11.3), eliminating FetchContent download
+- vcpkg port with full dependency manifest and feature flags
+- Symplestreamer sample: camera/file video streaming to symple-client-player via MJPEG over WebSocket
+- HTTP benchmark suite and performance section in README
+- `SO_REUSEPORT` support via `Server::setReusePort()` for multicore HTTP serving
+- `NullSharedMutex` and `LocalSignal` for lock-free signal dispatch on single-threaded event loops
+- `SCY_DATA_DIR` compile definition for test/sample data paths
+
+### Changed
+
+- `string_view`: converted ~270 read-only `const std::string&` parameters across base, http, crypto, net, symple, av, json, stun, turn modules
+- `random`: rewrote PRNG with `std::mt19937` + `std::random_device`, replacing BSD nonlinear additive feedback LFSR
+- `datetime`: rewrote internals with C++20 `std::chrono` calendar types (`year_month_day`, `sys_days`, `weekday`), replacing Julian Day floating-point math
+- `numeric`: rewrote sprintf-based number formatting with `std::to_chars`, consolidated 50 functions into shared templates
+- `util`: replaced 10 `icompare` template overloads (~140 lines) with single `string_view` implementation
+- Renamed `json::value` to `json::Value` for codebase consistency
+- HTTP server connections container changed from `vector` to `unordered_map` for O(1) lookup
+- Single-pass response header assembly with pre-computed reserve
+- All net/http signals switched to `LocalSignal`, eliminating mutex acquisition per emit
+- `uv_write_t` request pooling via freelist in Stream (avoids heap alloc per write)
+- Static status code string lookup in `Response::write`
+- Cached peer address after connect (avoids repeated `uv_tcp_getpeername` calls)
+- Modernised all sample applications
+- Moved test data (`test.mp4`) to top-level `data/` directory shared across modules
+- Refreshed README with contributors section, moved build/contributing docs to `doc/`
+
+### Fixed
+
+- `-Werror` enabled in CI; fixed all remaining compiler warnings
+- `json::findNestedObjectWithProperty` was comparing `it.value()` instead of `it.key()`
+- `Configuration::removeAll` iterator invalidation
+- `LogStream` stub destructor for `ENABLE_LOGGING=OFF` builds
+- `httpclient` sample `StatusCode` enum streaming
+
+### Removed
+
+- Stale `bench/` directory (duplicate of `src/http/samples/httpbenchmark`)
+- Dead commented-out JsonCpp stringify code in json module
+- Empty `json.cpp` stub
+- Deprecated `thread.h`/`thread.cpp` and `archo` test file
+- In-source build artifacts
+
+## [2.0.1] - 2026-03-17
 
 ### Fixed
 
