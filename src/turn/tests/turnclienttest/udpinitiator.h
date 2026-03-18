@@ -1,7 +1,4 @@
-#ifndef TURN_UDPinitiator_TEST_H
-#define TURN_UDPinitiator_TEST_H
-
-
+#pragma once
 #include "scy/logger.h"
 #include "scy/time.h"
 #include "scy/turn/client/udpclient.h"
@@ -126,4 +123,3 @@ protected:
 } //  namespace scy
 
 
-#endif // TURN_UDPinitiator_TEST_H

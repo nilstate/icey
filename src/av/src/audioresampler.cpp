@@ -17,7 +17,6 @@
 #include "scy/util.h"
 
 
-using std::endl;
 
 
 namespace scy {
@@ -69,7 +68,7 @@ void AudioResampler::open()
            << "\n\tIn Sample Fmt: " << iparams.sampleFmt
            << "\n\tOut Nb Channels: " << oparams.channels
            << "\n\tOut Sample Rate: " << oparams.sampleRate
-           << "\n\tOut Sample Fmt: " << oparams.sampleFmt << std::endl;
+           << "\n\tOut Sample Fmt: " << oparams.sampleFmt;
 
     if (!iparams.channels || !oparams.channels)
         throw std::runtime_error("Input and output channel count must be set");

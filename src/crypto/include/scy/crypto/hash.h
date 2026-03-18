@@ -52,7 +52,7 @@ public:
     void reset();
 
     /// Returns the hash algorithm being used.
-    const std::string& algorithm(void) const;
+    const std::string& algorithm() const;
 
 protected:
     Hash& operator=(Hash const&);

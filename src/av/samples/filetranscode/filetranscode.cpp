@@ -64,7 +64,7 @@ int main(int argc, char** argv)
         stream.start();
         capture.start();
 
-        std::cout << "Transcoding: " << inputFile << " -> " << outputFile << std::endl;
+        std::cout << "Transcoding: " << inputFile << " -> " << outputFile << '\n';
 
         // Wait for the capture to finish reading the file
         waitForShutdown([](void* opaque) {
@@ -72,7 +72,7 @@ int main(int argc, char** argv)
         }, &stream);
     }
 
-    std::cout << "Done." << std::endl;
+    std::cout << "Done." << '\n';
     Logger::destroy();
     return 0;
 }

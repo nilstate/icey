@@ -43,7 +43,7 @@ void runSingleCore()
     };
 
     std::cout << "LibSourcey HTTP benchmark (single-core) listening on port "
-              << BenchmarkPort << std::endl;
+              << BenchmarkPort << '\n';
     waitForShutdown();
 }
 
@@ -61,7 +61,7 @@ void runKeepAlive()
     };
 
     std::cout << "LibSourcey HTTP benchmark (keep-alive) listening on port "
-              << BenchmarkPort << std::endl;
+              << BenchmarkPort << '\n';
     waitForShutdown();
 }
 
@@ -96,11 +96,11 @@ void runMultiCore()
     std::vector<std::unique_ptr<Thread>> threads;
 
     for (int i = 0; i < ncpus; ++i) {
-        threads.push_back(std::make_unique<Thread>(std::bind(runMulticoreInstance)));
+        threads.push_back(std::make_unique<Thread>([]() { runMulticoreInstance(); }));
     }
 
     std::cout << "LibSourcey HTTP benchmark (multicore x" << ncpus
-              << ") listening on port " << BenchmarkPort << std::endl;
+              << ") listening on port " << BenchmarkPort << '\n';
 
     for (auto& thread : threads) {
         thread->join();
@@ -122,7 +122,7 @@ void runEcho()
     };
 
     std::cout << "LibSourcey HTTP echo (single-core) listening on port "
-              << BenchmarkPort << std::endl;
+              << BenchmarkPort << '\n';
     waitForShutdown();
 }
 
@@ -249,7 +249,7 @@ void run()
 
     std::cout << "Raw libuv+llhttp benchmark ("
               << (keepalive ? "keep-alive" : "single-core")
-              << ") listening on port " << BenchmarkPort << std::endl;
+              << ") listening on port " << BenchmarkPort << '\n';
 
     uv_run(loop, UV_RUN_DEFAULT);
 }
@@ -285,7 +285,7 @@ int main(int argc, char** argv)
         rawuv::keepalive = true;
         rawuv::run();
     } else {
-        std::cerr << "Usage: " << argv[0] << " [single|keepalive|multi|echo|raw|raw-keepalive]" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " [single|keepalive|multi|echo|raw|raw-keepalive]" << '\n';
         return 1;
     }
 

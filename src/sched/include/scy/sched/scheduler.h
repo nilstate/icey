@@ -36,8 +36,9 @@ public:
     virtual ~Scheduler();
 
     virtual void schedule(sched::Task* task);
+    using TaskRunner::cancel; // inherit cancel(Task*) and cancel(bool)
     virtual void cancel(sched::Task* task);
-    virtual void clear();
+    void clear() override;
 
     virtual void serialize(json::Value& root) override;
     virtual void deserialize(json::Value& root) override;

@@ -145,7 +145,7 @@ void FormWriter::start()
     prepareSubmit();
 
     _runner->setRepeating(true);
-    _runner->start(std::bind(&FormWriter::writeAsync, this));
+    _runner->start([this]() { writeAsync(); });
 }
 
 

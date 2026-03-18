@@ -13,6 +13,7 @@
 
 
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "scy/av/av.h"
@@ -119,9 +120,9 @@ public:
     bool getDefaultCamera(Device& device);
 
     /// Find device by name or id
-    bool findCamera(const std::string& name, Device& device);
-    bool findMicrophone(const std::string& name, Device& device);
-    bool findSpeaker(const std::string& name, Device& device);
+    bool findCamera(std::string_view name, Device& device);
+    bool findMicrophone(std::string_view name, Device& device);
+    bool findSpeaker(std::string_view name, Device& device);
 
     /// Base device list
     bool getDeviceList(Device::Type type, std::vector<av::Device>& devices);

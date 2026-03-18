@@ -30,7 +30,6 @@
 #include <iostream>
 
 
-using std::endl;
 using namespace scy;
 
 
@@ -53,7 +52,7 @@ int main(int argc, char** argv)
     // Logger::instance().add(std::make_unique<ConsoleChannel>("debug", Level::Trace));
     // Logger::instance().setWriter(std::make_unique<AsyncLogWriter>());
     if (argc < 3) {
-        std::cerr << "Usage: " << argv[0] << " <key.pem> <cert.pem>" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " <key.pem> <cert.pem>" << '\n';
         return 1;
     }
 
@@ -66,9 +65,9 @@ int main(int argc, char** argv)
         srvs.ssl.start("0.0.0.0", SslPort);
         srvs.udp.start("0.0.0.0", UdpPort);
 
-        std::cout << "TCP server listening on " << srvs.tcp.server->address() << std::endl;
-        std::cout << "SSL server listening on " << srvs.ssl.server->address() << std::endl;
-        std::cout << "UDP server listening on " << srvs.udp.server->address() << std::endl;
+        std::cout << "TCP server listening on " << srvs.tcp.server->address() << '\n';
+        std::cout << "SSL server listening on " << srvs.ssl.server->address() << '\n';
+        std::cout << "UDP server listening on " << srvs.udp.server->address() << '\n';
 
         // Block until SIGINT/SIGTERM, then shut down all servers cleanly
         waitForShutdown([&](void*) {

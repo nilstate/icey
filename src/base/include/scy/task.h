@@ -70,7 +70,7 @@ protected:
     /// and false will cause the task to be destroyed.
     /// The task will similarly be destroyed id destroy()
     /// was called during the current task iteration.
-    virtual void run() = 0;
+    void run() override = 0;
 
     /// Tasks belong to a TaskRunner instance.
     friend class TaskRunner;
@@ -142,7 +142,7 @@ public:
 
 protected:
     /// Called by the async context to run the next task.
-    virtual void run();
+    void run() override;
 
     /// Adds a task to the runner.
     virtual bool add(Task* task);

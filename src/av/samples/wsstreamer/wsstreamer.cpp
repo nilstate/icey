@@ -81,14 +81,14 @@ public:
         _stream.emitter += packetSlot(this, &WSStreamResponder::onPacket);
         _stream.start();
 
-        std::cout << "WebSocket client connected" << std::endl;
+        std::cout << "WebSocket client connected" << '\n';
     }
 
     ~WSStreamResponder()
     {
         _stream.emitter -= packetSlot(this, &WSStreamResponder::onPacket);
         _stream.stop();
-        std::cout << "WebSocket client disconnected" << std::endl;
+        std::cout << "WebSocket client disconnected" << '\n';
     }
 
     void onClose() override
@@ -102,7 +102,7 @@ public:
             connection().send(packet.data(), packet.size(), http::ws::Binary);
         }
         catch (std::exception& exc) {
-            std::cerr << "Send error: " << exc.what() << std::endl;
+            std::cerr << "Send error: " << exc.what() << '\n';
             connection().close();
         }
     }
@@ -145,7 +145,7 @@ int main(int argc, char** argv)
                         std::make_unique<WSConnectionFactory>());
     server.start();
 
-    std::cout << "WebSocket streamer listening on ws://localhost:329" << std::endl;
+    std::cout << "WebSocket streamer listening on ws://localhost:329" << '\n';
 
     waitForShutdown([](void* opaque) {
         reinterpret_cast<http::Server*>(opaque)->shutdown();

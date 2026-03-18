@@ -1,7 +1,4 @@
-#ifndef TURN_TurnClientTest_H
-#define TURN_TurnClientTest_H
-
-
+#pragma once
 #include "scy/test.h"
 #include <iostream>
 
@@ -33,4 +30,3 @@ inline std::string createLatencyCheck(int packetSize = 1024)
 } //  namespace scy
 
 
-#endif // TURN_TurnClientTest_H

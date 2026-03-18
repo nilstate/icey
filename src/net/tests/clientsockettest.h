@@ -1,3 +1,5 @@
+#pragma once
+
 #include "scy/logger.h"
 #include "scy/net/address.h"
 

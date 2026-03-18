@@ -47,7 +47,7 @@ struct AudioEncoder : public AudioContext
     /// @param numSamples The number of input samples per channel.
     /// @param pts        The input samples presentation timestamp.
     /// @param opacket    The output packet data will be encoded to.
-    [[nodiscard]] virtual bool encode(uint8_t* samples, const int numSamples, const int64_t pts);
+    [[nodiscard]] bool encode(uint8_t* samples, const int numSamples, const int64_t pts) override;
 
     /// Encode planar audio samples.
     ///
@@ -55,14 +55,14 @@ struct AudioEncoder : public AudioContext
     /// @param numSamples The number of input samples per channel.
     /// @param pts        The input samples presentation timestamp.
     /// @param opacket    The output packet data will be encoded to.
-    [[nodiscard]] virtual bool encode(uint8_t* samples[4], const int numSamples, const int64_t pts);
+    [[nodiscard]] bool encode(uint8_t* samples[4], const int numSamples, const int64_t pts) override;
 
     /// Encode a single AVFrame from the decoder.
-    [[nodiscard]] virtual bool encode(AVFrame* iframe);
+    [[nodiscard]] bool encode(AVFrame* iframe) override;
 
     /// Flush remaining packets to be encoded.
     /// This method should be called once before stream closure.
-    virtual void flush();
+    void flush() override;
 
     av::AudioBuffer fifo;
     AVFormatContext* format;

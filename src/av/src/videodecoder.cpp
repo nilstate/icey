@@ -17,7 +17,6 @@
 #include "scy/logger.h"
 
 
-using std::endl;
 
 
 namespace scy {
@@ -105,7 +104,7 @@ inline void emitPacket(VideoDecoder* dec, AVFrame* frame)
            << "\n\tTimestamp: " << dec->time
            << "\n\tPTS: " << pts
            << "\n\tSeconds: " << dec->seconds
-           << endl;
+;
 
     PlanarVideoPacket video(frame->data, frame->linesize, dec->oparams.pixelFmt,
                             frame->width, frame->height, dec->time);

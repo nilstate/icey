@@ -28,7 +28,7 @@ public:
 
     virtual void init(bool ipc = false);
 
-    virtual bool readStart() override;
+    bool readStart() override;
     //virtual bool readStop() override;
 };
 

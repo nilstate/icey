@@ -20,7 +20,6 @@
 #include <stdexcept>
 
 
-using std::endl;
 
 
 namespace scy {

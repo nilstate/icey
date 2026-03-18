@@ -154,7 +154,7 @@ void BitReader::get(std::string& val, size_t len)
                << "len=" << len << ", "
                << "available=" << available() << ", "
                << "position=" << position() << ", "
-               << "limit=" << limit() << std::endl;
+               << "limit=" << limit();
         throw std::out_of_range("index out of range");
     }
 
@@ -170,7 +170,7 @@ void BitReader::get(char* val, size_t len)
                << "len=" << len << ", "
                << "available=" << available() << ", "
                << "position=" << position() << ", "
-               << "limit=" << limit() << std::endl;
+               << "limit=" << limit();
         throw std::out_of_range("index out of range");
     }
 
@@ -429,7 +429,7 @@ void BitWriter::skip(size_t val)
                << "val=" << val << ", "
                << "available=" << available() << ", "
                << "position=" << position() << ", "
-               << "limit=" << limit() << std::endl;
+               << "limit=" << limit();
         throw std::out_of_range("index out of range");
     }
 
@@ -444,7 +444,7 @@ void BitWriter::seek(size_t val)
                << "val=" << val << ", "
                << "available=" << available() << ", "
                << "position=" << position() << ", "
-               << "limit=" << limit() << std::endl;
+               << "limit=" << limit();
         throw std::out_of_range("index out of range");
     }
 
@@ -525,7 +525,7 @@ void BitWriter::put(const char* val, size_t len)
                << "len=" << len << ", "
                << "available=" << available() << ", "
                << "position=" << position() << ", "
-               << "limit=" << limit() << std::endl;
+               << "limit=" << limit();
         throw std::out_of_range("insufficient buffer capacity");
     }
 

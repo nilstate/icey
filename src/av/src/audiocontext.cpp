@@ -19,7 +19,6 @@
 #include "scy/logger.h"
 
 
-using std::endl;
 
 
 namespace scy {
@@ -50,7 +49,7 @@ void AudioContext::open()
 {
     SDebug << "Open: "
            << "\n\tInput: " << iparams.toString()
-           << "\n\tOutput: " << oparams.toString() << endl;
+           << "\n\tOutput: " << oparams.toString();
 
     if (!ctx || !avcodec_is_open(ctx) || !codec)
         throw std::runtime_error("Audio codec not open");

@@ -81,7 +81,7 @@ void Scheduler::run()
                    << DateTimeFormatter::format(
                           task->trigger().scheduleAt,
                           DateTimeFormat::ISO8601_FORMAT)
-                   << endl;
+;
         }
 #endif
 
@@ -101,7 +101,7 @@ void Scheduler::run()
                     << "\n\tScheduledTime: "
                     << DateTimeFormatter::format(task->trigger().scheduleAt,
                                                  DateTimeFormat::ISO8601_FORMAT)
-                    << endl;
+;
             }
 #else
             LTrace("Running: ", task);

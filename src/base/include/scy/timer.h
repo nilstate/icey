@@ -48,7 +48,7 @@ public:
     void start();
 
     /// Start the timer with the given callback function.
-    void start(std::function<void()> func);
+    void start(std::function<void()> func) override;
 
     /// Stop the timer.
     void stop();

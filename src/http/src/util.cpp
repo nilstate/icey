@@ -44,9 +44,9 @@ std::string parseURI(std::string_view request)
 }
 
 
-bool matchURL(const std::string& uri, const std::string& expression)
+bool matchURL(std::string_view uri, std::string_view expression)
 {
-    std::string::size_type index = uri.find("?");
+    auto index = uri.find('?');
     return util::matchNodes(uri.substr(0, index), expression, "/");
 }
 

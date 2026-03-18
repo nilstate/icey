@@ -111,7 +111,7 @@ struct OnceOnlyTrigger : public Trigger
         // the correct date and we run once only.
     }
 
-    virtual bool expired() override;
+    virtual bool expired();
 };
 
 
@@ -122,7 +122,7 @@ struct IntervalTrigger : public Trigger
     IntervalTrigger();
 
     virtual void update() override;
-    virtual bool expired() override;
+    virtual bool expired();
 
     virtual void serialize(json::Value& root) override;
     virtual void deserialize(json::Value& root) override;

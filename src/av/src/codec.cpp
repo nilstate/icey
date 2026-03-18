@@ -14,7 +14,6 @@
 #include <sstream>
 
 
-using std::endl;
 
 
 namespace scy {

@@ -1,7 +1,4 @@
-#ifndef TURN_TCPInitiator_TEST_H
-#define TURN_TCPInitiator_TEST_H
-
-
+#pragma once
 #include "scy/logger.h"
 #include "scy/net/tcpsocket.h"
 #include "scy/signal.h"
@@ -143,4 +140,3 @@ struct TCPInitiator : public turn::TCPClientObserver
 } //  namespace scy
 
 
-#endif // TURN_TCPInitiator_TEST_H

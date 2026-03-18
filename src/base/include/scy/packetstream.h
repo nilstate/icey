@@ -200,7 +200,7 @@ struct PacketStreamState : public State
     static constexpr unsigned int Closed = static_cast<unsigned int>(Type::Closed);
     static constexpr unsigned int Error = static_cast<unsigned int>(Type::Error);
 
-    std::string str(unsigned int id) const
+    std::string str(unsigned int id) const override
     {
         switch (static_cast<Type>(id)) {
             case Type::None:

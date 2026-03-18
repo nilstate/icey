@@ -134,7 +134,7 @@ inline void runAsync(std::shared_ptr<Runner::Context> c, Function func, Args... 
             func(std::forward<Args>(args)...);
 #ifdef SCY_EXCEPTION_RECOVERY
         } catch (std::exception& exc) {
-            std::cerr << "Runner exception: " << exc.what() << std::endl;
+            std::cerr << "Runner exception: " << exc.what() << '\n';
         }
 #endif
         if (c->repeating && !c->cancelled)

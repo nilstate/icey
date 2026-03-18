@@ -213,7 +213,7 @@ protected:
 template <typename T>
 void logArgs(std::ostream& o, T&& t)
 {
-    o << t; // << ' '; // << std::endl;
+    o << t; // << ' '; // << '\n';
 }
 
 template <typename T, typename... Args>
@@ -285,7 +285,7 @@ struct LogStream
     {
         if (!flushed) {
             flushed = true;
-            message << std::endl;
+            message << '\n';
             Logger::instance().write(std::make_unique<LogStream>(*this));
         }
     }
@@ -371,7 +371,7 @@ public:
                    std::string timeFormat = "%H:%M:%S");
     virtual ~ConsoleChannel() = default;
 
-    virtual void write(const LogStream& stream) override;
+    void write(const LogStream& stream) override;
 };
 
 
@@ -388,7 +388,7 @@ public:
                 std::string timeFormat = "%H:%M:%S");
     virtual ~FileChannel();
 
-    virtual void write(const LogStream& stream) override;
+    void write(const LogStream& stream) override;
 
     void setPath(const std::string& path);
     std::string path() const;
@@ -419,7 +419,7 @@ public:
                         std::string timeFormat = "%H:%M:%S");
     virtual ~RotatingFileChannel();
 
-    virtual void write(const LogStream& stream) override;
+    void write(const LogStream& stream) override;
     virtual void rotate();
 
     std::string dir() const { return _dir; };

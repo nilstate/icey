@@ -13,7 +13,6 @@
 #ifdef HAVE_FFMPEG
 
 
-using std::endl;
 
 
 namespace scy {

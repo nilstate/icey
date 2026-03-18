@@ -45,8 +45,8 @@ int main(int argc, char** argv)
     auto conn = http::createConnectionT<http::ClientConnection>(http::URL(url));
 
     conn->Connect += [&]() {
-        std::cout << "Connected to " << url << std::endl;
-        std::cout << "Sending: " << message << std::endl;
+        std::cout << "Connected to " << url << '\n';
+        std::cout << "Sending: " << message << '\n';
 
         // Send a text frame
         conn->send(message.c_str(), message.size(), http::ws::Text);
@@ -54,18 +54,18 @@ int main(int argc, char** argv)
 
     conn->Payload += [](const MutableBuffer& buf) {
         std::string data(bufferCast<const char*>(buf), buf.size());
-        std::cout << "Received: " << data << std::endl;
+        std::cout << "Received: " << data << '\n';
     };
 
     conn->Close += [](http::Connection& conn) {
-        std::cout << "Connection closed." << std::endl;
+        std::cout << "Connection closed." << '\n';
         uv_stop(uv::defaultLoop());
     };
 
     // Initiate the WebSocket handshake
     conn->send();
 
-    std::cout << "Connecting to " << url << "..." << std::endl;
+    std::cout << "Connecting to " << url << "..." << '\n';
 
     // Run the event loop; press Ctrl-C to exit
     waitForShutdown([&](void*) {

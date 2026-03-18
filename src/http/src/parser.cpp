@@ -229,7 +229,7 @@ void Parser::onError(llhttp_errno_t errnum, const std::string& message)
     }
     SDebug << "Parse error: "
            << llhttp_errno_name(errnum) << ": "
-           << llhttp_get_error_reason(&_parser) << std::endl;
+           << llhttp_get_error_reason(&_parser);
 
     _complete = true;
     _error.err = static_cast<int>(errnum);

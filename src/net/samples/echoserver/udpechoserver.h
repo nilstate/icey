@@ -1,3 +1,5 @@
+#pragma once
+
 #include "scy/net/socketadapter.h"
 #include "scy/net/udpsocket.h"
 

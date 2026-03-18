@@ -51,14 +51,14 @@ public:
 
     virtual void init() override;
     virtual void uninit() override;
-    virtual void cleanup();
+    void cleanup() override;
 
-    virtual void createVideo();
-    virtual void freeVideo();
+    void createVideo() override;
+    void freeVideo() override;
 
     /// Encode a single video frame.
     /// All frame values must be set, such as size, pizel format and PTS.
-    [[nodiscard]] virtual bool encodeVideo(AVFrame* frame);
+    [[nodiscard]] bool encodeVideo(AVFrame* frame) override;
 
     /// Encode a single interleaved video frame.
     /// If the frame time is specified it should be the microseconds
@@ -83,8 +83,8 @@ public:
     [[nodiscard]] virtual bool encodeVideo(uint8_t* data[4], int linesize[4], int width, int height,
                                            int64_t time = AV_NOPTS_VALUE);
 
-    virtual void createAudio();
-    virtual void freeAudio();
+    void createAudio() override;
+    void freeAudio() override;
 
     /// Encode a single interleaved audio frame.
     ///
@@ -103,7 +103,7 @@ public:
                                            int64_t time = AV_NOPTS_VALUE);
 
     /// Flush and beffered or queued packets.
-    virtual void flush();
+    void flush() override;
 
     EncoderOptions& options();
     VideoEncoder* video();

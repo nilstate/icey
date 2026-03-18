@@ -216,7 +216,7 @@ ssize_t Message::read(const ConstBuffer& buf)
             } else
                 SWarn << "Failed to parse attribute: "
                       << Attribute::typeString(attrType) << ": " << attrLength
-                      << std::endl;
+                     ;
 
             rest -= (attrLength + kAttributeHeaderSize + padLength);
         }

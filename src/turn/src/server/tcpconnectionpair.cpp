@@ -89,7 +89,7 @@ bool TCPConnectionPair::doPeerConnect(const net::Address& peerAddr)
 void TCPConnectionPair::setPeerSocket(const net::TCPSocket::Ptr& socket)
 {
     STrace << "Set peer socket: " << connectionID << ": "
-           << socket->peerAddress() << std::endl;
+           << socket->peerAddress();
 
     if (peer.impl)
         throw std::logic_error("peer socket already set for connection pair");
@@ -107,7 +107,7 @@ void TCPConnectionPair::setPeerSocket(const net::TCPSocket::Ptr& socket)
 void TCPConnectionPair::setClientSocket(const net::TCPSocket::Ptr& socket)
 {
     STrace << "Set client socket: " << connectionID << ": "
-           << socket->peerAddress() << std::endl;
+           << socket->peerAddress();
 
     if (client.impl)
         throw std::logic_error("client socket already set for connection pair");

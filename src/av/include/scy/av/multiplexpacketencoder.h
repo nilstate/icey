@@ -37,8 +37,8 @@ public:
     MultiplexPacketEncoder(MultiplexPacketEncoder&&) = delete;
     MultiplexPacketEncoder& operator=(MultiplexPacketEncoder&&) = delete;
 
-    virtual void encode(VideoPacket& packet);
-    virtual void encode(AudioPacket& packet);
+    void encode(VideoPacket& packet) override;
+    void encode(AudioPacket& packet) override;
 
     virtual bool accepts(IPacket* packet) override;
     virtual void process(IPacket& packet) override;

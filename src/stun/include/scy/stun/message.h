@@ -86,7 +86,7 @@ public:
     Message& operator=(Message&& that) noexcept;
     virtual ~Message();
 
-    virtual std::unique_ptr<IPacket> clone() const;
+    std::unique_ptr<IPacket> clone() const override;
 
     void setClass(ClassType type);
     void setMethod(MethodType type);

@@ -35,13 +35,13 @@ NVCollection& NVCollection::operator=(NVCollection&& nvc) noexcept
 }
 
 
-const std::string& NVCollection::operator[](const std::string& name) const
+const std::string& NVCollection::operator[](std::string_view name) const
 {
     auto it = find(name);
     if (it != _map.end())
         return it->second;
     else
-        throw std::runtime_error("Item not found: " + name);
+        throw std::runtime_error("Item not found: " + std::string(name));
 }
 
 
@@ -68,17 +68,17 @@ void NVCollection::add(std::string&& name, std::string&& value)
 }
 
 
-const std::string& NVCollection::get(const std::string& name) const
+const std::string& NVCollection::get(std::string_view name) const
 {
     auto it = find(name);
     if (it != _map.end())
         return it->second;
     else
-        throw std::runtime_error("Item not found: " + name);
+        throw std::runtime_error("Item not found: " + std::string(name));
 }
 
 
-const std::string& NVCollection::get(const std::string& name,
+const std::string& NVCollection::get(std::string_view name,
                                      const std::string& defaultValue) const
 {
     auto it = find(name);
@@ -89,13 +89,13 @@ const std::string& NVCollection::get(const std::string& name,
 }
 
 
-bool NVCollection::has(const std::string& name) const
+bool NVCollection::has(std::string_view name) const
 {
     return find(name) != _map.end();
 }
 
 
-NVCollection::ConstIterator NVCollection::find(const std::string& name) const
+NVCollection::ConstIterator NVCollection::find(std::string_view name) const
 {
     return std::find_if(_map.begin(), _map.end(),
         [&](const auto& p) { return util::icompare(p.first, name) == 0; });
@@ -126,7 +126,7 @@ int NVCollection::size() const
 }
 
 
-void NVCollection::erase(const std::string& name)
+void NVCollection::erase(std::string_view name)
 {
     _map.erase(std::remove_if(_map.begin(), _map.end(),
         [&](const auto& p) { return util::icompare(p.first, name) == 0; }),

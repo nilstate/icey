@@ -144,9 +144,9 @@ void Configuration::keys(std::vector<std::string>& keys, const std::string& base
 {
     std::lock_guard<std::mutex> guard(_mutex);
 
-    for (auto it = root.begin(); it != root.end(); ++it) {
-        if (it.key().find(baseKey) != std::string::npos)
-            keys.push_back(it.key());
+    for (const auto& [k, v] : root.items()) {
+        if (k.find(baseKey) != std::string::npos)
+            keys.push_back(k);
     }
 }
 

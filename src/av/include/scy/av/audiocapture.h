@@ -34,7 +34,7 @@ public:
                  const std::string& sampleFmt = "");
     virtual ~AudioCapture() noexcept;
 
-    virtual void openAudio(const std::string& device, const av::AudioCodec& params);
+    void openAudio(const std::string& device, const av::AudioCodec& params) override;
     virtual void openAudio(const std::string& device, int channels = -1, int sampleRate = -1,
                            const std::string& sampleFmt = "");
 };

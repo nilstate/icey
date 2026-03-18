@@ -34,7 +34,7 @@ public:
                  double framerate = 0, const std::string& pixelFmt = "");
     virtual ~VideoCapture() noexcept;
 
-    virtual void openVideo(const std::string& device, const av::VideoCodec& params);
+    void openVideo(const std::string& device, const av::VideoCodec& params) override;
     virtual void openVideo(const std::string& device, int width = 0,
                            int height = 0, double framerate = 0,
                            const std::string& pixelFmt = "");

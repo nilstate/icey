@@ -66,7 +66,6 @@
 #endif
 
 
-using std::endl;
 
 
 namespace scy {
@@ -159,7 +158,7 @@ bool getInputDeviceList(const std::vector<std::string>& inputs,
 {
 #ifndef HAVE_FFMPEG_AVDEVICE
     SWarn << "HAVE_FFMPEG_AVDEVICE not defined, cannot list input devices"
-          << endl;
+;
     return false;
 #else
     const AVInputFormat* iformat = findDefaultInputFormat(inputs);
@@ -195,7 +194,7 @@ bool getOutputDeviceList(const std::vector<std::string>& outputs,
 {
 #ifndef HAVE_FFMPEG_AVDEVICE
     SWarn << "HAVE_FFMPEG_AVDEVICE not defined, cannot list output devices"
-          << endl;
+;
     return false;
 #else
     const AVOutputFormat* oformat = findDefaultOutputFormat(outputs);
@@ -233,7 +232,7 @@ void printDevices(std::ostream& ost, std::vector<Device>& devs)
     for (size_t i = 0; i < devs.size(); ++i) {
         ost << '\t';
         devs[i].print(ost);
-        ost << endl;
+        ost << '\n';
     }
 }
 
@@ -281,7 +280,7 @@ bool DeviceManager::getSpeakers(std::vector<Device>& devices)
 }
 
 
-bool DeviceManager::findCamera(const std::string& name, Device& device)
+bool DeviceManager::findCamera(std::string_view name, Device& device)
 {
     std::vector<Device> devices;
     if (getCameras(devices)) {
@@ -297,7 +296,7 @@ bool DeviceManager::findCamera(const std::string& name, Device& device)
 }
 
 
-bool DeviceManager::findMicrophone(const std::string& name, Device& device)
+bool DeviceManager::findMicrophone(std::string_view name, Device& device)
 {
     std::vector<Device> devices;
     if (getMicrophones(devices)) {
@@ -313,7 +312,7 @@ bool DeviceManager::findMicrophone(const std::string& name, Device& device)
 }
 
 
-bool DeviceManager::findSpeaker(const std::string& name, Device& device)
+bool DeviceManager::findSpeaker(std::string_view name, Device& device)
 {
     std::vector<Device> devices;
     if (getSpeakers(devices)) {
@@ -445,25 +444,25 @@ void DeviceManager::print(std::ostream& ost)
 {
     std::vector<Device> devs;
 
-    ost << "Video capture devices: " << endl;
+    ost << "Video capture devices: " << '\n';
     if (getCameras(devs)) {
         internal::printDevices(ost, devs);
     } else {
-        ost << "\tNone" << endl;
+        ost << "\tNone" << '\n';
     }
 
-    ost << "Audio input devices: " << endl;
+    ost << "Audio input devices: " << '\n';
     if (getMicrophones(devs)) {
         internal::printDevices(ost, devs);
     } else {
-        ost << "\tNone" << endl;
+        ost << "\tNone" << '\n';
     }
 
-    ost << "Audio output devices: " << endl;
+    ost << "Audio output devices: " << '\n';
     if (getSpeakers(devs)) {
         internal::printDevices(ost, devs);
     } else {
-        ost << "\tNone" << endl;
+        ost << "\tNone" << '\n';
     }
 }
 

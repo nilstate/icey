@@ -37,7 +37,6 @@
                                  {"aac", 2, 44100, 64000, "fltp"});
 
 using namespace scy;
-using std::endl;
 
 
 int main(int argc, char** argv)

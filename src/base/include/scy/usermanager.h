@@ -9,8 +9,7 @@
 /// @{
 
 
-#ifndef SCY_UserManager_H
-#define SCY_UserManager_H
+#pragma once
 
 
 #include "scy/collection.h"
@@ -36,8 +35,8 @@ public:
     {
     }
 
-    std::string username() const { return _username; }
-    std::string password() const { return _password; }
+    std::string username() const override { return _username; }
+    std::string password() const override { return _password; }
 
 protected:
     std::string _username;
@@ -45,7 +44,7 @@ protected:
 };
 
 
-typedef std::map<std::string, IUser*> IUserMap;
+using IUserMap = std::map<std::string, IUser*>;
 
 
 /// @deprecated
@@ -53,8 +52,8 @@ typedef std::map<std::string, IUser*> IUserMap;
 class /* SCY_EXTERN */ UserManager : public LiveCollection<std::string, IUser>
 {
 public:
-    typedef LiveCollection<std::string, IUser> Manager;
-    typedef Manager::Map Map;
+    using Manager = LiveCollection<std::string, IUser>;
+    using Map = Manager::Map;
 
 public:
     UserManager() = default;
@@ -71,9 +70,6 @@ public:
 
 
 } // namespace scy
-
-
-#endif // SCY_UserManager_H
 
 
 /// @\}

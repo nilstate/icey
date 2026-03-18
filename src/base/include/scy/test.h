@@ -121,7 +121,7 @@ public:
 protected:
     virtual ~FunctionTest() {}
 
-    void run() { target(); }
+    void run() override { target(); }
 };
 
 

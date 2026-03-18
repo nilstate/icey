@@ -17,7 +17,6 @@
 #include "scy/logger.h"
 
 
-using std::endl;
 
 
 namespace scy {
@@ -44,7 +43,7 @@ void AudioBuffer::alloc(const std::string& sampleFmt, int channels, int numSampl
            << "\n\tSample Fmt: " << sampleFmt
            << "\n\tNb Samples: " << numSamples
            << "\n\tfifo: " << fifo
-           << endl;
+;
 
     enum AVSampleFormat format = av_get_sample_fmt(sampleFmt.c_str());
     if (fifo)

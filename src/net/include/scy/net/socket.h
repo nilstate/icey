@@ -76,7 +76,7 @@ public:
     /// Listens the socket on the given address.
     ///
     /// Throws an Exception on error.
-    virtual void listen(int backlog = 64) { (void)backlog; };
+    virtual void listen(int backlog = 64) { (void)backlog; }
 
     /// Sends the shutdown packet which should result is socket
     /// closure via callback.
@@ -205,7 +205,7 @@ public:
 
     virtual void print(std::ostream& os) const
     {
-        os << className() << ": " << packetInfo()->peerAddress << std::endl;
+        os << className() << ": " << packetInfo()->peerAddress << '\n';
     }
 
     virtual std::unique_ptr<IPacket> clone() const { return std::make_unique<SocketPacket>(*this); }

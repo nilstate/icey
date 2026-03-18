@@ -27,8 +27,8 @@ public:
     Transaction(const net::Socket::Ptr& socket, const net::Address& peerAddress,
                 long timeout = 10000, int retries = 1);
 
-    virtual bool checkResponse(const Message& message);
-    virtual void onResponse();
+    bool checkResponse(const Message& message) override;
+    void onResponse() override;
 
 protected:
     virtual ~Transaction();

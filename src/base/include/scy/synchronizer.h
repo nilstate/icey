@@ -102,7 +102,7 @@ public:
     }
 
     /// Start the synchronizer with the given callback function.
-    virtual void start(std::function<void()> func);
+    void start(std::function<void()> func) override;
 
     virtual void cancel();
 

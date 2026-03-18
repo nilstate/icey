@@ -22,7 +22,6 @@ extern "C" {
 }
 
 
-using std::endl;
 
 
 namespace scy {
@@ -65,7 +64,7 @@ void VideoCapture::openVideo(const std::string& device, int width, int height,
            << "width=" << width << ", "
            << "height=" << height << ", "
            << "framerate=" << framerate << ", "
-           << "pixelFmt=" << pixelFmt << endl;
+           << "pixelFmt=" << pixelFmt;
 
     DeviceManager devman;
     auto iformat = devman.findVideoInputFormat();

@@ -21,7 +21,6 @@
 #include <ctime>
 
 
-using std::endl;
 
 
 namespace scy {

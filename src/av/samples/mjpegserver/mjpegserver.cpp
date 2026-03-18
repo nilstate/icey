@@ -82,14 +82,14 @@ public:
         _stream.emitter += packetSlot(this, &MJPEGResponder::onPacket);
         _stream.start();
 
-        std::cout << "Client connected" << std::endl;
+        std::cout << "Client connected" << '\n';
     }
 
     ~MJPEGResponder()
     {
         _stream.emitter -= packetSlot(this, &MJPEGResponder::onPacket);
         _stream.stop();
-        std::cout << "Client disconnected" << std::endl;
+        std::cout << "Client disconnected" << '\n';
     }
 
     void onClose() override
@@ -103,7 +103,7 @@ public:
             connection().send(packet.data(), packet.size());
         }
         catch (std::exception& exc) {
-            std::cerr << "Send error: " << exc.what() << std::endl;
+            std::cerr << "Send error: " << exc.what() << '\n';
             connection().close();
         }
     }
@@ -148,7 +148,7 @@ int main(int argc, char** argv)
                         std::make_unique<MJPEGConnectionFactory>());
     server.start();
 
-    std::cout << "MJPEG server listening on http://localhost:328" << std::endl;
+    std::cout << "MJPEG server listening on http://localhost:328" << '\n';
 
     waitForShutdown([](void* opaque) {
         reinterpret_cast<http::Server*>(opaque)->shutdown();

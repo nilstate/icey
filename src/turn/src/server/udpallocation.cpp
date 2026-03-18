@@ -85,14 +85,14 @@ void UDPAllocation::handleSendIndication(Request& request)
     net::Address peerAddress = peerAttr->address();
     if (!hasPermission(peerAddress.host())) {
         SError << "Send Indication error: No permission for: "
-               << peerAddress.host() << std::endl;
+               << peerAddress.host();
         // silently discard...
         return;
     }
 
     STrace << "Relaying Send Indication: "
            << "\r\tFrom: " << request.remoteAddress.toString()
-           << "\r\tTo: " << peerAddress << std::endl;
+           << "\r\tTo: " << peerAddress;
 
     if (send(dataAttr->bytes(), dataAttr->size(), peerAddress) == -1) {
         _server.respondError(request, kErrorAllocationQuotaReached, "Allocation Quota Reached");
@@ -140,7 +140,7 @@ bool UDPAllocation::onPeerDataReceived(net::Socket&,
 
     STrace << "Send data indication:"
            << "\n\tFrom: " << peerAddress << "\n\tTo: " << _tuple.remote()
-           << std::endl;
+          ;
 
     server().udpSocket().sendPacket(message, _tuple.remote());
     return false;

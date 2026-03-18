@@ -129,7 +129,7 @@ public:
 
     virtual void print(std::ostream& os) const
     {
-        os << "Allocation[" << relayedAddress() << "]" << std::endl;
+        os << "Allocation[" << relayedAddress() << "]" << '\n';
     }
 
     friend std::ostream& operator<<(std::ostream& stream,

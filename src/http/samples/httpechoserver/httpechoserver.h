@@ -1,3 +1,5 @@
+#pragma once
+
 #include "scy/application.h"
 #include "scy/http/server.h"
 #include "scy/net/sslmanager.h"
@@ -23,7 +25,7 @@ void raiseEchoServer()
         };
     };
 
-    std::cout << "HTTP server listening on " << address << std::endl;
+    std::cout << "HTTP server listening on " << address << '\n';
     waitForShutdown();
 }
 
@@ -41,7 +43,7 @@ void raiseHTTPSEchoServer()
         };
     };
 
-    std::cout << "HTTPS server listening on " << address << std::endl;
+    std::cout << "HTTPS server listening on " << address << '\n';
     waitForShutdown();
 }
 
@@ -74,10 +76,10 @@ void runMulticoreEchoServers()
     std::vector<std::unique_ptr<Thread>> threads;
     int ncpus = std::thread::hardware_concurrency();
     for (int i = 0; i < ncpus; ++i) {
-        threads.push_back(std::make_unique<Thread>(std::bind(raiseMulticoreEchoServer)));
+        threads.push_back(std::make_unique<Thread>([]() { raiseMulticoreEchoServer(); }));
     }
 
-    std::cout << "HTTP echo multicore(" << ncpus << ") server listening on " << address << std::endl;
+    std::cout << "HTTP echo multicore(" << ncpus << ") server listening on " << address << '\n';
 
     for (auto& thread : threads) {
         thread->join();
@@ -101,7 +103,7 @@ void raiseBenchmarkServer()
         // conn->close();
     };
 
-    std::cout << "HTTP server listening on " << address << std::endl;
+    std::cout << "HTTP server listening on " << address << '\n';
     waitForShutdown();
 }
 
@@ -133,10 +135,10 @@ void runMulticoreBenchmarkServers()
     std::vector<std::unique_ptr<Thread>> threads;
     int ncpus = std::thread::hardware_concurrency();
     for (int i = 0; i < ncpus; ++i) {
-        threads.push_back(std::make_unique<Thread>(std::bind(raiseMulticoreBenchmarkServer)));
+        threads.push_back(std::make_unique<Thread>([]() { raiseMulticoreBenchmarkServer(); }));
     }
 
-    std::cout << "HTTP multicore(" << ncpus << ") server listening on " << address << std::endl;
+    std::cout << "HTTP multicore(" << ncpus << ") server listening on " << address << '\n';
 
     for (auto& thread : threads) {
         thread->join();

@@ -36,7 +36,7 @@ public:
     TimedManager(uv::Loop* loop = uv::defaultLoop())
         : _timer(100, 100, loop) // check every 100ms
     {
-        _timer.start(std::bind(&TimedManager::onTimerUpdate, this));
+        _timer.start([this]() { onTimerUpdate(); });
     }
 
     virtual ~TimedManager()

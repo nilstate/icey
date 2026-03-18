@@ -106,7 +106,7 @@ int main(int argc, char** argv)
             json::Value before;
             scheduler.serialize(before);
             SDebug << "Sched Output JSON Before Run:\n"
-                   << before.dump(4) << endl;
+                   << before.dump(4);
 
             // Wait for the task to complete
             scy::sleep(1500);
@@ -116,7 +116,7 @@ int main(int argc, char** argv)
             json::Value after;
             scheduler.serialize(after);
             SDebug << "Sched Output JSON After Run:\n"
-                   << json.dump(4) << endl;
+                   << json.dump(4);
         }
     });
 

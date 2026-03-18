@@ -18,7 +18,6 @@
 #include <thread>
 
 
-using std::endl;
 
 
 namespace scy {
@@ -209,7 +208,7 @@ void TaskRunner::setRunner(std::shared_ptr<Runner> runner)
         throw std::logic_error("TaskRunner already has a runner");
     _runner = runner;
     _runner->setRepeating(true);
-    _runner->start(std::bind(&TaskRunner::run, this));
+    _runner->start([this]() { run(); });
 }
 
 

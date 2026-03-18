@@ -15,7 +15,6 @@
 #include <cstdint>
 
 
-using std::endl;
 
 
 namespace scy {

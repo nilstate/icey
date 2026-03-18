@@ -40,7 +40,7 @@ struct VideoEncoder : public VideoContext
     /// @param data  The raw video frame buffer.
     /// @param size  The buffer size in bytes.
     /// @param pts   The presentation timestamp in stream time base units.
-    [[nodiscard]] virtual bool encode(uint8_t* data, int size, int64_t pts);
+    [[nodiscard]] bool encode(uint8_t* data, int size, int64_t pts) override;
 
     /// Encode a single video frame.
     /// This method is for planar video formats.
@@ -48,14 +48,14 @@ struct VideoEncoder : public VideoContext
     /// @param data      Array of per-plane data pointers (up to 4 planes).
     /// @param linesize  Array of per-plane byte strides.
     /// @param pts       The presentation timestamp in stream time base units.
-    [[nodiscard]] virtual bool encode(uint8_t* data[4], int linesize[4], int64_t pts);
+    [[nodiscard]] bool encode(uint8_t* data[4], int linesize[4], int64_t pts) override;
 
     /// Encode a single AVFrame.
-    [[nodiscard]] virtual bool encode(AVFrame* iframe);
+    [[nodiscard]] bool encode(AVFrame* iframe) override;
 
     /// Flush remaining packets to be encoded.
     /// This method should be called once before stream closure.
-    virtual void flush();
+    void flush() override;
 
     AVFormatContext* format;
 };

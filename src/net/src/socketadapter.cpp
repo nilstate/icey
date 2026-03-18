@@ -15,7 +15,6 @@
 #include <iterator>
 
 
-using std::endl;
 
 
 namespace scy {
@@ -59,7 +58,7 @@ ssize_t SocketAdapter::sendPacket(const IPacket& packet, int flags)
     // Try to cast as RawPacket so we can send without copying any data.
     auto raw = dynamic_cast<const RawPacket*>(&packet);
     if (raw)
-        return send((const char*)raw->data(), raw->size(), flags);
+        return send(reinterpret_cast<const char*>(raw->data()), raw->size(), flags);
 
     // Dynamically generated packets need to be written to a
     // temp buffer for sending.
@@ -76,7 +75,7 @@ ssize_t SocketAdapter::sendPacket(const IPacket& packet, const Address& peerAddr
     // Try to cast as RawPacket so we can send without copying any data.
     auto raw = dynamic_cast<const RawPacket*>(&packet);
     if (raw)
-        return send((const char*)raw->data(), raw->size(), peerAddress, flags);
+        return send(reinterpret_cast<const char*>(raw->data()), raw->size(), peerAddress, flags);
 
     // Dynamically generated packets need to be written to a
     // temp buffer for sending.

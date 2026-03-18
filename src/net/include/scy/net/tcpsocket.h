@@ -40,7 +40,7 @@ public:
     TCPSocket(TCPSocket&&) = delete;
     TCPSocket& operator=(TCPSocket&&) = delete;
 
-    [[nodiscard]] virtual bool shutdown();
+    [[nodiscard]] bool shutdown() override;
     virtual void close() override;
 
     virtual void connect(const net::Address& peerAddress) override;

@@ -118,7 +118,7 @@ struct PlanarVideoPacket : public VideoPacket
 
     virtual std::unique_ptr<IPacket> clone() const override { return std::make_unique<PlanarVideoPacket>(*this); }
 
-    virtual const char* className() const { return "PlanarVideoPacket"; }
+    const char* className() const override { return "PlanarVideoPacket"; }
 };
 
 

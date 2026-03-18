@@ -14,7 +14,6 @@
 #include <memory>
 
 
-using std::endl;
 
 
 namespace scy {

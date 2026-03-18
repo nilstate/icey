@@ -14,7 +14,6 @@
 #include "scy/platform.h"
 
 
-using std::endl;
 
 
 namespace scy {

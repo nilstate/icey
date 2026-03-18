@@ -24,7 +24,7 @@ namespace http {
 std::string parseURI(std::string_view request);
 
 /// Parses the URI against the expression.
-bool matchURL(const std::string& uri, const std::string& expression);
+bool matchURL(std::string_view uri, std::string_view expression);
 
 /// Parses an item from a HTTP cookie.
 std::string parseCookieItem(std::string_view cookie, std::string_view item);

@@ -18,7 +18,6 @@
 #include <openssl/hmac.h>
 
 
-using std::endl;
 using namespace scy;
 using namespace scy::test;
 
@@ -414,7 +413,7 @@ int main(int argc, char** argv)
         fs::addnode(certPath, "cert.pem");
 
         if (!fs::exists(certPath)) {
-            std::cout << "Skipping X509 file test - cert.pem not found at: " << certPath << std::endl;
+            std::cout << "Skipping X509 file test - cert.pem not found at: " << certPath << '\n';
             return;
         }
 
@@ -435,7 +434,7 @@ int main(int argc, char** argv)
         fs::addnode(certPath, "cert.pem");
 
         if (!fs::exists(certPath)) {
-            std::cout << "Skipping X509 buffer test - cert.pem not found" << std::endl;
+            std::cout << "Skipping X509 buffer test - cert.pem not found" << '\n';
             return;
         }
 
@@ -461,7 +460,7 @@ int main(int argc, char** argv)
         fs::addnode(certPath, "cert.pem");
 
         if (!fs::exists(certPath)) {
-            std::cout << "Skipping X509 copy test" << std::endl;
+            std::cout << "Skipping X509 copy test" << '\n';
             return;
         }
 
@@ -489,7 +488,7 @@ int main(int argc, char** argv)
         fs::addnode(certPath, "cert.pem");
 
         if (!fs::exists(certPath)) {
-            std::cout << "Skipping X509 save test" << std::endl;
+            std::cout << "Skipping X509 save test" << '\n';
             return;
         }
 
@@ -518,7 +517,7 @@ int main(int argc, char** argv)
         fs::addnode(certPath, "cert.pem");
 
         if (!fs::exists(certPath)) {
-            std::cout << "Skipping X509 extractNames test" << std::endl;
+            std::cout << "Skipping X509 extractNames test" << '\n';
             return;
         }
 
@@ -542,7 +541,7 @@ int main(int argc, char** argv)
         fs::addnode(certPath, "cert.pem");
 
         if (!fs::exists(certPath)) {
-            std::cout << "Skipping X509 validity test" << std::endl;
+            std::cout << "Skipping X509 validity test" << '\n';
             return;
         }
 

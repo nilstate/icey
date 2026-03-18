@@ -1,3 +1,5 @@
+#pragma once
+
 #include "scy/net/sslsocket.h"
 #include "scy/net/tcpsocket.h"
 

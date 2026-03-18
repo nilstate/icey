@@ -13,7 +13,6 @@
 
 #include <memory>
 
-using std::endl;
 
 
 namespace scy {
@@ -163,8 +162,7 @@ void DiagnosticManager::onDiagnosticStateChange(void* sender,
                                                 const DiagnosticState&)
 {
     auto test = reinterpret_cast<IDiagnostic*>(sender);
-    STrace << "Diagnostic state change: " << test->name << ": " << state
-           << endl;
+    STrace << "Diagnostic state change: " << test->name << ": " << state;
 
     if (test->complete() && allComplete())
         DiagnosticsComplete.emit(/*this*/);

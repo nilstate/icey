@@ -18,7 +18,6 @@
 #include "scy/logger.h"
 
 
-using std::endl;
 
 
 namespace scy {
@@ -236,7 +235,7 @@ bool AudioEncoder::encode(uint8_t* samples[4], const int numSamples, const int64
         }
 
         STrace << "Resampled audio packet: " << numSamples << " <=> "
-               << resampler->outNumSamples << endl;
+               << resampler->outNumSamples;
 
         // Add the converted input samples to the FIFO buffer.
         fifo.write((void**)resampler->outSamples, resampler->outNumSamples);
@@ -294,7 +293,7 @@ bool AudioEncoder::encode(AVFrame* iframe)
         STrace << "Audio frame encoded:\n"
                << "\n\tFrame PTS: " << (iframe ? iframe->pts : 0)
                << "\n\tPTS: " << opacket->pts << "\n\tDTS: " << opacket->dts
-               << "\n\tDuration: " << opacket->duration << endl;
+               << "\n\tDuration: " << opacket->duration;
 
         emitPacket(this, opacket);
         frameEncoded = true;

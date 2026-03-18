@@ -16,7 +16,6 @@
 #include "scy/logger.h"
 
 
-using std::endl;
 
 
 namespace scy {
@@ -231,7 +230,7 @@ bool VideoEncoder::encode(AVFrame* iframe)
             STrace << "Encoded frame:"
                    << "\n\tScaled PTS: " << opacket->pts
                    << "\n\tScaled DTS: " << opacket->dts
-                   << "\n\tDuration: " << opacket->duration << std::endl;
+                   << "\n\tDuration: " << opacket->duration;
         }
 
         emitPacket(this, opacket);

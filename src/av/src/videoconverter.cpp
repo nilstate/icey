@@ -16,7 +16,6 @@
 #include "scy/logger.h"
 
 
-using std::endl;
 
 
 namespace scy {
@@ -45,7 +44,7 @@ void VideoConverter::create()
            << "\n\tInput Pixel Format: " << iparams.pixelFmt
            << "\n\tOutput Width: " << oparams.width
            << "\n\tOutput Height: " << oparams.height
-           << "\n\tOutput Pixel Format: " << oparams.pixelFmt << endl;
+           << "\n\tOutput Pixel Format: " << oparams.pixelFmt;
     //#endif
 
     if (ctx)
@@ -87,7 +86,7 @@ AVFrame* VideoConverter::convert(AVFrame* iframe)
            << "\n\tOut Format: " << oparams.pixelFmt
            << "\n\tOut Size: " << oparams.width << "x" << oparams.height
            << "\n\tPTS: " << iframe->pts
-           << endl;
+;
 
     if (!iframe || !iframe->data[0])
         throw std::runtime_error("Invalid input frame for conversion");

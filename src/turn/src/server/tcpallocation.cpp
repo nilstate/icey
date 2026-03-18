@@ -85,7 +85,7 @@ void TCPAllocation::onPeerAccept(const net::TCPSocket::Ptr& socket)
     sendToControl(response);
 
     STrace << "Peer connection accepted with ID: " << pair->connectionID
-           << std::endl;
+          ;
 }
 
 

@@ -32,7 +32,7 @@ struct DiagnosticState : public State
         Failed
     };
 
-    std::string str(unsigned int id) const
+    std::string str(unsigned int id) const override
     {
         switch (id) {
             case None:
@@ -104,12 +104,12 @@ class /* SCY_EXTERN */ AsyncDiagnostic : public IDiagnostic
 public:
     virtual ~AsyncDiagnostic() {};
 
-    virtual void run() = 0;
+    void run() override = 0;
 
-    virtual void check() override
+    void check() override
     {
         reset();
-        _thread.start(std::bind(&AsyncDiagnostic::run, this));
+        _thread.start([this]() { run(); });
     };
 
 protected:

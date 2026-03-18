@@ -47,21 +47,21 @@ public:
     MediaCapture(MediaCapture&&) = delete;
     MediaCapture& operator=(MediaCapture&&) = delete;
 
-    virtual void openFile(const std::string& file);
+    void openFile(const std::string& file) override;
     // #ifdef HAVE_FFMPEG_AVDEVICE
     // virtual void openCamera(const std::string& device, int width = -1, int height = -1, double framerate = -1);
     // virtual void openMicrophone(const std::string& device, int channels = -1, int sampleRate = -1);
     // #endif
-    virtual void close();
+    void close() override;
 
     virtual void start() override;
     virtual void stop() override;
 
     virtual void run() override;
 
-    virtual void getEncoderFormat(Format& format);
-    virtual void getEncoderAudioCodec(AudioCodec& params);
-    virtual void getEncoderVideoCodec(VideoCodec& params);
+    void getEncoderFormat(Format& format) override;
+    void getEncoderAudioCodec(AudioCodec& params) override;
+    void getEncoderVideoCodec(VideoCodec& params) override;
 
     /// Continuously loop the input file when set.
     void setLoopInput(bool flag);
@@ -90,7 +90,7 @@ protected:
     /// @param filename      The file path or device name to open.
     /// @param inputFormat   The forced input format, or nullptr for auto-detect.
     /// @param formatParams  Optional format parameters; may be updated by FFmpeg on return.
-    virtual void openStream(const std::string& filename, const AVInputFormat* inputFormat, AVDictionary** formatParams);
+    void openStream(const std::string& filename, const AVInputFormat* inputFormat, AVDictionary** formatParams) override;
 
     void emit(IPacket& packet);
 

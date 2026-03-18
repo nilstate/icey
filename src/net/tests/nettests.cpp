@@ -15,7 +15,6 @@
 #include "clientsockettest.h"
 
 
-using std::endl;
 using namespace scy;
 using namespace scy::test;
 

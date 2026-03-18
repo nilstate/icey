@@ -219,7 +219,7 @@ void DailyTrigger::update()
     Poco::DateTimeFormat::ISO8601_FORMAT)
             << "\n\tScheduleTime: " << DateTimeFormatter::format(scheduleAt,
     Poco::DateTimeFormat::ISO8601_FORMAT)
-            << endl;
+;
             */
 }
 

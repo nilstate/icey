@@ -31,23 +31,23 @@ public:
     URL();
     URL(const char* url);
     URL(const std::string& url);
-    URL(std::string_view scheme, std::string_view authority);
-    URL(std::string_view scheme, std::string_view authority,
-        std::string_view pathEtc);
-    URL(std::string_view scheme, std::string_view authority,
-        std::string_view path, std::string_view query,
-        std::string_view fragment = "");
+    URL(const std::string& scheme, const std::string& authority);
+    URL(const std::string& scheme, const std::string& authority,
+        const std::string& pathEtc);
+    URL(const std::string& scheme, const std::string& authority,
+        const std::string& path, const std::string& query,
+        const std::string& fragment = "");
     URL(const URL&) = default;
     ~URL();
 
     URL& operator=(const URL& uri);
-    URL& operator=(const std::string& uri);
     URL& operator=(const char* uri);
+    URL& operator=(const std::string& uri);
 
     /// Parses and assigns an URI from the given std::string.
     /// Throws a SyntaxException if whiny is set and the
     /// given url is invalid.
-    bool parse(const std::string& url, bool whiny = true);
+    bool parse(std::string_view url, bool whiny = true);
 
     /// RFC 3986 based URL encoding based on JavaScript's
     /// encodeURIComponent()

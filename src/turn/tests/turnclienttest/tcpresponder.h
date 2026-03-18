@@ -1,7 +1,4 @@
-#ifndef TURN_TCPresponder_TEST_H
-#define TURN_TCPresponder_TEST_H
-
-
+#pragma once
 #include "scy/logger.h"
 #include "scy/net/tcpsocket.h"
 #include "scy/time.h"
@@ -98,4 +95,3 @@ public:
 } //  namespace scy
 
 
-#endif // TURN_TCPresponder_TEST_H

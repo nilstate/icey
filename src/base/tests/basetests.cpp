@@ -2,7 +2,6 @@
 
 using std::cerr;
 using std::cout;
-using std::endl;
 using namespace scy;
 using namespace scy::test;
 
@@ -30,7 +29,7 @@ int main(int argc, char** argv)
         std::cout << "signal class member benchmark: "
                   << ((benchdone - benchstart) * 1.0 / i) << "ns "
                   << "per emission (sz=" << sizeof(signal) << ")"
-                  << std::endl;
+                  << '\n';
     });
 
     describe("signal const class member benchmark", []() {
@@ -47,7 +46,7 @@ int main(int argc, char** argv)
 
         std::cout << "signal const class member benchmark: "
                   << ((benchdone - benchstart) * 1.0 / i) << "ns "
-                  << "per emission (sz=" << sizeof(signal) << ")" << std::endl;
+                  << "per emission (sz=" << sizeof(signal) << ")" << '\n';
     });
 
     describe("signal static member benchmark", []() {
@@ -64,7 +63,7 @@ int main(int argc, char** argv)
         std::cout << "signal static member benchmark: "
                   << ((benchdone - benchstart) * 1.0 / i) << "ns "
                   << "per emission (sz=" << sizeof(signal) << ")"
-                  << std::endl;
+                  << '\n';
     });
 
     describe("signal free function benchmark", []() {
@@ -81,7 +80,7 @@ int main(int argc, char** argv)
         std::cout << "signal free function benchmark: "
                   << ((benchdone - benchstart) * 1.0 / i) << "ns "
                   << "per emission (sz=" << sizeof(signal) << ")"
-                  << std::endl;
+                  << '\n';
     });
 
 
@@ -342,14 +341,14 @@ int main(int argc, char** argv)
         for (unsigned i = 0; i < 1000; i++)
             LTrace("sync log ", i);
         cout
-            << "logger: synchronous test completed after: " << (clock() - start) << "ms" << endl;
+            << "logger: synchronous test completed after: " << (clock() - start) << "ms" << '\n';
 
         // Test default synchronous var args writer
         start = clock();
         for (unsigned i = 0; i < 1000; i++)
             LTrace("sync log", i);
         cout
-            << "logger: synchronous var args test completed after: " << (clock() - start) << "ms" << endl;
+            << "logger: synchronous var args test completed after: " << (clock() - start) << "ms" << '\n';
 
         // Test asynchronous writer (approx 10x faster with console output)
         logger.setWriter(std::make_unique<AsyncLogWriter>());
@@ -357,7 +356,7 @@ int main(int argc, char** argv)
         for (unsigned i = 0; i < 1000; i++)
             LTrace("async log ", i);
         cout
-            << "logger: asynchronous test completed after: " << (clock() - start) << "ms" << endl;
+            << "logger: asynchronous test completed after: " << (clock() - start) << "ms" << '\n';
 
         //// Test function logging
         //start = clock();
@@ -404,7 +403,7 @@ int main(int argc, char** argv)
         // expect((util::Version("3") < util::Version("3.7.9")) == true);
         expect((util::Version("1.7.9") < util::Version("3.1")) == true);
 
-        cout << "Printing version (3.7.8.0): " << util::Version("3.7.8.0") << endl;
+        cout << "Printing version (3.7.8.0): " << util::Version("3.7.8.0") << '\n';
     });
 
 

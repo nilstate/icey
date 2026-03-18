@@ -114,7 +114,7 @@ public:
 
 #if ENABLE_AUTHENTICATION
         SDebug << "Generating HMAC: data=" << credentials
-               << ", key=" << request.hash << endl;
+               << ", key=" << request.hash;
 
         // Verify the message integrity HMAC against our computed key
         if (integrityAttr->verifyHmac(request.hash))

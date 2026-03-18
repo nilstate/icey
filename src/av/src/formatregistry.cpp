@@ -13,7 +13,6 @@
 
 #include <string_view>
 
-using std::endl;
 
 
 namespace scy {

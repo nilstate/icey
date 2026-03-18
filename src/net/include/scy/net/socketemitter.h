@@ -82,10 +82,10 @@ public:
 
 protected:
     /// Internal callback events.
-    virtual bool onSocketConnect(Socket& socket);
-    virtual bool onSocketRecv(Socket& socket, const MutableBuffer& buffer, const Address& peerAddress);
-    virtual bool onSocketError(Socket& socket, const scy::Error& error);
-    virtual bool onSocketClose(Socket& socket);
+    bool onSocketConnect(Socket& socket) override;
+    bool onSocketRecv(Socket& socket, const MutableBuffer& buffer, const Address& peerAddress) override;
+    bool onSocketError(Socket& socket, const scy::Error& error) override;
+    bool onSocketClose(Socket& socket) override;
 };
 
 

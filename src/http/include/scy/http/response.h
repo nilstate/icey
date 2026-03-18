@@ -131,10 +131,10 @@ public:
     void getCookies(std::vector<Cookie>& cookies) const;
 
     /// Writes the HTTP response headers to the given output stream.
-    void write(std::ostream& ostr) const override;
+    virtual void write(std::ostream& ostr) const;
 
     /// Writes the HTTP response headers to the given output string.
-    void write(std::string& str) const override;
+    virtual void write(std::string& str) const;
 
     /// Returns true if the HTTP response code was successful (< 400).
     [[nodiscard]] virtual bool success() const;

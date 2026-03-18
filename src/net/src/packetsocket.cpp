@@ -12,7 +12,6 @@
 #include "scy/net/packetsocket.h"
 
 
-using std::endl;
 
 
 namespace scy {

@@ -36,13 +36,13 @@ public:
     /// Asynchronous timer callback for updating the allocation
     /// permissions and state etc.
     /// If this call returns false the allocation will be deleted.
-    [[nodiscard]] virtual bool onTimer();
+    [[nodiscard]] bool onTimer();
 
-    [[nodiscard]] virtual std::int64_t timeRemaining() const;
-    [[nodiscard]] virtual std::int64_t maxTimeRemaining() const;
+    [[nodiscard]] std::int64_t timeRemaining() const override;
+    [[nodiscard]] std::int64_t maxTimeRemaining() const;
     virtual Server& server();
 
-    virtual void print(std::ostream& os) const;
+    void print(std::ostream& os) const override;
 
     /// Returns true if the refresh request set lifetime to 0,
     /// signaling the parent Server to delete this allocation.

@@ -62,7 +62,7 @@ protected:
         BaseQueue::pop();
 
         STrace << "Pop next: " << BaseQueue::size() << ": "
-               << realTime() << " > " << next->time << std::endl;
+               << realTime() << " > " << next->time;
         return next;
     }
 

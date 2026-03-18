@@ -87,7 +87,7 @@ public:
     }
 
     /// Start the idler with the given callback function.
-    virtual void start(std::function<void()> func);
+    void start(std::function<void()> func) override;
 
     virtual ~Idler() = default;
 
@@ -96,7 +96,7 @@ public:
 protected:
     virtual void init();
 
-    virtual bool async() const override;
+    bool async() const override;
 
     uv::Handle<uv_idle_t> _handle;
 };

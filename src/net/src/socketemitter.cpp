@@ -12,7 +12,6 @@
 #include "scy/net/socketemitter.h"
 
 
-using std::endl;
 
 
 namespace scy {

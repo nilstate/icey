@@ -83,10 +83,10 @@ public:
     //
     /// Connection interface
 
-    virtual void onHeaders();
-    virtual void onPayload(const MutableBuffer& buffer);
-    virtual void onComplete();
-    virtual void onClose();
+    void onHeaders() override;
+    void onPayload(const MutableBuffer& buffer) override;
+    void onComplete() override;
+    void onClose() override;
 
     //
     /// Status signals

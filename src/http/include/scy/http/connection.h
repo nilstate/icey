@@ -137,7 +137,7 @@ public:
     ///
     /// By default this function does nothing unless the given receiver
     /// matches the current receiver.
-    virtual void removeReceiver(SocketAdapter* adapter);
+    void removeReceiver(SocketAdapter* adapter) override;
 
     [[nodiscard]] Parser& parser();
     [[nodiscard]] Connection* connection();
@@ -148,14 +148,14 @@ public:
 
 protected:
     /// SocketAdapter interface
-    virtual bool onSocketRecv(net::Socket& socket, const MutableBuffer& buffer, const net::Address& peerAddress);
+    bool onSocketRecv(net::Socket& socket, const MutableBuffer& buffer, const net::Address& peerAddress) override;
 
     /// HTTP Parser interface
-    virtual void onParserHeader(const std::string& name, const std::string& value);
-    virtual void onParserHeadersEnd(bool upgrade);
-    virtual void onParserChunk(const char* buf, size_t len);
-    virtual void onParserError(const scy::Error& err);
-    virtual void onParserEnd();
+    void onParserHeader(const std::string& name, const std::string& value) override;
+    void onParserHeadersEnd(bool upgrade) override;
+    void onParserChunk(const char* buf, size_t len) override;
+    void onParserError(const scy::Error& err) override;
+    void onParserEnd() override;
 
     Connection* _connection;
     Parser _parser;
@@ -230,7 +230,7 @@ public:
     ProgressSignal OutgoingProgress; ///< Fired on upload progress
 
 protected:
-    virtual bool onSocketRecv(net::Socket& socket, const MutableBuffer& buffer, const net::Address& peerAddress);
+    bool onSocketRecv(net::Socket& socket, const MutableBuffer& buffer, const net::Address& peerAddress) override;
 
     Connection::Ptr _connection;
 };

@@ -22,7 +22,6 @@
 #include <thread>
 
 
-using std::endl;
 
 
 namespace scy {
@@ -183,7 +182,7 @@ void LogWriter::write(std::unique_ptr<LogStream> stream)
 
 AsyncLogWriter::AsyncLogWriter()
 {
-    _thread.start(std::bind(&AsyncLogWriter::run, this));
+    _thread.start([this]() { run(); });
 }
 
 
@@ -445,7 +444,7 @@ void FileChannel::write(const LogStream& stream)
 
     std::ostringstream ss;
     format(stream, ss);
-    _fstream << ss.str() << std::endl;
+    _fstream << ss.str() << '\n';
     _fstream.flush();
 
 #if defined(_CONSOLE) || defined(_DEBUG)

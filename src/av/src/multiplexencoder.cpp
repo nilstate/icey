@@ -17,7 +17,6 @@ extern "C" {
 #include "libavutil/time.h"
 }
 
-using std::endl;
 
 
 namespace scy {
@@ -71,7 +70,7 @@ void MultiplexEncoder::init()
     STrace << "Initialize:"
            << "\n\tInput Format: " << _options.iformat.toString()
            << "\n\tOutput Format: " << _options.oformat.toString()
-           << "\n\tDuration: " << _options.duration << endl;
+           << "\n\tDuration: " << _options.duration;
 
     try {
         _options.oformat.video.enabled = _options.iformat.video.enabled;
@@ -254,7 +253,7 @@ bool MultiplexEncoder::writeOutputPacket(AVPacket& packet)
            << "\n\tPTS: " << packet.pts
            << "\n\tDTS: " << packet.dts
            << "\n\tDuration: " << packet.duration
-           << endl;
+;
 
     // Write the encoded frame to the output file
     if (av_interleaved_write_frame(_formatCtx, &packet) != 0) {

@@ -7,10 +7,7 @@
 //
 
 
-#ifndef SCY_Base_Tests_H
-#define SCY_Base_Tests_H
-
-
+#pragma once
 #include "scy/application.h"
 #include "scy/base.h"
 #include "scy/base64.h"
@@ -43,7 +40,6 @@
 using scy::test::Test;
 using std::cerr;
 using std::cout;
-using std::endl;
 
 
 namespace scy {
@@ -66,15 +62,15 @@ class IpcTest : public Test
 
         ipc::SyncQueue<> ipc;
         ipc.push(new ipc::Action(
-            std::bind(&IpcTest::ipcCallback, this, std::placeholders::_1), &ipc, "test1"));
+            [this](const ipc::Action& a) { ipcCallback(a); }, &ipc, "test1"));
         ipc.push(new ipc::Action(
-            std::bind(&IpcTest::ipcCallback, this, std::placeholders::_1), &ipc, "test2"));
+            [this](const ipc::Action& a) { ipcCallback(a); }, &ipc, "test2"));
         ipc.push(new ipc::Action(
-            std::bind(&IpcTest::ipcCallback, this, std::placeholders::_1), &ipc, "test3"));
+            [this](const ipc::Action& a) { ipcCallback(a); }, &ipc, "test3"));
         ipc.push(new ipc::Action(
-            std::bind(&IpcTest::ipcCallback, this, std::placeholders::_1), &ipc, "test4"));
+            [this](const ipc::Action& a) { ipcCallback(a); }, &ipc, "test4"));
         ipc.push(new ipc::Action(
-            std::bind(&IpcTest::ipcCallback, this, std::placeholders::_1), &ipc, "test5"));
+            [this](const ipc::Action& a) { ipcCallback(a); }, &ipc, "test5"));
 
         // std::cout << "Test IPC: OK" << std::endl;
         uv::runLoop();
@@ -98,7 +94,7 @@ class TimerTest : public Test
 {
     void run()
     {
-        std::cout << "Starting" << std::endl;
+        std::cout << "Starting" << '\n';
 
         int numTimerTicks = 0;
         int wantTimerTicks = 10;
@@ -396,7 +392,7 @@ struct MockThreadedPacketSource : public PacketSource
 
     void start()
     {
-        std::cout << "Start" << std::endl;
+        std::cout << "Start" << '\n';
         runner.start([](void* arg) {
             auto self = reinterpret_cast<MockThreadedPacketSource*>(arg);
             // std::cout << "Emitting" << std::endl;
@@ -829,15 +825,12 @@ class PacketStreamOverflowTest : public Test
         expect(numReceived <= totalToSend);
 
         std::cout << "PacketStreamOverflow: sent=" << totalToSend
-                  << " received=" << numReceived << std::endl;
+                  << " received=" << numReceived << '\n';
     }
 };
 
 
 } // namespace scy
-
-
-#endif // SCY_Base_Tests_H
 
 
 /// @\}

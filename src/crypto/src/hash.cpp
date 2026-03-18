@@ -15,7 +15,6 @@
 #include <iostream>
 
 
-using std::endl;
 
 
 namespace scy {
@@ -85,11 +84,11 @@ const ByteVec& Hash::digest()
 std::string Hash::digestStr()
 {
     const ByteVec& vec = digest();
-    return std::string((const char*)vec.data(), vec.size());
+    return std::string(reinterpret_cast<const char*>(vec.data()), vec.size());
 }
 
 
-const std::string& Hash::algorithm(void) const
+const std::string& Hash::algorithm() const
 {
     return _algorithm;
 }

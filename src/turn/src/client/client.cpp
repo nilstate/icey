@@ -90,7 +90,7 @@ bool Client::onSocketConnect(net::Socket& socket)
     _socket.Connect -= slot(this, &Client::onSocketConnect);
 
     _timer.setInterval(_options.timerInterval);
-    _timer.start(std::bind(&Client::onTimer, this));
+    _timer.start([this]() { onTimer(); });
 
     sendAllocate();
     return false;
@@ -247,7 +247,7 @@ void Client::authenticateRequest(stun::Message& request)
                       _options.password);
         STrace << "Generating HMAC: data="
                << (_options.username + ":" + _realm + ":" + _options.password)
-               << ", key=" << engine.digestStr() << std::endl;
+               << ", key=" << engine.digestStr();
         auto integrityAttr = new stun::MessageIntegrity;
         integrityAttr->setKey(engine.digestStr());
         request.add(integrityAttr);
@@ -259,7 +259,7 @@ bool Client::sendAuthenticatedTransaction(stun::Transaction* transaction)
 {
     authenticateRequest(transaction->request());
     STrace << "Send authenticated transaction: "
-           << transaction->request().toString() << std::endl;
+           << transaction->request().toString();
     return transaction->send();
 }
 
@@ -381,7 +381,7 @@ void Client::handleAllocateResponse(const stun::Message& response)
     STrace << "Allocation created:"
            << "\n\tRelayed address: " << _relayedAddress
            << "\n\tMapped address: " << _mappedAddress
-           << "\n\tLifetime: " << lifetimeAttr->value() << std::endl;
+           << "\n\tLifetime: " << lifetimeAttr->value();
 
     // Once the allocation is created we transition to Authorizing while
     // peer permissions are created.
@@ -411,7 +411,7 @@ void Client::handleAllocateErrorResponse(const stun::Message& response)
     }
 
     STrace << "Allocation error response: " << errorAttr->errorCode() << ": "
-           << errorAttr->reason() << std::endl;
+           << errorAttr->reason();
 
     switch (errorAttr->errorCode()) {
         case kErrorTryAlternate:
@@ -668,12 +668,12 @@ void Client::onTransactionProgress(void* sender, TransactionState& state, const 
                    << "\n\tFrom: " << transaction->peerAddress().toString()
                    << "\n\tRequest: " << transaction->request().toString()
                    << "\n\tResponse: " << transaction->response().toString()
-                   << std::endl;
+                  ;
 
             if (removeTransaction(transaction)) {
                 if (!handleResponse(transaction->response())) {
                     STrace << "Unhandled STUN response: "
-                           << transaction->response().toString() << std::endl;
+                           << transaction->response().toString();
                 }
             }
         } break;
@@ -682,7 +682,7 @@ void Client::onTransactionProgress(void* sender, TransactionState& state, const 
             SWarn << "STUN transaction error:"
                   << "\n\tState: " << state.toString()
                   << "\n\tFrom: " << transaction->peerAddress().toString()
-                  << "\n\tData: " << transaction->response().toString() << std::endl;
+                  << "\n\tData: " << transaction->response().toString();
 
             if (removeTransaction(transaction)) {
                 setError("Transaction failed");

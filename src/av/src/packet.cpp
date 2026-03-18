@@ -19,7 +19,6 @@ extern "C" {
 }
 
 
-using std::endl;
 
 
 namespace scy {

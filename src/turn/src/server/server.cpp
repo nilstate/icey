@@ -18,7 +18,6 @@
 #include <stdexcept>
 
 
-using std::endl;
 using std::min;
 using namespace scy::net;
 
@@ -66,7 +65,7 @@ void Server::start()
     }
 
     _timer.setInterval(_options.timerInterval);
-    _timer.start(std::bind(&Server::onTimer, this));
+    _timer.start([this]() { onTimer(); });
 }
 
 
@@ -206,7 +205,7 @@ void Server::handleRequest(Request& request, AuthenticationState state)
 {
     STrace << "Received STUN request:\n"
            << "\tFrom: " << request.remoteAddress << "\n"
-           << "\tData: " << request.toString() << endl;
+           << "\tData: " << request.toString();
 
     switch (state) {
         case AuthenticationState::Authenticating:
@@ -273,7 +272,7 @@ void Server::handleConnectionBindRequest(Request& request)
     auto alloc = getTCPAllocation(connAttr->value());
     if (!alloc) {
         STrace << "ConnectionBind request has no allocation for: "
-               << connAttr->value() << endl;
+               << connAttr->value();
         respondError(request, kErrorBadRequest, "Bad Request");
         return;
     }
@@ -400,7 +399,7 @@ void Server::handleAllocateRequest(Request& request)
     STrace << "Allocate response: "
            << "XorRelayedAddress=" << relayAddrAttr->address()
            << ", XorMappedAddress=" << mappedAddressAttr->address()
-           << ", MessageIntegrity=" << request.hash << endl;
+           << ", MessageIntegrity=" << request.hash;
 
     respond(request, response);
 
@@ -525,7 +524,7 @@ void Server::addAllocation(std::unique_ptr<ServerAllocation> alloc)
         _allocations[raw->tuple()] = std::move(alloc);
 
         SDebug << "Allocation added: " << raw->tuple().toString() << ": "
-               << _allocations.size() << " total" << endl;
+               << _allocations.size() << " total";
     }
 
     _observer.onServerAllocationCreated(this, raw);
@@ -543,7 +542,7 @@ void Server::removeAllocation(ServerAllocation* alloc)
             _allocations.erase(it);
 
             SDebug << "Allocation removed: " << alloc->tuple().toString() << ": "
-                   << _allocations.size() << " remaining" << endl;
+                   << _allocations.size() << " remaining";
         }
         // If not found, the allocation was already removed from the map
         // (e.g., by onTimer or stop) before the destructor ran - this is normal.

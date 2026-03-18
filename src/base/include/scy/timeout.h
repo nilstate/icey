@@ -67,8 +67,8 @@ protected:
 class Base_API TimedToken : public Timeout
 {
 public:
-    TimedToken(long duration = 1000);
-    TimedToken(const std::string& id, long duration = 1000);
+    explicit TimedToken(long duration = 1000);
+    explicit TimedToken(const std::string& id, long duration = 1000);
 
     std::string id() const { return _id; }
 

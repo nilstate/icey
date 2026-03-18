@@ -13,6 +13,7 @@
 #include "scy/http/util.h"
 
 #include <stdexcept>
+#include <string_view>
 
 
 namespace scy {
@@ -154,8 +155,8 @@ void Request::getCredentials(std::string& scheme, std::string& authInfo) const
 }
 
 
-void Request::setCredentials(const std::string& scheme,
-                             const std::string& authInfo)
+void Request::setCredentials(std::string_view scheme,
+                             std::string_view authInfo)
 {
     setCredentials("Authorization", scheme, authInfo);
 }
@@ -174,8 +175,8 @@ void Request::getProxyCredentials(std::string& scheme,
 }
 
 
-void Request::setProxyCredentials(const std::string& scheme,
-                                  const std::string& authInfo)
+void Request::setProxyCredentials(std::string_view scheme,
+                                  std::string_view authInfo)
 {
     setCredentials("Proxy-Authorization", scheme, authInfo);
 }
@@ -231,8 +232,8 @@ void Request::getCredentials(const std::string& header, std::string& scheme,
 
 
 void Request::setCredentials(const std::string& header,
-                             const std::string& scheme,
-                             const std::string& authInfo)
+                             std::string_view scheme,
+                             std::string_view authInfo)
 {
     std::string auth(scheme);
     auth.append(" ");

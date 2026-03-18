@@ -110,7 +110,7 @@ public:
     virtual const char* className() const = 0;
     virtual void print(std::ostream& os) const
     {
-        os << className() << std::endl;
+        os << className() << '\n';
     }
 
     friend std::ostream& operator<<(std::ostream& stream, const IPacket& p)

@@ -21,7 +21,6 @@
 
 using std::cerr;
 using std::cout;
-using std::endl;
 
 
 namespace scy {
@@ -87,7 +86,7 @@ void expectImpl(bool passed, const char* assert, const char* file, long line)
         test->errors.push_back(ss.str());
     }
 
-    std::cout << ss.str() << std::endl;
+    std::cout << ss.str() << '\n';
 }
 
 
@@ -110,7 +109,7 @@ TestRunner::~TestRunner()
 
 void TestRunner::add(Test* test)
 {
-    cout << test->name << " added" << endl;
+    cout << test->name << " added" << '\n';
     std::lock_guard<std::mutex> guard(_mutex);
     _tests.push_back(test);
 }
@@ -169,7 +168,7 @@ Test* TestRunner::current() const
 
 void TestRunner::run()
 {
-    cout << "===============================================================" << endl;
+    cout << "===============================================================" << '\n';
     // cout << "running all tests" << endl;
 
     uint64_t start = time::hrtime();
@@ -181,30 +180,30 @@ void TestRunner::run()
             _current = test;
         }
         cout
-            << "---------------------------------------------------------------" << endl;
-        cout << _current->name << " starting" << endl;
+            << "---------------------------------------------------------------" << '\n';
+        cout << _current->name << " starting" << '\n';
         uint64_t test_start = time::hrtime();
         try {
             _current->run();
         } catch (std::exception& exc) {
             _current->errors.push_back(exc.what());
-            cout << "exception thrown: " << exc.what() << endl;
+            cout << "exception thrown: " << exc.what() << '\n';
         }
         _current->duration = (time::hrtime() - test_start) / 1e9;
-        cout << _current->name << " ended after " << _current->duration << " seconds" << endl;
+        cout << _current->name << " ended after " << _current->duration << " seconds" << '\n';
     }
 
     duration = (time::hrtime() - start) / 1e9;
 
-    cout << "---------------------------------------------------------------" << endl;
-    cout << "all tests completed after " << duration << " seconds" << endl;
+    cout << "---------------------------------------------------------------" << '\n';
+    cout << "all tests completed after " << duration << " seconds" << '\n';
     // cout << "summary: " << endl;
 
     for (auto* test : tests) {
         if (test->passed()) {
-            cout << test->name << " passed" << endl;
+            cout << test->name << " passed" << '\n';
         } else {
-            cout << test->name << " failed" << endl;
+            cout << test->name << " failed" << '\n';
         }
     }
 }

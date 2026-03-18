@@ -1,7 +1,4 @@
-#ifndef TURN_UDPresponder_TEST_H
-#define TURN_UDPresponder_TEST_H
-
-
+#pragma once
 #include "scy/logger.h"
 #include "scy/net/udpsocket.h"
 #include "scy/time.h"
@@ -110,4 +107,3 @@ public:
 } //  namespace scy
 
 
-#endif // TURN_UDPresponder_TEST_H

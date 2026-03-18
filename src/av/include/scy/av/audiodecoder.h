@@ -34,11 +34,11 @@ struct AudioDecoder : public AudioContext
 
     /// Decodes a the given input packet.
     /// Returns true an output packet was created, false otherwise.
-    [[nodiscard]] virtual bool decode(AVPacket& ipacket);
+    [[nodiscard]] bool decode(AVPacket& ipacket) override;
 
     /// Flushes buffered frames.
     /// This method should be called once after decoding.
-    virtual void flush();
+    void flush() override;
 };
 
 

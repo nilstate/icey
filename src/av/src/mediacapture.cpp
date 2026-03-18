@@ -23,7 +23,6 @@ extern "C" {
 }
 
 
-using std::endl;
 
 
 namespace scy {
@@ -124,7 +123,7 @@ void MediaCapture::start()
     if ((_video || _audio) && !_thread.running()) {
         LTrace("Initializing thread");
         _stopping = false;
-        _thread.start(std::bind(&MediaCapture::run, this));
+        _thread.start([this]() { run(); });
     }
 }
 
@@ -188,7 +187,7 @@ void MediaCapture::run()
         while ((res = av_read_frame(_formatCtx, ipacket)) >= 0) {
             STrace << "Read frame: "
                    << "pts=" << ipacket->pts << ", "
-                   << "dts=" << ipacket->dts << endl;
+                   << "dts=" << ipacket->dts;
 
             if (_stopping)
                 break;
@@ -209,7 +208,7 @@ void MediaCapture::run()
                 if (_video->decode(*ipacket)) {
                     STrace << "Decoded video: "
                            << "time=" << _video->time << ", "
-                           << "pts=" << _video->pts << endl;
+                           << "pts=" << _video->pts;
                 }
 
                 // Pause the input stream in rate limited mode if the
@@ -232,7 +231,7 @@ void MediaCapture::run()
                 if (_audio->decode(*ipacket)) {
                     STrace << "Decoded Audio: "
                            << "time=" << _audio->time << ", "
-                           << "pts=" << _audio->pts << endl;
+                           << "pts=" << _audio->pts;
                 }
             }
 

@@ -54,9 +54,9 @@ public:
     PacketSignal emitter;
 
 protected:
-    virtual void dispatch(T& packet);
+    void dispatch(T& packet) override;
 
-    virtual void onStreamStateChange(const PacketStreamState&);
+    void onStreamStateChange(const PacketStreamState&) override;
 };
 
 
@@ -136,15 +136,15 @@ public:
 
     virtual void close();
 
-    virtual void process(IPacket& packet) override;
-    virtual bool accepts(IPacket* packet) override;
+    void process(IPacket& packet) override;
+    bool accepts(IPacket* packet) override;
 
     PacketSignal emitter;
 
 protected:
-    virtual void dispatch(T& packet);
+    void dispatch(T& packet) override;
 
-    virtual void onStreamStateChange(const PacketStreamState&);
+    void onStreamStateChange(const PacketStreamState&) override;
 };
 
 

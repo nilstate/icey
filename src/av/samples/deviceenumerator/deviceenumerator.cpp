@@ -35,11 +35,11 @@ int main(int argc, char** argv)
         // List FFmpeg demuxers (input) and muxers (output) compiled into this build
         std::cout << "Input formats:\n\t";
         av::printInputFormats(std::cout);
-        std::cout << std::endl;
+        std::cout << '\n';
 
         std::cout << "Output formats:\n\t";
         av::printOutputFormats(std::cout);
-        std::cout << std::endl;
+        std::cout << '\n';
     }
     Logger::destroy();
     return 0;

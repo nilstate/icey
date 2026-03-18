@@ -115,12 +115,11 @@ inline bool findNestedObjectWithProperty(
     std::string_view value, bool partial = true, int index = 0)
 {
     if (root.is_object()) {
-        for (auto it = root.begin(); it != root.end(); ++it) {
-            json::Value& test = it.value();
+        for (auto& [k, test] : root.items()) {
             if (test.is_null())
                 continue;
             else if (test.is_string() &&
-                     (key.empty() || it.key() == key) &&
+                     (key.empty() || k == key) &&
                      (value.empty() ||
                       (!partial ? test.get<std::string>() == value
                                 : test.get<std::string>().find(value) != std::string::npos))) {
@@ -130,7 +129,7 @@ inline bool findNestedObjectWithProperty(
                 } else
                     index--;
             } else if ((test.is_object() || test.is_array()) &&
-                       findNestedObjectWithProperty(it.value(),
+                       findNestedObjectWithProperty(test,
                                                     result, key, value, partial,
                                                     index))
                 return true;

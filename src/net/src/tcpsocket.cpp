@@ -13,7 +13,6 @@
 #include "scy/logger.h"
 
 
-using std::endl;
 
 
 namespace scy {

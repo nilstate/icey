@@ -130,10 +130,10 @@ protected:
     virtual void onHandshake(sockio::Packet& packet);
     virtual void onMessage(sockio::Packet& packet);
 
-    virtual bool onSocketConnect(net::Socket& socket);
-    virtual bool onSocketRecv(net::Socket& socket, const MutableBuffer& buffer, const net::Address& peerAddress);
-    virtual bool onSocketError(net::Socket& socket, const scy::Error& error);
-    virtual bool onSocketClose(net::Socket& socket);
+    bool onSocketConnect(net::Socket& socket) override;
+    bool onSocketRecv(net::Socket& socket, const MutableBuffer& buffer, const net::Address& peerAddress) override;
+    bool onSocketError(net::Socket& socket, const scy::Error& error) override;
+    bool onSocketClose(net::Socket& socket) override;
 
     /// Send the Socket.IO CONNECT packet for the default namespace.
     virtual void sendConnect();

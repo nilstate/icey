@@ -102,9 +102,9 @@ public:
 
     net::TransportType transport() const override;
 
-    virtual void acceptConnection() override;
+    virtual void acceptConnection();
 
-    virtual void onConnect() override;
+    virtual void onConnect();
 
     /// Reads raw encrypted SSL data
     virtual void onRead(const char* data, size_t len) override;

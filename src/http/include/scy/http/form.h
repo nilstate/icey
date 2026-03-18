@@ -255,13 +255,13 @@ public:
 
     /// Writes a form data chunk to the given HTTP client connection.
     /// Returns true if there is more data to be written.
-    virtual bool writeChunk(FormWriter& writer);
+    bool writeChunk(FormWriter& writer) override;
 
     /// Writes the form data to the given HTTP client connection.
-    virtual void write(FormWriter& writer);
+    void write(FormWriter& writer) override;
 
     /// Writes the form data to the given output stream.
-    virtual void write(std::ostream& ostr);
+    void write(std::ostream& ostr) override;
 
     /// Returns the filename portion of the path.
     [[nodiscard]] const std::string& filename() const;
@@ -270,7 +270,7 @@ public:
     [[nodiscard]] std::ifstream& stream();
 
     /// Returns the length of the current part.
-    [[nodiscard]] virtual uint64_t length() const;
+    [[nodiscard]] uint64_t length() const override;
 
 protected:
     std::string _path;
@@ -300,16 +300,16 @@ public:
 
     /// Writes a form data chunk to the given HTTP client connection.
     /// Returns true if there is more data to be written.
-    virtual bool writeChunk(FormWriter& writer);
+    bool writeChunk(FormWriter& writer) override;
 
     /// Writes the form data to the given HTTP client connection.
-    virtual void write(FormWriter& writer);
+    void write(FormWriter& writer) override;
 
     /// Writes the form data to the given output stream.
-    virtual void write(std::ostream& ostr);
+    void write(std::ostream& ostr) override;
 
     /// Returns the length of the current part.
-    [[nodiscard]] virtual uint64_t length() const;
+    [[nodiscard]] uint64_t length() const override;
 
 protected:
     std::string _data;

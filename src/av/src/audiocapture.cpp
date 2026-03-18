@@ -21,7 +21,6 @@ extern "C" {
 }
 
 
-using std::endl;
 
 
 namespace scy {
@@ -62,7 +61,7 @@ void AudioCapture::openAudio(const std::string& device, int channels, int sample
            << "device=" << device << ", "
            << "channels=" << channels << ", "
            << "sampleRate=" << sampleRate << ", "
-           << "sampleFmt=" << sampleFmt << endl;
+           << "sampleFmt=" << sampleFmt;
 
     DeviceManager devman;
     auto iformat = devman.findAudioInputFormat();

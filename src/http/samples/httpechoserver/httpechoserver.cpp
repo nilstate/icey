@@ -20,7 +20,7 @@ int main(int argc, char** argv)
 #endif
 
     if (argc < 3) {
-        std::cerr << "Usage: " << argv[0] << " <key.pem> <cert.pem>" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " <key.pem> <cert.pem>" << '\n';
         return 1;
     }
 

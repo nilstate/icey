@@ -403,11 +403,11 @@ public:
 
     /// Append bytes to the buffer.
     /// Throws a `std::out_of_range` exception if reading past the limit.
-    virtual void put(const char* val, size_t len);
+    void put(const char* val, size_t len) override;
 
     /// Update a byte range.
     /// Throws a `std::out_of_range` exception if reading past the limit.
-    virtual bool update(const char* val, size_t len, size_t pos);
+    bool update(const char* val, size_t len, size_t pos) override;
 
 protected:
     Buffer& _buffer;

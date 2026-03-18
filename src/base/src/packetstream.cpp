@@ -13,7 +13,6 @@
 #include "scy/packetqueue.h"
 
 
-using std::endl;
 
 
 namespace scy {
@@ -279,7 +278,7 @@ void PacketStream::synchronizeStates()
 void PacketStream::process(IPacket& packet)
 {
     STrace << "Processing packet: " << state() << ": "
-           << packet.className() << endl;
+           << packet.className();
     // assert(Thread::currentID() == _runner->tid());
 
     try {
@@ -322,7 +321,7 @@ void PacketStream::process(IPacket& packet)
                 // Proxy packets which are rejected by the first processor
                 else {
                     SWarn << "Source packet rejected: " << firstProc
-                          << ": " << packet.className() << endl;
+                          << ": " << packet.className();
                     firstProc = nullptr;
                 }
             }
@@ -332,7 +331,7 @@ void PacketStream::process(IPacket& packet)
         // Note: synchronizeOutput is not applied here (packets bypass sync queue).
         if (!firstProc) {
             STrace << "Proxying packet: " << state() << ": "
-                   << packet.className() << endl;
+                   << packet.className();
             emit(packet);
         }
 

@@ -46,30 +46,30 @@ URL::URL(const std::string& url)
 }
 
 
-URL::URL(std::string_view scheme, std::string_view authority)
+URL::URL(const std::string& scheme, const std::string& authority)
     : _port(0)
     , _hasPort(false)
 {
-    parse(std::string(scheme) + "://" + std::string(authority));
+    parse(scheme + "://" + authority);
 }
 
 
-URL::URL(std::string_view scheme, std::string_view authority,
-         std::string_view pathEtc)
+URL::URL(const std::string& scheme, const std::string& authority,
+         const std::string& pathEtc)
     : _port(0)
     , _hasPort(false)
 {
-    parse(std::string(scheme) + "://" + std::string(authority) + std::string(pathEtc));
+    parse(scheme + "://" + authority + pathEtc);
 }
 
 
-URL::URL(std::string_view scheme, std::string_view authority,
-         std::string_view path, std::string_view query,
-         std::string_view fragment)
+URL::URL(const std::string& scheme, const std::string& authority,
+         const std::string& path, const std::string& query,
+         const std::string& fragment)
     : _port(0)
     , _hasPort(false)
 {
-    parse(std::string(scheme) + "://" + std::string(authority) + std::string(path) + "?" + std::string(query) + "#" + std::string(fragment));
+    parse(scheme + "://" + authority + path + "?" + query + "#" + fragment);
 }
 
 
@@ -86,13 +86,6 @@ URL& URL::operator=(const URL& uri)
 }
 
 
-URL& URL::operator=(const std::string& uri)
-{
-    parse(uri);
-    return *this;
-}
-
-
 URL& URL::operator=(const char* uri)
 {
     parse(uri);
@@ -100,10 +93,18 @@ URL& URL::operator=(const char* uri)
 }
 
 
-bool URL::parse(const std::string& url, bool whiny)
+URL& URL::operator=(const std::string& uri)
+{
+    parse(uri);
+    return *this;
+}
+
+
+bool URL::parse(std::string_view url, bool whiny)
 {
     LTrace("Parsing: ", url);
-    std::string src(util::trim(url));
+    std::string src(url);
+    util::trimInPlace(src);
     _buf = src;
     _scheme.clear();
     _userInfo.clear();

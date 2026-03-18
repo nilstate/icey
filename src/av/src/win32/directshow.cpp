@@ -20,7 +20,6 @@
 #include <windows.h>
 
 
-using std::endl;
 
 
 namespace scy {

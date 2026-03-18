@@ -23,6 +23,7 @@
 #include <mutex>
 #include <shared_mutex>
 #include <stdexcept>
+#include <string_view>
 #include <vector>
 
 
@@ -394,7 +395,7 @@ public:
     /// Returns the value of the (first) name-value pair with the given name.
     ///
     /// Throws a NotFoundException if the name-value pair does not exist.
-    const std::string& operator[](const std::string& name) const;
+    const std::string& operator[](std::string_view name) const;
 
     /// Sets the value of the (first) name-value pair with the given name.
     void set(const std::string& name, const std::string& value);
@@ -408,20 +409,20 @@ public:
     /// Returns the value of the first name-value pair with the given name.
     ///
     /// Throws a NotFoundException if the name-value pair does not exist.
-    const std::string& get(const std::string& name) const;
+    const std::string& get(std::string_view name) const;
 
     /// Returns the value of the first name-value pair with the given name.
     /// If no value with the given name has been found, the defaultValue is
     /// returned.
-    const std::string& get(const std::string& name, const std::string& defaultValue) const;
+    const std::string& get(std::string_view name, const std::string& defaultValue) const;
 
     /// Returns true if there is at least one name-value pair
     /// with the given name.
-    bool has(const std::string& name) const;
+    bool has(std::string_view name) const;
 
     /// Returns an iterator pointing to the first name-value pair
     /// with the given name.
-    ConstIterator find(const std::string& name) const;
+    ConstIterator find(std::string_view name) const;
 
     /// Returns an iterator pointing to the begin of
     /// the name-value pair collection.
@@ -439,7 +440,7 @@ public:
     int size() const;
 
     /// Removes all name-value pairs with the given name.
-    void erase(const std::string& name);
+    void erase(std::string_view name);
 
     /// Removes all name-value pairs and their values.
     void clear();

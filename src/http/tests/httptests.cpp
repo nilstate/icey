@@ -7,7 +7,6 @@
 
 #include <cstring>
 
-using std::endl;
 using namespace scy;
 using namespace scy::test;
 
@@ -298,8 +297,8 @@ int main(int argc, char** argv)
         auto url = http::URL("https://google.com");
         auto conn = http::Client::instance().createConnection(url);
         conn->Headers += [&](http::Response& response) {
-            std::cout << "On request headers: " << conn->request() << endl;
-            std::cout << "On response headers: " << response << endl;
+            std::cout << "On request headers: " << conn->request() << '\n';
+            std::cout << "On response headers: " << response << '\n';
         };
         conn->Payload += [&](const MutableBuffer& buffer) {
             // std::cout << "On payload: " << buffer.size() << ": " << buffer.str() << endl;
@@ -746,7 +745,7 @@ int main(int argc, char** argv)
         http::ws::WebSocketFramer framer(http::ws::ServerSide);
         wsFramerTestAccess(framer, 2);
 
-        const char binaryData[] = {0x00, 0x01, 0x02, (char)0xFF, (char)0xFE};
+        const char binaryData[] = {0x00, 0x01, 0x02, static_cast<char>(0xFF), static_cast<char>(0xFE)};
 
         Buffer frameBuf;
         frameBuf.reserve(sizeof(binaryData) + 14);

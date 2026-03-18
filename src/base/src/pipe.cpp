@@ -12,7 +12,6 @@
 #include "scy/pipe.h"
 
 
-using std::endl;
 
 
 namespace scy {

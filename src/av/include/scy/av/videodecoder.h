@@ -37,12 +37,12 @@ struct VideoDecoder : public VideoContext
     /// Input packets should use the raw `AVStream` time base. Time base
     /// conversion will happen internally.
     /// Returns true an output packet was was decoded, false otherwise.
-    [[nodiscard]] virtual bool decode(AVPacket& ipacket);
+    [[nodiscard]] bool decode(AVPacket& ipacket) override;
 
     /// Flushes buffered frames.
     /// This method should be called after decoding
     /// until false is returned.
-    virtual void flush();
+    void flush() override;
 };
 
 

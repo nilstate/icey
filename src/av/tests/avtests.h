@@ -7,10 +7,7 @@
 //
 
 
-#ifndef SCY_AV_Tests_H
-#define SCY_AV_Tests_H
-
-
+#pragma once
 #include "scy/av/audiobuffer.h"
 #include "scy/av/audiocapture.h"
 #include "scy/av/audiodecoder.h"
@@ -45,7 +42,6 @@ extern "C" {
 using scy::test::Test;
 using std::cerr;
 using std::cout;
-using std::endl;
 
 
 namespace scy {
@@ -287,7 +283,7 @@ class MultiplexCaptureEncoderTest : public Test
 
         // Skip test if no devices are available
         if (!options.iformat.audio.enabled && !options.iformat.video.enabled) {
-            std::cout << "no camera or microphone available, skipping..." << endl;
+            std::cout << "no camera or microphone available, skipping..." << '\n';
             return;
         }
 
@@ -510,7 +506,7 @@ class AudioCaptureTest : public Test
         av::Device device;
         av::DeviceManager devman;
         if (!devman.getDefaultMicrophone(device)) {
-            std::cout << "no microphone available, skipping..." << endl;
+            std::cout << "no microphone available, skipping..." << '\n';
             return;
         }
 
@@ -538,7 +534,7 @@ class AudioCaptureTest : public Test
     void onAudioCaptured(av::AudioPacket& packet)
     {
         STrace << "On audio packet: samples=" << packet.numSamples
-               << ", time=" << packet.time << endl;
+               << ", time=" << packet.time;
         if (numFramesRemaining) {
             numFramesRemaining--;
             output.write(reinterpret_cast<const char*>(packet.data()), packet.size());
@@ -566,7 +562,7 @@ class AudioCaptureEncoderTest : public Test
         av::Device device;
         av::DeviceManager devman;
         if (!devman.getDefaultMicrophone(device)) {
-            std::cout << "no microphone available, skipping..." << endl;
+            std::cout << "no microphone available, skipping..." << '\n';
             return;
         }
 
@@ -634,7 +630,7 @@ class AudioCaptureEncoderTest : public Test
     void onAudioCaptured(av::AudioPacket& packet)
     {
         STrace << "On audio packet: samples=" << packet.numSamples
-               << ", time=" << packet.time << endl;
+               << ", time=" << packet.time;
         encoder.encode(reinterpret_cast<uint8_t*>(packet.data()), packet.numSamples, AV_NOPTS_VALUE);
     }
 
@@ -673,7 +669,7 @@ class AudioCaptureResamplerTest : public Test
         av::Device device;
         av::DeviceManager devman;
         if (!devman.getDefaultMicrophone(device)) {
-            std::cout << "no microphone available, skipping..." << endl;
+            std::cout << "no microphone available, skipping..." << '\n';
             return;
         }
 
@@ -2017,12 +2013,12 @@ class VideoDecoderTest : public Test
         // Open the file and find the video stream
         AVFormatContext* formatCtx = nullptr;
         if (avformat_open_input(&formatCtx, inputFile.c_str(), nullptr, nullptr) < 0) {
-            std::cout << "Cannot open " << inputFile << ", skipping..." << endl;
+            std::cout << "Cannot open " << inputFile << ", skipping..." << '\n';
             return;
         }
         if (avformat_find_stream_info(formatCtx, nullptr) < 0) {
             avformat_close_input(&formatCtx);
-            std::cout << "Cannot find stream info, skipping..." << endl;
+            std::cout << "Cannot find stream info, skipping..." << '\n';
             return;
         }
 
@@ -2090,12 +2086,12 @@ class AudioDecoderTest : public Test
         // Open the file and find the audio stream
         AVFormatContext* formatCtx = nullptr;
         if (avformat_open_input(&formatCtx, inputFile.c_str(), nullptr, nullptr) < 0) {
-            std::cout << "Cannot open " << inputFile << ", skipping..." << endl;
+            std::cout << "Cannot open " << inputFile << ", skipping..." << '\n';
             return;
         }
         if (avformat_find_stream_info(formatCtx, nullptr) < 0) {
             avformat_close_input(&formatCtx);
-            std::cout << "Cannot find stream info, skipping..." << endl;
+            std::cout << "Cannot find stream info, skipping..." << '\n';
             return;
         }
 
@@ -2110,7 +2106,7 @@ class AudioDecoderTest : public Test
 
         if (!audioStream) {
             avformat_close_input(&formatCtx);
-            std::cout << "No audio stream in test file, skipping..." << endl;
+            std::cout << "No audio stream in test file, skipping..." << '\n';
             return;
         }
 
@@ -2151,9 +2147,6 @@ class AudioDecoderTest : public Test
 
 
 } // namespace scy
-
-
-#endif // SCY_AV_Tests_H
 
 
 /// @\}

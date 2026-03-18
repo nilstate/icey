@@ -15,6 +15,7 @@
 #include "scy/http/message.h"
 
 #include <sstream>
+#include <string_view>
 
 
 namespace scy {
@@ -111,7 +112,7 @@ public:
 
     /// Sets the authentication scheme and information for
     /// this request.
-    void setCredentials(const std::string& scheme, const std::string& authInfo);
+    void setCredentials(std::string_view scheme, std::string_view authInfo);
 
     /// Returns true if the request contains proxy authentication
     /// information in the form of an Proxy-Authorization header.
@@ -126,14 +127,14 @@ public:
     void getProxyCredentials(std::string& scheme, std::string& authInfo) const;
 
     /// Sets the proxy authentication scheme and information for this request.
-    void setProxyCredentials(const std::string& scheme,
-                             const std::string& authInfo);
+    void setProxyCredentials(std::string_view scheme,
+                             std::string_view authInfo);
 
     /// Writes the HTTP request to the given output stream.
-    void write(std::ostream& ostr) const override;
+    virtual void write(std::ostream& ostr) const;
 
     /// Writes the HTTP request to the given output string.
-    void write(std::string& str) const override;
+    virtual void write(std::string& str) const;
 
     friend std::ostream& operator<<(std::ostream& stream, const Request& req)
     {
@@ -151,7 +152,7 @@ protected:
 
     /// Writes the authentication scheme and information for
     /// this request to the given header.
-    void setCredentials(const std::string& header, const std::string& scheme, const std::string& authInfo);
+    void setCredentials(const std::string& header, std::string_view scheme, std::string_view authInfo);
 
 private:
     std::string _method;

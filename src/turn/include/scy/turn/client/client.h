@@ -138,7 +138,7 @@ public:
 
     /// Peer permissions should be added/created before we kick
     /// off the allocation sequence, but may be added later.
-    virtual void addPermission(const std::string& ip);
+    void addPermission(const std::string& ip) override;
 
     /// Sends a CreatePermission request including all hosts
     // added via addPermission();
@@ -188,7 +188,7 @@ protected:
     virtual bool onSocketRecv(net::Socket& socket, const MutableBuffer& buffer, const net::Address& peerAddress);
     virtual bool onSocketClose(net::Socket& socket);
     virtual void onTransactionProgress(void* sender, TransactionState& state, const TransactionState&);
-    virtual void onStateChange(ClientState& state, const ClientState& oldState);
+    void onStateChange(ClientState& state, const ClientState& oldState) override;
     virtual void onTimer();
 
 protected:

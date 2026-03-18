@@ -53,13 +53,13 @@ public:
     TCPClient(TCPClientObserver& observer, const Client::Options& options = Client::Options());
     virtual ~TCPClient();
 
-    virtual void initiate();
-    virtual void shutdown();
+    void initiate() override;
+    void shutdown() override;
 
     virtual void sendConnectRequest(const net::Address& peerAddress);
-    virtual void sendData(const char* data, size_t size, const net::Address& peerAddress);
+    void sendData(const char* data, size_t size, const net::Address& peerAddress) override;
 
-    virtual bool handleResponse(const stun::Message& response);
+    bool handleResponse(const stun::Message& response) override;
     virtual void handleConnectResponse(const stun::Message& response);
     virtual void handleConnectErrorResponse(const stun::Message& response);
     virtual void handleConnectionBindResponse(const stun::Message& response);
@@ -76,7 +76,7 @@ public:
 
     void freeConnection(const net::Address& peerAddress);
 
-    virtual int transportProtocol();
+    int transportProtocol() override;
     ConnectionManager& connections();
 
     virtual const char* className() const { return "TURNTCPClient"; };

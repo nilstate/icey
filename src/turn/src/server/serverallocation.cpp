@@ -162,7 +162,7 @@ void ServerAllocation::print(std::ostream& os) const
        << "\n\tTime Remaining=" << timeRemaining()
        << "\n\tMax Time Remaining=" << maxTimeRemaining()
        << "\n\tDeletable=" << IAllocation::deleted()
-       << "\n\tExpired=" << expired() << "]" << std::endl;
+       << "\n\tExpired=" << expired() << "]" << '\n';
 }
 
 

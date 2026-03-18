@@ -160,8 +160,7 @@ public:
     /// Called asynchronously to dispatch queued items.
     /// If not timeout is set this method blocks until cancel() is called,
     /// otherwise runTimeout() will be called.
-    /// Pseudo protected for std::bind compatability.
-    virtual void run()
+    void run() override
     {
         if (_timeout) {
             runTimeout();
@@ -261,7 +260,7 @@ public:
 
     SyncQueue(uv::Loop* loop, int limit = 2048, int timeout = 20)
         : Queue(limit, timeout)
-        , _sync(std::bind(&SyncQueue::run, this), loop)
+        , _sync([this]() { this->run(); }, loop)
     {
     }
 
@@ -273,7 +272,7 @@ public:
 
     /// Pushes an item onto the queue.
     /// Item pointers are now managed by the SyncQueue.
-    virtual void push(T* item)
+    void push(T* item) override
     {
         Queue::push(item);
         _sync.post();
@@ -316,7 +315,7 @@ public:
 
     AsyncQueue(int limit = 2048)
         : Queue(limit)
-        , _thread(std::bind(&Queue::run, this))
+        , _thread([this]() { this->run(); })
     {
     }
 

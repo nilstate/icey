@@ -39,12 +39,12 @@ int main(int argc, char** argv)
     auto conn = http::createConnectionT<http::ClientConnection>(http::URL(url));
 
     conn->Headers += [](http::Response& res) {
-        std::cout << "Status: " << static_cast<int>(res.getStatus()) << " " << res.getReason() << std::endl;
-        std::cout << "Headers:" << std::endl;
+        std::cout << "Status: " << static_cast<int>(res.getStatus()) << " " << res.getReason() << '\n';
+        std::cout << "Headers:" << '\n';
         for (const auto& [name, value] : res) {
-            std::cout << "  " << name << ": " << value << std::endl;
+            std::cout << "  " << name << ": " << value << '\n';
         }
-        std::cout << std::endl;
+        std::cout << '\n';
     };
 
     conn->Payload += [](const MutableBuffer& buf) {
@@ -52,8 +52,8 @@ int main(int argc, char** argv)
     };
 
     conn->Complete += [](const http::Response& res) {
-        std::cout << std::endl;
-        std::cout << "Request complete." << std::endl;
+        std::cout << '\n';
+        std::cout << "Request complete." << '\n';
     };
 
     conn->Close += [](http::Connection& conn) {
@@ -64,7 +64,7 @@ int main(int argc, char** argv)
     // Send the GET request
     conn->send();
 
-    std::cout << "GET " << url << std::endl;
+    std::cout << "GET " << url << '\n';
 
     // Run the event loop until the request completes
     uv_run(uv::defaultLoop(), UV_RUN_DEFAULT);
