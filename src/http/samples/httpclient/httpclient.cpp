@@ -39,7 +39,7 @@ int main(int argc, char** argv)
     auto conn = http::createConnectionT<http::ClientConnection>(URL(url));
 
     conn->Headers += [](http::Response& res) {
-        std::cout << "Status: " << res.getStatus() << " " << res.getReason() << std::endl;
+        std::cout << "Status: " << static_cast<int>(res.getStatus()) << " " << res.getReason() << std::endl;
         std::cout << "Headers:" << std::endl;
         for (const auto& [name, value] : res) {
             std::cout << "  " << name << ": " << value << std::endl;

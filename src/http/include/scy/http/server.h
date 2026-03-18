@@ -21,6 +21,7 @@
 #include "scy/timer.h"
 #include <ctime>
 #include <memory>
+#include <unordered_map>
 
 
 namespace scy {
@@ -42,8 +43,8 @@ public:
 
     [[nodiscard]] Server& server();
 
-    Signal<void(ServerConnection&, const MutableBuffer&)> Payload; ///< Signals when raw data is received
-    Signal<void(ServerConnection&)> Close;                         ///< Signals when the connection is closed
+    LocalSignal<void(ServerConnection&, const MutableBuffer&)> Payload; ///< Signals when raw data is received
+    LocalSignal<void(ServerConnection&)> Close;                         ///< Signals when the connection is closed
 
 protected:
     virtual void onHeaders() override;
@@ -165,10 +166,10 @@ public:
 
     /// Signals when a new connection has been created.
     /// A reference to the new connection object is provided.
-    Signal<void(ServerConnection::Ptr)> Connection;
+    LocalSignal<void(ServerConnection::Ptr)> Connection;
 
     /// Signals when the server is shutting down.
-    NullSignal Shutdown;
+    LocalSignal<void()> Shutdown;
 
 protected:
     std::unique_ptr<ServerResponder> createResponder(ServerConnection& conn);
@@ -184,7 +185,7 @@ protected:
     net::TCPSocket::Ptr _socket;
     Timer _timer;
     std::unique_ptr<ServerConnectionFactory> _factory;
-    std::vector<ServerConnection::Ptr> _connections;
+    std::unordered_map<ServerConnection*, ServerConnection::Ptr> _connections;
     bool _reusePort{false};
 
     friend class ServerConnection;

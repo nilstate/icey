@@ -59,6 +59,12 @@ void NVCollection::add(const std::string& name, const std::string& value)
 }
 
 
+void NVCollection::add(std::string&& name, std::string&& value)
+{
+    _map.emplace(std::move(name), std::move(value));
+}
+
+
 const std::string& NVCollection::get(const std::string& name) const
 {
     ConstIterator it = _map.find(name);

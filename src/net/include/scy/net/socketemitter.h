@@ -41,18 +41,18 @@ public:
     virtual ~SocketEmitter() noexcept;
 
     /// Signals that the socket is connected.
-    Signal<bool(Socket&)> Connect;
+    LocalSignal<bool(Socket&)> Connect;
 
     /// Signals when data is received by the socket.
-    Signal<bool(Socket&, const MutableBuffer&, const Address&)> Recv;
+    LocalSignal<bool(Socket&, const MutableBuffer&, const Address&)> Recv;
 
     /// Signals that the socket is closed in error.
     /// This signal will be sent just before the
     /// Closed signal.
-    Signal<bool(Socket&, const scy::Error&)> Error;
+    LocalSignal<bool(Socket&, const scy::Error&)> Error;
 
     /// Signals that the underlying socket is closed.
-    Signal<bool(Socket&)> Close;
+    LocalSignal<bool(Socket&)> Close;
 
     /// Adds an input SocketAdapter for receiving socket signals.
     virtual void addReceiver(SocketAdapter* adapter) override;

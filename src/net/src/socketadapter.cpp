@@ -100,6 +100,8 @@ void SocketAdapter::sendPacket(IPacket& packet)
 bool SocketAdapter::onSocketConnect(Socket& socket)
 {
     cleanupReceivers();
+    if (_receivers.size() == 1 && _receivers[0]->alive)
+        return _receivers[0]->ptr->onSocketConnect(socket);
     int current = int(_receivers.size() - 1);
     while (current >= 0) {
         auto ref = _receivers[current--];
@@ -113,6 +115,8 @@ bool SocketAdapter::onSocketConnect(Socket& socket)
 bool SocketAdapter::onSocketRecv(Socket& socket, const MutableBuffer& buffer, const Address& peerAddress)
 {
     cleanupReceivers();
+    if (_receivers.size() == 1 && _receivers[0]->alive)
+        return _receivers[0]->ptr->onSocketRecv(socket, buffer, peerAddress);
     int current = int(_receivers.size() - 1);
     while (current >= 0) {
         auto ref = _receivers[current--];
@@ -126,6 +130,8 @@ bool SocketAdapter::onSocketRecv(Socket& socket, const MutableBuffer& buffer, co
 bool SocketAdapter::onSocketError(Socket& socket, const scy::Error& error)
 {
     cleanupReceivers();
+    if (_receivers.size() == 1 && _receivers[0]->alive)
+        return _receivers[0]->ptr->onSocketError(socket, error);
     int current = int(_receivers.size() - 1);
     while (current >= 0) {
         auto ref = _receivers[current--];
@@ -139,6 +145,8 @@ bool SocketAdapter::onSocketError(Socket& socket, const scy::Error& error)
 bool SocketAdapter::onSocketClose(Socket& socket)
 {
     cleanupReceivers();
+    if (_receivers.size() == 1 && _receivers[0]->alive)
+        return _receivers[0]->ptr->onSocketClose(socket);
     int current = int(_receivers.size() - 1);
     while (current >= 0) {
         auto ref = _receivers[current--];

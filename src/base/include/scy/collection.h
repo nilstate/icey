@@ -410,6 +410,9 @@ public:
     /// Adds a new name-value pair with the given name and value.
     void add(const std::string& name, const std::string& value);
 
+    /// Adds a new name-value pair using move semantics.
+    void add(std::string&& name, std::string&& value);
+
     /// Returns the value of the first name-value pair with the given name.
     ///
     /// Throws a NotFoundException if the name-value pair does not exist.

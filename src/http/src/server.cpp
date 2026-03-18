@@ -94,27 +94,21 @@ void Server::onClientSocketAccept(const net::TCPSocket::Ptr& socket)
 {
     ServerConnection::Ptr conn = _factory->createConnection(*this, socket);
     conn->Close += slot(this, &Server::onConnectionClose);
-    _connections.push_back(conn);
+    _connections.emplace(conn.get(), conn);
 }
 
 
 void Server::onConnectionReady(ServerConnection& conn)
 {
-    for (auto& c : _connections) {
-        if (c.get() == &conn) {
-            Connection.emit(c);
-            return;
-        }
-    }
+    auto it = _connections.find(&conn);
+    if (it != _connections.end())
+        Connection.emit(it->second);
 }
 
 
 void Server::onConnectionClose(ServerConnection& conn)
 {
-    auto it = std::find_if(_connections.begin(), _connections.end(),
-                           [&conn](const ServerConnection::Ptr& c) { return c.get() == &conn; });
-    if (it != _connections.end())
-        _connections.erase(it);
+    _connections.erase(&conn);
 }
 
 

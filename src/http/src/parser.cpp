@@ -170,12 +170,12 @@ void Parser::onURL(const std::string& value)
 }
 
 
-void Parser::onHeader(const std::string& name, const std::string& value)
+void Parser::onHeader(std::string name, std::string value)
 {
-    if (message())
-        message()->add(name, value);
     if (_observer)
         _observer->onParserHeader(name, value);
+    if (message())
+        message()->add(std::move(name), std::move(value));
 }
 
 
@@ -278,7 +278,7 @@ int Parser::on_header_field(llhttp_t* parser, const char* at, size_t len)
 
     if (self->_wasHeaderValue) {
         if (!self->_lastHeaderField.empty()) {
-            self->onHeader(self->_lastHeaderField, self->_lastHeaderValue);
+            self->onHeader(std::move(self->_lastHeaderField), std::move(self->_lastHeaderValue));
             self->_lastHeaderValue.clear();
         }
         self->_lastHeaderField.assign(at, len);
@@ -318,7 +318,7 @@ int Parser::on_headers_complete(llhttp_t* parser)
 
     // Add last entry if any
     if (!self->_lastHeaderField.empty()) {
-        self->onHeader(self->_lastHeaderField, self->_lastHeaderValue);
+        self->onHeader(std::move(self->_lastHeaderField), std::move(self->_lastHeaderValue));
     }
 
     // Request HTTP method

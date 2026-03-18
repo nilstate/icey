@@ -577,16 +577,15 @@ int main(int argc, char** argv)
         Random rng;
 
         // next() should produce different values
-        uint32_t a = rng.next();
-        uint32_t b = rng.next();
-        uint32_t c = rng.next();
+        auto a = rng.next();
+        auto b = rng.next();
+        auto c = rng.next();
         // Extremely unlikely all three are the same
         expect(!(a == b && b == c));
 
         // next(n) should produce values in range [0, n)
         for (int i = 0; i < 100; ++i) {
-            uint32_t val = rng.next(10);
-            expect(val < 10);
+            expect(rng.next(10) < 10);
         }
 
         // nextBool() should return true and false (statistical)
@@ -599,13 +598,13 @@ int main(int argc, char** argv)
 
         // nextFloat() should be in [0, 1)
         for (int i = 0; i < 100; ++i) {
-            float f = rng.nextFloat();
+            auto f = rng.nextFloat();
             expect(f >= 0.0f && f < 1.0f);
         }
 
         // nextDouble() should be in [0, 1)
         for (int i = 0; i < 100; ++i) {
-            double d = rng.nextDouble();
+            auto d = rng.nextDouble();
             expect(d >= 0.0 && d < 1.0);
         }
 

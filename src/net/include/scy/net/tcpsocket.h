@@ -81,7 +81,7 @@ public:
 
     virtual uv::Loop* loop() const override;
 
-    Signal<void(const net::TCPSocket::Ptr&)> AcceptConnection;
+    LocalSignal<void(const net::TCPSocket::Ptr&)> AcceptConnection;
 
 public:
     virtual void onConnect();

@@ -77,7 +77,7 @@ protected:
 
     /// Callbacks
     void onURL(const std::string& value);
-    void onHeader(const std::string& name, const std::string& value);
+    void onHeader(std::string name, std::string value);
     void onHeadersEnd();
     void onBody(const char* buf, size_t len);
     void onMessageEnd();

@@ -159,11 +159,17 @@ void Message::write(std::ostream& ostr) const
 
 void Message::write(std::string& str) const
 {
+    // Compute total size to avoid repeated reallocations
+    size_t total = 0;
+    for (const auto& [name, value] : *this) {
+        total += name.size() + 2 + value.size() + 2; // ": " + "\r\n"
+    }
+    str.reserve(str.size() + total);
     for (const auto& [name, value] : *this) {
         str.append(name);
-        str.append(": ");
+        str.append(": ", 2);
         str.append(value);
-        str.append("\r\n");
+        str.append("\r\n", 2);
     }
 }
 

@@ -25,6 +25,18 @@
 namespace scy {
 
 
+/// No-op mutex for single-threaded signal usage.
+/// When all signal operations occur on a single libuv event loop thread,
+/// the shared_mutex is unnecessary overhead. Use LocalSignal alias instead.
+struct NullSharedMutex
+{
+    void lock() {}
+    void unlock() {}
+    void lock_shared() {}
+    void unlock_shared() {}
+};
+
+
 /// Internal classes
 namespace internal {
 
@@ -117,10 +129,10 @@ struct Slot;
 /// will cause any callbacks connected to the signal to be called,
 /// passing the integer `42` as the only argument.
 ///
-template <typename RT>
+template <typename RT, typename MutexT = std::shared_mutex>
 class Signal;
-template <typename RT, typename... Args>
-class Signal<RT(Args...)>
+template <typename RT, typename... Args, typename MutexT>
+class Signal<RT(Args...), MutexT>
 {
 public:
     using Function = std::function<RT(Args...)>;
@@ -139,7 +151,7 @@ public:
     [[nodiscard]] int attach(SlotPtr slot) const
     {
         detach(slot); // clear duplicates
-        std::unique_lock<std::shared_mutex> guard(_mutex);
+        std::unique_lock<MutexT> guard(_mutex);
         if (slot->id == -1) {
             slot->id = ++_lastId;
         } else {
@@ -161,7 +173,7 @@ public:
     /// Detaches a previously attached slot.
     bool detach(int id) const
     {
-        std::unique_lock<std::shared_mutex> guard(_mutex);
+        std::unique_lock<MutexT> guard(_mutex);
         for (auto it = _slots.begin(); it != _slots.end();) {
             auto& slot = *it;
             if (slot->alive() && slot->id == id) {
@@ -177,7 +189,7 @@ public:
     /// Detaches all slots for the given instance.
     bool detach(const void* instance) const
     {
-        std::unique_lock<std::shared_mutex> guard(_mutex);
+        std::unique_lock<MutexT> guard(_mutex);
         bool removed = false;
         for (auto it = _slots.begin(); it != _slots.end();) {
             auto& slot = *it;
@@ -194,7 +206,7 @@ public:
     /// Detaches all attached functions for the given instance.
     bool detach(SlotPtr other) const
     {
-        std::unique_lock<std::shared_mutex> guard(_mutex);
+        std::unique_lock<MutexT> guard(_mutex);
         for (auto it = _slots.begin(); it != _slots.end();) {
             auto& slot = *it;
             if (slot->alive() && (*slot->delegate == *other->delegate)) {
@@ -210,7 +222,7 @@ public:
     /// Detaches all previously attached functions.
     void detachAll() const
     {
-        std::unique_lock<std::shared_mutex> guard(_mutex);
+        std::unique_lock<MutexT> guard(_mutex);
         while (!_slots.empty()) {
             _slots.back()->kill();
             _slots.pop_back();
@@ -223,18 +235,38 @@ public:
     /// For Signal<void(...)>, calls all slots unconditionally.
     virtual RT emit(Args... args)
     {
-        if constexpr (std::is_same_v<RT, bool>) {
-            for (auto const& slot : slots()) {
-                if (slot->alive()) {
-                    if ((*slot->delegate)(std::forward<Args>(args)...))
-                        return true;
+        if constexpr (std::is_same_v<MutexT, NullSharedMutex>) {
+            // Lock-free fast path: iterate slots directly (single-threaded)
+            if constexpr (std::is_same_v<RT, bool>) {
+                for (auto const& slot : _slots) {
+                    if (slot->alive()) {
+                        if ((*slot->delegate)(std::forward<Args>(args)...))
+                            return true;
+                    }
+                }
+                return false;
+            } else {
+                for (auto const& slot : _slots) {
+                    if (slot->alive()) {
+                        (*slot->delegate)(std::forward<Args>(args)...);
+                    }
                 }
             }
-            return false;
         } else {
-            for (auto const& slot : slots()) {
-                if (slot->alive()) {
-                    (*slot->delegate)(std::forward<Args>(args)...);
+            // Thread-safe path: copy slots under lock
+            if constexpr (std::is_same_v<RT, bool>) {
+                for (auto const& slot : slots()) {
+                    if (slot->alive()) {
+                        if ((*slot->delegate)(std::forward<Args>(args)...))
+                            return true;
+                    }
+                }
+                return false;
+            } else {
+                for (auto const& slot : slots()) {
+                    if (slot->alive()) {
+                        (*slot->delegate)(std::forward<Args>(args)...);
+                    }
                 }
             }
         }
@@ -243,14 +275,14 @@ public:
     /// Returns the managed slot list.
     std::vector<SlotPtr> slots() const
     {
-        std::shared_lock<std::shared_mutex> guard(_mutex);
+        std::shared_lock<MutexT> guard(_mutex);
         return _slots;
     }
 
     /// Returns the number of active slots.
     [[nodiscard]] size_t nslots() const
     {
-        std::shared_lock<std::shared_mutex> guard(_mutex);
+        std::shared_lock<MutexT> guard(_mutex);
         return _slots.size();
     }
 
@@ -289,13 +321,19 @@ public:
     }
 
 private:
-    mutable std::shared_mutex _mutex;
+    mutable MutexT _mutex;
     mutable std::vector<SlotPtr> _slots;
     mutable int _lastId = 0;
 };
 
 
 using NullSignal = Signal<void()>;
+
+/// Lock-free signal for use within a single libuv event loop thread.
+/// All net/http signals operate on a single loop thread, so the
+/// shared_mutex provides no safety benefit and adds overhead.
+template <typename RT>
+using LocalSignal = Signal<RT, NullSharedMutex>;
 
 
 //

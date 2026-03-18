@@ -13,6 +13,8 @@
 #include "scy/datetime.h"
 #include "scy/http/util.h"
 
+#include <cstdio>
+#include <cstring>
 #include <stdexcept>
 
 
@@ -124,20 +126,35 @@ void Response::write(std::ostream& ostr) const
 
 void Response::write(std::string& str) const
 {
-    // Build status line: "HTTP/1.1 200 OK\r\n"
-    // Use a static lookup for common status codes to avoid std::to_string
-    str.append(_version);
-    str.append(" ");
+    // Pre-compute status line: "HTTP/1.1 200 OK\r\n"
     const char* code = getStatusCodeString(_status);
-    if (code)
-        str.append(code);
-    else
-        str.append(std::to_string(static_cast<int>(_status)));
-    str.append(" ");
+    const char* codeStr = code ? code : nullptr;
+    char codeBuf[12];
+    size_t codeLen;
+    if (codeStr) {
+        codeLen = std::strlen(codeStr);
+    } else {
+        codeLen = static_cast<size_t>(
+            std::snprintf(codeBuf, sizeof(codeBuf), "%d", static_cast<int>(_status)));
+        codeStr = codeBuf;
+    }
+
+    // Compute total size for status line + headers + trailing CRLF
+    size_t total = _version.size() + 1 + codeLen + 1 + _reason.size() + 2; // status line
+    for (const auto& [name, value] : *this) {
+        total += name.size() + 2 + value.size() + 2;
+    }
+    total += 2; // trailing \r\n
+
+    str.reserve(str.size() + total);
+    str.append(_version);
+    str.append(" ", 1);
+    str.append(codeStr, codeLen);
+    str.append(" ", 1);
     str.append(_reason);
-    str.append("\r\n");
+    str.append("\r\n", 2);
     http::Message::write(str);
-    str.append("\r\n");
+    str.append("\r\n", 2);
 }
 
 

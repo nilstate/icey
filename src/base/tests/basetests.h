@@ -708,6 +708,7 @@ class LoggerFilterTest : public Test
 {
     void run()
     {
+#ifdef SCY_ENABLE_LOGGING
         // Custom channel that captures messages
         struct CaptureChannel : public LogChannel
         {
@@ -766,6 +767,7 @@ class LoggerFilterTest : public Test
 
             Logger::instance().remove("pass_all");
         }
+#endif // SCY_ENABLE_LOGGING
     }
 };
 
