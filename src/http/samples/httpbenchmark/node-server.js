@@ -32,6 +32,17 @@ if (mode === 'minimal') {
     console.log(`Node.js HTTP echo (pid ${process.pid}) listening on port ${PORT}`);
   });
 
+} else if (mode === 'keepalive') {
+  // Keep-alive benchmark (HTTP/1.1 default - no Connection: close)
+  const server = http.createServer((req, res) => {
+    res.writeHead(200, { 'Content-Length': '0' });
+    res.end();
+  });
+
+  server.listen(PORT, () => {
+    console.log(`Node.js HTTP benchmark (keep-alive, pid ${process.pid}) listening on port ${PORT}`);
+  });
+
 } else if (mode === 'cluster') {
   // Clustered minimal response (one worker per CPU)
   if (cluster.isPrimary) {

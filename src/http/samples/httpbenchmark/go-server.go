@@ -26,6 +26,13 @@ func main() {
 		})
 		fmt.Printf("Go HTTP benchmark (minimal) listening on port%s\n", port)
 
+	case "keepalive":
+		http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Length", "0")
+			w.WriteHeader(200)
+		})
+		fmt.Printf("Go HTTP benchmark (keep-alive) listening on port%s\n", port)
+
 	case "echo":
 		http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 			io.Copy(w, r.Body)

@@ -275,16 +275,14 @@ void ConnectionAdapter::removeReceiver(SocketAdapter* adapter)
 
 bool ConnectionAdapter::onSocketRecv(net::Socket& socket, const MutableBuffer& buf, const net::Address&)
 {
-    if (_parser.complete()) {
-        // Buggy HTTP servers might send late data or multiple responses,
-        // in which case the parser state might already be HPE_OK.
-        // In this case we discard the late message and log the error here,
-        // rather than complicate the app with this error handling logic.
+    // For HTTP clients, drop late data after response is complete.
+    // For HTTP servers, allow subsequent requests on keep-alive connections -
+    // llhttp's on_message_begin callback resets parser state automatically.
+    if (_parser.complete() && _parser.type() == HTTP_RESPONSE) {
         LWarn("Dropping late HTTP response: ", buf.str());
         return false;
     }
 
-    // Parse incoming HTTP messages
     _parser.parse(bufferCast<const char*>(buf), buf.size());
     return false;
 }

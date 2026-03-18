@@ -80,9 +80,9 @@ void Parser::init()
 
 size_t Parser::parse(const char* data, size_t len)
 {
-    if (_complete) {
-        throw std::runtime_error("HTTP parser already complete");
-    }
+    // Note: _complete may be true on keep-alive connections between requests.
+    // llhttp handles this correctly - on_message_begin fires when new data
+    // arrives, which calls reset() and clears _complete.
 
     llhttp_errno_t err = llhttp_execute(&_parser, data, len);
 
@@ -105,6 +105,12 @@ void Parser::reset()
 {
     llhttp_init(&_parser, _type, &_settings);
     _parser.data = this;
+    resetState();
+}
+
+
+void Parser::resetState()
+{
     _complete = false;
     _upgrade = false;
     _error.reset();
@@ -245,7 +251,23 @@ int Parser::on_message_begin(llhttp_t* parser)
         return -1;
     }
 
-    self->reset();
+    // Clear request/response state for keep-alive (next message on same connection)
+    if (self->_request) {
+        self->_request->clear();
+        self->_request->setMethod("");
+        self->_request->setURI("");
+        self->_request->setVersion(http::Message::HTTP_1_1);
+    }
+    if (self->_response) {
+        self->_response->clear();
+        self->_response->setStatus(http::StatusCode::OK);
+        self->_response->setReason(http::getStatusCodeReason(http::StatusCode::OK));
+        self->_response->setVersion(http::Message::HTTP_1_1);
+    }
+
+    // Use resetState() instead of reset() - we're inside an llhttp callback,
+    // so we must NOT call llhttp_init() which would corrupt the parser.
+    self->resetState();
     return 0;
 }
 

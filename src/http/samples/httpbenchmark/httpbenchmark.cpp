@@ -48,6 +48,24 @@ void runSingleCore()
 }
 
 
+/// Single-threaded keep-alive benchmark server.
+/// Sends a minimal HTTP response and keeps the connection open.
+void runKeepAlive()
+{
+    http::Server srv(address);
+    srv.start();
+
+    srv.Connection += [&](http::ServerConnection::Ptr conn) {
+        conn->response().add("Content-Length", "0");
+        conn->sendHeader();
+    };
+
+    std::cout << "LibSourcey HTTP benchmark (keep-alive) listening on port "
+              << BenchmarkPort << std::endl;
+    waitForShutdown();
+}
+
+
 /// Per-core server instance for multicore mode.
 void runMulticoreInstance()
 {
@@ -236,6 +254,8 @@ int main(int argc, char** argv)
 
     if (mode == "single") {
         runSingleCore();
+    } else if (mode == "keepalive") {
+        runKeepAlive();
     } else if (mode == "multi") {
         runMultiCore();
     } else if (mode == "echo") {
@@ -243,7 +263,7 @@ int main(int argc, char** argv)
     } else if (mode == "raw") {
         rawuv::run();
     } else {
-        std::cerr << "Usage: " << argv[0] << " [single|multi|echo|raw]" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " [single|keepalive|multi|echo|raw]" << std::endl;
         return 1;
     }
 

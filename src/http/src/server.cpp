@@ -273,6 +273,14 @@ void ServerConnection::onComplete()
     // The request handler can give a response.
     if (_responder)
         _responder->onRequest(_request, _response);
+
+    // For keep-alive connections, reset state for the next request.
+    // The parser's on_message_begin callback clears Request/Response headers.
+    if (!_closed && !_upgrade && _request.getKeepAlive()) {
+        _responder.reset();
+        _shouldSendHeader = true;
+        _headerBuf.clear();
+    }
 }
 
 

@@ -142,6 +142,32 @@ if $HAS_GO; then
     kill_server
 fi
 
+# --- Keep-alive benchmarks ---
+echo -e "\n${BOLD}--- Keep-Alive Benchmarks ---${NC}"
+
+# --- LibSourcey keep-alive ---
+"$HTTPBENCH" keepalive &
+SERVER_PID=$!
+wait_for_port
+run_wrk "LibSourcey (keep-alive)"
+kill_server
+
+# --- Node.js keep-alive ---
+node "${SCRIPT_DIR}/node-server.js" keepalive &
+SERVER_PID=$!
+wait_for_port
+run_wrk "Node.js (keep-alive)"
+kill_server
+
+# --- Go keep-alive ---
+if $HAS_GO; then
+    "$GO_BIN" keepalive &
+    SERVER_PID=$!
+    wait_for_port
+    run_wrk "Go (keep-alive)"
+    kill_server
+fi
+
 # --- Results table ---
 echo
 echo -e "${BOLD}============================================${NC}"

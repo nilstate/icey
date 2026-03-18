@@ -55,8 +55,13 @@ public:
     /// Reset the parser state for a new message
     size_t parse(const char* data, size_t length);
 
-    /// Reset the internal state.
+    /// Reset the internal state (reinitialises llhttp).
+    /// Safe to call externally, NOT from inside llhttp callbacks.
     void reset();
+
+    /// Reset internal flags without reinitialising llhttp.
+    /// Safe to call from inside llhttp callbacks (e.g. on_message_begin).
+    void resetState();
 
     /// Returns true if parsing is complete, either
     /// in success or error.
@@ -64,6 +69,9 @@ public:
 
     /// Returns true if the connection should be upgraded.
     [[nodiscard]] bool upgrade() const;
+
+    /// Returns the parser type (HTTP_REQUEST or HTTP_RESPONSE).
+    [[nodiscard]] llhttp_type_t type() const { return _type; }
 
     void setRequest(http::Request* request);
     void setResponse(http::Response* response);

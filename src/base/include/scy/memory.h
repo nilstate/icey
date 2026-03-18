@@ -42,6 +42,143 @@ inline void deleteLater(T* ptr, uv::Loop* loop)
 }
 
 
+/// Base class for intrusive reference counting.
+///
+/// Embeds the refcount in the object itself - no separate control block
+/// allocation, no atomic operations. Safe for single-threaded libuv loops.
+///
+/// Usage: inherit from RefCounted<YourClass>, then use IntrusivePtr<YourClass>
+/// instead of std::shared_ptr<YourClass>.
+template <typename T>
+class RefCounted
+{
+public:
+    RefCounted() = default;
+    RefCounted(const RefCounted&) noexcept : _refCount(0) {}
+    RefCounted& operator=(const RefCounted&) noexcept { return *this; }
+
+    void addRef() const noexcept { ++_refCount; }
+    bool releaseRef() const noexcept { return --_refCount == 0; }
+    [[nodiscard]] int refCount() const noexcept { return _refCount; }
+
+protected:
+    ~RefCounted() = default;
+
+private:
+    mutable int _refCount = 0;
+};
+
+
+/// Intrusive smart pointer for RefCounted objects.
+///
+/// Like std::shared_ptr but with zero allocation overhead:
+/// - No separate control block (refcount is embedded in the object)
+/// - Non-atomic refcount (safe for single-threaded libuv loops)
+/// - Same API as shared_ptr for easy migration
+template <typename T>
+class IntrusivePtr
+{
+public:
+    IntrusivePtr() noexcept : _ptr(nullptr) {}
+    IntrusivePtr(std::nullptr_t) noexcept : _ptr(nullptr) {}
+
+    explicit IntrusivePtr(T* p) noexcept : _ptr(p)
+    {
+        if (_ptr) _ptr->addRef();
+    }
+
+    IntrusivePtr(const IntrusivePtr& r) noexcept : _ptr(r._ptr)
+    {
+        if (_ptr) _ptr->addRef();
+    }
+
+    template <typename U>
+    IntrusivePtr(const IntrusivePtr<U>& r) noexcept : _ptr(r.get())
+    {
+        if (_ptr) _ptr->addRef();
+    }
+
+    IntrusivePtr(IntrusivePtr&& r) noexcept : _ptr(r._ptr)
+    {
+        r._ptr = nullptr;
+    }
+
+    template <typename U>
+    IntrusivePtr(IntrusivePtr<U>&& r) noexcept : _ptr(r.get())
+    {
+        r.detach();
+    }
+
+    ~IntrusivePtr()
+    {
+        if (_ptr && _ptr->releaseRef())
+            delete _ptr;
+    }
+
+    IntrusivePtr& operator=(const IntrusivePtr& r) noexcept
+    {
+        IntrusivePtr(r).swap(*this);
+        return *this;
+    }
+
+    IntrusivePtr& operator=(IntrusivePtr&& r) noexcept
+    {
+        IntrusivePtr(std::move(r)).swap(*this);
+        return *this;
+    }
+
+    IntrusivePtr& operator=(T* p) noexcept
+    {
+        IntrusivePtr(p).swap(*this);
+        return *this;
+    }
+
+    IntrusivePtr& operator=(std::nullptr_t) noexcept
+    {
+        reset();
+        return *this;
+    }
+
+    void reset() noexcept
+    {
+        IntrusivePtr().swap(*this);
+    }
+
+    void reset(T* p) noexcept
+    {
+        IntrusivePtr(p).swap(*this);
+    }
+
+    T* get() const noexcept { return _ptr; }
+    T& operator*() const noexcept { return *_ptr; }
+    T* operator->() const noexcept { return _ptr; }
+    explicit operator bool() const noexcept { return _ptr != nullptr; }
+
+    void swap(IntrusivePtr& r) noexcept { std::swap(_ptr, r._ptr); }
+
+    /// Release ownership without decrementing refcount.
+    /// Used internally for move construction across types.
+    void detach() noexcept { _ptr = nullptr; }
+
+    bool operator==(const IntrusivePtr& r) const noexcept { return _ptr == r._ptr; }
+    bool operator!=(const IntrusivePtr& r) const noexcept { return _ptr != r._ptr; }
+    bool operator==(std::nullptr_t) const noexcept { return !_ptr; }
+    bool operator!=(std::nullptr_t) const noexcept { return _ptr; }
+    bool operator<(const IntrusivePtr& r) const noexcept { return _ptr < r._ptr; }
+
+private:
+    T* _ptr;
+};
+
+
+/// Create an IntrusivePtr with a new object. Equivalent to make_shared.
+template <typename T, typename... Args>
+IntrusivePtr<T> makeIntrusive(Args&&... args)
+{
+    return IntrusivePtr<T>(new T(std::forward<Args>(args)...));
+}
+
+
 namespace deleter {
 
 
