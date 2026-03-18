@@ -126,35 +126,85 @@ void Response::write(std::ostream& ostr) const
 }
 
 
+namespace {
+
+struct StatusLine { const char* data; size_t len; };
+
+/// Pre-formatted HTTP/1.1 status lines for common codes.
+/// Avoids per-response string concatenation for the status line.
+const StatusLine* getStatusLine(StatusCode status)
+{
+    // Most common codes as static constexpr data
+    static const StatusLine ok = {"HTTP/1.1 200 OK\r\n", 17};
+    static const StatusLine created = {"HTTP/1.1 201 Created\r\n", 22};
+    static const StatusLine noContent = {"HTTP/1.1 204 No Content\r\n", 25};
+    static const StatusLine movedPerm = {"HTTP/1.1 301 Moved Permanently\r\n", 32};
+    static const StatusLine found = {"HTTP/1.1 302 Found\r\n", 20};
+    static const StatusLine notModified = {"HTTP/1.1 304 Not Modified\r\n", 27};
+    static const StatusLine badRequest = {"HTTP/1.1 400 Bad Request\r\n", 26};
+    static const StatusLine unauthorized = {"HTTP/1.1 401 Unauthorized\r\n", 27};
+    static const StatusLine forbidden = {"HTTP/1.1 403 Forbidden\r\n", 24};
+    static const StatusLine notFound = {"HTTP/1.1 404 Not Found\r\n", 24};
+    static const StatusLine serverError = {"HTTP/1.1 500 Internal Server Error\r\n", 36};
+    static const StatusLine unavailable = {"HTTP/1.1 503 Service Unavailable\r\n", 34};
+
+    switch (status) {
+        case StatusCode::OK: return &ok;
+        case StatusCode::Created: return &created;
+        case StatusCode::NoContent: return &noContent;
+        case StatusCode::MovedPermanently: return &movedPerm;
+        case StatusCode::Found: return &found;
+        case StatusCode::NotModified: return &notModified;
+        case StatusCode::BadRequest: return &badRequest;
+        case StatusCode::Unauthorized: return &unauthorized;
+        case StatusCode::Forbidden: return &forbidden;
+        case StatusCode::NotFound: return &notFound;
+        case StatusCode::InternalServerError: return &serverError;
+        case StatusCode::Unavailable: return &unavailable;
+        default: return nullptr;
+    }
+}
+
+} // anonymous namespace
+
+
 void Response::write(std::string& str) const
 {
-    // Pre-compute status line: "HTTP/1.1 200 OK\r\n"
-    const char* code = getStatusCodeString(_status);
-    const char* codeStr = code ? code : nullptr;
-    char codeBuf[12];
-    size_t codeLen;
-    if (codeStr) {
-        codeLen = std::strlen(codeStr);
-    } else {
-        codeLen = static_cast<size_t>(
-            std::snprintf(codeBuf, sizeof(codeBuf), "%d", static_cast<int>(_status)));
-        codeStr = codeBuf;
-    }
+    // Fast path: use pre-formatted status line for HTTP/1.1 + common codes
+    const StatusLine* sl = (_version == Message::HTTP_1_1) ? getStatusLine(_status) : nullptr;
 
-    // Compute total size for status line + headers + trailing CRLF
-    size_t total = _version.size() + 1 + codeLen + 1 + _reason.size() + 2; // status line
+    // Compute total size for headers + trailing CRLF
+    size_t total = 0;
+    if (sl) {
+        total = sl->len;
+    } else {
+        const char* code = getStatusCodeString(_status);
+        total = _version.size() + 1 + (code ? std::strlen(code) : 3) + 1 + _reason.size() + 2;
+    }
     for (const auto& [name, value] : *this) {
         total += name.size() + 2 + value.size() + 2;
     }
     total += 2; // trailing \r\n
 
     str.reserve(str.size() + total);
-    str.append(_version);
-    str.append(" ", 1);
-    str.append(codeStr, codeLen);
-    str.append(" ", 1);
-    str.append(_reason);
-    str.append("\r\n", 2);
+
+    if (sl) {
+        str.append(sl->data, sl->len);
+    } else {
+        str.append(_version);
+        str.append(" ", 1);
+        const char* code = getStatusCodeString(_status);
+        if (code) {
+            str.append(code, std::strlen(code));
+        } else {
+            char codeBuf[12];
+            auto n = std::snprintf(codeBuf, sizeof(codeBuf), "%d", static_cast<int>(_status));
+            str.append(codeBuf, static_cast<size_t>(n));
+        }
+        str.append(" ", 1);
+        str.append(_reason);
+        str.append("\r\n", 2);
+    }
     http::Message::write(str);
     str.append("\r\n", 2);
 }

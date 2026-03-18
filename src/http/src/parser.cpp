@@ -103,9 +103,22 @@ size_t Parser::parse(const char* data, size_t len)
 
 void Parser::reset()
 {
+    llhttp_init(&_parser, _type, &_settings);
+    _parser.data = this;
     _complete = false;
     _upgrade = false;
     _error.reset();
+    _lastHeaderField.clear();
+    _lastHeaderValue.clear();
+    _wasHeaderValue = false;
+}
+
+
+void Parser::clearMessage()
+{
+    _request = nullptr;
+    _response = nullptr;
+    _message = nullptr;
 }
 
 

@@ -25,7 +25,7 @@ namespace http {
 Server::Server(const std::string& host, short port, net::TCPSocket::Ptr socket, std::unique_ptr<ServerConnectionFactory> factory)
     : _address(host, port)
     , _socket(socket)
-    , _timer(5000, 5000, socket->loop())
+    , _timer(1000, 1000, socket->loop())
     , _factory(std::move(factory))
 {
 }
@@ -34,7 +34,7 @@ Server::Server(const std::string& host, short port, net::TCPSocket::Ptr socket, 
 Server::Server(const net::Address& address, net::TCPSocket::Ptr socket, std::unique_ptr<ServerConnectionFactory> factory)
     : _address(address)
     , _socket(socket)
-    , _timer(5000, 5000, socket->loop())
+    , _timer(1000, 1000, socket->loop())
     , _factory(std::move(factory))
 {
 }
@@ -62,6 +62,7 @@ void Server::start()
 
     LDebug("HTTP server listening on ", _address);
 
+    _dateCache.update();
     _timer.Timeout += slot(this, &Server::onTimer);
     _timer.start();
 }
@@ -92,7 +93,12 @@ std::unique_ptr<ServerResponder> Server::createResponder(ServerConnection& conn)
 
 void Server::onClientSocketAccept(const net::TCPSocket::Ptr& socket)
 {
-    ServerConnection::Ptr conn = _factory->createConnection(*this, socket);
+    ServerConnection::Ptr conn = _pool.acquire();
+    if (conn) {
+        conn->reset(socket);
+    } else {
+        conn = _factory->createConnection(*this, socket);
+    }
     conn->Close += slot(this, &Server::onConnectionClose);
     _connections.emplace(conn.get(), conn);
 }
@@ -108,7 +114,16 @@ void Server::onConnectionReady(ServerConnection& conn)
 
 void Server::onConnectionClose(ServerConnection& conn)
 {
-    _connections.erase(&conn);
+    auto it = _connections.find(&conn);
+    if (it != _connections.end()) {
+        auto ptr = std::move(it->second);
+        _connections.erase(it);
+
+        // Return to pool if reusable (not upgraded, no error)
+        if (!conn.upgraded() && !conn.error().any()) {
+            _pool.release(std::move(ptr));
+        }
+    }
 }
 
 
@@ -120,7 +135,7 @@ bool Server::onSocketClose(net::Socket& socket)
 
 void Server::onTimer()
 {
-    // Connection timeout cleanup not yet implemented
+    _dateCache.update();
 }
 
 
@@ -153,6 +168,44 @@ ServerConnection::~ServerConnection()
 Server& ServerConnection::server()
 {
     return _server;
+}
+
+
+void ServerConnection::reset(net::TCPSocket::Ptr socket)
+{
+    // Detach from old socket
+    if (_socket) {
+        _socket->removeReceiver(_adapter);
+    }
+
+    // Reset connection state
+    _responder.reset();
+    _closed = false;
+    _shouldSendHeader = true;
+    _error.reset();
+    _upgrade = false;
+
+    // Clear request/response (keeps string/vector capacity)
+    _request.clear();
+    _request.setMethod("");
+    _request.setURI("");
+    _request.setVersion(Message::HTTP_1_1);
+    _response.clear();
+    _response.setStatus(StatusCode::OK);
+    _response.setReason(getStatusCodeReason(StatusCode::OK));
+    _response.setVersion(Message::HTTP_1_1);
+
+    // Clear header buffer (keeps capacity)
+    _headerBuf.clear();
+
+    // Swap socket
+    _socket = std::move(socket);
+
+    // Reset adapter and rewire
+    auto* adapter = static_cast<ConnectionAdapter*>(_adapter);
+    adapter->reset(_socket.get(), &_request);
+    _socket->addReceiver(_adapter);
+    _adapter->addReceiver(this);
 }
 
 

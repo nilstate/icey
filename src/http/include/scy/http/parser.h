@@ -69,6 +69,10 @@ public:
     void setResponse(http::Response* response);
     void setObserver(ParserObserver* observer);
 
+    /// Clear request/response pointers so they can be re-set.
+    /// Used when resetting a pooled connection for reuse.
+    void clearMessage();
+
     [[nodiscard]] http::Message* message();
     [[nodiscard]] ParserObserver* observer() const;
 

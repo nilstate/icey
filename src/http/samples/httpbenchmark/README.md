@@ -1,6 +1,6 @@
 # HTTP Benchmark
 
-Benchmarks LibSourcey's HTTP server against Node.js using [wrk](https://github.com/wg/wrk).
+Benchmarks LibSourcey's HTTP server against Node.js and Go using [wrk](https://github.com/wg/wrk).
 
 ## Variants
 
@@ -13,6 +13,11 @@ Benchmarks LibSourcey's HTTP server against Node.js using [wrk](https://github.c
 - `minimal` - single-process minimal response
 - `echo` - single-process echo
 - `cluster` - one worker per CPU core
+
+**Go** (optional, included if `go` is on PATH):
+
+- `minimal` - single-process minimal response (goroutine-per-connection)
+- `echo` - single-process echo
 
 ## Build
 
@@ -36,6 +41,7 @@ wrk -t4 -c100 -d10s http://localhost:1337/
 
 - `wrk`: `sudo apt install wrk`
 - `node`: for Node.js comparison
+- `go` (optional): for Go comparison
 - Build in Release mode with logging disabled for accurate results
 
 ## Results

@@ -108,6 +108,7 @@ protected:
     Request _request;
     Response _response;
     scy::Error _error;
+    std::string _headerBuf;
     bool _closed;
     bool _shouldSendHeader;
 
@@ -140,6 +141,10 @@ public:
 
     [[nodiscard]] Parser& parser();
     [[nodiscard]] Connection* connection();
+
+    /// Reset the adapter for reuse with a new socket and request.
+    /// Used by the connection pool to avoid destroying/recreating adapters.
+    void reset(net::SocketAdapter* sender, http::Request* request);
 
 protected:
     /// SocketAdapter interface

@@ -20,6 +20,7 @@
 #include "scy/net/socket.h"
 #include "scy/timer.h"
 #include <ctime>
+#include <cstring>
 #include <memory>
 #include <unordered_map>
 
@@ -42,6 +43,11 @@ public:
     virtual ~ServerConnection();
 
     [[nodiscard]] Server& server();
+    [[nodiscard]] bool upgraded() const { return _upgrade; }
+
+    /// Reset this connection for reuse with a new socket.
+    /// Called by the connection pool to avoid allocating a new ServerConnection.
+    void reset(net::TCPSocket::Ptr socket);
 
     LocalSignal<void(ServerConnection&, const MutableBuffer&)> Payload; ///< Signals when raw data is received
     LocalSignal<void(ServerConnection&)> Close;                         ///< Signals when the connection is closed
@@ -133,6 +139,65 @@ public:
 };
 
 
+/// Caches the formatted Date header, updated once per second.
+/// Avoids per-request time formatting and string allocation.
+struct DateCache
+{
+    char buf[64]{};
+    size_t len = 0;
+    std::time_t lastSecond = 0;
+
+    void update()
+    {
+        auto now = std::time(nullptr);
+        if (now != lastSecond) {
+            lastSecond = now;
+            std::tm tm;
+#ifdef _WIN32
+            gmtime_s(&tm, &now);
+#else
+            gmtime_r(&now, &tm);
+#endif
+            len = std::strftime(buf, sizeof(buf),
+                "Date: %a, %d %b %Y %H:%M:%S GMT\r\n", &tm);
+        }
+    }
+
+    [[nodiscard]] const char* data() const { return buf; }
+    [[nodiscard]] size_t size() const { return len; }
+};
+
+
+/// LIFO connection pool for reusing ServerConnection objects.
+/// Avoids per-request heap allocation by resetting and reusing
+/// connections instead of destroying and recreating them.
+class ConnectionPool
+{
+public:
+    ServerConnection::Ptr acquire()
+    {
+        if (_pool.empty()) return nullptr;
+        auto conn = std::move(_pool.back());
+        _pool.pop_back();
+        return conn;
+    }
+
+    bool release(ServerConnection::Ptr conn)
+    {
+        if (_pool.size() >= _maxSize) return false;
+        _pool.push_back(std::move(conn));
+        return true;
+    }
+
+    void setMaxSize(size_t n) { _maxSize = n; }
+    [[nodiscard]] size_t size() const { return _pool.size(); }
+
+private:
+    std::vector<ServerConnection::Ptr> _pool;
+    size_t _maxSize = 128;
+};
+
+
 /// HTTP server implementation.
 ///
 /// This HTTP server is not strictly standards compliant.
@@ -161,8 +226,15 @@ public:
     /// load balancing (Linux 3.9+).
     void setReusePort(bool enable = true) { _reusePort = enable; }
 
+    /// Set the maximum number of pooled connections (default 128).
+    /// Set to 0 to disable connection pooling entirely.
+    void setMaxPooledConnections(size_t n) { _pool.setMaxSize(n); }
+
     /// Return the server bind address.
     [[nodiscard]] net::Address& address();
+
+    /// Return the cached Date header for use in responses.
+    [[nodiscard]] const DateCache& dateCache() const { return _dateCache; }
 
     /// Signals when a new connection has been created.
     /// A reference to the new connection object is provided.
@@ -186,6 +258,8 @@ protected:
     Timer _timer;
     std::unique_ptr<ServerConnectionFactory> _factory;
     std::unordered_map<ServerConnection*, ServerConnection::Ptr> _connections;
+    ConnectionPool _pool;
+    DateCache _dateCache;
     bool _reusePort{false};
 
     friend class ServerConnection;

@@ -37,6 +37,13 @@ die() { echo -e "${RED}Error: $*${NC}" >&2; exit 1; }
 command -v wrk >/dev/null 2>&1 || die "wrk not found. Install: sudo apt install wrk"
 command -v node >/dev/null 2>&1 || die "node not found."
 [[ -x "$HTTPBENCH" ]] || die "httpbenchmark binary not found at: $HTTPBENCH\nBuild with: cmake --build build --target httpbenchmark"
+HAS_GO=false
+GO_BIN=""
+if command -v go >/dev/null 2>&1; then
+    HAS_GO=true
+    GO_BIN=$(mktemp)
+    go build -o "$GO_BIN" "${SCRIPT_DIR}/go-server.go" || { HAS_GO=false; rm -f "$GO_BIN"; }
+fi
 
 wait_for_port() {
     local retries=30
@@ -75,7 +82,8 @@ run_wrk() {
     RESULTS+=("$label|$rps|$latency")
 }
 
-trap kill_server EXIT
+cleanup() { kill_server; $HAS_GO && rm -f "$GO_BIN"; }
+trap cleanup EXIT
 
 echo -e "${BOLD}============================================${NC}"
 echo -e "${BOLD}  LibSourcey HTTP Benchmark${NC}"
@@ -85,6 +93,7 @@ echo "System: $(uname -srm)"
 echo "CPU:    $(grep -m1 'model name' /proc/cpuinfo 2>/dev/null | cut -d: -f2 | xargs || sysctl -n machdep.cpu.brand_string 2>/dev/null)"
 echo "Cores:  $(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null)"
 echo "Node:   $(node --version)"
+$HAS_GO && echo "Go:     $(go version | awk '{print $3}')"
 echo "wrk:    $(wrk --version 2>&1 | head -1)"
 echo
 
@@ -123,6 +132,15 @@ SERVER_PID=$!
 wait_for_port
 run_wrk "Node.js (cluster)"
 kill_server
+
+# --- Go single ---
+if $HAS_GO; then
+    "$GO_BIN" minimal &
+    SERVER_PID=$!
+    wait_for_port
+    run_wrk "Go (single)"
+    kill_server
+fi
 
 # --- Results table ---
 echo

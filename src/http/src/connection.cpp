@@ -55,13 +55,14 @@ ssize_t Connection::sendHeader()
         throw std::runtime_error("Connection::sendHeader: no outgoing header");
     }
 
-    std::string head;
-    head.reserve(512);
-    outgoingHeader()->write(head);
+    _headerBuf.clear();
+    _headerBuf.reserve(512);
+    outgoingHeader()->write(_headerBuf);
 
     // Send headers directly to the Socket,
-    // bypassing the ConnectionAdapter
-    return _socket->send(head.c_str(), head.length());
+    // bypassing the ConnectionAdapter.
+    // _headerBuf is a member so it stays alive until the write completes.
+    return _socket->send(_headerBuf.c_str(), _headerBuf.length());
 }
 
 
@@ -229,6 +230,15 @@ ConnectionAdapter::ConnectionAdapter(Connection* connection, llhttp_type_t type)
 
 ConnectionAdapter::~ConnectionAdapter()
 {
+}
+
+
+void ConnectionAdapter::reset(net::SocketAdapter* sender, http::Request* request)
+{
+    _parser.clearMessage();
+    _parser.reset();
+    _parser.setRequest(request);
+    setSender(sender);
 }
 
 
