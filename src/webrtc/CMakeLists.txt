@@ -1,6 +1,6 @@
 if(HAVE_LIBDATACHANNEL AND HAVE_OPENSSL AND HAVE_FFMPEG)
   scy_add_module(webrtc
-    DEPENDS base net crypto av symple
+    DEPENDS base net crypto av json
     PACKAGES OpenSSL::SSL OpenSSL::Crypto
     PRETTY_NAME WebRTC
     SKIP_EXPORT

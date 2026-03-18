@@ -12,14 +12,11 @@
 // back any messages received.
 //
 // This is the simplest WebRTC sample - no media, no FFmpeg.
-// Use it to verify that PeerSession, Symple signalling, and
-// libdatachannel's ICE/DTLS/SCTP stack work end-to-end.
+// Uses SympleSignaller for signalling (compatible with
+// symple-client-player's CallManager in the browser).
 //
 // Usage:
 //   data-echo -host <symple-server> -port <port> -user <id> -name <name>
-//
-// Requires a running Symple server (symple-server from the symple repo).
-// Connect from a browser using symple-client + RTCPeerConnection.
 //
 /// @addtogroup webrtc
 /// @{
@@ -29,6 +26,7 @@
 #include "scy/logger.h"
 #include "scy/symple/client.h"
 #include "scy/webrtc/peersession.h"
+#include "symplesignaller.h"
 
 #include <iostream>
 #include <memory>
@@ -42,6 +40,7 @@ class DataEchoApp
 {
 public:
     smpl::TCPClient client;
+    std::unique_ptr<wrtc::SympleSignaller> signaller;
     std::unique_ptr<wrtc::PeerSession> session;
 
     DataEchoApp(const smpl::Client::Options& opts)
@@ -51,11 +50,9 @@ public:
 
     void start()
     {
-        // Wire Symple lifecycle signals.
         client.Announce += slot(this, &DataEchoApp::onAnnounce);
         client.StateChange += slot(this, &DataEchoApp::onStateChange);
         client.CreatePresence += slot(this, &DataEchoApp::onCreatePresence);
-
         client.connect();
     }
 
@@ -64,55 +61,56 @@ public:
         if (session)
             session->hangup("shutdown");
         session.reset();
+        signaller.reset();
         client.close();
     }
 
 private:
     void createSession()
     {
-        // Data-channel only: leave codec encoders empty.
+        signaller = std::make_unique<wrtc::SympleSignaller>(client);
+
         wrtc::PeerSession::Config config;
         config.rtcConfig.iceServers.emplace_back("stun:stun.l.google.com:19302");
         config.enableDataChannel = true;
         config.dataChannelLabel = "echo";
-        // No media tracks - codecs left default (empty encoder).
 
-        session = std::make_unique<wrtc::PeerSession>(client, config);
+        session = std::make_unique<wrtc::PeerSession>(*signaller, config);
 
         session->IncomingCall += [this](const std::string& peerId) {
-            std::cout << "Incoming call from " << peerId << " - accepting" << std::endl;
+            std::cout << "Incoming call from " << peerId << " - accepting" << '\n';
             session->accept();
         };
 
         session->DataReceived += [this](rtc::message_variant msg) {
             if (auto* text = std::get_if<std::string>(&msg)) {
-                std::cout << "Received: " << *text << std::endl;
-                session->sendData(*text);  // echo back
+                std::cout << "Received: " << *text << '\n';
+                session->sendData(*text);
             }
             else if (auto* bin = std::get_if<rtc::binary>(&msg)) {
-                std::cout << "Received " << bin->size() << " bytes" << std::endl;
+                std::cout << "Received " << bin->size() << " bytes" << '\n';
                 session->sendData(
                     reinterpret_cast<const std::byte*>(bin->data()), bin->size());
             }
         };
 
         session->StateChanged += [](wrtc::PeerSession::State state) {
-            std::cout << "Call state: " << wrtc::stateToString(state) << std::endl;
+            std::cout << "Call state: " << wrtc::stateToString(state) << '\n';
         };
     }
 
     void onAnnounce(const int& status)
     {
-        std::cout << "Announce: " << status << std::endl;
+        std::cout << "Announce: " << status << '\n';
         if (status != 200)
-            std::cerr << "Authentication failed" << std::endl;
+            std::cerr << "Authentication failed" << '\n';
     }
 
     void onStateChange(void*, sockio::ClientState& state, const sockio::ClientState&)
     {
-        std::cout << "Client: " << state.toString() << std::endl;
+        std::cout << "Client: " << state.toString() << '\n';
         if (state.id() == sockio::ClientState::Online) {
-            std::cout << "Online as " << client.ourID() << std::endl;
+            std::cout << "Online as " << client.ourID() << '\n';
             client.joinRoom("public");
             createSession();
         }

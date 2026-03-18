@@ -28,6 +28,8 @@
 #include "scy/packetstream.h"
 #include "scy/symple/client.h"
 #include "scy/webrtc/peersession.h"
+#include "symplesignaller.h"
+#include "scy/webrtc/peersession.h"
 
 #include <iostream>
 #include <memory>
@@ -41,6 +43,7 @@ class MediaRecorder
 {
 public:
     smpl::TCPClient client;
+    std::unique_ptr<wrtc::SympleSignaller> signaller;
     std::unique_ptr<wrtc::PeerSession> session;
     PacketStream stream;
     std::string outputFile;
@@ -80,22 +83,23 @@ private:
         config.mediaOpts.videoCodec = av::VideoCodec("H264", "libx264", 640, 480, 30);
         config.enableDataChannel = false;
 
-        session = std::make_unique<wrtc::PeerSession>(client, config);
+        signaller = std::make_unique<wrtc::SympleSignaller>(client);
+        session = std::make_unique<wrtc::PeerSession>(*signaller, config);
 
         session->IncomingCall += [this](const std::string& peerId) {
-            std::cout << "Incoming call from " << peerId << " - accepting" << std::endl;
+            std::cout << "Incoming call from " << peerId << " - accepting" << '\n';
             session->accept();
         };
 
         session->StateChanged += [this](wrtc::PeerSession::State state) {
-            std::cout << "Call state: " << wrtc::stateToString(state) << std::endl;
+            std::cout << "Call state: " << wrtc::stateToString(state) << '\n';
 
             if (state == wrtc::PeerSession::State::Active) {
                 startRecording();
             }
             else if (state == wrtc::PeerSession::State::Ended) {
                 stream.stop();
-                std::cout << "Recording saved to " << outputFile << std::endl;
+                std::cout << "Recording saved to " << outputFile << '\n';
             }
         };
     }
@@ -119,7 +123,7 @@ private:
         stream.emitter += packetSlot(this, &MediaRecorder::onPacket);
         stream.start();
 
-        std::cout << "Recording to " << outputFile << std::endl;
+        std::cout << "Recording to " << outputFile << '\n';
     }
 
     void onPacket(av::MediaPacket& packet)
@@ -127,19 +131,19 @@ private:
         // In a real recorder, the MultiplexEncoder would handle this.
         // Here we just log received frame sizes to prove the receive path.
         std::cout << "Received frame: " << packet.size()
-                  << " bytes, time=" << packet.time << "us" << std::endl;
+                  << " bytes, time=" << packet.time << "us" << '\n';
     }
 
     void onAnnounce(const int& status)
     {
         if (status != 200)
-            std::cerr << "Auth failed: " << status << std::endl;
+            std::cerr << "Auth failed: " << status << '\n';
     }
 
     void onStateChange(void*, sockio::ClientState& state, const sockio::ClientState&)
     {
         if (state.id() == sockio::ClientState::Online) {
-            std::cout << "Online as " << client.ourID() << std::endl;
+            std::cout << "Online as " << client.ourID() << '\n';
             client.joinRoom("public");
             createSession();
         }

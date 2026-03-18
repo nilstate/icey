@@ -13,10 +13,10 @@
 
 
 #include "scy/webrtc/mediabridge.h"
+#include "scy/webrtc/signalling.h"
 #include "scy/webrtc/webrtc.h"
 
 #include "scy/signal.h"
-#include "scy/symple/client.h"
 
 #include <rtc/rtc.hpp>
 
@@ -29,24 +29,13 @@ namespace scy {
 namespace wrtc {
 
 
-/// Manages a WebRTC peer connection lifecycle with Symple signalling.
+/// Manages a WebRTC peer connection lifecycle over any signalling
+/// transport that implements SignallingInterface.
 ///
-/// This is the Symple-specific convenience class. It speaks the call
-/// protocol defined in symple-client-player's call-manager.js:
+/// Works with SympleSignaller (Symple call protocol), WebSocketSignaller
+/// (plain JSON over WSS), or any custom implementation.
 ///
-///   call:init       Caller initiates
-///   call:accept     Callee accepts
-///   call:reject     Callee rejects
-///   call:offer      SDP offer
-///   call:answer     SDP answer
-///   call:candidate  ICE candidate
-///   call:hangup     Either side ends
-///
-/// For custom signalling backends, use createVideoTrack(),
-/// WebRtcTrackSender, WebRtcTrackReceiver, and rtc::PeerConnection
-/// directly. PeerSession is not required.
-///
-/// Media is optional. Set mediaOpts codecs to enable video/audio tracks.
+/// Media is optional. Set mediaOpts codecs to enable tracks.
 /// Leave codec encoders empty for data-channel-only sessions.
 class WEBRTC_API PeerSession
 {
@@ -69,69 +58,43 @@ public:
         std::string dataChannelLabel = "data";
     };
 
-    PeerSession(smpl::Client& signaller, const Config& config);
+    /// Construct with any signalling implementation.
+    /// The signaller must outlive this PeerSession.
+    PeerSession(SignallingInterface& signaller, const Config& config);
     ~PeerSession();
 
     PeerSession(const PeerSession&) = delete;
     PeerSession& operator=(const PeerSession&) = delete;
-
-    //
-    // Call control
-    //
 
     void call(const std::string& peerId);
     void accept();
     void reject(const std::string& reason = "declined");
     void hangup(const std::string& reason = "hangup");
 
-    //
-    // Data channel
-    //
-
     void sendData(const std::string& message);
     void sendData(const std::byte* data, size_t size);
-
-    //
-    // Signals
-    //
 
     Signal<void(State)> StateChanged;
     Signal<void(const std::string&)> IncomingCall;
     Signal<void(rtc::message_variant)> DataReceived;
 
-    //
-    // Accessors
-    //
-
     [[nodiscard]] State state() const;
     [[nodiscard]] std::string remotePeerId() const;
-
-    /// Access the MediaBridge for PacketStream integration.
-    /// Only valid after the PeerConnection is created (Connecting state).
     [[nodiscard]] MediaBridge& media();
     [[nodiscard]] const MediaBridge& media() const;
-
     [[nodiscard]] std::shared_ptr<rtc::PeerConnection> peerConnection();
     [[nodiscard]] std::shared_ptr<rtc::DataChannel> dataChannel();
 
 private:
-    void onSympleMessage(smpl::Message& msg);
-    void onCallInit(const std::string& peerId);
-    void onCallAccept(const std::string& peerId);
-    void onCallReject(const std::string& peerId, const std::string& reason);
-    void onCallOffer(const std::string& peerId, const smpl::Message& msg);
-    void onCallAnswer(const std::string& peerId, const smpl::Message& msg);
-    void onCallCandidate(const std::string& peerId, const smpl::Message& msg);
-    void onCallHangup(const std::string& peerId, const std::string& reason);
+    void onSdpReceived(const std::string& peerId, const std::string& type, const std::string& sdp);
+    void onCandidateReceived(const std::string& peerId, const std::string& candidate, const std::string& mid);
+    void onControlReceived(const std::string& peerId, const std::string& type, const std::string& reason);
 
     void createPeerConnection();
     void setupPeerConnectionCallbacks();
     void doEndCall(const std::string& reason);
-    void sendCallMessage(const std::string& subtype,
-                         const std::string& to,
-                         const json::Value& data = {});
 
-    smpl::Client& _signaller;
+    SignallingInterface& _signaller;
     Config _config;
     MediaBridge _media;
     State _state = State::Idle;

@@ -26,6 +26,7 @@
 #include "scy/packetstream.h"
 #include "scy/symple/client.h"
 #include "scy/webrtc/peersession.h"
+#include "symplesignaller.h"
 
 #include <iostream>
 #include <memory>
@@ -39,6 +40,7 @@ class FileStreamer
 {
 public:
     smpl::TCPClient client;
+    std::unique_ptr<wrtc::SympleSignaller> signaller;
     std::unique_ptr<wrtc::PeerSession> session;
     std::shared_ptr<av::MediaCapture> capture;
     PacketStream stream;
@@ -84,15 +86,16 @@ private:
         config.enableDataChannel = true;
         config.dataChannelLabel = "control";
 
-        session = std::make_unique<wrtc::PeerSession>(client, config);
+        signaller = std::make_unique<wrtc::SympleSignaller>(client);
+        session = std::make_unique<wrtc::PeerSession>(*signaller, config);
 
         session->IncomingCall += [this](const std::string& peerId) {
-            std::cout << "Incoming call from " << peerId << " - accepting" << std::endl;
+            std::cout << "Incoming call from " << peerId << " - accepting" << '\n';
             session->accept();
         };
 
         session->StateChanged += [this](wrtc::PeerSession::State state) {
-            std::cout << "Call state: " << wrtc::stateToString(state) << std::endl;
+            std::cout << "Call state: " << wrtc::stateToString(state) << '\n';
 
             if (state == wrtc::PeerSession::State::Active) {
                 startStreaming();
@@ -105,7 +108,7 @@ private:
         // Data channel for seek commands from browser.
         session->DataReceived += [this](rtc::message_variant msg) {
             if (auto* text = std::get_if<std::string>(&msg)) {
-                std::cout << "Control: " << *text << std::endl;
+                std::cout << "Control: " << *text << '\n';
                 // Could implement seek, pause, etc. via data channel.
             }
         };
@@ -121,19 +124,19 @@ private:
         stream.start();
 
         capture->start();
-        std::cout << "Streaming " << sourceFile << std::endl;
+        std::cout << "Streaming " << sourceFile << '\n';
     }
 
     void onAnnounce(const int& status)
     {
         if (status != 200)
-            std::cerr << "Auth failed: " << status << std::endl;
+            std::cerr << "Auth failed: " << status << '\n';
     }
 
     void onStateChange(void*, sockio::ClientState& state, const sockio::ClientState&)
     {
         if (state.id() == sockio::ClientState::Online) {
-            std::cout << "Online as " << client.ourID() << std::endl;
+            std::cout << "Online as " << client.ourID() << '\n';
             client.joinRoom("public");
             createSession();
         }

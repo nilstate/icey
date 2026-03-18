@@ -33,6 +33,7 @@
 #include "scy/packetstream.h"
 #include "scy/symple/client.h"
 #include "scy/webrtc/peersession.h"
+#include "symplesignaller.h"
 
 #include <iostream>
 #include <memory>
@@ -48,6 +49,7 @@ class WebcamStreamer
 {
 public:
     smpl::TCPClient client;
+    std::unique_ptr<wrtc::SympleSignaller> signaller;
     std::unique_ptr<wrtc::PeerSession> session;
     std::shared_ptr<av::MediaCapture> capture;
     PacketStream stream;
@@ -97,15 +99,16 @@ private:
         // Audio left empty - video only.
         config.enableDataChannel = false;
 
-        session = std::make_unique<wrtc::PeerSession>(client, config);
+        signaller = std::make_unique<wrtc::SympleSignaller>(client);
+        session = std::make_unique<wrtc::PeerSession>(*signaller, config);
 
         session->IncomingCall += [this](const std::string& peerId) {
-            std::cout << "Incoming call from " << peerId << std::endl;
+            std::cout << "Incoming call from " << peerId << '\n';
             session->accept();
         };
 
         session->StateChanged += [this](wrtc::PeerSession::State state) {
-            std::cout << "Call state: " << wrtc::stateToString(state) << std::endl;
+            std::cout << "Call state: " << wrtc::stateToString(state) << '\n';
 
             if (state == wrtc::PeerSession::State::Active) {
                 // Connection established - start the pipeline.
@@ -118,11 +121,11 @@ private:
 
         // Adaptive bitrate: adjust encoder when REMB arrives.
         session->media().BitrateEstimate += [](unsigned int bps) {
-            std::cout << "REMB: " << bps / 1000 << " kbps" << std::endl;
+            std::cout << "REMB: " << bps / 1000 << " kbps" << '\n';
         };
 
         session->media().KeyframeRequested += []() {
-            std::cout << "PLI: keyframe requested" << std::endl;
+            std::cout << "PLI: keyframe requested" << '\n';
         };
     }
 
@@ -146,20 +149,20 @@ private:
         stream.start();
 
         capture->start();
-        std::cout << "Streaming started" << std::endl;
+        std::cout << "Streaming started" << '\n';
     }
 
     void onAnnounce(const int& status)
     {
         if (status != 200)
-            std::cerr << "Auth failed: " << status << std::endl;
+            std::cerr << "Auth failed: " << status << '\n';
     }
 
     void onStateChange(void*, sockio::ClientState& state, const sockio::ClientState&)
     {
-        std::cout << "Client: " << state.toString() << std::endl;
+        std::cout << "Client: " << state.toString() << '\n';
         if (state.id() == sockio::ClientState::Online) {
-            std::cout << "Online as " << client.ourID() << std::endl;
+            std::cout << "Online as " << client.ourID() << '\n';
             client.joinRoom("public");
             createSession();
         }
