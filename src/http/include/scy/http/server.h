@@ -49,6 +49,12 @@ public:
     /// Called by the connection pool to avoid allocating a new ServerConnection.
     void reset(net::TCPSocket::Ptr socket);
 
+    /// Update the last activity timestamp (called on request completion).
+    void touch() { _lastActivity = std::time(nullptr); }
+
+    /// Return seconds since last activity.
+    [[nodiscard]] double idleSeconds() const { return std::difftime(std::time(nullptr), _lastActivity); }
+
     LocalSignal<void(ServerConnection&, const MutableBuffer&)> Payload; ///< Signals when raw data is received
     LocalSignal<void(ServerConnection&)> Close;                         ///< Signals when the connection is closed
 
@@ -64,6 +70,7 @@ protected:
 protected:
     Server& _server;
     std::unique_ptr<ServerResponder> _responder;
+    std::time_t _lastActivity{0};
     bool _upgrade;
 };
 
@@ -230,6 +237,11 @@ public:
     /// Set to 0 to disable connection pooling entirely.
     void setMaxPooledConnections(size_t n) { _pool.setMaxSize(n); }
 
+    /// Set the keep-alive idle timeout in seconds (default 30).
+    /// Connections idle longer than this are closed by the timer.
+    /// Set to 0 to disable idle timeout.
+    void setKeepAliveTimeout(int seconds) { _keepAliveTimeout = seconds; }
+
     /// Return the server bind address.
     [[nodiscard]] net::Address& address();
 
@@ -260,6 +272,7 @@ protected:
     std::unordered_map<ServerConnection*, ServerConnection::Ptr> _connections;
     ConnectionPool _pool;
     DateCache _dateCache;
+    int _keepAliveTimeout{30};
     bool _reusePort{false};
 
     friend class ServerConnection;

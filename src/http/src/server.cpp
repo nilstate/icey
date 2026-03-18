@@ -99,6 +99,7 @@ void Server::onClientSocketAccept(const net::TCPSocket::Ptr& socket)
     } else {
         conn = _factory->createConnection(*this, socket);
     }
+    conn->touch();
     conn->Close += slot(this, &Server::onConnectionClose);
     _connections.emplace(conn.get(), conn);
 }
@@ -136,6 +137,20 @@ bool Server::onSocketClose(net::Socket& socket)
 void Server::onTimer()
 {
     _dateCache.update();
+
+    // Close idle keep-alive connections
+    if (_keepAliveTimeout > 0) {
+        std::vector<ServerConnection*> idle;
+        for (auto& [ptr, conn] : _connections) {
+            if (conn->idleSeconds() > _keepAliveTimeout)
+                idle.push_back(ptr);
+        }
+        for (auto* ptr : idle) {
+            auto it = _connections.find(ptr);
+            if (it != _connections.end())
+                it->second->close();
+        }
+    }
 }
 
 
@@ -271,6 +286,7 @@ void ServerConnection::onComplete()
 
     // The HTTP request is complete.
     // The request handler can give a response.
+    touch();
     if (_responder)
         _responder->onRequest(_request, _response);
 
