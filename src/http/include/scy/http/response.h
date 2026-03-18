@@ -152,6 +152,7 @@ private:
 
 
 [[nodiscard]] const char* getStatusCodeReason(StatusCode status);
+[[nodiscard]] const char* getStatusCodeString(StatusCode status);
 
 
 } // namespace http

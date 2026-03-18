@@ -56,7 +56,7 @@ ssize_t Connection::sendHeader()
     }
 
     std::string head;
-    head.reserve(256);
+    head.reserve(512);
     outgoingHeader()->write(head);
 
     // Send headers directly to the Socket,

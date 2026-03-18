@@ -147,6 +147,14 @@ public:
     /// Allocation is created, and at timer x intervals.
     virtual void sendCreatePermission();
 
+    /// Channel bindings (RFC 5766 Section 11) are intentionally not implemented.
+    /// They are a bandwidth optimization that replaces STUN-framed Send/Data
+    /// indications with a compact 4-byte ChannelData header. This only benefits
+    /// high-throughput media relay scenarios; in practice, media flows directly
+    /// via ICE/DTLS rather than through this TURN client's data path, so the
+    /// optimization is not worth the complexity (channel number allocation,
+    /// 10-minute binding refresh timers, ChannelData wire framing).
+    /// Data relay uses sendData() with Send Indications instead.
     virtual void sendChannelBind(const std::string& peerIP);
     virtual void sendRefresh();
     virtual void sendData(const char* data, size_t size, const net::Address& peerAddress);

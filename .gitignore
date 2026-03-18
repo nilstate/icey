@@ -9,6 +9,8 @@ build*
 private
 doxygen2md
 _book
+_deps
+CMakeFiles
 
 # Test output
 *.mp2

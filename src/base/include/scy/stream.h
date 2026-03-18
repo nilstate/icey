@@ -41,6 +41,8 @@ public:
     virtual ~Stream()
     {
         close();
+        for (auto* req : _writeReqFree)
+            delete req;
     }
 
     /// Closes and resets the stream handle.
@@ -87,9 +89,13 @@ public:
             return false;
         }
 
+        // Reuse write requests from freelist to avoid heap alloc per write
+        uv_write_t* req = allocWriteReq();
         auto buf = uv_buf_init(const_cast<char*>(data), static_cast<unsigned int>(len));
-        return Handle::invoke(&uv_write, new uv_write_t, stream(), &buf, 1, [](uv_write_t* req, int) {
-            delete req;
+        return Handle::invoke(&uv_write, req, stream(), &buf, 1, [](uv_write_t* req, int) {
+            // Return to freelist via the stream pointer stored in req->data
+            auto self = reinterpret_cast<Stream*>(req->handle->data);
+            self->freeWriteReq(req);
         });
     }
 
@@ -151,7 +157,7 @@ protected:
         if (!Handle::initialized() || Handle::closed() || !_started)
             return;
 
-        Read.emit(data, static_cast<const int>(len));
+        Read.emit(data, static_cast<int>(len));
     }
 
     //
@@ -194,10 +200,30 @@ protected:
         buf->len = buffer.size();
     }
 
+    uv_write_t* allocWriteReq()
+    {
+        if (!_writeReqFree.empty()) {
+            auto* req = _writeReqFree.back();
+            _writeReqFree.pop_back();
+            return req;
+        }
+        return new uv_write_t;
+    }
+
+    void freeWriteReq(uv_write_t* req)
+    {
+        if (_writeReqFree.size() < 8) { // cap pool size
+            _writeReqFree.push_back(req);
+        } else {
+            delete req;
+        }
+    }
+
 protected:
     Buffer _buffer;
     bool _started{false};
     size_t _highWaterMark{16 * 1024 * 1024}; ///< 16MB default write queue limit
+    std::vector<uv_write_t*> _writeReqFree;  ///< Freelist for write requests
 };
 
 

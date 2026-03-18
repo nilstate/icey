@@ -244,7 +244,12 @@ int Parser::on_url(llhttp_t* parser, const char* at, size_t len)
         return -1;
     }
 
-    self->onURL(std::string(at, len));
+    // Use a thread-local to avoid per-callback allocation.
+    // llhttp may deliver the URL across multiple on_url calls,
+    // but in practice it arrives in one piece for typical requests.
+    thread_local std::string url;
+    url.assign(at, len);
+    self->onURL(url);
     return 0;
 }
 
@@ -276,10 +281,10 @@ int Parser::on_header_field(llhttp_t* parser, const char* at, size_t len)
             self->onHeader(self->_lastHeaderField, self->_lastHeaderValue);
             self->_lastHeaderValue.clear();
         }
-        self->_lastHeaderField = std::string(at, len);
+        self->_lastHeaderField.assign(at, len);
         self->_wasHeaderValue = false;
     } else {
-        self->_lastHeaderField += std::string(at, len);
+        self->_lastHeaderField.append(at, len);
     }
 
     return 0;
@@ -294,10 +299,10 @@ int Parser::on_header_value(llhttp_t* parser, const char* at, size_t len)
     }
 
     if (!self->_wasHeaderValue) {
-        self->_lastHeaderValue = std::string(at, len);
+        self->_lastHeaderValue.assign(at, len);
         self->_wasHeaderValue = true;
     } else {
-        self->_lastHeaderValue += std::string(at, len);
+        self->_lastHeaderValue.append(at, len);
     }
 
     return 0;

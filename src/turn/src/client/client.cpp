@@ -579,7 +579,10 @@ void Client::handleCreatePermissionErrorResponse(const stun::Message& /* respons
 
 void Client::sendChannelBind(const std::string& /* peerIP */)
 {
-    throw std::logic_error("sendChannelBind not implemented");
+    // See client.h for rationale on why channel bindings are not implemented.
+    // Data relay uses sendData() with Send Indications instead.
+    throw std::logic_error("sendChannelBind not implemented: channel bindings "
+                           "(RFC 5766 s11) are not needed; use sendData() instead");
 }
 
 

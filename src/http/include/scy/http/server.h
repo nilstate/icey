@@ -154,6 +154,12 @@ public:
     /// Shutdown the HTTP server.
     void shutdown();
 
+    /// Enable SO_REUSEPORT for multicore server instances.
+    /// Must be called before start(). Allows multiple server
+    /// instances to bind the same address:port with kernel-level
+    /// load balancing (Linux 3.9+).
+    void setReusePort(bool enable = true) { _reusePort = enable; }
+
     /// Return the server bind address.
     [[nodiscard]] net::Address& address();
 
@@ -179,6 +185,7 @@ protected:
     Timer _timer;
     std::unique_ptr<ServerConnectionFactory> _factory;
     std::vector<ServerConnection::Ptr> _connections;
+    bool _reusePort{false};
 
     friend class ServerConnection;
 };

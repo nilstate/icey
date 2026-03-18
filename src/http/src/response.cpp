@@ -124,9 +124,15 @@ void Response::write(std::ostream& ostr) const
 
 void Response::write(std::string& str) const
 {
+    // Build status line: "HTTP/1.1 200 OK\r\n"
+    // Use a static lookup for common status codes to avoid std::to_string
     str.append(_version);
     str.append(" ");
-    str.append(std::to_string(static_cast<int>(_status)));
+    const char* code = getStatusCodeString(_status);
+    if (code)
+        str.append(code);
+    else
+        str.append(std::to_string(static_cast<int>(_status)));
     str.append(" ");
     str.append(_reason);
     str.append("\r\n");
@@ -150,6 +156,56 @@ StatusCode Response::getStatus() const
 const std::string& Response::getReason() const
 {
     return _reason;
+}
+
+
+const char* getStatusCodeString(StatusCode status)
+{
+    switch (status) {
+        case StatusCode::Continue: return "100";
+        case StatusCode::SwitchingProtocols: return "101";
+        case StatusCode::OK: return "200";
+        case StatusCode::Created: return "201";
+        case StatusCode::Accepted: return "202";
+        case StatusCode::NonAuthoritative: return "203";
+        case StatusCode::NoContent: return "204";
+        case StatusCode::ResetContent: return "205";
+        case StatusCode::PartialContent: return "206";
+        case StatusCode::MultipleChoices: return "300";
+        case StatusCode::MovedPermanently: return "301";
+        case StatusCode::Found: return "302";
+        case StatusCode::SeeOther: return "303";
+        case StatusCode::NotModified: return "304";
+        case StatusCode::UseProxy: return "305";
+        case StatusCode::TemporaryRedirect: return "307";
+        case StatusCode::BadRequest: return "400";
+        case StatusCode::Unauthorized: return "401";
+        case StatusCode::PaymentRequired: return "402";
+        case StatusCode::Forbidden: return "403";
+        case StatusCode::NotFound: return "404";
+        case StatusCode::MethodNotAllowed: return "405";
+        case StatusCode::NotAcceptable: return "406";
+        case StatusCode::ProxyAuthRequired: return "407";
+        case StatusCode::RequestTimeout: return "408";
+        case StatusCode::Conflict: return "409";
+        case StatusCode::Gone: return "410";
+        case StatusCode::LengthRequired: return "411";
+        case StatusCode::PreconditionFailed: return "412";
+        case StatusCode::EntityTooLarge: return "413";
+        case StatusCode::UriTooLong: return "414";
+        case StatusCode::UnsupportedMediaType: return "415";
+        case StatusCode::RangeNotSatisfiable: return "416";
+        case StatusCode::ExpectationFailed: return "417";
+        case StatusCode::UnprocessableEntity: return "422";
+        case StatusCode::UpgradeRequired: return "426";
+        case StatusCode::InternalServerError: return "500";
+        case StatusCode::NotImplemented: return "501";
+        case StatusCode::BadGateway: return "502";
+        case StatusCode::Unavailable: return "503";
+        case StatusCode::GatewayTimeout: return "504";
+        case StatusCode::VersionNotSupported: return "505";
+    }
+    return nullptr;
 }
 
 

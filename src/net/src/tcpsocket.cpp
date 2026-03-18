@@ -317,7 +317,7 @@ void TCPSocket::setMode(SocketMode mode)
 }
 
 
-const SocketMode TCPSocket::mode() const
+SocketMode TCPSocket::mode() const
 {
     return _mode;
 }
@@ -340,13 +340,14 @@ void TCPSocket::onRead(const char* data, size_t len)
 void TCPSocket::onRecv(const MutableBuffer& buf)
 {
     // LTrace("On recv:", buf.size());
-    onSocketRecv(*this, buf, peerAddress());
+    onSocketRecv(*this, buf, _peerAddress);
 }
 
 
 void TCPSocket::onConnect()
 {
     // LTrace("On connect");
+    _peerAddress = peerAddress(); // cache once
 
     if (readStart()) // will set error on failure
         onSocketConnect(*this);
@@ -363,6 +364,8 @@ void TCPSocket::acceptConnection()
     // invoke(&uv_tcp_init, loop(), socket->get()); // "Cannot initialize TCP socket"
 
     if (uv_accept(get<uv_stream_t>(), socket->get<uv_stream_t>()) == 0) {
+        (void)socket->setNoDelay(true);
+        socket->_peerAddress = socket->peerAddress(); // cache once
         socket->readStart();
         AcceptConnection.emit(socket);
     } else {

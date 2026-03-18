@@ -51,6 +51,13 @@ void Server::start()
     _socket->addReceiver(this);
     _socket->AcceptConnection += slot(this, &Server::onClientSocketAccept);
     _socket->bind(_address);
+
+    // Enable kernel-level socket load balancing (Linux 3.9+).
+    // This allows multiple server instances to bind to the same
+    // address:port, with the kernel distributing accepts evenly.
+    if (_reusePort)
+        (void)_socket->setReusePort();
+
     _socket->listen(1000);
 
     LDebug("HTTP server listening on ", _address);

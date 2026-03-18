@@ -51,6 +51,7 @@ void raiseMulticoreEchoServer()
     uv::ScopedLoop loop;
 
     http::Server srv(address, net::makeSocket<net::TCPSocket>(loop));
+    srv.setReusePort();
     srv.start();
 
     srv.Connection += [&](http::ServerConnection::Ptr conn) {
@@ -110,6 +111,7 @@ void raiseMulticoreBenchmarkServer()
     uv::ScopedLoop loop;
 
     http::Server srv(address, net::makeSocket<net::TCPSocket>(loop));
+    srv.setReusePort();
     srv.start();
 
     srv.Connection += [&](http::ServerConnection::Ptr conn) {
