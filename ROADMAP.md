@@ -1,178 +1,33 @@
-# LibSourcey v2 - Modernisation Plan
+# LibSourcey v2 Roadmap
 
 > C++20, modern dependencies, production-ready quality.
-
-**Status:** Ready for 2.0 release. All phases complete.
 
 CMake 3.21 minimum, deps via FetchContent (libuv 1.50, llhttp 9.2.1, zlib 1.3.1, nlohmann/json 3.11.3, OpenSSL 3.x, FFmpeg 5+).
 
 ---
 
-## Completed Work (2.0)
+## Current: 2.0.1 Release
 
-### Phase 1: Build System Overhaul - DONE
-
-Target-based CMake with `scy_add_module()`, `install(EXPORT)`, CMakePresets.json, GNUInstallDirs. WebRTC removed. All dead cmake/vendor files deleted.
-
-### Phase 2: Dependency Updates - DONE
-
-- libuv 1.11 -> 1.50 (FetchContent)
-- OpenSSL 1.x -> 3.x (full API migration: EVP, TLS_method, removed locking callbacks)
-- http_parser -> llhttp 9.2.1
-- nlohmann/json 2.1 -> 3.11.3
-- zlib 1.2.8 -> 1.3.1
-- FFmpeg API migrated to 5+/6+/7+ (send/receive, codecpar, iterator APIs)
-- OpenCV FindModule updated for 4.x
-- Dead deps removed: Poco, wxWidgets, rtaudio, dshow, msvc headers
-
-### Phase 3: C++ Modernisation - DONE (2.0 scope)
-
-- `#pragma once` on all headers
-- `[[nodiscard]]`, `noexcept`, `enum class` throughout
-- `typedef` -> `using`, `NULL` -> `nullptr`
-- `std::string_view` (util, http/url), structured bindings, `constexpr` constants
-- `std::filesystem` replaces custom path handling
-- `std::chrono` replaces custom timing
-- `std::shared_mutex` for read-heavy patterns (collection.h, signal.h)
-- Raw `new`/`delete` -> smart pointers across all modules
-- Signal `StopPropagation` exception replaced with `bool` return
-- `IPacket::source` removed, typed `avptr` for AV pipeline
-
-### Phase 4: Module-by-Module - DONE
-
-#### base
-
-Bugs fixed, asserts replaced with throws throughout (handle, stream, packetqueue, packetstream, datetime, timer, runner, thread, numeric, random, logger, streammanager, diagnosticmanager, application, util). Dead `#if 0` blocks removed. IPC timeout added. Signal slot ID uniqueness enforced. UV_EOF handled as graceful close. Tests: buffer, random, base64, datetime, error, stateful, util strings, platform, filesystem, thread, signal, timer pause/resume, timer one-shot, IPC round-trip, logger filtering.
-
-#### crypto
-
-Full OpenSSL 3.x migration. RAII wrappers for EVP_MD_CTX, EVP_CIPHER_CTX, X509. Asserts replaced. Tests: X509, HMAC, SHA-256/512, cipher edge cases, hash edge cases, hex, file checksum.
-
-#### net
-
-OpenSSL 3.x migration. ALPN + SNI support added. Hostname verification via `SSL_set1_host()` + `SSLSocket::connect(host, port)`. TLS 1.2 minimum enforced. All asserts replaced across socketemitter, sslsocket, socketadapter, packetsocket, udpsocket, address. Dead `#if 0` blocks removed (socketemitter.h, packetsocket.h/.cpp). Tests: IPv6, address ops, service resolution.
-
-#### http
-
-llhttp migration. WebSocket RFC 6455 compliance (RSV, opcode, mask, ping/pong/close). Raw `new`/`delete` -> `unique_ptr` throughout. Download progress tracking via `ClientConnection::IncomingProgress`. Dead `#if 0` removed (client.h, util.cpp). Tests: URL, cookie, authenticator, credentials, StringPart.
-
-#### json, socketio, symple
-
-Modernised, tests added for all.
-
-#### av
-
-Full FFmpeg 5+/6+/7+ migration (send/receive API, codecpar, iterator APIs, device enumeration). All asserts replaced across encoders, decoders, contexts, buffers, devicemanager, packet. Thread safety: mutex on PTS, atomics on MediaCapture flags, lock guards on create/close. Fixed MediaCapture loop seek bug. RAII via constructor/destructor pattern. Dead code removed (deprecated/ directory, `#if 0` blocks). Tests: Format, FormatRegistry, FPSCounter.
-
-#### stun/turn
-
-Fixed ChannelNumber factory bug, permission lifetime, bit shift UB, Server::stop() null. Tests added for both.
-
-#### util -> merged into base
-
-Chrono timing fix, UserManager deleted, all headers moved to `include/scy/`. Tests: Timeout, TimedToken, RateLimiter, IRegistry.
-
-#### sched
-
-Trigger ownership migrated to `unique_ptr`. Asserts replaced.
-
-#### archo
-
-`std::filesystem::path` migration. Path traversal protection in zip extraction. Fixed closeCurrentFile bug. Tests added.
-
-#### pacm
-
-SHA256 checksums (was MD5). SSL verification enabled. Path traversal protection. Download progress re-enabled. `latestSDKAsset` logic simplified. All asserts replaced. Dead code removed.
-
-### Phase 5: Testing - DONE
-
-Tests added for all 15 modules. Sanitizer builds (ASan, TSan, UBSan). Code coverage reporting. Samples cleaned.
-
-### Phase 6: CI/CD & Quality - DONE
-
-GitHub Actions (Linux GCC 13/14 + Clang 18, macOS, Windows MSVC 2022, sanitizers, coverage). Docker Ubuntu 24.04. `.clang-format` + `.clang-tidy`. Entire codebase formatted.
-
-### Phase 7: Documentation & Packaging - DONE
-
-README updated. Doxygen config. Contributing guide. vcpkg port. CPack. GitHub Releases with changelog. Version 2.0.0.
-
----
-
-## Remaining for 2.0 (non-blocking)
-
-### Test gaps - ALL FILLED
-
-All tests passing. Standalone VideoEncoder, VideoDecoder, AudioDecoder tests added and verified with FFmpeg 6.1.
-
-### Tests added for 2.0
-
-- PacketStream overflow handling (fast producer stress test with bounded SyncPacketQueue)
-- HTTP request/response serialization round-trip (GET, POST, headers, parse-back)
-- WebSocket frame encoding/decoding (text, binary, client masking, control frames)
-- pacm module tests (Package JSON round-trip, asset selection, LocalPackage state, manifest, errors, InstallationState)
-
----
-
-## 2.0.1 - Production Readiness
-
-Make libsourcey confidently recommendable to external users. No new features; fix what's there.
-
-### P0: CI Green (all platforms)
-
-- [x] Fix macOS build: missing `<unistd.h>`, `<cstdio>` in platform.cpp
-- [x] Fix Windows build: missing `<ostream>` in error.h, `SIGKILL` -> `SIGTERM` in process.h
-- [x] Fix sanitizer CI: split `matrix.env` into `env_name`/`env_value` (invalid YAML)
-- [x] Fix coverage CI: remove ccache (incompatible with gcov instrumentation)
-- [x] Fix CI checkout: add `submodules: recursive`, `BUILD_APPLICATIONS=OFF`
-- [x] Fix pacm apps/CMakeLists.txt: `pacmconsole` -> `pacm-cli`
-- [x] Fix sanitizer test failures (ASan/TSan/UBSan) - need runtime logs to diagnose
-- [x] Fix Windows build: missing `<windows.h>` in filesystem.cpp, winsock2 order in x509certificate.cpp
-- [x] Fix Windows build: missing zlib include path for minizip in archo module
-- [x] Fix Windows ctest: `--config` -> `-C` for ctest
-- [x] Verify all 9 CI jobs green
-
-### P1: Zero Warnings - DONE
-
-- [x] Fix `const` on value return types in buffer.h (12 warnings)
-- [x] Add `[[fallthrough]]` to base64.cpp switch cases (5 warnings)
-- [x] Add `override` to Thread::start() in thread.h and Logger::run() in logger.h
-- [x] Fix Thread template constructor `_context` init order warning (two-phase init)
-- [x] Add `-Werror` to CI builds (enforce zero warnings going forward)
-
-### P2: Remove assert() from Production Code - DONE
-
-All 40+ assert() calls replaced with exceptions or early returns across 13 files.
-
-### P3: Clean Up Legacy Cruft - PARTIAL
-
-- [x] Remove all `#if defined(_WIN32_WCE)` code (Windows CE dead since 2013)
-- [x] Standardise Windows guard: `WIN32` -> `_WIN32` everywhere
-- [x] Remove dead `#if 0` blocks (7 blocks across basetests.h, packetstream.cpp, cipher.cpp, turn tests, deprecated thread.h)
-- [x] Clean up stale TODO/FIXME comments in samples and deprecated code (11 removed)
-- [x] Resolve AV test TODO/FIXME comments with data integrity verification (7 resolved)
 - [ ] Generate SocketIO API docs (api-socketio.md is empty)
-
-### P4: Test Gaps
-
-- [x] Cross-platform process test (echo + stdout capture + exit code)
-- [x] AV frame data integrity verification (codec, sample rate, channels, duration verified via avformat)
-- [x] Document TURN channel binding as intentionally unimplemented (sendData with Send Indications covers the use case)
-- [x] Add integration test for SSL hostname verification (connects to google.com with cert verification)
-
-### P5: Polish
-
-- [x] Add inline comments to sample programs (11 samples documented)
-- [x] Add README.md to each samples/ directory (11 READMEs created)
-- [ ] Review and update vcpkg port for 2.0.1
+- [ ] Review and update vcpkg port
 - [ ] Tag 2.0.1 release with changelog
 
 ---
 
 ## Post-2.0 Roadmap
 
-Major features deferred to future releases.
+### 2.1 - WebRTC Integration (PRIORITY)
 
-### 2.1 - Networking
+Lightweight WebRTC media stack via libdatachannel. Full plan: `WEBRTC_PLAN.md`
+
+- New `src/webrtc/` module: MediaBridge, PeerSession, CodecNegotiator
+- libdatachannel via FetchContent (libjuice ICE, libsrtp SRTP, usrsctp data channels)
+- FFmpeg encode/decode <> libdatachannel RTP Track bridge
+- Symple signalling for SDP/candidate exchange
+- libsourcey TURN server as self-hosted relay infrastructure
+- Samples: webcam-streamer, file-streamer, media-recorder, data-echo
+
+### 2.2 - Networking
 
 - Connection timeout support (read/write/connect)
 - HTTP proxy (CONNECT, SOCKS5)
@@ -180,10 +35,8 @@ Major features deferred to future releases.
 - TLS 1.3 (0-RTT, session tickets, key update)
 - Certificate pinning
 - OCSP stapling
-- ~~WebSocket fragmentation + partial frame buffering~~ DONE (2.0)
-- ~~HTTP backpressure signalling~~ DONE (2.0, Stream write queue high water mark)
 
-### 2.2 - AV
+### 2.3 - AV
 
 - Hardware acceleration (NVENC, QuickSync, VideoToolbox, VAAPI)
 - HLS/DASH output
@@ -193,23 +46,7 @@ Major features deferred to future releases.
 - Encoding statistics/metrics
 - VideoPacket/AudioPacket ownership semantics
 
-### 2.3 - C++ Modernisation
-
-#### Replace POCO-derived code with std:: equivalents
-
-Keep existing public API (`Timestamp`, `DateTime`, `LocalDateTime`, `Timespan`, `DateTimeFormatter`, `DateTimeParser`, `Random`); rewrite internals to wrap standard C++20 types. Removes ~1200 lines of legacy code, the POCO license dependency, and all platform-specific timezone/RNG hacks.
-
-- `Timestamp` -> wrap `std::chrono::system_clock::time_point`
-- `Timespan` -> wrap `std::chrono::microseconds`
-- `DateTime` -> store `time_point`, extract fields via `std::chrono::year_month_day`
-- `LocalDateTime` -> use `std::chrono::zoned_time`
-- `Timezone` -> use `std::chrono::current_zone()` (replaces raw `tzset()`/`tzname`/`gmtime_r`)
-- `DateTimeFormatter`/`DateTimeParser` -> use `std::chrono::format`/`std::chrono::parse` or keep manual formatting if format string compatibility required
-- `Random` -> replace BSD PRNG with `std::mt19937_64`, seed via `std::random_device`
-- Delete all `_WIN32_WCE` branches
-- Remove `/dev/urandom` and `CryptGenRandom` manual seeding
-
-#### Other modernisation
+### 2.4 - Further C++ Modernisation
 
 - `std::jthread` + `std::stop_token` replacing Thread/Runner
 - Coroutine-based scheduling (C++20)
@@ -219,12 +56,10 @@ Keep existing public API (`Timestamp`, `DateTime`, `LocalDateTime`, `Timespan`, 
 - Signal/slot delegate simplification
 - GarbageCollector/deleteLater audit
 - Error strategy (scy::Error vs std::error_code vs std::expected)
-- Mutex deadlock audit
 - `std::optional` for nullable returns
 - MutableBuffer/ConstBuffer -> `std::span<std::byte>` evaluation
-- spdlog evaluation
 
-### 2.4 - Package Manager
+### 2.5 - Package Manager
 
 - Package signature verification (RSA/ECDSA)
 - Dependency resolution
@@ -236,7 +71,7 @@ Keep existing public API (`Timestamp`, `DateTime`, `LocalDateTime`, `Timespan`, 
 - Remote package caching
 - CLI credential handling (not command-line args)
 
-### 2.5 - Quality
+### 2.6 - Quality
 
 - Fuzz testing (HTTP, STUN, JSON parsers)
 - Benchmark suite (nanobench or Google Benchmark)
@@ -245,26 +80,41 @@ Keep existing public API (`Timestamp`, `DateTime`, `LocalDateTime`, `Timespan`, 
 
 ---
 
-## Module Decisions
+## Modules
 
-| Module | Status | Decision |
-|--------|--------|----------|
-| base | Core | Keep |
-| net | Core | Keep |
-| crypto | Core | Keep |
-| http | Core | Keep |
-| json | Core | Keep |
-| socketio | Active | Keep |
-| symple | Active | Evaluate |
-| av | Optional | Keep |
-| archo | Optional | Keep |
-| stun | Optional | Keep |
-| turn | Optional | Keep |
-| sched | Optional | Keep or extract |
-| util | Merged | Into base |
-| webrtc | Removed | Dropped |
-| pacm | External | Keep |
-| pluga | External | Keep |
+| Module | Status | Notes |
+|--------|--------|-------|
+| base | Core | |
+| net | Core | |
+| crypto | Core | |
+| http | Core | |
+| json | Core | |
+| socketio | Active | |
+| symple | Active | WebRTC signalling layer |
+| av | Active | FFmpeg 5+/6+/7+ |
+| stun | Active | |
+| turn | Active | Self-hosted relay |
+| archo | Active | |
+| sched | Active | |
+| webrtc | Planned | libdatachannel, see WEBRTC_PLAN.md |
+| pacm | External | Submodule |
+| pluga | External | Submodule |
+
+---
+
+## Completed (2.0)
+
+Build system overhaul (target-based CMake, FetchContent). Dependency updates (libuv 1.50, OpenSSL 3.x, llhttp, nlohmann/json 3.11.3, zlib 1.3.1, FFmpeg 5+). C++ modernisation (pragma once, nodiscard, enum class, string_view, filesystem, chrono, shared_mutex, smart pointers). All modules updated, tests for all 15 modules, CI (Linux/macOS/Windows, sanitizers, coverage), documentation, vcpkg port.
+
+### 2.0 C++ modernisation (completed)
+
+- `std::string_view` for read-only params across all modules (~270 conversions)
+- `Random` rewritten with `std::mt19937` + `std::random_device`
+- `DateTime` internals rewritten with C++20 `std::chrono::year_month_day`, replacing Julian Day math
+- `numeric` formatting rewritten with `std::to_chars`, replacing sprintf
+- `icompare` consolidated from 10 template overloads to single `string_view` implementation
+- POCO license blocks removed from all files
+- Zero warnings, zero asserts in production code
 
 ---
 
