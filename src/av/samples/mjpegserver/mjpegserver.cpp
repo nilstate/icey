@@ -136,7 +136,7 @@ int main(int argc, char** argv)
 #else
     // Stream from a video file (no hardware required)
     gCapture = std::make_shared<av::MediaCapture>();
-    gCapture->openFile("../data/test.mp4");
+    gCapture->openFile(SCY_DATA_DIR "/test.mp4");
     gCapture->setLoopInput(true);
     gCapture->setLimitFramerate(true);
 #endif

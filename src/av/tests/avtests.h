@@ -77,11 +77,7 @@ static const int kInNumSamples = 1024;
 
 std::string sampleDataDir(const std::string& file)
 {
-    std::string dir;
-    fs::addnode(dir, SCY_SOURCE_DIR);
-    fs::addnode(dir, "av");
-    fs::addnode(dir, "samples");
-    fs::addnode(dir, "data");
+    std::string dir(SCY_DATA_DIR);
     if (!file.empty())
         fs::addnode(dir, file);
     return dir;

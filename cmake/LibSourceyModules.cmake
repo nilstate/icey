@@ -221,6 +221,7 @@ function(scy_add_test name)
 
   # Config header access
   target_include_directories(${name} PRIVATE ${CMAKE_BINARY_DIR})
+  target_compile_definitions(${name} PRIVATE SCY_DATA_DIR="${LibSourcey_SOURCE_DIR}/data")
 
   if(NOT TEST_EXCLUDE_CTEST)
     add_test(NAME ${name} COMMAND ${name})
@@ -257,6 +258,7 @@ function(scy_add_sample name)
   endif()
 
   target_include_directories(${name} PRIVATE ${CMAKE_BINARY_DIR})
+  target_compile_definitions(${name} PRIVATE SCY_DATA_DIR="${LibSourcey_SOURCE_DIR}/data")
 
   if(ENABLE_SOLUTION_FOLDERS)
     set_target_properties(${name} PROPERTIES FOLDER "samples")

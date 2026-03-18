@@ -133,7 +133,7 @@ int main(int argc, char** argv)
     gCapture = capture;
 #else
     gCapture = std::make_shared<av::MediaCapture>();
-    gCapture->openFile("../data/test.mp4");
+    gCapture->openFile(SCY_DATA_DIR "/test.mp4");
     gCapture->setLoopInput(true);
     gCapture->setLimitFramerate(true);
 #endif

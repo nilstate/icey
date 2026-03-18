@@ -13,7 +13,7 @@
 // The pipeline is: file source -> MultiplexPacketEncoder -> output file.
 //
 // Usage: filetranscode [input] [output]
-//   Defaults: input = ../data/test.mp4, output = output.mp4
+//   Defaults: input = data/test.mp4, output = output.mp4
 //
 /// @addtogroup av
 /// @{
@@ -34,7 +34,7 @@ using namespace scy;
 
 int main(int argc, char** argv)
 {
-    std::string inputFile = argc > 1 ? argv[1] : "../data/test.mp4";
+    std::string inputFile = argc > 1 ? argv[1] : SCY_DATA_DIR "/test.mp4";
     std::string outputFile = argc > 2 ? argv[2] : "output.mp4";
 
     Logger::instance().add(std::make_unique<ConsoleChannel>("debug", Level::Debug));

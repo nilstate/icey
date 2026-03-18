@@ -30,6 +30,7 @@ LibSourceyConfigVersion.cmake
 # Test output
 *.mp2
 *.mp4
+!data/test.mp4
 *.flv
 *.mkv
 *.avi
