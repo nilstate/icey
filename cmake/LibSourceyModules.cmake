@@ -100,10 +100,11 @@ endfunction()
 #   [DEPENDS <module1> <module2> ...]
 #   [PACKAGES <pkg1> <pkg2> ...]
 #   [PRETTY_NAME <name>]
+#   [SKIP_EXPORT]
 # )
 # ----------------------------------------------------------------------------
 function(scy_add_module name)
-  cmake_parse_arguments(MOD "" "PRETTY_NAME" "DEPENDS;PACKAGES" ${ARGN})
+  cmake_parse_arguments(MOD "SKIP_EXPORT" "PRETTY_NAME" "DEPENDS;PACKAGES" ${ARGN})
 
   # Check if module is enabled
   if(DEFINED BUILD_MODULE_${name} AND NOT BUILD_MODULE_${name})
@@ -158,12 +159,22 @@ function(scy_add_module name)
 
   # Install library
   if(_srcs)
-    install(TARGETS ${name}
-      EXPORT LibSourceyTargets
-      RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT libs
-      LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT libs
-      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT dev
-    )
+    if(MOD_SKIP_EXPORT)
+      # Install without adding to the shared export set (for modules
+      # with FetchContent deps that have conflicting export targets).
+      install(TARGETS ${name}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT libs
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT libs
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT dev
+      )
+    else()
+      install(TARGETS ${name}
+        EXPORT LibSourceyTargets
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT libs
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT libs
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT dev
+      )
+    endif()
   endif()
 
   # Install headers

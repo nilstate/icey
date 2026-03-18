@@ -18,7 +18,7 @@ CMake 3.21 minimum, deps via FetchContent (libuv 1.50, llhttp 9.2.1, zlib 1.3.1,
 
 ### 2.1 - WebRTC Integration (PRIORITY)
 
-Lightweight WebRTC media stack via libdatachannel. Full plan: `WEBRTC_PLAN.md`
+Lightweight WebRTC media stack via libdatachannel. See `src/webrtc/README.md`
 
 - New `src/webrtc/` module: MediaBridge, PeerSession, CodecNegotiator
 - libdatachannel via FetchContent (libjuice ICE, libsrtp SRTP, usrsctp data channels)
@@ -96,7 +96,7 @@ Lightweight WebRTC media stack via libdatachannel. Full plan: `WEBRTC_PLAN.md`
 | turn | Active | Self-hosted relay |
 | archo | Active | |
 | sched | Active | |
-| webrtc | Planned | libdatachannel, see WEBRTC_PLAN.md |
+| webrtc | Active | libdatachannel, see src/webrtc/README.md |
 | pacm | External | Submodule |
 | pluga | External | Submodule |
 

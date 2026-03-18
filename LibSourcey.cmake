@@ -66,9 +66,10 @@ endif()
 # ----------------------------------------------------------------------------
 # External dependency options
 # ----------------------------------------------------------------------------
-option(WITH_OPENSSL  "Include OpenSSL support"   ON)
-option(WITH_FFMPEG   "Include FFmpeg support"     OFF)
-option(WITH_OPENCV   "Include OpenCV support"     OFF)
+option(WITH_OPENSSL         "Include OpenSSL support"          ON)
+option(WITH_FFMPEG          "Include FFmpeg support"           OFF)
+option(WITH_OPENCV          "Include OpenCV support"           OFF)
+option(WITH_LIBDATACHANNEL  "Include libdatachannel for WebRTC" OFF)
 
 
 # ----------------------------------------------------------------------------
@@ -240,6 +241,34 @@ if(WITH_OPENCV)
   find_package(OpenCV QUIET)
   if(OpenCV_FOUND)
     set(HAVE_OPENCV ON)
+  endif()
+endif()
+
+# ----------------------------------------------------------------------------
+# libdatachannel (WebRTC transport: ICE, DTLS, SRTP, data channels)
+# ----------------------------------------------------------------------------
+if(WITH_LIBDATACHANNEL AND HAVE_OPENSSL AND HAVE_FFMPEG)
+  include(FetchContent)
+  FetchContent_Declare(libdatachannel
+    GIT_REPOSITORY https://github.com/paullouisageneau/libdatachannel.git
+    GIT_TAG        v0.24.1
+    GIT_SHALLOW    TRUE)
+  set(NO_MEDIA OFF CACHE BOOL "" FORCE)
+  set(NO_WEBSOCKET ON CACHE BOOL "" FORCE)
+  set(NO_EXAMPLES ON CACHE BOOL "" FORCE)
+  set(NO_TESTS ON CACHE BOOL "" FORCE)
+  # Disable libdatachannel's -Werror to avoid breaking our build
+  set(WARNINGS_AS_ERRORS OFF CACHE BOOL "" FORCE)
+  FetchContent_MakeAvailable(libdatachannel)
+  set(HAVE_LIBDATACHANNEL ON)
+  message(STATUS "  Found libdatachannel (FetchContent)")
+
+  # The webrtc module uses SKIP_EXPORT in scy_add_module() because
+  # libdatachannel's transitive deps (juice, usrsctp, srtp2) have their
+  # own export sets that conflict with LibSourceyTargets.
+else()
+  if(WITH_LIBDATACHANNEL)
+    message(STATUS "  libdatachannel requires OpenSSL and FFmpeg (WITH_OPENSSL=ON WITH_FFMPEG=ON)")
   endif()
 endif()
 
