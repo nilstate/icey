@@ -94,7 +94,7 @@ GitHub Actions (Linux GCC 13/14 + Clang 18, macOS, Windows MSVC 2022, sanitizers
 
 ### Phase 7: Documentation & Packaging - DONE
 
-README updated. Doxygen config. BUILD.md. vcpkg port. CPack. GitHub Releases with changelog. Version 2.0.0.
+README updated. Doxygen config. Contributing guide. vcpkg port. CPack. GitHub Releases with changelog. Version 2.0.0.
 
 ---
 
@@ -137,7 +137,7 @@ Make libsourcey confidently recommendable to external users. No new features; fi
 - [x] Add `[[fallthrough]]` to base64.cpp switch cases (5 warnings)
 - [x] Add `override` to Thread::start() in thread.h and Logger::run() in logger.h
 - [x] Fix Thread template constructor `_context` init order warning (two-phase init)
-- [ ] Add `-Werror` to CI builds (enforce zero warnings going forward)
+- [x] Add `-Werror` to CI builds (enforce zero warnings going forward)
 
 ### P2: Remove assert() from Production Code - DONE
 
@@ -156,13 +156,13 @@ All 40+ assert() calls replaced with exceptions or early returns across 13 files
 
 - [x] Cross-platform process test (echo + stdout capture + exit code)
 - [x] AV frame data integrity verification (codec, sample rate, channels, duration verified via avformat)
-- [ ] Test edge cases in TURN channel binding (sendChannelBind is unimplemented - implement or drop)
+- [x] Document TURN channel binding as intentionally unimplemented (sendData with Send Indications covers the use case)
 - [x] Add integration test for SSL hostname verification (connects to google.com with cert verification)
 
 ### P5: Polish
 
-- [ ] Add inline comments to sample programs
-- [ ] Add README.md to each samples/ directory
+- [x] Add inline comments to sample programs (11 samples documented)
+- [x] Add README.md to each samples/ directory (11 READMEs created)
 - [ ] Review and update vcpkg port for 2.0.1
 - [ ] Tag 2.0.1 release with changelog
 

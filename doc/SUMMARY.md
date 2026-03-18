@@ -28,4 +28,5 @@
 
 ---
 
+* [Contributing](contributing.md)
 * [License](LICENSE.md)
