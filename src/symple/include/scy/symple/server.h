@@ -54,7 +54,7 @@ public:
 
     [[nodiscard]] Peer& peer() { return _peer; }
     [[nodiscard]] const Peer& peer() const { return _peer; }
-    [[nodiscard]] const std::string& id() const;
+    [[nodiscard]] std::string id() const;
     [[nodiscard]] const std::unordered_set<std::string>& rooms() const { return _rooms; }
     [[nodiscard]] bool authenticated() const { return _authenticated; }
 

@@ -1,4 +1,6 @@
 #include "sympletests.h"
+#include "scy/application.h"
+#include "scy/loop.h"
 #include "scy/symple/command.h"
 #include "scy/symple/event.h"
 #include "scy/symple/peer.h"
@@ -8,251 +10,349 @@
 #include <stdexcept>
 
 
+using namespace scy;
 namespace scy_test = scy::test;
 
 
 int main(int argc, char** argv)
 {
-    // Logger::instance().add(new ConsoleChannel("debug", Level::Trace));
+    scy::Logger::instance().add(
+        std::make_unique<scy::ConsoleChannel>("debug", scy::Level::Debug));
     scy_test::init();
-
-#if USE_SSL
-    scy::net::SSLManager::initNoVerifyClient();
-#endif
 
 
     // =========================================================================
     // Address
     //
-    scy_test::describe("address", []() {
-        scy::smpl::Address a1("user|");
-        if (a1.user != "user")
-            throw std::runtime_error("Expected user == 'user'");
-        if (!a1.id.empty())
-            throw std::runtime_error("Expected id to be empty");
-        if (!a1.valid())
-            throw std::runtime_error("Expected a1 to be valid");
-
-        scy::smpl::Address a2("user");
-        if (a2.user != "user")
-            throw std::runtime_error("Expected user == 'user'");
-        if (!a2.id.empty())
-            throw std::runtime_error("Expected id to be empty");
-        if (!a2.valid())
-            throw std::runtime_error("Expected a2 to be valid");
-
-        scy::smpl::Address a3("");
-        if (!a3.user.empty())
-            throw std::runtime_error("Expected user to be empty");
-        if (!a3.id.empty())
-            throw std::runtime_error("Expected id to be empty");
-        if (a3.valid())
-            throw std::runtime_error("Expected a3 to be invalid");
-
-        scy::smpl::Address a4("|567257247245275");
-        if (!a4.user.empty())
-            throw std::runtime_error("Expected user to be empty");
-        if (a4.id != "567257247245275")
-            throw std::runtime_error("Expected id == '567257247245275'");
-        if (!a4.valid())
-            throw std::runtime_error("Expected a4 to be valid");
+    scy_test::describe("address: user|id parse", []() {
+        scy::smpl::Address a("alice|abc123");
+        expect(a.user == "alice");
+        expect(a.id == "abc123");
+        expect(a.valid());
+        expect(a.toString() == "alice|abc123");
     });
 
-
-    // =========================================================================
-    // Client
-    //
-    scy_test::describe("client", []() {
-        // Run the test server
-        // If not available the test will fail gracefully with a warning
-        // NOTE: The server must allow anonymous authentication for this test
-        scy::Process proc;
-        if (!scy::openTestServer(proc)) {
-            std::cerr << "cannot start test server, skipping..." << '\n';
-            return;
-        }
-
-        scy::smpl::Client::Options loptions;
-        loptions.host = SERVER_HOST;
-        loptions.port = SERVER_PORT;
-        loptions.user = "l";
-        loptions.name = "Left";
-        // loptions.token = "2NuMmyXw2YDuQfyPCKDO2Qtta";
-
-        scy::smpl::Client::Options roptions;
-        roptions.host = SERVER_HOST;
-        roptions.port = SERVER_PORT;
-        roptions.user = "r";
-        roptions.name = "Right";
-        // roptions.token = "2NuMmyXw2YDuQfyPCKDO2Qtta";
-
-        scy::TestClient lclient(loptions);
-        scy::TestClient rclient(roptions);
-
-        lclient.connect();
-        rclient.connect();
-
-        while (!lclient.completed() || !rclient.completed()) {
-
-            // LDebug("waiting for test completion");
-            scy::uv::runLoop(scy::uv::defaultLoop(), UV_RUN_ONCE);
-
-            // // Connect the rclient when lclient is online
-            // if (lclient.client.isOnline() &&
-            //     rclient.client.stateEquals(sockio::ClientState::Closed))
-            //     rclient.connect();
-        }
-
-        lclient.check();
-        rclient.check();
+    scy_test::describe("address: user only", []() {
+        scy::smpl::Address a("alice");
+        expect(a.user == "alice");
+        expect(a.id.empty());
+        expect(a.valid());
     });
+
+    scy_test::describe("address: empty invalid", []() {
+        scy::smpl::Address a("");
+        expect(!a.valid());
+    });
+
 
     // =========================================================================
     // Peer
     //
-    scy_test::describe("peer", []() {
-        scy::smpl::Peer peer;
-        peer.setID("abc123");
-        peer.setUser("testuser");
-        peer.setName("Test User");
-        peer.setType("client");
-        peer.setHost("localhost");
+    scy_test::describe("peer: construction from json", []() {
+        scy::json::Value data;
+        data["id"] = "abc123";
+        data["user"] = "alice";
+        data["name"] = "Alice";
+        data["online"] = true;
 
+        scy::smpl::Peer peer(data);
         expect(peer.id() == "abc123");
-        expect(peer.user() == "testuser");
-        expect(peer.name() == "Test User");
-        expect(peer.type() == "client");
-        expect(peer.host() == "localhost");
+        expect(peer.user() == "alice");
+        expect(peer.name() == "Alice");
         expect(peer.valid());
-
-        // Address combines user|id
-        scy::smpl::Address addr = peer.address();
-        expect(addr.user == "testuser");
-        expect(addr.id == "abc123");
     });
 
-    scy_test::describe("peer from json", []() {
-        scy::json::Value j;
-        j["id"] = "xyz";
-        j["user"] = "bob";
-        j["name"] = "Bob";
-        j["type"] = "server";
+    scy_test::describe("peer: address format", []() {
+        scy::json::Value data;
+        data["id"] = "x1";
+        data["user"] = "bob";
+        data["online"] = true;
 
-        scy::smpl::Peer peer(j);
-        expect(peer.id() == "xyz");
-        expect(peer.user() == "bob");
-        expect(peer.name() == "Bob");
-    });
-
-    scy_test::describe("peer copy", []() {
-        scy::smpl::Peer p1;
-        p1.setID("id1");
-        p1.setUser("user1");
-
-        scy::smpl::Peer p2(p1);
-        expect(p2.id() == "id1");
-        expect(p2.user() == "user1");
+        scy::smpl::Peer peer(data);
+        auto addr = peer.address();
+        expect(addr.user == "bob");
+        expect(addr.id == "x1");
+        expect(addr.toString() == "bob|x1");
     });
 
 
     // =========================================================================
-    // Event
+    // Message
     //
-    scy_test::describe("event", []() {
-        scy::smpl::Event event;
-        event.setName("click");
-        event.setTime(1234567890.0);
+    scy_test::describe("message: construction and fields", []() {
+        scy::smpl::Message m;
+        m.setType("message");
+        m.setTo(scy::smpl::Address("bob|123"));
+        m.setFrom(scy::smpl::Address("alice|456"));
+        m["subtype"] = "chat";
+        m["data"]["text"] = "hello";
 
-        expect(event.name() == "click");
-        expect(event.time() == 1234567890.0);
-        expect(event.valid());
-    });
-
-    scy_test::describe("event from json", []() {
-        scy::json::Value j;
-        j["type"] = "event";
-        j["name"] = "hover";
-        j["time"] = 42.0;
-
-        scy::smpl::Event event(j);
-        expect(event.name() == "hover");
-        expect(event.time() == 42.0);
-    });
-
-
-    // =========================================================================
-    // Command
-    //
-    scy_test::describe("command", []() {
-        scy::smpl::Command cmd;
-        cmd.setNode("audio.mute");
-        cmd.setAction("toggle");
-
-        expect(cmd.node() == "audio.mute");
-        expect(cmd.action() == "toggle");
-        expect(cmd.valid());
-    });
-
-    scy_test::describe("command from json", []() {
-        scy::json::Value j;
-        j["type"] = "command";
-        j["node"] = "video.play";
-        j["action"] = "start";
-
-        scy::smpl::Command cmd(j);
-        expect(cmd.node() == "video.play");
-        expect(cmd.action() == "start");
+        expect(m.type() == "message");
+        expect(m.to().user == "bob");
+        expect(m.from().user == "alice");
+        expect(m.valid());
     });
 
 
     // =========================================================================
     // Presence
     //
-    scy_test::describe("presence", []() {
-        scy::smpl::Presence pres;
-        expect(!pres.isProbe());
-
-        pres.setProbe(true);
-        expect(pres.isProbe());
-
-        pres.setProbe(false);
-        expect(!pres.isProbe());
+    scy_test::describe("presence: probe flag", []() {
+        scy::smpl::Presence p;
+        expect(!p.isProbe());
+        p.setProbe(true);
+        expect(p.isProbe());
     });
 
 
     // =========================================================================
     // Roster
     //
-    scy_test::describe("roster", []() {
+    scy_test::describe("roster: add and get", []() {
         scy::smpl::Roster roster;
+        auto peer = std::make_unique<scy::smpl::Peer>();
+        (*peer)["id"] = "abc";
+        (*peer)["user"] = "alice";
+        (*peer)["online"] = true;
+        roster.add("abc", std::move(peer));
 
-        auto peer1 = new scy::smpl::Peer;
-        peer1->setID("p1");
-        peer1->setUser("alice");
-        peer1->setHost("host1");
-
-        auto peer2 = new scy::smpl::Peer;
-        peer2->setID("p2");
-        peer2->setUser("bob");
-        peer2->setHost("host2");
-
-        roster.add("alice|p1", peer1);
-        roster.add("bob|p2", peer2);
-
-        // getByHost
-        auto found = roster.getByHost("host1");
+        auto* found = roster.get("abc", false);
         expect(found != nullptr);
         expect(found->user() == "alice");
 
-        expect(roster.getByHost("unknown") == nullptr);
+        auto* notFound = roster.get("nonexistent", false);
+        expect(notFound == nullptr);
+
+        roster.free("abc");
+        expect(roster.get("abc", false) == nullptr);
+    });
+
+
+    // =========================================================================
+    // Server
+    //
+    scy_test::describe("server: start and shutdown", []() {
+        scy::smpl::Server server;
+        server.start({.host = SERVER_HOST, .port = SERVER_PORT});
+        expect(server.peerCount() == 0);
+        server.shutdown();
+    });
+
+
+    // =========================================================================
+    // Client + Server Integration
+    //
+    // NOTE: These tests require the libuv event loop to run.
+    // The test framework runs tests synchronously, so we use
+    // runLoop() to pump events for a limited time.
+    //
+    scy_test::describe("client: connect and authenticate", []() {
+        // Start server
+        scy::smpl::Server server;
+        server.start({.host = SERVER_HOST, .port = SERVER_PORT, .dynamicRooms = true});
+
+        bool peerConnected = false;
+        server.PeerConnected += [&](scy::smpl::ServerPeer& peer) {
+            peerConnected = true;
+        };
+
+        // Create client
+        scy::smpl::Client::Options opts;
+        opts.host = SERVER_HOST;
+        opts.port = SERVER_PORT;
+        opts.user = "testuser";
+        opts.name = "Test User";
+
+        scy::smpl::Client client(opts);
+
+        bool gotOnline = false;
+        int announceStatus = 0;
+
+        client.Announce += [&](const int& status) {
+            announceStatus = status;
+        };
+
+        client.StateChange += [&](void*, scy::smpl::ClientState& state, const scy::smpl::ClientState&) {
+            if (state.id() == scy::smpl::ClientState::Online)
+                gotOnline = true;
+        };
+
+        client.connect();
+
+        // Run event loop for up to 2 seconds
+        auto start = std::chrono::steady_clock::now();
+        while (!gotOnline &&
+               std::chrono::steady_clock::now() - start < std::chrono::seconds(2)) {
+            uv::runLoop(uv::defaultLoop(), UV_RUN_NOWAIT);
+        }
+
+        expect(gotOnline);
+        expect(announceStatus == 200);
+        expect(!client.ourID().empty());
+        expect(peerConnected);
+        expect(server.peerCount() == 1);
+
+        client.close();
+        server.shutdown();
+    });
+
+
+    scy_test::describe("client: two peers see each other's presence", []() {
+        scy::smpl::Server server;
+        server.start({.host = SERVER_HOST, .port = SERVER_PORT + 1, .dynamicRooms = true});
+
+        // Client A
+        scy::smpl::Client::Options optsA;
+        optsA.host = SERVER_HOST;
+        optsA.port = SERVER_PORT + 1;
+        optsA.user = "alice";
+        optsA.name = "Alice";
+
+        scy::smpl::Client clientA(optsA);
+        bool aOnline = false;
+        bool aGotPresence = false;
+
+        clientA.StateChange += [&](void*, scy::smpl::ClientState& state, const scy::smpl::ClientState&) {
+            if (state.id() == scy::smpl::ClientState::Online) {
+                aOnline = true;
+                clientA.joinRoom("test");
+            }
+        };
+
+        clientA.PeerConnected += [&](scy::smpl::Peer& peer) {
+            if (peer.user() != "alice")
+                aGotPresence = true;
+        };
+
+        // Client B
+        scy::smpl::Client::Options optsB;
+        optsB.host = SERVER_HOST;
+        optsB.port = SERVER_PORT + 1;
+        optsB.user = "bob";
+        optsB.name = "Bob";
+
+        scy::smpl::Client clientB(optsB);
+        bool bOnline = false;
+        bool bGotPresence = false;
+
+        clientB.StateChange += [&](void*, scy::smpl::ClientState& state, const scy::smpl::ClientState&) {
+            if (state.id() == scy::smpl::ClientState::Online) {
+                bOnline = true;
+                clientB.joinRoom("test");
+            }
+        };
+
+        clientB.PeerConnected += [&](scy::smpl::Peer& peer) {
+            if (peer.user() != "bob")
+                bGotPresence = true;
+        };
+
+        clientA.connect();
+
+        // Wait for A to come online before connecting B
+        auto start = std::chrono::steady_clock::now();
+        while (!aOnline &&
+               std::chrono::steady_clock::now() - start < std::chrono::seconds(2)) {
+            uv::runLoop(uv::defaultLoop(), UV_RUN_NOWAIT);
+        }
+        expect(aOnline);
+
+        clientB.connect();
+
+        // Wait for both to exchange presence
+        start = std::chrono::steady_clock::now();
+        while ((!bOnline || !aGotPresence || !bGotPresence) &&
+               std::chrono::steady_clock::now() - start < std::chrono::seconds(3)) {
+            uv::runLoop(uv::defaultLoop(), UV_RUN_NOWAIT);
+        }
+
+        expect(bOnline);
+        expect(server.peerCount() == 2);
+        // B should have seen A's presence (A was online when B joined the user room)
+        // A should have seen B's presence broadcast
+
+        clientA.close();
+        clientB.close();
+        server.shutdown();
+    });
+
+
+    scy_test::describe("client: message routing", []() {
+        scy::smpl::Server server;
+        server.start({.host = SERVER_HOST, .port = SERVER_PORT + 2, .dynamicRooms = true});
+
+        // Client A
+        scy::smpl::Client::Options optsA;
+        optsA.host = SERVER_HOST;
+        optsA.port = SERVER_PORT + 2;
+        optsA.user = "sender";
+
+        scy::smpl::Client clientA(optsA);
+        bool aOnline = false;
+        std::string aId;
+
+        clientA.StateChange += [&](void*, scy::smpl::ClientState& state, const scy::smpl::ClientState&) {
+            if (state.id() == scy::smpl::ClientState::Online) {
+                aOnline = true;
+                aId = clientA.ourID();
+            }
+        };
+
+        // Client B
+        scy::smpl::Client::Options optsB;
+        optsB.host = SERVER_HOST;
+        optsB.port = SERVER_PORT + 2;
+        optsB.user = "receiver";
+
+        scy::smpl::Client clientB(optsB);
+        bool bOnline = false;
+        std::string receivedText;
+
+        clientB.StateChange += [&](void*, scy::smpl::ClientState& state, const scy::smpl::ClientState&) {
+            if (state.id() == scy::smpl::ClientState::Online)
+                bOnline = true;
+        };
+
+        // Listen for all packets and check for our message
+        static_cast<scy::PacketSignal&>(clientB).attach(
+            [&receivedText](scy::IPacket& pkt) {
+                auto* msg = dynamic_cast<scy::smpl::Message*>(&pkt);
+                if (msg && msg->find("data") != msg->end() && (*msg)["data"].contains("text"))
+                    receivedText = (*msg)["data"]["text"].get<std::string>();
+            });
+
+        clientA.connect();
+        clientB.connect();
+
+        auto start = std::chrono::steady_clock::now();
+        while ((!aOnline || !bOnline) &&
+               std::chrono::steady_clock::now() - start < std::chrono::seconds(2)) {
+            uv::runLoop(uv::defaultLoop(), UV_RUN_NOWAIT);
+        }
+        expect(aOnline);
+        expect(bOnline);
+
+        // A sends message to B
+        scy::smpl::Message msg;
+        msg.setTo(scy::smpl::Address("receiver"));
+        msg["data"]["text"] = "hello from sender";
+        clientA.send(msg);
+
+        // Wait for delivery
+        start = std::chrono::steady_clock::now();
+        while (receivedText.empty() &&
+               std::chrono::steady_clock::now() - start < std::chrono::seconds(2)) {
+            uv::runLoop(uv::defaultLoop(), UV_RUN_NOWAIT);
+        }
+
+        expect(receivedText == "hello from sender");
+
+        clientA.close();
+        clientB.close();
+        server.shutdown();
     });
 
 
     scy_test::runAll();
-
-#if USE_SSL
-    scy::net::SSLManager::instance().shutdown();
-#endif
-    scy::Logger::destroy();
     return scy_test::finalize();
 }

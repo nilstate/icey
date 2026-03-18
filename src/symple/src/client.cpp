@@ -10,10 +10,9 @@
 
 
 #include "scy/symple/client.h"
-#include "scy/net/sslsocket.h"
-#include "scy/net/tcpsocket.h"
+#include "scy/logger.h"
 
-#include <memory>
+#include <algorithm>
 #include <stdexcept>
 
 
@@ -21,163 +20,148 @@ namespace scy {
 namespace smpl {
 
 
-//
-// TCP Client
-//
-
-
-Client* createTCPClient(const Client::Options& options, uv::Loop* loop)
-{
-    return new Client(std::make_shared<net::TCPSocket>(loop), options);
-}
-
-
-TCPClient::TCPClient(const Client::Options& options, uv::Loop* loop)
-    : Client(std::make_shared<net::TCPSocket>(loop), options)
+Client::Client()
+    : _options()
+    , _loop(uv::defaultLoop())
+    , _reconnectTimer(uv::defaultLoop())
 {
 }
 
 
-//
-// SSL Client
-//
-
-
-Client* createSSLClient(const Client::Options& options, uv::Loop* loop)
+Client::Client(const Options& options, uv::Loop* loop)
+    : _options(options)
+    , _loop(loop)
+    , _reconnectTimer(loop)
 {
-    return new Client(std::make_shared<net::SSLSocket>(loop), options);
-}
-
-
-SSLClient::SSLClient(const Client::Options& options, uv::Loop* loop)
-    : Client(std::make_shared<net::SSLSocket>(loop), options)
-{
-}
-
-
-//
-// Client implementation
-//
-
-
-Client::Client(const net::Socket::Ptr& socket, const Client::Options& options)
-    : sockio::Client(socket)
-    , _options(options)
-    , _announceStatus(0)
-{
-    LTrace("Create");
 }
 
 
 Client::~Client()
 {
-    LTrace("Destroy");
+    _reconnectTimer.stop();
+    close();
 }
 
 
 void Client::connect()
 {
-    LTrace("Connecting");
     if (_options.host.empty())
         throw std::runtime_error("Symple client host must not be empty");
     if (_options.user.empty())
         throw std::runtime_error("Symple client user must not be empty");
 
-    // Update the Socket.IO options with local values before connecting
-    sockio::Client::options().host = _options.host;
-    sockio::Client::options().port = _options.port;
-    sockio::Client::options().reconnection = _options.reconnection;
-    sockio::Client::options().reconnectAttempts = _options.reconnectAttempts;
+    _reconnectCount = 0;
+    doConnect();
+}
 
-    sockio::Client::connect();
+
+void Client::doConnect()
+{
+    reset();
+    setState(this, ClientState::Connecting);
+
+    std::string url = buildUrl();
+    LDebug("Connecting to ", url);
+
+    _ws = http::createConnectionT<http::ClientConnection>(http::URL(url), _loop);
+
+    _ws->Connect += [this]() {
+        onSocketConnect();
+    };
+
+    _ws->Payload += [this](const MutableBuffer& buf) {
+        std::string data(bufferCast<const char*>(buf), buf.size());
+        onSocketRecv(data);
+    };
+
+    _ws->Close += [this](http::Connection&) {
+        onSocketClose();
+    };
+
+    // Initiate the WebSocket handshake.
+    // send() with no args triggers the connection and WS upgrade.
+    _ws->send();
 }
 
 
 void Client::close()
 {
-    LTrace("Closing");
-    sockio::Client::close();
-}
+    _reconnectTimer.stop();
 
+    if (_ws) {
+        if (isOnline()) {
+            try {
+                json::Value msg;
+                msg["type"] = "close";
+                sendJson(msg);
+            }
+            catch (...) {}
+        }
 
-void assertCanSend(Client* client, Message& m)
-{
-    if (!client->isOnline()) {
-        throw std::runtime_error("Cannot send message while offline.");
+        _ws->close();
+        _ws.reset();
     }
 
-    if (!client->ourPeer())
-        throw std::runtime_error("No active peer session is available.");
-    m.setFrom(client->ourPeer()->address());
-
-    if (m.to().id == m.from().id) {
-        LError("Invalid Symple address: ", m.to().id, ": ", m.from().id);
-        throw std::runtime_error("Cannot send message with matching sender and recipient.");
+    if (!stateEquals(ClientState::Closed)) {
+        reset();
+        setState(this, ClientState::Closed);
     }
-
-    if (!m.valid()) {
-        throw std::runtime_error("Cannot send invalid message.");
-    }
-
-#ifdef _DEBUG
-    LTrace("Sending message:", m.dump(4));
-#endif
 }
 
 
-int Client::send(Message& m, bool ack)
+int Client::send(Message& m)
 {
-    assertCanSend(this, m);
-    return sockio::Client::send(m, ack);
+    if (!isOnline())
+        throw std::runtime_error("Cannot send message while offline");
+
+    auto peer = ourPeer();
+    if (!peer)
+        throw std::runtime_error("No active peer session");
+
+    m.setFrom(peer->address());
+
+    if (m.to().id == m.from().id && !m.to().id.empty())
+        throw std::runtime_error("Sender and recipient cannot match");
+
+    if (!m.valid())
+        throw std::runtime_error("Cannot send invalid message");
+
+    return sendJson(m);
 }
 
 
-sockio::Transaction* Client::createTransaction(Message& message)
-{
-    sockio::Packet pkt(message, true);
-    auto txn = sockio::Client::createTransaction(pkt);
-    return txn; //->send();
-}
-
-
-int Client::send(const std::string& data, bool ack)
+int Client::send(const std::string& data)
 {
     Message m;
     if (!m.read(data))
-        throw std::runtime_error("Cannot send malformed message.");
-    return send(m, ack);
+        throw std::runtime_error("Cannot send malformed message");
+    return send(m);
 }
 
 
-int Client::respond(Message& m, bool ack)
+int Client::respond(Message& m)
 {
     m.setTo(m.from());
-    return send(m, ack);
+    return send(m);
 }
 
 
 void Client::createPresence(Presence& p)
 {
-    LTrace("Create presence");
-
     auto peer = ourPeer();
-    if (peer) {
-        CreatePresence.emit(*peer);
-        if (!peer->is_object())
-            throw std::runtime_error("Peer must be a JSON object");
-        p["data"] = (json::Value&)*peer;
-        if (!p["data"].is_object())
-            throw std::runtime_error("Presence data must be a JSON object");
-    } else {
-        throw std::runtime_error("No peer session object available for presence");
-    }
+    if (!peer)
+        throw std::runtime_error("No peer session for presence");
+
+    CreatePresence.emit(*peer);
+    if (!peer->is_object())
+        throw std::runtime_error("Peer must be a JSON object");
+
+    p["data"] = static_cast<json::Value&>(*peer);
 }
 
 
 int Client::sendPresence(bool probe)
 {
-    LTrace("Broadcasting presence");
-
     Presence p;
     createPresence(p);
     p.setProbe(probe);
@@ -187,8 +171,6 @@ int Client::sendPresence(bool probe)
 
 int Client::sendPresence(const Address& to, bool probe)
 {
-    LTrace("Sending presence");
-
     Presence p;
     createPresence(p);
     p.setProbe(probe);
@@ -197,252 +179,33 @@ int Client::sendPresence(const Address& to, bool probe)
 }
 
 
-int Client::announce()
-{
-    LTrace("Announcing");
-
-    json::Value data;
-    data["user"] = _options.user;
-    data["name"] = _options.name;
-    data["type"] = _options.type;
-    data["token"] = _options.token;
-    sockio::Packet pkt("announce", data, true);
-    auto txn = sockio::Client::createTransaction(pkt);
-    txn->StateChange += slot(this, &Client::onAnnounceState);
-    return txn->send();
-}
-
-
 int Client::joinRoom(const std::string& room)
 {
-    LDebug("Join room:", room);
-
+    LDebug("Join room: ", room);
     _rooms.push_back(room);
-    sockio::Packet pkt("join", "\"" + room + "\"");
-    return sockio::Client::send(pkt);
+
+    json::Value msg;
+    msg["type"] = "join";
+    msg["room"] = room;
+    return sendJson(msg);
 }
 
 
 int Client::leaveRoom(const std::string& room)
 {
-    LDebug("Leave room:", room);
-
+    LDebug("Leave room: ", room);
     _rooms.erase(std::remove(_rooms.begin(), _rooms.end(), room), _rooms.end());
-    sockio::Packet pkt("leave", "\"" + room + "\"");
-    return sockio::Client::send(pkt);
+
+    json::Value msg;
+    msg["type"] = "leave";
+    msg["room"] = room;
+    return sendJson(msg);
 }
 
 
-void Client::onAnnounceState(void* sender, TransactionState& state, const TransactionState&)
+bool Client::isOnline() const
 {
-    LTrace("On announce response:", state);
-
-    auto transaction = static_cast<sockio::Transaction*>(sender);
-    switch (state.id()) {
-        case TransactionState::Success:
-            try {
-                json::Value data = transaction->response().json();
-                _announceStatus = data["status"].get<int>();
-
-                if (_announceStatus != 200)
-                    throw std::runtime_error(data["message"].get<std::string>());
-
-                _ourID = data["data"]["id"].get<std::string>();
-                if (_ourID.empty())
-                    throw std::runtime_error("Invalid announce response.");
-
-                // Set our local peer data from the response or fail.
-                onPresenceData(data["data"], true);
-
-                // Notify the outside application of the response
-                // status before we transition the client state.
-                Announce.emit(_announceStatus);
-
-                // Transition to Online state.
-                onOnline();
-                // setState(this, sockio::ClientState::Online);
-
-                // Broadcast a presence probe to our network.
-                sendPresence(true);
-            } catch (std::exception& exc) {
-                // Set the error message and close the connection.
-                setError("Announce failed: " + std::string(exc.what()));
-            }
-            break;
-
-        case TransactionState::Failed:
-            Announce.emit(_announceStatus);
-            setError("Announce failed");
-            break;
-    }
-}
-
-
-void Client::onOnline()
-{
-    // NOTE: Do not transition to Online state until the Announce
-    // callback is successful
-    if (!_announceStatus)
-        announce();
-    else
-        sockio::Client::onOnline();
-}
-
-
-void Client::emit(IPacket& raw)
-{
-    auto& packet = static_cast<sockio::Packet&>(raw);
-    LTrace("Emit packet:", packet.toString());
-
-    // Parse Symple messages from Socket.IO packets
-    if (packet.type() == sockio::Type::Event) {
-        LTrace("JSON packet:", packet.toString());
-
-        json::Value data = packet.json();
-#ifdef _DEBUG
-        LTrace("Received ", data.dump(4));
-#endif
-        if (!data.is_object()) {
-            LWarn("Invalid Symple message: expected JSON object");
-            return;
-        }
-        std::string type(data.value("type", ""));
-        if (!type.empty()) {
-
-            // NOTE: The polymorphic message classes re-parse the JSON
-            // data since they each construct from a json::Value.
-            // Consider free functions for working with messages.
-            if (type == "message") {
-                Message m(data);
-                if (!m.valid()) {
-                    LWarn("Dropping invalid message: ", data.dump());
-                    return;
-                }
-                PacketSignal::emit(m);
-            } else if (type == "event") {
-                Event e(data);
-                if (!e.valid()) {
-                    LWarn("Dropping invalid event: ", data.dump());
-                    return;
-                }
-                PacketSignal::emit(e);
-            } else if (type == "presence") {
-                Presence p(data);
-                if (!p.valid()) {
-                    LWarn("Dropping invalid presence: ", data.dump());
-                    return;
-                }
-                PacketSignal::emit(p);
-                if (p.find("data") != p.end()) {
-                    onPresenceData(p["data"], false);
-                    if (p.isProbe())
-                        sendPresence(p.from());
-                }
-            } else if (type == "command") {
-                Command c(data);
-                if (!c.valid()) {
-                    LWarn("Dropping invalid command: ", data.dump());
-                    return;
-                }
-                PacketSignal::emit(c);
-                if (c.isRequest()) {
-                    c.setStatus(404);
-                    LWarn("Command not handled: ", c.id(), ": ", c.node());
-                    respond(c);
-                }
-            } else {
-                LDebug("Received non-standard message:", type);
-
-                // Attempt to parse custom packets as a message type
-                Message m(data);
-                if (!m.valid()) {
-                    LWarn("Dropping invalid message: ", data.dump());
-                    return;
-                }
-                PacketSignal::emit(m);
-            }
-        } else {
-            LWarn("Invalid Symple message: missing type field");
-        }
-    }
-
-    // Other packet types are proxied directly
-    else {
-        LTrace("Proxying packet:", PacketSignal::nslots());
-        PacketSignal::emit(packet);
-    }
-}
-
-
-void Client::onPresenceData(const json::Value& data, bool whiny)
-{
-    LTrace("Updating:", data.dump(4));
-
-    if (data.is_object() &&
-        data.find("id") != data.end() &&
-        data.find("user") != data.end() &&
-        data.find("name") != data.end() &&
-        data.find("online") != data.end()) {
-        std::string id = data["id"].get<std::string>();
-        bool online = data["online"].get<bool>();
-        auto peer = _roster.get(id, false);
-        if (online) {
-            if (!peer) {
-                _roster.add(id, std::make_unique<Peer>(data));
-                peer = _roster.get(id, false);
-                LDebug("Peer connected:", peer->address().toString());
-                PeerConnected.emit(*peer);
-            } else {
-                static_cast<json::Value&>(*peer) = data;
-            }
-        } else {
-            if (peer) {
-                LDebug("Peer disconnected:", peer->address().toString());
-                PeerDisconnected.emit(*peer);
-                _roster.free(id);
-            } else {
-                LWarn("Unknown peer disconnected");
-            }
-        }
-    } else {
-        std::string error("Bad presence data: " + data.dump());
-        LError(error);
-        if (whiny)
-            throw std::runtime_error(error);
-    }
-}
-
-
-void Client::reset()
-{
-    // Note: Not clearing persisted messages as they
-    // may still be in use by the application
-    //_persistence.clear();
-
-    _roster.clear();
-    _rooms.clear();
-    _announceStatus = 0;
-    _ourID = "";
-    sockio::Client::reset();
-}
-
-
-Roster& Client::roster()
-{
-
-    return _roster;
-}
-
-
-PersistenceT& Client::persistence()
-{
-    return _persistence;
-}
-
-
-Client::Options& Client::options()
-{
-    return _options;
+    return stateEquals(ClientState::Online);
 }
 
 
@@ -452,26 +215,297 @@ std::string Client::ourID() const
 }
 
 
+Peer* Client::ourPeer()
+{
+    if (_ourID.empty())
+        return nullptr;
+    return _roster.get(_ourID, false);
+}
+
+
 StringVec Client::rooms() const
 {
     return _rooms;
 }
 
 
-Peer* Client::ourPeer()
+Roster& Client::roster()
 {
-    if (_ourID.empty())
-        return nullptr;
-    // throw std::runtime_error("No active peer session is available.");
-
-    return _roster.get(_ourID, false);
+    return _roster;
 }
 
 
-Client& Client::operator>>(Message& message)
+Client::Options& Client::options()
 {
-    send(message);
-    return *this;
+    return _options;
+}
+
+
+void Client::setError(const std::string& error)
+{
+    LError("Client error: ", error);
+    setState(this, ClientState::Error);
+    if (_options.reconnection)
+        startReconnect();
+}
+
+
+// ---------------------------------------------------------------------------
+// WebSocket callbacks
+// ---------------------------------------------------------------------------
+
+void Client::onSocketConnect()
+{
+    LInfo("WebSocket connected, authenticating");
+    setState(this, ClientState::Authenticating);
+
+    // Send auth as first message (Symple v4 protocol)
+    json::Value auth;
+    auth["type"] = "auth";
+    auth["user"] = _options.user;
+    if (!_options.name.empty())
+        auth["name"] = _options.name;
+    if (!_options.token.empty())
+        auth["token"] = _options.token;
+
+    // Extra data
+    json::Value data;
+    if (!_options.type.empty())
+        data["type"] = _options.type;
+    if (!data.empty())
+        auth["data"] = data;
+
+    sendJson(auth);
+}
+
+
+void Client::onSocketRecv(const std::string& data)
+{
+    try {
+        auto msg = json::Value::parse(data);
+        std::string type = msg.value("type", "");
+
+        if (type.empty()) {
+            LWarn("Received message with no type");
+            return;
+        }
+
+        if (type == "welcome") {
+            onWelcome(msg);
+            return;
+        }
+
+        if (type == "error") {
+            int status = msg.value("status", 500);
+            std::string message = msg.value("message", "Unknown error");
+            LError("Server error: ", status, " ", message);
+            _announceStatus = status;
+            Announce.emit(status);
+            setError(message);
+            return;
+        }
+
+        if (type == "join:ok" || type == "leave:ok")
+            return;
+
+        onServerMessage(msg);
+    }
+    catch (const std::exception& e) {
+        LWarn("Parse error: ", e.what());
+    }
+}
+
+
+void Client::onSocketClose()
+{
+    LInfo("WebSocket disconnected");
+    bool wasOnline = _wasOnline;
+    reset();
+    setState(this, ClientState::Closed);
+
+    if (wasOnline && _options.reconnection)
+        startReconnect();
+}
+
+
+void Client::onSocketError(const std::string& error)
+{
+    LError("WebSocket error: ", error);
+    setError(error);
+}
+
+
+void Client::onWelcome(const json::Value& msg)
+{
+    _announceStatus = msg.value("status", 200);
+
+    if (_announceStatus != 200) {
+        std::string message = msg.value("message", "Auth failed");
+        Announce.emit(_announceStatus);
+        setError(message);
+        return;
+    }
+
+    if (!msg.contains("peer") || !msg["peer"].is_object()) {
+        setError("Invalid welcome: missing peer data");
+        return;
+    }
+
+    const auto& peerData = msg["peer"];
+    _ourID = peerData.value("id", "");
+    if (_ourID.empty()) {
+        setError("Invalid welcome: missing peer ID");
+        return;
+    }
+
+    onPresenceData(peerData, true);
+
+    Announce.emit(_announceStatus);
+
+    _wasOnline = true;
+    _reconnectCount = 0;
+    setState(this, ClientState::Online);
+
+    LInfo("Online as ", _options.user, "|", _ourID);
+
+    sendPresence(true);
+}
+
+
+void Client::onServerMessage(const json::Value& data)
+{
+    std::string type = data.value("type", "");
+
+    if (type == "message") {
+        Message m(data);
+        if (m.valid())
+            PacketSignal::emit(m);
+    }
+    else if (type == "event") {
+        Event e(data);
+        if (e.valid())
+            PacketSignal::emit(e);
+    }
+    else if (type == "presence") {
+        Presence p(data);
+        if (p.valid()) {
+            PacketSignal::emit(p);
+            if (p.find("data") != p.end()) {
+                onPresenceData(p["data"], false);
+                if (p.isProbe())
+                    sendPresence(p.from());
+            }
+        }
+    }
+    else if (type == "command") {
+        Command c(data);
+        if (c.valid()) {
+            PacketSignal::emit(c);
+            if (c.isRequest()) {
+                c.setStatus(404);
+                respond(c);
+            }
+        }
+    }
+    else {
+        Message m(data);
+        if (m.valid())
+            PacketSignal::emit(m);
+    }
+}
+
+
+void Client::onPresenceData(const json::Value& data, bool whiny)
+{
+    if (data.is_object() &&
+        data.contains("id") &&
+        data.contains("user") &&
+        data.contains("online")) {
+
+        std::string id = data["id"].get<std::string>();
+        bool online = data["online"].get<bool>();
+
+        auto peer = _roster.get(id, false);
+        if (online) {
+            if (!peer) {
+                _roster.add(id, std::make_unique<Peer>(data));
+                peer = _roster.get(id, false);
+                LDebug("Peer connected: ", peer->address().toString());
+                PeerConnected.emit(*peer);
+            }
+            else {
+                static_cast<json::Value&>(*peer) = data;
+            }
+        }
+        else {
+            if (peer) {
+                LDebug("Peer disconnected: ", peer->address().toString());
+                PeerDisconnected.emit(*peer);
+                _roster.free(id);
+            }
+        }
+    }
+    else {
+        std::string error("Bad presence data: " + data.dump());
+        LError(error);
+        if (whiny)
+            throw std::runtime_error(error);
+    }
+}
+
+
+// ---------------------------------------------------------------------------
+// Reconnection
+// ---------------------------------------------------------------------------
+
+void Client::startReconnect()
+{
+    if (_options.reconnectAttempts > 0 &&
+        _reconnectCount >= _options.reconnectAttempts) {
+        LWarn("Max reconnect attempts reached");
+        return;
+    }
+
+    _reconnectCount++;
+    LInfo("Reconnecting (attempt ", _reconnectCount, ")...");
+
+    _reconnectTimer.setTimeout(_options.reconnectDelay);
+    _reconnectTimer.Timeout += [this]() {
+        doConnect();
+    };
+    _reconnectTimer.start();
+}
+
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+void Client::reset()
+{
+    _roster.clear();
+    _rooms.clear();
+    _announceStatus = 0;
+    _ourID.clear();
+    _wasOnline = false;
+}
+
+
+int Client::sendJson(const json::Value& msg)
+{
+    if (!_ws)
+        return -1;
+
+    auto str = msg.dump();
+    return _ws->send(str.c_str(), str.size(), http::ws::Text);
+}
+
+
+std::string Client::buildUrl() const
+{
+    std::string scheme = _options.secure ? "wss" : "ws";
+    return scheme + "://" + _options.host + ":" +
+           std::to_string(_options.port) + "/";
 }
 
 

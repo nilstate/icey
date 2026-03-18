@@ -10,8 +10,7 @@
 #include "scy/symple/server.h"
 #include "scy/logger.h"
 #include "scy/net/tcpsocket.h"
-
-#include <random>
+#include "scy/util.h"
 
 
 namespace scy {
@@ -31,7 +30,12 @@ ServerPeer::ServerPeer(http::ServerConnection& conn)
 void ServerPeer::send(const json::Value& msg)
 {
     auto str = msg.dump();
-    _conn.send(str.c_str(), str.size(), http::ws::Text);
+    try {
+        _conn.send(str.c_str(), str.size(), http::ws::Text);
+    }
+    catch (const std::exception& e) {
+        LWarn("ServerPeer send failed: ", e.what());
+    }
 }
 
 
@@ -53,15 +57,9 @@ void ServerPeer::leaveAll()
 }
 
 
-const std::string& ServerPeer::id() const
+std::string ServerPeer::id() const
 {
-    // Peer::id() returns by value, but we need a stable reference.
-    // The underlying json::Value stores the string, so access it directly.
-    static const std::string empty;
-    auto it = _peer.find("id");
-    if (it != _peer.end() && it->is_string())
-        return it->get_ref<const std::string&>();
-    return empty;
+    return _peer.id();
 }
 
 
@@ -75,66 +73,92 @@ public:
     Responder(http::ServerConnection& conn, Server& server)
         : http::ServerResponder(conn)
         , _server(server)
+        , _tempPeer(conn)
     {
+        // Start auth timeout: close if not authenticated within 10 seconds
+        _authTimer.setTimeout(10000);
+        _authTimer.start();
+        _authTimer.Timeout += [this]() {
+            if (!_authenticated) {
+                LWarn("Auth timeout, closing connection");
+                json::Value err;
+                err["type"] = "error";
+                err["status"] = 408;
+                err["message"] = "Authentication timeout";
+                auto str = err.dump();
+                try {
+                    connection().send(str.c_str(), str.size(), http::ws::Text);
+                } catch (...) {}
+                connection().close();
+            }
+        };
     }
 
     void onPayload(const MutableBuffer& buffer) override
     {
-        // Parse JSON from WebSocket text frame
         std::string str(bufferCast<const char*>(buffer), buffer.size());
 
+        json::Value msg;
         try {
-            auto msg = json::Value::parse(str);
-            std::string type = msg.value("type", "");
-
-            std::lock_guard lock(_server._mutex);
-
-            // Look up the peer for this connection
-            auto it = _server._connToPeer.find(&connection());
-
-            if (it == _server._connToPeer.end()) {
-                // Not authenticated yet - only accept auth messages
-                if (type == "auth") {
-                    _server.onAuth(*_peer, msg);
-                }
-                else {
-                    // Send error and close
-                    json::Value err;
-                    err["type"] = "error";
-                    err["status"] = 401;
-                    err["message"] = "Not authenticated";
-                    auto errStr = err.dump();
-                    connection().send(errStr.c_str(), errStr.size(), http::ws::Text);
-                    connection().close();
-                }
-                return;
-            }
-
-            auto* peer = _server._peers[it->second].get();
-            if (!peer)
-                return;
-
-            if (type == "message" || type == "presence" ||
-                type == "command" || type == "event") {
-                _server.onMessage(*peer, msg);
-            }
-            else if (type == "join") {
-                _server.onJoin(*peer, msg.value("room", ""));
-            }
-            else if (type == "leave") {
-                _server.onLeave(*peer, msg.value("room", ""));
-            }
-            else if (type == "close") {
-                connection().close();
-            }
+            msg = json::Value::parse(str);
         }
         catch (const std::exception& e) {
-            LWarn("Symple server: parse error: ", e.what());
+            LWarn("JSON parse error: ", e.what());
+            return;
+        }
+
+        std::string type = msg.value("type", "");
+
+        std::lock_guard lock(_server._mutex);
+
+        auto it = _server._connToPeer.find(&connection());
+
+        if (it == _server._connToPeer.end()) {
+            // Not authenticated: only accept auth
+            if (type == "auth") {
+                _server.onAuth(_tempPeer, msg);
+                if (_tempPeer.authenticated()) {
+                    _authenticated = true;
+                        _authTimer.stop();
+                }
+            }
+            else {
+                json::Value err;
+                err["type"] = "error";
+                err["status"] = 401;
+                err["message"] = "Not authenticated";
+                auto errStr = err.dump();
+                try {
+                    connection().send(errStr.c_str(), errStr.size(), http::ws::Text);
+                } catch (...) {}
+                connection().close();
+            }
+            return;
+        }
+
+        auto peerIt = _server._peers.find(it->second);
+        if (peerIt == _server._peers.end())
+            return;
+        auto* peer = peerIt->second.get();
+
+        if (type == "message" || type == "presence" ||
+            type == "command" || type == "event") {
+            _server.onMessage(*peer, msg);
+        }
+        else if (type == "join") {
+            _server.onJoin(*peer, msg.value("room", ""));
+        }
+        else if (type == "leave") {
+            _server.onLeave(*peer, msg.value("room", ""));
+        }
+        else if (type == "close") {
+            connection().close();
         }
     }
 
     void onClose() override
     {
+        _authTimer.stop();
         std::lock_guard lock(_server._mutex);
         auto it = _server._connToPeer.find(&connection());
         if (it != _server._connToPeer.end()) {
@@ -145,9 +169,10 @@ public:
         }
     }
 
-    // Temporary peer object used during auth before the peer is registered
-    std::unique_ptr<ServerPeer> _peer;
     Server& _server;
+    ServerPeer _tempPeer;
+    Timer _authTimer;
+    bool _authenticated = false;
 };
 
 
@@ -166,10 +191,7 @@ public:
         if (!conn.upgraded())
             return nullptr;
 
-        auto responder = std::make_unique<Server::Responder>(conn, _server);
-        // Create a temporary peer for auth phase
-        responder->_peer = std::make_unique<ServerPeer>(conn);
-        return responder;
+        return std::make_unique<Server::Responder>(conn, _server);
     }
 
     Server& _server;
@@ -208,19 +230,6 @@ void Server::shutdown()
 {
     std::lock_guard lock(_mutex);
 
-    // Disconnect all peers
-    for (auto& [id, peer] : _peers) {
-        try {
-            json::Value msg;
-            msg["type"] = "presence";
-            msg["from"] = peer->peer().address().toString();
-            msg["data"] = peer->peer();
-            msg["data"]["online"] = false;
-            // Don't broadcast - we're shutting down
-        }
-        catch (...) {}
-    }
-
     _peers.clear();
     _rooms.clear();
     _connToPeer.clear();
@@ -233,21 +242,23 @@ void Server::shutdown()
 }
 
 
-void Server::onAuth(ServerPeer& peer, const json::Value& msg)
+void Server::onAuth(ServerPeer& tempPeer, const json::Value& msg)
 {
+    // Caller holds _mutex.
+
     std::string user = msg.value("user", "");
     if (user.empty()) {
         json::Value err;
         err["type"] = "error";
         err["status"] = 401;
         err["message"] = "Missing user field";
-        peer.send(err);
-        peer.connection().close();
+        tempPeer.send(err);
+        tempPeer.connection().close();
         return;
     }
 
-    // Generate session ID
-    std::string id = generateId();
+    // Generate session ID using base module's random string
+    std::string id = util::randomString(16);
 
     // Build peer object
     Peer p;
@@ -256,43 +267,45 @@ void Server::onAuth(ServerPeer& peer, const json::Value& msg)
     p["name"] = msg.value("name", user);
     p["online"] = true;
 
-    // Copy any extra data from auth message
+    // Copy extra data
     if (msg.contains("data") && msg["data"].is_object()) {
         for (auto& [k, v] : msg["data"].items()) {
             p[k] = v;
         }
     }
 
-    peer.setPeer(p);
-    peer.setAuthenticated(true);
-
     // Custom authentication hook
     if (_opts.authentication || Authenticate.nslots() > 0) {
-        bool allowed = !_opts.authentication;  // Default allowed if no auth required
-        Authenticate.emit(peer, msg, allowed);
+        bool allowed = !_opts.authentication;
+        _mutex.unlock();
+        Authenticate.emit(tempPeer, msg, allowed);
+        _mutex.lock();
         if (!allowed) {
             json::Value err;
             err["type"] = "error";
             err["status"] = 401;
             err["message"] = "Authentication failed";
-            peer.send(err);
-            peer.connection().close();
+            tempPeer.send(err);
+            tempPeer.connection().close();
             return;
         }
     }
 
     // Register the peer
-    auto peerPtr = std::make_unique<ServerPeer>(peer.connection());
-    peerPtr->setPeer(p);
-    peerPtr->setAuthenticated(true);
+    auto peer = std::make_unique<ServerPeer>(tempPeer.connection());
+    peer->setPeer(p);
+    peer->setAuthenticated(true);
 
-    // Auto-join user room (enables direct messaging by user identity)
-    peerPtr->join(user);
+    // Auto-join user room
+    peer->join(user);
     addToRoom(user, id);
 
-    _connToPeer[&peer.connection()] = id;
-    auto* registeredPeer = peerPtr.get();
-    _peers[id] = std::move(peerPtr);
+    _connToPeer[&tempPeer.connection()] = id;
+    auto* registeredPeer = peer.get();
+    _peers[id] = std::move(peer);
+
+    // Mark the temp peer as authenticated (so Responder knows)
+    tempPeer.setAuthenticated(true);
 
     // Send welcome
     json::Value welcome;
@@ -303,15 +316,14 @@ void Server::onAuth(ServerPeer& peer, const json::Value& msg)
 
     LInfo("Peer authenticated: ", user, "|", id);
 
-    // Broadcast online presence to all rooms
+    // Broadcast online presence
     json::Value presence;
     presence["type"] = "presence";
     presence["from"] = user + "|" + id;
     presence["data"] = p;
-    presence["data"]["online"] = true;
     broadcast(user, presence, id);
 
-    // Notify server hooks (outside lock ideally, but we're already locked)
+    // Notify server hooks (release lock for signal emission)
     _mutex.unlock();
     PeerConnected.emit(*registeredPeer);
     _mutex.lock();
@@ -320,13 +332,15 @@ void Server::onAuth(ServerPeer& peer, const json::Value& msg)
 
 void Server::onMessage(ServerPeer& sender, const json::Value& msg)
 {
-    // Validate message has from field
-    if (!msg.contains("from") || !msg["from"].is_string()) {
-        LDebug("Dropping message without from field");
-        return;
-    }
+    // Caller holds _mutex.
 
-    route(sender, msg);
+    // Enforce that the from field matches the authenticated peer.
+    // This prevents spoofing.
+    std::string expectedFrom = sender.peer().user() + "|" + sender.id();
+    json::Value routable = msg;
+    routable["from"] = expectedFrom;
+
+    route(sender, routable);
 }
 
 
@@ -344,14 +358,14 @@ void Server::onJoin(ServerPeer& peer, const std::string& room)
     }
 
     peer.join(room);
-    addToRoom(room, peer.peer().id());
+    addToRoom(room, peer.id());
 
     json::Value ok;
     ok["type"] = "join:ok";
     ok["room"] = room;
     peer.send(ok);
 
-    LDebug("Peer ", peer.peer().id(), " joined room: ", room);
+    LDebug("Peer ", peer.id(), " joined room: ", room);
 }
 
 
@@ -361,32 +375,33 @@ void Server::onLeave(ServerPeer& peer, const std::string& room)
         return;
 
     peer.leave(room);
-    removeFromRoom(room, peer.peer().id());
+    removeFromRoom(room, peer.id());
 
     json::Value ok;
     ok["type"] = "leave:ok";
     ok["room"] = room;
     peer.send(ok);
 
-    LDebug("Peer ", peer.peer().id(), " left room: ", room);
+    LDebug("Peer ", peer.id(), " left room: ", room);
 }
 
 
 void Server::onDisconnect(ServerPeer& peer)
 {
-    std::string id = peer.peer().id();
+    // Caller holds _mutex.
+
+    std::string id = peer.id();
     std::string user = peer.peer().user();
 
     LInfo("Peer disconnected: ", user, "|", id);
 
-    // Broadcast offline presence
+    // Broadcast offline presence to all rooms
     json::Value presence;
     presence["type"] = "presence";
     presence["from"] = user + "|" + id;
     presence["data"] = peer.peer();
     presence["data"]["online"] = false;
 
-    // Broadcast to all rooms the peer was in
     for (const auto& room : peer.rooms()) {
         broadcast(room, presence, id);
     }
@@ -395,6 +410,7 @@ void Server::onDisconnect(ServerPeer& peer)
     removeFromAllRooms(id);
     _connToPeer.erase(&peer.connection());
 
+    // Notify hooks (release lock)
     _mutex.unlock();
     PeerDisconnected.emit(peer);
     _mutex.lock();
@@ -405,10 +421,12 @@ void Server::onDisconnect(ServerPeer& peer)
 
 void Server::route(ServerPeer& sender, const json::Value& msg)
 {
+    // Caller holds _mutex.
+
     if (!msg.contains("to")) {
-        // No recipient - broadcast to all sender's rooms (excluding sender)
+        // No recipient: broadcast to all sender's rooms (excluding sender)
         for (const auto& room : sender.rooms()) {
-            broadcast(room, msg, sender.peer().id());
+            broadcast(room, msg, sender.id());
         }
         return;
     }
@@ -417,23 +435,23 @@ void Server::route(ServerPeer& sender, const json::Value& msg)
 
     if (to.is_string()) {
         std::string addr = to.get<std::string>();
-
-        // Try direct peer lookup first (user|id format)
         auto pos = addr.find('|');
+
         if (pos != std::string::npos) {
+            // Full address: user|id - send to specific session
             std::string peerId = addr.substr(pos + 1);
             if (sendTo(peerId, msg))
                 return;
         }
 
-        // Try user room (sends to all sessions of that user)
-        sendToUser(addr.substr(0, pos != std::string::npos ? pos : addr.size()), msg);
+        // User name only: send to user's room
+        std::string user = addr.substr(0, pos != std::string::npos ? pos : addr.size());
+        sendToUser(user, msg);
     }
     else if (to.is_array()) {
-        // Send to multiple rooms
         for (const auto& room : to) {
             if (room.is_string())
-                broadcast(room.get<std::string>(), msg, sender.peer().id());
+                broadcast(room.get<std::string>(), msg, sender.id());
         }
     }
 }
@@ -458,7 +476,7 @@ void Server::broadcast(const std::string& room, const json::Value& msg,
                     str.c_str(), str.size(), http::ws::Text);
             }
             catch (const std::exception& e) {
-                LWarn("Broadcast send failed to ", peerId, ": ", e.what());
+                LWarn("Broadcast failed to ", peerId, ": ", e.what());
             }
         }
     }
@@ -476,7 +494,7 @@ bool Server::sendTo(const std::string& peerId, const json::Value& msg)
         return true;
     }
     catch (const std::exception& e) {
-        LWarn("sendTo failed for ", peerId, ": ", e.what());
+        LWarn("sendTo failed: ", peerId, ": ", e.what());
         return false;
     }
 }
@@ -484,7 +502,6 @@ bool Server::sendTo(const std::string& peerId, const json::Value& msg)
 
 bool Server::sendToUser(const std::string& user, const json::Value& msg)
 {
-    // Send to all peers in the user's room
     auto it = _rooms.find(user);
     if (it == _rooms.end())
         return false;
@@ -563,20 +580,6 @@ void Server::removeFromAllRooms(const std::string& peerId)
         else
             ++it;
     }
-}
-
-
-std::string Server::generateId()
-{
-    static thread_local std::mt19937 gen(std::random_device{}());
-    static constexpr char chars[] = "abcdefghijklmnopqrstuvwxyz0123456789";
-    std::uniform_int_distribution<size_t> dist(0, sizeof(chars) - 2);
-
-    std::string id;
-    id.reserve(16);
-    for (int i = 0; i < 16; ++i)
-        id += chars[dist(gen)];
-    return id;
 }
 
 
