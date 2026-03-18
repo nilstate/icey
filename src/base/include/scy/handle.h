@@ -68,7 +68,7 @@ class Base_API Handle
 public:
     Handle(uv::Loop* loop = uv::defaultLoop())
         : _loop(loop)
-        , _context(std::make_shared<Context<T>>(this))
+        , _context(std::make_unique<Context<T>>(this))
     {
     }
 
@@ -126,7 +126,7 @@ public:
             _context->deleted = true;
             trigger = true;
         }
-        _context = nullptr;
+        _context.reset();
         if (trigger)
             onClose();
     }
@@ -222,7 +222,7 @@ public:
     {
         if (_context)
             close();
-        _context = std::make_shared<Context<T>>(this);
+        _context = std::make_unique<Context<T>>(this);
     }
 
     /// Return a typecasted pointer to the managed handle.
@@ -239,10 +239,10 @@ public:
         return _tid;
     }
 
-    /// Return the shared handle pointer context.
-    std::shared_ptr<Context<T>> context() const
+    /// Return the handle pointer context.
+    Context<T>* context() const
     {
-        return _context;
+        return _context.get();
     }
 
     /// Assert the call is from the parent event loop thread.
@@ -278,7 +278,7 @@ protected:
     Handle& operator=(Handle&&) = delete;
 
     uv::Loop* _loop;
-    std::shared_ptr<Context<T>> _context;
+    std::unique_ptr<Context<T>> _context;
     std::thread::id _tid = std::this_thread::get_id();
     Error _error;
 };
