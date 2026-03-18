@@ -10,7 +10,22 @@ private
 doxygen2md
 _book
 _deps
-CMakeFiles
+
+# CMake in-source build artifacts (use out-of-source builds)
+**/CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+cmake_uninstall.cmake
+CPackConfig.cmake
+CPackSourceConfig.cmake
+CMakeDoxyfile.in
+CMakeDoxygenDefaults.cmake
+Makefile
+compile_commands.json
+*.pc
+libsourcey.h
+LibSourceyConfig.cmake
+LibSourceyConfigVersion.cmake
 
 # Test output
 *.mp2
