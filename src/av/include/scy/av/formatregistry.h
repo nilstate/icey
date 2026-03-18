@@ -14,6 +14,7 @@
 
 #include "scy/av/format.h"
 #include <mutex>
+#include <string_view>
 #include <vector>
 
 
@@ -29,11 +30,11 @@ public:
     FormatRegistry();
     virtual ~FormatRegistry() noexcept;
 
-    virtual Format& get(const std::string& name);
-    virtual Format& getByID(const std::string& id);
+    virtual Format& get(std::string_view name);
+    virtual Format& getByID(std::string_view id);
 
     /// Returns the default media format.
-    virtual Format& getOrDefault(const std::string& name);
+    virtual Format& getOrDefault(std::string_view name);
 
     /// If a default has been specified it will be
     /// returned, other the format with the highest
@@ -46,12 +47,12 @@ public:
 
     /// Unregisters the media format matching the
     /// given name.
-    virtual bool unregisterFormat(const std::string& name);
+    virtual bool unregisterFormat(std::string_view name);
 
     /// Sets the default fallback media format.
-    virtual void setDefault(const std::string& name);
+    virtual void setDefault(std::string_view name);
 
-    virtual bool exists(const std::string& name);
+    virtual bool exists(std::string_view name);
     virtual void clear();
 
     virtual FormatList formats() const;
@@ -62,7 +63,7 @@ private:
     FormatRegistry(FormatRegistry&&) = delete;
     FormatRegistry& operator=(FormatRegistry&&) = delete;
 
-    Format& findByName(const std::string& name);  // requires _mutex held
+    Format& findByName(std::string_view name);  // requires _mutex held
     Format& defaultLocked();                        // requires _mutex held
 
     FormatList _formats;

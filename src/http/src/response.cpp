@@ -108,10 +108,12 @@ void Response::addCookie(const Cookie& cookie)
 void Response::getCookies(std::vector<Cookie>& cookies) const
 {
     cookies.clear();
-    for (auto it = find("Set-Cookie"); it != end() && util::icompare(it->first, "Set-Cookie") == 0; ++it) {
-        NVCollection nvc;
-        http::splitParameters(it->second.begin(), it->second.end(), nvc);
-        cookies.push_back(Cookie(nvc));
+    for (const auto& [name, value] : *this) {
+        if (util::icompare(name, "Set-Cookie") == 0) {
+            NVCollection nvc;
+            http::splitParameters(value.begin(), value.end(), nvc);
+            cookies.push_back(Cookie(nvc));
+        }
     }
 }
 

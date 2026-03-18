@@ -105,14 +105,12 @@ protected:
 
     struct Ref
     {
-        using ptr_t = std::shared_ptr<Ref>;
-
         SocketAdapter* ptr;
         bool alive;
     };
 
     SocketAdapter* _sender;
-    std::vector<Ref::ptr_t> _receivers;
+    std::vector<Ref> _receivers;
     bool _dirty = false;
 };
 

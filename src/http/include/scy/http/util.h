@@ -13,22 +13,24 @@
 #include "scy/base.h"
 #include "scy/collection.h"
 
+#include <string_view>
+
 
 namespace scy {
 namespace http {
 
 
 /// Parses the URI part from a HTTP request.
-std::string parseURI(const std::string& request);
+std::string parseURI(std::string_view request);
 
 /// Parses the URI against the expression.
 bool matchURL(const std::string& uri, const std::string& expression);
 
 /// Parses an item from a HTTP cookie.
-std::string parseCookieItem(const std::string& cookie, const std::string& item);
+std::string parseCookieItem(std::string_view cookie, std::string_view item);
 
 /// Splits and adds the URI query parameters into the given collection.
-bool splitURIParameters(const std::string& uri, NVCollection& out);
+bool splitURIParameters(std::string_view uri, NVCollection& out);
 
 /// Splits the given std::string into a value and a collection of parameters.
 /// Parameters are expected to be separated by semicolons.

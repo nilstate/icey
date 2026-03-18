@@ -215,8 +215,8 @@ int main(int argc, char** argv)
                                  "encoding=Base64&packetizer=chunked&"
                                  "rand=0.09983996045775712",
                                  params);
-        for (NVCollection::ConstIterator it = params.begin(); it != params.end(); ++it) {
-            // std::cout << "URL Parameter: " << it->first << ": " << it->second << endl;
+        for (const auto& [key, val] : params) {
+            // std::cout << "URL Parameter: " << key << ": " << val << endl;
         }
 
         expect(params.get("format") == "MJPEG");
@@ -577,7 +577,7 @@ int main(int argc, char** argv)
 
     describe("extract credentials", []() {
         std::string username, password;
-        http::extractCredentials(std::string("user:pass"), username, password);
+        http::extractCredentials(std::string_view("user:pass"), username, password);
         expect(username == "user");
         expect(password == "pass");
     });

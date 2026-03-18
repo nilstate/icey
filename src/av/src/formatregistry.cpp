@@ -11,6 +11,7 @@
 
 #include "scy/av/formatregistry.h"
 
+#include <string_view>
 
 using std::endl;
 
@@ -36,25 +37,25 @@ FormatRegistry& FormatRegistry::instance()
 }
 
 
-Format& FormatRegistry::get(const std::string& name)
+Format& FormatRegistry::get(std::string_view name)
 {
     std::lock_guard<std::mutex> guard(_mutex);
     return findByName(name);
 }
 
 
-Format& FormatRegistry::getByID(const std::string& id)
+Format& FormatRegistry::getByID(std::string_view id)
 {
     std::lock_guard<std::mutex> guard(_mutex);
     for (auto& fmt : _formats) {
         if (fmt.id == id)
             return fmt;
     }
-    throw std::runtime_error("Not found: No media format type: " + id);
+    throw std::runtime_error("Not found: No media format type: " + std::string(id));
 }
 
 
-Format& FormatRegistry::getOrDefault(const std::string& name)
+Format& FormatRegistry::getOrDefault(std::string_view name)
 {
     std::lock_guard<std::mutex> guard(_mutex);
     for (auto& fmt : _formats) {
@@ -72,7 +73,7 @@ Format& FormatRegistry::getDefault()
 }
 
 
-bool FormatRegistry::exists(const std::string& name)
+bool FormatRegistry::exists(std::string_view name)
 {
     std::lock_guard<std::mutex> guard(_mutex);
     for (const auto& fmt : _formats) {
@@ -113,7 +114,7 @@ void FormatRegistry::registerFormat(const Format& format)
 }
 
 
-bool FormatRegistry::unregisterFormat(const std::string& name)
+bool FormatRegistry::unregisterFormat(std::string_view name)
 {
     std::lock_guard<std::mutex> guard(_mutex);
     for (auto it = _formats.begin(); it != _formats.end(); ++it) {
@@ -128,7 +129,7 @@ bool FormatRegistry::unregisterFormat(const std::string& name)
 }
 
 
-void FormatRegistry::setDefault(const std::string& name)
+void FormatRegistry::setDefault(std::string_view name)
 {
     std::lock_guard<std::mutex> guard(_mutex);
     _default = name;
@@ -136,13 +137,13 @@ void FormatRegistry::setDefault(const std::string& name)
 
 
 // Private: must be called with _mutex held
-Format& FormatRegistry::findByName(const std::string& name)
+Format& FormatRegistry::findByName(std::string_view name)
 {
     for (auto& fmt : _formats) {
         if (fmt.name == name)
             return fmt;
     }
-    throw std::runtime_error("Not found: No media format for: " + name);
+    throw std::runtime_error("Not found: No media format for: " + std::string(name));
 }
 
 

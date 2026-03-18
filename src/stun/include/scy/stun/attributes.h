@@ -22,6 +22,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <vector>
 
 
@@ -310,7 +311,7 @@ public:
     static constexpr uint16_t TypeID = 0x0008;
     static constexpr uint16_t Size = 20;
 
-    [[nodiscard]] bool verifyHmac(const std::string& key) const;
+    [[nodiscard]] bool verifyHmac(std::string_view key) const;
 
     [[nodiscard]] std::string input() const { return _input; }
     [[nodiscard]] std::string hmac() const { return _hmac; }

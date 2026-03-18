@@ -18,6 +18,7 @@
 #include <list>
 #include <map>
 #include <mutex>
+#include <string_view>
 
 
 namespace scy {
@@ -147,7 +148,7 @@ public:
 
     /// Return a pointer to the test matching the given name,
     /// or nullptr if no matching test exists.
-    Test* get(const std::string& name) const;
+    Test* get(std::string_view name) const;
 
     /// Called by the async context to run the next test.
     void run();

@@ -42,7 +42,7 @@ int main(int argc, char** argv)
 
     // createConnectionT handles ws:// and wss:// schemes automatically,
     // installing a WebSocket ConnectionAdapter on the underlying TCP/SSL socket
-    auto conn = http::createConnectionT<http::ClientConnection>(URL(url));
+    auto conn = http::createConnectionT<http::ClientConnection>(http::URL(url));
 
     conn->Connect += [&]() {
         std::cout << "Connected to " << url << std::endl;

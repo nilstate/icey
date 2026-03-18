@@ -16,6 +16,7 @@
 #include "scy/hex.h"
 #include <cstdint>
 #include <memory>
+#include <string_view>
 
 #include <openssl/evp.h>
 
@@ -34,7 +35,7 @@ public:
     ~Hash();
 
     void update(char data);
-    void update(const std::string& data);
+    void update(std::string_view data);
 
     // Hash the given data.
     /// This function may (and normally will) be called
@@ -63,7 +64,7 @@ protected:
 };
 
 
-inline std::string hash(const std::string& algorithm, const std::string& data)
+inline std::string hash(const std::string& algorithm, std::string_view data)
 {
     Hash engine(algorithm);
     engine.update(data);
@@ -91,7 +92,7 @@ inline std::string checksum(const std::string& algorithm,
     Hash engine(algorithm);
     char buffer[4096];
     while (fstr.read(buffer, 4096) || fstr.gcount() > 0) {
-        engine.update(buffer, (size_t)fstr.gcount());
+        engine.update(buffer, static_cast<size_t>(fstr.gcount()));
     }
 
     return hex::encode(engine.digest());

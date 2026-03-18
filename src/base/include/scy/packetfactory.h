@@ -15,9 +15,11 @@
 #include "scy/base.h"
 #include "scy/buffer.h"
 #include "scy/packetsignal.h"
-#include "scy/util.h"
 
+#include <algorithm>
+#include <memory>
 #include <stdexcept>
+#include <vector>
 
 
 namespace scy {
@@ -26,21 +28,16 @@ namespace scy {
 class /* Base_API */ IPacketCreationStrategy
 {
 public:
-    IPacketCreationStrategy() {}
+    IPacketCreationStrategy() = default;
     virtual ~IPacketCreationStrategy() = default;
     virtual IPacket* create(const ConstBuffer& buffer, size_t& nread) const = 0;
 
     virtual int priority() const = 0; // 0 - 100
-
-    static bool compareProiroty(const IPacketCreationStrategy* l,
-                                const IPacketCreationStrategy* r)
-    {
-        return l->priority() > r->priority();
-    }
 };
 
 
-using PacketCreationStrategyList = std::vector<IPacketCreationStrategy*>;
+using PacketCreationStrategyPtr = std::unique_ptr<IPacketCreationStrategy>;
+using PacketCreationStrategyList = std::vector<PacketCreationStrategyPtr>;
 
 
 /// This template class implements an adapter that sits between
@@ -55,20 +52,15 @@ struct PacketCreationStrategy : public IPacketCreationStrategy
             throw std::logic_error("PacketCreationStrategy priority must be <= 100");
     }
 
-    virtual ~PacketCreationStrategy()
+    IPacket* create(const ConstBuffer& buffer, size_t& nread) const override
     {
-    }
-
-    virtual IPacket* create(const ConstBuffer& buffer, size_t& nread) const override
-    {
-        auto packet = new PacketT;
+        auto packet = std::make_unique<PacketT>();
         if ((nread = packet->read(buffer)) > 0)
-            return packet;
-        delete packet;
+            return packet.release();
         return nullptr;
     }
 
-    virtual int priority() const override
+    int priority() const override
     {
         return _priority;
     }
@@ -86,59 +78,43 @@ protected:
 class /* Base_API */ PacketFactory
 {
 public:
-    PacketFactory()
-    {
-    }
-
-    virtual ~PacketFactory()
-    {
-        util::clearVector(_types);
-    }
+    PacketFactory() = default;
+    virtual ~PacketFactory() = default;
 
     template <class PacketT>
     void registerPacketType(int priority)
     {
-        unregisterPacketType<PacketT>(); // ensure unique values
-
-        _types.push_back(new PacketCreationStrategy<PacketT>(priority));
-        sort(_types.begin(), _types.end(),
-             IPacketCreationStrategy::compareProiroty);
+        unregisterPacketType<PacketT>();
+        _types.push_back(std::make_unique<PacketCreationStrategy<PacketT>>(priority));
+        sortTypes();
     }
 
     template <class PacketT>
     void unregisterPacketType()
     {
-
-        for (auto it = _types.begin(); it != _types.end(); ++it) {
-            if (dynamic_cast<PacketCreationStrategy<PacketT>*>(*it) != nullptr) {
-                delete *it;
-                _types.erase(it);
-                return;
-            }
-        }
+        auto it = std::find_if(_types.begin(), _types.end(), [](const auto& s) {
+            return dynamic_cast<PacketCreationStrategy<PacketT>*>(s.get()) != nullptr;
+        });
+        if (it != _types.end())
+            _types.erase(it);
     }
 
     template <class StrategyT>
     void registerStrategy(int priority)
     {
-        unregisterStrategy<StrategyT>(); // ensure unique values
-
-        _types.push_back(new StrategyT(priority));
-        std::sort(_types.begin(), _types.end(),
-                  IPacketCreationStrategy::compareProiroty);
+        unregisterStrategy<StrategyT>();
+        _types.push_back(std::make_unique<StrategyT>(priority));
+        sortTypes();
     }
 
     template <class StrategyT>
     void unregisterStrategy()
     {
-
-        for (auto it = _types.begin(); it != _types.end(); ++it) {
-            if (dynamic_cast<StrategyT*>(*it) != nullptr) {
-                delete *it;
-                _types.erase(it);
-                return;
-            }
-        }
+        auto it = std::find_if(_types.begin(), _types.end(), [](const auto& s) {
+            return dynamic_cast<StrategyT*>(s.get()) != nullptr;
+        });
+        if (it != _types.end())
+            _types.erase(it);
     }
 
     PacketCreationStrategyList& types()
@@ -146,25 +122,23 @@ public:
         return _types;
     }
 
-    PacketCreationStrategyList types() const
+    const PacketCreationStrategyList& types() const
     {
         return _types;
     }
 
     virtual bool onPacketCreated(IPacket*)
     {
-        // returning false will stop packet propagation
         return true;
     }
 
     virtual IPacket* createPacket(const ConstBuffer& buffer, size_t& nread)
     {
-        // size_t offset = reader.position();
         if (_types.empty())
             throw std::logic_error("No packet types registered");
 
-        for (unsigned i = 0; i < _types.size(); i++) {
-            auto packet = _types[i]->create(buffer, nread);
+        for (auto& strategy : _types) {
+            auto packet = strategy->create(buffer, nread);
             if (packet) {
                 if (!onPacketCreated(packet)) {
                     delete packet;
@@ -172,13 +146,21 @@ public:
                 }
                 return packet;
             }
-            // reader.seek(offset);
         }
         return nullptr;
     }
 
 protected:
     PacketCreationStrategyList _types;
+
+private:
+    void sortTypes()
+    {
+        std::sort(_types.begin(), _types.end(),
+                  [](const auto& l, const auto& r) {
+                      return l->priority() > r->priority();
+                  });
+    }
 };
 
 

@@ -25,7 +25,7 @@ Address::Address()
 }
 
 
-Address::Address(const std::string& id)
+Address::Address(std::string_view id)
 {
     parse(id);
 }
@@ -43,7 +43,7 @@ Address::~Address()
 }
 
 
-bool Address::parse(const std::string& addr)
+bool Address::parse(std::string_view addr)
 {
     if (addr.empty())
         return false;

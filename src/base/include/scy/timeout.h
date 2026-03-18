@@ -16,6 +16,7 @@
 #include "scy/base.h"
 #include <chrono>
 #include <string>
+#include <string_view>
 
 
 namespace scy {
@@ -72,7 +73,7 @@ public:
     std::string id() const { return _id; }
 
     bool operator==(const TimedToken& r) const { return _id == r._id; }
-    bool operator==(const std::string& r) const { return _id == r; }
+    bool operator==(std::string_view r) const { return _id == r; }
 
 protected:
     std::string _id;

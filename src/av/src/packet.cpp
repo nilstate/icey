@@ -91,7 +91,7 @@ PlanarAudioPacket::PlanarAudioPacket(uint8_t* data[4], int channels, size_t numS
     , sampleFmt(sampleFmt)
 {
     auto fmt = av_get_sample_fmt(sampleFmt.c_str());
-    _size = av_samples_get_buffer_size(&linesize, channels, (int)numSamples, fmt, 0);
+    _size = av_samples_get_buffer_size(&linesize, channels, static_cast<int>(numSamples), fmt, 0);
 
     // The constructor does no copy any frame data.
     // The actual frame will not be copied unless this packet is cloned.
@@ -112,14 +112,14 @@ PlanarAudioPacket::PlanarAudioPacket(const PlanarAudioPacket& r)
     auto fmt = av_get_sample_fmt(sampleFmt.c_str());
 
     // Allocate audio buffers into this packet's buffer array
-    int ret = av_samples_alloc(buffer, &linesize, channels, (int)numSamples, fmt, 0);
+    int ret = av_samples_alloc(buffer, &linesize, channels, static_cast<int>(numSamples), fmt, 0);
     if (ret < 0) {
         throw std::runtime_error("PlanarAudioPacket: av_samples_alloc failed");
     }
 
     // Deep copy audio data from source frame
     av_samples_copy(buffer, const_cast<uint8_t* const*>(r.buffer), 0, 0,
-                    channels, (int)numSamples, fmt);
+                    channels, static_cast<int>(numSamples), fmt);
 }
 
 

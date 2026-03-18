@@ -12,6 +12,8 @@
 #include "scy/http/util.h"
 #include "scy/util.h"
 
+#include <string_view>
+
 
 // using std::endl;
 
@@ -20,9 +22,9 @@ namespace scy {
 namespace http {
 
 
-std::string parseURI(const std::string& request)
+std::string parseURI(std::string_view request)
 {
-    std::string req = request;
+    std::string req(request);
     std::string value = "";
     std::string::size_type start, end = 0;
     util::toUpper(req);
@@ -36,7 +38,7 @@ std::string parseURI(const std::string& request)
             end = req.find(" RTSP", start);
         if (end == std::string::npos)
             return "";
-        value = request.substr(start, end - start);
+        value = std::string(request.substr(start, end - start));
     }
     return value;
 }
@@ -49,20 +51,21 @@ bool matchURL(const std::string& uri, const std::string& expression)
 }
 
 
-std::string parseCookieItem(const std::string& cookie, const std::string& item)
+std::string parseCookieItem(std::string_view cookie, std::string_view item)
 {
-    std::string::size_type start, end = 0;
-    start = cookie.find(item + "=");
-    if (start != std::string::npos) {
+    std::string needle(item);
+    needle += '=';
+    auto start = cookie.find(needle);
+    if (start != std::string_view::npos) {
         start += item.size() + 1;
-        end = cookie.find(";", start);
-        return cookie.substr(start, end - start);
+        auto end = cookie.find(';', start);
+        return std::string(cookie.substr(start, end - start));
     }
     return "";
 }
 
 
-bool splitURIParameters(const std::string& uri, NVCollection& out)
+bool splitURIParameters(std::string_view uri, NVCollection& out)
 {
     size_t len = uri.length();
     size_t i = 0;
@@ -72,7 +75,7 @@ bool splitURIParameters(const std::string& uri, NVCollection& out)
         i++;
 
         std::string value = "";
-        while (uri[i] != '/' && uri[i] != '?' && i < len)
+        while (i < len && uri[i] != '/' && uri[i] != '?')
             value += uri[i++];
 
         // REST parameters are referenced by index
@@ -81,15 +84,15 @@ bool splitURIParameters(const std::string& uri, NVCollection& out)
     }
 
     // Parse query parameters
-    if (uri[i] == '?')
+    if (i < len && uri[i] == '?')
         i++;
     while (i < len) {
         std::string name = "";
-        while (uri[i] != '=' && i < len)
+        while (i < len && uri[i] != '=')
             name += uri[i++];
         i++;
         std::string value = "";
-        while (uri[i] != '&' && i < len)
+        while (i < len && uri[i] != '&')
             value += uri[i++];
         i++;
 

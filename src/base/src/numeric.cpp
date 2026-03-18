@@ -7,333 +7,196 @@
 //
 /// @addtogroup base
 /// @{
-//
-// This file uses functions from POCO C++ Libraries (license below)
-//
 
 
 #include "scy/numeric.h"
 
+#include <algorithm>
+#include <charconv>
+#include <cstdio>
 #include <stdexcept>
-
-
-#if defined(_MSC_VER) || defined(__MINGW32__)
-#define I64_FMT "I64"
-#elif defined(__APPLE__)
-#define I64_FMT "q"
-#else
-#define I64_FMT "ll"
-#endif
 
 
 namespace scy {
 namespace numeric {
 
 
-void format(std::string& str, int value)
+namespace {
+
+
+// Append the decimal representation of value to str.
+template <typename T>
+void appendDec(std::string& str, T value)
 {
-    char buffer[64];
-    std::sprintf(buffer, "%d", value);
-    str.append(buffer);
+    char buffer[24];
+    auto [ptr, ec] = std::to_chars(buffer, buffer + sizeof(buffer), value);
+    str.append(buffer, ptr);
 }
 
 
-void format(std::string& str, int value, int width)
+// Append the decimal representation of value to str,
+// right-justified in a field of at least `width` characters (space-padded).
+template <typename T>
+void appendDecWidth(std::string& str, T value, int width)
 {
-    if (width <= 0 || width >= 64)
-        throw std::invalid_argument("Numeric: width out of range");
-
-    char buffer[64];
-    std::sprintf(buffer, "%*d", width, value);
-    str.append(buffer);
+    char buffer[24];
+    auto [ptr, ec] = std::to_chars(buffer, buffer + sizeof(buffer), value);
+    int len = static_cast<int>(ptr - buffer);
+    for (int i = len; i < width; ++i)
+        str.push_back(' ');
+    str.append(buffer, ptr);
 }
 
 
-void format0(std::string& str, int value, int width)
+// Append the decimal representation of value to str,
+// right-justified and zero-padded in a field of at least `width` characters.
+template <typename T>
+void appendDec0(std::string& str, T value, int width)
 {
-    if (width <= 0 || width >= 64)
-        throw std::invalid_argument("Numeric: width out of range");
+    char buffer[24];
+    auto [ptr, ec] = std::to_chars(buffer, buffer + sizeof(buffer), value);
+    int len = static_cast<int>(ptr - buffer);
 
-    char buffer[64];
-    std::sprintf(buffer, "%0*d", width, value);
-    str.append(buffer);
+    // Handle negative: emit '-' then zero-pad the digits
+    if constexpr (std::is_signed_v<T>) {
+        if (value < 0 && len > 1) {
+            str.push_back('-');
+            // Skip the '-' in buffer for padding
+            for (int i = len - 1; i < width; ++i)
+                str.push_back('0');
+            str.append(buffer + 1, ptr);
+            return;
+        }
+    }
+
+    for (int i = len; i < width; ++i)
+        str.push_back('0');
+    str.append(buffer, ptr);
 }
 
 
-void formatHex(std::string& str, int value)
+// Append the uppercase hexadecimal representation of value to str.
+template <typename T>
+void appendHex(std::string& str, T value)
 {
-    char buffer[64];
-    std::sprintf(buffer, "%X", value);
-    str.append(buffer);
+    using U = std::make_unsigned_t<T>;
+    U uval = static_cast<U>(value);
+    char buffer[24];
+    auto [ptr, ec] = std::to_chars(buffer, buffer + sizeof(buffer), uval, 16);
+    // to_chars produces lowercase hex; convert to uppercase
+    std::transform(buffer, ptr, buffer, [](char c) {
+        return (c >= 'a' && c <= 'f') ? static_cast<char>(c - 'a' + 'A') : c;
+    });
+    str.append(buffer, ptr);
 }
 
 
-void formatHex(std::string& str, int value, int width)
+// Append the uppercase hexadecimal representation of value to str,
+// right-justified and zero-padded in a field of at least `width` characters.
+template <typename T>
+void appendHex0(std::string& str, T value, int width)
 {
-    if (width <= 0 || width >= 64)
-        throw std::invalid_argument("Numeric: width out of range");
-
-    char buffer[64];
-    std::sprintf(buffer, "%0*X", width, value);
-    str.append(buffer);
+    using U = std::make_unsigned_t<T>;
+    U uval = static_cast<U>(value);
+    char buffer[24];
+    auto [ptr, ec] = std::to_chars(buffer, buffer + sizeof(buffer), uval, 16);
+    std::transform(buffer, ptr, buffer, [](char c) {
+        return (c >= 'a' && c <= 'f') ? static_cast<char>(c - 'a' + 'A') : c;
+    });
+    int len = static_cast<int>(ptr - buffer);
+    for (int i = len; i < width; ++i)
+        str.push_back('0');
+    str.append(buffer, ptr);
 }
 
 
-void format(std::string& str, unsigned value)
-{
-    char buffer[64];
-    std::sprintf(buffer, "%u", value);
-    str.append(buffer);
-}
-
-
-void format(std::string& str, unsigned value, int width)
-{
-    if (width <= 0 || width >= 64)
-        throw std::invalid_argument("Numeric: width out of range");
-
-    char buffer[64];
-    std::sprintf(buffer, "%*u", width, value);
-    str.append(buffer);
-}
-
-
-void format0(std::string& str, unsigned int value, int width)
-{
-    if (width <= 0 || width >= 64)
-        throw std::invalid_argument("Numeric: width out of range");
-
-    char buffer[64];
-    std::sprintf(buffer, "%0*u", width, value);
-    str.append(buffer);
-}
-
-
-void formatHex(std::string& str, unsigned value)
-{
-    char buffer[64];
-    std::sprintf(buffer, "%X", value);
-    str.append(buffer);
-}
-
-
-void formatHex(std::string& str, unsigned value, int width)
-{
-    if (width <= 0 || width >= 64)
-        throw std::invalid_argument("Numeric: width out of range");
-
-    char buffer[64];
-    std::sprintf(buffer, "%0*X", width, value);
-    str.append(buffer);
-}
-
-
-void format(std::string& str, long value)
-{
-    char buffer[64];
-    std::sprintf(buffer, "%ld", value);
-    str.append(buffer);
-}
-
-
-void format(std::string& str, long value, int width)
+inline void checkWidth(int width)
 {
     if (width <= 0 || width >= 64)
         throw std::invalid_argument("Numeric: width out of range");
-
-    char buffer[64];
-    std::sprintf(buffer, "%*ld", width, value);
-    str.append(buffer);
 }
 
 
-void format0(std::string& str, long value, int width)
-{
-    if (width <= 0 || width >= 64)
-        throw std::invalid_argument("Numeric: width out of range");
-
-    char buffer[64];
-    std::sprintf(buffer, "%0*ld", width, value);
-    str.append(buffer);
-}
+} // anonymous namespace
 
 
-void formatHex(std::string& str, long value)
-{
-    char buffer[64];
-    std::sprintf(buffer, "%lX", value);
-    str.append(buffer);
-}
+//
+// int
+//
+
+void format(std::string& str, int value) { appendDec(str, value); }
+void format(std::string& str, int value, int width) { checkWidth(width); appendDecWidth(str, value, width); }
+void format0(std::string& str, int value, int width) { checkWidth(width); appendDec0(str, value, width); }
+void formatHex(std::string& str, int value) { appendHex(str, value); }
+void formatHex(std::string& str, int value, int width) { checkWidth(width); appendHex0(str, value, width); }
 
 
-void formatHex(std::string& str, long value, int width)
-{
-    if (width <= 0 || width >= 64)
-        throw std::invalid_argument("Numeric: width out of range");
+//
+// unsigned int
+//
 
-    char buffer[64];
-    std::sprintf(buffer, "%0*lX", width, value);
-    str.append(buffer);
-}
-
-
-void format(std::string& str, unsigned long value)
-{
-    char buffer[64];
-    std::sprintf(buffer, "%lu", value);
-    str.append(buffer);
-}
+void format(std::string& str, unsigned value) { appendDec(str, value); }
+void format(std::string& str, unsigned value, int width) { checkWidth(width); appendDecWidth(str, value, width); }
+void format0(std::string& str, unsigned int value, int width) { checkWidth(width); appendDec0(str, value, width); }
+void formatHex(std::string& str, unsigned value) { appendHex(str, value); }
+void formatHex(std::string& str, unsigned value, int width) { checkWidth(width); appendHex0(str, value, width); }
 
 
-void format(std::string& str, unsigned long value, int width)
-{
-    if (width <= 0 || width >= 64)
-        throw std::invalid_argument("Numeric: width out of range");
+//
+// long
+//
 
-    char buffer[64];
-    std::sprintf(buffer, "%*lu", width, value);
-    str.append(buffer);
-}
-
-
-void format0(std::string& str, unsigned long value, int width)
-{
-    if (width <= 0 || width >= 64)
-        throw std::invalid_argument("Numeric: width out of range");
-
-    char buffer[64];
-    std::sprintf(buffer, "%0*lu", width, value);
-    str.append(buffer);
-}
+void format(std::string& str, long value) { appendDec(str, value); }
+void format(std::string& str, long value, int width) { checkWidth(width); appendDecWidth(str, value, width); }
+void format0(std::string& str, long value, int width) { checkWidth(width); appendDec0(str, value, width); }
+void formatHex(std::string& str, long value) { appendHex(str, value); }
+void formatHex(std::string& str, long value, int width) { checkWidth(width); appendHex0(str, value, width); }
 
 
-void formatHex(std::string& str, unsigned long value)
-{
-    char buffer[64];
-    std::sprintf(buffer, "%lX", value);
-    str.append(buffer);
-}
+//
+// unsigned long
+//
+
+void format(std::string& str, unsigned long value) { appendDec(str, value); }
+void format(std::string& str, unsigned long value, int width) { checkWidth(width); appendDecWidth(str, value, width); }
+void format0(std::string& str, unsigned long value, int width) { checkWidth(width); appendDec0(str, value, width); }
+void formatHex(std::string& str, unsigned long value) { appendHex(str, value); }
+void formatHex(std::string& str, unsigned long value, int width) { checkWidth(width); appendHex0(str, value, width); }
 
 
-void formatHex(std::string& str, unsigned long value, int width)
-{
-    if (width <= 0 || width >= 64)
-        throw std::invalid_argument("Numeric: width out of range");
+//
+// int64_t / uint64_t
+//
+// On LP64 platforms (Linux, macOS), long is 64-bit and these are the same type.
+// On LLP64 platforms (Windows), long is 32-bit and these are distinct.
+// Only define if int64_t is not the same type as long.
+//
 
-    char buffer[64];
-    std::sprintf(buffer, "%0*lX", width, value);
-    str.append(buffer);
-}
+#if !defined(__LP64__) && !defined(__APPLE__) && !(defined(__SIZEOF_LONG__) && __SIZEOF_LONG__ == 8)
 
+void format(std::string& str, std::int64_t value) { appendDec(str, value); }
+void format(std::string& str, std::int64_t value, int width) { checkWidth(width); appendDecWidth(str, value, width); }
+void format0(std::string& str, std::int64_t value, int width) { checkWidth(width); appendDec0(str, value, width); }
+void formatHex(std::string& str, std::int64_t value) { appendHex(str, value); }
+void formatHex(std::string& str, std::int64_t value, int width) { checkWidth(width); appendHex0(str, value, width); }
 
-#if defined(SCY_HAVE_INT64) && !defined(SCY_LONG_IS_64_BIT)
+void format(std::string& str, uint64_t value) { appendDec(str, value); }
+void format(std::string& str, uint64_t value, int width) { checkWidth(width); appendDecWidth(str, value, width); }
+void format0(std::string& str, uint64_t value, int width) { checkWidth(width); appendDec0(str, value, width); }
+void formatHex(std::string& str, uint64_t value) { appendHex(str, value); }
+void formatHex(std::string& str, uint64_t value, int width) { checkWidth(width); appendHex0(str, value, width); }
 
-
-void format(std::string& str, std::int64_t value)
-{
-    char buffer[64];
-    std::sprintf(buffer, "%" I64_FMT "d", value);
-    str.append(buffer);
-}
-
-
-void format(std::string& str, std::int64_t value, int width)
-{
-    if (width <= 0 || width >= 64)
-        throw std::invalid_argument("Numeric: width out of range");
-
-    char buffer[64];
-    std::sprintf(buffer, "%*" I64_FMT "d", width, value);
-    str.append(buffer);
-}
+#endif
 
 
-void format0(std::string& str, std::int64_t value, int width)
-{
-    if (width <= 0 || width >= 64)
-        throw std::invalid_argument("Numeric: width out of range");
-
-    char buffer[64];
-    std::sprintf(buffer, "%0*" I64_FMT "d", width, value);
-    str.append(buffer);
-}
-
-
-void formatHex(std::string& str, std::int64_t value)
-{
-    char buffer[64];
-    std::sprintf(buffer, "%" I64_FMT "X", value);
-    str.append(buffer);
-}
-
-
-void formatHex(std::string& str, std::int64_t value, int width)
-{
-    if (width <= 0 || width >= 64)
-        throw std::invalid_argument("Numeric: width out of range");
-
-    char buffer[64];
-    std::sprintf(buffer, "%0*" I64_FMT "X", width, value);
-    str.append(buffer);
-}
-
-
-void format(std::string& str, uint64_t value)
-{
-    char buffer[64];
-    std::sprintf(buffer, "%" I64_FMT "u", value);
-    str.append(buffer);
-}
-
-
-void format(std::string& str, uint64_t value, int width)
-{
-    if (width <= 0 || width >= 64)
-        throw std::invalid_argument("Numeric: width out of range");
-
-    char buffer[64];
-    std::sprintf(buffer, "%*" I64_FMT "u", width, value);
-    str.append(buffer);
-}
-
-
-void format0(std::string& str, uint64_t value, int width)
-{
-    if (width <= 0 || width >= 64)
-        throw std::invalid_argument("Numeric: width out of range");
-
-    char buffer[64];
-    std::sprintf(buffer, "%0*" I64_FMT "u", width, value);
-    str.append(buffer);
-}
-
-
-void formatHex(std::string& str, uint64_t value)
-{
-    char buffer[64];
-    std::sprintf(buffer, "%" I64_FMT "X", value);
-    str.append(buffer);
-}
-
-
-void formatHex(std::string& str, uint64_t value, int width)
-{
-    if (width <= 0 || width >= 64)
-        throw std::invalid_argument("Numeric: width out of range");
-
-    char buffer[64];
-    std::sprintf(buffer, "%0*" I64_FMT "X", width, value);
-    str.append(buffer);
-}
-
-
-#endif // defined(SCY_HAVE_INT64) && !defined(SCY_LONG_IS_64_BIT)
-
+//
+// void*
+//
 
 void format(std::string& str, const void* ptr)
 {
     char buffer[24];
-    std::sprintf(buffer, "%p", ptr);
+    std::snprintf(buffer, sizeof(buffer), "%p", ptr);
     str.append(buffer);
 }
 
@@ -343,31 +206,3 @@ void format(std::string& str, const void* ptr)
 
 
 /// @\}
-
-
-//
-// Copyright (c) 2004-2008, Applied Informatics Software Engineering GmbH.
-// and Contributors.
-//
-// Permission is hereby granted, free of charge, to any person or organization
-// obtaining a copy of the software and accompanying documentation covered by
-// this license (the "Software") to use, reproduce, display, distribute,
-// execute, and transmit the Software, and to prepare derivative works of the
-// Software, and to permit third-parties to whom the Software is furnished to
-// do so, all subject to the following:
-//
-// The copyright notices in the Software and this entire statement, including
-// the above license grant, this restriction and the following disclaimer,
-// must be included in all copies of the Software, in whole or in part, and
-// all derivative works of the Software, unless such copies or derivative
-// works are solely in the form of machine-executable object code generated by
-// a source language processor.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT. IN NO EVENT
-// SHALL THE COPYRIGHT HOLDERS OR ANYONE DISTRIBUTING THE SOFTWARE BE LIABLE
-// FOR ANY DAMAGES OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT OR OTHERWISE,
-// ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-//

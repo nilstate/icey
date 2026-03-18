@@ -726,39 +726,6 @@ PacketSignal& PacketStreamAdapter::getEmitter()
 }
 
 
-//
-// Helper Functions
-//
-
-
-// bool PacketStream::hasQueuedState(PacketStreamState::ID state) const
-// {
-//     std::lock_guard<std::mutex> guard(_mutex);
-//     for (auto const& st : _states) {
-//         if (st.id() == state)
-//             return true;
-//     }
-//     return false;
-// }
-
-
-// bool waitForStateSync(PacketStream* stream, PacketStreamState::ID state)
-// {
-//     int times = 0;
-//     LTrace(stream)("Wait for sync state: ", state);
-//     while (!stream->stateEquals(state) || stream->hasQueuedState(state)) {
-//         STrace(stream) << "Wait for sync state: " << state << ": " << times
-//                      << endl;
-//         scy::sleep(5);
-//         if (times++ > 1000) {
-//             assert(0 && "deadlock; calling inside stream scope?"); // 5 secs
-//         }
-//     }
-//     LTrace(stream), "Wait for sync state: "(state, ": OK");
-//     return true;
-// }
-
-
 } // namespace scy
 
 

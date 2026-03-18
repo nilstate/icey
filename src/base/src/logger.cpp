@@ -76,12 +76,12 @@ void Logger::add(std::unique_ptr<LogChannel> channel)
 }
 
 
-void Logger::remove(const std::string& name)
+void Logger::remove(std::string_view name)
 {
     std::lock_guard<std::mutex> guard(_mutex);
-    auto it = _channels.find(name);
+    auto it = _channels.find(std::string(name));
     if (it == _channels.end())
-        throw std::runtime_error("Logger: channel not found: " + name);
+        throw std::runtime_error("Logger: channel not found: " + std::string(name));
     {
         if (_defaultChannel == it->second.get())
             _defaultChannel = nullptr;
@@ -90,19 +90,19 @@ void Logger::remove(const std::string& name)
 }
 
 
-LogChannel* Logger::get(const std::string& name, bool whiny) const
+LogChannel* Logger::get(std::string_view name, bool whiny) const
 {
     std::lock_guard<std::mutex> guard(_mutex);
-    auto it = _channels.find(name);
+    auto it = _channels.find(std::string(name));
     if (it != _channels.end())
         return it->second.get();
     if (whiny)
-        throw std::runtime_error("Not found: No log channel named: " + name);
+        throw std::runtime_error("Not found: No log channel named: " + std::string(name));
     return nullptr;
 }
 
 
-void Logger::setDefault(const std::string& name)
+void Logger::setDefault(std::string_view name)
 {
     std::lock_guard<std::mutex> guard(_mutex);
     _defaultChannel = get(name, true);

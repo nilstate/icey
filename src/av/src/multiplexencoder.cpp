@@ -275,10 +275,10 @@ bool MultiplexEncoder::updateStreamPts(AVStream* stream, int64_t* pts)
     if (*pts == AV_NOPTS_VALUE) {
         // Set a realtime pts value if not specified
         int64_t delta(av_gettime_relative() - _formatCtx->start_time_realtime);
-        next = delta * (double)stream->time_base.den / (double)stream->time_base.num / AV_TIME_BASE;
+        next = delta * static_cast<double>(stream->time_base.den) / static_cast<double>(stream->time_base.num) / AV_TIME_BASE;
     } else {
         // Convert from input microseconds to encoder stream time base
-        next = *pts * (double)stream->time_base.den / (double)stream->time_base.num / AV_TIME_BASE;
+        next = *pts * static_cast<double>(stream->time_base.den) / static_cast<double>(stream->time_base.num) / AV_TIME_BASE;
     }
 
     if (next < _pts) {

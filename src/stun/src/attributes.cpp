@@ -754,7 +754,7 @@ std::unique_ptr<Attribute> MessageIntegrity::clone()
 }
 
 
-bool MessageIntegrity::verifyHmac(const std::string& key) const
+bool MessageIntegrity::verifyHmac(std::string_view key) const
 {
     if (key.empty())
         throw std::runtime_error("MessageIntegrity::verifyHmac: empty key");
@@ -784,7 +784,7 @@ void MessageIntegrity::read(BitReader& reader)
 
     // Ensure the STUN message size reflects the message up to and
     // including the MessageIntegrity attribute.
-    hmacWriter.updateU32((uint32_t)sizeBeforeMessageIntegrity + MessageIntegrity::Size, 2);
+    hmacWriter.updateU32(static_cast<uint32_t>(sizeBeforeMessageIntegrity) + MessageIntegrity::Size, 2);
     _input.assign(hmacWriter.begin(), hmacWriter.position());
 
     _hmac.assign(reader.current(), MessageIntegrity::Size);
@@ -823,7 +823,7 @@ void MessageIntegrity::write(BitWriter& writer) const
         // the end of the MESSAGE-INTEGRITY attribute prior to calculating the
         // HMAC.  Such adjustment is necessary when attributes, such as
         // FINGERPRINT, appear after MESSAGE-INTEGRITY.
-        hmacWriter.updateU32((uint32_t)sizeBeforeMessageIntegrity + MessageIntegrity::Size, 2);
+        hmacWriter.updateU32(static_cast<uint32_t>(sizeBeforeMessageIntegrity) + MessageIntegrity::Size, 2);
 
         std::string input(hmacWriter.begin(), hmacWriter.position());
         if (input.size() != static_cast<size_t>(sizeBeforeMessageIntegrity))

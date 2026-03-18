@@ -16,6 +16,7 @@
 
 #include <cstdint>
 #include <string>
+#include <string_view>
 
 
 namespace scy {
@@ -50,11 +51,11 @@ Base_API void pause();
 Base_API std::string getHostname();
 
 /// Return an environment variable or the default value.
-Base_API std::string getEnv(const std::string& name, const std::string& defaultValue = "");
+Base_API std::string getEnv(std::string_view name, std::string_view defaultValue = "");
 
 /// Return an environment variable boolean or the default value.
 /// The variable must be `1` or `true` for this function to return true.
-Base_API bool getEnvBool(const std::string& name);
+Base_API bool getEnvBool(std::string_view name);
 
 
 //
@@ -67,7 +68,7 @@ Base_API bool isWindowsVistaOrLater();
 Base_API bool isWindowsXpOrLater();
 
 Base_API std::wstring toUtf16(const char* utf8, size_t len);
-Base_API std::wstring toUtf16(const std::string& str);
+Base_API std::wstring toUtf16(std::string_view str);
 Base_API std::string toUtf8(const wchar_t* wide, size_t len);
 Base_API std::string toUtf8(const std::wstring& wstr);
 

@@ -232,7 +232,7 @@ void SSLContext::enableSessionCache(bool flag)
 
 
 void SSLContext::enableSessionCache(bool flag,
-                                    const std::string& sessionIdContext)
+                                    std::string_view sessionIdContext)
 {
     //assert(isForServerUse());
 

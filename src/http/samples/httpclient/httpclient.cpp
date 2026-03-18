@@ -36,7 +36,7 @@ int main(int argc, char** argv)
 
     // Create an HTTP client connection with automatic socket type
     // selection (TCP for http://, SSL for https://)
-    auto conn = http::createConnectionT<http::ClientConnection>(URL(url));
+    auto conn = http::createConnectionT<http::ClientConnection>(http::URL(url));
 
     conn->Headers += [](http::Response& res) {
         std::cout << "Status: " << static_cast<int>(res.getStatus()) << " " << res.getReason() << std::endl;

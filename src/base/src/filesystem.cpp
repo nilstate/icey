@@ -13,6 +13,7 @@
 #include <filesystem>
 #include <fstream>
 #include <stdexcept>
+#include <string>
 #if defined(_MSC_VER) && defined(SCY_UNICODE)
 #include <codecvt>
 #include <locale>
@@ -37,13 +38,13 @@ const char* separator = "/";
 #endif
 
 
-std::string filename(const std::string& path)
+std::string filename(std::string_view path)
 {
     return stdfs::path(path).filename().string();
 }
 
 
-std::string dirname(const std::string& path)
+std::string dirname(std::string_view path)
 {
     auto parent = stdfs::path(path).parent_path();
     if (parent.empty())
@@ -52,13 +53,13 @@ std::string dirname(const std::string& path)
 }
 
 
-std::string basename(const std::string& path)
+std::string basename(std::string_view path)
 {
     return stdfs::path(path).stem().string();
 }
 
 
-std::string extname(const std::string& path, bool includeDot)
+std::string extname(std::string_view path, bool includeDot)
 {
     auto ext = stdfs::path(path).extension().string();
     if (ext.empty())
@@ -69,83 +70,83 @@ std::string extname(const std::string& path, bool includeDot)
 }
 
 
-bool exists(const std::string& path)
+bool exists(std::string_view path)
 {
     std::error_code ec;
-    return stdfs::exists(path, ec);
+    return stdfs::exists(stdfs::path(path), ec);
 }
 
 
-bool isdir(const std::string& path)
+bool isdir(std::string_view path)
 {
     std::error_code ec;
-    return stdfs::is_directory(path, ec);
+    return stdfs::is_directory(stdfs::path(path), ec);
 }
 
 
-std::int64_t filesize(const std::string& path)
+std::int64_t filesize(std::string_view path)
 {
     std::error_code ec;
-    auto size = stdfs::file_size(path, ec);
+    auto size = stdfs::file_size(stdfs::path(path), ec);
     if (ec)
         return -1;
     return static_cast<std::int64_t>(size);
 }
 
 
-void readdir(const std::string& path, std::vector<std::string>& res)
+void readdir(std::string_view path, std::vector<std::string>& res)
 {
     std::error_code ec;
-    for (const auto& entry : stdfs::directory_iterator(path, ec)) {
+    for (const auto& entry : stdfs::directory_iterator(stdfs::path(path), ec)) {
         res.push_back(entry.path().filename().string());
     }
     if (ec)
-        throw std::runtime_error("Filesystem error: scandir failed: " + path);
+        throw std::runtime_error("Filesystem error: scandir failed: " + std::string(path));
 }
 
 
-void mkdir(const std::string& path, int /*mode*/)
+void mkdir(std::string_view path, int /*mode*/)
 {
     std::error_code ec;
-    stdfs::create_directory(path, ec);
+    stdfs::create_directory(stdfs::path(path), ec);
     if (ec)
-        throw std::runtime_error("Filesystem error: mkdir failed: " + path + ": " + ec.message());
+        throw std::runtime_error("Filesystem error: mkdir failed: " + std::string(path) + ": " + ec.message());
 }
 
 
-void mkdirr(const std::string& path, int /*mode*/)
+void mkdirr(std::string_view path, int /*mode*/)
 {
     std::error_code ec;
-    stdfs::create_directories(path, ec);
+    stdfs::create_directories(stdfs::path(path), ec);
     if (ec)
-        throw std::runtime_error("Filesystem error: mkdir failed: " + path + ": " + ec.message());
+        throw std::runtime_error("Filesystem error: mkdir failed: " + std::string(path) + ": " + ec.message());
 }
 
 
-void rmdir(const std::string& path)
+void rmdir(std::string_view path)
 {
     std::error_code ec;
-    stdfs::remove(path, ec);
+    stdfs::remove(stdfs::path(path), ec);
     if (ec)
-        throw std::runtime_error("Filesystem error: rmdir failed: " + path + ": " + ec.message());
+        throw std::runtime_error("Filesystem error: rmdir failed: " + std::string(path) + ": " + ec.message());
 }
 
 
-void unlink(const std::string& path)
+void unlink(std::string_view path)
 {
     std::error_code ec;
-    stdfs::remove(path, ec);
+    stdfs::remove(stdfs::path(path), ec);
     if (ec)
-        throw std::runtime_error("Filesystem error: unlink failed: " + path + ": " + ec.message());
+        throw std::runtime_error("Filesystem error: unlink failed: " + std::string(path) + ": " + ec.message());
 }
 
 
-void rename(const std::string& path, const std::string& target)
+void rename(std::string_view path, std::string_view target)
 {
     std::error_code ec;
-    stdfs::rename(path, target, ec);
+    stdfs::rename(stdfs::path(path), stdfs::path(target), ec);
     if (ec)
-        throw std::runtime_error("Filesystem error: rename failed: " + path + ": " + ec.message());
+        throw std::runtime_error("Filesystem error: rename failed: " + std::string(path) + ": " + ec.message());
 }
 
 
@@ -156,30 +157,30 @@ void addsep(std::string& path)
 }
 
 
-void addnode(std::string& path, const std::string& node)
+void addnode(std::string& path, std::string_view node)
 {
     fs::addsep(path);
     path += node;
 }
 
 
-std::string makePath(const std::string& base, const std::string& node)
+std::string makePath(std::string_view base, std::string_view node)
 {
-    return (stdfs::path(base) / node).string();
+    return (stdfs::path(base) / stdfs::path(node)).string();
 }
 
 
-std::string normalize(const std::string& path)
+std::string normalize(std::string_view path)
 {
     return stdfs::path(path).lexically_normal().string();
 }
 
 
-std::string transcode(const std::string& path)
+std::string transcode(std::string_view path)
 {
 #if defined(_MSC_VER) && defined(SCY_UNICODE)
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> convert;
-    std::wstring uniPath = convert.from_bytes(path);
+    std::wstring uniPath = convert.from_bytes(std::string(path));
     DWORD len = WideCharToMultiByte(
         CP_ACP, WC_NO_BEST_FIT_CHARS, uniPath.c_str(),
         static_cast<int>(uniPath.length()), nullptr, 0, nullptr, nullptr);
@@ -194,19 +195,19 @@ std::string transcode(const std::string& path)
         }
     }
 #endif
-    return path;
+    return std::string(path);
 }
 
 
-bool savefile(const std::string& path, const char* data, size_t size,
+bool savefile(std::string_view path, const char* data, size_t size,
               bool whiny)
 {
-    std::ofstream ofs(path, std::ios_base::binary | std::ios_base::out);
+    std::ofstream ofs(std::string(path), std::ios_base::binary | std::ios_base::out);
     if (ofs.is_open())
         ofs.write(data, size);
     else {
         if (whiny)
-            throw std::runtime_error("Cannot save file: " + path);
+            throw std::runtime_error("Cannot save file: " + std::string(path));
         return false;
     }
     return true;

@@ -224,7 +224,7 @@ void Configuration::setBool(const std::string& key, bool value)
 }
 
 
-int Configuration::parseInt(const std::string& value)
+int Configuration::parseInt(std::string_view value)
 {
     if (value.compare(0, 2, "0x") == 0)
         return util::parseHex(value.substr(2));
@@ -233,7 +233,7 @@ int Configuration::parseInt(const std::string& value)
 }
 
 
-std::int64_t Configuration::parseLargeInt(const std::string& value)
+std::int64_t Configuration::parseLargeInt(std::string_view value)
 {
     if (value.compare(0, 2, "0x") == 0)
         return util::parseHex(value.substr(2));
@@ -242,7 +242,7 @@ std::int64_t Configuration::parseLargeInt(const std::string& value)
 }
 
 
-bool Configuration::parseBool(const std::string& value)
+bool Configuration::parseBool(std::string_view value)
 {
     if (value == "0")
         return false;
@@ -262,7 +262,7 @@ bool Configuration::parseBool(const std::string& value)
         return false;
     else
         throw std::runtime_error("Syntax error: Cannot convert to boolean: " +
-                                 value);
+                                 std::string(value));
 }
 
 
@@ -287,20 +287,6 @@ ScopedConfiguration::ScopedConfiguration(const ScopedConfiguration& r)
     , defaultScope(r.defaultScope)
 {
 }
-
-
-/*
-ScopedConfiguration& ScopedConfiguration::operator = (const ScopedConfiguration&
-that)
-{
-    if (&that != this) {
-        config = that.config;
-        currentScope = that.currentScope;
-        defaultScope = that.defaultScope;
-    }
-    return *this;
-}
-*/
 
 
 std::string ScopedConfiguration::getString(const std::string& key,

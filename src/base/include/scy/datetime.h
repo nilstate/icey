@@ -7,9 +7,6 @@
 //
 /// @addtogroup base
 /// @{
-//
-// This file uses functions from POCO C++ Libraries (license below)
-//
 
 
 #pragma once
@@ -18,6 +15,7 @@
 #include "scy/base.h"
 #include "scy/packetsignal.h"
 #include <ctime>
+#include <string_view>
 
 
 namespace scy {
@@ -1181,20 +1179,20 @@ public:
     /// Class DateTimeFormat defines format strings for various standard
     /// date/time formats.
     static std::string format(const Timestamp& timestamp,
-                              const std::string& fmt,
+                              std::string_view fmt,
                               int timeZoneDifferential = UTC);
 
     /// Formats the given date and time according to the given format.
-    /// See format(const Timestamp&, const std::string&, int) for more
+    /// See format(const Timestamp&, std::string_view, int) for more
     /// information.
-    static std::string format(const DateTime& dateTime, const std::string& fmt,
+    static std::string format(const DateTime& dateTime, std::string_view fmt,
                               int timeZoneDifferential = UTC);
 
     /// Formats the given local date and time according to the given format.
-    /// See format(const Timestamp&, const std::string&, int) for more
+    /// See format(const Timestamp&, std::string_view, int) for more
     /// information.
     static std::string format(const LocalDateTime& dateTime,
-                              const std::string& fmt);
+                              std::string_view fmt);
 
     /// Formats the given timespan according to the given format.
     /// The format string is used as a template to format the date and
@@ -1213,35 +1211,35 @@ public:
     ///   * %F - fractional seconds/microseconds (000000 - 999999)
     ///   * %% - percent sign
     static std::string format(const Timespan& timespan,
-                              const std::string& fmt = "%dd %H:%M:%S.%i");
+                              std::string_view fmt = "%dd %H:%M:%S.%i");
 
     /// Formats the given timestamp according to the given format and appends it
     /// to str.
     ///
     /// See format() for documentation of the formatting string.
     static void append(std::string& str, const Timestamp& timestamp,
-                       const std::string& fmt, int timeZoneDifferential = UTC);
+                       std::string_view fmt, int timeZoneDifferential = UTC);
 
     /// Formats the given date and time according to the given format and
     /// appends it to str.
     ///
     /// See format() for documentation of the formatting string.
     static void append(std::string& str, const DateTime& dateTime,
-                       const std::string& fmt, int timeZoneDifferential = UTC);
+                       std::string_view fmt, int timeZoneDifferential = UTC);
 
     /// Formats the given local date and time according to the given format and
     /// appends it to str.
     ///
     /// See format() for documentation of the formatting string.
     static void append(std::string& str, const LocalDateTime& dateTime,
-                       const std::string& fmt);
+                       std::string_view fmt);
 
     /// Formats the given timespan according to the given format and appends it
     /// to str.
     ///
     /// See format() for documentation of the formatting string.
     static void append(std::string& str, const Timespan& timespan,
-                       const std::string& fmt = "%dd %H:%M:%S.%i");
+                       std::string_view fmt = "%dd %H:%M:%S.%i");
 
     /// Formats the given timezone differential in ISO format.
     /// If timeZoneDifferential is UTC, "Z" is returned,
@@ -1300,7 +1298,7 @@ public:
     /// string.
     /// Class DateTimeFormat defines format strings for various standard
     /// date/time formats.
-    static void parse(const std::string& fmt, const std::string& str,
+    static void parse(std::string_view fmt, std::string_view str,
                       DateTime& dateTime, int& timeZoneDifferential);
 
     /// Parses a date and time in the given format from the given string.
@@ -1309,7 +1307,7 @@ public:
     /// string.
     /// Class DateTimeFormat defines format strings for various standard
     /// date/time formats.
-    static DateTime parse(const std::string& fmt, const std::string& str,
+    static DateTime parse(std::string_view fmt, std::string_view str,
                           int& timeZoneDifferential);
 
     /// Parses a date and time in the given format from the given string.
@@ -1319,7 +1317,7 @@ public:
     /// string.
     /// Class DateTimeFormat defines format strings for various standard
     /// date/time formats.
-    static bool tryParse(const std::string& fmt, const std::string& str,
+    static bool tryParse(std::string_view fmt, std::string_view str,
                          DateTime& dateTime, int& timeZoneDifferential);
 
     /// Parses a date and time from the given dateTime string. Before parsing,
@@ -1330,7 +1328,7 @@ public:
     /// string.
     /// Class DateTimeFormat defines format strings for various standard
     /// date/time formats.
-    static void parse(const std::string& str, DateTime& dateTime,
+    static void parse(std::string_view str, DateTime& dateTime,
                       int& timeZoneDifferential);
 
     /// Parses a date and time from the given dateTime string. Before parsing,
@@ -1340,7 +1338,7 @@ public:
     /// string.
     /// Class DateTimeFormat defines format strings for various standard
     /// date/time formats.
-    static DateTime parse(const std::string& str, int& timeZoneDifferential);
+    static DateTime parse(std::string_view str, int& timeZoneDifferential);
 
     /// Parses a date and time from the given dateTime string. Before parsing,
     /// the method
@@ -1349,7 +1347,7 @@ public:
     /// string.
     /// Class DateTimeFormat defines format strings for various standard
     /// date/time formats.
-    static bool tryParse(const std::string& str, DateTime& dateTime,
+    static bool tryParse(std::string_view str, DateTime& dateTime,
                          int& timeZoneDifferential);
 
     /// Tries to interpret the given range as a month name. The range must be at
@@ -1358,8 +1356,7 @@ public:
     /// Returns the month number (1 .. 12) if the month name is valid. Otherwise
     /// throws
     /// a SyntaxException.
-    static int parseMonth(std::string::const_iterator& it,
-                          const std::string::const_iterator& end);
+    static int parseMonth(const char*& it, const char* end);
 
     /// Tries to interpret the given range as a weekday name. The range must be
     /// at least
@@ -1367,15 +1364,12 @@ public:
     /// Returns the weekday number (0 .. 6, where 0 = Synday, 1 = Monday, etc.)
     /// if the
     /// weekday name is valid. Otherwise throws a SyntaxException.
-    static int parseDayOfWeek(std::string::const_iterator& it,
-                              const std::string::const_iterator& end);
+    static int parseDayOfWeek(const char*& it, const char* end);
 
 
 protected:
-    static int parseTZD(std::string::const_iterator& it,
-                        const std::string::const_iterator& end);
-    static int parseAMPM(std::string::const_iterator& it,
-                         const std::string::const_iterator& end, int hour);
+    static int parseTZD(const char*& it, const char* end);
+    static int parseAMPM(const char*& it, const char* end, int hour);
 };
 
 
@@ -1658,7 +1652,7 @@ inline void swap(Timespan& s1, Timespan& s2)
 
 
 inline std::string DateTimeFormatter::format(const Timestamp& timestamp,
-                                             const std::string& fmt,
+                                             std::string_view fmt,
                                              int timeZoneDifferential)
 {
     DateTime dateTime(timestamp);
@@ -1667,7 +1661,7 @@ inline std::string DateTimeFormatter::format(const Timestamp& timestamp,
 
 
 inline std::string DateTimeFormatter::format(const DateTime& dateTime,
-                                             const std::string& fmt,
+                                             std::string_view fmt,
                                              int timeZoneDifferential)
 {
     std::string result;
@@ -1678,14 +1672,14 @@ inline std::string DateTimeFormatter::format(const DateTime& dateTime,
 
 
 inline std::string DateTimeFormatter::format(const LocalDateTime& dateTime,
-                                             const std::string& fmt)
+                                             std::string_view fmt)
 {
     return format(dateTime._dateTime, fmt, dateTime._tzd);
 }
 
 
 inline std::string DateTimeFormatter::format(const Timespan& timespan,
-                                             const std::string& fmt)
+                                             std::string_view fmt)
 {
     std::string result;
     result.reserve(32);
@@ -1696,7 +1690,7 @@ inline std::string DateTimeFormatter::format(const Timespan& timespan,
 
 inline void DateTimeFormatter::append(std::string& str,
                                       const Timestamp& timestamp,
-                                      const std::string& fmt,
+                                      std::string_view fmt,
                                       int timeZoneDifferential)
 {
     DateTime dateTime(timestamp);
@@ -1779,31 +1773,3 @@ private:
 
 
 /// @\}
-
-
-//
-// Copyright (c) 2004-2006, Applied Informatics Software Engineering GmbH.
-// and Contributors.
-//
-// Permission is hereby granted, free of charge, to any person or organization
-// obtaining a copy of the software and accompanying documentation covered by
-// this license (the "Software") to use, reproduce, display, distribute,
-// execute, and transmit the Software, and to prepare derivative works of the
-// Software, and to permit third-parties to whom the Software is furnished to
-// do so, all subject to the following:
-//
-// The copyright notices in the Software and this entire statement, including
-// the above license grant, this restriction and the following disclaimer,
-// must be included in all copies of the Software, in whole or in part, and
-// all derivative works of the Software, unless such copies or derivative
-// works are solely in the form of machine-executable object code generated by
-// a source language processor.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT. IN NO EVENT
-// SHALL THE COPYRIGHT HOLDERS OR ANYONE DISTRIBUTING THE SOFTWARE BE LIABLE
-// FOR ANY DAMAGES OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT OR OTHERWISE,
-// ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-//

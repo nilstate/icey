@@ -18,6 +18,7 @@
 #include "scy/net/net.h"
 
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include <openssl/bio.h>
@@ -73,7 +74,7 @@ public:
     void setHostname(const std::string& hostname);
 
     void addIncomingData(const char* data, size_t len);
-    void addOutgoingData(const std::string& data);
+    void addOutgoingData(std::string_view data);
     void addOutgoingData(const char* data, size_t len);
 
 protected:

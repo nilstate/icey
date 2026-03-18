@@ -158,14 +158,14 @@ void SSLAdapter::addIncomingData(const char* data, size_t len)
     // LTrace("Add incoming data: ", len);
     if (!_readBIO)
         throw std::runtime_error("SSLAdapter: read BIO not initialized");
-    BIO_write(_readBIO, data, (int)len);
+    BIO_write(_readBIO, data, static_cast<int>(len));
     flush();
 }
 
 
-void SSLAdapter::addOutgoingData(const std::string& s)
+void SSLAdapter::addOutgoingData(std::string_view s)
 {
-    addOutgoingData(s.c_str(), s.size());
+    addOutgoingData(s.data(), s.size());
 }
 
 
@@ -196,7 +196,7 @@ void SSLAdapter::flush()
 
     // Write any local data to SSL for excryption
     if (_bufferOut.size() > 0) {
-        int r = SSL_write(_ssl, &_bufferOut[0], (int)_bufferOut.size());
+        int r = SSL_write(_ssl, &_bufferOut[0], static_cast<int>(_bufferOut.size()));
         if (r < 0) {
             handleError(r);
         }

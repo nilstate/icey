@@ -80,21 +80,23 @@ bool isNumber(std::string_view str)
 }
 
 
-bool tryParseHex(const std::string& str, unsigned& value)
+bool tryParseHex(std::string_view str, unsigned& value)
 {
-    char temp;
-    return std::sscanf(str.c_str(), "%x%c", &value, &temp) == 1;
+    if (str.empty())
+        return false;
+    auto [ptr, ec] = std::from_chars(str.data(), str.data() + str.size(), value, 16);
+    return ec == std::errc() && ptr == str.data() + str.size();
 }
 
 
-unsigned parseHex(const std::string& str)
+unsigned parseHex(std::string_view str)
 {
     unsigned result;
     if (tryParseHex(str, result))
         return result;
     else
         throw std::runtime_error(
-            "Syntax error: Not a valid hexadecimal integer: " + str);
+            "Syntax error: Not a valid hexadecimal integer: " + std::string(str));
 }
 
 
@@ -136,25 +138,25 @@ uint32_t randomNumber()
 }
 
 
-void split(const std::string& s, const std::string& delim,
+void split(std::string_view s, std::string_view delim,
            std::vector<std::string>& elems, int limit)
 {
-    std::string::size_type prev = 0, pos = 0;
-    while ((pos = s.find(delim, prev)) != std::string::npos) {
+    std::string_view::size_type prev = 0, pos = 0;
+    while ((pos = s.find(delim, prev)) != std::string_view::npos) {
         if (limit > 0 && static_cast<int>(elems.size()) == limit - 1) {
             // Last allowed element: take everything from prev to end
             break;
         }
-        elems.push_back(s.substr(prev, pos - prev));
+        elems.emplace_back(s.substr(prev, pos - prev));
         prev = pos + delim.size();
     }
     // Remaining portion (or entire string if no delimiter found)
     if (prev <= s.size())
-        elems.push_back(s.substr(prev));
+        elems.emplace_back(s.substr(prev));
 }
 
 
-std::vector<std::string> split(const std::string& s, const std::string& delim,
+std::vector<std::string> split(std::string_view s, std::string_view delim,
                                int limit)
 {
     std::vector<std::string> elems;
@@ -163,10 +165,10 @@ std::vector<std::string> split(const std::string& s, const std::string& delim,
 }
 
 
-void split(const std::string& s, char delim, std::vector<std::string>& elems,
+void split(std::string_view s, char delim, std::vector<std::string>& elems,
            int limit)
 {
-    std::stringstream ss(s);
+    std::stringstream ss{std::string(s)};
     std::string item;
     while (std::getline(ss, item, delim)) {
         elems.push_back(item);
@@ -180,7 +182,7 @@ void split(const std::string& s, char delim, std::vector<std::string>& elems,
 }
 
 
-std::vector<std::string> split(const std::string& s, char delim, int limit)
+std::vector<std::string> split(std::string_view s, char delim, int limit)
 {
     std::vector<std::string> elems;
     split(s, delim, elems, limit);
@@ -213,7 +215,7 @@ std::string dumpbin(const char* data, size_t len)
 }
 
 
-bool compareVersion(const std::string& l, const std::string& r)
+bool compareVersion(std::string_view l, std::string_view r)
 {
     if (l.empty())
         return false;
@@ -222,8 +224,8 @@ bool compareVersion(const std::string& l, const std::string& r)
 
     bool equal = true;
     std::vector<std::string> lnums, rnums;
-    util::split(l, ".", lnums);
-    util::split(r, ".", rnums);
+    util::split(l, std::string_view("."), lnums);
+    util::split(r, std::string_view("."), rnums);
     for (unsigned i = 0; i < lnums.size(); i++) {
         if (rnums.size() < i + 1)
             break;
@@ -263,8 +265,8 @@ void toUnderscore(std::string& str)
 }
 
 
-bool matchNodes(const std::string& node, const std::string& xnode,
-                const std::string& delim)
+bool matchNodes(std::string_view node, std::string_view xnode,
+                std::string_view delim)
 {
     if (xnode == "*")
         return true;

@@ -238,7 +238,7 @@ ssize_t Message::read(const ConstBuffer& buf)
 void Message::write(Buffer& buf) const
 {
     DynamicBitWriter writer(buf);
-    writer.putU16((uint16_t)(_class | _method));
+    writer.putU16(static_cast<uint16_t>(_class | _method));
     writer.putU16(_size);
     writer.putU32(kMagicCookie);
     writer.put(_transactionID.c_str(), _transactionID.size());

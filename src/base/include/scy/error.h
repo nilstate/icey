@@ -20,6 +20,7 @@
 #include <ostream>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 
 
 namespace scy {
@@ -82,20 +83,21 @@ struct Error
 namespace uv {
 
 
-inline std::string formatError(std::string message, int err = UV_UNKNOWN)
+inline std::string formatError(std::string_view message, int err = UV_UNKNOWN)
 {
+    std::string result(message);
     if (err != UV_UNKNOWN) {
-        if (!message.empty())
-            message.append(": ");
-        message.append(uv_strerror(err));
+        if (!result.empty())
+            result.append(": ");
+        result.append(uv_strerror(err));
     }
-    return message;
+    return result;
 }
 
 
-inline void throwError(std::string message, int err = UV_UNKNOWN)
+inline void throwError(std::string_view message, int err = UV_UNKNOWN)
 {
-    throw std::runtime_error(formatError(std::move(message), err));
+    throw std::runtime_error(formatError(message, err));
 }
 
 

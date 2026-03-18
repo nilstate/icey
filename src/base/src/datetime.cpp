@@ -7,8 +7,6 @@
 //
 /// @addtogroup base
 /// @{
-// This file uses functions from POCO C++ Libraries (license below)
-//
 
 
 #include "scy/datetime.h"
@@ -27,6 +25,12 @@ using std::endl;
 
 
 namespace scy {
+
+
+// Number of 100ns intervals between the Gregorian epoch (Oct 15, 1582)
+// and the Unix epoch (Jan 1, 1970).
+static constexpr int64_t GREG_EPOCH_OFFSET =
+    (int64_t(0x01b21dd2) << 32) + 0x13814000;
 
 
 //
@@ -82,10 +86,14 @@ DateTime::DateTime(int year, int month, int day, int hour, int minute,
         microsecond < 0 || microsecond > 999)
         throw std::invalid_argument("DateTime: invalid date/time component");
 
-    _utcTime = toUtcTime(toJulianDay(year, month, day)) +
-               10 * (hour * Timespan::HOURS + minute * Timespan::MINUTES +
-                     second * Timespan::SECONDS +
-                     millisecond * Timespan::MILLISECONDS + microsecond);
+    using namespace std::chrono;
+    auto dp = sys_days{std::chrono::year{year} /
+                       std::chrono::month{static_cast<unsigned>(month)} /
+                       std::chrono::day{static_cast<unsigned>(day)}};
+    auto us = duration_cast<microseconds>(dp.time_since_epoch())
+        + hours{hour} + minutes{minute} + seconds{second}
+        + milliseconds{millisecond} + microseconds{microsecond};
+    _utcTime = us.count() * 10 + GREG_EPOCH_OFFSET;
 }
 
 
@@ -93,6 +101,7 @@ DateTime::DateTime(double julianDay)
     : _utcTime(toUtcTime(julianDay))
 {
     computeGregorian(julianDay);
+    computeDaytime();
 }
 
 
@@ -153,6 +162,7 @@ DateTime& DateTime::operator=(double julianDay)
 {
     _utcTime = toUtcTime(julianDay);
     computeGregorian(julianDay);
+    computeDaytime();
     return *this;
 }
 
@@ -167,10 +177,14 @@ DateTime& DateTime::assign(int year, int month, int day, int hour, int minute,
         microsecond < 0 || microsecond > 999)
         throw std::invalid_argument("DateTime::assign: invalid date/time component");
 
-    _utcTime = toUtcTime(toJulianDay(year, month, day)) +
-               10 * (hour * Timespan::HOURS + minute * Timespan::MINUTES +
-                     second * Timespan::SECONDS +
-                     millisecond * Timespan::MILLISECONDS + microsecond);
+    using namespace std::chrono;
+    auto dp = sys_days{std::chrono::year{year} /
+                       std::chrono::month{static_cast<unsigned>(month)} /
+                       std::chrono::day{static_cast<unsigned>(day)}};
+    auto us = duration_cast<microseconds>(dp.time_since_epoch())
+        + hours{hour} + minutes{minute} + seconds{second}
+        + milliseconds{millisecond} + microseconds{microsecond};
+    _utcTime = us.count() * 10 + GREG_EPOCH_OFFSET;
     _year = year;
     _month = month;
     _day = day;
@@ -200,7 +214,11 @@ void DateTime::swap(DateTime& dateTime)
 
 int DateTime::dayOfWeek() const
 {
-    return int((std::floor(julianDay() + 1.5))) % 7;
+    using namespace std::chrono;
+    weekday wd{sys_days{std::chrono::year{_year} /
+                        std::chrono::month{static_cast<unsigned>(_month)} /
+                        std::chrono::day{static_cast<unsigned>(_day)}}};
+    return static_cast<int>(wd.c_encoding()); // 0=Sunday
 }
 
 
@@ -364,81 +382,38 @@ void DateTime::normalize()
 }
 
 
-void DateTime::computeGregorian(double julianDay)
+void DateTime::computeGregorian(double)
 {
-    double z = std::floor(julianDay - 1721118.5);
-    double r = julianDay - 1721118.5 - z;
-    double g = z - 0.25;
-    double a = std::floor(g / 36524.25);
-    double b = a - std::floor(a / 4);
-    _year = short(std::floor((b + g) / 365.25));
-    double c = b + z - std::floor(365.25 * _year);
-    _month = short(std::floor((5 * c + 456) / 153));
-    double dday = c - std::floor((153.0 * _month - 457) / 5) + r;
-    _day = short(dday);
-    if (_month > 12) {
-        ++_year;
-        _month -= 12;
-    }
-    r *= 24;
-    _hour = short(std::floor(r));
-    r -= std::floor(r);
-    r *= 60;
-    _minute = short(std::floor(r));
-    r -= std::floor(r);
-    r *= 60;
-    _second = short(std::floor(r));
-    r -= std::floor(r);
-    r *= 1000;
-    _millisecond = short(std::floor(r));
-    r -= std::floor(r);
-    r *= 1000;
-    _microsecond = short(r + 0.5);
-
-    normalize();
-
-    if (_month < 1 || _month > 12 || _day < 1 || _day > daysOfMonth(_year, _month) ||
-        _hour < 0 || _hour > 23 || _minute < 0 || _minute > 59 ||
-        _second < 0 || _second > 59 || _millisecond < 0 || _millisecond > 999 ||
-        _microsecond < 0 || _microsecond > 999)
-        throw std::logic_error("DateTime: internal computation produced invalid values");
+    using namespace std::chrono;
+    auto us = microseconds((_utcTime - GREG_EPOCH_OFFSET) / 10);
+    auto tp = system_clock::time_point(duration_cast<system_clock::duration>(us));
+    auto dp = floor<days>(tp);
+    year_month_day ymd{dp};
+    _year = static_cast<short>(static_cast<int>(ymd.year()));
+    _month = static_cast<short>(static_cast<unsigned>(ymd.month()));
+    _day = static_cast<short>(static_cast<unsigned>(ymd.day()));
 }
 
 
 void DateTime::computeDaytime()
 {
-    Timespan span(_utcTime / 10);
+    using namespace std::chrono;
+    auto us = microseconds((_utcTime - GREG_EPOCH_OFFSET) / 10);
+    auto tp = system_clock::time_point(duration_cast<system_clock::duration>(us));
+    auto dp = floor<days>(tp);
+    auto tod = tp - dp; // time since midnight
 
-    // Due to double rounding issues, the previous call to computeGregorian()
-    // may have crossed into the next or previous day. We need to correct that.
-    // _hour = span.hours();
-    int hour = span.hours();
-    if (hour == 23 && _hour == 0) {
-        _day--;
-        if (_day == 0) {
-            _month--;
-            if (_month == 0) {
-                _month = 12;
-                _year--;
-            }
-            _day = daysOfMonth(_year, _month);
-        }
-    } else if (hour == 0 && _hour == 23) {
-        _day++;
-        if (_day > daysOfMonth(_year, _month)) {
-            _month++;
-            if (_month > 12) {
-                _month = 1;
-                _year++;
-            }
-            _day = 1;
-        }
-    }
-    _hour = hour;
-    _minute = span.minutes();
-    _second = span.seconds();
-    _millisecond = span.milliseconds();
-    _microsecond = span.microseconds();
+    auto h = duration_cast<hours>(tod);
+    auto m = duration_cast<minutes>(tod - h);
+    auto s = duration_cast<seconds>(tod - h - m);
+    auto ms = duration_cast<milliseconds>(tod - h - m - s);
+    auto us_frac = duration_cast<microseconds>(tod - h - m - s - ms);
+
+    _hour = static_cast<short>(h.count());
+    _minute = static_cast<short>(m.count());
+    _second = static_cast<short>(s.count());
+    _millisecond = static_cast<short>(ms.count());
+    _microsecond = static_cast<short>(us_frac.count());
 }
 
 
@@ -950,17 +925,17 @@ const std::string DateTimeFormat::MONTH_NAMES[] = {
 
 
 void DateTimeFormatter::append(std::string& str, const LocalDateTime& dateTime,
-                               const std::string& fmt)
+                               std::string_view fmt)
 {
     DateTimeFormatter::append(str, dateTime.utc(), fmt, dateTime.tzd());
 }
 
 
 void DateTimeFormatter::append(std::string& str, const DateTime& dateTime,
-                               const std::string& fmt, int timeZoneDifferential)
+                               std::string_view fmt, int timeZoneDifferential)
 {
-    std::string::const_iterator it = fmt.begin();
-    std::string::const_iterator end = fmt.end();
+    auto it = fmt.begin();
+    auto end = fmt.end();
     while (it != end) {
         if (*it == '%') {
             if (++it != end) {
@@ -1055,10 +1030,10 @@ void DateTimeFormatter::append(std::string& str, const DateTime& dateTime,
 
 
 void DateTimeFormatter::append(std::string& str, const Timespan& timespan,
-                               const std::string& fmt)
+                               std::string_view fmt)
 {
-    std::string::const_iterator it = fmt.begin();
-    std::string::const_iterator end = fmt.end();
+    auto it = fmt.begin();
+    auto end = fmt.end();
     while (it != end) {
         if (*it == '%') {
             if (++it != end) {
@@ -1180,7 +1155,7 @@ void DateTimeFormatter::tzdRFC(std::string& str, int timeZoneDifferential)
     }
 
 
-void DateTimeParser::parse(const std::string& fmt, const std::string& str,
+void DateTimeParser::parse(std::string_view fmt, std::string_view str,
                            DateTime& dateTime, int& timeZoneDifferential)
 {
     int year = 0;
@@ -1193,10 +1168,10 @@ void DateTimeParser::parse(const std::string& fmt, const std::string& str,
     int micros = 0;
     int tzd = 0;
 
-    std::string::const_iterator it = str.begin();
-    std::string::const_iterator end = str.end();
-    std::string::const_iterator itf = fmt.begin();
-    std::string::const_iterator endf = fmt.end();
+    auto it = str.begin();
+    auto end = str.end();
+    auto itf = fmt.begin();
+    auto endf = fmt.end();
 
     while (itf != endf && it != end) {
         if (*itf == '%') {
@@ -1311,7 +1286,7 @@ void DateTimeParser::parse(const std::string& fmt, const std::string& str,
 }
 
 
-DateTime DateTimeParser::parse(const std::string& fmt, const std::string& str,
+DateTime DateTimeParser::parse(std::string_view fmt, std::string_view str,
                                int& timeZoneDifferential)
 {
     DateTime result;
@@ -1320,7 +1295,7 @@ DateTime DateTimeParser::parse(const std::string& fmt, const std::string& str,
 }
 
 
-bool DateTimeParser::tryParse(const std::string& fmt, const std::string& str,
+bool DateTimeParser::tryParse(std::string_view fmt, std::string_view str,
                               DateTime& dateTime, int& timeZoneDifferential)
 {
     try {
@@ -1332,7 +1307,7 @@ bool DateTimeParser::tryParse(const std::string& fmt, const std::string& str,
 }
 
 
-void DateTimeParser::parse(const std::string& str, DateTime& dateTime,
+void DateTimeParser::parse(std::string_view str, DateTime& dateTime,
                            int& timeZoneDifferential)
 {
     if (!tryParse(str, dateTime, timeZoneDifferential))
@@ -1340,7 +1315,7 @@ void DateTimeParser::parse(const std::string& str, DateTime& dateTime,
 }
 
 
-DateTime DateTimeParser::parse(const std::string& str,
+DateTime DateTimeParser::parse(std::string_view str,
                                int& timeZoneDifferential)
 {
     DateTime result;
@@ -1351,7 +1326,7 @@ DateTime DateTimeParser::parse(const std::string& str,
 }
 
 
-bool DateTimeParser::tryParse(const std::string& str, DateTime& dateTime,
+bool DateTimeParser::tryParse(std::string_view str, DateTime& dateTime,
                               int& timeZoneDifferential)
 {
     if (str.length() < 4)
@@ -1367,11 +1342,11 @@ bool DateTimeParser::tryParse(const std::string& str, DateTime& dateTime,
         return tryParse("%W, %e %b %r %H:%M:%S %Z", str, dateTime,
                         timeZoneDifferential);
     else if (::isdigit(str[0])) {
-        if (str.find(' ') != std::string::npos || str.length() == 10)
+        if (str.find(' ') != std::string_view::npos || str.length() == 10)
             return tryParse(DateTimeFormat::SORTABLE_FORMAT, str, dateTime,
                             timeZoneDifferential);
-        else if (str.find('.') != std::string::npos ||
-                 str.find(',') != std::string::npos)
+        else if (str.find('.') != std::string_view::npos ||
+                 str.find(',') != std::string_view::npos)
             return tryParse(DateTimeFormat::ISO8601_FRAC_FORMAT, str, dateTime,
                             timeZoneDifferential);
         else
@@ -1382,8 +1357,8 @@ bool DateTimeParser::tryParse(const std::string& str, DateTime& dateTime,
 }
 
 
-int DateTimeParser::parseTZD(std::string::const_iterator& it,
-                             const std::string::const_iterator& end)
+int DateTimeParser::parseTZD(const char*& it,
+                             const char* end)
 {
     struct Zone
     {
@@ -1462,8 +1437,8 @@ int DateTimeParser::parseTZD(std::string::const_iterator& it,
 }
 
 
-int DateTimeParser::parseMonth(std::string::const_iterator& it,
-                               const std::string::const_iterator& end)
+int DateTimeParser::parseMonth(const char*& it,
+                               const char* end)
 {
     std::string month;
     while (it != end && (::isspace(*it) || ::ispunct(*it)))
@@ -1489,8 +1464,8 @@ int DateTimeParser::parseMonth(std::string::const_iterator& it,
 }
 
 
-int DateTimeParser::parseDayOfWeek(std::string::const_iterator& it,
-                                   const std::string::const_iterator& end)
+int DateTimeParser::parseDayOfWeek(const char*& it,
+                                   const char* end)
 {
     std::string dow;
     while (it != end && (::isspace(*it) || ::ispunct(*it)))
@@ -1516,8 +1491,8 @@ int DateTimeParser::parseDayOfWeek(std::string::const_iterator& it,
 }
 
 
-int DateTimeParser::parseAMPM(std::string::const_iterator& it,
-                              const std::string::const_iterator& end, int hour)
+int DateTimeParser::parseAMPM(const char*& it,
+                              const char* end, int hour)
 {
     std::string ampm;
     while (it != end && (::isspace(*it) || ::ispunct(*it)))
@@ -1836,31 +1811,3 @@ void Stopwatch::restart()
 
 
 /// @\}
-
-
-//
-// Copyright (c) 2004-2006, Applied Informatics Software Engineering GmbH.
-// and Contributors.
-//
-// Permission is hereby granted, free of charge, to any person or organization
-// obtaining a copy of the software and accompanying documentation covered by
-// this license (the "Software") to use, reproduce, display, distribute,
-// execute, and transmit the Software, and to prepare derivative works of the
-// Software, and to permit third-parties to whom the Software is furnished to
-// do so, all subject to the following:
-//
-// The copyright notices in the Software and this entire statement, including
-// the above license grant, this restriction and the following disclaimer,
-// must be included in all copies of the Software, in whole or in part, and
-// all derivative works of the Software, unless such copies or derivative
-// works are solely in the form of machine-executable object code generated by
-// a source language processor.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT. IN NO EVENT
-// SHALL THE COPYRIGHT HOLDERS OR ANYONE DISTRIBUTING THE SOFTWARE BE LIABLE
-// FOR ANY DAMAGES OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT OR OTHERWISE,
-// ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-//

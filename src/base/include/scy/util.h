@@ -5,8 +5,6 @@
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
-// This file uses some functions from POCO C++ Libraries (license below)
-//
 /// @addtogroup base
 /// @{
 
@@ -17,9 +15,10 @@
 #include "scy/base.h"
 #include "scy/error.h"
 
+#include <charconv>
 #include <cstdint>
-#include <stdexcept>
 #include <cstring>
+#include <stdexcept>
 #include <list>
 #include <map>
 #include <queue>
@@ -52,8 +51,8 @@ Base_API void replaceSpecialCharacters(std::string& str, char with = '_',
                                        bool allowSpaces = false);
 
 /// String to hex value.
-Base_API bool tryParseHex(const std::string& s, unsigned& value);
-Base_API unsigned parseHex(const std::string& s);
+Base_API bool tryParseHex(std::string_view s, unsigned& value);
+Base_API unsigned parseHex(std::string_view s);
 
 /// Dumps the binary representation of the
 /// given buffer to the output string.
@@ -62,11 +61,11 @@ Base_API std::string dumpbin(const char* data, size_t len);
 /// Compares two version strings ie. 3.7.8.0 > 3.2.1.0
 /// If L (local) is greater than R (remote) the function returns true.
 /// If L is equal or less than R the function returns false.
-Base_API bool compareVersion(const std::string& l, const std::string& r);
+Base_API bool compareVersion(std::string_view l, std::string_view r);
 
 /// Matches two node lists against each other.
-Base_API bool matchNodes(const std::string& node, const std::string& xnode,
-                         const std::string& delim = "\r\n");
+Base_API bool matchNodes(std::string_view node, std::string_view xnode,
+                         std::string_view delim = "\r\n");
 Base_API bool matchNodes(const std::vector<std::string>& params,
                          const std::vector<std::string>& xparams);
 
@@ -91,9 +90,9 @@ std::string itostr(const T& t)
 /// Ensure the integer type has
 /// sufficient storage capacity.
 template <typename T>
-T strtoi(const std::string& s)
+T strtoi(std::string_view s)
 {
-    std::istringstream iss(s);
+    std::istringstream iss{std::string(s)};
     T x;
     if (!(iss >> x))
         return 0;
@@ -119,16 +118,16 @@ Base_API std::string randomBinaryString(int size, bool doBase64 = false);
 //
 
 /// Splits the given string at the delimiter string.
-Base_API void split(const std::string& str, const std::string& delim, std::vector<std::string>& elems, int limit = -1);
-Base_API std::vector<std::string> split(const std::string& str, const std::string& delim, int limit = -1);
+Base_API void split(std::string_view str, std::string_view delim, std::vector<std::string>& elems, int limit = -1);
+Base_API std::vector<std::string> split(std::string_view str, std::string_view delim, int limit = -1);
 
 /// Splits the given string at the delimiter character.
-Base_API void split(const std::string& str, char delim, std::vector<std::string>& elems, int limit = -1);
-Base_API std::vector<std::string> split(const std::string& str, char delim, int limit = -1);
+Base_API void split(std::string_view str, char delim, std::vector<std::string>& elems, int limit = -1);
+Base_API std::vector<std::string> split(std::string_view str, char delim, int limit = -1);
 
 
 //
-// String replace methods (Poco)
+// String replace methods
 //
 
 /// Replace all occurrences of `from` in `str` with `to`, starting at position `start`.
@@ -356,152 +355,26 @@ S& toLowerInPlace(S& str)
 
 
 //
-// String case-insensative comparators (POCO)
+// String case-insensitive comparators
 //
 
 /// Case-insensitive string comparison.
-/// Returns negative if str < str2, zero if equal, positive if str > str2.
-template <class S, class It>
-int icompare(const S& str, typename S::size_type pos, typename S::size_type n, It it2, It end2)
+/// Returns negative if a < b, zero if equal, positive if a > b.
+inline int icompare(std::string_view a, std::string_view b)
 {
-    typename S::size_type sz = str.size();
-    if (pos > sz)
-        pos = sz;
-    if (pos + n > sz)
-        n = sz - pos;
-    It it1 = str.begin() + pos;
-    It end1 = str.begin() + pos + n;
+    auto it1 = a.begin(), end1 = a.end();
+    auto it2 = b.begin(), end2 = b.end();
     while (it1 != end1 && it2 != end2) {
-        typename S::value_type c1(::tolower(*it1));
-        typename S::value_type c2(::tolower(*it2));
-        if (c1 < c2)
-            return -1;
-        else if (c1 > c2)
-            return 1;
+        auto c1 = static_cast<unsigned char>(::tolower(static_cast<unsigned char>(*it1)));
+        auto c2 = static_cast<unsigned char>(::tolower(static_cast<unsigned char>(*it2)));
+        if (c1 < c2) return -1;
+        if (c1 > c2) return 1;
         ++it1;
         ++it2;
     }
-
     if (it1 == end1)
         return it2 == end2 ? 0 : -1;
-    else
-        return 1;
-}
-
-template <class S>
-int icompare(const S& str1, const S& str2)
-{
-    typename S::const_iterator it1(str1.begin());
-    typename S::const_iterator end1(str1.end());
-    typename S::const_iterator it2(str2.begin());
-    typename S::const_iterator end2(str2.end());
-    while (it1 != end1 && it2 != end2) {
-        typename S::value_type c1(static_cast<char>(::tolower(*it1)));
-        typename S::value_type c2(static_cast<char>(::tolower(*it2)));
-        if (c1 < c2)
-            return -1;
-        else if (c1 > c2)
-            return 1;
-        ++it1;
-        ++it2;
-    }
-
-    if (it1 == end1)
-        return it2 == end2 ? 0 : -1;
-    else
-        return 1;
-}
-
-template <class S>
-int icompare(const S& str1, typename S::size_type n1, const S& str2, typename S::size_type n2)
-{
-    if (n2 > str2.size())
-        n2 = str2.size();
-    return icompare(str1, 0, n1, str2.begin(), str2.begin() + n2);
-}
-
-template <class S>
-int icompare(const S& str1, typename S::size_type n, const S& str2)
-{
-    if (n > str2.size())
-        n = str2.size();
-    return icompare(str1, 0, n, str2.begin(), str2.begin() + n);
-}
-
-template <class S>
-int icompare(const S& str1, typename S::size_type pos, typename S::size_type n, const S& str2)
-{
-    return icompare(str1, pos, n, str2.begin(), str2.end());
-}
-
-template <class S>
-int icompare(const S& str1, typename S::size_type pos1,
-             typename S::size_type n1, const S& str2,
-             typename S::size_type pos2, typename S::size_type n2)
-{
-    typename S::size_type sz2 = str2.size();
-    if (pos2 > sz2)
-        pos2 = sz2;
-    if (pos2 + n2 > sz2)
-        n2 = sz2 - pos2;
-    return icompare(str1, pos1, n1, str2.begin() + pos2,
-                    str2.begin() + pos2 + n2);
-}
-
-template <class S>
-int icompare(const S& str1, typename S::size_type pos1, typename S::size_type n,
-             const S& str2, typename S::size_type pos2)
-{
-    typename S::size_type sz2 = str2.size();
-    if (pos2 > sz2)
-        pos2 = sz2;
-    if (pos2 + n > sz2)
-        n = sz2 - pos2;
-    return icompare(str1, pos1, n, str2.begin() + pos2,
-                    str2.begin() + pos2 + n);
-}
-
-template <class S>
-int icompare(const S& str, typename S::size_type pos, typename S::size_type n,
-             const typename S::value_type* ptr)
-{
-    if (!ptr)
-        throw std::logic_error("icompare: pointer must not be null");
-    typename S::size_type sz = str.size();
-    if (pos > sz)
-        pos = sz;
-    if (pos + n > sz)
-        n = sz - pos;
-    typename S::const_iterator it = str.begin() + pos;
-    typename S::const_iterator end = str.begin() + pos + n;
-    while (it != end && *ptr) {
-        typename S::value_type c1(static_cast<char>(::tolower(*it)));
-        typename S::value_type c2(static_cast<char>(::tolower(*ptr)));
-        if (c1 < c2)
-            return -1;
-        else if (c1 > c2)
-            return 1;
-        ++it;
-        ++ptr;
-    }
-
-    if (it == end)
-        return *ptr == 0 ? 0 : -1;
-    else
-        return 1;
-}
-
-template <class S>
-int icompare(const S& str, typename S::size_type pos,
-             const typename S::value_type* ptr)
-{
-    return icompare(str, pos, str.size() - pos, ptr);
-}
-
-template <class S>
-int icompare(const S& str, const typename S::value_type* ptr)
-{
-    return icompare(str, 0, str.size(), ptr);
+    return 1;
 }
 
 
@@ -527,18 +400,25 @@ Base_API std::streamsize copyToString(std::istream& istr, std::string& str,
 
 struct Version
 {
-    Version(const std::string& version)
+    Version(std::string_view version)
     {
-        std::sscanf(version.c_str(), "%d.%d.%d.%d", &major, &minor, &revision,
-                    &build);
-        if (major < 0)
-            major = 0;
-        if (minor < 0)
-            minor = 0;
-        if (revision < 0)
-            revision = 0;
-        if (build < 0)
-            build = 0;
+        int parts[4] = {0, 0, 0, 0};
+        int i = 0;
+        auto p = version.data();
+        auto end = p + version.size();
+        while (p < end && i < 4) {
+            auto [ptr, ec] = std::from_chars(p, end, parts[i]);
+            if (ec != std::errc())
+                break;
+            p = ptr;
+            if (p < end && *p == '.')
+                ++p;
+            ++i;
+        }
+        major = parts[0];
+        minor = parts[1];
+        revision = parts[2];
+        build = parts[3];
     }
 
     bool operator<(const Version& other)
@@ -581,97 +461,39 @@ struct Version
 //
 
 /// Delete all elements from a list of pointers.
-/// @param L List of pointers to delete.
 template <typename Val>
 inline void clearList(std::list<Val*>& L)
 {
-    typename std::list<Val*>::iterator it = L.begin();
-    while (it != L.end()) {
-        delete *it;
-        it = L.erase(it);
-    }
+    for (auto* p : L)
+        delete p;
+    L.clear();
 }
 
-/// Delete all elements from a list of pointers.
-/// @param D List of pointers to delete.
+/// Delete all elements from a deque of pointers.
 template <typename Val>
 inline void clearDeque(std::deque<Val*>& D)
 {
-    typename std::deque<Val*>::iterator it = D.begin();
-    while (it != D.end()) {
-        delete *it;
-        it = D.erase(it);
-    }
+    for (auto* p : D)
+        delete p;
+    D.clear();
 }
 
-// /// Delete all elements from a list of pointers.
-// /// @param D List of pointers to delete.
-// template<typename Val>
-// inline void clearPriorityDeque(std::priority_queue<Val*>& D)
-// {
-//     while (!D.empty()) {
-//         delete D.top();
-//         D.pop();
-//     }
-// }
-
 /// Delete all elements from a vector of pointers.
-/// @param V Vector of pointers to delete.
 template <typename Val>
 inline void clearVector(std::vector<Val*>& V)
 {
-    typename std::vector<Val*>::iterator it = V.begin();
-    while (it != V.end()) {
-        // Deleter::func(*it);
-        delete *it;
-
-        it = V.erase(it);
-    }
+    for (auto* p : V)
+        delete p;
+    V.clear();
 }
 
 /// Delete all associated values from a map (not the key elements).
-/// @param M Map of pointer values to delete.
 template <typename Key, typename Val>
 inline void clearMap(std::map<Key, Val*>& M)
 {
-    typename std::map<Key, Val*>::iterator it = M.begin();
-    typename std::map<Key, Val*>::iterator it2;
-    while (it != M.end()) {
-        it2 = it++;
-        delete (*it2).second;
-        M.erase(it2);
-    }
-}
-
-/// Delete all associated values from a map (not the key elements)
-/// using the given deleter method.
-/// @param M Map of pointer values to delete.
-template <typename Deleter, typename Key, typename Val>
-inline void clearMap(std::map<Key, Val*>& M)
-{
-    typename std::map<Key, Val*>::iterator it = M.begin();
-    typename std::map<Key, Val*>::iterator it2;
-    while (it != M.end()) {
-        it2 = it++;
-        Deleter func;
-        func((*it2).second);
-        M.erase(it2);
-    }
-}
-
-/// Delete all associated values from a map (not the key elements).
-/// Const key type version.
-/// @param M Map of pointer values to delete.
-template <typename Key, typename Val>
-inline void clearMap(std::map<const Key, Val*>& M)
-{
-    typename std::map<const Key, Val*>::iterator it = M.begin();
-    typename std::map<const Key, Val*>::iterator it2;
-    while (it != M.end()) {
-        it2 = it++;
-        delete (*it2).second;
-        M.erase(it2);
-    }
+    for (auto& [k, v] : M)
+        delete v;
+    M.clear();
 }
 
 

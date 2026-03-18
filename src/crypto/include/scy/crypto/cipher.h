@@ -20,9 +20,10 @@
 #include <openssl/evp.h>
 
 #include <cstdint>
+#include <memory>
 #include <stdexcept>
 #include <string>
-#include <memory>
+#include <string_view>
 
 
 namespace scy {
@@ -48,8 +49,8 @@ public:
 
     /// Creates a new Cipher object, using the given cipher name,
     /// passphrase, salt value and iteration count.
-    Cipher(const std::string& name, const std::string& passphrase,
-           const std::string& salt, int iterationCount);
+    Cipher(const std::string& name, std::string_view passphrase,
+           std::string_view salt, int iterationCount);
 
     /// Destroys the Cipher.
     ~Cipher();
@@ -136,8 +137,8 @@ public:
             throw std::logic_error("Cipher::setKey: key size mismatch (got " +
                 std::to_string(key.size()) + ", expected " + std::to_string(keySize()) + ")");
         _key.clear();
-        for (typename T::const_iterator it = key.begin(); it != key.end(); ++it)
-            _key.push_back(static_cast<unsigned char>(*it));
+        for (const auto& k : key)
+            _key.push_back(static_cast<unsigned char>(k));
     }
 
     /// Sets the initialization vector (IV) for the Cipher.
@@ -148,8 +149,8 @@ public:
             throw std::logic_error("Cipher::setIV: IV size mismatch (got " +
                 std::to_string(iv.size()) + ", expected " + std::to_string(ivSize()) + ")");
         _iv.clear();
-        for (typename T::const_iterator it = iv.begin(); it != iv.end(); ++it)
-            _iv.push_back(static_cast<unsigned char>(*it));
+        for (const auto& v : iv)
+            _iv.push_back(static_cast<unsigned char>(v));
     }
 
     /// Enables or disables padding. By default encryption operations
@@ -191,7 +192,7 @@ protected:
     Cipher& operator=(Cipher&&) = delete;
 
     /// Generates and sets the key and IV from a password and optional salt string.
-    void generateKey(const std::string& passphrase, const std::string& salt, int iterationCount);
+    void generateKey(std::string_view passphrase, std::string_view salt, int iterationCount);
 
     /// Generates and sets key from random data.
     void setRandomKey();

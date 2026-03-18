@@ -129,8 +129,9 @@ void Request::setCookies(const NVCollection& cookies)
 
 void Request::getCookies(NVCollection& cookies) const
 {
-    for (auto it = find("Cookie"); it != end() && util::icompare(it->first, "Cookie") == 0; ++it) {
-        http::splitParameters(it->second.begin(), it->second.end(), cookies);
+    for (const auto& [name, value] : *this) {
+        if (util::icompare(name, "Cookie") == 0)
+            http::splitParameters(value.begin(), value.end(), cookies);
     }
 }
 

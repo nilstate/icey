@@ -16,6 +16,7 @@
 #include "scy/turn/fivetuple.h"
 
 #include <string>
+#include <string_view>
 #include <vector>
 
 
@@ -42,7 +43,7 @@ struct Permission
 
     void refresh() { timeout.reset(); }
 
-    bool operator==(const std::string& r) const { return ip == r; }
+    bool operator==(std::string_view r) const { return ip == r; }
 };
 
 

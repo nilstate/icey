@@ -79,9 +79,8 @@ inline std::string encode(const T& bytes)
     static const char digits[] = "0123456789abcdef";
     std::string res;
     res.reserve(bytes.size() * 2);
-    for (typename T::const_iterator it = bytes.begin(); it != bytes.end();
-         ++it) {
-        const unsigned char c = static_cast<const unsigned char>(*it);
+    for (const auto& byte : bytes) {
+        const unsigned char c = static_cast<const unsigned char>(byte);
         res += digits[(c >> 4) & 0xF];
         res += digits[c & 0xF];
     }

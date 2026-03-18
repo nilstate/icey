@@ -365,15 +365,7 @@ protected:
 class Base_API NVCollection
 {
 public:
-    struct ILT
-    {
-        bool operator()(const std::string& s1, const std::string& s2) const
-        {
-            return util::icompare(s1, s2) < 0;
-        }
-    };
-
-    using Map = std::multimap<std::string, std::string, ILT>;
+    using Map = std::vector<std::pair<std::string, std::string>>;
     using Iterator = Map::iterator;
     using ConstIterator = Map::const_iterator;
 

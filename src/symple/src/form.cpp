@@ -328,7 +328,7 @@ json::Value& FormField::values()
 
 std::string FormField::value() const
 {
-    return root()["values"][(unsigned)0].get<std::string>();
+    return root()["values"][static_cast<unsigned>(0)].get<std::string>();
 }
 
 

@@ -147,10 +147,10 @@ int AudioResampler::resample(uint8_t** inSamples, int inNumSamples)
     // Compute the output number of samples
     // https://github.com/FFmpeg/FFmpeg/blob/master/doc/examples/resampling_audio.c
     requiredNumSamples = av_rescale_rnd(
-        swr_get_delay(ctx, (int64_t)iparams.sampleRate) +
-            (int64_t)inNumSamples,
-        (int64_t)oparams.sampleRate,
-        (int64_t)iparams.sampleRate, AV_ROUND_UP);
+        swr_get_delay(ctx, static_cast<int64_t>(iparams.sampleRate)) +
+            static_cast<int64_t>(inNumSamples),
+        static_cast<int64_t>(oparams.sampleRate),
+        static_cast<int64_t>(iparams.sampleRate), AV_ROUND_UP);
 
     // Resize the output buffer if required
     if (requiredNumSamples > maxNumSamples) {

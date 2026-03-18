@@ -27,6 +27,7 @@
 #include <memory>
 #include <mutex>
 #include <sstream>
+#include <string_view>
 
 
 namespace scy {
@@ -162,14 +163,14 @@ public:
     void add(std::unique_ptr<LogChannel> channel);
 
     /// Removes the given log channel by name.
-    void remove(const std::string& name);
+    void remove(std::string_view name);
 
     /// Returns the specified log channel.
     /// Throws an exception if the channel doesn't exist.
-    LogChannel* get(const std::string& name, bool whiny = true) const;
+    LogChannel* get(std::string_view name, bool whiny = true) const;
 
     /// Sets the default log to the specified log channel.
-    void setDefault(const std::string& name);
+    void setDefault(std::string_view name);
 
     /// Sets the log writer instance. Takes ownership.
     void setWriter(std::unique_ptr<LogWriter> writer);
@@ -475,12 +476,12 @@ constexpr const char* _fileName(const char* str)
 #if _MSC_VER
 #define __CLASS_FUNCTION__ __FUNCTION__
 #else
-inline std::string _methodName(const std::string& fsig)
+inline std::string _methodName(std::string_view fsig)
 {
     size_t colons = fsig.find("::");
     size_t sbeg = fsig.substr(0, colons).rfind(" ") + 1;
     size_t send = fsig.rfind("(") - sbeg;
-    return fsig.substr(sbeg, send) + "()";
+    return std::string(fsig.substr(sbeg, send)) + "()";
 }
 #define __CLASS_FUNCTION__ _methodName(__PRETTY_FUNCTION__)
 #endif

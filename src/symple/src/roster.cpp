@@ -29,7 +29,7 @@ Roster::~Roster()
 }
 
 
-Peer* Roster::getByHost(const std::string& host)
+Peer* Roster::getByHost(std::string_view host)
 {
     std::shared_lock<std::shared_mutex> guard(_mutex);
     for (auto& [id, peer] : _map) {

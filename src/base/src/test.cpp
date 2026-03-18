@@ -116,12 +116,12 @@ void TestRunner::add(Test* test)
 }
 
 
-Test* TestRunner::get(const std::string& name) const
+Test* TestRunner::get(std::string_view name) const
 {
     std::lock_guard<std::mutex> guard(_mutex);
-    for (auto it = _tests.begin(); it != _tests.end(); ++it) {
-        if ((*it)->name == name)
-            return *it;
+    for (auto* test : _tests) {
+        if (test->name == name)
+            return test;
     }
     return nullptr;
 }
@@ -145,9 +145,9 @@ ErrorMap TestRunner::errors() const
 {
     ErrorMap errors;
     TestList tests = this->tests();
-    for (auto it = tests.begin(); it != tests.end(); ++it) {
-        if (!(*it)->passed()) {
-            errors[(*it)] = (*it)->errors;
+    for (auto* test : tests) {
+        if (!test->passed()) {
+            errors[test] = test->errors;
         }
     }
     return errors;
@@ -175,10 +175,10 @@ void TestRunner::run()
     uint64_t start = time::hrtime();
     double duration = 0;
     TestList tests = this->tests();
-    for (auto it = tests.begin(); it != tests.end(); ++it) {
+    for (auto* test : tests) {
         {
             std::lock_guard<std::mutex> guard(_mutex);
-            _current = *it;
+            _current = test;
         }
         cout
             << "---------------------------------------------------------------" << endl;
@@ -200,11 +200,11 @@ void TestRunner::run()
     cout << "all tests completed after " << duration << " seconds" << endl;
     // cout << "summary: " << endl;
 
-    for (auto it = tests.begin(); it != tests.end(); ++it) {
-        if ((*it)->passed()) {
-            cout << (*it)->name << " passed" << endl;
+    for (auto* test : tests) {
+        if (test->passed()) {
+            cout << test->name << " passed" << endl;
         } else {
-            cout << (*it)->name << " failed" << endl;
+            cout << test->name << " failed" << endl;
         }
     }
 }

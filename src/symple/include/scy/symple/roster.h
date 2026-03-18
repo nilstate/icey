@@ -16,6 +16,7 @@
 #include "scy/symple/address.h"
 #include "scy/symple/peer.h"
 #include "scy/symple/symple.h"
+#include <string_view>
 
 
 namespace scy {
@@ -35,7 +36,7 @@ public:
     virtual ~Roster();
 
     /// Returns the first peer which matches the given host address.
-    Peer* getByHost(const std::string& host);
+    Peer* getByHost(std::string_view host);
 
     /// Returns a copy of the peer map for thread-safe iteration.
     [[nodiscard]] virtual PeerMap peers() const;

@@ -57,8 +57,8 @@ void TCPClient::shutdown()
         auto connections = _connections.map();
         LTrace("Shutdown: Active connections: ", connections.size());
 
-        for (auto it = connections.begin(); it != connections.end(); ++it) {
-            onRelayConnectionClosed(*it->second.impl.get());
+        for (auto& [key, conn] : connections) {
+            onRelayConnectionClosed(*conn.impl.get());
         }
         if (!_connections.empty())
             LWarn("Connections not fully cleaned up after shutdown");

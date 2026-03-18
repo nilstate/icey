@@ -15,6 +15,7 @@
 #include "scy/symple/symple.h"
 #include <cstdint>
 #include <string>
+#include <string_view>
 
 
 namespace scy {
@@ -28,13 +29,13 @@ struct Symple_API Address
 {
 public:
     Address();
-    Address(const std::string& addr);
+    Address(std::string_view addr);
     Address(const std::string& user,
             const std::string& id);
     // const std::string& group,
     virtual ~Address();
 
-    bool parse(const std::string& addr);
+    bool parse(std::string_view addr);
 
     [[nodiscard]] bool valid() const;
     void print(std::ostream& os) const;

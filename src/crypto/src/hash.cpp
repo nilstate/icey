@@ -57,9 +57,9 @@ void Hash::update(const void* data, size_t length)
 }
 
 
-void Hash::update(const std::string& data)
+void Hash::update(std::string_view data)
 {
-    update(data.c_str(), data.length());
+    update(data.data(), data.size());
 }
 
 

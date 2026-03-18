@@ -293,15 +293,7 @@ public:
     bool operator-=(const void* instance) { return detach(instance); }
     bool operator-=(SlotPtr slot) { return detach(slot); }
 
-    // static bool ComparePrioroty(const SlotPtr* l, const SlotPtr* r)
-    // {
-    //     return l->priority > r->priority;
-    // }
-
-    /// Default constructor
-    Signal()
-    {
-    }
+    Signal() = default;
 
     /// Copy constructor
     Signal(const Signal& r)

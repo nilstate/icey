@@ -113,7 +113,7 @@ void fillAudioSamplesUInt(uint16_t* samples, int sample_rate,
     int j, k;
     float tincr = 2 * M_PI * 440.0 / sample_rate;
     for (j = 0; j < nb_samples; j++) {
-        samples[2 * j] = (int)(sin(*t) * 10000);
+        samples[2 * j] = static_cast<int>(sin(*t) * 10000);
         for (k = 1; k < nb_channels; k++)
             samples[2 * j + k] = samples[2 * j];
         *t += tincr;

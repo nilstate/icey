@@ -27,15 +27,15 @@ namespace scy {
 namespace crypto {
 
 
-std::string computeHMAC(const std::string& input, const std::string& key)
+std::string computeHMAC(std::string_view input, std::string_view key)
 {
-    // SDebug << "Compute HMAC: input='" << util::dumpbin(input.c_str(), input.length())
-    //    << "', inputLength=" << input.length() << ", key='" << key << "',
-    //    keyLength=" << key.length() << std::endl;
+    // SDebug << "Compute HMAC: input='" << util::dumpbin(input.data(), input.size())
+    //    << "', inputLength=" << input.size() << ", key='" << key << "',
+    //    keyLength=" << key.size() << std::endl;
     unsigned int len = 0;
     char buf[20];
-    HMAC(EVP_sha1(), key.c_str(), key.length(),
-         reinterpret_cast<const unsigned char*>(input.c_str()), input.length(),
+    HMAC(EVP_sha1(), key.data(), key.size(),
+         reinterpret_cast<const unsigned char*>(input.data()), input.size(),
          reinterpret_cast<unsigned char*>(&buf), &len);
     if (len != 20)
         throw std::runtime_error("HMAC: unexpected digest length");

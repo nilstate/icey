@@ -27,8 +27,8 @@ namespace scy {
 namespace crypto {
 
 
-Cipher::Cipher(const std::string& name, const std::string& passphrase,
-               const std::string& salt, int iterationCount)
+Cipher::Cipher(const std::string& name, std::string_view passphrase,
+               std::string_view salt, int iterationCount)
     : _initialized(false)
     , _encrypt(false)
     , _cipher(nullptr)
@@ -131,18 +131,18 @@ ssize_t Cipher::update(const unsigned char* input, size_t inputLength,
     if (outputLength < (inputLength + blockSize() - 1))
         throw std::runtime_error("Cipher: output buffer too small");
     int len;
-    internal::api(EVP_CipherUpdate(_ctx.get(), output, &len, input, (int)inputLength));
-    return (ssize_t)len;
+    internal::api(EVP_CipherUpdate(_ctx.get(), output, &len, input, static_cast<int>(inputLength)));
+    return static_cast<ssize_t>(len);
 }
 
 
 ssize_t Cipher::final(unsigned char* output, size_t length)
 {
-    if (length < (size_t)blockSize())
+    if (length < static_cast<size_t>(blockSize()))
         throw std::runtime_error("Cipher: input length less than block size");
     int len;
     internal::api(EVP_CipherFinal_ex(_ctx.get(), output, &len));
-    return (ssize_t)len;
+    return static_cast<ssize_t>(len);
 }
 
 
@@ -188,8 +188,8 @@ ssize_t Cipher::encrypt(const unsigned char* inbuf, size_t inlen,
     // Encrypt and then encode to outbuf
     if (encoder) {
         reslen = update(inbuf, inlen, cryptbuf.get(), outlen);
-        nwrite += encoder.get()->encode((const char*)cryptbuf.get(), reslen,
-                                        (char*)outbuf + nwrite);
+        nwrite += encoder.get()->encode(reinterpret_cast<const char*>(cryptbuf.get()), reslen,
+                                        reinterpret_cast<char*>(outbuf + nwrite));
     }
 
     // Encrypt direct to outbuf
@@ -201,9 +201,9 @@ ssize_t Cipher::encrypt(const unsigned char* inbuf, size_t inlen,
     // Finalize
     if (encoder) {
         reslen = final(cryptbuf.get(), outlen);
-        nwrite += encoder.get()->encode((const char*)cryptbuf.get(), reslen,
-                                        (char*)outbuf + nwrite);
-        nwrite += encoder.get()->finalize((char*)outbuf + nwrite);
+        nwrite += encoder.get()->encode(reinterpret_cast<const char*>(cryptbuf.get()), reslen,
+                                        reinterpret_cast<char*>(outbuf + nwrite));
+        nwrite += encoder.get()->finalize(reinterpret_cast<char*>(outbuf + nwrite));
     } else {
         reslen = update(inbuf, inlen, outbuf, outlen);
         nwrite += reslen;
@@ -250,26 +250,26 @@ void Cipher::encryptStream(std::istream& source, std::ostream& sink, Encoding en
     std::unique_ptr<char[]> encbuf(encoder ? new char[cryptsize * 2] : nullptr);
 
     do {
-        source.read((char*)readbuf.get(), nread);
+        source.read(reinterpret_cast<char*>(readbuf.get()), nread);
         nread = static_cast<int>(source.gcount());
 
         reslen = update(readbuf.get(), nread, cryptbuf.get(), cryptsize);
         if (encoder) {
-            enclen = encoder.get()->encode((const char*)cryptbuf.get(), reslen, encbuf.get());
-            sink.write((const char*)encbuf.get(), enclen);
+            enclen = encoder.get()->encode(reinterpret_cast<const char*>(cryptbuf.get()), reslen, encbuf.get());
+            sink.write(reinterpret_cast<const char*>(encbuf.get()), enclen);
         } else {
-            sink.write((const char*)cryptbuf.get(), reslen);
+            sink.write(reinterpret_cast<const char*>(cryptbuf.get()), reslen);
         }
     } while (source.good() && nread > 0);
 
     reslen = final(cryptbuf.get(), cryptsize);
     if (encoder) {
-        enclen = encoder.get()->encode((const char*)cryptbuf.get(), reslen, encbuf.get());
-        sink.write((const char*)encbuf.get(), enclen);
+        enclen = encoder.get()->encode(reinterpret_cast<const char*>(cryptbuf.get()), reslen, encbuf.get());
+        sink.write(reinterpret_cast<const char*>(encbuf.get()), enclen);
         enclen = encoder.get()->finalize(encbuf.get());
-        sink.write((const char*)encbuf.get(), enclen);
+        sink.write(reinterpret_cast<const char*>(encbuf.get()), enclen);
     } else {
-        sink.write((const char*)cryptbuf.get(), reslen);
+        sink.write(reinterpret_cast<const char*>(cryptbuf.get()), reslen);
     }
 }
 
@@ -310,35 +310,35 @@ void Cipher::decryptStream(std::istream& source, std::ostream& sink, Encoding en
     std::unique_ptr<char[]> decbuf(decoder ? new char[cryptsize * 2] : nullptr);
 
     do {
-        source.read((char*)readbuf.get(), nread);
+        source.read(reinterpret_cast<char*>(readbuf.get()), nread);
         nread = static_cast<int>(source.gcount());
 
         if (decoder) {
-            declen = decoder->decode((const char*)readbuf.get(), nread, decbuf.get());
+            declen = decoder->decode(reinterpret_cast<const char*>(readbuf.get()), nread, decbuf.get());
             if (declen == 0)
                 continue;
-            reslen = update((const unsigned char*)decbuf.get(), declen,
+            reslen = update(reinterpret_cast<const unsigned char*>(decbuf.get()), declen,
                             cryptbuf.get(), cryptsize);
-            sink.write((const char*)cryptbuf.get(), reslen);
+            sink.write(reinterpret_cast<const char*>(cryptbuf.get()), reslen);
         } else {
             reslen = update(readbuf.get(), nread, cryptbuf.get(), cryptsize);
-            sink.write((const char*)cryptbuf.get(), reslen);
+            sink.write(reinterpret_cast<const char*>(cryptbuf.get()), reslen);
         }
     } while (source.good() && nread > 0);
 
     if (decoder) {
         declen = decoder->finalize(decbuf.get());
         if (declen) {
-            reslen = update((const unsigned char*)decbuf.get(), declen,
+            reslen = update(reinterpret_cast<const unsigned char*>(decbuf.get()), declen,
                             cryptbuf.get(), cryptsize);
             if (reslen)
-                sink.write((const char*)cryptbuf.get(), reslen);
+                sink.write(reinterpret_cast<const char*>(cryptbuf.get()), reslen);
         }
     }
 
     reslen = final(cryptbuf.get(), cryptsize);
     if (reslen)
-        sink.write((const char*)cryptbuf.get(), reslen);
+        sink.write(reinterpret_cast<const char*>(cryptbuf.get()), reslen);
 }
 
 
@@ -403,7 +403,7 @@ void Cipher::setRandomKey()
 }
 
 
-void Cipher::generateKey(const std::string& password, const std::string& salt,
+void Cipher::generateKey(std::string_view password, std::string_view salt,
                          int iterationCount)
 {
     unsigned char keyBytes[EVP_MAX_KEY_LENGTH];
@@ -416,9 +416,9 @@ void Cipher::generateKey(const std::string& password, const std::string& salt,
         int len = static_cast<int>(salt.size());
         // Create the salt array from the salt string
         for (int i = 0; i < 8; ++i)
-            saltBytes[i] = salt.at(i % len);
+            saltBytes[i] = salt[i % len];
         for (int i = 8; i < len; ++i)
-            saltBytes[i % 8] ^= salt.at(i);
+            saltBytes[i % 8] ^= salt[i];
     }
 
     // Now create the key and IV, using the SHA-256 digest algorithm.

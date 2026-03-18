@@ -174,14 +174,14 @@ void Scheduler::deserialize(json::Value& root)
 {
     LTrace("Deserializing");
 
-    for (auto it = root.begin(); it != root.end(); it++) {
+    for (auto& elem : root) {
         try {
-            json::assertMember(*it, "trigger");
-            auto task = factory().createTask((*it)["type"].get<std::string>());
-            task->deserialize((*it));
+            json::assertMember(elem, "trigger");
+            auto task = factory().createTask(elem["type"].get<std::string>());
+            task->deserialize(elem);
             auto trigger =
-                factory().createTrigger((*it)["trigger"]["type"].get<std::string>());
-            trigger->deserialize((*it)["trigger"]);
+                factory().createTrigger(elem["trigger"]["type"].get<std::string>());
+            trigger->deserialize(elem["trigger"]);
             task->setTrigger(std::move(trigger));
             schedule(task.release()); // transfers ownership to TaskRunner
         } catch (std::exception& exc) {

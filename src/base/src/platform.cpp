@@ -20,6 +20,7 @@
 #include <cstring>
 #include <thread>
 
+#include <string_view>
 #include <vector>
 
 #ifdef SCY_WIN
@@ -102,18 +103,18 @@ std::string getHostname()
 }
 
 
-std::string getEnv(const std::string& name, const std::string& defaultValue)
+std::string getEnv(std::string_view name, std::string_view defaultValue)
 {
-    const char* value = getenv(name.c_str());
+    const char* value = getenv(std::string(name).c_str());
     if (value)
         return value;
-    return defaultValue;
+    return std::string(defaultValue);
 }
 
 
-bool getEnvBool(const std::string& name)
+bool getEnvBool(std::string_view name)
 {
-    const char* value = getenv(name.c_str());
+    const char* value = getenv(std::string(name).c_str());
     return value && (strcmp(value, "1") == 0 ||
                      strcmp(value, "true") == 0);
 }
@@ -144,7 +145,7 @@ std::wstring toUtf16(const char* utf8, size_t len)
     return std::wstring(ws.data(), len16);
 }
 
-std::wstring toUtf16(const std::string& str)
+std::wstring toUtf16(std::string_view str)
 {
     return toUtf16(str.data(), str.length());
 }

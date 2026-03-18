@@ -80,10 +80,10 @@ inline void countNestedKeys(const json::Value& root, const std::string& key, int
 {
     if (!root.is_object() && !root.is_array())
         return;
-    for (auto it = root.begin(); it != root.end(); ++it) {
-        if ((*it).is_object() && (*it).contains(key))
+    for (const auto& elem : root) {
+        if (elem.is_object() && elem.contains(key))
             count++;
-        countNestedKeys(*it, key, count);
+        countNestedKeys(elem, key, count);
     }
 }
 
@@ -93,10 +93,10 @@ inline bool hasNestedKey(const json::Value& root, const std::string& key)
 {
     if (!root.is_object() && !root.is_array())
         return false;
-    for (auto it = root.begin(); it != root.end(); ++it) {
-        if ((*it).is_object() && (*it).contains(key))
+    for (const auto& elem : root) {
+        if (elem.is_object() && elem.contains(key))
             return true;
-        if (hasNestedKey(*it, key))
+        if (hasNestedKey(elem, key))
             return true;
     }
     return false;
