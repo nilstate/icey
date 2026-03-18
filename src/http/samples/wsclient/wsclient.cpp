@@ -1,0 +1,77 @@
+///
+//
+// LibSourcey
+// Copyright (c) 2005, Sourcey <https://sourcey.com>
+//
+// SPDX-License-Identifier: LGPL-2.1+
+//
+// WebSocket Client
+//
+// Demonstrates a WebSocket client connection using the LibSourcey HTTP
+// module. Connects to a WebSocket server, sends a message, and prints
+// any data received back.
+//
+// Usage: wsclient [url] [message]
+//   Default: ws://echo.websocket.events "Hello from LibSourcey!"
+//
+// To test locally, run the echoserver sample first and connect to
+// ws://localhost:1337 instead.
+//
+/// @addtogroup http
+/// @{
+
+
+#include "scy/application.h"
+#include "scy/http/client.h"
+#include "scy/http/websocket.h"
+#include "scy/logger.h"
+
+#include <iostream>
+#include <string>
+
+
+using namespace scy;
+
+
+int main(int argc, char** argv)
+{
+    std::string url = argc > 1 ? argv[1] : "ws://echo.websocket.events";
+    std::string message = argc > 2 ? argv[2] : "Hello from LibSourcey!";
+
+    Logger::instance().add(std::make_unique<ConsoleChannel>("debug", Level::Debug));
+
+    // createConnectionT handles ws:// and wss:// schemes automatically,
+    // installing a WebSocket ConnectionAdapter on the underlying TCP/SSL socket
+    auto conn = http::createConnectionT<http::ClientConnection>(URL(url));
+
+    conn->Connect += [&]() {
+        std::cout << "Connected to " << url << std::endl;
+        std::cout << "Sending: " << message << std::endl;
+
+        // Send a text frame
+        conn->send(message.c_str(), message.size(), http::ws::Text);
+    };
+
+    conn->Payload += [](const MutableBuffer& buf) {
+        std::string data(bufferCast<const char*>(buf), buf.size());
+        std::cout << "Received: " << data << std::endl;
+    };
+
+    conn->Close += [](http::Connection& conn) {
+        std::cout << "Connection closed." << std::endl;
+        uv_stop(uv::defaultLoop());
+    };
+
+    // Initiate the WebSocket handshake
+    conn->send();
+
+    std::cout << "Connecting to " << url << "..." << std::endl;
+
+    // Run the event loop; press Ctrl-C to exit
+    waitForShutdown([&](void*) {
+        conn->close();
+    });
+
+    Logger::destroy();
+    return 0;
+}

@@ -1,3 +1,25 @@
+///
+//
+// LibSourcey
+// Copyright (c) 2005, Sourcey <https://sourcey.com>
+//
+// SPDX-License-Identifier: LGPL-2.1+
+//
+// Symple Console Client
+//
+// Interactive console client for the Symple real-time messaging protocol.
+// Demonstrates client connection, message routing, presence, and room
+// management over Socket.IO.
+//
+// Requires a running Symple server (https://github.com/nicedoc/symple-server).
+//
+// Examples:
+//   sympleconsole -host localhost -port 4500 -token <token> -user 42 -name Somedude
+//
+/// @addtogroup symple
+/// @{
+
+
 #include "scy/application.h"
 #include "scy/filesystem.h"
 #include "scy/ipc.h"
@@ -9,19 +31,12 @@
 #include <stdexcept>
 
 
-//
-// Symple Console Application
-//
-// Examples:
-// symple -help
-// symple -host localhost -port 4500 -token nLIgQ2R8DUiVsxm3kLG0xQtt -user 42 -name Somedude
-// symple -host mydomain.com -port 80 -token nLIgQ2R8DUiVsxm3kLG0xQtt -user 42 -name Somedude
-//
-
-
 #define USE_SSL 0
 
 
+/// Wraps the Symple client with a console UI for interactive messaging.
+/// Uses an IPC sync queue to safely pass user input from the console thread
+/// to the libuv event loop thread.
 class SympleApplication : public scy::Application
 {
 public:
@@ -30,7 +45,7 @@ public:
 #else
     scy::smpl::TCPClient client;
 #endif
-    scy::ipc::SyncQueue<> ipc;
+    scy::ipc::SyncQueue<> ipc;  // thread-safe bridge: console thread -> event loop
     bool showHelp;
 
     SympleApplication()
@@ -109,7 +124,7 @@ public:
                 return;
             }
 
-            // Setup the client
+            // Wire up signal handlers for incoming packets and client lifecycle events
             client += packetSlot(this, &SympleApplication::onRecvMessage);
             client += packetSlot(this, &SympleApplication::onRecvPresence);
             client += packetSlot(this, &SympleApplication::onRecvEvent);
@@ -118,7 +133,8 @@ public:
             client.CreatePresence += slot(this, &SympleApplication::onCreatePresence);
             client.connect();
 
-            // Start the console thread
+            // Console input runs on a separate thread because std::getchar()
+            // blocks, and we can't block the libuv event loop
             scy::Thread console([](void* arg) {
                 auto app = static_cast<SympleApplication*>(arg);
 
@@ -146,7 +162,7 @@ public:
                         std::cout << "Sending message: " << data << std::endl;
                         // app->client.send(message, true);
 
-                        // Synchronize the message with the main thread
+                        // Push to IPC queue so the send happens on the event loop thread
                         app->ipc.push(new scy::ipc::Action(
                             std::bind(&SympleApplication::onSyncMessage, app, std::placeholders::_1),
                             message));
@@ -197,15 +213,15 @@ public:
         }
     }
 
+    /// Called on the event loop thread when a message arrives via IPC.
     void onSyncMessage(const scy::ipc::Action& action)
     {
-        // Send the message on the main thread
         auto message = static_cast<scy::smpl::Message*>(action.arg);
 
         // Send without transaction
         // client.send(*message);
 
-        // Send with transaction
+        // Send with transaction so we get delivery confirmation via onAckState
         auto transaction = client.createTransaction(*message);
         transaction->StateChange += slot(this, &SympleApplication::onAckState);
         transaction->send();

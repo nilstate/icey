@@ -1,1 +1,4 @@
+add_subdirectory(httpclient)
 add_subdirectory(httpechoserver)
+add_subdirectory(httpbenchmark)
+add_subdirectory(wsclient)

@@ -3,7 +3,18 @@
 // LibSourcey
 // Copyright (c) 2005, Sourcey <https://sourcey.com>
 //
-// SPDX-License-Identifier:	LGPL-2.1+
+// SPDX-License-Identifier: LGPL-2.1+
+//
+// Device Recorder
+//
+// Records H.264 video + AAC audio from the default camera and microphone
+// to an MP4 file using the PacketStream pipeline.
+//
+// Requires a camera and/or microphone to be connected. For a device-free
+// alternative, see the filetranscode sample.
+//
+// Usage: just run it. Press Ctrl-C to stop recording.
+// Output: deviceoutput.mp4
 //
 /// @addtogroup av
 /// @{
@@ -37,11 +48,13 @@ int main(int argc, char** argv)
         // from device captures to the encoder
         PacketStream stream;
 
+        // Output format is set explicitly; input format will be populated
+        // from the capture devices so the encoder knows the source parameters
         av::EncoderOptions options;
         options.ofile = OUTPUT_FILENAME;
         options.oformat = OUTPUT_FORMAT;
-        options.iformat.audio.enabled = false; // enabled if available
-        options.iformat.video.enabled = false; // enabled if available
+        options.iformat.audio.enabled = false; // enabled below if device found
+        options.iformat.video.enabled = false; // enabled below if device found
 
         // Create a device manager instance to enumerate system devices
         av::Device device;
@@ -52,7 +65,7 @@ int main(int argc, char** argv)
         if (devman.getDefaultCamera(device)) {
             LInfo("Using video device: ", device.name);
             video.openVideo(device.id, {640, 480});
-            video.getEncoderFormat(options.iformat);
+            video.getEncoderFormat(options.iformat); // populate input format from capture
             stream.attachSource(&video, false, true);
         }
 
@@ -68,7 +81,7 @@ int main(int argc, char** argv)
         // Create and attach the multiplex encoder
         av::MultiplexPacketEncoder encoder(options);
         encoder.init();
-        stream.attach(&encoder, 5, false);
+        stream.attach(&encoder, 5, false); // priority 5: runs after capture sources
 
         // Start the stream
         stream.start();
