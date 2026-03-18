@@ -14,6 +14,7 @@
 
 #include "scy/symple/command.h"
 #include "scy/symple/symple.h"
+#include <string_view>
 
 
 namespace scy {
@@ -29,8 +30,8 @@ class Symple_API FormElement
 {
 public:
     FormElement();
-    FormElement(json::value& root, const std::string& type = "",
-                const std::string& id = "", const std::string& label = "");
+    FormElement(json::Value& root, std::string_view type = "",
+                std::string_view id = "", std::string_view label = "");
     FormElement(const FormElement& r);
     FormElement& operator=(const FormElement& r);
     virtual ~FormElement();
@@ -42,32 +43,32 @@ public:
     /// Possible "type" values
     ///      page, section, text, text-multi,
     ///      list, list-multi, checkbox, media, custom
-    void setType(const std::string& type);
+    void setType(std::string_view type);
 
 
-    void setId(const std::string& id);
-    void setLabel(const std::string& text);
-    void setHint(const std::string& text);
+    void setId(std::string_view id);
+    void setLabel(std::string_view text);
+    void setHint(std::string_view text);
 
     /// Sets and optional validation error message.
-    void setError(const std::string& error);
+    void setError(std::string_view error);
 
-    FormElement addPage(const std::string& id = "",
-                        const std::string& label = "");
-    FormElement addSection(const std::string& id = "",
-                           const std::string& label = "");
-    FormField addField(const std::string& type, const std::string& id = "",
-                       const std::string& label = "");
+    FormElement addPage(std::string_view id = "",
+                        std::string_view label = "");
+    FormElement addSection(std::string_view id = "",
+                           std::string_view label = "");
+    FormField addField(std::string_view type, std::string_view id = "",
+                       std::string_view label = "");
 
-    FormField getField(const std::string& id, bool partial = false);
-    bool getField(const std::string& id, FormField& field,
+    FormField getField(std::string_view id, bool partial = false);
+    bool getField(std::string_view id, FormField& field,
                   bool partial = false);
 
     /// Returns true if the given Address matches any of the
     /// internal form element IDs.
     /// If the partial flag is set then substring matches
     /// will be counted.
-    bool hasField(const std::string& id, bool partial = false);
+    bool hasField(std::string_view id, bool partial = false);
 
     /// Live fields or elements are used to submit partial
     /// sections a form, without sending the entire form.
@@ -79,7 +80,7 @@ public:
     [[nodiscard]] bool live() const;
 
     /// Clears child elements matching the given ID.
-    bool clearElements(const std::string& id, bool partial = false);
+    bool clearElements(std::string_view id, bool partial = false);
 
     /// Clear the entire form.
     void clear();
@@ -96,12 +97,12 @@ public:
     /// Returns true if the form has multiple pages.
     bool hasPages();
 
-    [[nodiscard]] json::value& root() const;
+    [[nodiscard]] json::Value& root() const;
 
 protected:
     /// The root pointer is just a reference to
     /// the externally managed JSON value memory.
-    json::value* _root;
+    json::Value* _root;
 };
 
 
@@ -109,7 +110,7 @@ class Symple_API Form : public FormElement
 {
 public:
     Form();
-    Form(json::value& root);
+    Form(json::Value& root);
     Form(Command& root);
     virtual ~Form();
 
@@ -127,7 +128,7 @@ public:
     /// the form-processing entity.
     /// `result` The form-processing entity is returning data to the
     /// form-submitting entity.
-    void setAction(const std::string& action);
+    void setAction(std::string_view action);
 
     /// Notifies the form is a partial section of the form.
     /// This is used for transmitting and updating live
@@ -140,28 +141,28 @@ class Symple_API FormField : public FormElement
 {
 public:
     FormField();
-    FormField(json::value& root, const std::string& type = "",
-              const std::string& id = "", const std::string& label = "");
+    FormField(json::Value& root, std::string_view type = "",
+              std::string_view id = "", std::string_view label = "");
     virtual ~FormField();
 
     /// Adds an option for list based fields.
-    void addOption(const std::string& key, const std::string& value);
-    void addOption(const std::string& value);
+    void addOption(std::string_view key, std::string_view value);
+    void addOption(std::string_view value);
 
     /// Sets the value clearing all other values.
-    void setValue(const std::string& value);
+    void setValue(std::string_view value);
     void setValue(int value);
     void setValue(double value);
     void setValue(bool value);
 
     /// Appends a value to the value array.
-    void addValue(const std::string& value);
+    void addValue(std::string_view value);
     void addValue(int value);
     void addValue(double value);
     void addValue(bool value);
 
     /// Returns a JSON array of all values.
-    json::value& values();
+    json::Value& values();
 
     /// Returns the first value.
     /// Most formats (except multi) only

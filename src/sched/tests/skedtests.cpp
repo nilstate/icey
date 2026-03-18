@@ -29,14 +29,14 @@ struct ScheduledTask : public sched::Task
 
     void run() { taskRunTimes++; }
 
-    void serialize(json::value& root)
+    void serialize(json::Value& root)
     {
         sched::Task::serialize(root);
 
         root["CustomField"] = "blah";
     }
 
-    void deserialize(json::value& root)
+    void deserialize(json::Value& root)
     {
         json::assertMember(root, "CustomField");
 
@@ -57,7 +57,7 @@ int main(int argc, char** argv)
     scheduler.factory().registerTrigger<sched::IntervalTrigger>("IntervalTrigger");
 
     describe("once only task serialization", []() {
-        json::value json;
+        json::Value json;
         Timespan hundredMs(0, 1);
 
         // Schedule a once only task to run in 100ms time.
@@ -103,7 +103,7 @@ int main(int argc, char** argv)
             // LDebug("##### Sched Print Output END");
 
             // Output scheduler tasks as JSON before run
-            json::value before;
+            json::Value before;
             scheduler.serialize(before);
             SDebug << "Sched Output JSON Before Run:\n"
                    << before.dump(4) << endl;
@@ -113,7 +113,7 @@ int main(int argc, char** argv)
             expect(taskRunTimes == 1);
 
             // Output scheduler tasks as JSON after run
-            json::value after;
+            json::Value after;
             scheduler.serialize(after);
             SDebug << "Sched Output JSON After Run:\n"
                    << json.dump(4) << endl;

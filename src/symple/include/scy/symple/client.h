@@ -128,7 +128,7 @@ public:
     virtual Client& operator>>(Message& message);
 
     /// Update the roster from the given client object.
-    virtual void onPresenceData(const json::value& data, bool whiny = false);
+    virtual void onPresenceData(const json::Value& data, bool whiny = false);
 
     ///
     /// Signals

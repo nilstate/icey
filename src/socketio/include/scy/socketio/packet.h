@@ -69,13 +69,13 @@ public:
     Packet(const std::string& message, bool ack = false);
 
     /// JSON constructor
-    Packet(const json::value& message, bool ack = false);
+    Packet(const json::Value& message, bool ack = false);
 
     /// Event constructor
     Packet(const std::string& event, const std::string& message, bool ack = false);
 
     /// Event JSON constructor
-    Packet(const std::string& event, const json::value& message, bool ack = false);
+    Packet(const std::string& event, const json::Value& message, bool ack = false);
 
     Packet(const Packet& r) = default;
     Packet& operator=(const Packet& r) = default;
@@ -91,7 +91,7 @@ public:
     [[nodiscard]] std::string nsp() const;
     [[nodiscard]] std::string event() const;
     [[nodiscard]] std::string message() const;
-    [[nodiscard]] json::value json() const;
+    [[nodiscard]] json::Value json() const;
 
     void setID(int id);
     void setNamespace(const std::string& nsp);

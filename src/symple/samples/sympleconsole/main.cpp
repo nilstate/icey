@@ -31,6 +31,8 @@
 #include <stdexcept>
 
 
+using namespace scy;
+
 #define USE_SSL 0
 
 
@@ -78,7 +80,7 @@ public:
 
     void parseOptions(int argc, char* argv[])
     {
-        scy::util::OptionParser optparse(argc, argv, "-");
+        OptionParser optparse(argc, argv, "-");
         for (auto& kv : optparse.args) {
             const std::string& key = kv.first;
             const std::string& value = kv.second;

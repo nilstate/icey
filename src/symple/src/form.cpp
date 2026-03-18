@@ -31,7 +31,7 @@ Form::Form(Command& root)
 }
 
 
-Form::Form(json::value& root)
+Form::Form(json::Value& root)
     : FormElement(root)
 {
     root["type"] = "form";
@@ -61,11 +61,11 @@ void Form::setPartial(bool flag)
 }
 
 
-void Form::setAction(const std::string& action)
+void Form::setAction(std::string_view action)
 {
     if (action != "form" && action != "submit" && action != "cancel" && action != "result")
-        throw std::invalid_argument("Invalid form action: " + action);
-    root()["action"] = action;
+        throw std::invalid_argument("Invalid form action: " + std::string(action));
+    root()["action"] = std::string(action);
 }
 
 
@@ -84,16 +84,16 @@ FormElement::FormElement()
 }
 
 
-FormElement::FormElement(json::value& root, const std::string& type,
-                         const std::string& id, const std::string& label)
+FormElement::FormElement(json::Value& root, std::string_view type,
+                         std::string_view id, std::string_view label)
     : _root(&root)
 {
     if (!type.empty())
-        root["type"] = type;
+        root["type"] = std::string(type);
     if (!id.empty())
-        root["id"] = id;
+        root["id"] = std::string(id);
     if (!label.empty())
-        root["label"] = label;
+        root["label"] = std::string(label);
 }
 
 
@@ -133,58 +133,58 @@ std::string FormElement::label() const
 }
 
 
-void FormElement::setType(const std::string& type)
+void FormElement::setType(std::string_view type)
 {
-    root()["type"] = type;
+    root()["type"] = std::string(type);
 }
 
 
-void FormElement::setId(const std::string& id)
+void FormElement::setId(std::string_view id)
 {
-    root()["id"] = id;
+    root()["id"] = std::string(id);
 }
 
 
-void FormElement::setLabel(const std::string& text)
+void FormElement::setLabel(std::string_view text)
 {
-    root()["label"] = text;
+    root()["label"] = std::string(text);
 }
 
 
-void FormElement::setHint(const std::string& text)
+void FormElement::setHint(std::string_view text)
 {
-    root()["hint"] = text;
+    root()["hint"] = std::string(text);
 }
 
 
-void FormElement::setError(const std::string& error)
+void FormElement::setError(std::string_view error)
 {
-    root()["error"] = error;
+    root()["error"] = std::string(error);
 }
 
 
-FormElement FormElement::addPage(const std::string& id,
-                                 const std::string& label)
+FormElement FormElement::addPage(std::string_view id,
+                                 std::string_view label)
 {
     return FormElement(root()["elements"][root()["elements"].size()], "page", id, label);
 }
 
 
-FormElement FormElement::addSection(const std::string& id,
-                                    const std::string& label)
+FormElement FormElement::addSection(std::string_view id,
+                                    std::string_view label)
 {
     return FormElement(root()["elements"][root()["elements"].size()], "section", id, label);
 }
 
 
-FormField FormElement::addField(const std::string& type, const std::string& id,
-                                const std::string& label)
+FormField FormElement::addField(std::string_view type, std::string_view id,
+                                std::string_view label)
 {
     if (type != "text" && type != "text-multi" && type != "list" &&
         type != "list-multi" && type != "boolean" && type != "number" &&
         type != "media" && type != "date" && type != "time" &&
         type != "datetime" && type != "horizontal-set" && type != "custom")
-        throw std::invalid_argument("Invalid form field type: " + type);
+        throw std::invalid_argument("Invalid form field type: " + std::string(type));
 
     return FormField(root()["elements"][root()["elements"].size()], type, id,
                      label);
@@ -227,18 +227,18 @@ void FormElement::setLive(bool flag)
 }
 
 
-bool FormElement::clearElements(const std::string& id, bool partial)
+bool FormElement::clearElements(std::string_view id, bool partial)
 {
-    // json::value& root() = section.root()();
+    // json::Value& root() = section.root()();
     bool match = false;
-    json::value result;
+    json::Value result;
 
     for (auto it = root().begin(); it != root().end(); ++it) {
 
         // Filter elements
         if (it.key() == "elements") {
             for (unsigned x = 0; x < root()["elements"].size(); x++) {
-                json::value& element = root()["elements"][x];
+                json::Value& element = root()["elements"][x];
                 std::string curID = element["id"].get<std::string>();
                 if ( // element.is_object() &&
                     // element.isMember("id") &&
@@ -264,13 +264,13 @@ bool FormElement::clearElements(const std::string& id, bool partial)
 }
 
 
-bool FormElement::getField(const std::string& id, FormField& field, bool partial)
+bool FormElement::getField(std::string_view id, FormField& field, bool partial)
 {
     return json::findNestedObjectWithProperty(root(), field._root, "id", id, partial);
 }
 
 
-FormField FormElement::getField(const std::string& id, bool partial)
+FormField FormElement::getField(std::string_view id, bool partial)
 {
     FormField field;
     json::findNestedObjectWithProperty(root(), field._root, "id", id, partial);
@@ -278,21 +278,21 @@ FormField FormElement::getField(const std::string& id, bool partial)
 }
 
 
-bool FormElement::hasField(const std::string& id, bool partial)
+bool FormElement::hasField(std::string_view id, bool partial)
 {
-    json::value* tmp = nullptr;
+    json::Value* tmp = nullptr;
     return json::findNestedObjectWithProperty(root(), tmp, "id", id, partial);
 }
 
 
 bool FormElement::hasPages()
 {
-    json::value* tmp = nullptr;
+    json::Value* tmp = nullptr;
     return json::findNestedObjectWithProperty(root(), tmp, "type", "page");
 }
 
 
-json::value& FormElement::root() const
+json::Value& FormElement::root() const
 {
     if (_root == nullptr)
         throw std::runtime_error("Form root is unassigned");
@@ -308,8 +308,8 @@ FormField::FormField()
 }
 
 
-FormField::FormField(json::value& root, const std::string& type,
-                     const std::string& id, const std::string& label)
+FormField::FormField(json::Value& root, std::string_view type,
+                     std::string_view id, std::string_view label)
     : FormElement(root, type, id, label)
 {
 }
@@ -320,7 +320,7 @@ FormField::~FormField()
 }
 
 
-json::value& FormField::values()
+json::Value& FormField::values()
 {
     return root()["values"];
 }
@@ -351,22 +351,23 @@ bool FormField::boolValue() const
 }
 
 
-void FormField::addOption(const std::string& value)
+void FormField::addOption(std::string_view value)
 {
-    root()["options"][value] = value;
+    std::string v(value);
+    root()["options"][v] = v;
 }
 
 
-void FormField::addOption(const std::string& key, const std::string& value)
+void FormField::addOption(std::string_view key, std::string_view value)
 {
-    root()["options"][key] = value;
+    root()["options"][std::string(key)] = std::string(value);
 }
 
 
-void FormField::setValue(const std::string& value)
+void FormField::setValue(std::string_view value)
 {
     root()["values"].clear();
-    root()["values"].push_back(value);
+    root()["values"].push_back(std::string(value));
 }
 
 
@@ -388,9 +389,9 @@ void FormField::setValue(bool value)
 }
 
 
-void FormField::addValue(const std::string& value)
+void FormField::addValue(std::string_view value)
 {
-    root()["values"].push_back(value);
+    root()["values"].push_back(std::string(value));
 }
 
 

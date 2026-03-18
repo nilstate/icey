@@ -33,7 +33,7 @@ Command::Command(const Command& root)
 }
 
 
-Command::Command(const json::value& root)
+Command::Command(const json::Value& root)
     : Message(root)
 {
     // if (find("type") == end())
@@ -64,15 +64,15 @@ std::string Command::action() const
 }
 
 
-void Command::setNode(const std::string& node)
+void Command::setNode(std::string_view node)
 {
-    (*this)["node"] = node;
+    (*this)["node"] = std::string(node);
 }
 
 
-void Command::setAction(const std::string& action)
+void Command::setAction(std::string_view action)
 {
-    (*this)["action"] = action;
+    (*this)["action"] = std::string(action);
 }
 
 
@@ -91,7 +91,7 @@ std::vector<std::string> Command::params()
 }
 
 
-bool Command::matches(const std::string& xnode) const
+bool Command::matches(std::string_view xnode) const
 {
     return util::matchNodes(node(), xnode, ":");
 }

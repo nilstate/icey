@@ -132,7 +132,7 @@ int main(int argc, char** argv)
     });
 
     scy_test::describe("peer from json", []() {
-        scy::json::value j;
+        scy::json::Value j;
         j["id"] = "xyz";
         j["user"] = "bob";
         j["name"] = "Bob";
@@ -169,7 +169,7 @@ int main(int argc, char** argv)
     });
 
     scy_test::describe("event from json", []() {
-        scy::json::value j;
+        scy::json::Value j;
         j["type"] = "event";
         j["name"] = "hover";
         j["time"] = 42.0;
@@ -194,7 +194,7 @@ int main(int argc, char** argv)
     });
 
     scy_test::describe("command from json", []() {
-        scy::json::value j;
+        scy::json::Value j;
         j["type"] = "command";
         j["node"] = "video.play";
         j["action"] = "start";

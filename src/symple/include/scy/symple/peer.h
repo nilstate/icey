@@ -15,6 +15,7 @@
 #include "scy/json/json.h"
 #include "scy/symple/address.h"
 #include "scy/symple/symple.h"
+#include <string_view>
 
 
 namespace scy {
@@ -25,12 +26,12 @@ namespace smpl {
 /// A Peer object may also contain arbitrary data set by
 /// the client to share with other peers on the network.
 /// @see Address for further methods and basic accessors.
-class Symple_API Peer : public json::value
+class Symple_API Peer : public json::Value
 {
 public:
     Peer();
     Peer(const Peer& r);
-    Peer(const json::value& r);
+    Peer(const json::Value& r);
     virtual ~Peer();
 
     [[nodiscard]] Address address() const;
@@ -42,15 +43,15 @@ public:
     [[nodiscard]] std::string type() const;
     [[nodiscard]] std::string host() const;
 
-    void setID(const std::string& id);
-    void setUser(const std::string& user);
-    void setName(const std::string& name);
+    void setID(std::string_view id);
+    void setUser(std::string_view user);
+    void setName(std::string_view name);
     // void setGroup(const std::string& group);
-    void setType(const std::string& type);
-    void setHost(const std::string& host);
+    void setType(std::string_view type);
+    void setHost(std::string_view host);
 
     /// Updates the peer from the given data object.
-    // virtual void update(const json::value& data, bool whiny = false);
+    // virtual void update(const json::Value& data, bool whiny = false);
 
     virtual bool valid();
 

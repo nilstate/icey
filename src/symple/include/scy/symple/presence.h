@@ -24,7 +24,7 @@ class Symple_API Presence : public Message
 {
 public:
     Presence();
-    Presence(const json::value& root);
+    Presence(const json::Value& root);
     Presence(const Presence& root);
     virtual ~Presence();
 

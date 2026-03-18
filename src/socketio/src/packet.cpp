@@ -56,7 +56,7 @@ Packet::Packet(const std::string& message, bool ack)
 }
 
 
-Packet::Packet(const json::value& message, bool ack)
+Packet::Packet(const json::Value& message, bool ack)
     : Packet(Frame::Message, Type::Event, ack ? nextID() : -1, "/", "message", message.dump(), ack)
 {
 }
@@ -68,7 +68,7 @@ Packet::Packet(const std::string& event, const std::string& message, bool ack)
 }
 
 
-Packet::Packet(const std::string& event, const json::value& data, bool ack)
+Packet::Packet(const std::string& event, const json::Value& data, bool ack)
     : Packet(Frame::Message, Type::Event, ack ? nextID() : -1, "/", event, data.dump(), ack)
 {
 }
@@ -156,7 +156,7 @@ ssize_t Packet::read(const ConstBuffer& buf)
             std::string temp;
             reader.get(temp, reader.available());
 
-            json::value json = json::value::parse(temp.begin(), temp.end(), nullptr, false);
+            json::Value json = json::Value::parse(temp.begin(), temp.end(), nullptr, false);
             if (json.is_array()) {
                 if (json.size() < 2) {
                     _event = "message";
@@ -269,14 +269,14 @@ std::string Packet::message() const
 }
 
 
-json::value Packet::json() const
+json::Value Packet::json() const
 {
     if (!_message.empty()) {
-        auto result = json::value::parse(_message.begin(), _message.end(), nullptr, false);
+        auto result = json::Value::parse(_message.begin(), _message.end(), nullptr, false);
         if (!result.is_discarded())
             return result;
     }
-    return json::value();
+    return json::Value();
 }
 
 

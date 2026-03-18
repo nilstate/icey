@@ -51,7 +51,7 @@ bool Trigger::expired()
 }
 
 
-void Trigger::serialize(json::value& root)
+void Trigger::serialize(json::Value& root)
 {
     LTrace("Serializing");
 
@@ -67,7 +67,7 @@ void Trigger::serialize(json::value& root)
 }
 
 
-void Trigger::deserialize(json::value& root)
+void Trigger::deserialize(json::Value& root)
 {
     LTrace("Deserializing");
 
@@ -126,7 +126,7 @@ bool IntervalTrigger::expired()
 }
 
 
-void IntervalTrigger::serialize(json::value& root)
+void IntervalTrigger::serialize(json::Value& root)
 {
     LTrace("Serializing");
 
@@ -139,7 +139,7 @@ void IntervalTrigger::serialize(json::value& root)
 }
 
 
-void IntervalTrigger::deserialize(json::value& root)
+void IntervalTrigger::deserialize(json::Value& root)
 {
     LTrace("[IntervalTrigger] Deserializing");
 

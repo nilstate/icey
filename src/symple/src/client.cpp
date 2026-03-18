@@ -165,7 +165,7 @@ void Client::createPresence(Presence& p)
         CreatePresence.emit(*peer);
         if (!peer->is_object())
             throw std::runtime_error("Peer must be a JSON object");
-        p["data"] = (json::value&)*peer;
+        p["data"] = (json::Value&)*peer;
         if (!p["data"].is_object())
             throw std::runtime_error("Presence data must be a JSON object");
     } else {
@@ -201,7 +201,7 @@ int Client::announce()
 {
     LTrace("Announcing");
 
-    json::value data;
+    json::Value data;
     data["user"] = _options.user;
     data["name"] = _options.name;
     data["type"] = _options.type;
@@ -241,7 +241,7 @@ void Client::onAnnounceState(void* sender, TransactionState& state, const Transa
     switch (state.id()) {
         case TransactionState::Success:
             try {
-                json::value data = transaction->response().json();
+                json::Value data = transaction->response().json();
                 _announceStatus = data["status"].get<int>();
 
                 if (_announceStatus != 200)
@@ -298,7 +298,7 @@ void Client::emit(IPacket& raw)
     if (packet.type() == sockio::Type::Event) {
         LTrace("JSON packet:", packet.toString());
 
-        json::value data = packet.json();
+        json::Value data = packet.json();
 #ifdef _DEBUG
         LTrace("Received ", data.dump(4));
 #endif
@@ -310,7 +310,7 @@ void Client::emit(IPacket& raw)
         if (!type.empty()) {
 
             // NOTE: The polymorphic message classes re-parse the JSON
-            // data since they each construct from a json::value.
+            // data since they each construct from a json::Value.
             // Consider free functions for working with messages.
             if (type == "message") {
                 Message m(data);
@@ -374,7 +374,7 @@ void Client::emit(IPacket& raw)
 }
 
 
-void Client::onPresenceData(const json::value& data, bool whiny)
+void Client::onPresenceData(const json::Value& data, bool whiny)
 {
     LTrace("Updating:", data.dump(4));
 
@@ -393,7 +393,7 @@ void Client::onPresenceData(const json::value& data, bool whiny)
                 LDebug("Peer connected:", peer->address().toString());
                 PeerConnected.emit(*peer);
             } else {
-                static_cast<json::value&>(*peer) = data;
+                static_cast<json::Value&>(*peer) = data;
             }
         } else {
             if (peer) {

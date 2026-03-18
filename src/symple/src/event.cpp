@@ -34,7 +34,7 @@ Event::Event(const Event& root)
 }
 
 
-Event::Event(const json::value& root)
+Event::Event(const json::Value& root)
     : Message(root)
 {
     // if (find("type") == end())
@@ -67,9 +67,9 @@ time_t Event::time() const
 }
 
 
-void Event::setName(const std::string& name)
+void Event::setName(std::string_view name)
 {
-    (*this)["name"] = name;
+    (*this)["name"] = std::string(name);
 }
 
 

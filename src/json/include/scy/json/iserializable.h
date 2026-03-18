@@ -24,8 +24,8 @@ class ISerializable
 {
 public:
     virtual ~ISerializable() = default;
-    virtual void serialize(json::value& root) = 0;
-    virtual void deserialize(json::value& root) = 0;
+    virtual void serialize(json::Value& root) = 0;
+    virtual void deserialize(json::Value& root) = 0;
 };
 
 
@@ -34,7 +34,7 @@ inline bool serialize(ISerializable* pObj, std::string& output)
     if (pObj == nullptr)
         return false;
 
-    json::value serializeRoot;
+    json::Value serializeRoot;
     pObj->serialize(serializeRoot);
     output = serializeRoot.dump(4);
     return true;
@@ -47,7 +47,7 @@ inline bool deserialize(ISerializable* pObj, std::string& input)
         return false;
 
     try {
-        json::value deserializeRoot = json::value::parse(input.begin(), input.end());
+        json::Value deserializeRoot = json::Value::parse(input.begin(), input.end());
         pObj->deserialize(deserializeRoot);
     } catch (const std::exception&) {
         return false;

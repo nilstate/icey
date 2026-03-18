@@ -44,13 +44,13 @@ struct TestObject : public json::ISerializable
         , value(v)
     {}
 
-    void serialize(json::value& root) override
+    void serialize(json::Value& root) override
     {
         root["name"] = name;
         root["value"] = value;
     }
 
-    void deserialize(json::value& root) override
+    void deserialize(json::Value& root) override
     {
         name = root["name"].get<std::string>();
         value = root["value"].get<int>();
@@ -63,10 +63,10 @@ int main(int argc, char** argv)
     test::init();
 
     // =========================================================================
-    // json::value basics
+    // json::Value basics
     //
     describe("json value basics", []() {
-        json::value j;
+        json::Value j;
         j["name"] = "test";
         j["count"] = 42;
         j["active"] = true;
@@ -81,11 +81,11 @@ int main(int argc, char** argv)
 
 
     // =========================================================================
-    // json::value parse and dump
+    // json::Value parse and dump
     //
     describe("json parse and dump", []() {
         std::string input = R"({"key":"value","num":123})";
-        json::value j = json::value::parse(input);
+        json::Value j = json::Value::parse(input);
 
         expect(j["key"] == "value");
         expect(j["num"] == 123);
@@ -100,7 +100,7 @@ int main(int argc, char** argv)
     // assertMember
     //
     describe("assertMember", []() {
-        json::value j;
+        json::Value j;
         j["exists"] = "yes";
 
         // Should not throw
@@ -122,7 +122,7 @@ int main(int argc, char** argv)
     // loadFile / saveFile round-trip
     //
     describe("loadFile and saveFile", []() {
-        json::value original;
+        json::Value original;
         original["name"] = "libsourcey";
         original["version"] = 2;
         original["features"] = {"networking", "crypto", "av"};
@@ -133,7 +133,7 @@ int main(int argc, char** argv)
         json::saveFile(path, original, 2);
 
         // Load back
-        json::value loaded;
+        json::Value loaded;
         json::loadFile(path, loaded);
 
         expect(loaded["name"] == "libsourcey");
@@ -149,7 +149,7 @@ int main(int argc, char** argv)
     // loadFile nonexistent throws
     //
     describe("loadFile nonexistent throws", []() {
-        json::value j;
+        json::Value j;
         bool threw = false;
         try {
             json::loadFile("/nonexistent/path/file.json", j);
@@ -164,7 +164,7 @@ int main(int argc, char** argv)
     // saveFile with no indent (compact)
     //
     describe("saveFile compact", []() {
-        json::value j;
+        json::Value j;
         j["a"] = 1;
 
         std::string path = writeTempJson("{}");
@@ -184,7 +184,7 @@ int main(int argc, char** argv)
     // countNestedKeys
     //
     describe("countNestedKeys", []() {
-        json::value j = json::value::parse(R"({
+        json::Value j = json::Value::parse(R"({
             "items": [
                 {"type": "a", "nested": {"type": "b"}},
                 {"type": "c"},
@@ -202,7 +202,7 @@ int main(int argc, char** argv)
     // hasNestedKey
     //
     describe("hasNestedKey", []() {
-        json::value j = json::value::parse(R"({
+        json::Value j = json::Value::parse(R"({
             "level1": {
                 "level2": {
                     "target": "found"
@@ -219,7 +219,7 @@ int main(int argc, char** argv)
     // findNestedObjectWithProperty
     //
     describe("findNestedObjectWithProperty", []() {
-        json::value j = json::value::parse(R"({
+        json::Value j = json::Value::parse(R"({
             "items": [
                 {"name": "alpha", "id": 1},
                 {"name": "beta", "id": 2},
@@ -227,7 +227,7 @@ int main(int argc, char** argv)
             ]
         })");
 
-        json::value* result = nullptr;
+        json::Value* result = nullptr;
         bool found = json::findNestedObjectWithProperty(j, result, "", "beta");
         expect(found);
         expect(result != nullptr);
@@ -239,9 +239,9 @@ int main(int argc, char** argv)
     // findNestedObjectWithProperty - not found
     //
     describe("findNestedObjectWithProperty not found", []() {
-        json::value j = json::value::parse(R"({"items": [{"name": "x"}]})");
+        json::Value j = json::Value::parse(R"({"items": [{"name": "x"}]})");
 
-        json::value* result = nullptr;
+        json::Value* result = nullptr;
         bool found = json::findNestedObjectWithProperty(j, result, "", "zzz");
         expect(!found);
     });

@@ -128,7 +128,7 @@ int Client::send(const std::string& message, bool ack)
 }
 
 
-int Client::send(const json::value& message, bool ack)
+int Client::send(const json::Value& message, bool ack)
 {
     Packet packet(message, ack);
     return send(packet);
@@ -155,7 +155,7 @@ int Client::send(const std::string& event, const std::string& message, bool ack)
 }
 
 
-int Client::send(const std::string& event, const json::value& message, bool ack)
+int Client::send(const std::string& event, const json::Value& message, bool ack)
 {
     Packet packet(event, message, ack);
     return send(packet);
@@ -351,7 +351,7 @@ void Client::onHandshake(sockio::Packet& packet)
 {
     LTrace("On handshake: ", state());
 
-    json::value json = packet.json();
+    json::Value json = packet.json();
     if (json.is_object()) {
         if (json.contains("sid"))
             _sessionID = json["sid"].get<std::string>();
@@ -403,7 +403,7 @@ void Client::onMessage(sockio::Packet& packet)
 
         case Type::ConnectError: {
             std::string msg = "Connection rejected";
-            json::value json = packet.json();
+            json::Value json = packet.json();
             if (json.is_object() && json.contains("message"))
                 msg = json["message"].get<std::string>();
             scy::Error err;

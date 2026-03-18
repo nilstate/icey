@@ -31,7 +31,7 @@ Presence::Presence(const Presence& root)
 }
 
 
-Presence::Presence(const json::value& root)
+Presence::Presence(const json::Value& root)
     : Message(root)
 {
     // if (find("type") == end())

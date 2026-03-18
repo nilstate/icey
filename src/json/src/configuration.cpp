@@ -114,7 +114,7 @@ void Configuration::replace(const std::string& from, const std::string& to)
 
     std::string data = root.dump();
     util::replaceInPlace(data, from, to);
-    root = json::value::parse(data.begin(), data.end());
+    root = json::Value::parse(data.begin(), data.end());
 }
 
 

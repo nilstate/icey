@@ -14,6 +14,7 @@
 
 #include "scy/symple/message.h"
 #include "scy/symple/symple.h"
+#include <string_view>
 
 
 namespace scy {
@@ -24,21 +25,21 @@ class Symple_API Command : public Message
 {
 public:
     Command();
-    Command(const json::value& root);
+    Command(const json::Value& root);
     Command(const Command& root);
     virtual ~Command();
 
     [[nodiscard]] std::string node() const;
     [[nodiscard]] std::string action() const;
 
-    void setNode(const std::string& node);
-    void setAction(const std::string& action);
+    void setNode(std::string_view node);
+    void setAction(std::string_view action);
 
     bool valid() const override;
 
     [[nodiscard]] std::string param(int n) const;
     std::vector<std::string> params();
-    [[nodiscard]] bool matches(const std::string& xnode) const;
+    [[nodiscard]] bool matches(std::string_view xnode) const;
 };
 
 

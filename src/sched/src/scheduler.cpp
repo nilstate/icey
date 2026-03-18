@@ -155,7 +155,7 @@ void Scheduler::update()
 }
 
 
-void Scheduler::serialize(json::value& root)
+void Scheduler::serialize(json::Value& root)
 {
     LTrace("Serializing");
 
@@ -163,14 +163,14 @@ void Scheduler::serialize(json::value& root)
     for (const auto& t : _tasks) {
         auto* task = static_cast<sched::Task*>(t.get());
         LTrace("Serializing: ", task);
-        json::value& entry = root[root.size()];
+        json::Value& entry = root[root.size()];
         task->serialize(entry);
         task->trigger().serialize(entry["trigger"]);
     }
 }
 
 
-void Scheduler::deserialize(json::value& root)
+void Scheduler::deserialize(json::Value& root)
 {
     LTrace("Deserializing");
 
@@ -193,7 +193,7 @@ void Scheduler::deserialize(json::value& root)
 
 void Scheduler::print(std::ostream& ost)
 {
-    json::value data;
+    json::Value data;
     serialize(data);
     ost << data.dump(4);
 }

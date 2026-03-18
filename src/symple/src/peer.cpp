@@ -24,14 +24,14 @@ Peer::Peer()
 
 
 Peer::Peer(const Peer& r)
-    : json::value(r)
+    : json::Value(r)
 {
     (*this)["type"] = "Peer";
 }
 
 
-Peer::Peer(const json::value& r)
-    : json::value(r)
+Peer::Peer(const json::Value& r)
+    : json::Value(r)
 {
     (*this)["type"] = "Peer";
 }
@@ -96,21 +96,21 @@ std::string Peer::host() const
 }
 
 
-void Peer::setID(const std::string& id)
+void Peer::setID(std::string_view id)
 {
-    (*this)["id"] = id;
+    (*this)["id"] = std::string(id);
 }
 
 
-void Peer::setUser(const std::string& user)
+void Peer::setUser(std::string_view user)
 {
-    (*this)["user"] = user;
+    (*this)["user"] = std::string(user);
 }
 
 
-void Peer::setName(const std::string& name)
+void Peer::setName(std::string_view name)
 {
-    (*this)["name"] = name;
+    (*this)["name"] = std::string(name);
 }
 
 
@@ -120,15 +120,15 @@ void Peer::setName(const std::string& name)
 // }
 
 
-void Peer::setType(const std::string& type)
+void Peer::setType(std::string_view type)
 {
-    (*this)["type"] = type;
+    (*this)["type"] = std::string(type);
 }
 
 
-void Peer::setHost(const std::string& host)
+void Peer::setHost(std::string_view host)
 {
-    (*this)["host"] = host;
+    (*this)["host"] = std::string(host);
 }
 
 

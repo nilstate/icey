@@ -15,6 +15,7 @@
 #include "scy/symple/message.h"
 #include "scy/symple/symple.h"
 #include <ctime>
+#include <string_view>
 
 
 namespace scy {
@@ -25,7 +26,7 @@ class Symple_API Event : public Message
 {
 public:
     Event();
-    Event(const json::value& root);
+    Event(const json::Value& root);
     Event(const Event& root);
     virtual ~Event();
 
@@ -35,7 +36,7 @@ public:
     // std::string message() const;
     [[nodiscard]] std::time_t time() const;
 
-    void setName(const std::string& name);
+    void setName(std::string_view name);
     // void setMessage(const std::string& message);
     void setTime(std::time_t time);
 

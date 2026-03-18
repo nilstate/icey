@@ -81,12 +81,12 @@ public:
 
     /// Send a default message packet.
     virtual int send(const std::string& message, bool ack = false);
-    virtual int send(const json::value& message, bool ack = false);
+    virtual int send(const json::Value& message, bool ack = false);
 
     /// Send an event packet.
     virtual int send(const std::string& event, const char* message, bool ack = false);
     virtual int send(const std::string& event, const std::string& message, bool ack = false);
-    virtual int send(const std::string& event, const json::value& message, bool ack = false);
+    virtual int send(const std::string& event, const json::Value& message, bool ack = false);
 
     /// Send the given packet.
     virtual int send(const sockio::Packet& packet);

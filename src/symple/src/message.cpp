@@ -21,7 +21,7 @@ namespace smpl {
 
 
 Message::Message()
-    : json::value(json::value::object())
+    : json::Value(json::Value::object())
 {
     (*this)["id"] = util::randomString(16);
     (*this)["type"] = "message";
@@ -32,7 +32,7 @@ Message::Message()
 
 
 Message::Message(const Message& root)
-    : json::value(static_cast<const json::value&>(root))
+    : json::Value(static_cast<const json::Value&>(root))
     , IPacket()
 {
     if (find("id") == end())
@@ -45,8 +45,8 @@ Message::Message(const Message& root)
 }
 
 
-Message::Message(const json::value& root)
-    : json::value(root)
+Message::Message(const json::Value& root)
+    : json::Value(root)
 {
     if (find("id") == end())
         (*this)["id"] = util::randomString(16);
@@ -77,7 +77,7 @@ ssize_t Message::read(const ConstBuffer& buf)
 
 ssize_t Message::read(const std::string& root)
 {
-    *this = json::value::parse(root.begin(), root.end());
+    *this = json::Value::parse(root.begin(), root.end());
     return root.length();
 }
 
@@ -113,7 +113,7 @@ bool Message::valid() const
 
 void Message::clear()
 {
-    json::value::clear();
+    json::Value::clear();
 }
 
 
@@ -165,27 +165,27 @@ bool Message::isRequest() const
 }
 
 
-json::value& Message::notes()
+json::Value& Message::notes()
 {
     return (*this)["notes"];
 }
 
 
-json::value Message::data(const std::string& name) const
+json::Value Message::data(std::string_view name) const
 {
-    return (*this)["data"][name];
+    return (*this)["data"][std::string(name)];
 }
 
 
-json::value& Message::data(const std::string& name)
+json::Value& Message::data(std::string_view name)
 {
-    return (*this)["data"][name];
+    return (*this)["data"][std::string(name)];
 }
 
 
-void Message::setType(const std::string& type)
+void Message::setType(std::string_view type)
 {
-    (*this)["type"] = type;
+    (*this)["type"] = std::string(type);
 }
 
 
@@ -201,9 +201,9 @@ void Message::setTo(const Address& to)
 }
 
 
-void Message::setTo(const std::string& to)
+void Message::setTo(std::string_view to)
 {
-    (*this)["to"] = to;
+    (*this)["to"] = std::string(to);
 }
 
 
@@ -221,9 +221,9 @@ void Message::setFrom(const Address& from)
 }
 
 
-void Message::setFrom(const std::string& from)
+void Message::setFrom(std::string_view from)
 {
-    (*this)["from"] = from;
+    (*this)["from"] = std::string(from);
 }
 
 
@@ -235,64 +235,66 @@ void Message::setStatus(int code)
 }
 
 
-void Message::setNote(const std::string& type, const std::string& text)
+void Message::setNote(std::string_view type, std::string_view text)
 {
     clearNotes();
     addNote(type, text);
 }
 
-void Message::addNote(const std::string& type, const std::string& text)
+void Message::addNote(std::string_view type, std::string_view text)
 {
     if (type != "info" && type != "warn" && type != "error")
-        throw std::invalid_argument("Invalid note type: " + type);
+        throw std::invalid_argument("Invalid note type: " + std::string(type));
 
-    json::value note;
-    note["type"] = type;
-    note["text"] = text;
+    json::Value note;
+    note["type"] = std::string(type);
+    note["text"] = std::string(text);
     (*this)["notes"].push_back(note);
 }
 
 
-json::value& Message::setData(const std::string& name)
+json::Value& Message::setData(std::string_view name)
 {
-    return (*this)["data"][name] = name;
+    std::string key(name);
+    return (*this)["data"][key] = key;
 }
 
 
-void Message::setData(const std::string& name, const char* data)
+void Message::setData(std::string_view name, const char* data)
 {
-    (*this)["data"][name] = data;
+    (*this)["data"][std::string(name)] = data;
 }
 
 
-void Message::setData(const std::string& name, const std::string& data)
+void Message::setData(std::string_view name, std::string_view data)
 {
-    (*this)["data"][name] = data;
+    (*this)["data"][std::string(name)] = std::string(data);
 }
 
 
-void Message::setData(const std::string& name, const json::value& data)
+void Message::setData(std::string_view name, const json::Value& data)
 {
-    (*this)["data"][name] = data;
+    (*this)["data"][std::string(name)] = data;
 }
 
 
-void Message::setData(const std::string& name, int data)
+void Message::setData(std::string_view name, int data)
 {
-    (*this)["data"][name] = data;
+    (*this)["data"][std::string(name)] = data;
 }
 
 
-void Message::removeData(const std::string& name)
+void Message::removeData(std::string_view name)
 {
-    (*this)["data"].erase(name);
+    (*this)["data"].erase(std::string(name));
 }
 
 
-bool Message::hasData(const std::string& name)
+bool Message::hasData(std::string_view name)
 {
+    std::string key(name);
     auto& element = (*this)["data"];
-    return element.find(name) != element.end();
+    return element.find(key) != element.end();
 }
 
 

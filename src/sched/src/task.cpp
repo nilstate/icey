@@ -56,7 +56,7 @@ void Task::start()
 */
 
 
-void Task::serialize(json::value& root)
+void Task::serialize(json::Value& root)
 {
     LTrace("Serializing");
 
@@ -69,7 +69,7 @@ void Task::serialize(json::value& root)
 }
 
 
-void Task::deserialize(json::value& root)
+void Task::deserialize(json::Value& root)
 {
     LTrace("Deserializing");
 
