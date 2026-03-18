@@ -8,11 +8,35 @@
 
 #import <assert.h>
 #import <AVFoundation/AVFoundation.h>
+#import <CoreMedia/CoreMedia.h>
 
 
 namespace scy {
 namespace av {
 namespace avfoundation {
+
+
+// Map CMPixelFormatType to FFmpeg pixel format name
+static const char* pixelFormatName(FourCharCode fmt)
+{
+    switch (fmt) {
+        case kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange:
+        case kCVPixelFormatType_420YpCbCr8BiPlanarFullRange:
+            return "nv12";
+        case kCVPixelFormatType_422YpCbCr8:
+            return "uyvy422";
+        case kCVPixelFormatType_422YpCbCr8_yuvs:
+            return "yuyv422";
+        case kCVPixelFormatType_32BGRA:
+            return "bgra";
+        case kCVPixelFormatType_32ARGB:
+            return "argb";
+        case kCVPixelFormatType_420YpCbCr8Planar:
+            return "yuv420p";
+        default:
+            return "unknown";
+    }
+}
 
 
 bool GetAVFoundationVideoDevices(Device::Type type, std::vector<Device>* devices)
@@ -23,13 +47,48 @@ bool GetAVFoundationVideoDevices(Device::Type type, std::vector<Device>* devices
   @autoreleasepool
 #endif
   {
-    NSArray* capture_devices = [AVCaptureDevice devices];
+    // Use AVCaptureDeviceDiscoverySession (replaces deprecated [AVCaptureDevice devices])
+    NSArray<AVCaptureDeviceType>* deviceTypes;
+    AVMediaType mediaType;
+
+    // AVCaptureDeviceTypeExternal (macOS 14+) replaces
+    // AVCaptureDeviceTypeExternalUnknown (macOS 10.15-13.x)
+    AVCaptureDeviceType externalType;
+    if (@available(macOS 14.0, *)) {
+        externalType = AVCaptureDeviceTypeExternal;
+    } else {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        externalType = AVCaptureDeviceTypeExternalUnknown;
+#pragma clang diagnostic pop
+    }
+
+    if (type == Device::VideoInput) {
+        deviceTypes = @[
+            AVCaptureDeviceTypeBuiltInWideAngleCamera,
+            externalType
+        ];
+        mediaType = AVMediaTypeVideo;
+    } else if (type == Device::AudioInput) {
+        deviceTypes = @[
+            AVCaptureDeviceTypeBuiltInMicrophone,
+            externalType
+        ];
+        mediaType = AVMediaTypeAudio;
+    } else {
+        return false;
+    }
+
+    AVCaptureDeviceDiscoverySession* discoverySession =
+        [AVCaptureDeviceDiscoverySession
+            discoverySessionWithDeviceTypes:deviceTypes
+            mediaType:mediaType
+            position:AVCaptureDevicePositionUnspecified];
+
+    NSArray<AVCaptureDevice*>* capture_devices = discoverySession.devices;
     LDebug([capture_devices count], " capture device(s) found:")
+
     for (AVCaptureDevice* capture_device in capture_devices) {
-      if ((type == Device::VideoInput && [capture_device hasMediaType:AVMediaTypeVideo]) ||
-          (type == Device::AudioInput && [capture_device hasMediaType:AVMediaTypeAudio])) {
-      // if ([capture_device hasMediaType:AVMediaTypeVideo] ||
-      //     [capture_device hasMediaType:AVMediaTypeMuxed]) {
         static NSString* const kFormat = @"localizedName: \"%@\", "
             @"modelID: \"%@\", uniqueID \"%@\", isConnected: %d, "
             @"isInUseByAnotherApplication: %d";
@@ -44,8 +103,42 @@ bool GetAVFoundationVideoDevices(Device::Type type, std::vector<Device>* devices
 
         std::string uniqueID([[capture_device uniqueID] UTF8String]);
         std::string name([[capture_device localizedName] UTF8String]);
-        devices->push_back(Device(type, uniqueID, name));
-      }
+        Device device(type, uniqueID, name);
+        device.isConnected = [capture_device isConnected] ? true : false;
+        device.isInUse = [capture_device isInUseByAnotherApplication] ? true : false;
+
+        // Query capabilities from device formats
+        if (type == Device::VideoInput) {
+            for (AVCaptureDeviceFormat* format in [capture_device formats]) {
+                CMFormatDescriptionRef desc = [format formatDescription];
+                CMVideoDimensions dims = CMVideoFormatDescriptionGetDimensions(desc);
+                FourCharCode pixFmt = CMFormatDescriptionGetMediaSubType(desc);
+
+                // Get frame rate ranges
+                for (AVFrameRateRange* range in [format videoSupportedFrameRateRanges]) {
+                    Device::VideoCapability cap;
+                    cap.width = dims.width;
+                    cap.height = dims.height;
+                    cap.minFps = [range minFrameRate];
+                    cap.maxFps = [range maxFrameRate];
+                    cap.pixelFormat = pixelFormatName(pixFmt);
+
+                    // Avoid duplicates
+                    bool dup = false;
+                    for (auto& existing : device.videoCapabilities) {
+                        if (existing.width == cap.width && existing.height == cap.height
+                            && existing.maxFps == cap.maxFps && existing.pixelFormat == cap.pixelFormat) {
+                            dup = true;
+                            break;
+                        }
+                    }
+                    if (!dup)
+                        device.videoCapabilities.push_back(std::move(cap));
+                }
+            }
+        }
+
+        devices->push_back(std::move(device));
     }
   }
 #if !__has_feature(objc_arc)
@@ -58,31 +151,3 @@ bool GetAVFoundationVideoDevices(Device::Type type, std::vector<Device>* devices
 } // namespace avfoundation
 } // namespace av
 } // namespace scy
-
-
-/*
- * libjingle
- * Copyright 2010, Google Inc.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  1. Redistributions of source code must retain the above copyright notice,
- *     this list of conditions and the following disclaimer.
- *  2. Redistributions in binary form must reproduce the above copyright notice,
- *     this list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
- *  3. The name of the author may not be used to endorse or promote products
- *     derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
- * EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
- * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
- * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
- * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */

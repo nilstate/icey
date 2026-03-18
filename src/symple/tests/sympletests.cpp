@@ -179,10 +179,10 @@ int main(int argc, char** argv)
 
         client.connect();
 
-        // Run event loop for up to 2 seconds
+        // Run event loop for up to 3 seconds
         auto start = std::chrono::steady_clock::now();
         while (!gotOnline &&
-               std::chrono::steady_clock::now() - start < std::chrono::seconds(2)) {
+               std::chrono::steady_clock::now() - start < std::chrono::seconds(3)) {
             uv::runLoop(uv::defaultLoop(), UV_RUN_NOWAIT);
         }
 

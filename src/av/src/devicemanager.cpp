@@ -14,10 +14,10 @@
 
 
 #if defined(SCY_WIN)
-#include "scy/av/win32/directshow.h"
+#include "scy/av/win32/mediafoundation.h"
 #define SCY_VIDEO_INPUTS \
     {                    \
-        "dshow", "vfwcap"}
+        "dshow"}
 #define SCY_VIDEO_OUTPUTS \
     {                     \
     }
@@ -26,15 +26,16 @@
         "gdigrab"}
 #define SCY_AUDIO_INPUTS \
     {                    \
-        "dsound"}
+        "dshow"}
 #define SCY_AUDIO_OUTPUTS \
     {                     \
-        "dsound"}
+        "dshow"}
 #elif defined(SCY_APPLE)
 #include "scy/av/apple/avfoundation.h"
+#include "scy/av/apple/coreaudio.h"
 #define SCY_VIDEO_INPUTS \
     {                    \
-        "avfoundation", "qtkit"}
+        "avfoundation"}
 #define SCY_VIDEO_OUTPUTS \
     {                     \
     }
@@ -48,21 +49,22 @@
     {                     \
         "avfoundation"}
 #elif defined(SCY_LINUX)
+#include "scy/av/linux/v4l2.h"
 #define SCY_VIDEO_INPUTS \
     {                    \
-        "v4l2", "dv1394"}
+        "v4l2"}
 #define SCY_VIDEO_OUTPUTS \
     {                     \
     }
 #define SCY_SCREEN_INPUTS \
     {                     \
-        "x11grab"}
+        "pipewire", "x11grab"}
 #define SCY_AUDIO_INPUTS \
     {                    \
-        "alsa", "jack", "pulse"}
+        "pipewire", "pulse", "alsa"}
 #define SCY_AUDIO_OUTPUTS \
     {                     \
-        "alsa"}
+        "pipewire", "pulse", "alsa"}
 #endif
 
 
@@ -79,7 +81,6 @@ namespace av {
 
 Device::Device()
     : type(Unknown)
-    , isDefault(false)
 {
 }
 
@@ -93,9 +94,19 @@ Device::Device(Type type, const std::string& id, const std::string& name, bool i
 }
 
 
-void Device::print(std::ostream& os)
+void Device::print(std::ostream& os) const
 {
     os << "Device[" << type << ":" << name << ":" << id << ":" << isDefault << "]";
+    for (const auto& cap : videoCapabilities) {
+        os << "\n\t  " << cap.width << "x" << cap.height
+           << " @ " << cap.minFps << "-" << cap.maxFps << " fps"
+           << " (" << cap.pixelFormat << ")";
+    }
+    for (const auto& cap : audioCapabilities) {
+        os << "\n\t  " << cap.sampleRate << " Hz, "
+           << cap.channels << " ch"
+           << " (" << cap.sampleFormat << ")";
+    }
 }
 
 
@@ -115,9 +126,8 @@ const AVOutputFormat* findOutputFormat(const std::string& name)
     const AVOutputFormat* oformat = nullptr;
     void* opaque = nullptr;
     while ((oformat = av_muxer_iterate(&opaque))) {
-        if (name == oformat->name) {
+        if (name == oformat->name)
             return oformat;
-        }
     }
     return nullptr;
 }
@@ -125,31 +135,25 @@ const AVOutputFormat* findOutputFormat(const std::string& name)
 
 const AVOutputFormat* findDefaultOutputFormat(const std::vector<std::string>& outputs)
 {
-    const AVOutputFormat* oformat = nullptr;
     for (auto& output : outputs) {
-        oformat = findOutputFormat(output.c_str());
+        auto* oformat = findOutputFormat(output.c_str());
         if (oformat)
-            break;
+            return oformat;
     }
-
-    if (!oformat)
-        throw std::runtime_error("No output format found");
-    return oformat;
+    LWarn("No output format found");
+    return nullptr;
 }
 
 
 const AVInputFormat* findDefaultInputFormat(const std::vector<std::string>& inputs)
 {
-    const AVInputFormat* iformat = nullptr;
     for (auto& input : inputs) {
-        iformat = av_find_input_format(input.c_str());
+        auto* iformat = av_find_input_format(input.c_str());
         if (iformat)
-            break;
+            return iformat;
     }
-
-    if (!iformat)
-        throw std::runtime_error("No input format found");
-    return iformat;
+    LWarn("No input format found");
+    return nullptr;
 }
 
 
@@ -157,8 +161,7 @@ bool getInputDeviceList(const std::vector<std::string>& inputs,
                         Device::Type type, std::vector<av::Device>& devices)
 {
 #ifndef HAVE_FFMPEG_AVDEVICE
-    SWarn << "HAVE_FFMPEG_AVDEVICE not defined, cannot list input devices"
-;
+    SWarn << "HAVE_FFMPEG_AVDEVICE not defined, cannot list input devices";
     return false;
 #else
     const AVInputFormat* iformat = findDefaultInputFormat(inputs);
@@ -170,8 +173,7 @@ bool getInputDeviceList(const std::vector<std::string>& inputs,
     if (error < 0 || !devlist) {
         LWarn("Cannot list input devices for '", iformat->name, "': ", averror(error));
         if (devlist)
-            ;
-        avdevice_free_list_devices(&devlist);
+            avdevice_free_list_devices(&devlist);
         return false;
     }
 
@@ -193,8 +195,7 @@ bool getOutputDeviceList(const std::vector<std::string>& outputs,
                          Device::Type type, std::vector<av::Device>& devices)
 {
 #ifndef HAVE_FFMPEG_AVDEVICE
-    SWarn << "HAVE_FFMPEG_AVDEVICE not defined, cannot list output devices"
-;
+    SWarn << "HAVE_FFMPEG_AVDEVICE not defined, cannot list output devices";
     return false;
 #else
     const AVOutputFormat* oformat = findDefaultOutputFormat(outputs);
@@ -206,8 +207,7 @@ bool getOutputDeviceList(const std::vector<std::string>& outputs,
     if (error < 0 || !devlist) {
         LWarn("Cannot list output devices for '", oformat->name, "': ", averror(error));
         if (devlist)
-            ;
-        avdevice_free_list_devices(&devlist);
+            avdevice_free_list_devices(&devlist);
         return false;
     }
 
@@ -250,7 +250,16 @@ DeviceManager::DeviceManager()
 {
 #ifdef HAVE_FFMPEG
     initializeFFmpeg();
-#endif // HAVE_FFMPEG
+#endif
+
+    // Create platform-specific device watcher
+#if defined(SCY_WIN)
+    _watcher = std::make_unique<WindowsDeviceWatcher>(this);
+#elif defined(SCY_APPLE)
+    _watcher = std::make_unique<AppleDeviceWatcher>(this);
+#elif defined(SCY_LINUX)
+    _watcher = std::make_unique<LinuxDeviceWatcher>(this);
+#endif
 }
 
 
@@ -258,29 +267,29 @@ DeviceManager::~DeviceManager() noexcept
 {
 #ifdef HAVE_FFMPEG
     uninitializeFFmpeg();
-#endif // HAVE_FFMPEG
+#endif
 }
 
 
-bool DeviceManager::getCameras(std::vector<Device>& devices)
+bool DeviceManager::getCameras(std::vector<Device>& devices) const
 {
     return getDeviceList(Device::VideoInput, devices);
 }
 
 
-bool DeviceManager::getMicrophones(std::vector<Device>& devices)
+bool DeviceManager::getMicrophones(std::vector<Device>& devices) const
 {
     return getDeviceList(Device::AudioInput, devices);
 }
 
 
-bool DeviceManager::getSpeakers(std::vector<Device>& devices)
+bool DeviceManager::getSpeakers(std::vector<Device>& devices) const
 {
     return getDeviceList(Device::AudioOutput, devices);
 }
 
 
-bool DeviceManager::findCamera(std::string_view name, Device& device)
+bool DeviceManager::findCamera(std::string_view name, Device& device) const
 {
     std::vector<Device> devices;
     if (getCameras(devices)) {
@@ -291,12 +300,11 @@ bool DeviceManager::findCamera(std::string_view name, Device& device)
             }
         }
     }
-
     return false;
 }
 
 
-bool DeviceManager::findMicrophone(std::string_view name, Device& device)
+bool DeviceManager::findMicrophone(std::string_view name, Device& device) const
 {
     std::vector<Device> devices;
     if (getMicrophones(devices)) {
@@ -307,12 +315,11 @@ bool DeviceManager::findMicrophone(std::string_view name, Device& device)
             }
         }
     }
-
     return false;
 }
 
 
-bool DeviceManager::findSpeaker(std::string_view name, Device& device)
+bool DeviceManager::findSpeaker(std::string_view name, Device& device) const
 {
     std::vector<Device> devices;
     if (getSpeakers(devices)) {
@@ -323,56 +330,66 @@ bool DeviceManager::findSpeaker(std::string_view name, Device& device)
             }
         }
     }
-
     return false;
 }
 
 
-bool DeviceManager::getDefaultCamera(Device& device)
+/// Returns the default device, preferring one marked isDefault.
+/// Falls back to the first device if none is marked.
+static bool getDefault(const std::vector<Device>& devices, Device& out)
 {
-    std::vector<Device> devices;
-    if (getCameras(devices)) {
-        device = devices[0];
-        return true;
+    if (devices.empty())
+        return false;
+
+    for (auto& dev : devices) {
+        if (dev.isDefault) {
+            out = dev;
+            return true;
+        }
     }
 
-    return false;
+    // No device marked as default; use first
+    out = devices[0];
+    return true;
 }
 
 
-bool DeviceManager::getDefaultMicrophone(Device& device)
+bool DeviceManager::getDefaultCamera(Device& device) const
 {
     std::vector<Device> devices;
-    if (getMicrophones(devices)) {
-        device = devices[0];
-        return true;
-    }
-
-    return false;
+    if (!getCameras(devices))
+        return false;
+    return getDefault(devices, device);
 }
 
 
-bool DeviceManager::getDefaultSpeaker(Device& device)
+bool DeviceManager::getDefaultMicrophone(Device& device) const
 {
     std::vector<Device> devices;
-    if (getSpeakers(devices)) {
-        device = devices[0];
-        return true;
-    }
+    if (!getMicrophones(devices))
+        return false;
+    return getDefault(devices, device);
+}
 
-    return false;
+
+bool DeviceManager::getDefaultSpeaker(Device& device) const
+{
+    std::vector<Device> devices;
+    if (!getSpeakers(devices))
+        return false;
+    return getDefault(devices, device);
 }
 
 
 #ifdef HAVE_FFMPEG
 
-const AVInputFormat* DeviceManager::findVideoInputFormat()
+const AVInputFormat* DeviceManager::findVideoInputFormat() const
 {
     return internal::findDefaultInputFormat(SCY_VIDEO_INPUTS);
 }
 
 
-const AVInputFormat* DeviceManager::findAudioInputFormat()
+const AVInputFormat* DeviceManager::findAudioInputFormat() const
 {
     return internal::findDefaultInputFormat(SCY_AUDIO_INPUTS);
 }
@@ -380,19 +397,30 @@ const AVInputFormat* DeviceManager::findAudioInputFormat()
 #endif // HAVE_FFMPEG
 
 
-bool DeviceManager::getDeviceList(Device::Type type, std::vector<av::Device>& devices)
+bool DeviceManager::getDeviceList(Device::Type type, std::vector<av::Device>& devices) const
 {
     devices.clear();
 
-// NOTE: Unfortunately FFmpeg's dshow and avfoundation implementations don't
-// list devices properly yet so we need to call native libraries outselves:
+// Use native platform APIs for device enumeration where available.
+// FFmpeg's avdevice implementations don't list devices properly:
 // https://trac.ffmpeg.org/ticket/4486
 #if defined(SCY_WIN)
-    return dshow::getDeviceList(type, devices);
+    if (type == Device::VideoInput)
+        return mediafoundation::getDeviceList(type, devices);
+    if (type == Device::AudioInput || type == Device::AudioOutput)
+        return wasapi::getDeviceList(type, devices);
 #elif defined(SCY_APPLE)
-    return avfoundation::getDeviceList(type, devices);
-#elif defined(HAVE_FFMPEG)
-    // Use FFmpeg by default
+    if (type == Device::VideoInput || type == Device::AudioInput)
+        return avfoundation::getDeviceList(type, devices);
+    if (type == Device::AudioOutput)
+        return coreaudio::getDeviceList(type, devices);
+#elif defined(SCY_LINUX)
+    if (type == Device::VideoInput)
+        return v4l2::getDeviceList(type, devices);
+#endif
+
+#ifdef HAVE_FFMPEG
+    // FFmpeg avdevice fallback for output devices and Linux audio input
     switch (type) {
         case Device::VideoInput:
             return internal::getInputDeviceList(SCY_VIDEO_INPUTS, type, devices);
@@ -403,7 +431,8 @@ bool DeviceManager::getDeviceList(Device::Type type, std::vector<av::Device>& de
         case Device::AudioOutput:
             return internal::getOutputDeviceList(SCY_AUDIO_OUTPUTS, type, devices);
         default:
-            throw std::runtime_error("Unknown device type");
+            LWarn("Unknown device type: ", static_cast<int>(type));
+            return false;
     }
 #endif
 
@@ -411,19 +440,16 @@ bool DeviceManager::getDeviceList(Device::Type type, std::vector<av::Device>& de
 }
 
 
-int DeviceManager::getCapabilities()
+int DeviceManager::getCapabilities() const
 {
     std::vector<Device> devices;
     int caps = VIDEO_RECV;
-    if (getMicrophones(devices)) {
+    if (getMicrophones(devices))
         caps |= AUDIO_SEND;
-    }
-    if (getSpeakers(devices)) {
+    if (getSpeakers(devices))
         caps |= AUDIO_RECV;
-    }
-    if (getCameras(devices)) {
+    if (getCameras(devices))
         caps |= VIDEO_SEND;
-    }
     return caps;
 }
 
@@ -434,36 +460,89 @@ void DeviceManager::setWatcher(DeviceWatcher* watcher)
 }
 
 
-DeviceWatcher* DeviceManager::watcher()
+DeviceWatcher* DeviceManager::watcher() const
 {
     return _watcher.get();
 }
 
 
-void DeviceManager::print(std::ostream& ost)
+void DeviceManager::print(std::ostream& ost) const
 {
     std::vector<Device> devs;
 
-    ost << "Video capture devices: " << '\n';
+    ost << "Video capture devices:\n";
     if (getCameras(devs)) {
         internal::printDevices(ost, devs);
     } else {
-        ost << "\tNone" << '\n';
+        ost << "\tNone\n";
     }
 
-    ost << "Audio input devices: " << '\n';
+    ost << "Audio input devices:\n";
     if (getMicrophones(devs)) {
         internal::printDevices(ost, devs);
     } else {
-        ost << "\tNone" << '\n';
+        ost << "\tNone\n";
     }
 
-    ost << "Audio output devices: " << '\n';
+    ost << "Audio output devices:\n";
     if (getSpeakers(devs)) {
         internal::printDevices(ost, devs);
     } else {
-        ost << "\tNone" << '\n';
+        ost << "\tNone\n";
     }
+}
+
+
+std::vector<DeviceManager::HardwareCodec> DeviceManager::getHardwareCodecs() const
+{
+    std::vector<HardwareCodec> result;
+#ifdef HAVE_FFMPEG
+    const AVCodec* codec = nullptr;
+    void* opaque = nullptr;
+    while ((codec = av_codec_iterate(&opaque))) {
+        if (codec->capabilities & AV_CODEC_CAP_HARDWARE) {
+            result.push_back({
+                codec->name,
+                av_codec_is_encoder(codec) ? "encoder" : "decoder"
+            });
+        }
+    }
+#endif
+    return result;
+}
+
+
+std::optional<std::pair<Device, Device::VideoCapability>>
+DeviceManager::negotiateVideoCapture(std::string_view deviceName, int width, int height, double fps) const
+{
+    Device device;
+
+    if (!deviceName.empty()) {
+        if (!findCamera(deviceName, device))
+            return std::nullopt;
+    } else {
+        if (!getDefaultCamera(device))
+            return std::nullopt;
+    }
+
+    return std::make_pair(device, device.bestVideoCapability(width, height, fps));
+}
+
+
+std::optional<std::pair<Device, Device::AudioCapability>>
+DeviceManager::negotiateAudioCapture(std::string_view deviceName, int sampleRate, int channels) const
+{
+    Device device;
+
+    if (!deviceName.empty()) {
+        if (!findMicrophone(deviceName, device))
+            return std::nullopt;
+    } else {
+        if (!getDefaultMicrophone(device))
+            return std::nullopt;
+    }
+
+    return std::make_pair(device, device.bestAudioCapability(sampleRate, channels));
 }
 
 

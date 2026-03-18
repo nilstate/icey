@@ -1,6 +1,8 @@
 if(HAVE_FFMPEG)
   add_subdirectory(deviceenumerator)
   add_subdirectory(devicerecorder)
+  add_subdirectory(devicewatcher)
+  add_subdirectory(devicecapture)
   add_subdirectory(filetranscode)
   add_subdirectory(mjpegserver)
   add_subdirectory(wsstreamer)

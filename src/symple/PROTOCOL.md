@@ -23,7 +23,9 @@ Client                              Server
   |                                    |
   |--- WebSocket connect ------------->|
   |                                    |
-  |--- {"type":"auth", ...} --------->|  First message must be auth
+  |<-- {"type":"ready"} --------------|  Server signals WS handshake complete
+  |                                    |
+  |--- {"type":"auth", ...} --------->|  Client sends auth
   |                                    |  Server validates credentials
   |<-- {"type":"welcome", ...} -------|  Success: peer assigned, rooms joined
   |  or                                |

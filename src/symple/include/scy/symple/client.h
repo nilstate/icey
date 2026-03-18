@@ -203,6 +203,8 @@ private:
     StringVec _rooms;
     int _announceStatus = 0;
     Timer _reconnectTimer;
+    Timer _authSendTimer;
+    std::string _pendingAuth;
     int _reconnectCount = 0;
     bool _wasOnline = false;
 };

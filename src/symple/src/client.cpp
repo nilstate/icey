@@ -65,10 +65,6 @@ void Client::doConnect()
 
     _ws = http::createConnectionT<http::ClientConnection>(http::URL(url), _loop);
 
-    _ws->Connect += [this]() {
-        onSocketConnect();
-    };
-
     _ws->Payload += [this](const MutableBuffer& buf) {
         std::string data(bufferCast<const char*>(buf), buf.size());
         onSocketRecv(data);
@@ -78,9 +74,56 @@ void Client::doConnect()
         onSocketClose();
     };
 
-    // Initiate the WebSocket handshake.
-    // send() with no args triggers the connection and WS upgrade.
+    // Build auth JSON to send as the first WS message after handshake.
+    json::Value auth;
+    auth["type"] = "auth";
+    auth["user"] = _options.user;
+    if (!_options.name.empty())
+        auth["name"] = _options.name;
+    if (!_options.token.empty())
+        auth["token"] = _options.token;
+    if (!_options.type.empty()) {
+        json::Value data;
+        data["peerType"] = _options.type;
+        auth["data"] = data;
+    }
+
+    std::string authStr = auth.dump();
+
+    // Store the auth message to send after the WS handshake completes.
+    _pendingAuth = authStr;
+
+    // The first Payload from the server means the WS connection is
+    // fully established. But we need to send auth before the server
+    // sends anything. Use a polling timer to detect handshake completion.
+    _authSendTimer.setTimeout(10);
+    _authSendTimer.setInterval(10);
+    _authSendTimer.Timeout += [this]() {
+        // Check if the WS handshake has completed by attempting to send.
+        // If the connection is active and the adapter allows sending,
+        // the handshake is done.
+        if (!_pendingAuth.empty() && _ws) {
+            try {
+                auto result = _ws->send(
+                    _pendingAuth.c_str(), _pendingAuth.size(), http::ws::Text);
+                if (result > 0) {
+                    LInfo("Auth sent successfully");
+                    _pendingAuth.clear();
+                    _authSendTimer.stop();
+                    setState(this, ClientState::Authenticating);
+                }
+            }
+            catch (...) {
+                // Handshake not yet complete, try again next tick
+            }
+        }
+    };
+    _authSendTimer.start();
+
+    // Initiate the WebSocket connection
     _ws->send();
+
+    setState(this, ClientState::Authenticating);
 }
 
 
@@ -254,31 +297,6 @@ void Client::setError(const std::string& error)
 // WebSocket callbacks
 // ---------------------------------------------------------------------------
 
-void Client::onSocketConnect()
-{
-    LInfo("WebSocket connected, authenticating");
-    setState(this, ClientState::Authenticating);
-
-    // Send auth as first message (Symple v4 protocol)
-    json::Value auth;
-    auth["type"] = "auth";
-    auth["user"] = _options.user;
-    if (!_options.name.empty())
-        auth["name"] = _options.name;
-    if (!_options.token.empty())
-        auth["token"] = _options.token;
-
-    // Extra data
-    json::Value data;
-    if (!_options.type.empty())
-        data["type"] = _options.type;
-    if (!data.empty())
-        auth["data"] = data;
-
-    sendJson(auth);
-}
-
-
 void Client::onSocketRecv(const std::string& data)
 {
     try {
@@ -302,6 +320,11 @@ void Client::onSocketRecv(const std::string& data)
             _announceStatus = status;
             Announce.emit(status);
             setError(message);
+            return;
+        }
+
+        if (type == "ready") {
+            // Server v4 ready signal - ignore, we pre-queued auth
             return;
         }
 
@@ -483,6 +506,8 @@ void Client::startReconnect()
 
 void Client::reset()
 {
+    _authSendTimer.stop();
+    _pendingAuth.clear();
     _roster.clear();
     _rooms.clear();
     _announceStatus = 0;

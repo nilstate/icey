@@ -119,7 +119,7 @@ public:
                 _server.onAuth(_tempPeer, msg);
                 if (_tempPeer.authenticated()) {
                     _authenticated = true;
-                        _authTimer.stop();
+                    _authTimer.stop();
                 }
             }
             else {
@@ -257,6 +257,8 @@ void Server::onAuth(ServerPeer& tempPeer, const json::Value& msg)
         return;
     }
 
+    LDebug("onAuth: user=", user);
+
     // Generate session ID using base module's random string
     std::string id = util::randomString(16);
 
@@ -310,7 +312,7 @@ void Server::onAuth(ServerPeer& tempPeer, const json::Value& msg)
     // Send welcome
     json::Value welcome;
     welcome["type"] = "welcome";
-    welcome["peer"] = p;
+    welcome["peer"] = static_cast<const json::Value&>(p);
     welcome["status"] = 200;
     registeredPeer->send(welcome);
 
@@ -320,7 +322,7 @@ void Server::onAuth(ServerPeer& tempPeer, const json::Value& msg)
     json::Value presence;
     presence["type"] = "presence";
     presence["from"] = user + "|" + id;
-    presence["data"] = p;
+    presence["data"] = static_cast<const json::Value&>(p);
     broadcast(user, presence, id);
 
     // Notify server hooks (release lock for signal emission)
@@ -399,7 +401,7 @@ void Server::onDisconnect(ServerPeer& peer)
     json::Value presence;
     presence["type"] = "presence";
     presence["from"] = user + "|" + id;
-    presence["data"] = peer.peer();
+    presence["data"] = static_cast<const json::Value&>(peer.peer());
     presence["data"]["online"] = false;
 
     for (const auto& room : peer.rooms()) {

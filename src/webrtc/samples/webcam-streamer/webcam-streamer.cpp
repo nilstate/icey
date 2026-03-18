@@ -27,6 +27,7 @@
 
 
 #include "scy/application.h"
+#include "scy/av/devicemanager.h"
 #include "scy/av/mediacapture.h"
 #include "scy/av/videoencoder.h"
 #include "scy/logger.h"
@@ -53,6 +54,7 @@ public:
     std::unique_ptr<wrtc::PeerSession> session;
     std::shared_ptr<av::MediaCapture> capture;
     PacketStream stream;
+    av::Device::VideoCapability videoCap;
 
     WebcamStreamer(const smpl::Client::Options& opts)
         : client(opts)
@@ -64,13 +66,32 @@ public:
     {
         // Set up video capture.
 #if USE_CAMERA
+        // Use DeviceManager to find the best camera parameters
+        av::DeviceManager devman;
+        auto camResult = devman.negotiateVideoCapture("", 1280, 720, 30.0);
+
         capture = std::make_shared<av::MediaCapture>();
-        capture->openCamera(0, 640, 480);
+        if (camResult) {
+            auto& [camera, cap] = *camResult;
+            videoCap = cap;
+            std::cout << "Using camera: " << camera.name
+                      << " at " << cap.width << "x" << cap.height
+                      << " @ " << cap.maxFps << " fps" << '\n';
+            capture->openVideo(camera.id, cap.width, cap.height,
+                               cap.maxFps, cap.pixelFormat);
+        } else {
+            std::cerr << "No camera found, falling back to test file" << '\n';
+            capture->openFile(SCY_DATA_DIR "/test.mp4");
+            capture->setLoopInput(true);
+            capture->setLimitFramerate(true);
+            videoCap = {640, 480, 30, 30, "yuv420p"};
+        }
 #else
         capture = std::make_shared<av::MediaCapture>();
         capture->openFile(SCY_DATA_DIR "/test.mp4");
         capture->setLoopInput(true);
         capture->setLimitFramerate(true);
+        videoCap = {640, 480, 30, 30, "yuv420p"};
 #endif
 
         client.Announce += slot(this, &WebcamStreamer::onAnnounce);
@@ -95,7 +116,8 @@ private:
     {
         wrtc::PeerSession::Config config;
         config.rtcConfig.iceServers.emplace_back("stun:stun.l.google.com:19302");
-        config.mediaOpts.videoCodec = av::VideoCodec("H264", "libx264", 640, 480, 30);
+        config.mediaOpts.videoCodec = av::VideoCodec(
+            "H264", "libx264", videoCap.width, videoCap.height, videoCap.maxFps);
         // Audio left empty - video only.
         config.enableDataChannel = false;
 

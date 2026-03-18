@@ -16,6 +16,9 @@ if (NOT FFmpeg_FIND_COMPONENTS)
   set(FFmpeg_FIND_COMPONENTS AVCODEC AVFORMAT AVUTIL SWSCALE SWRESAMPLE)
 endif()
 
+# Optional components that don't fail the overall find if missing
+set(_FFmpeg_OPTIONAL_COMPONENTS AVDEVICE AVFILTER)
+
 find_package(PkgConfig QUIET)
 
 set(FFmpeg_FOUND TRUE)
@@ -33,7 +36,16 @@ set(_FFmpeg_PKG_SWSCALE    libswscale)
 set(_FFmpeg_PKG_SWRESAMPLE libswresample)
 set(_FFmpeg_PKG_POSTPROC   libpostproc)
 
-foreach(_component ${FFmpeg_FIND_COMPONENTS})
+# Also probe optional components (avdevice, avfilter) if not already requested
+set(_FFmpeg_ALL_COMPONENTS ${FFmpeg_FIND_COMPONENTS})
+foreach(_opt ${_FFmpeg_OPTIONAL_COMPONENTS})
+  list(FIND _FFmpeg_ALL_COMPONENTS ${_opt} _idx)
+  if (_idx EQUAL -1)
+    list(APPEND _FFmpeg_ALL_COMPONENTS ${_opt})
+  endif()
+endforeach()
+
+foreach(_component ${_FFmpeg_ALL_COMPONENTS})
   set(_pkg ${_FFmpeg_PKG_${_component}})
   if (NOT _pkg)
     message(WARNING "FindFFmpeg: unknown component ${_component}")
@@ -70,7 +82,11 @@ foreach(_component ${FFmpeg_FIND_COMPONENTS})
       list(APPEND FFmpeg_LIBRARIES ${_FF_${_component}_LIB})
     else()
       set(FFmpeg_${_component}_FOUND FALSE)
-      set(FFmpeg_FOUND FALSE)
+      # Only fail overall find for required (non-optional) components
+      list(FIND _FFmpeg_OPTIONAL_COMPONENTS ${_component} _opt_idx)
+      if (_opt_idx EQUAL -1)
+        set(FFmpeg_FOUND FALSE)
+      endif()
     endif()
   endif()
 endforeach()

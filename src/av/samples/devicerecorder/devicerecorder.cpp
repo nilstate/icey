@@ -10,6 +10,9 @@
 // Records H.264 video + AAC audio from the default camera and microphone
 // to an MP4 file using the PacketStream pipeline.
 //
+// Uses negotiateVideoCapture/negotiateAudioCapture to pick the best
+// parameters the device actually supports.
+//
 // Requires a camera and/or microphone to be connected. For a device-free
 // alternative, see the filetranscode sample.
 //
@@ -27,72 +30,86 @@
 #include "scy/av/videocapture.h"
 #include "scy/packetstream.h"
 
+#include <iostream>
 
-// This demo showcases how to implement a H.264 multiplex recorder from realtime
-// device captures using LibSourcey.
 
 #define OUTPUT_FILENAME "deviceoutput.mp4"
-#define OUTPUT_FORMAT av::Format("MP4 Realtime", "mp4",                               \
-                                 {"libx264", 400, 300, 25, 48000, 128000, "yuv420p"}, \
-                                 {"aac", 2, 44100, 64000, "fltp"});
 
 using namespace scy;
 
 
 int main(int argc, char** argv)
 {
-    Logger::instance().add(std::make_unique<ConsoleChannel>("debug", Level::Trace)); // Debug
+    Logger::instance().add(std::make_unique<ConsoleChannel>("debug", Level::Trace));
     {
-        // Create a PacketStream to pass packets
-        // from device captures to the encoder
         PacketStream stream;
-
-        // Output format is set explicitly; input format will be populated
-        // from the capture devices so the encoder knows the source parameters
-        av::EncoderOptions options;
-        options.ofile = OUTPUT_FILENAME;
-        options.oformat = OUTPUT_FORMAT;
-        options.iformat.audio.enabled = false; // enabled below if device found
-        options.iformat.video.enabled = false; // enabled below if device found
-
-        // Create a device manager instance to enumerate system devices
-        av::Device device;
         av::DeviceManager devman;
 
-        // Create and attach the default video capture
+        // Negotiate best video parameters from the default camera
+        auto videoResult = devman.negotiateVideoCapture("", 1280, 720, 30.0);
+        auto audioResult = devman.negotiateAudioCapture("", 44100, 2);
+
+        if (!videoResult && !audioResult) {
+            std::cerr << "No camera or microphone found" << std::endl;
+            return 1;
+        }
+
+        // Use negotiated params or sensible defaults for output format
+        int vw = 1280, vh = 720;
+        double vfps = 30;
+        int ach = 2, asr = 44100;
+
+        if (videoResult) {
+            vw = videoResult->second.width;
+            vh = videoResult->second.height;
+            vfps = videoResult->second.maxFps;
+        }
+        if (audioResult) {
+            ach = audioResult->second.channels;
+            asr = audioResult->second.sampleRate;
+        }
+
+        av::EncoderOptions options;
+        options.ofile = OUTPUT_FILENAME;
+        options.oformat = av::Format("MP4 Realtime", "mp4",
+            {"libx264", vw, vh, vfps, 48000, 128000, "yuv420p"},
+            {"aac", ach, asr, 64000, "fltp"});
+        options.iformat.audio.enabled = false;
+        options.iformat.video.enabled = false;
+
+        // Open video capture
         av::VideoCapture video;
-        if (devman.getDefaultCamera(device)) {
-            LInfo("Using video device: ", device.name);
-            video.openVideo(device.id, {640, 480});
-            video.getEncoderFormat(options.iformat); // populate input format from capture
+        if (videoResult) {
+            auto& [camera, cap] = *videoResult;
+            LInfo("Using camera: ", camera.name, " at ",
+                  cap.width, "x", cap.height, " @ ", cap.maxFps, " fps");
+            video.openVideo(camera.id, cap.width, cap.height, cap.maxFps, cap.pixelFormat);
+            video.getEncoderFormat(options.iformat);
             stream.attachSource(&video, false, true);
         }
 
-        // Create and attach the default audio capture
+        // Open audio capture
         av::AudioCapture audio;
-        if (devman.getDefaultMicrophone(device)) {
-            LInfo("Using audio device: ", device.name);
-            audio.openAudio(device.id, {2, 44100});
+        if (audioResult) {
+            auto& [mic, cap] = *audioResult;
+            LInfo("Using microphone: ", mic.name, " at ",
+                  cap.sampleRate, " Hz, ", cap.channels, " ch");
+            audio.openAudio(mic.id, {cap.channels, cap.sampleRate});
             audio.getEncoderFormat(options.iformat);
             stream.attachSource(&audio, false, true);
         }
 
-        // Create and attach the multiplex encoder
         av::MultiplexPacketEncoder encoder(options);
         encoder.init();
-        stream.attach(&encoder, 5, false); // priority 5: runs after capture sources
+        stream.attach(&encoder, 5, false);
 
-        // Start the stream
         stream.start();
 
-        // Keep recording until Ctrl-C is pressed
         LInfo("Recording video: ", OUTPUT_FILENAME);
         waitForShutdown([](void* opaque) {
             reinterpret_cast<PacketStream*>(opaque)->stop();
         },
                         &stream);
     }
-
-    // Logger::destroy();
     return 0;
 }
