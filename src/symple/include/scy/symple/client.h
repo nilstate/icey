@@ -183,7 +183,6 @@ protected:
 
 private:
     void doConnect();
-    void onSocketConnect();
     void onSocketRecv(const std::string& data);
     void onSocketClose();
     void onSocketError(const std::string& error);
@@ -203,8 +202,6 @@ private:
     StringVec _rooms;
     int _announceStatus = 0;
     Timer _reconnectTimer;
-    Timer _authSendTimer;
-    std::string _pendingAuth;
     int _reconnectCount = 0;
     bool _wasOnline = false;
 };

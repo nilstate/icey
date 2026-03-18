@@ -257,8 +257,6 @@ void Server::onAuth(ServerPeer& tempPeer, const json::Value& msg)
         return;
     }
 
-    LDebug("onAuth: user=", user);
-
     // Generate session ID using base module's random string
     std::string id = util::randomString(16);
 

@@ -17,7 +17,7 @@ namespace scy_test = scy::test;
 int main(int argc, char** argv)
 {
     scy::Logger::instance().add(
-        std::make_unique<scy::ConsoleChannel>("debug", scy::Level::Debug));
+        std::make_unique<scy::ConsoleChannel>("debug", scy::Level::Trace));
     scy_test::init();
 
 
@@ -173,6 +173,7 @@ int main(int argc, char** argv)
         };
 
         client.StateChange += [&](void*, scy::smpl::ClientState& state, const scy::smpl::ClientState&) {
+            LDebug("Test: client state -> ", state.toString());
             if (state.id() == scy::smpl::ClientState::Online)
                 gotOnline = true;
         };
