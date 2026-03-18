@@ -80,7 +80,7 @@ public:
     /// Send a string message.
     /// The message must be a valid Symple message otherwise it will
     /// not be delivered.
-    virtual int send(const std::string& message, bool ack = false);
+    int send(const std::string& message, bool ack = false) override;
 
     /// Create a Transaction object with the given message which will
     /// notify on Ack response from the server.
@@ -105,7 +105,7 @@ public:
 
     /// Return the session ID of our current peer object.
     /// Return an empty string when offline.
-    [[nodiscard]] virtual std::string ourID() const;
+    [[nodiscard]] std::string ourID() const;
 
     /// Return a list of rooms the client has joined.
     [[nodiscard]] StringVec rooms() const;
@@ -160,7 +160,7 @@ protected:
 
     /// Resets variables and data at the beginning
     /// and end of each session.
-    virtual void reset();
+    void reset() override;
 
     /// Creates a Presence object.
     virtual void createPresence(Presence& p);

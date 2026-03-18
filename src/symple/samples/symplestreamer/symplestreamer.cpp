@@ -86,14 +86,14 @@ public:
         _stream.emitter += packetSlot(this, &StreamResponder::onPacket);
         _stream.start();
 
-        std::cout << "Stream client connected" << std::endl;
+        std::cout << "Stream client connected" << '\n';
     }
 
     ~StreamResponder()
     {
         _stream.emitter -= packetSlot(this, &StreamResponder::onPacket);
         _stream.stop();
-        std::cout << "Stream client disconnected" << std::endl;
+        std::cout << "Stream client disconnected" << '\n';
     }
 
     void onClose() override { _stream.stop(); }
@@ -104,7 +104,7 @@ public:
             connection().send(packet.data(), packet.size(), http::ws::Binary);
         }
         catch (std::exception& exc) {
-            std::cerr << "Send error: " << exc.what() << std::endl;
+            std::cerr << "Send error: " << exc.what() << '\n';
             connection().close();
         }
     }
@@ -155,7 +155,7 @@ public:
         // Start the WebSocket media server
         streamServer.start();
         std::cout << "MJPEG WebSocket server listening on ws://localhost:"
-                  << StreamPort << std::endl;
+                  << StreamPort << '\n';
     }
 
     void shutdown()
@@ -174,7 +174,7 @@ public:
 
         if (subtype == "call:init") {
             // Remote peer wants to start a stream - auto-accept
-            std::cout << "Incoming call from " << msg.from().toString() << std::endl;
+            std::cout << "Incoming call from " << msg.from().toString() << '\n';
 
             smpl::Message accept;
             accept.setType("message");
@@ -189,27 +189,27 @@ public:
             streaming = true;
 
             std::cout << "Call accepted, streaming on ws://localhost:"
-                      << StreamPort << std::endl;
+                      << StreamPort << '\n';
         }
         else if (subtype == "call:hangup") {
-            std::cout << "Call ended by " << msg.from().toString() << std::endl;
+            std::cout << "Call ended by " << msg.from().toString() << '\n';
             streaming = false;
         }
     }
 
     void onAnnounce(const int& status)
     {
-        std::cout << "Announce response: " << status << std::endl;
+        std::cout << "Announce response: " << status << '\n';
         if (status != 200) {
-            std::cerr << "Authentication failed (status " << status << ")" << std::endl;
+            std::cerr << "Authentication failed (status " << status << ")" << '\n';
         }
     }
 
     void onStateChange(void*, sockio::ClientState& state, const sockio::ClientState&)
     {
-        std::cout << "Client state: " << state.toString() << std::endl;
+        std::cout << "Client state: " << state.toString() << '\n';
         if (state.id() == sockio::ClientState::Online) {
-            std::cout << "Online as " << client.ourID() << std::endl;
+            std::cout << "Online as " << client.ourID() << '\n';
             client.joinRoom("public");
         }
     }
@@ -236,13 +236,13 @@ int main(int argc, char** argv)
         else if (key == "-token") opts.token = val;
         else if (key == "-user") opts.user = val;
         else if (key == "-name") opts.name = val;
-        else std::cerr << "Unknown option: " << key << std::endl;
+        else std::cerr << "Unknown option: " << key << '\n';
     }
 
     if (opts.user.empty()) {
         std::cerr << "Usage: " << argv[0]
                   << " -host <server> -port <port> -token <token>"
-                  << " -user <id> -name <name>" << std::endl;
+                  << " -user <id> -name <name>" << '\n';
         return 1;
     }
 

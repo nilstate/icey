@@ -75,7 +75,7 @@ public:
                "\n  -user           User ID to register on the server with"
                "\n  -name           Display name to register on the server with"
                "\n  -type           User type to register on the server with (optional)"
-            << std::endl;
+            << '\n';
     }
 
     void parseOptions(int argc, char* argv[])
@@ -154,53 +154,53 @@ public:
 
                     // Send a message
                     if (o == 'M') {
-                        std::cout << "Compose your message: " << std::endl;
+                        std::cout << "Compose your message: " << '\n';
                         std::string data;
                         std::getline(std::cin, data);
 
                         auto message = new scy::smpl::Message();
                         message->setData(data);
 
-                        std::cout << "Sending message: " << data << std::endl;
+                        std::cout << "Sending message: " << data << '\n';
                         // app->client.send(message, true);
 
                         // Push to IPC queue so the send happens on the event loop thread
                         app->ipc.push(new scy::ipc::Action(
-                            std::bind(&SympleApplication::onSyncMessage, app, std::placeholders::_1),
+                            [app](const scy::ipc::Action& a) { app->onSyncMessage(a); },
                             message));
                     }
 
                     // Join a room
                     else if (o == 'J') {
-                        std::cout << "Join a room: " << std::endl;
+                        std::cout << "Join a room: " << '\n';
                         auto data = new std::string();
                         std::getline(std::cin, *data);
 
                         app->ipc.push(new scy::ipc::Action(
-                            std::bind(&SympleApplication::onSyncCommand, app, std::placeholders::_1),
+                            [app](const scy::ipc::Action& a) { app->onSyncCommand(a); },
                             data, "join"));
                     }
 
                     // Leave a room
                     else if (o == 'L') {
-                        std::cout << "Leave a room: " << std::endl;
+                        std::cout << "Leave a room: " << '\n';
                         auto data = new std::string();
                         std::getline(std::cin, *data);
 
                         app->ipc.push(new scy::ipc::Action(
-                            std::bind(&SympleApplication::onSyncCommand, app, std::placeholders::_1),
+                            [app](const scy::ipc::Action& a) { app->onSyncCommand(a); },
                             data, "leave"));
                     }
 
                     // List contacts
                     else if (o == 'C') {
-                        std::cout << "Listing contacts:" << std::endl;
+                        std::cout << "Listing contacts:" << '\n';
                         app->client.roster().print(std::cout);
-                        std::cout << std::endl;
+                        std::cout << '\n';
                     }
                 }
 
-                std::cout << "Quiting" << std::endl;
+                std::cout << "Quiting" << '\n';
                 app->shutdown();
             },
                                 this);
@@ -211,7 +211,7 @@ public:
             },
                             this);
         } catch (std::exception& exc) {
-            std::cerr << "Symple runtime error: " << exc.what() << std::endl;
+            std::cerr << "Symple runtime error: " << exc.what() << '\n';
         }
     }
 
@@ -289,7 +289,7 @@ public:
     void onClientStateChange(void*, scy::sockio::ClientState& state, const scy::sockio::ClientState& oldState)
     {
         SDebug << "Client state changed: " << state << ": "
-               << client.ws().socket->address() << std::endl;
+               << client.ws().socket->address();
 
         switch (state.id()) {
             case scy::sockio::ClientState::Connecting:
@@ -297,13 +297,13 @@ public:
             case scy::sockio::ClientState::Connected:
                 break;
             case scy::sockio::ClientState::Online:
-                std::cout << "Client online" << std::endl;
+                std::cout << "Client online" << '\n';
 
                 // Join the public room
                 client.joinRoom("public");
                 break;
             case scy::sockio::ClientState::Error:
-                std::cout << "Client disconnected" << std::endl;
+                std::cout << "Client disconnected" << '\n';
                 break;
         }
     }

@@ -233,10 +233,10 @@ bool FormElement::clearElements(std::string_view id, bool partial)
     bool match = false;
     json::Value result;
 
-    for (auto it = root().begin(); it != root().end(); ++it) {
+    for (auto& [k, v] : root().items()) {
 
         // Filter elements
-        if (it.key() == "elements") {
+        if (k == "elements") {
             for (unsigned x = 0; x < root()["elements"].size(); x++) {
                 json::Value& element = root()["elements"][x];
                 std::string curID = element["id"].get<std::string>();
@@ -256,7 +256,7 @@ bool FormElement::clearElements(std::string_view id, bool partial)
 
         // Keep other members
         else
-            result[it.key()] = root()[it.key()];
+            result[k] = v;
     }
 
     *_root = result;

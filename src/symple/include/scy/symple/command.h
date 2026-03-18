@@ -35,7 +35,7 @@ public:
     void setNode(std::string_view node);
     void setAction(std::string_view action);
 
-    bool valid() const override;
+    virtual bool valid() const;
 
     [[nodiscard]] std::string param(int n) const;
     std::vector<std::string> params();

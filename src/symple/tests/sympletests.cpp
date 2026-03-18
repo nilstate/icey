@@ -68,7 +68,7 @@ int main(int argc, char** argv)
         // NOTE: The server must allow anonymous authentication for this test
         scy::Process proc;
         if (!scy::openTestServer(proc)) {
-            std::cerr << "cannot start test server, skipping..." << std::endl;
+            std::cerr << "cannot start test server, skipping..." << '\n';
             return;
         }
 

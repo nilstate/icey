@@ -75,7 +75,7 @@ public:
               // << "user=" << client.options().user << ", "
               // << "name=" << client.options().name << ", "
               << "gotOnline=" << gotOnline << ", "
-              << "gotRemotePresence=" << gotRemotePresence << std::endl;
+              << "gotRemotePresence=" << gotRemotePresence;
         return gotOnline && gotRemotePresence;
     }
 
@@ -85,7 +85,7 @@ public:
               // << "user=" << client.options().user << ", "
               // << "name=" << client.options().name << ", "
               << "gotOnline=" << gotOnline << ", "
-              << "gotRemotePresence=" << gotRemotePresence << std::endl;
+              << "gotRemotePresence=" << gotRemotePresence;
         expect(gotOnline);
         expect(gotRemotePresence);
     }
@@ -129,7 +129,7 @@ public:
     void onClientStateChange(void*, sockio::ClientState& state, const sockio::ClientState& oldState)
     {
         SInfo << user << ": Client state changed: " << state << ": "
-              << client.ws().socket->address() << std::endl;
+              << client.ws().socket->address();
 
         switch (state.id()) {
             case sockio::ClientState::Connecting:
@@ -180,10 +180,10 @@ bool installTestServerSync()
     Process proc({"npm", "install"});
     setTestServerCwd(proc.cwd);
     proc.onstdout = [](std::string line) {
-        std::cout << "server npm stdout: " << line << std::endl;
+        std::cout << "server npm stdout: " << line << '\n';
     };
     proc.onexit = [&](int64_t status) {
-        std::cout << "server npm exit: " << status << std::endl;
+        std::cout << "server npm exit: " << status << '\n';
         success = status == 0;
     };
     proc.spawn();
@@ -210,12 +210,12 @@ bool openTestServer(Process& proc, bool install = true)
     setTestServerCwd(proc.cwd);
     proc.args = {"node", "server.js"};
     proc.onstdout = [&](std::string line) {
-        std::cout << "server stdout: " << line << std::endl;
+        std::cout << "server stdout: " << line << '\n';
         if (line.find("listening") != std::string::npos)
             running = true;
     };
     proc.onexit = [&](int64_t status) {
-        std::cout << "server exit: " << status << std::endl;
+        std::cout << "server exit: " << status << '\n';
         exited = true;
     };
     proc.spawn();
@@ -225,7 +225,7 @@ bool openTestServer(Process& proc, bool install = true)
         uv::runLoop(uv::defaultLoop(), UV_RUN_NOWAIT);
     }
 
-    std::cout << "server running: " << running << std::endl;
+    std::cout << "server running: " << running << '\n';
     return running;
 }
 

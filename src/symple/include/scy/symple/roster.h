@@ -39,7 +39,7 @@ public:
     Peer* getByHost(std::string_view host);
 
     /// Returns a copy of the peer map for thread-safe iteration.
-    [[nodiscard]] virtual PeerMap peers() const;
+    [[nodiscard]] PeerMap peers() const;
 
     virtual void print(std::ostream& os) const;
 

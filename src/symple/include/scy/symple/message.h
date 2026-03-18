@@ -35,7 +35,7 @@ public:
     Message& operator=(const Message&) = default;
     virtual ~Message();
 
-    virtual std::unique_ptr<IPacket> clone() const;
+    std::unique_ptr<IPacket> clone() const override;
 
     virtual bool valid() const;
     virtual void clear();
@@ -77,12 +77,12 @@ public:
     void removeData(std::string_view name);
     bool hasData(std::string_view name);
 
-    virtual ssize_t read(const ConstBuffer& buf);
+    ssize_t read(const ConstBuffer& buf) override;
     virtual ssize_t read(const std::string& root);
-    virtual void write(Buffer& buf) const;
+    void write(Buffer& buf) const override;
 
     [[nodiscard]] bool isRequest() const;
-    virtual size_t size() const;
+    size_t size() const override;
 
     void print(std::ostream& os) const;
 
