@@ -97,9 +97,7 @@ ssize_t WebSocketAdapter::send(const char* data, size_t len, int flags)
 ssize_t WebSocketAdapter::send(const char* data, size_t len, const net::Address& peerAddr, int flags)
 {
     LTrace("Send: ", len, ": ", std::string(data, len));
-    if (!framer.handshakeComplete())
-        ;
-    {
+    if (!framer.handshakeComplete()) {
         throw std::runtime_error("WebSocketAdapter::send: handshake not complete");
     }
 
@@ -131,7 +129,7 @@ void WebSocketAdapter::sendClientRequest()
     if (!socket) {
         throw std::runtime_error("WebSocketAdapter::sendClientRequest: no socket");
     }
-    SocketAdapter::send(oss.str().c_str(), oss.str().length());
+    (void)SocketAdapter::send(oss.str().c_str(), oss.str().length());
 }
 
 
@@ -195,7 +193,7 @@ void WebSocketAdapter::handleServerRequest(const MutableBuffer& buffer, const ne
     if (!socket) {
         throw std::runtime_error("WebSocketAdapter::handleServerRequest: no socket");
     }
-    SocketAdapter::send(oss.str().c_str(), oss.str().length());
+    (void)SocketAdapter::send(oss.str().c_str(), oss.str().length());
 }
 
 
@@ -267,7 +265,7 @@ bool WebSocketAdapter::onSocketRecv(net::Socket&, const MutableBuffer& buffer, c
                     pongBuf.reserve(static_cast<size_t>(payloadLength) + WebSocketFramer::MAX_HEADER_LENGTH);
                     BitWriter pongWriter(pongBuf);
                     framer.writeFrame(payload ? payload : "", static_cast<size_t>(payloadLength), pongFlags, pongWriter);
-                    SocketAdapter::send(pongWriter.begin(), pongWriter.position(), peerAddress, 0);
+                    (void)SocketAdapter::send(pongWriter.begin(), pongWriter.position(), peerAddress, 0);
                     continue;
                 }
 
@@ -278,7 +276,7 @@ bool WebSocketAdapter::onSocketRecv(net::Socket&, const MutableBuffer& buffer, c
                     closeBuf.reserve(static_cast<size_t>(payloadLength) + WebSocketFramer::MAX_HEADER_LENGTH);
                     BitWriter closeWriter(closeBuf);
                     framer.writeFrame(payload ? payload : "", static_cast<size_t>(payloadLength), closeFlags, closeWriter);
-                    SocketAdapter::send(closeWriter.begin(), closeWriter.position(), peerAddress, 0);
+                    (void)SocketAdapter::send(closeWriter.begin(), closeWriter.position(), peerAddress, 0);
                     socket->close();
                     return false;
                 }

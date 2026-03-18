@@ -103,6 +103,8 @@ public:
     /// Starts a task, adding it if it doesn't exist.
     virtual bool start(Task* task);
 
+    using basic::Runnable::cancel; // inherit cancel(bool) from Runnable
+
     /// Cancels a task.
     ///
     /// The task reference will be managed the TaskRunner

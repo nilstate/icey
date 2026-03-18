@@ -30,6 +30,7 @@ class /* SCY_EXTERN */ TimedManager : public PointerCollection<TKey, TValue>
 {
 public:
     using Base = PointerCollection<TKey, TValue>;
+    using Base::add; // inherit base add overloads
     using TimeoutMap = std::map<TValue*, Timeout>;
 
     TimedManager(uv::Loop* loop = uv::defaultLoop())

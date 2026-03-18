@@ -143,7 +143,7 @@ void ZipFile::extract(const std::filesystem::path& path)
         throw std::runtime_error("Cannot read the source archive.");
 
     while (true) {
-        extractCurrentFile(path, true);
+        (void)extractCurrentFile(path, true);
         if (!goToNextFile())
             break;
     }

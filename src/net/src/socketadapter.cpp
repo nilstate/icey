@@ -91,7 +91,7 @@ ssize_t SocketAdapter::sendPacket(const IPacket& packet, const Address& peerAddr
 
 void SocketAdapter::sendPacket(IPacket& packet)
 {
-    size_t res = sendPacket(packet, 0);
+    ssize_t res = sendPacket(packet, 0);
     if (res < 0)
         throw std::runtime_error("Invalid socket operation");
 }

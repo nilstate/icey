@@ -60,7 +60,7 @@ public:
     [[nodiscard]] bool setSimultaneousAccepts(bool enable);
 
     void setMode(SocketMode mode);
-    const SocketMode mode() const;
+    SocketMode mode() const;
 
     virtual void setError(const scy::Error& err) override;
     const scy::Error& error() const override;
@@ -95,6 +95,7 @@ protected:
     virtual void reset() override;
 
     SocketMode _mode;
+    net::Address _peerAddress; ///< Cached peer address (avoids syscall per recv)
 };
 
 

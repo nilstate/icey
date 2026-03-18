@@ -39,6 +39,7 @@ option(BUILD_ALPHA                "Build alpha development modules"           OF
 option(ENABLE_SOLUTION_FOLDERS    "IDE solution folders"                      ON)
 option(ENABLE_LOGGING             "Enable internal debug logging"             ON)
 option(EXCEPTION_RECOVERY         "Attempt to recover from internal exceptions" OFF)
+option(ENABLE_WARNINGS_ARE_ERRORS "Treat compiler warnings as errors"           OFF)
 
 # Platform-specific shared lib default
 if(NOT DEFINED BUILD_SHARED_LIBS)

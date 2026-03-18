@@ -279,9 +279,9 @@ public:
         _sync.post();
     }
 
-    virtual void cancel()
+    void cancel(bool flag = true) override
     {
-        Queue::cancel();
+        Queue::cancel(flag);
         _sync.cancel(); // Call uv_close on the handle if calling from
                         // the event loop thread or we deadlock.
         if (_sync.tid() == Thread::currentID())
@@ -320,9 +320,9 @@ public:
     {
     }
 
-    virtual void cancel()
+    void cancel(bool flag = true) override
     {
-        Queue::cancel();
+        Queue::cancel(flag);
         _thread.cancel();
     }
 

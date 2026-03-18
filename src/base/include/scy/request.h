@@ -116,7 +116,7 @@ struct ConnectReq : public uv::Request<uv_connect_t>
 struct GetAddrInfoEvent
 {
     int status;
-    struct addrinfo* addr;
+    struct addrinfo* addr = nullptr;
 };
 
 

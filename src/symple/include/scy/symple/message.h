@@ -26,9 +26,12 @@ class Symple_API Message : public json::value
     , public IPacket
 {
 public:
+    using IPacket::data; // inherit IPacket::data()
+
     Message();
     Message(const json::value& root);
     Message(const Message& root);
+    Message& operator=(const Message&) = default;
     virtual ~Message();
 
     virtual std::unique_ptr<IPacket> clone() const;

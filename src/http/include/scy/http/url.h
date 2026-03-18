@@ -37,6 +37,7 @@ public:
     URL(std::string_view scheme, std::string_view authority,
         std::string_view path, std::string_view query,
         std::string_view fragment = "");
+    URL(const URL&) = default;
     ~URL();
 
     URL& operator=(const URL& uri);

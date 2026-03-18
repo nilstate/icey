@@ -43,7 +43,8 @@ Message::Message(ClassType clss, MethodType meth)
 
 
 Message::Message(const Message& that)
-    : _class(that._class)
+    : IPacket()
+    , _class(that._class)
     , _method(that._method)
     , _size(that._size)
     , _transactionID(that._transactionID)
@@ -223,7 +224,7 @@ ssize_t Message::read(const ConstBuffer& buf)
         LTrace("Parse success: ", reader.position(), ": ", buf.size());
         if (rest != 0)
             throw std::runtime_error("attribute parsing left non-zero remainder");
-        if (reader.position() != _size + kMessageHeaderSize)
+        if (reader.position() != static_cast<size_t>(_size) + kMessageHeaderSize)
             throw std::runtime_error("reader position mismatch after parsing");
         return reader.position();
     } catch (std::exception& exc) {

@@ -33,6 +33,7 @@ Message::Message()
 
 Message::Message(const Message& root)
     : json::value(static_cast<const json::value&>(root))
+    , IPacket()
 {
     if (find("id") == end())
         (*this)["id"] = util::randomString(16);

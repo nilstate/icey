@@ -167,12 +167,14 @@ bool TCPConnectionPair::onPeerDataReceived(net::Socket&,
         size_t maxSize =
             allocation.server().options().earlyMediaBufferSize;
         LDebug("Buffering early data: ", len);
-        if (len > maxSize)
-            ;
-        LWarn("Dropping early media: Oversize packet: ", len);
-        if (earlyPeerData.size() > maxSize)
-            ;
-        LWarn("Dropping early media: Buffer at capacity >= ", maxSize);
+        if (len > maxSize) {
+            LWarn("Dropping early media: Oversize packet: ", len);
+            return false;
+        }
+        if (earlyPeerData.size() > maxSize) {
+            LWarn("Dropping early media: Buffer at capacity >= ", maxSize);
+            return false;
+        }
 
         earlyPeerData.insert(earlyPeerData.end(), buf, buf + len);
     }

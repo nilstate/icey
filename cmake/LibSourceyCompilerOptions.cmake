@@ -8,9 +8,8 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     -Wno-unused-parameter
   )
 
-  if(ENABLE_WARNINGS_ARE_ERRORS)
-    add_compile_options(-Werror)
-  endif()
+  # -Werror is applied per-target in scy_add_module() to avoid
+  # breaking FetchContent dependencies (libuv, zlib, llhttp, etc.)
 
   if(NOT BUILD_SHARED_LIBS AND NOT ANDROID)
     add_compile_options(-fPIC)
@@ -26,6 +25,29 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     $<$<CONFIG:Debug>:-O0>
     $<$<CONFIG:Debug>:-g>
   )
+
+  # Release optimizations: native arch tuning + link-time optimization
+  option(ENABLE_NATIVE_ARCH "Tune for the build machine's CPU (-march=native)" ON)
+  if(ENABLE_NATIVE_ARCH)
+    add_compile_options($<$<CONFIG:Release>:-march=native>)
+    add_compile_options($<$<CONFIG:RelWithDebInfo>:-march=native>)
+  endif()
+
+  option(ENABLE_LTO "Enable link-time optimization (-flto)" ON)
+  if(ENABLE_LTO)
+    include(CheckIPOSupported)
+    check_ipo_supported(RESULT _lto_supported OUTPUT _lto_error)
+    if(_lto_supported)
+      set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE ON)
+      set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELWITHDEBINFO ON)
+    else()
+      message(STATUS "LTO not supported: ${_lto_error}")
+    endif()
+  endif()
+
+  # Hide internal symbols by default (smaller binary, faster loads)
+  add_compile_options(-fvisibility=hidden)
+  add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-fvisibility-inlines-hidden>)
 
   if(ENABLE_PROFILING)
     add_compile_options(-pg -g)
@@ -46,7 +68,6 @@ if(MSVC)
     _SCL_SECURE_NO_WARNINGS
   )
 
-  if(ENABLE_WARNINGS_ARE_ERRORS)
-    add_compile_options(/WX)
-  endif()
+  # /WX is applied per-target in scy_add_module() to avoid
+  # breaking FetchContent dependencies
 endif()

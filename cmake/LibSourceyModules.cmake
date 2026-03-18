@@ -141,6 +141,15 @@ function(scy_add_module name)
     target_link_libraries(${name} PUBLIC ${MOD_PACKAGES})
   endif()
 
+  # Warnings as errors (per-target, avoids breaking FetchContent deps)
+  if(ENABLE_WARNINGS_ARE_ERRORS)
+    if(MSVC)
+      target_compile_options(${name} PRIVATE /WX)
+    else()
+      target_compile_options(${name} PRIVATE -Werror)
+    endif()
+  endif()
+
   # Export symbol for shared libraries
   scy_set_export_symbol(${name} "${MOD_PRETTY_NAME}")
 

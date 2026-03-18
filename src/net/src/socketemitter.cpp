@@ -65,10 +65,10 @@ void SocketEmitter::addReceiver(SocketAdapter* adapter)
     // LTrace("Add receiver: ", adapter);
     if (adapter->priority > 100)
         throw std::invalid_argument("SocketEmitter: adapter priority exceeds 100");
-    Connect.attach([adapter](Socket& s) { return adapter->onSocketConnect(s); }, adapter, -1, adapter->priority);
-    Recv.attach([adapter](Socket& s, const MutableBuffer& b, const Address& a) { return adapter->onSocketRecv(s, b, a); }, adapter, -1, adapter->priority);
-    Error.attach([adapter](Socket& s, const scy::Error& e) { return adapter->onSocketError(s, e); }, adapter, -1, adapter->priority);
-    Close.attach([adapter](Socket& s) { return adapter->onSocketClose(s); }, adapter, -1, adapter->priority);
+    (void)Connect.attach([adapter](Socket& s) { return adapter->onSocketConnect(s); }, adapter, -1, adapter->priority);
+    (void)Recv.attach([adapter](Socket& s, const MutableBuffer& b, const Address& a) { return adapter->onSocketRecv(s, b, a); }, adapter, -1, adapter->priority);
+    (void)Error.attach([adapter](Socket& s, const scy::Error& e) { return adapter->onSocketError(s, e); }, adapter, -1, adapter->priority);
+    (void)Close.attach([adapter](Socket& s) { return adapter->onSocketClose(s); }, adapter, -1, adapter->priority);
 }
 
 

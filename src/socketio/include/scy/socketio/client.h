@@ -70,6 +70,7 @@ class SocketIO_API Client : public Stateful<ClientState>
 {
 public:
     using Options = ClientOptions;
+    using net::SocketAdapter::send; // inherit base send overloads
 
 public:
     Client(const net::Socket::Ptr& socket, const Options& options = Options());

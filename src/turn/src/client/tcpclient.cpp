@@ -260,9 +260,9 @@ bool TCPClient::onRelayConnectionError(net::Socket& socket, const Error& /* erro
     auto& conn = _connections.get(req->peerAddress);
 
     LTrace("Relay connection error: ", req->peerAddress);
-    if (!_connections.has(req->peerAddress))
-        ;
-    LWarn("Relay connection error for unknown peer: ", req->peerAddress);
+    if (!_connections.has(req->peerAddress)) {
+        LWarn("Relay connection error for unknown peer: ", req->peerAddress);
+    }
 
     _observer.onRelayConnectionError(*this,
                                      std::dynamic_pointer_cast<net::TCPSocket>(conn.impl), req->peerAddress);
@@ -276,9 +276,9 @@ bool TCPClient::onRelayConnectionClosed(net::Socket& socket)
     auto& conn = _connections.get(req->peerAddress);
 
     LTrace("Relay connection closed: ", req->peerAddress);
-    if (!_connections.has(req->peerAddress))
-        ;
-    LWarn("Relay connection closed for unknown peer: ", req->peerAddress);
+    if (!_connections.has(req->peerAddress)) {
+        LWarn("Relay connection closed for unknown peer: ", req->peerAddress);
+    }
 
     _observer.onRelayConnectionClosed(*this,
                                       std::dynamic_pointer_cast<net::TCPSocket>(conn.impl), req->peerAddress);

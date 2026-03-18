@@ -131,6 +131,7 @@ struct AV_API VideoCodec : public Codec
                int sampleRatee = 0,
                const std::string& pixelFmt = DEFAULT_VIDEO_PIXEL_FMT);
     VideoCodec(const VideoCodec& r);
+    VideoCodec& operator=(const VideoCodec&) = default;
     virtual ~VideoCodec() noexcept;
 
     virtual std::string toString() const override;
