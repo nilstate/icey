@@ -40,6 +40,7 @@ option(ENABLE_SOLUTION_FOLDERS    "IDE solution folders"                      ON
 option(ENABLE_LOGGING             "Enable internal debug logging"             ON)
 option(EXCEPTION_RECOVERY         "Attempt to recover from internal exceptions" OFF)
 option(ENABLE_WARNINGS_ARE_ERRORS "Treat compiler warnings as errors"           OFF)
+option(USE_SYSTEM_DEPS            "Use find_package instead of FetchContent for core deps" OFF)
 
 # Platform-specific shared lib default
 if(NOT DEFINED BUILD_SHARED_LIBS)
@@ -90,92 +91,128 @@ elseif(UNIX)
 endif()
 
 # ----------------------------------------------------------------------------
-# Fetch dependencies (replaces vendored copies)
+# Dependencies
 # ----------------------------------------------------------------------------
-include(FetchContent)
+if(NOT USE_SYSTEM_DEPS)
+  # FetchContent: download and build deps from source (default)
+  include(FetchContent)
 
-# libuv - event loop
-FetchContent_Declare(libuv
-  GIT_REPOSITORY https://github.com/libuv/libuv.git
-  GIT_TAG        v1.50.0
-  GIT_SHALLOW    TRUE)
-set(LIBUV_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set(LIBUV_BUILD_BENCH OFF CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(libuv)
+  # libuv - event loop
+  FetchContent_Declare(libuv
+    GIT_REPOSITORY https://github.com/libuv/libuv.git
+    GIT_TAG        v1.50.0
+    GIT_SHALLOW    TRUE)
+  set(LIBUV_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+  set(LIBUV_BUILD_BENCH OFF CACHE BOOL "" FORCE)
+  FetchContent_MakeAvailable(libuv)
 
-# llhttp - HTTP parser (replaces http_parser)
-FetchContent_Declare(llhttp
-  URL      https://github.com/nodejs/llhttp/archive/refs/tags/release/v9.2.1.tar.gz
-  URL_HASH SHA256=3c163891446e529604b590f9ad097b2e98b5ef7e4d3ddcf1cf98b62ca668f23e)
-set(BUILD_SHARED_LIBS_SAVED ${BUILD_SHARED_LIBS})
-set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
-set(BUILD_STATIC_LIBS ON CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(llhttp)
-set(BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS_SAVED} CACHE BOOL "" FORCE)
+  # llhttp - HTTP parser (replaces http_parser)
+  FetchContent_Declare(llhttp
+    URL      https://github.com/nodejs/llhttp/archive/refs/tags/release/v9.2.1.tar.gz
+    URL_HASH SHA256=3c163891446e529604b590f9ad097b2e98b5ef7e4d3ddcf1cf98b62ca668f23e)
+  set(BUILD_SHARED_LIBS_SAVED ${BUILD_SHARED_LIBS})
+  set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+  set(BUILD_STATIC_LIBS ON CACHE BOOL "" FORCE)
+  FetchContent_MakeAvailable(llhttp)
+  set(BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS_SAVED} CACHE BOOL "" FORCE)
 
-# zlib
-FetchContent_Declare(zlib
-  GIT_REPOSITORY https://github.com/madler/zlib.git
-  GIT_TAG        v1.3.1
-  GIT_SHALLOW    TRUE)
-set(ZLIB_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(SKIP_INSTALL_ALL ON CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(zlib)
-set(SKIP_INSTALL_ALL OFF CACHE BOOL "" FORCE)
+  # zlib
+  FetchContent_Declare(zlib
+    GIT_REPOSITORY https://github.com/madler/zlib.git
+    GIT_TAG        v1.3.1
+    GIT_SHALLOW    TRUE)
+  set(ZLIB_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+  set(SKIP_INSTALL_ALL ON CACHE BOOL "" FORCE)
+  FetchContent_MakeAvailable(zlib)
+  set(SKIP_INSTALL_ALL OFF CACHE BOOL "" FORCE)
 
-# Fix zlib's include_directories (uses raw paths, breaks install/export)
-# Replace with generator expressions so it can be exported cleanly
-FetchContent_GetProperties(zlib SOURCE_DIR zlib_SOURCE_DIR BINARY_DIR zlib_BINARY_DIR)
-set_target_properties(zlibstatic PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "")
-target_include_directories(zlibstatic PUBLIC
-  $<BUILD_INTERFACE:${zlib_SOURCE_DIR}>
-  $<BUILD_INTERFACE:${zlib_BINARY_DIR}>
-  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+  # Fix zlib's include_directories (uses raw paths, breaks install/export)
+  # Replace with generator expressions so it can be exported cleanly
+  FetchContent_GetProperties(zlib SOURCE_DIR zlib_SOURCE_DIR BINARY_DIR zlib_BINARY_DIR)
+  set_target_properties(zlibstatic PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "")
+  target_include_directories(zlibstatic PUBLIC
+    $<BUILD_INTERFACE:${zlib_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${zlib_BINARY_DIR}>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
-install(TARGETS zlibstatic
-  EXPORT LibSourceyTargets
-  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT dev)
+  install(TARGETS zlibstatic
+    EXPORT LibSourceyTargets
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT dev)
 
-# nlohmann/json - header-only JSON library
-FetchContent_Declare(nlohmann_json
-  GIT_REPOSITORY https://github.com/nlohmann/json.git
-  GIT_TAG        v3.11.3
-  GIT_SHALLOW    TRUE)
-set(JSON_BuildTests OFF CACHE BOOL "" FORCE)
-set(JSON_Install OFF CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(nlohmann_json)
+  # minizip - built from zlib's contrib/minizip
+  set(MINIZIP_SOURCE_DIR ${zlib_SOURCE_DIR}/contrib/minizip)
+  set(minizip_SOURCES
+    ${MINIZIP_SOURCE_DIR}/ioapi.c
+    ${MINIZIP_SOURCE_DIR}/mztools.c
+    ${MINIZIP_SOURCE_DIR}/unzip.c
+    ${MINIZIP_SOURCE_DIR}/zip.c)
+  set(minizip_HEADERS
+    ${MINIZIP_SOURCE_DIR}/crypt.h
+    ${MINIZIP_SOURCE_DIR}/ioapi.h
+    ${MINIZIP_SOURCE_DIR}/mztools.h
+    ${MINIZIP_SOURCE_DIR}/unzip.h
+    ${MINIZIP_SOURCE_DIR}/zip.h)
+  if(WIN32)
+    list(APPEND minizip_SOURCES ${MINIZIP_SOURCE_DIR}/iowin32.c)
+  endif()
+  add_library(minizip STATIC ${minizip_SOURCES} ${minizip_HEADERS})
+  target_link_libraries(minizip PUBLIC zlibstatic)
+  target_include_directories(minizip PUBLIC
+    $<BUILD_INTERFACE:${MINIZIP_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${zlib_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${zlib_BINARY_DIR}>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+  if(ENABLE_SOLUTION_FOLDERS)
+    set_target_properties(minizip PROPERTIES FOLDER "dependencies")
+  endif()
+  install(TARGETS minizip
+    EXPORT LibSourceyTargets
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT dev)
+  install(FILES ${minizip_HEADERS}
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT dev)
 
-# minizip - built from zlib's contrib/minizip
-set(MINIZIP_SOURCE_DIR ${zlib_SOURCE_DIR}/contrib/minizip)
-set(minizip_SOURCES
-  ${MINIZIP_SOURCE_DIR}/ioapi.c
-  ${MINIZIP_SOURCE_DIR}/mztools.c
-  ${MINIZIP_SOURCE_DIR}/unzip.c
-  ${MINIZIP_SOURCE_DIR}/zip.c)
-set(minizip_HEADERS
-  ${MINIZIP_SOURCE_DIR}/crypt.h
-  ${MINIZIP_SOURCE_DIR}/ioapi.h
-  ${MINIZIP_SOURCE_DIR}/mztools.h
-  ${MINIZIP_SOURCE_DIR}/unzip.h
-  ${MINIZIP_SOURCE_DIR}/zip.h)
-if(WIN32)
-  list(APPEND minizip_SOURCES ${MINIZIP_SOURCE_DIR}/iowin32.c)
+else()
+  # System deps: use find_package (for vcpkg or system-installed packages)
+  find_package(libuv CONFIG REQUIRED)
+  find_package(llhttp CONFIG REQUIRED)
+  find_package(ZLIB REQUIRED)
+
+  # Alias system zlib to match the target name used by modules
+  if(NOT TARGET zlibstatic)
+    add_library(zlibstatic ALIAS ZLIB::ZLIB)
+  endif()
+
+  # minizip: try vcpkg's unofficial-minizip first, fall back to building from source
+  find_package(unofficial-minizip CONFIG QUIET)
+  if(TARGET unofficial-minizip::minizip)
+    if(NOT TARGET minizip)
+      add_library(minizip ALIAS unofficial-minizip::minizip)
+    endif()
+  else()
+    # Build minizip from zlib's contrib (requires zlib headers on system)
+    find_path(ZLIB_SOURCE_DIR NAMES contrib/minizip/unzip.h
+      HINTS ${ZLIB_INCLUDE_DIRS} ${ZLIB_ROOT}
+      PATH_SUFFIXES .. src)
+    if(ZLIB_SOURCE_DIR)
+      set(MINIZIP_SOURCE_DIR ${ZLIB_SOURCE_DIR}/contrib/minizip)
+      set(minizip_SOURCES
+        ${MINIZIP_SOURCE_DIR}/ioapi.c
+        ${MINIZIP_SOURCE_DIR}/mztools.c
+        ${MINIZIP_SOURCE_DIR}/unzip.c
+        ${MINIZIP_SOURCE_DIR}/zip.c)
+      if(WIN32)
+        list(APPEND minizip_SOURCES ${MINIZIP_SOURCE_DIR}/iowin32.c)
+      endif()
+      add_library(minizip STATIC ${minizip_SOURCES})
+      target_link_libraries(minizip PUBLIC ZLIB::ZLIB)
+      target_include_directories(minizip PUBLIC
+        $<BUILD_INTERFACE:${MINIZIP_SOURCE_DIR}>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+    else()
+      message(WARNING "minizip sources not found; archo module will not be available")
+    endif()
+  endif()
 endif()
-add_library(minizip STATIC ${minizip_SOURCES} ${minizip_HEADERS})
-target_link_libraries(minizip PUBLIC zlibstatic)
-target_include_directories(minizip PUBLIC
-  $<BUILD_INTERFACE:${MINIZIP_SOURCE_DIR}>
-  $<BUILD_INTERFACE:${zlib_SOURCE_DIR}>
-  $<BUILD_INTERFACE:${zlib_BINARY_DIR}>
-  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
-if(ENABLE_SOLUTION_FOLDERS)
-  set_target_properties(minizip PROPERTIES FOLDER "dependencies")
-endif()
-install(TARGETS minizip
-  EXPORT LibSourceyTargets
-  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT dev)
-install(FILES ${minizip_HEADERS}
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT dev)
 
 # ----------------------------------------------------------------------------
 # Find external dependencies
@@ -275,5 +312,3 @@ install(FILES
   ${CMAKE_BINARY_DIR}/LibSourceyConfigVersion.cmake
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/LibSourcey
   COMPONENT dev)
-
-# nlohmann/json installs via its own CMake config (FetchContent)

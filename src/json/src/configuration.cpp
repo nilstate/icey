@@ -13,9 +13,6 @@
 #include "scy/logger.h"
 
 
-using std::endl;
-
-
 namespace scy {
 namespace json {
 
@@ -49,9 +46,6 @@ void Configuration::load(bool /* create */)
     LDebug("Load: ", _path);
 
     try {
-        // if (create && !fs::exists(_path))
-        //    fs::createFile(_path);
-
         json::loadFile(_path, root);
     } catch (...) {
         // The config file may be empty,
@@ -70,7 +64,6 @@ void Configuration::save()
         throw std::runtime_error(
             "Cannot save: Configuration file path must be set.");
 
-    // Will throw on error
     json::saveFile(_path, root);
 }
 
@@ -98,10 +91,7 @@ void Configuration::print(std::ostream& ost)
 bool Configuration::remove(const std::string& key)
 {
     std::lock_guard<std::mutex> guard(_mutex);
-
     return !!root.erase(key);
-
-    // return root.removeMember(key) != Json::nullValue;
 }
 
 
@@ -109,16 +99,12 @@ void Configuration::removeAll(const std::string& baseKey)
 {
     std::lock_guard<std::mutex> guard(_mutex);
 
-    for (auto it = root.begin(); it != root.end(); ++it) {
+    for (auto it = root.begin(); it != root.end();) {
         if (it.key().find(baseKey) != std::string::npos)
-            it = it->erase(it);
+            it = root.erase(it);
+        else
+            ++it;
     }
-
-    //json::value::Members members = root.getMemberNames();
-    //for (unsigned i = 0; i < members.size(); i++) {
-    //    if (members[i].find(baseKey) != std::string::npos)
-    //        root.removeMember(members[i]);
-    //}
 }
 
 
@@ -128,12 +114,7 @@ void Configuration::replace(const std::string& from, const std::string& to)
 
     std::string data = root.dump();
     util::replaceInPlace(data, from, to);
-
     root = json::value::parse(data.begin(), data.end());
-
-    //std::stringstream ss;
-    //ss << data;
-    //root = json::value::parse(ss); // cannot parse a string?
 }
 
 
@@ -141,7 +122,7 @@ bool Configuration::getRaw(const std::string& key, std::string& value) const
 {
     std::lock_guard<std::mutex> guard(_mutex);
 
-    if (root.find(key) != root.end()) {
+    if (root.contains(key)) {
         value = root[key].get<std::string>();
         return true;
     }
@@ -153,7 +134,7 @@ void Configuration::setRaw(const std::string& key, const std::string& value)
 {
     {
         std::lock_guard<std::mutex> guard(_mutex);
-        (root)[key] = value;
+        root[key] = value;
     }
     PropertyChanged.emit(key, value);
 }
@@ -167,12 +148,6 @@ void Configuration::keys(std::vector<std::string>& keys, const std::string& base
         if (it.key().find(baseKey) != std::string::npos)
             keys.push_back(it.key());
     }
-
-    //json::value::Members members = root.getMemberNames();
-    //for (unsigned i = 0; i < members.size(); i++) {
-    //    if (members[i].find(baseKey) != std::string::npos)
-    //        keys.push_back(members[i]);
-    //}
 }
 
 

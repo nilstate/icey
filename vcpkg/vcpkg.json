@@ -2,21 +2,18 @@
   "name": "libsourcey",
   "version": "2.0.0",
   "description": "C++ Networking Evolved - cross-platform modules for high-performance networked and media streaming applications",
-  "homepage": "https://github.com/sourcey/libsourcey",
+  "homepage": "https://sourcey.com/code/libsourcey",
   "license": "LGPL-2.1-or-later",
   "dependencies": [
-    {
-      "name": "openssl",
-      "platform": "!windows"
-    }
-  ],
-  "default-features": [
-    "core"
+    "openssl",
+    "libuv",
+    "llhttp",
+    "zlib",
+    "minizip",
+    { "name": "vcpkg-cmake", "host": true },
+    { "name": "vcpkg-cmake-config", "host": true }
   ],
   "features": {
-    "core": {
-      "description": "Core modules (base, net, crypto, http, json)"
-    },
     "av": {
       "description": "Audio/video module (requires FFmpeg)",
       "dependencies": [

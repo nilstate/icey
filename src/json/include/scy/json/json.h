@@ -13,12 +13,12 @@
 
 
 #include "scy/base.h"
-#include "scy/error.h"
 
 #include <nlohmann/json.hpp>
 
-#include <cstdint>
 #include <fstream>
+#include <string>
+#include <vector>
 
 
 // Shared library exports
@@ -37,10 +37,10 @@ namespace scy {
 namespace json {
 
 
-// Import the `json` type and friends to our namespace
 using value = nlohmann::json;
 
 
+/// Load a JSON file into a value. Throws on missing file or parse error.
 inline void loadFile(const std::string& path, json::value& root)
 {
     std::ifstream ifs;
@@ -48,10 +48,11 @@ inline void loadFile(const std::string& path, json::value& root)
     if (!ifs.is_open())
         throw std::runtime_error("Cannot open input file: " + path);
 
-    root = json::value::parse(ifs); // thorws std::invalid_argument
+    root = json::value::parse(ifs);
 }
 
 
+/// Save a JSON value to a file. Throws on write error.
 inline void saveFile(const std::string& path, const json::value& root, int indent = 4)
 {
     std::ofstream ofs(path, std::ios::binary | std::ios::out);
@@ -66,84 +67,60 @@ inline void saveFile(const std::string& path, const json::value& root, int inden
 }
 
 
-//inline void stringify(const json::value& root, std::string& output, bool pretty = false)
-//{
-//    if (pretty) {
-//        json::StyledWriter writer;
-//        output = writer.write(root);
-//    } else {
-//        json::FastWriter writer;
-//        output = writer.write(root); // NOTE: The FastWriter appends a newline
-//                                     // character which we don't want.
-//        if (output.size() > 0)
-//            output.resize(output.size() - 1);
-//    }
-//}
-//
-//
-//inline std::string stringify(const json::value& root, bool pretty = false)
-//{
-//    std::string output;
-//    stringify(root, output, pretty);
-//    return output;
-//}
-
-
+/// Assert that a required member exists. Throws if missing.
 inline void assertMember(const json::value& root, const std::string& name)
 {
-    if (root.find(name) == root.end())
+    if (!root.contains(name))
         throw std::runtime_error("A '" + name + "' member is required.");
 }
 
 
-inline void countNestedKeys(json::value& root, const std::string& key,
-                            int& count, int depth = 0)
+/// Count how many nested objects contain the given key.
+inline void countNestedKeys(const json::value& root, const std::string& key, int& count)
 {
     if (!root.is_object() && !root.is_array())
         return;
-    depth++;
     for (auto it = root.begin(); it != root.end(); ++it) {
-        if ((*it).is_object() && (*it).find(key) != (*it).end())
+        if ((*it).is_object() && (*it).contains(key))
             count++;
-        countNestedKeys(*it, key, count, depth);
+        countNestedKeys(*it, key, count);
     }
 }
 
 
-inline bool hasNestedKey(json::value& root, const std::string& key, int depth = 0)
+/// Return true if any nested object contains the given key.
+inline bool hasNestedKey(const json::value& root, const std::string& key)
 {
     if (!root.is_object() && !root.is_array())
         return false;
-    depth++;
-    for (auto it = root.begin(); it != root.end(); it++) {
-        if ((*it).is_object() && (*it).find(key) != (*it).end())
+    for (auto it = root.begin(); it != root.end(); ++it) {
+        if ((*it).is_object() && (*it).contains(key))
             return true;
-        if (hasNestedKey(*it, key, depth))
+        if (hasNestedKey(*it, key))
             return true;
     }
     return false;
 }
 
 
-/// Only works for objects with string values.
-/// Key or value may be empty for selecting wildcard values.
-/// If partial is false substring matches will be accepted.
-/// Result must be a reference to a pointer or the root value's
-/// internal reference will also be changed when the result is
-/// assigned. Further investigation is required.
+/// Find a nested object whose property matches the given key/value.
+///
+/// Key or value may be empty for wildcard matching.
+/// If partial is true, substring matches are accepted for string values.
+/// The index parameter selects the Nth match (0 = first).
+///
+/// Returns true if found, with result pointing to the matching object.
 inline bool findNestedObjectWithProperty(
     json::value& root, json::value*& result, const std::string& key,
-    const std::string& value, bool partial = true, int index = 0,
-    int depth = 0)
+    const std::string& value, bool partial = true, int index = 0)
 {
-    depth++;
     if (root.is_object()) {
-        for (auto it = root.begin(); it != root.end(); it++) {
+        for (auto it = root.begin(); it != root.end(); ++it) {
             json::value& test = it.value();
             if (test.is_null())
                 continue;
             else if (test.is_string() &&
-                     (key.empty() || it.value() == key) &&
+                     (key.empty() || it.key() == key) &&
                      (value.empty() ||
                       (!partial ? test.get<std::string>() == value
                                 : test.get<std::string>().find(value) != std::string::npos))) {
@@ -155,15 +132,15 @@ inline bool findNestedObjectWithProperty(
             } else if ((test.is_object() || test.is_array()) &&
                        findNestedObjectWithProperty(it.value(),
                                                     result, key, value, partial,
-                                                    index, depth))
+                                                    index))
                 return true;
         }
     } else if (root.is_array()) {
         for (size_t i = 0; i < root.size(); i++) {
-            json::value& test = root[(int)i];
+            json::value& test = root[i];
             if (!test.is_null() && (test.is_object() || test.is_array()) &&
-                findNestedObjectWithProperty(root[(int)i], result, key, value,
-                                             partial, index, depth))
+                findNestedObjectWithProperty(root[i], result, key, value,
+                                             partial, index))
                 return true;
         }
     }

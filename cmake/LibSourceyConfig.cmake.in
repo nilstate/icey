@@ -5,6 +5,12 @@ include(CMakeFindDependencyMacro)
 # Re-find dependencies that our targets need
 find_dependency(Threads)
 
+if(@USE_SYSTEM_DEPS@)
+  find_dependency(libuv CONFIG)
+  find_dependency(llhttp CONFIG)
+  find_dependency(ZLIB)
+endif()
+
 if(@HAVE_OPENSSL@)
   find_dependency(OpenSSL)
 endif()
