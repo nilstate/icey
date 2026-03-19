@@ -213,8 +213,12 @@ public:
     std::unique_ptr<http::ServerResponder> createResponder(
         http::ServerConnection& conn) override
     {
-        if (!conn.upgraded())
+        if (!conn.upgraded()) {
+            // Delegate non-WebSocket requests to the fallback factory
+            if (_server._httpFallback)
+                return _server._httpFallback->createResponder(conn);
             return nullptr;
+        }
 
         // Max connections check. peerCount() acquires its own lock;
         // no Symple mutex is held during createResponder.
@@ -260,7 +264,15 @@ Server::~Server()
 
 void Server::start(const Options& opts)
 {
+    start(opts, nullptr);
+}
+
+
+void Server::start(const Options& opts,
+                   std::unique_ptr<http::ServerConnectionFactory> httpFactory)
+{
     _opts = opts;
+    _httpFallback = std::move(httpFactory);
 
     _http = std::make_unique<http::Server>(
         opts.host, opts.port,
@@ -308,6 +320,7 @@ void Server::shutdown()
         _connToPeer.clear();
         _rooms.clear();
         _peers.clear();
+        _virtualPeers.clear();
     }
 
     // Release the HTTP server. Its destructor calls shutdown() again
@@ -552,11 +565,34 @@ void Server::route(ServerPeer& sender, const json::Value& msg)
             // Full address: user|id - send to specific session.
             // Permission check: sender and recipient must share a room.
             std::string peerId = addr.substr(pos + 1);
+
+            // Check real peers
             auto targetIt = _peers.find(peerId);
-            if (targetIt != _peers.end() && sharesRoom(sender, *targetIt->second)) {
-                sendTo(peerId, msg);
-            } else if (targetIt != _peers.end()) {
-                LDebug("Blocked direct message from ", sender.id(), " to ", peerId, " (no shared room)");
+            if (targetIt != _peers.end()) {
+                if (sharesRoom(sender, *targetIt->second)) {
+                    sendTo(peerId, msg);
+                } else {
+                    LDebug("Blocked direct message from ", sender.id(), " to ", peerId, " (no shared room)");
+                }
+                return;
+            }
+
+            // Check virtual peers
+            auto vit = _virtualPeers.find(peerId);
+            if (vit != _virtualPeers.end()) {
+                // Check if sender shares a room with the virtual peer
+                bool shared = false;
+                for (const auto& room : sender.rooms()) {
+                    if (vit->second.rooms.count(room)) {
+                        shared = true;
+                        break;
+                    }
+                }
+                if (shared) {
+                    sendTo(peerId, msg);
+                } else {
+                    LDebug("Blocked direct message from ", sender.id(), " to virtual peer ", peerId, " (no shared room)");
+                }
             }
             return;
         }
@@ -586,6 +622,7 @@ void Server::broadcast(const std::string& room, const json::Value& msg,
         if (peerId == excludeId)
             continue;
 
+        // Real peer
         auto peerIt = _peers.find(peerId);
         if (peerIt != _peers.end()) {
             try {
@@ -595,6 +632,18 @@ void Server::broadcast(const std::string& room, const json::Value& msg,
             catch (const std::exception& e) {
                 LWarn("Broadcast failed to ", peerId, ": ", e.what());
             }
+            continue;
+        }
+
+        // Virtual peer
+        auto vit = _virtualPeers.find(peerId);
+        if (vit != _virtualPeers.end()) {
+            try {
+                vit->second.handler(msg);
+            }
+            catch (const std::exception& e) {
+                LWarn("Broadcast to virtual peer failed: ", peerId, ": ", e.what());
+            }
         }
     }
 }
@@ -602,18 +651,33 @@ void Server::broadcast(const std::string& room, const json::Value& msg,
 
 bool Server::sendTo(const std::string& peerId, const json::Value& msg)
 {
+    // Check real peers first
     auto it = _peers.find(peerId);
-    if (it == _peers.end())
-        return false;
+    if (it != _peers.end()) {
+        try {
+            it->second->send(msg);
+            return true;
+        }
+        catch (const std::exception& e) {
+            LWarn("sendTo failed: ", peerId, ": ", e.what());
+            return false;
+        }
+    }
 
-    try {
-        it->second->send(msg);
-        return true;
+    // Check virtual peers
+    auto vit = _virtualPeers.find(peerId);
+    if (vit != _virtualPeers.end()) {
+        try {
+            vit->second.handler(msg);
+            return true;
+        }
+        catch (const std::exception& e) {
+            LWarn("sendTo virtual peer failed: ", peerId, ": ", e.what());
+            return false;
+        }
     }
-    catch (const std::exception& e) {
-        LWarn("sendTo failed: ", peerId, ": ", e.what());
-        return false;
-    }
+
+    return false;
 }
 
 
@@ -626,11 +690,23 @@ bool Server::sendToUser(const std::string& user, const json::Value& msg)
     bool sent = false;
     auto str = msg.dump();
     for (const auto& peerId : it->second) {
+        // Real peer
         auto peerIt = _peers.find(peerId);
         if (peerIt != _peers.end()) {
             try {
                 peerIt->second->connection().send(
                     str.c_str(), str.size(), http::ws::Text);
+                sent = true;
+            }
+            catch (...) {}
+            continue;
+        }
+
+        // Virtual peer
+        auto vit = _virtualPeers.find(peerId);
+        if (vit != _virtualPeers.end()) {
+            try {
+                vit->second.handler(msg);
                 sent = true;
             }
             catch (...) {}
@@ -667,7 +743,7 @@ std::vector<ServerPeer*> Server::getPeersInRoom(const std::string& room)
 size_t Server::peerCount() const
 {
     std::lock_guard lock(_mutex);
-    return _peers.size();
+    return _peers.size() + _virtualPeers.size();
 }
 
 
@@ -697,6 +773,73 @@ void Server::removeFromAllRooms(const std::string& peerId)
         else
             ++it;
     }
+}
+
+
+void Server::addVirtualPeer(const Peer& peer,
+                            const std::vector<std::string>& rooms,
+                            std::function<void(const json::Value&)> handler)
+{
+    std::lock_guard lock(_mutex);
+
+    std::string id = peer.id();
+    std::string user = peer.user();
+
+    VirtualPeer vp;
+    vp.peer = peer;
+    vp.handler = std::move(handler);
+
+    // Join user room (same as real peers)
+    vp.rooms.insert(user);
+    addToRoom(user, id);
+
+    // Join requested rooms
+    for (const auto& room : rooms) {
+        if (!room.empty()) {
+            vp.rooms.insert(room);
+            addToRoom(room, id);
+        }
+    }
+
+    _virtualPeers[id] = std::move(vp);
+
+    // Broadcast online presence
+    json::Value presence;
+    presence["type"] = "presence";
+    presence["from"] = user + "|" + id;
+    presence["data"] = static_cast<const json::Value&>(peer);
+    for (const auto& room : _virtualPeers[id].rooms) {
+        broadcast(room, presence, id);
+    }
+
+    LInfo("Virtual peer registered: ", user, "|", id);
+}
+
+
+void Server::removeVirtualPeer(const std::string& peerId)
+{
+    std::lock_guard lock(_mutex);
+
+    auto it = _virtualPeers.find(peerId);
+    if (it == _virtualPeers.end())
+        return;
+
+    std::string user = it->second.peer.user();
+
+    // Broadcast offline presence
+    json::Value presence;
+    presence["type"] = "presence";
+    presence["from"] = user + "|" + peerId;
+    presence["data"] = static_cast<const json::Value&>(it->second.peer);
+    presence["data"]["online"] = false;
+    for (const auto& room : it->second.rooms) {
+        broadcast(room, presence, peerId);
+    }
+
+    removeFromAllRooms(peerId);
+    _virtualPeers.erase(it);
+
+    LInfo("Virtual peer removed: ", user, "|", peerId);
 }
 
 

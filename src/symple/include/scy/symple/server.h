@@ -22,6 +22,7 @@
 
 #include <atomic>
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -128,6 +129,13 @@ public:
     Server& operator=(const Server&) = delete;
 
     void start(const Options& opts);
+
+    /// Start with a custom HTTP responder factory for non-WebSocket requests.
+    /// The Symple server handles WebSocket upgrades internally; any other
+    /// HTTP request (e.g. static files, REST API) is delegated to this factory.
+    void start(const Options& opts,
+               std::unique_ptr<http::ServerConnectionFactory> httpFactory);
+
     void shutdown();
 
     /// Broadcast a message to all peers in a room (excluding sender).
@@ -165,6 +173,22 @@ public:
     /// Peer disconnected.
     Signal<void(ServerPeer&)> PeerDisconnected;
 
+    /// Register a virtual peer that receives messages via callback.
+    ///
+    /// The virtual peer appears in presence broadcasts and is routable
+    /// like any WebSocket-connected peer. Messages addressed to it are
+    /// delivered via the callback instead of a WebSocket connection.
+    ///
+    /// @param peer     Peer data (must have "id", "user", "name" fields).
+    /// @param rooms    Rooms the virtual peer joins.
+    /// @param handler  Called when a message is routed to this peer.
+    void addVirtualPeer(const Peer& peer,
+                        const std::vector<std::string>& rooms,
+                        std::function<void(const json::Value&)> handler);
+
+    /// Remove a virtual peer by session ID.
+    void removeVirtualPeer(const std::string& peerId);
+
     /// Access the underlying HTTP server (e.g. to serve static files).
     [[nodiscard]] http::Server& httpServer() { return *_http; }
 
@@ -199,8 +223,22 @@ private:
     // Connection pointer -> session ID (for lookup in responder callbacks)
     std::unordered_map<http::ServerConnection*, std::string> _connToPeer;
 
+    // Virtual peers: session ID -> {peer data, rooms, message handler}
+    struct VirtualPeer
+    {
+        Peer peer;
+        std::unordered_set<std::string> rooms;
+        std::function<void(const json::Value&)> handler;
+    };
+    std::unordered_map<std::string, VirtualPeer> _virtualPeers;
+
     mutable std::mutex _mutex;
     std::atomic<bool> _shuttingDown{false};
+
+    /// Fallback factory for non-WebSocket HTTP requests.
+    std::unique_ptr<http::ServerConnectionFactory> _httpFallback;
+
+    friend class Factory;
 };
 
 
