@@ -3,31 +3,120 @@
 [![CI](https://github.com/sourcey/libsourcey/actions/workflows/ci.yml/badge.svg)](https://github.com/sourcey/libsourcey/actions/workflows/ci.yml)
 [![License: LGPL-2.1+](https://img.shields.io/badge/license-LGPL--2.1%2B-blue.svg)](LICENSE.md)
 
-> C++ Networking Evolved
+> The C++ Media Stack
 
-Most C++ projects that need networking, media encoding, and real-time communication end up gluing together FFmpeg, OpenCV, libuv, and OpenSSL by hand - fighting memory ownership across threading models and build systems that take longer to debug than the code. LibSourcey is the connective tissue: a modular C++20 toolkit that unifies all of it into a single composable pipeline. All dependencies managed via CMake FetchContent.
+WebRTC, FFmpeg, and async networking in one toolkit. No Google monolith. No dependency hell. No fighting three build systems to get a frame on screen.
 
-* **Documentation**: [doc/](doc/SUMMARY.md)
-* **Changelog**: [CHANGELOG.md](CHANGELOG.md)
-* **Repository**: [https://github.com/sourcey/libsourcey](https://github.com/sourcey/libsourcey)
-* **Licence**: [LGPL-2.1+](LICENSE.md)
+```cpp
+// The core of a WebRTC media server
+PacketStream stream;
+stream.attachSource(capture.get());
+stream.attach(&session->media().videoSender(), 5);
+stream.start();
+```
 
-## Features
+LibSourcey is the connective tissue: a modular C++20 toolkit that unifies FFmpeg, libuv, OpenSSL, and libdatachannel into a single composable pipeline. Capture, encode, transport, signalling, and relay. All dependencies managed via CMake FetchContent. Builds in minutes.
 
-* **Packet pipeline** - Composable `PacketStream` architecture: sources emit, processors transform, sinks consume. Backpressure, frame dropping, and lifecycle management built in.
-* **Async IO** - Non-blocking TCP, SSL/TLS, and UDP sockets on `libuv` with signal-driven dispatch (`Connection += [](auto) { ... }`).
-* **HTTP stack** - Servers, clients, WebSockets, streaming responses, file transfers, auth. Parsing via `llhttp`.
-* **Media encoding** - `FFmpeg` capture, encoding, recording, streaming. RAII wrappers, no manual `av_frame_free()`. Compatible with FFmpeg 5, 6, and 7.
-* **STUN/TURN** - Full RFC 5766 TURN server/client with channel binding, RFC 5389 STUN for NAT traversal.
-* **Real-time messaging** - Socket.IO v4 client and Symple signalling protocol.
-* **Cross platform** - Linux, macOS, Windows. GCC 12+, Clang 15+, MSVC 2022+.
-* **Modular** - Include only what you need. 14 modules with automatic dependency resolution.
+**[Documentation](doc/SUMMARY.md)** | **[Changelog](CHANGELOG.md)** | **[Contributing](doc/contributing.md)** | **[LGPL-2.1+](LICENSE.md)**
 
-## Performance
+## Why LibSourcey
 
-LibSourcey's HTTP module is built directly on libuv and llhttp - the same async IO and HTTP parsing that powers Node.js. The difference is there's no runtime, no garbage collector, and no language bridge sitting between your application and the event loop.
+| | libWebRTC (Google) | libdatachannel | GStreamer | **LibSourcey** |
+|---|---|---|---|---|
+| Build system | GN/Ninja | CMake | Meson | **CMake** |
+| Build time | Hours | Minutes | 30+ min | **Minutes** |
+| Binary size | 50MB+ | Small | Large | **Small** |
+| SSL | BoringSSL (conflicts) | OpenSSL | OpenSSL | **OpenSSL** |
+| Media codecs | Bundled | None | GObject plugins | **FFmpeg (any codec)** |
+| Capture/encode | Included | No | Plugin pipeline | **PacketStream pipeline** |
+| Signalling | No | No | No | **Symple (built-in)** |
+| TURN server | No | No | No | **RFC 5766 (built-in)** |
+| Language | C++ | C++17 | C/GObject | **C++20** |
 
-With HTTP/1.1 keep-alive (the realistic production scenario):
+libdatachannel gives you the WebRTC transport pipe. LibSourcey gives you the pipe, the water, and the faucet.
+
+## Architecture
+
+Everything flows through `PacketStream`. Plug in a source, chain processors, attach a sink. The pipeline handles backpressure, frame dropping, and teardown so you don't. Nothing runs that you didn't ask for.
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        PacketStream                             │
+│                                                                 │
+│  ┌──────────┐    ┌──────────────┐    ┌───────────────────────┐  │
+│  │  Source  │───▶│  Processor   │───▶│        Sink           │  │
+│  │          │    │              │    │                       │  │
+│  │ Camera   │    │ FFmpeg H.264 │    │ WebRTC Track Sender   │  │
+│  │ File     │    │ Opus encode  │    │ Network socket        │  │
+│  │ Network  │    │ OpenCV       │    │ File recorder         │  │
+│  │ Device   │    │ Custom       │    │ HTTP response         │  │
+│  └──────────┘    └──────────────┘    └───────────────────────┘  │
+└─────────────────────────────────────────────────────────────────┘
+
+WebRTC send path:
+  MediaCapture → VideoEncoder → WebRtcTrackSender → [libdatachannel]
+                                                        │
+  Browser ◀── RTP/SRTP ◀── DTLS ◀── ICE (libjuice) ◀───┘
+                                      │
+                              LibSourcey TURN server
+                              (relay for symmetric NATs)
+
+WebRTC receive path:
+  [libdatachannel] → WebRtcTrackReceiver → FFmpeg decode → file/display
+        │
+        └─── ICE → DTLS → SRTP decrypt → RTP depacketise → raw frames
+
+Signalling (Symple v4):
+  C++ server/client ◀──── WebSocket ────▶ Browser (symple-client-player)
+  Auth, presence, rooms, call protocol (init/accept/offer/answer/candidate)
+```
+
+Camera to browser in 150 lines. Browser to file in 130. The pipeline handles the plumbing.
+
+## What You Can Build
+
+### Stream a webcam to any browser
+
+150 lines of C++. Camera capture, H.264 encoding, WebRTC transport, Symple signalling. Open a browser, see video. No plugins, no Google, no pain.
+
+```cpp
+// Accept call, wire up the pipeline, stream
+session.IncomingCall += [&](const std::string& peerId) {
+    session.accept();
+};
+
+session.StateChanged += [&](wrtc::PeerSession::State state) {
+    if (state == wrtc::PeerSession::State::Active) {
+        stream.attachSource(capture.get());
+        stream.attach(&session->media().videoSender(), 5);
+        stream.start();
+    }
+};
+```
+
+See [src/webrtc/samples/webcam-streamer/](src/webrtc/samples/webcam-streamer/) or read [WebRTC in 150 Lines of C++](https://sourcey.com/code/libsourcey/webrtc-in-150-lines).
+
+### Record a browser's camera server-side
+
+Browser sends WebRTC, your C++ server decodes with FFmpeg, writes to any format. Video depositions, telehealth recording, proctoring - server-side recording without cloud vendor lock-in.
+
+See [src/webrtc/samples/media-recorder/](src/webrtc/samples/media-recorder/).
+
+### Stream any video file to a browser
+
+Feed an MP4 in, get a real-time WebRTC stream out. Data channel for seek commands. Build your own streaming service.
+
+See [src/webrtc/samples/file-streamer/](src/webrtc/samples/file-streamer/).
+
+### Run your own TURN relay
+
+Production-grade RFC 5766 TURN server with channel binding and TCP support. Stop paying for hosted TURN. ~30% of real-world WebRTC connections need relay through symmetric NATs; this handles them.
+
+See [src/turn/samples/turnserver/](src/turn/samples/turnserver/).
+
+### HTTP that outperforms Go
+
+72,000 req/s with keep-alive on a single-core micro VM. Built on the same libuv + llhttp that powers Node.js, minus the runtime, GC, and language bridge.
 
 | Server | Req/sec | Latency |
 | ------ | ------: | ------: |
@@ -38,9 +127,9 @@ With HTTP/1.1 keep-alive (the realistic production scenario):
 
 LibSourcey delivers **75% of raw libuv throughput** while providing a complete HTTP stack (connection management, header construction, WebSocket upgrade, streaming responses). It outperforms Go's `net/http` by 34% and Node.js by 59%. All three share the same foundation (libuv for async IO, llhttp for HTTP parsing); the difference is pure runtime overhead.
 
-See [src/http/samples/httpbenchmark/](src/http/samples/httpbenchmark/) for methodology, Connection: close results, and multi-core benchmarks.
+See [src/http/samples/httpbenchmark/](src/http/samples/httpbenchmark/) for methodology.
 
-## Quick start
+## Quick Start
 
 ### Requirements
 
@@ -50,7 +139,7 @@ See [src/http/samples/httpbenchmark/](src/http/samples/httpbenchmark/) for metho
 | macOS | AppleClang 15+ (Xcode 15+) |
 | Windows | MSVC 2022 (Visual Studio 17+) |
 
-Dependencies: CMake 3.21+, pkg-config (Linux/macOS). The following are fetched automatically via FetchContent if not found on the system:
+CMake 3.21+ and pkg-config (Linux/macOS) required. Everything else is fetched automatically:
 
 | Dependency | Version |
 |------------|---------|
@@ -60,17 +149,7 @@ Dependencies: CMake 3.21+, pkg-config (Linux/macOS). The following are fetched a
 | nlohmann/json | 3.11.3 |
 | zlib | 1.3.1 |
 
-### CMake FetchContent
-
-```cmake
-include(FetchContent)
-FetchContent_Declare(libsourcey
-  GIT_REPOSITORY https://github.com/sourcey/libsourcey.git
-  GIT_TAG master
-)
-FetchContent_MakeAvailable(libsourcey)
-target_link_libraries(myapp PRIVATE scy_base scy_net scy_crypto)
-```
+Optional: FFmpeg 5+/6+/7+ (`-DWITH_FFMPEG=ON`), OpenCV 3.0+ (`-DWITH_OPENCV=ON`), libdatachannel (`-DWITH_LIBDATACHANNEL=ON`).
 
 ### Build from source
 
@@ -82,6 +161,18 @@ cmake --build build --parallel $(nproc)
 ctest --test-dir build --output-on-failure
 ```
 
+### CMake FetchContent
+
+```cmake
+include(FetchContent)
+FetchContent_Declare(libsourcey
+  GIT_REPOSITORY https://github.com/sourcey/libsourcey.git
+  GIT_TAG v2.1.0
+)
+FetchContent_MakeAvailable(libsourcey)
+target_link_libraries(myapp PRIVATE scy_base scy_net scy_http)
+```
+
 ### find_package
 
 After installing (`cmake --install build`):
@@ -91,11 +182,11 @@ find_package(LibSourcey REQUIRED)
 target_link_libraries(myapp PRIVATE scy_base scy_net scy_http)
 ```
 
-## Examples
+## Code Examples
 
 ### Media pipeline
 
-Camera to encoder to network socket in six lines:
+Camera to encoder to network:
 
 ```cpp
 PacketStream stream;
@@ -105,7 +196,7 @@ stream.attach(socket, 10);
 stream.start();
 ```
 
-### HTTP echo server
+### HTTP server
 
 ```cpp
 http::Server srv{ "127.0.0.1", 1337 };
@@ -118,9 +209,48 @@ srv.Connection += [](http::ServerConnection::Ptr conn) {
 srv.start();
 ```
 
-## Contributors
+### WebRTC peer session
 
-Thanks to all contributors:
+```cpp
+wrtc::PeerSession::Config config;
+config.rtcConfig.iceServers.emplace_back("stun:stun.l.google.com:19302");
+config.mediaOpts.videoCodec = av::VideoCodec("H264", "libx264", 1280, 720, 30);
+
+wrtc::SympleSignaller signaller(client);
+wrtc::PeerSession session(signaller, config);
+
+session.IncomingCall += [&](const std::string& peerId) {
+    session.accept();
+};
+
+session.StateChanged += [&](wrtc::PeerSession::State state) {
+    if (state == wrtc::PeerSession::State::Active)
+        startStreaming(session);
+};
+```
+
+## Modules
+
+14 modules. Include only what you need; dependencies resolve automatically.
+
+| Module | What it does |
+|--------|-------------|
+| **base** | Event loop (libuv), signals, streams, logging, filesystem, timers |
+| **crypto** | Hashing, HMAC, RSA, X509 (OpenSSL 3.x) |
+| **net** | TCP, SSL/TLS, UDP sockets, DNS |
+| **http** | HTTP server/client, WebSocket, cookies, streaming, keep-alive |
+| **json** | JSON serialisation (nlohmann/json) |
+| **av** | FFmpeg capture, encode, decode, record, stream (FFmpeg 5/6/7) |
+| **symple** | Real-time messaging, presence, rooms, WebRTC call signalling |
+| **stun** | RFC 5389 STUN for NAT traversal |
+| **turn** | RFC 5766 TURN relay server |
+| **webrtc** | WebRTC via libdatachannel: media bridge, peer sessions, codec negotiation |
+| **archo** | ZIP/archive handling |
+| **pluga** | Plugin system (shared library loading) |
+| **pacm** | Package manager for plugin distribution |
+| **sched** | Task scheduler for deferred/periodic jobs |
+
+## Contributors
 
 * Kam Low ([@auscaster](https://github.com/auscaster)) - Creator and primary developer
 * Sergey Parfenyuk ([@sparfenyuk](https://github.com/sparfenyuk)) - macOS compile fixes, type corrections, buffer handling

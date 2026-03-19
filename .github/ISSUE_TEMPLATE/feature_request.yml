@@ -1,0 +1,46 @@
+name: Feature Request
+description: Suggest an enhancement or new feature
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have an idea for LibSourcey? Describe it below.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+      description: What are you trying to do that LibSourcey doesn't support well today?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: How would you like it to work? Code sketches welcome.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other approaches you've thought about or workarounds you're using
+
+  - type: dropdown
+    id: module
+    attributes:
+      label: Relevant module
+      options:
+        - base
+        - net
+        - crypto
+        - http
+        - av
+        - webrtc
+        - symple
+        - stun
+        - turn
+        - other
