@@ -162,6 +162,7 @@ int main(int argc, char** argv)
         opts.port = SERVER_PORT;
         opts.user = "testuser";
         opts.name = "Test User";
+        opts.reconnection = false;
 
         scy::smpl::Client client(opts);
 
@@ -208,6 +209,7 @@ int main(int argc, char** argv)
         optsA.port = SERVER_PORT + 1;
         optsA.user = "alice";
         optsA.name = "Alice";
+        optsA.reconnection = false;
 
         scy::smpl::Client clientA(optsA);
         bool aOnline = false;
@@ -231,6 +233,7 @@ int main(int argc, char** argv)
         optsB.port = SERVER_PORT + 1;
         optsB.user = "bob";
         optsB.name = "Bob";
+        optsB.reconnection = false;
 
         scy::smpl::Client clientB(optsB);
         bool bOnline = false;
@@ -287,6 +290,7 @@ int main(int argc, char** argv)
         optsA.host = SERVER_HOST;
         optsA.port = SERVER_PORT + 2;
         optsA.user = "sender";
+        optsA.reconnection = false;
 
         scy::smpl::Client clientA(optsA);
         bool aOnline = false;
@@ -304,6 +308,7 @@ int main(int argc, char** argv)
         optsB.host = SERVER_HOST;
         optsB.port = SERVER_PORT + 2;
         optsB.user = "receiver";
+        optsB.reconnection = false;
 
         scy::smpl::Client clientB(optsB);
         bool bOnline = false;

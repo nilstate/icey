@@ -48,8 +48,18 @@ struct Context
     ~Context()
     {
         if (initialized) {
+            // Clear the data pointer before closing. Pending libuv
+            // callbacks (write completions during uv__stream_destroy)
+            // check handle->data to reach the C++ object. Since the
+            // C++ object is being destroyed, data must be null to
+            // prevent use-after-free.
+            reinterpret_cast<uv_handle_t*>(ptr)->data = nullptr;
+
+            // uv_close is async. The close callback fires on the next
+            // event loop iteration and frees the uv handle memory.
+            // We cast back to T* to match the allocation size (new T).
             uv_close(reinterpret_cast<uv_handle_t*>(ptr), [](uv_handle_t* handle) {
-                delete handle;
+                delete reinterpret_cast<T*>(handle);
             });
         } else {
             delete ptr;

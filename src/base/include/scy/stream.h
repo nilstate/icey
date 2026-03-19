@@ -93,9 +93,14 @@ public:
         uv_write_t* req = allocWriteReq();
         auto buf = uv_buf_init(const_cast<char*>(data), static_cast<unsigned int>(len));
         return Handle::invoke(&uv_write, req, stream(), &buf, 1, [](uv_write_t* req, int) {
-            // Return to freelist via the stream pointer stored in req->data
+            // Return to freelist via the stream pointer stored in handle->data.
+            // data is null if the C++ object was destroyed (Context::~Context
+            // clears it before calling uv_close). In that case just free the req.
             auto self = reinterpret_cast<Stream*>(req->handle->data);
-            self->freeWriteReq(req);
+            if (self)
+                self->freeWriteReq(req);
+            else
+                delete req;
         });
     }
 

@@ -103,9 +103,15 @@ void Client::doConnect()
 
 void Client::close()
 {
+    // Guard against re-entrant close (e.g. from onSocketClose callback)
+    if (_closing)
+        return;
+    _closing = true;
+
     _reconnectTimer.stop();
 
     if (_ws) {
+        // Send graceful close message before disconnecting
         if (isOnline()) {
             try {
                 json::Value msg;
@@ -119,10 +125,12 @@ void Client::close()
         _ws.reset();
     }
 
-    if (!stateEquals(ClientState::Closed)) {
-        reset();
+    reset();
+
+    if (!stateEquals(ClientState::Closed))
         setState(this, ClientState::Closed);
-    }
+
+    _closing = false;
 }
 
 
@@ -311,6 +319,12 @@ void Client::onSocketRecv(const std::string& data)
 void Client::onSocketClose()
 {
     LInfo("WebSocket disconnected");
+
+    // If close() was called explicitly, don't process the async callback.
+    // close() already handled cleanup and state transition.
+    if (_closing || stateEquals(ClientState::Closed))
+        return;
+
     bool wasOnline = _wasOnline;
     reset();
     setState(this, ClientState::Closed);

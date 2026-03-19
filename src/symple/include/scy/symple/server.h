@@ -18,6 +18,7 @@
 #include "scy/logger.h"
 #include "scy/symple/peer.h"
 
+#include <atomic>
 #include <cstdint>
 #include <memory>
 #include <mutex>
@@ -174,6 +175,7 @@ private:
     std::unordered_map<http::ServerConnection*, std::string> _connToPeer;
 
     mutable std::mutex _mutex;
+    std::atomic<bool> _shuttingDown{false};
 };
 
 

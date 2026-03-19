@@ -11,12 +11,15 @@
 
 #include "scy/test.h"
 #include "scy/logger.h"
+#include "scy/loop.h"
 #include "scy/singleton.h"
 #include "scy/time.h"
 #include "scy/util.h"
 
 #include <cassert>
+#include <chrono>
 #include <iostream>
+#include <thread>
 
 
 using std::cerr;
@@ -87,6 +90,33 @@ void expectImpl(bool passed, const char* assert, const char* file, long line)
     }
 
     std::cout << ss.str() << '\n';
+}
+
+
+bool waitFor(std::function<bool()> condition, int timeoutMs)
+{
+    if (condition())
+        return true;
+
+    auto deadline = std::chrono::steady_clock::now() +
+                    std::chrono::milliseconds(timeoutMs);
+
+    while (!condition()) {
+        if (std::chrono::steady_clock::now() >= deadline)
+            return false;
+
+        // Process pending libuv events without blocking.
+        // UV_RUN_NOWAIT returns immediately if no callbacks are pending,
+        // so we sleep briefly to avoid busy-waiting.
+        uv::runLoop(uv::defaultLoop(), UV_RUN_NOWAIT);
+
+        if (!condition()) {
+            // Yield to allow I/O to complete
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+    }
+
+    return true;
 }
 
 

@@ -55,6 +55,11 @@ Base_API void describe(const std::string& name, Test* test);
 /// Expect asserts that a condition is true (use expect() as defined below).
 Base_API void expectImpl(bool passed, const char* assert, const char* file, long line);
 
+/// Run the event loop until a condition is met or timeout expires.
+/// Returns true if the condition was satisfied, false on timeout.
+/// Useful for testing async operations that complete via libuv callbacks.
+Base_API bool waitFor(std::function<bool()> condition, int timeoutMs = 3000);
+
 // Shamelessly define macros to aesthetic name :)
 #ifdef NDEBUG
 #define expect(x) scy::test::expectImpl(true, "", "", 0)

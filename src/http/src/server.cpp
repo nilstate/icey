@@ -70,6 +70,7 @@ void Server::start()
 
 void Server::shutdown()
 {
+    // Stop accepting new connections
     if (_socket) {
         _socket->removeReceiver(this);
         _socket->AcceptConnection -= slot(this, &Server::onClientSocketAccept);
@@ -77,6 +78,45 @@ void Server::shutdown()
     }
 
     _timer.stop();
+
+    // Close all active connections. Disconnect our close callback first
+    // to prevent onConnectionClose from modifying the map during iteration.
+    //
+    // Connection destruction must be deferred: Connection::close() calls
+    // uv_close() which is async. The uv handle's write callbacks still
+    // reference the C++ Stream object. If we destroy the connection now,
+    // those callbacks access freed memory.
+    //
+    // Solution: move the shared_ptrs into an idle callback that releases
+    // them on the next event loop iteration, after uv_close completes.
+    auto loop = _socket ? _socket->loop() : uv::defaultLoop();
+    auto* deferred = new std::vector<ServerConnection::Ptr>();
+    for (auto& [ptr, conn] : _connections) {
+        conn->Close -= slot(this, &Server::onConnectionClose);
+        conn->close();
+        deferred->push_back(std::move(conn));
+    }
+    _connections.clear();
+
+    // Also defer pool cleanup
+    while (auto pooled = _pool.acquire())
+        deferred->push_back(std::move(pooled));
+
+    // Release the connections on the next event loop iteration
+    if (!deferred->empty()) {
+        auto* idle = new uv_idle_t;
+        uv_idle_init(loop, idle);
+        idle->data = deferred;
+        uv_idle_start(idle, [](uv_idle_t* handle) {
+            uv_idle_stop(handle);
+            delete static_cast<std::vector<ServerConnection::Ptr>*>(handle->data);
+            uv_close(reinterpret_cast<uv_handle_t*>(handle), [](uv_handle_t* h) {
+                delete reinterpret_cast<uv_idle_t*>(h);
+            });
+        });
+    } else {
+        delete deferred;
+    }
 
     Shutdown.emit();
 }

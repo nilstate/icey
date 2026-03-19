@@ -204,6 +204,7 @@ private:
     Timer _reconnectTimer;
     int _reconnectCount = 0;
     bool _wasOnline = false;
+    bool _closing = false;
 };
 
 

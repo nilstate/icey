@@ -159,6 +159,8 @@ public:
     void onClose() override
     {
         _authTimer.stop();
+        if (_server._shuttingDown)
+            return;
         std::lock_guard lock(_server._mutex);
         auto it = _server._connToPeer.find(&connection());
         if (it != _server._connToPeer.end()) {
@@ -228,14 +230,28 @@ void Server::start(const Options& opts)
 
 void Server::shutdown()
 {
-    std::lock_guard lock(_mutex);
+    if (_shuttingDown)
+        return;
+    _shuttingDown = true;
 
-    _peers.clear();
-    _rooms.clear();
-    _connToPeer.clear();
-
+    // Shut down the HTTP server first. This closes the listen socket
+    // and emits Shutdown. Connection cleanup happens asynchronously
+    // via uv_close callbacks.
     if (_http)
         _http->shutdown();
+
+    // Clear all state. Responder::onClose is guarded by _shuttingDown
+    // so it won't try to access these collections.
+    {
+        std::lock_guard lock(_mutex);
+        _connToPeer.clear();
+        _rooms.clear();
+        _peers.clear();
+    }
+
+    // Release the HTTP server. Its destructor calls shutdown() again
+    // (no-op due to _shuttingDown guard on the http side - the socket
+    // is already closed). Connections and responders are destroyed here.
     _http.reset();
 
     LInfo("Symple server shut down");

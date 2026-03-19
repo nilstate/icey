@@ -1,7 +1,6 @@
 #pragma once
 
 
-#include "scy/application.h"
 #include "scy/base.h"
 #include "scy/logger.h"
 #include "scy/symple/client.h"
@@ -13,7 +12,7 @@
 
 
 #define SERVER_HOST "127.0.0.1"
-#define SERVER_PORT 14500  // Use non-standard port to avoid conflicts
+#define SERVER_PORT 14500
 
 
 namespace scy {
@@ -25,6 +24,7 @@ class TestClient
 public:
     bool gotOnline = false;
     bool gotRemotePresence = false;
+    std::string receivedMessage;
     std::string user;
     smpl::Client client;
 
@@ -46,57 +46,35 @@ public:
 
     void connect()
     {
-        LInfo(user, ": connecting");
         client.connect();
-    }
-
-    bool completed()
-    {
-        return gotOnline && gotRemotePresence;
-    }
-
-    void check()
-    {
-        expect(gotOnline);
-        expect(gotRemotePresence);
     }
 
     void onRecvPresence(smpl::Presence& presence)
     {
-        LInfo(user, ": presence from ", presence.from().toString());
-
-        // Only count presence from other users
-        if (presence.from().user != user) {
+        LDebug(user, ": presence from ", presence.from().toString());
+        if (presence.from().user != user)
             gotRemotePresence = true;
-        }
     }
 
     void onRecvMessage(smpl::Message& message)
     {
-        LInfo(user, ": message: ", message.dump(4));
+        LDebug(user, ": message received");
+        if (message.find("data") != message.end() &&
+            message["data"].contains("text"))
+            receivedMessage = message["data"]["text"].get<std::string>();
     }
 
     void onClientAnnounce(const int& status)
     {
-        LInfo(user, ": announce status ", status);
-        if (status != 200)
-            throw std::runtime_error("Announce failed: " + std::to_string(status));
+        LDebug(user, ": announce ", status);
     }
 
     void onClientStateChange(void*, smpl::ClientState& state, const smpl::ClientState&)
     {
-        LInfo(user, ": state -> ", state.toString());
-
-        switch (state.id()) {
-        case smpl::ClientState::Online:
+        LDebug(user, ": state -> ", state.toString());
+        if (state.id() == smpl::ClientState::Online) {
             gotOnline = true;
             client.joinRoom("test");
-            break;
-        case smpl::ClientState::Error:
-            throw std::runtime_error(user + ": client error");
-            break;
-        default:
-            break;
         }
     }
 
