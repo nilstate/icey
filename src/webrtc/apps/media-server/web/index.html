@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LibSourcey Media Server</title>
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+  <header>
+    <h1>LibSourcey Media Server</h1>
+    <div id="status" class="status offline">Offline</div>
+  </header>
+
+  <main>
+    <aside id="sidebar">
+      <h2>Peers</h2>
+      <ul id="peer-list"></ul>
+    </aside>
+
+    <section id="media">
+      <div id="player-container">
+        <video id="remote-video" autoplay playsinline></video>
+        <div id="player-overlay" class="hidden">
+          <p>Select a peer and click Call to start</p>
+        </div>
+      </div>
+
+      <div id="local-preview">
+        <video id="local-video" autoplay playsinline muted></video>
+      </div>
+
+      <div id="controls" class="hidden">
+        <button id="btn-mute" title="Mute">🔇</button>
+        <button id="btn-camera" title="Toggle camera">📹</button>
+        <button id="btn-fullscreen" title="Fullscreen">⛶</button>
+        <button id="btn-hangup" title="Hangup">📕</button>
+      </div>
+
+      <div id="stats">
+        <span id="stat-codec"></span>
+        <span id="stat-bitrate"></span>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span id="connection-info"></span>
+  </footer>
+
+  <script type="module" src="/src/app.js"></script>
+</body>
+</html>

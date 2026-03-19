@@ -1,0 +1,24 @@
+{
+  "http": {
+    "host": "0.0.0.0",
+    "port": 4500
+  },
+  "turn": {
+    "port": 3478,
+    "realm": "sourcey.com",
+    "externalIp": ""
+  },
+  "media": {
+    "mode": "stream",
+    "source": "",
+    "loop": true,
+    "video": {
+      "codec": "libx264",
+      "width": 1280,
+      "height": 720,
+      "fps": 30,
+      "bitrate": 2000000
+    }
+  },
+  "webRoot": "./web/dist"
+}

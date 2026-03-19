@@ -15,4 +15,8 @@ if(HAVE_LIBDATACHANNEL AND HAVE_OPENSSL AND HAVE_FFMPEG)
     target_link_libraries(webrtc PUBLIC ${FFMPEG_LIBRARIES})
     target_include_directories(webrtc PUBLIC ${FFMPEG_INCLUDE_DIRS})
   endif()
+
+  if(BUILD_APPLICATIONS AND TARGET webrtc AND TARGET symple)
+    add_subdirectory(apps/media-server)
+  endif()
 endif()

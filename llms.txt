@@ -1,0 +1,506 @@
+# LibSourcey
+
+> The C++ Media Stack
+
+C++20 toolkit for media servers, video pipelines, and real-time communication. Unifies FFmpeg, libuv, OpenSSL, and libdatachannel behind a composable PacketStream pipeline. CMake, LGPL-2.1+.
+
+- Source: https://github.com/sourcey/libsourcey
+- Docs: https://sourcey.com/code/libsourcey
+- Requires: CMake 3.21+, C++20 (GCC 12+, Clang 15+, MSVC 2022+), OpenSSL 3.x
+- Optional: FFmpeg 5+/6+/7+ (-DWITH_FFMPEG=ON), libdatachannel (-DWITH_LIBDATACHANNEL=ON), OpenCV (-DWITH_OPENCV=ON)
+- Namespaces: scy, scy::net, scy::http, scy::av, scy::smpl, scy::wrtc
+- All async I/O runs on libuv's single-threaded event loop. Use LocalSignal for lock-free dispatch in event loop context.
+
+## PacketStream
+
+The core abstraction. Sources emit packets, processors transform them, sinks consume them. Handles backpressure, frame dropping, teardown.
+
+```cpp
+// Namespace: scy
+// Header: scy/packetstream.h
+
+PacketStream stream("my-stream");
+
+// Attach a source (camera, file, network)
+stream.attachSource(source);                           // PacketSignal&
+stream.attachSource(adapter, owned=true, syncState=false);  // PacketStreamAdapter*
+stream.attachSource(sharedPtr, syncState=false);       // std::shared_ptr<T>
+
+// Attach processors in priority order (lower = earlier)
+stream.attach(processor, order=0, owned=true);         // PacketProcessor*
+stream.attach(sharedPtr, order=0, syncState=false);    // std::shared_ptr<T>
+
+// Lifecycle
+stream.start();
+stream.stop();
+stream.pause();
+stream.resume();
+stream.close();
+stream.reset();
+
+// Write packets manually
+stream.write(data, len);
+stream.write(IPacket&& packet);
+
+// State queries
+stream.active();   // bool
+stream.stopped();  // bool
+stream.closed();   // bool
+
+// Access adapters
+stream.getSource<MySource>(index);       // Returns MySource* or nullptr
+stream.getProcessor<MyProc>(index);      // Returns MyProc* or nullptr
+
+// Signals
+stream.emitter;  // PacketSignal - subscribe to receive output packets
+stream.Error += [](PacketStream& s, const std::exception_ptr& e) { };
+stream.Close += [](PacketStream& s) { };
+```
+
+States: None -> Locked -> Active -> Paused -> Stopping -> Stopped -> Closed | Error
+
+Custom processors implement `PacketProcessor::process(IPacket& packet)` and call `emit(packet)` to forward.
+
+## Signal/Slot
+
+Thread-safe observer pattern. All libsourcey events use this.
+
+```cpp
+// Namespace: scy
+// Header: scy/signal.h
+
+Signal<void(int, const std::string&)> MyEvent;
+
+// Connect with lambda
+int id = MyEvent += [](int code, const std::string& msg) { };
+
+// Connect with member function
+MyEvent.attach(slot(this, &MyClass::onEvent));
+
+// Disconnect
+MyEvent -= id;
+MyEvent.detach(instancePtr);
+MyEvent.detachAll();
+
+// Emit
+MyEvent.emit(200, "ok");
+
+// Operator shorthand
+MyEvent += callback;   // attach
+MyEvent -= id;         // detach
+```
+
+Use `LocalSignal<void(Args...)>` instead of `Signal` when operating on libuv's single-threaded event loop. It uses NullSharedMutex for zero locking overhead.
+
+## HTTP Server
+
+```cpp
+// Namespace: scy::http
+// Header: scy/http/server.h
+
+http::Server srv{"0.0.0.0", 8080};
+
+// Handle connections directly
+srv.Connection += [](http::ServerConnection::Ptr conn) {
+    // conn->request() for headers, method, URL
+    conn->Payload += [](http::ServerConnection& c, const MutableBuffer& buf) {
+        c.send(bufferCast<const char*>(buf), buf.size());
+        c.close();
+    };
+};
+
+srv.start();
+srv.shutdown();
+
+// Configuration
+srv.setReusePort(true);
+srv.setMaxPooledConnections(100);
+srv.setKeepAliveTimeout(30);
+```
+
+For structured request handling, subclass `ServerResponder`:
+
+```cpp
+class MyResponder : public http::ServerResponder {
+    void onHeaders(http::Request& req) override { }
+    void onPayload(const MutableBuffer& body) override { }
+    void onRequest(http::Request& req, http::Response& res) override {
+        res.setStatus(200);
+        res.setContentType("text/plain");
+        connection().send("Hello");
+        connection().close();
+    }
+};
+
+// Register via ServerConnectionFactory
+```
+
+Response methods on ServerConnection:
+```cpp
+conn->send(const char* data, size_t len);
+conn->send(const std::string& data);
+conn->close();
+conn->request();   // http::Request&
+conn->response();  // http::Response&
+```
+
+## WebSocket
+
+```cpp
+// Namespace: scy::http::ws
+// Header: scy/http/websocket.h
+
+// Server-side: upgrade from HTTP connection
+// Detected automatically when client sends Upgrade: websocket
+
+// Client-side:
+http::WebSocket ws(makeSocket<net::TCPSocket>());
+ws.request().setURI("/ws");
+ws.sendClientRequest();  // Initiates handshake
+
+// Send
+ws.send(data, len, ws::SendFlags::Text);
+ws.send(data, len, ws::SendFlags::Binary);
+
+// Close
+ws.shutdown(ws::CloseStatusCode::NormalClose, "bye");
+```
+
+Opcodes: Continuation, Text, Binary, Close, Ping, Pong.
+
+## Media Capture (FFmpeg)
+
+```cpp
+// Namespace: scy::av
+// Header: scy/av/mediacapture.h
+
+auto capture = std::make_shared<av::MediaCapture>();
+
+// Open source
+capture->openFile("video.mp4");
+capture->openVideo(deviceId, width, height, fps);  // Camera
+capture->openVideo(deviceId, width, height, fps, pixelFormat);
+
+// Options
+capture->setLoopInput(true);      // Loop file playback
+capture->setLimitFramerate(true); // Throttle to source FPS
+capture->setRealtimePTS(true);    // Wall-clock timestamps
+
+// Run (emits packets via PacketSignal inherited from PacketStreamAdapter)
+capture->start();
+capture->stop();
+capture->close();
+
+// Query codec params
+av::VideoCodec vcodec;
+capture->getEncoderVideoCodec(vcodec);
+av::AudioCodec acodec;
+capture->getEncoderAudioCodec(acodec);
+
+// Access FFmpeg internals
+capture->formatCtx();  // AVFormatContext*
+capture->video();      // VideoDecoder*
+capture->audio();      // AudioDecoder*
+```
+
+MediaCapture runs on a separate thread. It emits VideoPacket and AudioPacket through the PacketSignal interface, so attach it as a PacketStream source.
+
+## Video Encoder
+
+```cpp
+// Namespace: scy::av
+// Header: scy/av/videoencoder.h
+
+av::VideoEncoder encoder;
+encoder.iparams.width = 1280;
+encoder.iparams.height = 720;
+encoder.iparams.pixelFmt = "yuv420p";
+encoder.oparams.encoder = "libx264";
+encoder.oparams.pixelFmt = "yuv420p";
+encoder.oparams.width = 1280;
+encoder.oparams.height = 720;
+encoder.oparams.fps = 30;
+encoder.oparams.bitRate = 2000000;
+encoder.create();
+
+// Encode raw frame data
+encoder.encode(data, size, pts);
+encoder.encode(planeData, linesize, pts);
+encoder.encode(avFrame);
+encoder.flush();
+encoder.close();
+```
+
+## WebRTC PeerSession
+
+Manages WebRTC peer connection lifecycle with Symple call signalling.
+
+```cpp
+// Namespace: scy::wrtc
+// Header: scy/webrtc/peersession.h
+
+wrtc::PeerSession::Config config;
+config.rtcConfig.iceServers.emplace_back("stun:stun.l.google.com:19302");
+config.mediaOpts.videoCodec = av::VideoCodec("H264", "libx264", 1280, 720, 30);
+config.mediaOpts.audioCodec = av::AudioCodec("opus", "libopus", 2, 48000);
+config.enableDataChannel = true;
+
+wrtc::SympleSignaller signaller(sympleClient);
+wrtc::PeerSession session(signaller, config);
+
+// Outgoing call
+session.call("remote-peer-id");
+
+// Incoming call
+session.IncomingCall += [&](const std::string& peerId) {
+    session.accept();
+    // or session.reject("busy");
+};
+
+// State changes
+session.StateChanged += [&](wrtc::PeerSession::State state) {
+    // Idle -> Ringing -> Connecting -> Active -> Ended
+    // Idle -> Incoming -> Connecting -> Active -> Ended
+};
+
+// Data channel
+session.DataReceived += [](rtc::message_variant msg) { };
+session.sendData("hello");
+session.sendData(bytePtr, size);
+
+// End call
+session.hangup("done");
+
+// Access internals
+session.media();            // MediaBridge&
+session.peerConnection();   // std::shared_ptr<rtc::PeerConnection>
+session.dataChannel();      // std::shared_ptr<rtc::DataChannel>
+session.state();            // PeerSession::State
+session.remotePeerId();     // std::string
+```
+
+States: Idle, Ringing, Incoming, Connecting, Active, Ended.
+
+Symple call protocol messages: call:init, call:accept, call:reject, call:offer, call:answer, call:candidate, call:hangup. Compatible with symple-client-player's CallManager in the browser.
+
+## MediaBridge
+
+Bridges FFmpeg encode/decode with libdatachannel's WebRTC tracks. Created internally by PeerSession, but can be used standalone.
+
+```cpp
+// Namespace: scy::wrtc
+// Header: scy/webrtc/mediabridge.h
+
+wrtc::MediaBridge bridge;
+
+wrtc::MediaBridge::Options opts;
+opts.videoCodec = av::VideoCodec("H264", "libx264", 1280, 720, 30);
+opts.audioCodec = av::AudioCodec("opus", "libopus", 2, 48000);
+opts.videoSsrc = 0;  // Auto-generate
+opts.audioSsrc = 0;
+opts.nackBufferSize = 512;
+
+bridge.attach(peerConnection, opts);
+
+// Send side: use senders as PacketStream sinks
+stream.attach(&bridge.videoSender(), 5);   // WebRtcTrackSender - PacketProcessor
+stream.attach(&bridge.audioSender(), 6);
+
+// Receive side: receivers emit decoded packets
+// bridge.videoReceiver() / bridge.audioReceiver() - PacketStreamAdapter
+
+// RTCP feedback
+bridge.KeyframeRequested += []() { /* force IDR from encoder */ };
+bridge.BitrateEstimate += [](unsigned int bps) { /* adapt encoder bitrate */ };
+
+// Query
+bridge.hasVideo();   // bool
+bridge.hasAudio();   // bool
+bridge.attached();   // bool
+bridge.videoTrack(); // std::shared_ptr<rtc::Track>
+bridge.audioTrack(); // std::shared_ptr<rtc::Track>
+
+bridge.detach();
+```
+
+## Symple Client
+
+Real-time messaging, presence, and WebRTC call signalling over WebSocket.
+
+```cpp
+// Namespace: scy::smpl
+// Header: scy/symple/client.h
+
+smpl::Client::Options opts;
+opts.host = "127.0.0.1";
+opts.port = 4500;
+opts.user = "my-app";
+opts.name = "My Application";
+opts.token = "auth-token";       // Optional
+opts.secure = false;             // wss:// if true
+opts.reconnection = true;
+opts.reconnectDelay = 3000;      // ms
+
+smpl::TCPClient client(opts);    // or smpl::SSLClient for TLS
+
+// Signals
+client.Announce += [](const int& status) { /* 200 = auth ok */ };
+client.PeerConnected += [](smpl::Peer& peer) { };
+client.PeerDisconnected += [](smpl::Peer& peer) { };
+client.CreatePresence += [](smpl::Peer& peer) {
+    peer["type"] = "streamer";  // Set presence metadata
+};
+// StateChange inherited from Stateful<ClientState>
+
+client.connect();
+client.joinRoom("public");
+client.leaveRoom("public");
+
+// Send messages
+smpl::Message msg;
+msg.setTo("user|session-id");
+msg["type"] = "message";
+msg["data"] = "hello";
+client.send(msg);
+
+// Query
+client.isOnline();   // bool
+client.ourID();      // "user|session-id"
+client.ourPeer();    // Peer*
+client.rooms();      // StringVec
+client.roster();     // Roster& (connected peers)
+```
+
+Client states: Closed -> Connecting -> Authenticating -> Online | Error.
+
+## Networking
+
+```cpp
+// Namespace: scy::net
+// Header: scy/net/socket.h, scy/net/tcpsocket.h, scy/net/sslsocket.h, scy/net/udpsocket.h
+
+// Create sockets
+auto tcp = net::makeSocket<net::TCPSocket>();
+auto ssl = net::makeSocket<net::SSLSocket>();
+auto udp = net::makeSocket<net::UDPSocket>();
+
+// Connect
+tcp->connect("example.com", 80);
+tcp->connect(net::Address("1.2.3.4", 80));
+
+// Bind and listen (server)
+tcp->bind(net::Address("0.0.0.0", 9000));
+tcp->listen(64);
+
+// All sockets are SocketAdapter with these signals:
+// Connect, Recv, Error, Close
+// Use operator+= to subscribe
+
+tcp->close();
+tcp->shutdown();
+
+// Properties
+tcp->address();      // net::Address (local)
+tcp->peerAddress();  // net::Address (remote)
+tcp->closed();       // bool
+tcp->loop();         // uv::Loop*
+```
+
+## Build Integration
+
+```cmake
+# FetchContent (recommended)
+include(FetchContent)
+FetchContent_Declare(libsourcey
+  GIT_REPOSITORY https://github.com/sourcey/libsourcey.git
+  GIT_TAG v2.1.0
+)
+FetchContent_MakeAvailable(libsourcey)
+target_link_libraries(myapp PRIVATE scy_base scy_net scy_http scy_av scy_webrtc scy_symple)
+
+# Available targets: scy_base, scy_crypto, scy_net, scy_http, scy_json,
+# scy_av, scy_symple, scy_stun, scy_turn, scy_webrtc,
+# scy_archo, scy_pluga, scy_pacm, scy_sched
+```
+
+```bash
+# Build from source
+git clone https://github.com/sourcey/libsourcey.git
+cd libsourcey
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DWITH_FFMPEG=ON -DWITH_LIBDATACHANNEL=ON
+cmake --build build --parallel
+```
+
+## Common Patterns
+
+### WebRTC webcam streamer (complete flow)
+```cpp
+// 1. Set up Symple client for signalling
+smpl::Client::Options opts;
+opts.host = "symple-server.example.com";
+opts.port = 4500;
+opts.user = "streamer";
+smpl::TCPClient client(opts);
+
+// 2. Configure WebRTC
+wrtc::PeerSession::Config config;
+config.rtcConfig.iceServers.emplace_back("stun:stun.l.google.com:19302");
+config.mediaOpts.videoCodec = av::VideoCodec("H264", "libx264", 1280, 720, 30);
+
+// 3. Create signaller and session
+wrtc::SympleSignaller signaller(client);
+wrtc::PeerSession session(signaller, config);
+
+// 4. Set up capture
+auto capture = std::make_shared<av::MediaCapture>();
+capture->openFile("test.mp4");
+capture->setLoopInput(true);
+capture->setLimitFramerate(true);
+
+// 5. Wire pipeline
+PacketStream stream;
+session.IncomingCall += [&](const std::string& peerId) {
+    session.accept();
+};
+session.StateChanged += [&](wrtc::PeerSession::State state) {
+    if (state == wrtc::PeerSession::State::Active) {
+        stream.attachSource(capture.get(), false, true);
+        stream.attach(&session.media().videoSender(), 5, false);
+        stream.start();
+        capture->start();
+    }
+};
+
+// 6. Connect and wait
+client.connect();
+```
+
+### Media pipeline (capture to file)
+```cpp
+PacketStream stream;
+auto capture = std::make_shared<av::MediaCapture>();
+capture->openFile("input.mp4");
+
+stream.attachSource(capture);
+stream.attach(new av::MultiplexPacketEncoder(outputOpts), 5);
+stream.start();
+capture->start();
+```
+
+### HTTP server with WebSocket
+```cpp
+http::Server srv{"0.0.0.0", 8080};
+srv.Connection += [](http::ServerConnection::Ptr conn) {
+    if (conn->request().isWebSocket()) {
+        conn->Payload += [](http::ServerConnection& c, const MutableBuffer& buf) {
+            c.send(bufferCast<const char*>(buf), buf.size());  // Echo
+        };
+    } else {
+        conn->Payload += [](http::ServerConnection& c, const MutableBuffer&) {
+            c.send("HTTP response body");
+            c.close();
+        };
+    }
+};
+srv.start();
+```

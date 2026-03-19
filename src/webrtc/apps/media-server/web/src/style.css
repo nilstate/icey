@@ -1,0 +1,260 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #0f1117;
+  --surface: #1a1d27;
+  --border: #2a2d3a;
+  --text: #e1e4ed;
+  --text-dim: #8b8fa3;
+  --accent: #6366f1;
+  --accent-hover: #818cf8;
+  --success: #22c55e;
+  --danger: #ef4444;
+  --radius: 8px;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+header h1 {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.status {
+  font-size: 0.85rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-weight: 500;
+}
+
+.status.online {
+  background: rgba(34, 197, 94, 0.15);
+  color: var(--success);
+}
+
+.status.offline {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--danger);
+}
+
+main {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+/* Sidebar */
+aside {
+  width: 260px;
+  min-width: 260px;
+  border-right: 1px solid var(--border);
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+aside h2 {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
+  margin-bottom: 0.75rem;
+}
+
+#peer-list {
+  list-style: none;
+}
+
+.peer-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--radius);
+  margin-bottom: 0.25rem;
+  cursor: default;
+}
+
+.peer-item:hover {
+  background: var(--surface);
+}
+
+.peer-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.peer-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--success);
+}
+
+.peer-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.peer-type {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+.peer-item button {
+  padding: 0.3rem 0.75rem;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: white;
+  font-size: 0.8rem;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.peer-item button:hover {
+  background: var(--accent-hover);
+}
+
+.peer-item button.hangup {
+  background: var(--danger);
+}
+
+/* Media area */
+#media {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  gap: 0.75rem;
+}
+
+#player-container {
+  flex: 1;
+  position: relative;
+  background: #000;
+  border-radius: var(--radius);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#remote-video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+#player-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim);
+}
+
+#local-preview {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  width: 200px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 2px solid var(--border);
+}
+
+#local-video {
+  width: 100%;
+  display: block;
+}
+
+#controls {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+#controls button {
+  width: 48px;
+  height: 48px;
+  border: none;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+
+#controls button:hover {
+  background: var(--border);
+}
+
+#btn-hangup {
+  background: var(--danger) !important;
+}
+
+#btn-hangup:hover {
+  opacity: 0.8;
+}
+
+#stats {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+/* Footer */
+footer {
+  padding: 0.5rem 1.5rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  main {
+    flex-direction: column;
+  }
+
+  aside {
+    width: 100%;
+    min-width: unset;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    max-height: 200px;
+  }
+}
