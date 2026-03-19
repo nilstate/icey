@@ -4,9 +4,70 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [2.1.0] - Unreleased
+## [2.2.0] - 2026-03-19
 
 ### Added
+
+- Symple v4 server hardening: max connections, per-peer rate limiting (token bucket), max message size, graceful shutdown broadcast with error responses (413/429/503)
+- Team/group permission scoping: rooms as permission boundaries, `rooms` field in auth message, `Authenticate` signal passes mutable `rooms` vector for server-side assignment
+- Direct message permission check: sender and recipient must share at least one room
+- Protocol version in welcome message (`"protocol": "symple/4"`) and room list in welcome response
+- ASAN CMake support: `-fsanitize=address` propagates to FetchContent C dependencies via `CMAKE_C_FLAGS`
+- `http::Server` overloads accepting `net::TCPSocket::Ptr` for TLS/SSL support alongside `uv::Loop*` constructors
+- `smpl::Server` accepts `uv::Loop*` parameter, threads loop through to `http::Server`
+- Timer destructor calls `stop()`, timer callback null-checks `req->data` (defense-in-depth)
+- `Peer::operator=` with explicit `static_cast<const json::Value&>` (avoids nlohmann template overload)
+- Symple module README with server, client, WebRTC signalling, and permissions documentation
+- 4 hardening tests: max connections, max message size, rate limiting, graceful shutdown
+
+### Fixed
+
+- Mutex deadlock in `Responder::onPayload`: `connection().close()` for close/auth-reject was called inside the lock; moved to `shouldClose` flag pattern outside lock scope
+- Use-after-free in `Server::onConnectionClose`: non-pooled connections were destroyed synchronously during their own callback chain; now deferred via idle callback (found by ASAN)
+- `expect()` macro silently skipped side effects in `NDEBUG` mode: `waitFor()` calls inside `expect()` were never executed in Release builds
+
+### Changed
+
+- `http::Server` primary constructor takes `uv::Loop*` instead of `net::TCPSocket::Ptr`; loop is stored as `_loop` member, used in shutdown and deferred destruction
+- SympleSignaller and all WebRTC samples updated from `smpl::TCPClient`/`SSLClient` to `smpl::Client`
+
+### Removed
+
+- `socketio` module deleted entirely (replaced by Symple v4 native WebSocket protocol)
+- All `socketio` references removed from CMakeLists.txt across symple, webrtc samples
+
+## [2.1.0] - 2026-03-19
+
+### Added - WebRTC Module
+
+- WebRTC module with [libdatachannel](https://github.com/nicertz/libdatachannel) integration (no Google libwebrtc dependency)
+- Three-layer architecture: track factories (layer 1), per-track PacketStream adapters (layer 2), MediaBridge + PeerSession convenience wrappers (layer 3)
+- Transport-agnostic `SignallingInterface` abstract base class; PeerSession no longer depends on Symple
+- `SympleSignaller`: Symple call protocol implementation (call:init/accept/reject/offer/answer/candidate/hangup)
+- Four WebRTC sample applications: data-echo, webcam-streamer, file-streamer, media-recorder
+- `CodecNegotiator` maps RTP codecs to FFmpeg encoders at runtime
+- CI job for WebRTC builds (Ubuntu 24.04, gcc-14, FFmpeg + OpenSSL + libdatachannel)
+
+### Added - Symple v4
+
+- Symple v4 protocol: native WebSocket transport replacing Socket.IO (breaking change from v3)
+- C++ Symple server: auth, rooms, routing, presence, shutdown lifecycle
+- C++ Symple client: plain WebSocket, auth flow, reconnection, close guard
+- Protocol spec (`PROTOCOL.md`): connection lifecycle, message types, addressing, rooms, auth modes, scaling, v3-v4 migration
+- 14 integration tests (address, peer, message, presence, roster, server lifecycle, connect, two-peer presence, message routing, auth failure, disconnect presence)
+- `test::waitFor()` helper for event-driven async test patterns
+
+### Added - HTTP Performance
+
+- `ConnectionPool`: LIFO stack reuses ServerConnection objects across requests (configurable max size, default 128)
+- `ServerConnection::reset()`: swap sockets without reconstruction (zero-alloc steady state)
+- `DateCache`: formatted Date header updated once per second via timer
+- HTTP/1.1 keep-alive: persistent connections, parser resets via `on_message_begin`, idle timeout (default 30s)
+- `IntrusivePtr<T>` and `RefCounted<T>`: intrusive smart pointer with non-atomic embedded refcount (zero allocation overhead vs shared_ptr)
+- Go net/http server added to benchmark suite for comparison
+- Pre-formatted static status lines for common HTTP codes
+
+### Added - Other
 
 - `USE_SYSTEM_DEPS` CMake option for vcpkg/system package integration (switches FetchContent to find_package for libuv, llhttp, zlib, minizip)
 - Vendored nlohmann/json single header (v3.11.3), eliminating FetchContent download
@@ -19,6 +80,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ### Changed
 
+- `Handle::Context` changed from `shared_ptr` to `unique_ptr` (sole ownership, eliminates control block allocation per handle)
+- `Handle::Context::~Context` clears `handle->data = nullptr` before `uv_close` to prevent use-after-free in pending callbacks
+- `Stream::write` callback null-checks `handle->data` before accessing the Stream object
+- `http::Server::shutdown()` defers connection destruction via `uv_idle` callback (prevents write callback use-after-free)
+- `smpl::Server::shutdown()` uses `_shuttingDown` atomic flag to guard Responder callbacks during destruction
+- `smpl::Client::close()` uses `_closing` guard to prevent re-entrant close
+- Symple client no longer depends on socketio module; uses native WebSocket via HTTP module
+- WebRTC module `DEPENDS` drops symple (signalling is transport-agnostic)
+- `SKIP_EXPORT` option added to `scy_add_module` for FetchContent dependency conflicts
+- README rewritten: WebRTC hero example, comparison table vs libWebRTC/libdatachannel/GStreamer/Pion, architecture diagram, module table
+- Conan recipe added with per-module components and optional FFmpeg/OpenCV features
+- `std::endl` replaced with `'\n'` throughout (removes redundant flush from logger macros)
+- `std::bind` replaced with lambdas throughout
+- Iterator loops converted to range-based for with structured bindings
+- `typedef` converted to `using` aliases
+- `override` added to virtual methods in derived classes
 - `string_view`: converted ~270 read-only `const std::string&` parameters across base, http, crypto, net, symple, av, json, stun, turn modules
 - `random`: rewrote PRNG with `std::mt19937` + `std::random_device`, replacing BSD nonlinear additive feedback LFSR
 - `datetime`: rewrote internals with C++20 `std::chrono` calendar types (`year_month_day`, `sys_days`, `weekday`), replacing Julian Day floating-point math
@@ -37,6 +114,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ### Fixed
 
+- `sendHeader()` undefined behavior: response buffer moved from local to member (local `std::string` was freed before async `uv_write` completed)
+- `UV_EOF` in `Stream::handleRead()` now triggers graceful close instead of error state
+- Symple v4 client `Peer` to json assignment needed `static_cast<const json::Value&>` to avoid nlohmann `type_error.302`
 - `-Werror` enabled in CI; fixed all remaining compiler warnings
 - `json::findNestedObjectWithProperty` was comparing `it.value()` instead of `it.key()`
 - `Configuration::removeAll` iterator invalidation
@@ -45,11 +125,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ### Removed
 
+- WebRTC hard dependency on Symple (signalling is now pluggable via `SignallingInterface`)
 - Stale `bench/` directory (duplicate of `src/http/samples/httpbenchmark`)
 - Dead commented-out JsonCpp stringify code in json module
 - Empty `json.cpp` stub
 - Deprecated `thread.h`/`thread.cpp` and `archo` test file
 - In-source build artifacts
+
+### Performance
+
+Keep-alive benchmark results (single vCPU, wrk -t4 -c100 -d10s):
+
+| Server | req/s | Latency |
+| --- | --- | --- |
+| Raw libuv+llhttp | 96,088 | 1.04ms |
+| LibSourcey | 72,209 | 1.43ms |
+| Go 1.25 net/http | 53,878 | 2.31ms |
+| Node.js v20 | 45,514 | 3.56ms |
 
 ## [2.0.1] - 2026-03-17
 
