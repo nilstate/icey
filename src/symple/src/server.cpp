@@ -269,7 +269,6 @@ void Server::onAuth(ServerPeer& tempPeer, const json::Value& msg)
         err["status"] = 401;
         err["message"] = "Missing user field";
         tempPeer.send(err);
-        tempPeer.connection().close();
         return;
     }
 
@@ -302,7 +301,10 @@ void Server::onAuth(ServerPeer& tempPeer, const json::Value& msg)
             err["status"] = 401;
             err["message"] = "Authentication failed";
             tempPeer.send(err);
-            tempPeer.connection().close();
+            // Don't close immediately - let the error message flush
+            // to the client first. The client will close after
+            // receiving the error. The auth timeout will clean up
+            // if the client doesn't disconnect.
             return;
         }
     }

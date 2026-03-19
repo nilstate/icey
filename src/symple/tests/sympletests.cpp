@@ -17,7 +17,7 @@ namespace scy_test = scy::test;
 int main(int argc, char** argv)
 {
     scy::Logger::instance().add(
-        std::make_unique<scy::ConsoleChannel>("debug", scy::Level::Trace));
+        std::make_unique<scy::ConsoleChannel>("debug", scy::Level::Debug));
     scy_test::init();
 
 
@@ -147,48 +147,31 @@ int main(int argc, char** argv)
     // runLoop() to pump events for a limited time.
     //
     scy_test::describe("client: connect and authenticate", []() {
-        // Start server
-        scy::smpl::Server server;
+        smpl::Server server;
         server.start({.host = SERVER_HOST, .port = SERVER_PORT, .dynamicRooms = true});
 
         bool peerConnected = false;
-        server.PeerConnected += [&](scy::smpl::ServerPeer& peer) {
-            peerConnected = true;
-        };
+        server.PeerConnected += [&](smpl::ServerPeer&) { peerConnected = true; };
 
-        // Create client
-        scy::smpl::Client::Options opts;
+        smpl::Client::Options opts;
         opts.host = SERVER_HOST;
         opts.port = SERVER_PORT;
         opts.user = "testuser";
         opts.name = "Test User";
         opts.reconnection = false;
 
-        scy::smpl::Client client(opts);
-
+        smpl::Client client(opts);
         bool gotOnline = false;
         int announceStatus = 0;
 
-        client.Announce += [&](const int& status) {
-            announceStatus = status;
-        };
-
-        client.StateChange += [&](void*, scy::smpl::ClientState& state, const scy::smpl::ClientState&) {
-            LDebug("Test: client state -> ", state.toString());
-            if (state.id() == scy::smpl::ClientState::Online)
+        client.Announce += [&](const int& s) { announceStatus = s; };
+        client.StateChange += [&](void*, smpl::ClientState& state, const smpl::ClientState&) {
+            if (state.id() == smpl::ClientState::Online)
                 gotOnline = true;
         };
 
         client.connect();
-
-        // Run event loop for up to 3 seconds
-        auto start = std::chrono::steady_clock::now();
-        while (!gotOnline &&
-               std::chrono::steady_clock::now() - start < std::chrono::seconds(3)) {
-            uv::runLoop(uv::defaultLoop(), UV_RUN_NOWAIT);
-        }
-
-        expect(gotOnline);
+        expect(test::waitFor([&] { return gotOnline; }));
         expect(announceStatus == 200);
         expect(!client.ourID().empty());
         expect(peerConnected);
@@ -199,162 +182,149 @@ int main(int argc, char** argv)
     });
 
 
-    scy_test::describe("client: two peers see each other's presence", []() {
-        scy::smpl::Server server;
+    scy_test::describe("client: two peers presence", []() {
+        smpl::Server server;
         server.start({.host = SERVER_HOST, .port = SERVER_PORT + 1, .dynamicRooms = true});
 
-        // Client A
-        scy::smpl::Client::Options optsA;
+        smpl::Client::Options optsA;
         optsA.host = SERVER_HOST;
         optsA.port = SERVER_PORT + 1;
         optsA.user = "alice";
-        optsA.name = "Alice";
         optsA.reconnection = false;
+        TestClient alice(optsA);
 
-        scy::smpl::Client clientA(optsA);
-        bool aOnline = false;
-        bool aGotPresence = false;
-
-        clientA.StateChange += [&](void*, scy::smpl::ClientState& state, const scy::smpl::ClientState&) {
-            if (state.id() == scy::smpl::ClientState::Online) {
-                aOnline = true;
-                clientA.joinRoom("test");
-            }
-        };
-
-        clientA.PeerConnected += [&](scy::smpl::Peer& peer) {
-            if (peer.user() != "alice")
-                aGotPresence = true;
-        };
-
-        // Client B
-        scy::smpl::Client::Options optsB;
+        smpl::Client::Options optsB;
         optsB.host = SERVER_HOST;
         optsB.port = SERVER_PORT + 1;
         optsB.user = "bob";
-        optsB.name = "Bob";
         optsB.reconnection = false;
+        TestClient bob(optsB);
 
-        scy::smpl::Client clientB(optsB);
-        bool bOnline = false;
-        bool bGotPresence = false;
+        alice.connect();
+        expect(test::waitFor([&] { return alice.gotOnline; }));
 
-        clientB.StateChange += [&](void*, scy::smpl::ClientState& state, const scy::smpl::ClientState&) {
-            if (state.id() == scy::smpl::ClientState::Online) {
-                bOnline = true;
-                clientB.joinRoom("test");
-            }
-        };
-
-        clientB.PeerConnected += [&](scy::smpl::Peer& peer) {
-            if (peer.user() != "bob")
-                bGotPresence = true;
-        };
-
-        clientA.connect();
-
-        // Wait for A to come online before connecting B
-        auto start = std::chrono::steady_clock::now();
-        while (!aOnline &&
-               std::chrono::steady_clock::now() - start < std::chrono::seconds(2)) {
-            uv::runLoop(uv::defaultLoop(), UV_RUN_NOWAIT);
-        }
-        expect(aOnline);
-
-        clientB.connect();
-
-        // Wait for both to exchange presence
-        start = std::chrono::steady_clock::now();
-        while ((!bOnline || !aGotPresence || !bGotPresence) &&
-               std::chrono::steady_clock::now() - start < std::chrono::seconds(3)) {
-            uv::runLoop(uv::defaultLoop(), UV_RUN_NOWAIT);
-        }
-
-        expect(bOnline);
+        bob.connect();
+        expect(test::waitFor([&] { return bob.gotOnline; }));
+        expect(test::waitFor([&] { return alice.gotRemotePresence && bob.gotRemotePresence; }));
         expect(server.peerCount() == 2);
-        // B should have seen A's presence (A was online when B joined the user room)
-        // A should have seen B's presence broadcast
 
-        clientA.close();
-        clientB.close();
+        alice.client.close();
+        bob.client.close();
         server.shutdown();
     });
 
 
     scy_test::describe("client: message routing", []() {
-        scy::smpl::Server server;
+        smpl::Server server;
         server.start({.host = SERVER_HOST, .port = SERVER_PORT + 2, .dynamicRooms = true});
 
-        // Client A
-        scy::smpl::Client::Options optsA;
+        smpl::Client::Options optsA;
         optsA.host = SERVER_HOST;
         optsA.port = SERVER_PORT + 2;
         optsA.user = "sender";
         optsA.reconnection = false;
+        TestClient sender(optsA);
 
-        scy::smpl::Client clientA(optsA);
-        bool aOnline = false;
-        std::string aId;
-
-        clientA.StateChange += [&](void*, scy::smpl::ClientState& state, const scy::smpl::ClientState&) {
-            if (state.id() == scy::smpl::ClientState::Online) {
-                aOnline = true;
-                aId = clientA.ourID();
-            }
-        };
-
-        // Client B
-        scy::smpl::Client::Options optsB;
+        smpl::Client::Options optsB;
         optsB.host = SERVER_HOST;
         optsB.port = SERVER_PORT + 2;
         optsB.user = "receiver";
         optsB.reconnection = false;
+        TestClient receiver(optsB);
 
-        scy::smpl::Client clientB(optsB);
-        bool bOnline = false;
-        std::string receivedText;
+        sender.connect();
+        receiver.connect();
+        expect(test::waitFor([&] { return sender.gotOnline && receiver.gotOnline; }));
 
-        clientB.StateChange += [&](void*, scy::smpl::ClientState& state, const scy::smpl::ClientState&) {
-            if (state.id() == scy::smpl::ClientState::Online)
-                bOnline = true;
+        smpl::Message msg;
+        msg.setTo(smpl::Address("receiver"));
+        msg["data"]["text"] = "hello";
+        sender.client.send(msg);
+
+        expect(test::waitFor([&] { return !receiver.receivedMessage.empty(); }));
+        expect(receiver.receivedMessage == "hello");
+
+        sender.client.close();
+        receiver.client.close();
+        server.shutdown();
+    });
+
+
+    scy_test::describe("client: auth failure", []() {
+        smpl::Server server;
+        smpl::Server::Options sopts;
+        sopts.host = SERVER_HOST;
+        sopts.port = SERVER_PORT + 3;
+        sopts.authentication = true;
+        server.start(sopts);
+
+        server.Authenticate += [](smpl::ServerPeer&, const json::Value&, bool& allowed) {
+            allowed = false;
         };
 
-        // Listen for all packets and check for our message
-        static_cast<scy::PacketSignal&>(clientB).attach(
-            [&receivedText](scy::IPacket& pkt) {
-                auto* msg = dynamic_cast<scy::smpl::Message*>(&pkt);
-                if (msg && msg->find("data") != msg->end() && (*msg)["data"].contains("text"))
-                    receivedText = (*msg)["data"]["text"].get<std::string>();
-            });
+        smpl::Client::Options opts;
+        opts.host = SERVER_HOST;
+        opts.port = SERVER_PORT + 3;
+        opts.user = "baduser";
+        opts.reconnection = false;
 
-        clientA.connect();
-        clientB.connect();
+        smpl::Client client(opts);
+        bool gotError = false;
+        int announceStatus = 0;
 
-        auto start = std::chrono::steady_clock::now();
-        while ((!aOnline || !bOnline) &&
-               std::chrono::steady_clock::now() - start < std::chrono::seconds(2)) {
-            uv::runLoop(uv::defaultLoop(), UV_RUN_NOWAIT);
-        }
-        expect(aOnline);
-        expect(bOnline);
+        client.Announce += [&](const int& s) { announceStatus = s; };
+        client.StateChange += [&](void*, smpl::ClientState& state, const smpl::ClientState&) {
+            if (state.id() == smpl::ClientState::Error)
+                gotError = true;
+        };
 
-        // A sends message to B
-        scy::smpl::Message msg;
-        msg.setTo(scy::smpl::Address("receiver"));
-        msg["data"]["text"] = "hello from sender";
-        clientA.send(msg);
+        client.connect();
+        expect(test::waitFor([&] { return gotError; }));
+        expect(announceStatus == 401);
+        expect(client.ourID().empty());
 
-        // Wait for delivery
-        start = std::chrono::steady_clock::now();
-        while (receivedText.empty() &&
-               std::chrono::steady_clock::now() - start < std::chrono::seconds(2)) {
-            uv::runLoop(uv::defaultLoop(), UV_RUN_NOWAIT);
-        }
+        client.close();
+        server.shutdown();
+    });
 
-        expect(receivedText == "hello from sender");
 
-        clientA.close();
-        clientB.close();
+    scy_test::describe("client: disconnect presence", []() {
+        smpl::Server server;
+        server.start({.host = SERVER_HOST, .port = SERVER_PORT + 4, .dynamicRooms = true});
+
+        smpl::Client::Options optsA;
+        optsA.host = SERVER_HOST;
+        optsA.port = SERVER_PORT + 4;
+        optsA.user = "alice";
+        optsA.reconnection = false;
+        TestClient alice(optsA);
+
+        smpl::Client::Options optsB;
+        optsB.host = SERVER_HOST;
+        optsB.port = SERVER_PORT + 4;
+        optsB.user = "bob";
+        optsB.reconnection = false;
+        TestClient bob(optsB);
+
+        alice.connect();
+        expect(test::waitFor([&] { return alice.gotOnline; }));
+
+        bob.connect();
+        expect(test::waitFor([&] { return bob.gotOnline; }));
+        expect(test::waitFor([&] { return alice.gotRemotePresence; }));
+
+        // Bob disconnects; alice should see offline presence
+        bool aliceGotOffline = false;
+        alice.client.PeerDisconnected += [&](smpl::Peer& peer) {
+            if (peer.user() == "bob")
+                aliceGotOffline = true;
+        };
+
+        bob.client.close();
+        expect(test::waitFor([&] { return aliceGotOffline; }));
+        expect(server.peerCount() == 1);
+
+        alice.client.close();
         server.shutdown();
     });
 

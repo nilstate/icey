@@ -269,6 +269,15 @@ Client::Options& Client::options()
 void Client::setError(const std::string& error)
 {
     LError("Client error: ", error);
+
+    // Close the WebSocket connection on error
+    if (_ws) {
+        _closing = true;
+        _ws->close();
+        _ws.reset();
+        _closing = false;
+    }
+
     setState(this, ClientState::Error);
     if (_options.reconnection)
         startReconnect();
