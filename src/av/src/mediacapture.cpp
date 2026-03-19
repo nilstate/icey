@@ -94,12 +94,12 @@ void MediaCapture::openStream(const std::string& filename, const AVInputFormat* 
         auto stream = _formatCtx->streams[i];
         if (!_video && stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
             _video = std::make_unique<VideoDecoder>(stream);
-            _video->emitter.attach(packetSlot(this, &MediaCapture::emit));
+            (void)_video->emitter.attach(packetSlot(this, &MediaCapture::emit));
             _video->create();
             _video->open();
         } else if (!_audio && stream->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
             _audio = std::make_unique<AudioDecoder>(stream);
-            _audio->emitter.attach(packetSlot(this, &MediaCapture::emit));
+            (void)_audio->emitter.attach(packetSlot(this, &MediaCapture::emit));
             _audio->create();
             _audio->open();
         }

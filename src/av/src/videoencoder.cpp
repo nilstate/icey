@@ -65,7 +65,6 @@ void VideoEncoder::create()
     ctx->codec_id = codec->id;
     ctx->codec_type = AVMEDIA_TYPE_VIDEO;
     ctx->pix_fmt = selectPixelFormat(codec, oparams);
-    ctx->frame_number = 0;
 
     // Resolution must be a multiple of two
     ctx->width = oparams.width;

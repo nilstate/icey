@@ -15,11 +15,16 @@
 #include "scy/packetstream.h"
 
 #include <list>
+#include <string>
 
+struct AVInputFormat;
+struct AVDictionary;
 
 namespace scy {
 namespace av {
 struct Format;
+struct AudioCodec;
+struct VideoCodec;
 
 
 class AV_API ICapture : public PacketSource
@@ -35,8 +40,16 @@ public:
     virtual void start() = 0;
     virtual void stop() = 0;
 
+    virtual void openFile(const std::string& file) {}
+    virtual void close() {}
+
     /// Sets the input format for encoding with this capture device.
     virtual void getEncoderFormat(Format& iformat) = 0;
+    virtual void getEncoderAudioCodec(AudioCodec& params) {}
+    virtual void getEncoderVideoCodec(VideoCodec& params) {}
+
+    virtual void openAudio(const std::string& device, const AudioCodec& params) {}
+    virtual void openVideo(const std::string& device, const VideoCodec& params) {}
 
     virtual void onStreamStateChange(const PacketStreamState& state) override
     {
@@ -51,6 +64,9 @@ public:
     }
 
     PacketSignal emitter;
+
+protected:
+    virtual void openStream(const std::string& filename, const AVInputFormat* inputFormat, AVDictionary** formatParams) {}
 };
 
 

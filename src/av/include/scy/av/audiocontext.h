@@ -54,6 +54,22 @@ struct AudioContext
     /// Close the AVCodecContext
     virtual void close();
 
+    /// Decode the given input packet.
+    /// Returns true if an output packet was created, false otherwise.
+    [[nodiscard]] virtual bool decode(AVPacket& ipacket);
+
+    /// Encode interleaved audio samples.
+    [[nodiscard]] virtual bool encode(uint8_t* samples, int numSamples, int64_t pts);
+
+    /// Encode planar audio samples.
+    [[nodiscard]] virtual bool encode(uint8_t* samples[4], int numSamples, int64_t pts);
+
+    /// Encode a single AVFrame.
+    [[nodiscard]] virtual bool encode(AVFrame* iframe);
+
+    /// Flush buffered frames.
+    virtual void flush();
+
     /// Create the audio resampling context.
     virtual bool recreateResampler();
 

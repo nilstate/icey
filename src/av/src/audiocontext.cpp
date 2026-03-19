@@ -85,6 +85,35 @@ void AudioContext::close()
 }
 
 
+bool AudioContext::decode(AVPacket& /*ipacket*/)
+{
+    return false;
+}
+
+
+bool AudioContext::encode(uint8_t* /*samples*/, int /*numSamples*/, int64_t /*pts*/)
+{
+    return false;
+}
+
+
+bool AudioContext::encode(uint8_t* /*samples*/[4], int /*numSamples*/, int64_t /*pts*/)
+{
+    return false;
+}
+
+
+bool AudioContext::encode(AVFrame* /*iframe*/)
+{
+    return false;
+}
+
+
+void AudioContext::flush()
+{
+}
+
+
 bool AudioContext::recreateResampler()
 {
     // Recreate the resampler context

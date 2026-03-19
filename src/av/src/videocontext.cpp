@@ -92,6 +92,35 @@ void VideoContext::close()
 }
 
 
+bool VideoContext::decode(AVPacket& /*ipacket*/)
+{
+    return false;
+}
+
+
+bool VideoContext::encode(uint8_t* /*data*/, int /*size*/, int64_t /*pts*/)
+{
+    return false;
+}
+
+
+bool VideoContext::encode(uint8_t* /*data*/[4], int /*linesize*/[4], int64_t /*pts*/)
+{
+    return false;
+}
+
+
+bool VideoContext::encode(AVFrame* /*iframe*/)
+{
+    return false;
+}
+
+
+void VideoContext::flush()
+{
+}
+
+
 AVFrame* VideoContext::convert(AVFrame* iframe)
 {
     // While flushing the input frame may be null

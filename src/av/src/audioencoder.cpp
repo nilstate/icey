@@ -317,7 +317,7 @@ void AudioEncoder::flush()
     flushBuffer(this);
 
     // Send nullptr frame to signal end of stream
-    encode(nullptr);
+    (void)encode(nullptr);
 }
 
 

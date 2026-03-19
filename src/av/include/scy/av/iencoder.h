@@ -89,11 +89,21 @@ public:
 
     virtual void init() = 0;
     virtual void uninit() = 0;
+    virtual void cleanup() {}
 
     virtual EncoderOptions& options() = 0;
 
-    bool isNone() const { return stateEquals(EncoderState::None); } override;
-    bool isReady() const { return stateEquals(EncoderState::Ready); } override;
+    virtual void createVideo() {}
+    virtual void freeVideo() {}
+    [[nodiscard]] virtual bool encodeVideo(AVFrame* /*frame*/) { return false; }
+
+    virtual void createAudio() {}
+    virtual void freeAudio() {}
+
+    virtual void flush() {}
+
+    bool isNone() const { return stateEquals(EncoderState::None); }
+    bool isReady() const { return stateEquals(EncoderState::Ready); }
     virtual bool isEncoding() const { return stateEquals(EncoderState::Encoding); }
     virtual bool isActive() const { return stateBetween(EncoderState::Ready, EncoderState::Encoding); }
     virtual bool isStopped() const { return stateEquals(EncoderState::Stopped); }

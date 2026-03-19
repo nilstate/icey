@@ -58,6 +58,22 @@ struct VideoContext
     /// Close the `AVCodecContext`
     virtual void close();
 
+    /// Decode the given input packet.
+    /// Returns true if an output packet was decoded, false otherwise.
+    [[nodiscard]] virtual bool decode(AVPacket& ipacket);
+
+    /// Encode interleaved video frame.
+    [[nodiscard]] virtual bool encode(uint8_t* data, int size, int64_t pts);
+
+    /// Encode planar video frame.
+    [[nodiscard]] virtual bool encode(uint8_t* data[4], int linesize[4], int64_t pts);
+
+    /// Encode a single AVFrame.
+    [[nodiscard]] virtual bool encode(AVFrame* iframe);
+
+    /// Flush buffered frames.
+    virtual void flush();
+
     /// Convert the video frame and return the result.
     ///
     /// The input frame will only be converted if it doesn't match the output

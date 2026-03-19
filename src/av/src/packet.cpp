@@ -57,10 +57,11 @@ PlanarVideoPacket::PlanarVideoPacket(const PlanarVideoPacket& r)
     auto pixfmt = av_get_pix_fmt(pixelFmt.c_str());
 
     // Allocate into this packet's buffer arrays
-    _size = av_image_alloc(buffer, linesize, width, height, pixfmt, 1);
-    if (_size < 0) {
+    int ret = av_image_alloc(buffer, linesize, width, height, pixfmt, 1);
+    if (ret < 0) {
         throw std::runtime_error("PlanarVideoPacket: av_image_alloc failed");
     }
+    _size = static_cast<size_t>(ret);
 
     // Deep copy image data from source frame
     av_image_copy(buffer, linesize,

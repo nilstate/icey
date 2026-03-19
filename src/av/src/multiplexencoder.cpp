@@ -47,9 +47,7 @@ static int dispatchOutputPacket(void* opaque, uint8_t* buffer, int bufferSize)
     auto klass = reinterpret_cast<MultiplexEncoder*>(opaque);
     if (klass) {
         LTrace("Dispatching packet: ", bufferSize);
-        if (!klass->isActive())
-            ;
-        {
+        if (!klass->isActive()) {
             LWarn("Dropping packet: ", bufferSize, ": ", klass->state());
             return bufferSize;
         }
@@ -308,7 +306,7 @@ void MultiplexEncoder::createVideo()
     if (_formatCtx->oformat->video_codec == AV_CODEC_ID_NONE)
         throw std::runtime_error("No video codec available for this format");
     _video = std::make_unique<VideoEncoder>(_formatCtx);
-    _video->emitter.attach(packetSlot(this, &MultiplexEncoder::onVideoEncoded));
+    (void)_video->emitter.attach(packetSlot(this, &MultiplexEncoder::onVideoEncoded));
     _video->iparams = _options.iformat.video;
     _video->oparams = _options.oformat.video;
     _video->create();
@@ -332,7 +330,7 @@ bool MultiplexEncoder::encodeVideo(AVFrame* frame)
     if (!_video)
         throw std::runtime_error("No video context");
 
-    if (!frame->data || !frame->width || !frame->height)
+    if (!frame->data[0] || !frame->width || !frame->height)
         throw std::runtime_error("Invalid video frame");
 
     if (!updateStreamPts(_video->stream, &frame->pts)) {
@@ -412,7 +410,7 @@ void MultiplexEncoder::createAudio()
         throw std::runtime_error("No audio codec available for this format");
 
     _audio = std::make_unique<AudioEncoder>(_formatCtx);
-    _audio->emitter.attach(packetSlot(this, &MultiplexEncoder::onAudioEncoded));
+    (void)_audio->emitter.attach(packetSlot(this, &MultiplexEncoder::onAudioEncoded));
     _audio->iparams = _options.iformat.audio;
     _audio->oparams = _options.oformat.audio;
     _audio->create();

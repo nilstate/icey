@@ -29,7 +29,7 @@ static std::mutex _mutex;
 static int _refCount(0);
 
 
-static void logCallback(void* ptr, int level, const char* fmt, va_list vl)
+[[maybe_unused]] static void logCallback(void* ptr, int level, const char* fmt, va_list vl)
 {
     char logbuf[256];
     vsnprintf(logbuf, sizeof(logbuf), fmt, vl);
