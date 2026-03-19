@@ -185,7 +185,7 @@ public:
     const EVP_CIPHER* cipher();
 
 protected:
-    Cipher() = default;
+    Cipher() = delete;
     Cipher(const Cipher&) = delete;
     Cipher& operator=(const Cipher&) = delete;
     Cipher(Cipher&&) = delete;

@@ -47,8 +47,8 @@ public:
     bool equals(ID id) const;
     bool between(ID lid, ID rid) const;
 
-    bool operator==(const State& that) { return equals(that.id()); }
-    bool operator==(const State::ID& that) { return equals(that); }
+    bool operator==(const State& that) const { return equals(that.id()); }
+    bool operator==(const State::ID& that) const { return equals(that); }
 
     friend std::ostream& operator<<(std::ostream& os, const State& state)
     {

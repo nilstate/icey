@@ -67,6 +67,9 @@ struct AV_API Format
 
 
     Format(const Format& r);
+    Format& operator=(const Format&) = default;
+
+    virtual ~Format() = default;
 
     /// The format type.
     Type type() const;

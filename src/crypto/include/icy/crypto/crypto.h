@@ -83,15 +83,15 @@ struct Raw
     size_t len;
 
     Raw(T ptr, size_t len)
+        : ptr(ptr)
+        , len(len)
     {
-        ptr = ptr;
-        len = len;
     }
 
     Raw(const char* ptr, size_t len)
+        : ptr(reinterpret_cast<T>(const_cast<char*>(ptr)))
+        , len(len)
     {
-        ptr = reinterpret_cast<T>(const_cast<char*>(ptr));
-        len = len;
     }
 
     Raw(std::string& str)
