@@ -22,19 +22,41 @@ namespace scy {
 namespace http {
 
 
+Server::Server(const std::string& host, short port, uv::Loop* loop, std::unique_ptr<ServerConnectionFactory> factory)
+    : _loop(loop)
+    , _address(host, port)
+    , _socket(net::makeSocket<net::TCPSocket>(loop))
+    , _timer(1000, 1000, loop)
+    , _factory(std::move(factory))
+{
+}
+
+
+Server::Server(const net::Address& address, uv::Loop* loop, std::unique_ptr<ServerConnectionFactory> factory)
+    : _loop(loop)
+    , _address(address)
+    , _socket(net::makeSocket<net::TCPSocket>(loop))
+    , _timer(1000, 1000, loop)
+    , _factory(std::move(factory))
+{
+}
+
+
 Server::Server(const std::string& host, short port, net::TCPSocket::Ptr socket, std::unique_ptr<ServerConnectionFactory> factory)
-    : _address(host, port)
-    , _socket(socket)
-    , _timer(1000, 1000, socket->loop())
+    : _loop(socket->loop())
+    , _address(host, port)
+    , _socket(std::move(socket))
+    , _timer(1000, 1000, _loop)
     , _factory(std::move(factory))
 {
 }
 
 
 Server::Server(const net::Address& address, net::TCPSocket::Ptr socket, std::unique_ptr<ServerConnectionFactory> factory)
-    : _address(address)
-    , _socket(socket)
-    , _timer(1000, 1000, socket->loop())
+    : _loop(socket->loop())
+    , _address(address)
+    , _socket(std::move(socket))
+    , _timer(1000, 1000, _loop)
     , _factory(std::move(factory))
 {
 }
@@ -89,7 +111,7 @@ void Server::shutdown()
     //
     // Solution: move the shared_ptrs into an idle callback that releases
     // them on the next event loop iteration, after uv_close completes.
-    auto loop = _socket ? _socket->loop() : uv::defaultLoop();
+    auto* loop = _loop;
     auto* deferred = new std::vector<ServerConnection::Ptr>();
     for (auto& [ptr, conn] : _connections) {
         conn->Close -= slot(this, &Server::onConnectionClose);
@@ -163,6 +185,23 @@ void Server::onConnectionClose(ServerConnection& conn)
         // Return to pool if reusable (not upgraded, no error)
         if (!conn.upgraded() && !conn.error().any()) {
             _pool.release(std::move(ptr));
+        } else {
+            // Defer destruction: this callback may be firing from
+            // inside the connection's own method chain (e.g. onHeaders
+            // -> createResponder -> rejected -> close -> onClose -> here).
+            // Releasing the shared_ptr now would destroy the connection
+            // while we're still on its call stack.
+            auto* deferred = new ServerConnection::Ptr(std::move(ptr));
+            auto* idle = new uv_idle_t;
+            uv_idle_init(_loop, idle);
+            idle->data = deferred;
+            uv_idle_start(idle, [](uv_idle_t* handle) {
+                uv_idle_stop(handle);
+                delete static_cast<ServerConnection::Ptr*>(handle->data);
+                uv_close(reinterpret_cast<uv_handle_t*>(handle), [](uv_handle_t* h) {
+                    delete reinterpret_cast<uv_idle_t*>(h);
+                });
+            });
         }
     }
 }
@@ -295,6 +334,15 @@ void ServerConnection::onHeaders()
 
     // Instantiate the responder now that request headers have been parsed
     _responder = _server.createResponder(*this);
+
+    // If an upgraded connection has no responder, the factory rejected it
+    // (e.g. max connections). Close the connection - the shared_ptr drop
+    // is deferred by onConnectionClose to avoid destroying this object
+    // while we're on its call stack.
+    if (!_responder && _upgrade) {
+        close();
+        return;
+    }
 
     // Upgraded connections don't receive the onHeaders callback
     if (_responder && !_upgrade)

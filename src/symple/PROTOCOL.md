@@ -61,6 +61,7 @@ First message after WebSocket connect. Must be sent before any other message. Se
   "user": "alice",
   "name": "Alice",
   "token": "optional-auth-token",
+  "rooms": ["team-a", "design"],
   "data": {}
 }
 ```
@@ -71,6 +72,7 @@ First message after WebSocket connect. Must be sent before any other message. Se
 | `user`  | yes      | User identifier (used for addressing and room membership) |
 | `name`  | no       | Display name (defaults to `user`) |
 | `token` | no       | Authentication token (required if server has authentication enabled) |
+| `rooms` | no       | Rooms to auto-join (also set from Redis session or server auth hook) |
 | `data`  | no       | Arbitrary peer data (capabilities, status, etc.) |
 
 ### welcome (server -> client)
@@ -80,6 +82,7 @@ Sent after successful authentication. Contains the assigned peer object with the
 ```json
 {
   "type": "welcome",
+  "protocol": "symple/4",
   "peer": {
     "id": "a1b2c3d4",
     "user": "alice",
@@ -87,17 +90,20 @@ Sent after successful authentication. Contains the assigned peer object with the
     "online": true,
     "host": "192.168.1.100"
   },
-  "status": 200
+  "status": 200,
+  "rooms": ["alice", "team-a", "design"]
 }
 ```
 
-| Field    | Description |
-|----------|-------------|
-| `peer`   | The authenticated peer object |
-| `peer.id`| Server-assigned session ID (unique per connection) |
+| Field | Description |
+| --- | --- |
+| `protocol` | Protocol version identifier (`"symple/4"`) |
+| `peer` | The authenticated peer object |
+| `peer.id` | Server-assigned session ID (unique per connection) |
 | `status` | HTTP-style status code (200 = success) |
+| `rooms` | Array of rooms the peer was auto-joined to |
 
-After receiving `welcome`, the client is automatically joined to a room named after their `user` field. This enables direct messaging by user identity.
+After receiving `welcome`, the client is automatically joined to a room named after their `user` field. Additional rooms may be assigned from session data or the server's authentication hook.
 
 ### error (server -> client)
 
@@ -258,12 +264,14 @@ Examples:
 
 ## Rooms
 
-Rooms are named groups of peers. Messages sent without a `to` field are broadcast to all rooms the sender has joined.
+Rooms are named groups of peers and the permission boundary for messaging and presence.
 
 - Every peer automatically joins a room named after their `user` field
-- Peers can join additional rooms via `join` messages
+- Additional rooms can be assigned via the `rooms` field in the auth message, Redis session data, or a server-side authentication hook
+- With `dynamicRooms` enabled, peers can also join/leave rooms via `join`/`leave` messages
+- Direct messages (`to: "user|id"`) require the sender and recipient to share at least one room
+- Presence is only broadcast to rooms the peer has joined
 - Room names are arbitrary strings
-- Server may restrict room access via configuration (`dynamicRooms` setting)
 
 ## Authentication
 

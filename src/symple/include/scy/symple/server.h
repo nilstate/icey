@@ -16,6 +16,8 @@
 #include "scy/http/websocket.h"
 #include "scy/json/json.h"
 #include "scy/logger.h"
+#include "scy/loop.h"
+#include "scy/ratelimiter.h"
 #include "scy/symple/peer.h"
 
 #include <atomic>
@@ -64,10 +66,21 @@ public:
 
     http::ServerConnection& connection() { return _conn; }
 
+    /// Per-peer rate limiter. Returns false if message should be dropped.
+    [[nodiscard]] bool checkRate() { return _rateLimiter.canSend(); }
+
+    /// Configure rate limit (messages per window).
+    void setRateLimit(double rate, double seconds) {
+        _rateLimiter.rate = rate;
+        _rateLimiter.seconds = seconds;
+        _rateLimiter.allowance = rate;
+    }
+
 private:
     http::ServerConnection& _conn;
     Peer _peer;
     std::unordered_set<std::string> _rooms;
+    RateLimiter _rateLimiter{100.0, 10.0}; ///< 100 messages per 10 seconds default
     bool _authenticated = false;
 };
 
@@ -83,8 +96,10 @@ private:
 ///   server.start({.port = 4500});
 ///
 ///   // Optional: custom authentication
-///   server.Authenticate += [](ServerPeer& peer, const json::Value& auth, bool& allowed) {
+///   server.Authenticate += [](ServerPeer& peer, const json::Value& auth,
+///                              bool& allowed, std::vector<std::string>& rooms) {
 ///       allowed = (auth.value("token", "") == "secret");
+///       rooms.push_back("team-a");
 ///   };
 ///
 /// The server also serves as an HTTP server, so you can serve
@@ -98,9 +113,15 @@ public:
         uint16_t port = 4500;
         bool authentication = false;  ///< Require token in auth message
         bool dynamicRooms = true;     ///< Allow clients to join/leave rooms
+
+        // Production hardening
+        size_t maxConnections = 0;    ///< Max WebSocket connections (0 = unlimited)
+        size_t maxMessageSize = 64 * 1024; ///< Max message payload in bytes (64KB default)
+        double rateLimit = 100.0;     ///< Messages per rate window
+        double rateSeconds = 10.0;    ///< Rate window in seconds
     };
 
-    Server();
+    Server(uv::Loop* loop = uv::defaultLoop());
     ~Server();
 
     Server(const Server&) = delete;
@@ -132,9 +153,11 @@ public:
     // Signals
     //
 
-    /// Custom authentication hook. Set `allowed` to false to reject.
+    /// Custom authentication hook.
+    /// Set `allowed` to false to reject the peer.
+    /// Append to `rooms` to assign team/group memberships.
     /// If not connected, all peers with a valid `user` field are accepted.
-    Signal<void(ServerPeer&, const json::Value& auth, bool& allowed)> Authenticate;
+    Signal<void(ServerPeer&, const json::Value& auth, bool& allowed, std::vector<std::string>& rooms)> Authenticate;
 
     /// Peer authenticated and online.
     Signal<void(ServerPeer&)> PeerConnected;
@@ -156,6 +179,7 @@ private:
     void onDisconnect(ServerPeer& peer);
     void route(ServerPeer& sender, const json::Value& msg);
 
+    bool sharesRoom(const ServerPeer& a, const ServerPeer& b) const;
     void addToRoom(const std::string& room, const std::string& peerId);
     void removeFromRoom(const std::string& room, const std::string& peerId);
     void removeFromAllRooms(const std::string& peerId);
@@ -163,6 +187,7 @@ private:
     std::string generateId();
 
     Options _opts;
+    uv::Loop* _loop = nullptr;
     std::unique_ptr<http::Server> _http;
 
     // Peers indexed by session ID

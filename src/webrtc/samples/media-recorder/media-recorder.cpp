@@ -42,7 +42,7 @@ using namespace scy;
 class MediaRecorder
 {
 public:
-    smpl::TCPClient client;
+    smpl::Client client;
     std::unique_ptr<wrtc::SympleSignaller> signaller;
     std::unique_ptr<wrtc::PeerSession> session;
     PacketStream stream;

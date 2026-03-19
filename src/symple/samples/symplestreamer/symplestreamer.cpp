@@ -130,14 +130,14 @@ public:
 class SympleStreamer
 {
 public:
-    smpl::TCPClient client;
+    smpl::Client client;
     http::Server streamServer;
     bool streaming{false};
 
     SympleStreamer(const smpl::Client::Options& opts)
         : client(opts)
         , streamServer("0.0.0.0", StreamPort,
-                       net::makeSocket<net::TCPSocket>(),
+                       uv::defaultLoop(),
                        std::make_unique<StreamConnectionFactory>())
     {
     }

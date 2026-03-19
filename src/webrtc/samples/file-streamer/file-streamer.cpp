@@ -39,7 +39,7 @@ using namespace scy;
 class FileStreamer
 {
 public:
-    smpl::TCPClient client;
+    smpl::Client client;
     std::unique_ptr<wrtc::SympleSignaller> signaller;
     std::unique_ptr<wrtc::PeerSession> session;
     std::shared_ptr<av::MediaCapture> capture;

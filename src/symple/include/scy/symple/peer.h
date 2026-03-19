@@ -31,6 +31,7 @@ class Symple_API Peer : public json::Value
 public:
     Peer();
     Peer(const Peer& r);
+    Peer& operator=(const Peer& r);
     Peer(const json::Value& r);
     virtual ~Peer();
 

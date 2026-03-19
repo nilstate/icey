@@ -141,7 +141,7 @@ int main(int argc, char** argv)
     gCapture->start();
 
     http::Server server("0.0.0.0", 329,
-                        net::makeSocket<net::TCPSocket>(),
+                        uv::defaultLoop(),
                         std::make_unique<WSConnectionFactory>());
     server.start();
 

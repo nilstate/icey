@@ -30,6 +30,15 @@ Peer::Peer(const Peer& r)
 }
 
 
+Peer& Peer::operator=(const Peer& r)
+{
+    if (this != &r) {
+        json::Value::operator=(static_cast<const json::Value&>(r));
+    }
+    return *this;
+}
+
+
 Peer::Peer(const json::Value& r)
     : json::Value(r)
 {

@@ -28,7 +28,7 @@ namespace wrtc {
 /// Compatible with any browser running symple-client + CallManager.
 ///
 /// Usage:
-///   smpl::TCPClient symple(opts);
+///   smpl::Client symple(opts);
 ///   symple.connect();
 ///
 ///   SympleSignaller signaller(symple);

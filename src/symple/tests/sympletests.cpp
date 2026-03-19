@@ -258,7 +258,7 @@ int main(int argc, char** argv)
         sopts.authentication = true;
         server.start(sopts);
 
-        server.Authenticate += [](smpl::ServerPeer&, const json::Value&, bool& allowed) {
+        server.Authenticate += [](smpl::ServerPeer&, const json::Value&, bool& allowed, std::vector<std::string>&) {
             allowed = false;
         };
 
@@ -326,6 +326,167 @@ int main(int argc, char** argv)
 
         alice.client.close();
         server.shutdown();
+    });
+
+
+    // =========================================================================
+    // Server Hardening
+    //
+    scy_test::describe("hardening: max connections", []() {
+        smpl::Server server;
+        smpl::Server::Options sopts;
+        sopts.host = SERVER_HOST;
+        sopts.port = SERVER_PORT + 5;
+        sopts.maxConnections = 1;
+        server.start(sopts);
+
+        smpl::Client::Options optsA;
+        optsA.host = SERVER_HOST;
+        optsA.port = SERVER_PORT + 5;
+        optsA.user = "alice";
+        optsA.reconnection = false;
+        TestClient alice(optsA);
+
+        smpl::Client::Options optsB;
+        optsB.host = SERVER_HOST;
+        optsB.port = SERVER_PORT + 5;
+        optsB.user = "bob";
+        optsB.reconnection = false;
+        TestClient bob(optsB);
+
+        alice.connect();
+        expect(test::waitFor([&] { return alice.gotOnline; }));
+        expect(server.peerCount() == 1);
+
+        // Bob should be rejected (max 1 connection)
+        bob.connect();
+        bool bobClosed = false;
+        bob.client.StateChange += [&](void*, smpl::ClientState& state, const smpl::ClientState&) {
+            if (state.id() == smpl::ClientState::Closed ||
+                state.id() == smpl::ClientState::Error)
+                bobClosed = true;
+        };
+        expect(test::waitFor([&] { return bobClosed; }));
+        expect(server.peerCount() == 1);
+
+        alice.client.close();
+        server.shutdown();
+    });
+
+
+    scy_test::describe("hardening: max message size", []() {
+        smpl::Server server;
+        smpl::Server::Options sopts;
+        sopts.host = SERVER_HOST;
+        sopts.port = SERVER_PORT + 6;
+        sopts.maxMessageSize = 128; // very small limit
+        server.start(sopts);
+
+        smpl::Client::Options opts;
+        opts.host = SERVER_HOST;
+        opts.port = SERVER_PORT + 6;
+        opts.user = "alice";
+        opts.reconnection = false;
+
+        smpl::Client client(opts);
+        bool gotOnline = false;
+        bool disconnected = false;
+
+        client.StateChange += [&](void*, smpl::ClientState& state, const smpl::ClientState&) {
+            if (state.id() == smpl::ClientState::Online)
+                gotOnline = true;
+            if (state.id() == smpl::ClientState::Closed ||
+                state.id() == smpl::ClientState::Error)
+                disconnected = true;
+        };
+
+        client.connect();
+        expect(test::waitFor([&] { return gotOnline; }));
+
+        // Send an oversized message - server should close the connection
+        std::string bigPayload(256, 'x');
+        smpl::Message msg;
+        msg["data"]["text"] = bigPayload;
+        msg.setTo(smpl::Address("nobody"));
+        try { client.send(msg); } catch (...) {}
+
+        expect(test::waitFor([&] { return disconnected; }));
+
+        client.close();
+        server.shutdown();
+    });
+
+
+    scy_test::describe("hardening: rate limiting", []() {
+        smpl::Server server;
+        smpl::Server::Options sopts;
+        sopts.host = SERVER_HOST;
+        sopts.port = SERVER_PORT + 7;
+        sopts.rateLimit = 3.0;   // 3 messages
+        sopts.rateSeconds = 10.0; // per 10 seconds
+        server.start(sopts);
+
+        smpl::Client::Options opts;
+        opts.host = SERVER_HOST;
+        opts.port = SERVER_PORT + 7;
+        opts.user = "spammer";
+        opts.reconnection = false;
+        TestClient spammer(opts);
+
+        spammer.connect();
+        expect(test::waitFor([&] { return spammer.gotOnline; }));
+
+        // Flood messages - sender should be disconnected after exceeding rate
+        bool disconnected = false;
+        spammer.client.StateChange += [&](void*, smpl::ClientState& state, const smpl::ClientState&) {
+            if (state.id() == smpl::ClientState::Closed ||
+                state.id() == smpl::ClientState::Error)
+                disconnected = true;
+        };
+
+        for (int i = 0; i < 20; i++) {
+            smpl::Message msg;
+            msg.setTo(smpl::Address("nobody"));
+            msg["data"]["seq"] = i;
+            try { spammer.client.send(msg); } catch (...) { break; }
+        }
+
+        expect(test::waitFor([&] { return disconnected; }));
+        server.shutdown();
+    });
+
+
+    scy_test::describe("hardening: graceful shutdown broadcast", []() {
+        smpl::Server server;
+        server.start({.host = SERVER_HOST, .port = SERVER_PORT + 8});
+
+        smpl::Client::Options opts;
+        opts.host = SERVER_HOST;
+        opts.port = SERVER_PORT + 8;
+        opts.user = "alice";
+        opts.reconnection = false;
+
+        smpl::Client client(opts);
+        bool gotOnline = false;
+        bool closed = false;
+
+        client.StateChange += [&](void*, smpl::ClientState& state, const smpl::ClientState&) {
+            if (state.id() == smpl::ClientState::Online)
+                gotOnline = true;
+            if (state.id() == smpl::ClientState::Closed)
+                closed = true;
+        };
+
+        client.connect();
+        expect(test::waitFor([&] { return gotOnline; }));
+
+        // Shutdown broadcasts event then closes
+        server.shutdown();
+
+        // The client should be disconnected (server closed the connection)
+        expect(test::waitFor([&] { return closed; }, 2000));
+
+        client.close();
     });
 
 

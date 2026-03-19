@@ -38,3 +38,4 @@ LibSourceyConfigVersion.cmake
 *.wav
 *.aac
 *.raw
+.plans

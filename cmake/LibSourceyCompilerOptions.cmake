@@ -52,6 +52,16 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
   if(ENABLE_PROFILING)
     add_compile_options(-pg -g)
   endif()
+
+  # AddressSanitizer. Applied via CMAKE_*_FLAGS so FetchContent
+  # dependencies (libuv, zlib, llhttp) inherit the flags.
+  option(ASAN "Enable AddressSanitizer" OFF)
+  if(ASAN)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address -fno-omit-frame-pointer" CACHE STRING "" FORCE)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fno-omit-frame-pointer" CACHE STRING "" FORCE)
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address" CACHE STRING "" FORCE)
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fsanitize=address" CACHE STRING "" FORCE)
+  endif()
 endif()
 
 if(MSVC)

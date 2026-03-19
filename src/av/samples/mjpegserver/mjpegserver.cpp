@@ -144,7 +144,7 @@ int main(int argc, char** argv)
     gCapture->start();
 
     http::Server server("0.0.0.0", 328,
-                        net::makeSocket<net::TCPSocket>(),
+                        uv::defaultLoop(),
                         std::make_unique<MJPEGConnectionFactory>());
     server.start();
 

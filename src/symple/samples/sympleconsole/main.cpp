@@ -42,11 +42,7 @@ using namespace scy;
 class SympleApplication : public scy::Application
 {
 public:
-#if USE_SSL
-    scy::smpl::SSLClient client;
-#else
-    scy::smpl::TCPClient client;
-#endif
+    scy::smpl::Client client;
     scy::ipc::SyncQueue<> ipc;  // thread-safe bridge: console thread -> event loop
     bool showHelp;
 

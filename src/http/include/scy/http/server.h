@@ -213,12 +213,23 @@ private:
 class HTTP_API Server : public net::SocketAdapter
 {
 public:
+    /// Construct with a loop (creates a plain TCP socket internally).
     Server(const std::string& host, short port,
-           net::TCPSocket::Ptr socket = net::makeSocket<net::TCPSocket>(),
+           uv::Loop* loop = uv::defaultLoop(),
            std::unique_ptr<ServerConnectionFactory> factory = std::make_unique<ServerConnectionFactory>());
     Server(const net::Address& address,
-           net::TCPSocket::Ptr socket = net::makeSocket<net::TCPSocket>(),
+           uv::Loop* loop = uv::defaultLoop(),
            std::unique_ptr<ServerConnectionFactory> factory = std::make_unique<ServerConnectionFactory>());
+
+    /// Construct with a custom socket (e.g. SSLSocket for HTTPS).
+    /// The loop is derived from the socket.
+    Server(const std::string& host, short port,
+           net::TCPSocket::Ptr socket,
+           std::unique_ptr<ServerConnectionFactory> factory = std::make_unique<ServerConnectionFactory>());
+    Server(const net::Address& address,
+           net::TCPSocket::Ptr socket,
+           std::unique_ptr<ServerConnectionFactory> factory = std::make_unique<ServerConnectionFactory>());
+
     virtual ~Server();
 
     /// Start the HTTP server.
@@ -264,7 +275,11 @@ protected:
     bool onSocketClose(net::Socket& socket);
     void onTimer();
 
+    /// Return the event loop this server runs on.
+    [[nodiscard]] uv::Loop* loop() const { return _loop; }
+
 protected:
+    uv::Loop* _loop;
     net::Address _address;
     net::TCPSocket::Ptr _socket;
     Timer _timer;

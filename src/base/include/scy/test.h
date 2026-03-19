@@ -62,7 +62,7 @@ Base_API bool waitFor(std::function<bool()> condition, int timeoutMs = 3000);
 
 // Shamelessly define macros to aesthetic name :)
 #ifdef NDEBUG
-#define expect(x) scy::test::expectImpl(true, "", "", 0)
+#define expect(x) ((void)(x), scy::test::expectImpl(true, "", "", 0))
 #else
 #define expect(x) scy::test::expectImpl(x, #x, __FILE__, __LINE__)
 #endif

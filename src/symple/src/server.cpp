@@ -81,14 +81,7 @@ public:
         _authTimer.Timeout += [this]() {
             if (!_authenticated) {
                 LWarn("Auth timeout, closing connection");
-                json::Value err;
-                err["type"] = "error";
-                err["status"] = 408;
-                err["message"] = "Authentication timeout";
-                auto str = err.dump();
-                try {
-                    connection().send(str.c_str(), str.size(), http::ws::Text);
-                } catch (...) {}
+                sendError(408, "Authentication timeout");
                 connection().close();
             }
         };
@@ -96,64 +89,82 @@ public:
 
     void onPayload(const MutableBuffer& buffer) override
     {
-        std::string str(bufferCast<const char*>(buffer), buffer.size());
+        // Close must happen outside the lock: connection().close()
+        // triggers onClose() which also acquires _mutex.
+        bool shouldClose = false;
+
+        // Max message size check (before allocation/parse)
+        if (_server._opts.maxMessageSize > 0 &&
+            buffer.size() > _server._opts.maxMessageSize) {
+            LWarn("Message too large (", buffer.size(), " bytes), closing");
+            sendError(413, "Message too large");
+            shouldClose = true;
+        }
 
         json::Value msg;
-        try {
-            msg = json::Value::parse(str);
+        std::string type;
+
+        if (!shouldClose) {
+            std::string str(bufferCast<const char*>(buffer), buffer.size());
+            try {
+                msg = json::Value::parse(str);
+            }
+            catch (const std::exception& e) {
+                LWarn("JSON parse error: ", e.what());
+                return;
+            }
+            type = msg.value("type", "");
         }
-        catch (const std::exception& e) {
-            LWarn("JSON parse error: ", e.what());
-            return;
-        }
 
-        std::string type = msg.value("type", "");
+        if (!shouldClose) {
+            std::lock_guard lock(_server._mutex);
 
-        std::lock_guard lock(_server._mutex);
+            auto it = _server._connToPeer.find(&connection());
 
-        auto it = _server._connToPeer.find(&connection());
-
-        if (it == _server._connToPeer.end()) {
-            // Not authenticated: only accept auth
-            if (type == "auth") {
-                _server.onAuth(_tempPeer, msg);
-                if (_tempPeer.authenticated()) {
-                    _authenticated = true;
-                    _authTimer.stop();
+            if (it == _server._connToPeer.end()) {
+                // Not authenticated: only accept auth
+                if (type == "auth") {
+                    _server.onAuth(_tempPeer, msg);
+                    if (_tempPeer.authenticated()) {
+                        _authenticated = true;
+                        _authTimer.stop();
+                    }
+                }
+                else {
+                    sendError(401, "Not authenticated");
+                    shouldClose = true;
                 }
             }
             else {
-                json::Value err;
-                err["type"] = "error";
-                err["status"] = 401;
-                err["message"] = "Not authenticated";
-                auto errStr = err.dump();
-                try {
-                    connection().send(errStr.c_str(), errStr.size(), http::ws::Text);
-                } catch (...) {}
-                connection().close();
+                auto peerIt = _server._peers.find(it->second);
+                if (peerIt == _server._peers.end())
+                    return;
+                auto* peer = peerIt->second.get();
+
+                // Per-peer rate limiting
+                if (!peer->checkRate()) {
+                    LWarn("Rate limit exceeded for peer ", peer->id());
+                    sendError(429, "Rate limit exceeded");
+                    shouldClose = true;
+                }
+                else if (type == "message" || type == "presence" ||
+                    type == "command" || type == "event") {
+                    _server.onMessage(*peer, msg);
+                }
+                else if (type == "join") {
+                    _server.onJoin(*peer, msg.value("room", ""));
+                }
+                else if (type == "leave") {
+                    _server.onLeave(*peer, msg.value("room", ""));
+                }
+                else if (type == "close") {
+                    shouldClose = true;
+                }
             }
-            return;
         }
 
-        auto peerIt = _server._peers.find(it->second);
-        if (peerIt == _server._peers.end())
-            return;
-        auto* peer = peerIt->second.get();
-
-        if (type == "message" || type == "presence" ||
-            type == "command" || type == "event") {
-            _server.onMessage(*peer, msg);
-        }
-        else if (type == "join") {
-            _server.onJoin(*peer, msg.value("room", ""));
-        }
-        else if (type == "leave") {
-            _server.onLeave(*peer, msg.value("room", ""));
-        }
-        else if (type == "close") {
+        if (shouldClose)
             connection().close();
-        }
     }
 
     void onClose() override
@@ -169,6 +180,18 @@ public:
                 _server.onDisconnect(*peerIt->second);
             }
         }
+    }
+
+    void sendError(int status, const std::string& message)
+    {
+        json::Value err;
+        err["type"] = "error";
+        err["status"] = status;
+        err["message"] = message;
+        auto str = err.dump();
+        try {
+            connection().send(str.c_str(), str.size(), http::ws::Text);
+        } catch (...) {}
     }
 
     Server& _server;
@@ -193,6 +216,25 @@ public:
         if (!conn.upgraded())
             return nullptr;
 
+        // Max connections check. peerCount() acquires its own lock;
+        // no Symple mutex is held during createResponder.
+        // Do NOT close the connection here - we're inside onHeaders
+        // and closing would destroy the connection while we're on its
+        // call stack. Return nullptr; onHeaders will close it.
+        if (_server._opts.maxConnections > 0 &&
+            _server.peerCount() >= _server._opts.maxConnections) {
+            LWarn("Max connections reached (", _server._opts.maxConnections, "), rejecting");
+            json::Value err;
+            err["type"] = "error";
+            err["status"] = 503;
+            err["message"] = "Server at capacity";
+            auto str = err.dump();
+            try {
+                conn.send(str.c_str(), str.size(), http::ws::Text);
+            } catch (...) {}
+            return nullptr;
+        }
+
         return std::make_unique<Server::Responder>(conn, _server);
     }
 
@@ -204,7 +246,10 @@ public:
 // Server
 // ---------------------------------------------------------------------------
 
-Server::Server() = default;
+Server::Server(uv::Loop* loop)
+    : _loop(loop)
+{
+}
 
 
 Server::~Server()
@@ -219,7 +264,7 @@ void Server::start(const Options& opts)
 
     _http = std::make_unique<http::Server>(
         opts.host, opts.port,
-        net::makeSocket<net::TCPSocket>(),
+        _loop,
         std::make_unique<Factory>(*this));
 
     _http->start();
@@ -234,7 +279,23 @@ void Server::shutdown()
         return;
     _shuttingDown = true;
 
-    // Shut down the HTTP server first. This closes the listen socket
+    // Broadcast shutdown notice to all connected peers
+    {
+        std::lock_guard lock(_mutex);
+        json::Value notice;
+        notice["type"] = "event";
+        notice["subtype"] = "shutdown";
+        notice["message"] = "Server shutting down";
+        auto str = notice.dump();
+        for (auto& [id, peer] : _peers) {
+            try {
+                peer->connection().send(
+                    str.c_str(), str.size(), http::ws::Text);
+            } catch (...) {}
+        }
+    }
+
+    // Shut down the HTTP server. This closes the listen socket
     // and emits Shutdown. Connection cleanup happens asynchronously
     // via uv_close callbacks.
     if (_http)
@@ -289,11 +350,13 @@ void Server::onAuth(ServerPeer& tempPeer, const json::Value& msg)
         }
     }
 
-    // Custom authentication hook
+    // Custom authentication hook.
+    // The hook can reject the peer and/or assign room memberships.
+    std::vector<std::string> authRooms;
     if (_opts.authentication || Authenticate.nslots() > 0) {
         bool allowed = !_opts.authentication;
         _mutex.unlock();
-        Authenticate.emit(tempPeer, msg, allowed);
+        Authenticate.emit(tempPeer, msg, allowed, authRooms);
         _mutex.lock();
         if (!allowed) {
             json::Value err;
@@ -301,10 +364,6 @@ void Server::onAuth(ServerPeer& tempPeer, const json::Value& msg)
             err["status"] = 401;
             err["message"] = "Authentication failed";
             tempPeer.send(err);
-            // Don't close immediately - let the error message flush
-            // to the client first. The client will close after
-            // receiving the error. The auth timeout will clean up
-            // if the client doesn't disconnect.
             return;
         }
     }
@@ -313,10 +372,30 @@ void Server::onAuth(ServerPeer& tempPeer, const json::Value& msg)
     auto peer = std::make_unique<ServerPeer>(tempPeer.connection());
     peer->setPeer(p);
     peer->setAuthenticated(true);
+    peer->setRateLimit(_opts.rateLimit, _opts.rateSeconds);
 
     // Auto-join user room
     peer->join(user);
     addToRoom(user, id);
+
+    // Auto-join rooms from auth message
+    if (msg.contains("rooms") && msg["rooms"].is_array()) {
+        for (const auto& room : msg["rooms"]) {
+            if (room.is_string() && !room.get<std::string>().empty()) {
+                std::string r = room.get<std::string>();
+                peer->join(r);
+                addToRoom(r, id);
+            }
+        }
+    }
+
+    // Auto-join rooms assigned by the Authenticate hook
+    for (const auto& room : authRooms) {
+        if (!room.empty()) {
+            peer->join(room);
+            addToRoom(room, id);
+        }
+    }
 
     _connToPeer[&tempPeer.connection()] = id;
     auto* registeredPeer = peer.get();
@@ -325,11 +404,15 @@ void Server::onAuth(ServerPeer& tempPeer, const json::Value& msg)
     // Mark the temp peer as authenticated (so Responder knows)
     tempPeer.setAuthenticated(true);
 
-    // Send welcome
+    // Send welcome with protocol version and room list
     json::Value welcome;
     welcome["type"] = "welcome";
+    welcome["protocol"] = "symple/4";
     welcome["peer"] = static_cast<const json::Value&>(p);
     welcome["status"] = 200;
+    welcome["rooms"] = json::Value::array();
+    for (const auto& room : registeredPeer->rooms())
+        welcome["rooms"].push_back(room);
     registeredPeer->send(welcome);
 
     LInfo("Peer authenticated: ", user, "|", id);
@@ -437,6 +520,16 @@ void Server::onDisconnect(ServerPeer& peer)
 }
 
 
+bool Server::sharesRoom(const ServerPeer& a, const ServerPeer& b) const
+{
+    for (const auto& room : a.rooms()) {
+        if (b.rooms().count(room))
+            return true;
+    }
+    return false;
+}
+
+
 void Server::route(ServerPeer& sender, const json::Value& msg)
 {
     // Caller holds _mutex.
@@ -456,14 +549,20 @@ void Server::route(ServerPeer& sender, const json::Value& msg)
         auto pos = addr.find('|');
 
         if (pos != std::string::npos) {
-            // Full address: user|id - send to specific session
+            // Full address: user|id - send to specific session.
+            // Permission check: sender and recipient must share a room.
             std::string peerId = addr.substr(pos + 1);
-            if (sendTo(peerId, msg))
-                return;
+            auto targetIt = _peers.find(peerId);
+            if (targetIt != _peers.end() && sharesRoom(sender, *targetIt->second)) {
+                sendTo(peerId, msg);
+            } else if (targetIt != _peers.end()) {
+                LDebug("Blocked direct message from ", sender.id(), " to ", peerId, " (no shared room)");
+            }
+            return;
         }
 
         // User name only: send to user's room
-        std::string user = addr.substr(0, pos != std::string::npos ? pos : addr.size());
+        std::string user = addr.substr(0, addr.size());
         sendToUser(user, msg);
     }
     else if (to.is_array()) {

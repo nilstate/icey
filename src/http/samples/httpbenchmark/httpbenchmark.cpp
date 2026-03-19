@@ -71,7 +71,7 @@ void runMulticoreInstance()
 {
     uv::ScopedLoop loop;
 
-    http::Server srv(address, net::makeSocket<net::TCPSocket>(loop));
+    http::Server srv(address, loop);
     srv.setReusePort();
     srv.start();
 

@@ -58,7 +58,12 @@ Timer::Timer(std::int64_t timeout, std::int64_t interval, uv::Loop* loop, std::f
 
 Timer::~Timer()
 {
-    // LTrace("Destroy");
+    // Stop the timer before the handle is destroyed. This is defensive:
+    // uv_close (called by Handle's Context destructor) deactivates the
+    // timer anyway, but stopping explicitly makes the lifecycle clearer
+    // and ensures no callbacks fire during teardown.
+    if (active())
+        stop();
 }
 
 
@@ -107,6 +112,7 @@ void Timer::start()
 
     _handle.invoke(&uv_timer_start, _handle.get(), [](uv_timer_t* req) {
             auto self = reinterpret_cast<Timer*>(req->data);
+            if (!self) return; // handle destroyed during teardown
             self->_count++;
             self->Timeout.emit(); }, _timeout, _interval);
     _handle.throwLastError("Cannot start timer");
