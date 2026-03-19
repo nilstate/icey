@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,14 +9,14 @@
 /// @{
 
 
-#include "scy/av/codec.h"
+#include "icy/av/codec.h"
 #include <assert.h>
 #include <sstream>
 
 
 
 
-namespace scy {
+namespace icy {
 namespace av {
 
 
@@ -273,7 +273,7 @@ void VideoCodec::print(std::ostream& ost)
 
 
 } // namespace av
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

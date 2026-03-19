@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,9 +9,9 @@
 /// @{
 
 
-#include "scy/av/win32/mediafoundation.h"
-#include "scy/logger.h"
-#include "scy/platform.h"
+#include "icy/av/win32/mediafoundation.h"
+#include "icy/logger.h"
+#include "icy/platform.h"
 
 #include <windows.h>
 #include <mfapi.h>
@@ -29,7 +29,7 @@
 #pragma comment(lib, "ole32.lib")
 
 
-namespace scy {
+namespace icy {
 namespace av {
 
 
@@ -172,7 +172,7 @@ bool getDeviceList(Device::Type type, std::vector<av::Device>& devices)
         ppDevices[i]->GetAllocatedString(
             MF_DEVSOURCE_ATTRIBUTE_FRIENDLY_NAME, &friendlyName, &nameLen);
 
-        std::string devName = friendlyName ? scy::toUtf8(friendlyName) : "Unknown";
+        std::string devName = friendlyName ? icy::toUtf8(friendlyName) : "Unknown";
 
         // FFmpeg dshow uses friendly names as device identifiers:
         //   video=<FriendlyName> or audio=<FriendlyName>
@@ -238,7 +238,7 @@ bool getDeviceList(Device::Type type, std::vector<av::Device>& devices)
         if (SUCCEEDED(enumerator->GetDefaultAudioEndpoint(flow, role, &defaultDev))) {
             LPWSTR id = nullptr;
             if (SUCCEEDED(defaultDev->GetId(&id))) {
-                defaultId = scy::toUtf8(id);
+                defaultId = icy::toUtf8(id);
                 CoTaskMemFree(id);
             }
             defaultDev->Release();
@@ -256,7 +256,7 @@ bool getDeviceList(Device::Type type, std::vector<av::Device>& devices)
         // Get device ID
         LPWSTR pwszId = nullptr;
         endpoint->GetId(&pwszId);
-        std::string devId = pwszId ? scy::toUtf8(pwszId) : "";
+        std::string devId = pwszId ? icy::toUtf8(pwszId) : "";
         if (pwszId) CoTaskMemFree(pwszId);
 
         // Get friendly name
@@ -267,7 +267,7 @@ bool getDeviceList(Device::Type type, std::vector<av::Device>& devices)
             PropVariantInit(&varName);
             if (SUCCEEDED(props->GetValue(PKEY_Device_FriendlyName, &varName))) {
                 if (varName.vt == VT_LPWSTR)
-                    devName = scy::toUtf8(varName.pwszVal);
+                    devName = icy::toUtf8(varName.pwszVal);
             }
             PropVariantClear(&varName);
             props->Release();
@@ -440,7 +440,7 @@ void WindowsDeviceWatcher::stop()
 
 
 } // namespace av
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

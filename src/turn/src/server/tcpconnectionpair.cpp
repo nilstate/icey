@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,16 +9,16 @@
 /// @{
 
 
-#include "scy/turn/server/tcpconnectionpair.h"
-#include "scy/crypto/crypto.h"
-#include "scy/net/util.h"
-#include "scy/turn/server/server.h"
-#include "scy/turn/server/tcpallocation.h"
+#include "icy/turn/server/tcpconnectionpair.h"
+#include "icy/crypto/crypto.h"
+#include "icy/net/util.h"
+#include "icy/turn/server/server.h"
+#include "icy/turn/server/tcpallocation.h"
 
 #include <stdexcept>
 
 
-namespace scy {
+namespace icy {
 namespace turn {
 
 
@@ -258,7 +258,7 @@ bool TCPConnectionPair::expired() const
 
 
 } // namespace turn
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

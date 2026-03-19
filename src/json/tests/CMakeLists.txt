@@ -1,1 +1,1 @@
-scy_add_test(jsontests DEPENDS base json)
+icy_add_test(jsontests DEPENDS base json)

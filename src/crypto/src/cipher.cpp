@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,10 +9,10 @@
 /// @{
 
 
-#include "scy/crypto/cipher.h"
-#include "scy/base64.h"
-#include "scy/error.h"
-#include "scy/hex.h"
+#include "icy/crypto/cipher.h"
+#include "icy/base64.h"
+#include "icy/error.h"
+#include "icy/hex.h"
 
 #include <iostream>
 #include <memory>
@@ -22,7 +22,7 @@
 
 
 
-namespace scy {
+namespace icy {
 namespace crypto {
 
 
@@ -437,7 +437,7 @@ void Cipher::generateKey(std::string_view password, std::string_view salt,
 
 
 } // namespace crypto
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

@@ -1,1 +1,1 @@
-scy_add_test(nettests DEPENDS base net)
+icy_add_test(nettests DEPENDS base net)

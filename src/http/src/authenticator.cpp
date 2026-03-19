@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,15 +9,15 @@
 /// @{
 
 
-#include "scy/http/authenticator.h"
-#include "scy/base64.h"
-#include "scy/http/request.h"
-#include "scy/http/response.h"
+#include "icy/http/authenticator.h"
+#include "icy/base64.h"
+#include "icy/http/request.h"
+#include "icy/http/response.h"
 
 #include <string_view>
 
 
-namespace scy {
+namespace icy {
 namespace http {
 
 
@@ -309,7 +309,7 @@ const std::string& BasicAuthenticator::password() const
 
 
 } // namespace http
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

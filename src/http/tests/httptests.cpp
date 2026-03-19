@@ -1,18 +1,18 @@
 #include "httptests.h"
 
-#include "scy/http/parser.h"
-#include "scy/http/request.h"
-#include "scy/http/response.h"
-#include "scy/buffer.h"
+#include "icy/http/parser.h"
+#include "icy/http/request.h"
+#include "icy/http/response.h"
+#include "icy/buffer.h"
 
 #include <cstring>
 
-using namespace scy;
-using namespace scy::test;
+using namespace icy;
+using namespace icy::test;
 
 
 // Friend accessor functions for WebSocketFramer private members
-namespace scy { namespace http { namespace ws {
+namespace icy { namespace http { namespace ws {
 
 void wsFramerTestAccess(WebSocketFramer& f, int state)
 {
@@ -24,10 +24,10 @@ int wsFramerGetFlags(const WebSocketFramer& f)
     return f._frameFlags;
 }
 
-}}} // namespace scy::http::ws
+}}} // namespace icy::http::ws
 
-using scy::http::ws::wsFramerTestAccess;
-using scy::http::ws::wsFramerGetFlags;
+using icy::http::ws::wsFramerTestAccess;
+using icy::http::ws::wsFramerGetFlags;
 
 
 int main(int argc, char** argv)
@@ -51,50 +51,50 @@ int main(int argc, char** argv)
         expect(url.query().empty());
         expect(url.fragment().empty());
 
-        http::URL url2("HTTP", "localhost", "/home/sourcey/foo.bar");
+        http::URL url2("HTTP", "localhost", "/home/icey/foo.bar");
         expect(url2.scheme() == "http");
         expect(url2.host() == "localhost");
-        expect(url2.path() == "/home/sourcey/foo.bar");
+        expect(url2.path() == "/home/icey/foo.bar");
 
-        http::URL url3("http", "www.sourcey.com", "/index.html");
+        http::URL url3("http", "www.0state.com", "/index.html");
         expect(url3.scheme() == "http");
-        expect(url3.authority() == "www.sourcey.com");
-        expect(url3.host() == "www.sourcey.com");
+        expect(url3.authority() == "www.0state.com");
+        expect(url3.host() == "www.0state.com");
         expect(url3.path() == "/index.html");
 
-        http::URL url4("http", "www.sourcey.com:8000", "/index.html");
+        http::URL url4("http", "www.0state.com:8000", "/index.html");
         expect(url4.scheme() == "http");
-        expect(url4.authority() == "www.sourcey.com:8000");
-        expect(url4.host() == "www.sourcey.com");
+        expect(url4.authority() == "www.0state.com:8000");
+        expect(url4.host() == "www.0state.com");
         expect(url4.path() == "/index.html");
 
-        http::URL url5("http", "user@www.sourcey.com:8000", "/index.html");
+        http::URL url5("http", "user@www.0state.com:8000", "/index.html");
         expect(url5.scheme() == "http");
         expect(url5.userInfo() == "user");
-        expect(url5.host() == "www.sourcey.com");
+        expect(url5.host() == "www.0state.com");
         expect(url5.port() == 8000);
-        expect(url5.authority() == "user@www.sourcey.com:8000");
+        expect(url5.authority() == "user@www.0state.com:8000");
         expect(url5.path() == "/index.html");
 
-        http::URL url6("http", "user@www.sourcey.com:80", "/index.html");
+        http::URL url6("http", "user@www.0state.com:80", "/index.html");
         expect(url6.scheme() == "http");
         expect(url6.userInfo() == "user");
-        expect(url6.host() == "www.sourcey.com");
+        expect(url6.host() == "www.0state.com");
         expect(url6.port() == 80);
-        expect(url6.authority() == "user@www.sourcey.com:80");
+        expect(url6.authority() == "user@www.0state.com:80");
         expect(url6.path() == "/index.html");
 
-        http::URL url7("http", "www.sourcey.com", "/index.html", "query=test", "fragment");
+        http::URL url7("http", "www.0state.com", "/index.html", "query=test", "fragment");
         expect(url7.scheme() == "http");
-        expect(url7.authority() == "www.sourcey.com");
+        expect(url7.authority() == "www.0state.com");
         expect(url7.path() == "/index.html");
         expect(url7.pathEtc() == "/index.html?query=test#fragment");
         expect(url7.query() == "query=test");
         expect(url7.fragment() == "fragment");
 
-        http::URL url8("http", "www.sourcey.com", "/index.html?query=test#fragment");
+        http::URL url8("http", "www.0state.com", "/index.html?query=test#fragment");
         expect(url8.scheme() == "http");
-        expect(url8.authority() == "www.sourcey.com");
+        expect(url8.authority() == "www.0state.com");
         expect(url8.path() == "/index.html");
         expect(url8.pathEtc() == "/index.html?query=test#fragment");
         expect(url8.query() == "query=test");
@@ -236,7 +236,7 @@ int main(int argc, char** argv)
     //
 
     describe("client connection download", []() {
-        std::string path(SCY_BUILD_DIR);
+        std::string path(ICY_BUILD_DIR);
         fs::addnode(path, "zlib-1.2.8.tar.gz");
 
         auto conn = http::Client::instance().createConnection("http://zlib.net/fossils/zlib-1.2.8.tar.gz");
@@ -323,7 +323,7 @@ int main(int argc, char** argv)
     //
 
     describe("standalone client connection", []() {
-        http::ClientConnection conn("https://sourcey.com");
+        http::ClientConnection conn("https://0state.com");
         conn.Headers += [&](http::Response& response) {
             // std::cout << "On response headers: " << response << endl;
         };
@@ -639,7 +639,7 @@ int main(int argc, char** argv)
         // Create a GET request with headers
         http::Request req("GET", "/api/users?page=1");
         req.setHost("example.com", 8080);
-        req.set("User-Agent", "LibSourcey/2.0");
+        req.set("User-Agent", "Icey/2.0");
         req.set("Accept", "application/json");
 
         // Serialize
@@ -650,7 +650,7 @@ int main(int argc, char** argv)
         // Verify serialized output contains key parts
         expect(raw.find("GET /api/users?page=1 HTTP/1.1") != std::string::npos);
         expect(raw.find("Host: example.com:8080") != std::string::npos);
-        expect(raw.find("User-Agent: LibSourcey/2.0") != std::string::npos);
+        expect(raw.find("User-Agent: Icey/2.0") != std::string::npos);
 
         // Parse back
         http::Request parsed;
@@ -660,7 +660,7 @@ int main(int argc, char** argv)
         expect(parsed.getMethod() == "GET");
         expect(parsed.getURI() == "/api/users?page=1");
         expect(parsed.getHost() == "example.com:8080" || parsed.getHost() == "example.com");
-        expect(parsed.get("User-Agent") == "LibSourcey/2.0");
+        expect(parsed.get("User-Agent") == "Icey/2.0");
         expect(parsed.get("Accept") == "application/json");
     });
 

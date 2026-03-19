@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,19 +9,19 @@
 /// @{
 
 
-#include "scy/http/websocket.h"
-#include "scy/base64.h"
-#include "scy/crypto/hash.h"
-#include "scy/http/client.h"
-#include "scy/http/server.h"
-#include "scy/logger.h"
-#include "scy/numeric.h"
-#include "scy/random.h"
+#include "icy/http/websocket.h"
+#include "icy/base64.h"
+#include "icy/crypto/hash.h"
+#include "icy/http/client.h"
+#include "icy/http/server.h"
+#include "icy/logger.h"
+#include "icy/numeric.h"
+#include "icy/random.h"
 #include <inttypes.h>
 #include <stdexcept>
 
 
-namespace scy {
+namespace icy {
 namespace http {
 namespace ws {
 
@@ -740,7 +740,7 @@ bool WebSocketFramer::mustMaskPayload() const
 
 } // namespace ws
 } // namespace http
-} // namespace scy
+} // namespace icy
 
 
 /// @}

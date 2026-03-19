@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,21 +9,21 @@
 /// @{
 
 
-#ifdef SCY_WIN
+#ifdef ICY_WIN
 #include <winsock2.h>
 #endif
 
-#include "scy/crypto/hmac.h"
-#include "scy/logger.h"
-#include "scy/stun/attributes.h"
-#include "scy/stun/message.h"
+#include "icy/crypto/hmac.h"
+#include "icy/logger.h"
+#include "icy/stun/attributes.h"
+#include "icy/stun/message.h"
 
 #include <cstdio>
 #include <cstring>
 #include <stdexcept>
 
 
-namespace scy {
+namespace icy {
 namespace stun {
 
 
@@ -996,7 +996,7 @@ void UInt16ListAttribute::write(BitWriter& writer) const
 
 
 } // namespace stun
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,15 +9,15 @@
 /// @{
 
 
-#include "scy/sched/task.h"
-#include "scy/datetime.h"
-#include "scy/sched/scheduler.h"
+#include "icy/sched/task.h"
+#include "icy/datetime.h"
+#include "icy/sched/scheduler.h"
 
 
 using namespace std;
 
 
-namespace scy {
+namespace icy {
 namespace sched {
 
 
@@ -51,7 +51,7 @@ Task::~Task()
 void Task::start()
 {
     trigger(); // throw if trigger is nullptr
-    scy::Task::start();
+    icy::Task::start();
 }
 */
 
@@ -154,7 +154,7 @@ sched::Scheduler& Task::scheduler()
 
 
 } // namespace sched
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

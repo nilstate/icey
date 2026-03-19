@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,14 +9,14 @@
 /// @{
 
 
-#include "scy/thread.h"
-#include "scy/logger.h"
+#include "icy/thread.h"
+#include "icy/logger.h"
 #include <memory>
 
 
 
 
-namespace scy {
+namespace icy {
 
 
 const std::thread::id Thread::mainID = std::this_thread::get_id();
@@ -67,7 +67,7 @@ bool Thread::async() const
 }
 
 
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

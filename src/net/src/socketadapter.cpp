@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,15 +9,15 @@
 /// @{
 
 
-#include "scy/net/socketadapter.h"
-#include "scy/net/socket.h"
+#include "icy/net/socketadapter.h"
+#include "icy/net/socket.h"
 
 #include <iterator>
 
 
 
 
-namespace scy {
+namespace icy {
 namespace net {
 
 
@@ -126,7 +126,7 @@ bool SocketAdapter::onSocketRecv(Socket& socket, const MutableBuffer& buffer, co
 }
 
 
-bool SocketAdapter::onSocketError(Socket& socket, const scy::Error& error)
+bool SocketAdapter::onSocketError(Socket& socket, const icy::Error& error)
 {
     cleanupReceivers();
     if (_receivers.size() == 1 && _receivers[0].alive)
@@ -232,7 +232,7 @@ std::vector<SocketAdapter*> SocketAdapter::receivers()
 
 
 } // namespace net
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

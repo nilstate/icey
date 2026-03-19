@@ -1,13 +1,13 @@
-#include "scy/crypto/cipher.h"
-#include "scy/crypto/crypto.h"
-#include "scy/crypto/hash.h"
-#include "scy/crypto/rsa.h"
-#include "scy/crypto/x509certificate.h"
-#include "scy/filesystem.h"
-#include "scy/hex.h"
-#include "scy/logger.h"
-#include "scy/test.h"
-#include "scy/util.h"
+#include "icy/crypto/cipher.h"
+#include "icy/crypto/crypto.h"
+#include "icy/crypto/hash.h"
+#include "icy/crypto/rsa.h"
+#include "icy/crypto/x509certificate.h"
+#include "icy/filesystem.h"
+#include "icy/hex.h"
+#include "icy/logger.h"
+#include "icy/test.h"
+#include "icy/util.h"
 
 #include <algorithm>
 #include <fstream>
@@ -18,11 +18,11 @@
 #include <openssl/hmac.h>
 
 
-using namespace scy;
-using namespace scy::test;
+using namespace icy;
+using namespace icy::test;
 
 
-namespace scy {
+namespace icy {
 
 
 void testCipher(const std::string algorithm, int iterations)
@@ -110,7 +110,7 @@ std::string computeHMAC(const std::string& algorithm, const std::string& key,
 }
 
 
-} // namespace scy
+} // namespace icy
 
 
 int main(int argc, char** argv)
@@ -407,7 +407,7 @@ int main(int argc, char** argv)
     // X509Certificate: load from file
     //
     describe("x509 load from file", []() {
-        std::string certPath(SCY_SOURCE_DIR);
+        std::string certPath(ICY_SOURCE_DIR);
         fs::addnode(certPath, "net");
         fs::addnode(certPath, "tests");
         fs::addnode(certPath, "cert.pem");
@@ -428,7 +428,7 @@ int main(int argc, char** argv)
     // X509Certificate: load from buffer
     //
     describe("x509 load from buffer", []() {
-        std::string certPath(SCY_SOURCE_DIR);
+        std::string certPath(ICY_SOURCE_DIR);
         fs::addnode(certPath, "net");
         fs::addnode(certPath, "tests");
         fs::addnode(certPath, "cert.pem");
@@ -454,7 +454,7 @@ int main(int argc, char** argv)
     // X509Certificate: copy and assignment
     //
     describe("x509 copy and assignment", []() {
-        std::string certPath(SCY_SOURCE_DIR);
+        std::string certPath(ICY_SOURCE_DIR);
         fs::addnode(certPath, "net");
         fs::addnode(certPath, "tests");
         fs::addnode(certPath, "cert.pem");
@@ -482,7 +482,7 @@ int main(int argc, char** argv)
     // X509Certificate: save and reload (round-trip)
     //
     describe("x509 save and reload", []() {
-        std::string certPath(SCY_SOURCE_DIR);
+        std::string certPath(ICY_SOURCE_DIR);
         fs::addnode(certPath, "net");
         fs::addnode(certPath, "tests");
         fs::addnode(certPath, "cert.pem");
@@ -511,7 +511,7 @@ int main(int argc, char** argv)
     // X509Certificate: extractNames
     //
     describe("x509 extract names", []() {
-        std::string certPath(SCY_SOURCE_DIR);
+        std::string certPath(ICY_SOURCE_DIR);
         fs::addnode(certPath, "net");
         fs::addnode(certPath, "tests");
         fs::addnode(certPath, "cert.pem");
@@ -535,7 +535,7 @@ int main(int argc, char** argv)
     // X509Certificate: validity dates
     //
     describe("x509 validity dates", []() {
-        std::string certPath(SCY_SOURCE_DIR);
+        std::string certPath(ICY_SOURCE_DIR);
         fs::addnode(certPath, "net");
         fs::addnode(certPath, "tests");
         fs::addnode(certPath, "cert.pem");

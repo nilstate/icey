@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,7 +9,7 @@
 /// @{
 
 
-#include "scy/av/packet.h"
+#include "icy/av/packet.h"
 
 #ifdef HAVE_FFMPEG
 
@@ -21,7 +21,7 @@ extern "C" {
 
 
 
-namespace scy {
+namespace icy {
 namespace av {
 
 
@@ -132,7 +132,7 @@ PlanarAudioPacket::~PlanarAudioPacket() noexcept
 
 
 } // namespace av
-} // namespace scy
+} // namespace icy
 
 
 #endif

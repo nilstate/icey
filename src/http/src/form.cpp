@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,19 +9,19 @@
 /// @{
 
 
-#include "scy/http/form.h"
-#include "scy/crypto/crypto.h"
-#include "scy/http/client.h"
+#include "icy/http/form.h"
+#include "icy/crypto/crypto.h"
+#include "icy/http/client.h"
 
-#include "scy/filesystem.h"
-#include "scy/http/packetizers.h"
-#include "scy/http/url.h"
-#include "scy/idler.h"
+#include "icy/filesystem.h"
+#include "icy/http/packetizers.h"
+#include "icy/http/url.h"
+#include "icy/idler.h"
 #include <memory>
 #include <stdexcept>
 
 
-namespace scy {
+namespace icy {
 namespace http {
 
 
@@ -634,7 +634,7 @@ uint64_t StringPart::length() const
 
 
 } // namespace http
-} // namespace scy
+} // namespace icy
 
 
 /// @}

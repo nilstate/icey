@@ -1,15 +1,15 @@
 #pragma once
-#include "scy/logger.h"
-#include "scy/net/tcpsocket.h"
-#include "scy/time.h"
-#include "scy/util.h"
+#include "icy/logger.h"
+#include "icy/net/tcpsocket.h"
+#include "icy/time.h"
+#include "icy/util.h"
 #include <string>
 
 
 using namespace std;
 
 
-namespace scy {
+namespace icy {
 
 
 class TCPResponder : public net::SocketAdapter
@@ -77,7 +77,7 @@ public:
         return false;
     }
 
-    bool onSocketError(net::Socket&, const scy::Error& error)
+    bool onSocketError(net::Socket&, const icy::Error& error)
     {
         LDebug(id, ": On error: ", error.message);
         return false;
@@ -92,6 +92,6 @@ public:
 };
 
 
-} //  namespace scy
+} //  namespace icy
 
 

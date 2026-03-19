@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,8 +9,8 @@
 /// @{
 
 
-#include "scy/http/util.h"
-#include "scy/util.h"
+#include "icy/http/util.h"
+#include "icy/util.h"
 
 #include <string_view>
 
@@ -18,7 +18,7 @@
 // using std::endl;
 
 
-namespace scy {
+namespace icy {
 namespace http {
 
 
@@ -175,7 +175,7 @@ void splitParameters(const std::string::const_iterator& begin,
 
 
 } // namespace http
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

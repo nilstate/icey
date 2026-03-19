@@ -5,12 +5,12 @@ from conan.tools.scm import Git
 import os
 
 
-class LibSourceyConan(ConanFile):
-    name = "libsourcey"
+class IceyConan(ConanFile):
+    name = "icey"
     version = "2.1.0"
     license = "LGPL-2.1-or-later"
-    url = "https://github.com/sourcey/libsourcey"
-    homepage = "https://sourcey.com/code/libsourcey"
+    url = "https://github.com/sourcey/icey"
+    homepage = "https://0state.com/code/icey"
     description = "C++ Networking Evolved - modular C++20 toolkit for networking, media, and real-time communication"
     topics = ("networking", "webrtc", "ffmpeg", "media", "http", "websocket", "stun", "turn", "c++20")
 
@@ -73,15 +73,15 @@ class LibSourceyConan(ConanFile):
         rmdir(self, os.path.join(self.package_folder, "lib", "pkgconfig"))
 
     def package_info(self):
-        self.cpp_info.set_property("cmake_file_name", "LibSourcey")
+        self.cpp_info.set_property("cmake_file_name", "Icey")
 
         modules = ["base", "net", "crypto", "http", "json", "archo", "sched", "stun", "turn", "symple"]
         if self.options.with_ffmpeg:
             modules.append("av")
 
         for mod in modules:
-            self.cpp_info.components[mod].set_property("cmake_target_name", f"scy_{mod}")
-            self.cpp_info.components[mod].libs = [f"scy_{mod}"]
+            self.cpp_info.components[mod].set_property("cmake_target_name", f"icy_{mod}")
+            self.cpp_info.components[mod].libs = [f"icy_{mod}"]
             self.cpp_info.components[mod].includedirs = ["include"]
 
         # Base depends on libuv

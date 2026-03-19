@@ -1,5 +1,5 @@
 FROM ubuntu:24.04 AS builder
-LABEL maintainer="Kam Low <hello@sourcey.com>"
+LABEL maintainer="Kam Low <hello@icey.com>"
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -12,23 +12,23 @@ RUN apt-get update && apt-get install -y \
   libssl-dev \
   && rm -rf /var/lib/apt/lists/*
 
-COPY . /libsourcey
+COPY . /icey
 
-RUN cd /libsourcey && mkdir -p build && cd build && \
+RUN cd /icey && mkdir -p build && cd build && \
   cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF \
            -DBUILD_MODULES=ON -DBUILD_APPLICATIONS=OFF \
            -DBUILD_SAMPLES=OFF -DBUILD_TESTS=OFF \
-           -DCMAKE_INSTALL_PREFIX=/libsourcey/install && \
+           -DCMAKE_INSTALL_PREFIX=/icey/install && \
   cmake --build . --parallel "$(nproc)" && \
   cmake --install .
 
 FROM ubuntu:24.04
-LABEL maintainer="Kam Low <hello@sourcey.com>"
+LABEL maintainer="Kam Low <hello@icey.com>"
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
   libssl3t64 \
   && rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /libsourcey/install /usr/local
+COPY --from=builder /icey/install /usr/local
 
 WORKDIR /usr/local

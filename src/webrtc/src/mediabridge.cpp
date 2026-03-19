@@ -1,19 +1,19 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
 
 
-#include "scy/webrtc/mediabridge.h"
-#include "scy/logger.h"
+#include "icy/webrtc/mediabridge.h"
+#include "icy/logger.h"
 
 #include <stdexcept>
 
 
-namespace scy {
+namespace icy {
 namespace wrtc {
 
 
@@ -35,7 +35,7 @@ void MediaBridge::attach(std::shared_ptr<rtc::PeerConnection> pc,
         throw std::logic_error("MediaBridge already attached");
 
     _pc = std::move(pc);
-    std::string cname = opts.cname.empty() ? "libsourcey" : opts.cname;
+    std::string cname = opts.cname.empty() ? "icey" : opts.cname;
 
     // Create video track if codec encoder is specified.
     if (!opts.videoCodec.encoder.empty()) {
@@ -157,4 +157,4 @@ bool MediaBridge::attached() const
 
 
 } // namespace wrtc
-} // namespace scy
+} // namespace icy

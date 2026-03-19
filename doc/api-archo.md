@@ -4,8 +4,8 @@
 
 | Name | Description |
 |------|-------------|
-| [`ZipFile`](#structscy_1_1archo_1_1ZipFile) |  |
-| [`FileInfo`](#structscy_1_1archo_1_1ZipFile_1_1FileInfo) |  |
+| [`ZipFile`](#structicy_1_1archo_1_1ZipFile) |  |
+| [`FileInfo`](#structicy_1_1archo_1_1ZipFile_1_1FileInfo) |  |
 
 ### Members
 

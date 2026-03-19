@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,9 +9,9 @@
 /// @{
 
 
-#include "scy/logger.h"
-#include "scy/turn/server/server.h"
-#include "scy/util.h"
+#include "icy/logger.h"
+#include "icy/turn/server/server.h"
+#include "icy/util.h"
 
 #include <algorithm>
 #include <cstring>
@@ -19,7 +19,7 @@
 #include <stdexcept>
 
 
-namespace scy {
+namespace icy {
 namespace turn {
 
 
@@ -223,7 +223,7 @@ bool IAllocation::hasPermission(const std::string& peerIP)
 
 
 } // namespace turn
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

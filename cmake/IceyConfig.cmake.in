@@ -1,0 +1,29 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+# Re-find dependencies that our targets need
+find_dependency(Threads)
+
+if(@USE_SYSTEM_DEPS@)
+  find_dependency(libuv CONFIG)
+  find_dependency(llhttp CONFIG)
+  find_dependency(ZLIB)
+endif()
+
+if(@HAVE_OPENSSL@)
+  find_dependency(OpenSSL)
+endif()
+
+if(@HAVE_FFMPEG@)
+  # FFmpeg doesn't have standard CMake config; consumers need to find it themselves
+endif()
+
+if(@HAVE_OPENCV@)
+  find_dependency(OpenCV)
+endif()
+
+# Import targets
+include("${CMAKE_CURRENT_LIST_DIR}/IceyTargets.cmake")
+
+check_required_components(Icey)

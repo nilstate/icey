@@ -1,1 +1,1 @@
-scy_add_test(avtests DEPENDS base av)
+icy_add_test(avtests DEPENDS base av)

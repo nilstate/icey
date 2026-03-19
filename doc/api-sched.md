@@ -4,13 +4,13 @@
 
 | Name | Description |
 |------|-------------|
-| [`Scheduler`](#classscy_1_1sched_1_1Scheduler) | The [Scheduler](#classscy_1_1sched_1_1Scheduler) manages and runs tasks that need to be executed at specific times. |
-| [`Task`](#classscy_1_1sched_1_1Task) | This class extends the [Task](#classscy_1_1sched_1_1Task) class to implement scheduling capabilities. |
-| [`TaskFactory`](#classscy_1_1sched_1_1TaskFactory) | The [TaskFactory](#classscy_1_1sched_1_1TaskFactory) can dynamically instantiate registered [sched::Task](#classscy_1_1sched_1_1Task) and [sched::Trigger](#structscy_1_1sched_1_1Trigger) classes from named strings. |
-| [`Trigger`](#structscy_1_1sched_1_1Trigger) |  |
-| [`OnceOnlyTrigger`](#structscy_1_1sched_1_1OnceOnlyTrigger) |  |
-| [`IntervalTrigger`](#structscy_1_1sched_1_1IntervalTrigger) |  |
-| [`DailyTrigger`](#structscy_1_1sched_1_1DailyTrigger) |  |
+| [`Scheduler`](#classicy_1_1sched_1_1Scheduler) | The [Scheduler](#classicy_1_1sched_1_1Scheduler) manages and runs tasks that need to be executed at specific times. |
+| [`Task`](#classicy_1_1sched_1_1Task) | This class extends the [Task](#classicy_1_1sched_1_1Task) class to implement scheduling capabilities. |
+| [`TaskFactory`](#classicy_1_1sched_1_1TaskFactory) | The [TaskFactory](#classicy_1_1sched_1_1TaskFactory) can dynamically instantiate registered [sched::Task](#classicy_1_1sched_1_1Task) and [sched::Trigger](#structicy_1_1sched_1_1Trigger) classes from named strings. |
+| [`Trigger`](#structicy_1_1sched_1_1Trigger) |  |
+| [`OnceOnlyTrigger`](#structicy_1_1sched_1_1OnceOnlyTrigger) |  |
+| [`IntervalTrigger`](#structicy_1_1sched_1_1IntervalTrigger) |  |
+| [`DailyTrigger`](#structicy_1_1sched_1_1DailyTrigger) |  |
 
 ### Members
 
@@ -28,10 +28,10 @@ Sched_API()
 
 ## Scheduler 
 
-> **Extends:** `scy::TaskRunner`, `scy::json::ISerializable`
+> **Extends:** `icy::TaskRunner`, `icy::json::ISerializable`
 > **Defined in:** `scheduler.h`
 
-The [Scheduler](#classscy_1_1sched_1_1Scheduler) manages and runs tasks that need to be executed at specific times.
+The [Scheduler](#classicy_1_1sched_1_1Scheduler) manages and runs tasks that need to be executed at specific times.
 
 ### Members
 
@@ -45,8 +45,8 @@ The [Scheduler](#classscy_1_1sched_1_1Scheduler) manages and runs tasks that nee
 | [`serialize`](#group__sched_1ga4c35dfb97b425dfe52b7d0423b6e1c32) |  |
 | [`deserialize`](#group__sched_1ga7fbf9c5bdc302b447f5dfecb4d1e4f01) |  |
 | [`print`](#group__sched_1gace1e075e5d80427459eb6a9f431d82c7) |  |
-| [`getDefault`](#group__sched_1ga69f78c44f8ca4f6c98de61beb8f509d3) | Returns the default [Scheduler](#classscy_1_1sched_1_1Scheduler) singleton, although [Scheduler](#classscy_1_1sched_1_1Scheduler) instances may also be initialized individually. |
-| [`factory`](#group__sched_1gaebe718c34d043b8995e5cde73d637f6b) | Returns the [TaskFactory](#classscy_1_1sched_1_1TaskFactory) singleton. |
+| [`getDefault`](#group__sched_1ga69f78c44f8ca4f6c98de61beb8f509d3) | Returns the default [Scheduler](#classicy_1_1sched_1_1Scheduler) singleton, although [Scheduler](#classicy_1_1sched_1_1Scheduler) instances may also be initialized individually. |
+| [`factory`](#group__sched_1gaebe718c34d043b8995e5cde73d637f6b) | Returns the [TaskFactory](#classicy_1_1sched_1_1TaskFactory) singleton. |
 | [`run`](#group__sched_1gae90f548144a297df629384b7c19753af) | Called by the async context to run the next task. |
 | [`update`](#group__sched_1ga59ae89e12b6fc6cc7d4d3acf9aeb5138) |  |
 
@@ -144,7 +144,7 @@ virtual void print(std::ostream & ost)
 static Scheduler & getDefault()
 ```
 
-Returns the default [Scheduler](#classscy_1_1sched_1_1Scheduler) singleton, although [Scheduler](#classscy_1_1sched_1_1Scheduler) instances may also be initialized individually.
+Returns the default [Scheduler](#classicy_1_1sched_1_1Scheduler) singleton, although [Scheduler](#classicy_1_1sched_1_1Scheduler) instances may also be initialized individually.
 
 ---
 
@@ -154,7 +154,7 @@ Returns the default [Scheduler](#classscy_1_1sched_1_1Scheduler) singleton, alth
 static sched::TaskFactory & factory()
 ```
 
-Returns the [TaskFactory](#classscy_1_1sched_1_1TaskFactory) singleton.
+Returns the [TaskFactory](#classicy_1_1sched_1_1TaskFactory) singleton.
 
 ---
 
@@ -176,10 +176,10 @@ virtual void update()
 
 ## Task 
 
-> **Extends:** `scy::Task`, `scy::json::ISerializable`
+> **Extends:** `icy::Task`, `icy::json::ISerializable`
 > **Defined in:** `task.h`
 
-This class extends the [Task](#classscy_1_1sched_1_1Task) class to implement scheduling capabilities.
+This class extends the [Task](#classicy_1_1sched_1_1Task) class to implement scheduling capabilities.
 
 ### Members
 
@@ -191,15 +191,15 @@ This class extends the [Task](#classscy_1_1sched_1_1Task) class to implement sch
 | [`deserialize`](#group__sched_1gaf213bcf307f7831a73a53e20f2973ff0) | Deserializes the task from JSON. |
 | [`createTrigger`](#group__sched_1ga5ccc658ea51817c922302024f1716d0c) |  |
 | [`setTrigger`](#group__sched_1ga750447b4c974d32fa66e6bf382968364) |  |
-| [`trigger`](#group__sched_1gaeca4e399907b97a311542cf3f6c02ac5) | Returns a reference to the associated [sched::Trigger](#structscy_1_1sched_1_1Trigger) or throws an exception. |
-| [`scheduler`](#group__sched_1ga194bdc6aa8624503a044fe24e1b1ed34) | Returns a reference to the associated [Scheduler](#classscy_1_1sched_1_1Scheduler) or throws an exception. |
-| [`remaining`](#group__sched_1ga5c18d3c47370a09baaff18b12ecb6779) | Returns the milliseconds remaining until the next scheduled timeout. An [sched::Trigger](#structscy_1_1sched_1_1Trigger) must be associated or an exception will be thrown. |
+| [`trigger`](#group__sched_1gaeca4e399907b97a311542cf3f6c02ac5) | Returns a reference to the associated [sched::Trigger](#structicy_1_1sched_1_1Trigger) or throws an exception. |
+| [`scheduler`](#group__sched_1ga194bdc6aa8624503a044fe24e1b1ed34) | Returns a reference to the associated [Scheduler](#classicy_1_1sched_1_1Scheduler) or throws an exception. |
+| [`remaining`](#group__sched_1ga5c18d3c47370a09baaff18b12ecb6779) | Returns the milliseconds remaining until the next scheduled timeout. An [sched::Trigger](#structicy_1_1sched_1_1Trigger) must be associated or an exception will be thrown. |
 | [`type`](#group__sched_1gab2487a3713a57261b71454c05621dbcd) |  |
 | [`name`](#group__sched_1gadfe739e111da7d1d090c88de52da1767) |  |
 | [`setName`](#group__sched_1gaf82f66d275ae0a0b750c3ef3b8785093) |  |
 | [`~Task`](#group__sched_1ga92fdc84e904656f4e38cdc7acd8d6053) | Destroctor. Should remain protected. |
 | [`beforeRun`](#group__sched_1gabcf93ea5a1c4c307524ce3711434ee39) |  |
-| [`run`](#group__sched_1ga3d2d7a26a59ef58967926367d6ba484a) | Called by the [TaskRunner](./doc/api-base.md#classscy_1_1TaskRunner) to run the task. Override this method to implement task action. Returning true means the true should be called again, and false will cause the task to be destroyed. The task will similarly be destroyed id [destroy()](./doc/api-base.md#group__base_1gaecd8a85018f8f75ae802dcbf3749bdef) was called during the current task iteration. |
+| [`run`](#group__sched_1ga3d2d7a26a59ef58967926367d6ba484a) | Called by the [TaskRunner](./doc/api-base.md#classicy_1_1TaskRunner) to run the task. Override this method to implement task action. Returning true means the true should be called again, and false will cause the task to be destroyed. The task will similarly be destroyed id [destroy()](./doc/api-base.md#group__base_1gaecd8a85018f8f75ae802dcbf3749bdef) was called during the current task iteration. |
 | [`afterRun`](#group__sched_1gae7f7a8c0ead6727644d3aa045b0c25df) |  |
 | [`CompareTimeout`](#group__sched_1gaa91e1e6bcae34a4975f8ab33dd050373) |  |
 | [`_type`](#group__sched_1gac28fe32991a883c1b00a6b56bc555c35) |  |
@@ -291,7 +291,7 @@ void setTrigger(sched::Trigger * trigger)
 sched::Trigger & trigger()
 ```
 
-Returns a reference to the associated [sched::Trigger](#structscy_1_1sched_1_1Trigger) or throws an exception.
+Returns a reference to the associated [sched::Trigger](#structicy_1_1sched_1_1Trigger) or throws an exception.
 
 ---
 
@@ -301,7 +301,7 @@ Returns a reference to the associated [sched::Trigger](#structscy_1_1sched_1_1Tr
 Scheduler & scheduler()
 ```
 
-Returns a reference to the associated [Scheduler](#classscy_1_1sched_1_1Scheduler) or throws an exception.
+Returns a reference to the associated [Scheduler](#classicy_1_1sched_1_1Scheduler) or throws an exception.
 
 ---
 
@@ -311,7 +311,7 @@ Returns a reference to the associated [Scheduler](#classscy_1_1sched_1_1Schedule
 std::int64_t remaining() const
 ```
 
-Returns the milliseconds remaining until the next scheduled timeout. An [sched::Trigger](#structscy_1_1sched_1_1Trigger) must be associated or an exception will be thrown.
+Returns the milliseconds remaining until the next scheduled timeout. An [sched::Trigger](#structicy_1_1sched_1_1Trigger) must be associated or an exception will be thrown.
 
 ---
 
@@ -367,7 +367,7 @@ virtual bool beforeRun()
 void run()
 ```
 
-Called by the [TaskRunner](./doc/api-base.md#classscy_1_1TaskRunner) to run the task. Override this method to implement task action. Returning true means the true should be called again, and false will cause the task to be destroyed. The task will similarly be destroyed id [destroy()](./doc/api-base.md#group__base_1gaecd8a85018f8f75ae802dcbf3749bdef) was called during the current task iteration.
+Called by the [TaskRunner](./doc/api-base.md#classicy_1_1TaskRunner) to run the task. Override this method to implement task action. Returning true means the true should be called again, and false will cause the task to be destroyed. The task will similarly be destroyed id [destroy()](./doc/api-base.md#group__base_1gaecd8a85018f8f75ae802dcbf3749bdef) was called during the current task iteration.
 
 ---
 
@@ -382,13 +382,13 @@ virtual bool afterRun()
 #### CompareTimeout 
 
 ```cpp
-static inline bool CompareTimeout(const [scy::Task](./doc/api-base.md#classscy_1_1Task) * l, const [scy::Task](./doc/api-base.md#classscy_1_1Task) * r)
+static inline bool CompareTimeout(const [icy::Task](./doc/api-base.md#classicy_1_1Task) * l, const [icy::Task](./doc/api-base.md#classicy_1_1Task) * r)
 ```
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `l` | `const [scy::Task](./doc/api-base.md#classscy_1_1Task) *` |  |
-| `r` | `const [scy::Task](./doc/api-base.md#classscy_1_1Task) *` |  |
+| `l` | `const [icy::Task](./doc/api-base.md#classicy_1_1Task) *` |  |
+| `r` | `const [icy::Task](./doc/api-base.md#classicy_1_1Task) *` |  |
 
 ---
 
@@ -434,13 +434,13 @@ std::mutex _mutex
 
 > **Defined in:** `taskfactory.h`
 
-The [TaskFactory](#classscy_1_1sched_1_1TaskFactory) can dynamically instantiate registered [sched::Task](#classscy_1_1sched_1_1Task) and [sched::Trigger](#structscy_1_1sched_1_1Trigger) classes from named strings.
+The [TaskFactory](#classicy_1_1sched_1_1TaskFactory) can dynamically instantiate registered [sched::Task](#classicy_1_1sched_1_1Task) and [sched::Trigger](#structicy_1_1sched_1_1Trigger) classes from named strings.
 
 ### Members
 
 | Name | Description |
 |------|-------------|
-| [`getDefault`](#group__sched_1ga09f76779885d97c4e99bf27c349909d1) | Returns the default [TaskFactory](#classscy_1_1sched_1_1TaskFactory) singleton. |
+| [`getDefault`](#group__sched_1ga09f76779885d97c4e99bf27c349909d1) | Returns the default [TaskFactory](#classicy_1_1sched_1_1TaskFactory) singleton. |
 | [`createTask`](#group__sched_1gafa680c1c63b36eaa94986f3548ec301b) |  |
 | [`registerTask`](#group__sched_1ga3b265588e84942014d4d8ed689d71b2d) |  |
 | [`unregisterTask`](#group__sched_1ga16d6fa9512bcf4e4b3deb0f1f6807286) |  |
@@ -461,7 +461,7 @@ The [TaskFactory](#classscy_1_1sched_1_1TaskFactory) can dynamically instantiate
 static inline TaskFactory & getDefault()
 ```
 
-Returns the default [TaskFactory](#classscy_1_1sched_1_1TaskFactory) singleton.
+Returns the default [TaskFactory](#classicy_1_1sched_1_1TaskFactory) singleton.
 
 ---
 
@@ -577,8 +577,8 @@ TriggerMap _triggers
 
 ## Trigger 
 
-> **Extends:** `scy::json::ISerializable`
-> **Subclasses:** `scy::sched::DailyTrigger`, `scy::sched::IntervalTrigger`, `scy::sched::OnceOnlyTrigger`
+> **Extends:** `icy::json::ISerializable`
+> **Subclasses:** `icy::sched::DailyTrigger`, `icy::sched::IntervalTrigger`, `icy::sched::OnceOnlyTrigger`
 > **Defined in:** `trigger.h`
 
 ### Members
@@ -738,7 +738,7 @@ The time the task was last run.
 
 ## OnceOnlyTrigger 
 
-> **Extends:** `scy::sched::Trigger`
+> **Extends:** `icy::sched::Trigger`
 > **Defined in:** `trigger.h`
 
 ### Members
@@ -779,7 +779,7 @@ Returns true if the task is expired and should be destroyed. Returns false by de
 
 ## IntervalTrigger 
 
-> **Extends:** `scy::sched::Trigger`
+> **Extends:** `icy::sched::Trigger`
 > **Defined in:** `trigger.h`
 
 ### Members
@@ -868,7 +868,7 @@ The maximum number of times the task will be run before it is destroyed. 0 for n
 
 ## DailyTrigger 
 
-> **Extends:** `scy::sched::Trigger`
+> **Extends:** `icy::sched::Trigger`
 > **Defined in:** `trigger.h`
 
 ### Members

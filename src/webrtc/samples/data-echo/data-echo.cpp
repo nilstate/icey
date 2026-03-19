@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -22,10 +22,10 @@
 /// @{
 
 
-#include "scy/application.h"
-#include "scy/logger.h"
-#include "scy/symple/client.h"
-#include "scy/webrtc/peersession.h"
+#include "icy/application.h"
+#include "icy/logger.h"
+#include "icy/symple/client.h"
+#include "icy/webrtc/peersession.h"
 #include "symplesignaller.h"
 
 #include <iostream>
@@ -33,7 +33,7 @@
 #include <string>
 
 
-using namespace scy;
+using namespace icy;
 
 
 class DataEchoApp
@@ -118,7 +118,7 @@ private:
 
     void onCreatePresence(smpl::Peer& peer)
     {
-        peer["agent"] = "LibSourcey";
+        peer["agent"] = "Icey";
         peer["type"] = "echo";
     }
 };

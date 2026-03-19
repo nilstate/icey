@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -12,14 +12,14 @@
 #pragma once
 
 
-#include "scy/webrtc/signalling.h"
-#include "scy/webrtc/webrtc.h"
+#include "icy/webrtc/signalling.h"
+#include "icy/webrtc/webrtc.h"
 
 #include <mutex>
 #include <string>
 
 
-namespace scy {
+namespace icy {
 namespace wrtc {
 
 
@@ -92,7 +92,7 @@ private:
 
 
 } // namespace wrtc
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

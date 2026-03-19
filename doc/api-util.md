@@ -6,22 +6,22 @@ A simple message rate limiter based on the token bucket algorithm.
 
 | Name | Description |
 |------|-------------|
-| [`Base64PacketEncoder`](#classscy_1_1Base64PacketEncoder) |  |
-| [`IDiagnostic`](#classscy_1_1IDiagnostic) |  |
-| [`AsyncDiagnostic`](#classscy_1_1AsyncDiagnostic) |  |
-| [`DiagnosticManager`](#classscy_1_1DiagnosticManager) |  |
-| [`IRegistry`](#classscy_1_1IRegistry) |  |
-| [`RateLimiter`](#classscy_1_1RateLimiter) |  |
-| [`StreamManager`](#classscy_1_1StreamManager) |  |
-| [`TimedManager`](#classscy_1_1TimedManager) | Timed pointer manager |
-| [`BasicUser`](#classscy_1_1BasicUser) |  |
-| [`UserManager`](#classscy_1_1UserManager) | > Deprecated: This class manages a list of users. |
-| [`DiagnosticState`](#structscy_1_1DiagnosticState) |  |
-| [`IUser`](#structscy_1_1IUser) |  |
+| [`Base64PacketEncoder`](#classicy_1_1Base64PacketEncoder) |  |
+| [`IDiagnostic`](#classicy_1_1IDiagnostic) |  |
+| [`AsyncDiagnostic`](#classicy_1_1AsyncDiagnostic) |  |
+| [`DiagnosticManager`](#classicy_1_1DiagnosticManager) |  |
+| [`IRegistry`](#classicy_1_1IRegistry) |  |
+| [`RateLimiter`](#classicy_1_1RateLimiter) |  |
+| [`StreamManager`](#classicy_1_1StreamManager) |  |
+| [`TimedManager`](#classicy_1_1TimedManager) | Timed pointer manager |
+| [`BasicUser`](#classicy_1_1BasicUser) |  |
+| [`UserManager`](#classicy_1_1UserManager) | > Deprecated: This class manages a list of users. |
+| [`DiagnosticState`](#structicy_1_1DiagnosticState) |  |
+| [`IUser`](#structicy_1_1IUser) |  |
 
 ## Base64PacketEncoder 
 
-> **Extends:** `scy::PacketProcessor`
+> **Extends:** `icy::PacketProcessor`
 > **Defined in:** `base64packetencoder.h`
 
 ### Members
@@ -66,8 +66,8 @@ PacketSignal emitter
 
 ## IDiagnostic 
 
-> **Extends:** `scy::Stateful< DiagnosticState >`
-> **Subclasses:** `scy::AsyncDiagnostic`
+> **Extends:** `icy::Stateful< DiagnosticState >`
+> **Subclasses:** `icy::AsyncDiagnostic`
 > **Defined in:** `diagnosticmanager.h`
 
 ### Members
@@ -228,7 +228,7 @@ Signals when a new text item is added to the summary.
 
 ## AsyncDiagnostic 
 
-> **Extends:** `scy::IDiagnostic`, `scy::basic::Runnable`
+> **Extends:** `icy::IDiagnostic`, `icy::basic::Runnable`
 > **Defined in:** `diagnosticmanager.h`
 
 ### Members
@@ -278,7 +278,7 @@ Thread _thread
 
 ## DiagnosticManager 
 
-> **Extends:** `scy::PointerCollection< TKey, TValue >`
+> **Extends:** `icy::PointerCollection< TKey, TValue >`
 > **Defined in:** `diagnosticmanager.h`
 
 ### Members
@@ -288,10 +288,10 @@ Thread _thread
 | [`DiagnosticManager`](#group__util_1ga1f7e1a71860acf1acf2ad00e658168b4) |  |
 | [`~DiagnosticManager`](#group__util_1ga33969db867a5da02ba66af577888cce1) |  |
 | [`freeDiagnostic`](#group__util_1gafcfa5828dcb06aa0da5d926026fba952) |  |
-| [`addDiagnostic`](#group__util_1ga965c646fe610d64eee38396d477e1527) | Adds a [IDiagnostic](#classscy_1_1IDiagnostic) test instance. |
-| [`getDiagnostic`](#group__util_1gac6ba64b207ffd86739f287a1efda9e73) | Returns the [IDiagnostic](#classscy_1_1IDiagnostic) instance or throws a NotFoundException exception. |
+| [`addDiagnostic`](#group__util_1ga965c646fe610d64eee38396d477e1527) | Adds a [IDiagnostic](#classicy_1_1IDiagnostic) test instance. |
+| [`getDiagnostic`](#group__util_1gac6ba64b207ffd86739f287a1efda9e73) | Returns the [IDiagnostic](#classicy_1_1IDiagnostic) instance or throws a NotFoundException exception. |
 | [`resetAll`](#group__util_1gaf46ebc8e54d7508f44dc5ad49c0e269f) |  |
-| [`checkAll`](#group__util_1ga32981bf8dbec2deef3f70427d48c2e54) | Runs all managed [IDiagnostic](#classscy_1_1IDiagnostic) tests. DiagnosticsComplete will be dispatched on completion. |
+| [`checkAll`](#group__util_1ga32981bf8dbec2deef3f70427d48c2e54) | Runs all managed [IDiagnostic](#classicy_1_1IDiagnostic) tests. DiagnosticsComplete will be dispatched on completion. |
 | [`allComplete`](#group__util_1gad077e09ee488e3639b0188c8667f2477) |  |
 | [`onDiagnosticStateChange`](#group__util_1gae5adc21f9a476721730d164a13c8dcb3) |  |
 | [`DiagnosticsComplete`](#group__util_1gae4bffe1d36c1087a6456bdc124740968) |  |
@@ -332,7 +332,7 @@ bool freeDiagnostic(const std::string & name)
 bool addDiagnostic(IDiagnostic * test)
 ```
 
-Adds a [IDiagnostic](#classscy_1_1IDiagnostic) test instance.
+Adds a [IDiagnostic](#classicy_1_1IDiagnostic) test instance.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -346,7 +346,7 @@ Adds a [IDiagnostic](#classscy_1_1IDiagnostic) test instance.
 virtual IDiagnostic * getDiagnostic(const std::string & name)
 ```
 
-Returns the [IDiagnostic](#classscy_1_1IDiagnostic) instance or throws a NotFoundException exception.
+Returns the [IDiagnostic](#classicy_1_1IDiagnostic) instance or throws a NotFoundException exception.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -368,7 +368,7 @@ virtual void resetAll()
 virtual void checkAll()
 ```
 
-Runs all managed [IDiagnostic](#classscy_1_1IDiagnostic) tests. DiagnosticsComplete will be dispatched on completion.
+Runs all managed [IDiagnostic](#classicy_1_1IDiagnostic) tests. DiagnosticsComplete will be dispatched on completion.
 
 ---
 
@@ -587,7 +587,7 @@ Last time [canSend()](#group__util_1gaa714f604007b21bc6435d3e518d68de4) was call
 
 ## StreamManager 
 
-> **Extends:** `scy::LiveCollection< TKey, TValue >`
+> **Extends:** `icy::LiveCollection< TKey, TValue >`
 > **Defined in:** `streammanager.h`
 
 ### Members
@@ -752,7 +752,7 @@ virtual inline const char * className() const
 
 ## TimedManager 
 
-> **Extends:** `scy::PointerCollection< TKey, TValue >`
+> **Extends:** `icy::PointerCollection< TKey, TValue >`
 > **Defined in:** `timedmanager.h`
 
 Timed pointer manager
@@ -765,7 +765,7 @@ Provides timed persistent data storage for class instances. TValue must implemen
 |------|-------------|
 | [`TimedManager`](#group__util_1gabe8bdf4cce5c58328201adb38ac8189d) |  |
 | [`~TimedManager`](#group__util_1ga26d523897eb3a1df55e1d08e145adc8b) |  |
-| [`add`](#group__util_1gaf24ec59ddd41c6995cbbc4c36694d8d5) | Add an item which will expire (and be deleted) after the specified timeout value. If the timeout is 0 the item will be stored indefinitely. The [TimedManager](#classscy_1_1TimedManager) assumes ownership of the given pointer. |
+| [`add`](#group__util_1gaf24ec59ddd41c6995cbbc4c36694d8d5) | Add an item which will expire (and be deleted) after the specified timeout value. If the timeout is 0 the item will be stored indefinitely. The [TimedManager](#classicy_1_1TimedManager) assumes ownership of the given pointer. |
 | [`expires`](#group__util_1gaab30aca59aa37b7d54435095eadfebbf) | Update the item expiry timeout. |
 | [`expires`](#group__util_1ga82593ffb8f8a37f8803b1472cffa0460) | Update the item expiry timeout. |
 | [`clear`](#group__util_1ga182cfabe68dcb766dca8a3dc1934f128) |  |
@@ -805,7 +805,7 @@ virtual inline ~TimedManager()
 virtual inline void add(const TKey & key, TValue * item, long timeout)
 ```
 
-Add an item which will expire (and be deleted) after the specified timeout value. If the timeout is 0 the item will be stored indefinitely. The [TimedManager](#classscy_1_1TimedManager) assumes ownership of the given pointer.
+Add an item which will expire (and be deleted) after the specified timeout value. If the timeout is 0 the item will be stored indefinitely. The [TimedManager](#classicy_1_1TimedManager) assumes ownership of the given pointer.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -923,7 +923,7 @@ Timer _timer
 
 ## BasicUser 
 
-> **Extends:** `scy::IUser`
+> **Extends:** `icy::IUser`
 > **Defined in:** `usermanager.h`
 
 ### Members
@@ -983,7 +983,7 @@ std::string _password
 
 ## UserManager 
 
-> **Extends:** `scy::LiveCollection< std::string, IUser >`
+> **Extends:** `icy::LiveCollection< std::string, IUser >`
 > **Defined in:** `usermanager.h`
 
 > Deprecated: This class manages a list of users.
@@ -1026,7 +1026,7 @@ virtual inline bool add(IUser * user)
 
 ## DiagnosticState 
 
-> **Extends:** `scy::State`
+> **Extends:** `icy::State`
 > **Defined in:** `diagnosticmanager.h`
 
 ### Members
@@ -1065,7 +1065,7 @@ inline std::string str(unsigned int id) const
 
 ## IUser 
 
-> **Subclasses:** `scy::BasicUser`
+> **Subclasses:** `icy::BasicUser`
 > **Defined in:** `usermanager.h`
 
 ### Members

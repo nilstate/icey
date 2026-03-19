@@ -1,1 +1,1 @@
-scy_add_test(schedtests DEPENDS base net json sched)
+icy_add_test(schedtests DEPENDS base net json sched)

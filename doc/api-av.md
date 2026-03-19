@@ -4,55 +4,55 @@
 
 | Name | Description |
 |------|-------------|
-| [`IDeviceManager`](#classscy_1_1av_1_1IDeviceManager) | A platform independent interface to enumerate audio and video devices on the system. |
-| [`DeviceWatcher`](#classscy_1_1av_1_1DeviceWatcher) |  |
-| [`DeviceManagerFactory`](#classscy_1_1av_1_1DeviceManagerFactory) |  |
-| [`DeviceManager`](#classscy_1_1av_1_1DeviceManager) |  |
-| [`FakeDeviceManager`](#classscy_1_1av_1_1FakeDeviceManager) |  |
-| [`LinuxDeviceManager`](#classscy_1_1av_1_1LinuxDeviceManager) |  |
-| [`MacDeviceManager`](#classscy_1_1av_1_1MacDeviceManager) |  |
-| [`FLVMetadataInjector`](#classscy_1_1av_1_1FLVMetadataInjector) | This class implements a packetizer which appends correct stream headers and modifies the timestamp of FLV packets so Adobe's Flash Player will play our videos mid-stream. |
-| [`VideoAnalyzer`](#classscy_1_1av_1_1VideoAnalyzer) | This class provides basic AV spectrum analysis on a video using the Fourier Transform algorithm. Data is outputted in CSV format. |
-| [`MacDeviceWatcher`](#classscy_1_1av_1_1MacDeviceWatcher) |  |
-| [`AudioCapture`](#classscy_1_1av_1_1AudioCapture) | This class implements a cross platform audio capturer. |
-| [`FormatRegistry`](#classscy_1_1av_1_1FormatRegistry) |  |
-| [`FPSCounter`](#classscy_1_1av_1_1FPSCounter) | FPS counter based on the simple moving average (SMA) algorithm. |
-| [`FPSLimiter`](#classscy_1_1av_1_1FPSLimiter) | This class limits the throughput rate of IPackets in a [PacketStream](./doc/api-base.md#classscy_1_1PacketStream). If the throughput rate exceeds the max specified FPS then packets will be dropped. |
-| [`ICapture`](#classscy_1_1av_1_1ICapture) |  |
-| [`IEncoder`](#classscy_1_1av_1_1IEncoder) | This is the abstract class for all encoders. |
-| [`MediaCapture`](#classscy_1_1av_1_1MediaCapture) | This class implements a cross platform audio, video, screen and video file capturer. |
-| [`MultiplexEncoder`](#classscy_1_1av_1_1MultiplexEncoder) | This class implements a multiplex audio and video encoder. |
-| [`MultiplexPacketEncoder`](#classscy_1_1av_1_1MultiplexPacketEncoder) | Encodes and multiplexes a realtime video stream form audio / video capture sources. FFmpeg is used for encoding. |
-| [`RealtimePacketQueue`](#classscy_1_1av_1_1RealtimePacketQueue) | This class emits media packets based on their realtime pts value. |
-| [`VideoCapture`](#classscy_1_1av_1_1VideoCapture) | This class implements a cross platform audio capturer. |
-| [`Device`](#structscy_1_1av_1_1Device) | Represents a system audio, video or render device. |
-| [`Options`](#structscy_1_1av_1_1VideoAnalyzer_1_1Options) |  |
-| [`Stream`](#structscy_1_1av_1_1VideoAnalyzer_1_1Stream) |  |
-| [`Packet`](#structscy_1_1av_1_1VideoAnalyzer_1_1Packet) |  |
-| [`AudioBuffer`](#structscy_1_1av_1_1AudioBuffer) |  |
-| [`AudioContext`](#structscy_1_1av_1_1AudioContext) |  |
-| [`AudioDecoder`](#structscy_1_1av_1_1AudioDecoder) |  |
-| [`AudioEncoder`](#structscy_1_1av_1_1AudioEncoder) |  |
-| [`AudioResampler`](#structscy_1_1av_1_1AudioResampler) |  |
-| [`Codec`](#structscy_1_1av_1_1Codec) | [Codec](#structscy_1_1av_1_1Codec) for encoding/decoding media. |
-| [`AudioCodec`](#structscy_1_1av_1_1AudioCodec) |  |
-| [`VideoCodec`](#structscy_1_1av_1_1VideoCodec) |  |
-| [`Deleter`](#structscy_1_1av_1_1Deleter) | Utilites for RAII: |
-| [`Deleterp`](#structscy_1_1av_1_1Deleterp) | [Deleter](#structscy_1_1av_1_1Deleter) adaptor for functions like av_freep that take a pointer to a pointer. |
-| [`Format`](#structscy_1_1av_1_1Format) | Defines a media container format which is available through the [Format](#structscy_1_1av_1_1Format) Registry for encoding/decoding. A format defined preferred default values for each codec. |
-| [`FPSCounter`](#structscy_1_1av_1_1legacy_1_1FPSCounter) |  |
-| [`EncoderState`](#structscy_1_1av_1_1EncoderState) |  |
-| [`EncoderOptions`](#structscy_1_1av_1_1EncoderOptions) |  |
-| [`MediaPacket`](#structscy_1_1av_1_1MediaPacket) |  |
-| [`VideoPacket`](#structscy_1_1av_1_1VideoPacket) | Video packet for interleaved formats. |
-| [`PlanarVideoPacket`](#structscy_1_1av_1_1PlanarVideoPacket) | Video packet for planar formats. |
-| [`AudioPacket`](#structscy_1_1av_1_1AudioPacket) | Audio packet for interleaved formats. |
-| [`PlanarAudioPacket`](#structscy_1_1av_1_1PlanarAudioPacket) | Audio packet for planar formats. |
-| [`MediaPacketTimeCompare`](#structscy_1_1av_1_1RealtimePacketQueue_1_1MediaPacketTimeCompare) |  |
-| [`VideoContext`](#structscy_1_1av_1_1VideoContext) | Base video context from which all video encoders and decoders derive. |
-| [`VideoConverter`](#structscy_1_1av_1_1VideoConverter) |  |
-| [`VideoDecoder`](#structscy_1_1av_1_1VideoDecoder) |  |
-| [`VideoEncoder`](#structscy_1_1av_1_1VideoEncoder) |  |
+| [`IDeviceManager`](#classicy_1_1av_1_1IDeviceManager) | A platform independent interface to enumerate audio and video devices on the system. |
+| [`DeviceWatcher`](#classicy_1_1av_1_1DeviceWatcher) |  |
+| [`DeviceManagerFactory`](#classicy_1_1av_1_1DeviceManagerFactory) |  |
+| [`DeviceManager`](#classicy_1_1av_1_1DeviceManager) |  |
+| [`FakeDeviceManager`](#classicy_1_1av_1_1FakeDeviceManager) |  |
+| [`LinuxDeviceManager`](#classicy_1_1av_1_1LinuxDeviceManager) |  |
+| [`MacDeviceManager`](#classicy_1_1av_1_1MacDeviceManager) |  |
+| [`FLVMetadataInjector`](#classicy_1_1av_1_1FLVMetadataInjector) | This class implements a packetizer which appends correct stream headers and modifies the timestamp of FLV packets so Adobe's Flash Player will play our videos mid-stream. |
+| [`VideoAnalyzer`](#classicy_1_1av_1_1VideoAnalyzer) | This class provides basic AV spectrum analysis on a video using the Fourier Transform algorithm. Data is outputted in CSV format. |
+| [`MacDeviceWatcher`](#classicy_1_1av_1_1MacDeviceWatcher) |  |
+| [`AudioCapture`](#classicy_1_1av_1_1AudioCapture) | This class implements a cross platform audio capturer. |
+| [`FormatRegistry`](#classicy_1_1av_1_1FormatRegistry) |  |
+| [`FPSCounter`](#classicy_1_1av_1_1FPSCounter) | FPS counter based on the simple moving average (SMA) algorithm. |
+| [`FPSLimiter`](#classicy_1_1av_1_1FPSLimiter) | This class limits the throughput rate of IPackets in a [PacketStream](./doc/api-base.md#classicy_1_1PacketStream). If the throughput rate exceeds the max specified FPS then packets will be dropped. |
+| [`ICapture`](#classicy_1_1av_1_1ICapture) |  |
+| [`IEncoder`](#classicy_1_1av_1_1IEncoder) | This is the abstract class for all encoders. |
+| [`MediaCapture`](#classicy_1_1av_1_1MediaCapture) | This class implements a cross platform audio, video, screen and video file capturer. |
+| [`MultiplexEncoder`](#classicy_1_1av_1_1MultiplexEncoder) | This class implements a multiplex audio and video encoder. |
+| [`MultiplexPacketEncoder`](#classicy_1_1av_1_1MultiplexPacketEncoder) | Encodes and multiplexes a realtime video stream form audio / video capture sources. FFmpeg is used for encoding. |
+| [`RealtimePacketQueue`](#classicy_1_1av_1_1RealtimePacketQueue) | This class emits media packets based on their realtime pts value. |
+| [`VideoCapture`](#classicy_1_1av_1_1VideoCapture) | This class implements a cross platform audio capturer. |
+| [`Device`](#structicy_1_1av_1_1Device) | Represents a system audio, video or render device. |
+| [`Options`](#structicy_1_1av_1_1VideoAnalyzer_1_1Options) |  |
+| [`Stream`](#structicy_1_1av_1_1VideoAnalyzer_1_1Stream) |  |
+| [`Packet`](#structicy_1_1av_1_1VideoAnalyzer_1_1Packet) |  |
+| [`AudioBuffer`](#structicy_1_1av_1_1AudioBuffer) |  |
+| [`AudioContext`](#structicy_1_1av_1_1AudioContext) |  |
+| [`AudioDecoder`](#structicy_1_1av_1_1AudioDecoder) |  |
+| [`AudioEncoder`](#structicy_1_1av_1_1AudioEncoder) |  |
+| [`AudioResampler`](#structicy_1_1av_1_1AudioResampler) |  |
+| [`Codec`](#structicy_1_1av_1_1Codec) | [Codec](#structicy_1_1av_1_1Codec) for encoding/decoding media. |
+| [`AudioCodec`](#structicy_1_1av_1_1AudioCodec) |  |
+| [`VideoCodec`](#structicy_1_1av_1_1VideoCodec) |  |
+| [`Deleter`](#structicy_1_1av_1_1Deleter) | Utilites for RAII: |
+| [`Deleterp`](#structicy_1_1av_1_1Deleterp) | [Deleter](#structicy_1_1av_1_1Deleter) adaptor for functions like av_freep that take a pointer to a pointer. |
+| [`Format`](#structicy_1_1av_1_1Format) | Defines a media container format which is available through the [Format](#structicy_1_1av_1_1Format) Registry for encoding/decoding. A format defined preferred default values for each codec. |
+| [`FPSCounter`](#structicy_1_1av_1_1legacy_1_1FPSCounter) |  |
+| [`EncoderState`](#structicy_1_1av_1_1EncoderState) |  |
+| [`EncoderOptions`](#structicy_1_1av_1_1EncoderOptions) |  |
+| [`MediaPacket`](#structicy_1_1av_1_1MediaPacket) |  |
+| [`VideoPacket`](#structicy_1_1av_1_1VideoPacket) | Video packet for interleaved formats. |
+| [`PlanarVideoPacket`](#structicy_1_1av_1_1PlanarVideoPacket) | Video packet for planar formats. |
+| [`AudioPacket`](#structicy_1_1av_1_1AudioPacket) | Audio packet for interleaved formats. |
+| [`PlanarAudioPacket`](#structicy_1_1av_1_1PlanarAudioPacket) | Audio packet for planar formats. |
+| [`MediaPacketTimeCompare`](#structicy_1_1av_1_1RealtimePacketQueue_1_1MediaPacketTimeCompare) |  |
+| [`VideoContext`](#structicy_1_1av_1_1VideoContext) | Base video context from which all video encoders and decoders derive. |
+| [`VideoConverter`](#structicy_1_1av_1_1VideoConverter) |  |
+| [`VideoDecoder`](#structicy_1_1av_1_1VideoDecoder) |  |
+| [`VideoEncoder`](#structicy_1_1av_1_1VideoEncoder) |  |
 
 ### Members
 
@@ -182,7 +182,7 @@ DEFAULT_VIDEO_PIXEL_FMT()
 
 ## IDeviceManager 
 
-> **Subclasses:** `scy::av::DeviceManager`, `scy::av::FakeDeviceManager`
+> **Subclasses:** `icy::av::DeviceManager`, `icy::av::FakeDeviceManager`
 > **Defined in:** `devicemanager.h`
 
 A platform independent interface to enumerate audio and video devices on the system.
@@ -194,7 +194,7 @@ A platform independent interface to enumerate audio and video devices on the sys
 | [`~IDeviceManager`](#group__av_1ga99bf003f84ab4e04a07d17185dbf491c) |  |
 | [`initialize`](#group__av_1ga61c821fe1a7d181dbc439c90fa4524da) | Initialization. |
 | [`uninitialize`](#group__av_1ga6438ea5095404fc8ded7619a7863288c) |  |
-| [`getAudioInputDevices`](#group__av_1ga324ce38356335066bb2cb4fd6a8521ee) | [Device](#structscy_1_1av_1_1Device) enumeration. |
+| [`getAudioInputDevices`](#group__av_1ga324ce38356335066bb2cb4fd6a8521ee) | [Device](#structicy_1_1av_1_1Device) enumeration. |
 | [`getAudioOutputDevices`](#group__av_1ga389204a9d5fc74dfbfd1179f2cab8fe9) |  |
 | [`getAudioInputDevice`](#group__av_1ga8eb682c21d928e20252dd682512799eb) |  |
 | [`getAudioInputDevice`](#group__av_1gadf949c6e35c2d03faeabb78ce72264df) |  |
@@ -245,7 +245,7 @@ void uninitialize()
 bool getAudioInputDevices(std::vector< Device > & devices)
 ```
 
-[Device](#structscy_1_1av_1_1Device) enumeration.
+[Device](#structicy_1_1av_1_1Device) enumeration.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -434,7 +434,7 @@ const char kDefaultDeviceName = ""
 
 ## DeviceWatcher 
 
-> **Subclasses:** `scy::av::MacDeviceWatcher`
+> **Subclasses:** `icy::av::MacDeviceWatcher`
 > **Defined in:** `devicemanager.h`
 
 ### Members
@@ -446,9 +446,9 @@ const char kDefaultDeviceName = ""
 | [`start`](#group__av_1gab833459b9cf8c1cde8147159f265f7d8) |  |
 | [`stop`](#group__av_1ga028347525717f62dfccf5bb82031fe79) |  |
 | [`DeviceWatcher`](#group__av_1gaa9ae4c2ab1984066ac066e4a6cf5f5e5) |  |
-| [`~DeviceWatcher`](#classscy_1_1av_1_1DeviceWatcher_1ga191ccb64f6d1985e762bfdd54bb55bba) |  |
-| [`start`](#classscy_1_1av_1_1DeviceWatcher_1gab833459b9cf8c1cde8147159f265f7d8) |  |
-| [`stop`](#classscy_1_1av_1_1DeviceWatcher_1ga028347525717f62dfccf5bb82031fe79) |  |
+| [`~DeviceWatcher`](#classicy_1_1av_1_1DeviceWatcher_1ga191ccb64f6d1985e762bfdd54bb55bba) |  |
+| [`start`](#classicy_1_1av_1_1DeviceWatcher_1gab833459b9cf8c1cde8147159f265f7d8) |  |
+| [`stop`](#classicy_1_1av_1_1DeviceWatcher_1ga028347525717f62dfccf5bb82031fe79) |  |
 
 ---
 
@@ -543,8 +543,8 @@ DeviceManagerFactory()
 
 ## DeviceManager 
 
-> **Extends:** `scy::av::IDeviceManager`
-> **Subclasses:** `scy::av::LinuxDeviceManager`, `scy::av::MacDeviceManager`
+> **Extends:** `icy::av::IDeviceManager`
+> **Subclasses:** `icy::av::LinuxDeviceManager`, `icy::av::MacDeviceManager`
 > **Defined in:** `devicemanager.h`
 
 ### Members
@@ -556,7 +556,7 @@ DeviceManagerFactory()
 | [`initialize`](#group__av_1gabe487635b243c75fae6d1ce1700f1def) | Initialization. |
 | [`uninitialize`](#group__av_1gae2fcfc68cc20dedeaa8ce913307faafc) |  |
 | [`getCapabilities`](#group__av_1ga42f596484bd7234fd92becaac4005e53) | Capabilities. |
-| [`getAudioInputDevices`](#group__av_1gafeeaa53b13b8537cfbe903a5a26b890b) | [Device](#structscy_1_1av_1_1Device) enumeration. |
+| [`getAudioInputDevices`](#group__av_1gafeeaa53b13b8537cfbe903a5a26b890b) | [Device](#structicy_1_1av_1_1Device) enumeration. |
 | [`getAudioOutputDevices`](#group__av_1ga2b4cd27667bb3e529de2ff4f3e3fc289) |  |
 | [`getAudioInputDevice`](#group__av_1gae37c4a33994f7ef8416490531d3d0907) |  |
 | [`getAudioInputDevice`](#group__av_1ga49d30065d7ecc80f9b768a47868ff505) |  |
@@ -570,7 +570,7 @@ DeviceManagerFactory()
 | [`getDefaultVideoCaptureDevice`](#group__av_1gac994fdb7f9415bde77421efc8cd84e7f) |  |
 | [`initialized`](#group__av_1gaabba96ca78dc27e34ccd588ab813f8dc) |  |
 | [`print`](#group__av_1ga485b4609f4a69f5d603b96deb411b306) |  |
-| [`getCameras`](#group__av_1gaf2fcff1d7c936454117e453e4c9d6845) | [Device](#structscy_1_1av_1_1Device) enumeration. |
+| [`getCameras`](#group__av_1gaf2fcff1d7c936454117e453e4c9d6845) | [Device](#structicy_1_1av_1_1Device) enumeration. |
 | [`getMicrophones`](#group__av_1gafe7f65212eb9b21f60570c3333d8e4a6) |  |
 | [`getSpeakers`](#group__av_1ga47505851b38bff2744781a3e6c2f30b7) |  |
 | [`getDefaultMicrophone`](#group__av_1gac40bea8a47b983fb9a759a4192c1eda7) | Default devices. |
@@ -585,7 +585,7 @@ DeviceManagerFactory()
 | [`filterDevices`](#group__av_1ga968051eb33e118a8a8a9d7f6a048e040) | The exclusionList MUST be a nullptr terminated list. |
 | [`matchID`](#group__av_1ga1b3366864eeafa7f4bed8ff0fa1df7d5) | Returns a device matching the given ID. |
 | [`matchNameAndID`](#group__av_1ga22a80ede9d0f8017cc48cc197450328b) | Returns a device matching the given name and ID. If the device name is not available at the given ID then first device of that name will be returned. If the ID should not be matched the given ID should be -1. |
-| [`instance`](#group__av_1ga2a3a77dce3f0d2b147c97c34407f542f) | Returns the default `[DeviceManager](#classscy_1_1av_1_1DeviceManager)` singleton. |
+| [`instance`](#group__av_1ga2a3a77dce3f0d2b147c97c34407f542f) | Returns the default `[DeviceManager](#classicy_1_1av_1_1DeviceManager)` singleton. |
 | [`shutdown`](#group__av_1ga00aa8e9f2192b9e26bcbb8f1f5cd3342) | Shuts down the `MediaFactory` and deletes the singleton instance. |
 | [`getDefaultAudioDevice`](#group__av_1gae9e2effb9514f16af8a0654cf59b2bf1) |  |
 | [`getAudioDevices`](#group__av_1ga04e3b90e4bac6ad1bb03d00ba8337b6e) |  |
@@ -597,14 +597,14 @@ DeviceManagerFactory()
 | [`shouldDeviceBeIgnored`](#group__av_1ga08a06c5c337bc3ea08af5419860a2476) | The exclusionList MUST be a nullptr terminated list. |
 | [`_watcher`](#group__av_1gae595c283673ca36a15dd318a953ecfc1) |  |
 | [`_initialized`](#group__av_1ga24858dc86635de264ee7d020c1313eaf) |  |
-| [`DevicesChanged`](#group__av_1ga066016a050182489096ab5920ecb3bca) | Signals when a system device is connecetd or removed. This signal is emitted by the platform specific `[DeviceWatcher](#classscy_1_1av_1_1DeviceWatcher)`. |
+| [`DevicesChanged`](#group__av_1ga066016a050182489096ab5920ecb3bca) | Signals when a system device is connecetd or removed. This signal is emitted by the platform specific `[DeviceWatcher](#classicy_1_1av_1_1DeviceWatcher)`. |
 | [`_watcher`](#group__av_1gabe3bab2143c2e5739ff74505980f942d) |  |
-| [`DeviceManager`](#classscy_1_1av_1_1DeviceManager_1ga778c03d9b552d40b34bb8f8f9a1255d8) |  |
-| [`~DeviceManager`](#classscy_1_1av_1_1DeviceManager_1ga3635ac39fa55df574dcb0d98634c8140) |  |
-| [`getCapabilities`](#classscy_1_1av_1_1DeviceManager_1ga42f596484bd7234fd92becaac4005e53) | Capabilities. |
-| [`setWatcher`](#classscy_1_1av_1_1DeviceManager_1ga90edc6121010b8344ebd6a9b8606fdf1) |  |
-| [`watcher`](#classscy_1_1av_1_1DeviceManager_1ga29bc8a0cfc10633446ae7b9dae73bb0e) |  |
-| [`print`](#classscy_1_1av_1_1DeviceManager_1ga485b4609f4a69f5d603b96deb411b306) | Print all devices to the output stream. |
+| [`DeviceManager`](#classicy_1_1av_1_1DeviceManager_1ga778c03d9b552d40b34bb8f8f9a1255d8) |  |
+| [`~DeviceManager`](#classicy_1_1av_1_1DeviceManager_1ga3635ac39fa55df574dcb0d98634c8140) |  |
+| [`getCapabilities`](#classicy_1_1av_1_1DeviceManager_1ga42f596484bd7234fd92becaac4005e53) | Capabilities. |
+| [`setWatcher`](#classicy_1_1av_1_1DeviceManager_1ga90edc6121010b8344ebd6a9b8606fdf1) |  |
+| [`watcher`](#classicy_1_1av_1_1DeviceManager_1ga29bc8a0cfc10633446ae7b9dae73bb0e) |  |
+| [`print`](#classicy_1_1av_1_1DeviceManager_1ga485b4609f4a69f5d603b96deb411b306) | Print all devices to the output stream. |
 
 ---
 
@@ -658,7 +658,7 @@ Capabilities.
 virtual bool getAudioInputDevices(std::vector< Device > & devices)
 ```
 
-[Device](#structscy_1_1av_1_1Device) enumeration.
+[Device](#structicy_1_1av_1_1Device) enumeration.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -835,7 +835,7 @@ virtual void print(std::ostream & ost)
 bool getCameras(std::vector< Device > & devices)
 ```
 
-[Device](#structscy_1_1av_1_1Device) enumeration.
+[Device](#structicy_1_1av_1_1Device) enumeration.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -1033,7 +1033,7 @@ Returns a device matching the given name and ID. If the device name is not avail
 static DeviceManager & instance()
 ```
 
-Returns the default `[DeviceManager](#classscy_1_1av_1_1DeviceManager)` singleton.
+Returns the default `[DeviceManager](#classicy_1_1av_1_1DeviceManager)` singleton.
 
 ---
 
@@ -1171,7 +1171,7 @@ bool _initialized
 NullSignal DevicesChanged
 ```
 
-Signals when a system device is connecetd or removed. This signal is emitted by the platform specific `[DeviceWatcher](#classscy_1_1av_1_1DeviceWatcher)`.
+Signals when a system device is connecetd or removed. This signal is emitted by the platform specific `[DeviceWatcher](#classicy_1_1av_1_1DeviceWatcher)`.
 
 ---
 
@@ -1212,19 +1212,19 @@ Capabilities.
 #### setWatcher 
 
 ```cpp
-void setWatcher([DeviceWatcher](#classscy_1_1av_1_1DeviceWatcher) * watcher)
+void setWatcher([DeviceWatcher](#classicy_1_1av_1_1DeviceWatcher) * watcher)
 ```
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `watcher` | `[DeviceWatcher](#classscy_1_1av_1_1DeviceWatcher) *` |  |
+| `watcher` | `[DeviceWatcher](#classicy_1_1av_1_1DeviceWatcher) *` |  |
 
 ---
 
 #### watcher 
 
 ```cpp
-[DeviceWatcher](#classscy_1_1av_1_1DeviceWatcher) * watcher()
+[DeviceWatcher](#classicy_1_1av_1_1DeviceWatcher) * watcher()
 ```
 
 ---
@@ -1243,7 +1243,7 @@ Print all devices to the output stream.
 
 ## FakeDeviceManager 
 
-> **Extends:** `scy::av::IDeviceManager`
+> **Extends:** `icy::av::IDeviceManager`
 > **Defined in:** `devicemanager_fake.h`
 
 ### Members
@@ -1483,7 +1483,7 @@ std::vector< Device > vidcap_devices_
 
 ## LinuxDeviceManager 
 
-> **Extends:** `scy::av::DeviceManager`
+> **Extends:** `icy::av::DeviceManager`
 > **Defined in:** `devicemanager_linux.h`
 
 ### Members
@@ -1524,7 +1524,7 @@ virtual bool getCameras(std::vector< Device > & devs)
 
 ## MacDeviceManager 
 
-> **Extends:** `scy::av::DeviceManager`
+> **Extends:** `icy::av::DeviceManager`
 > **Defined in:** `devicemanager_mac.h`
 
 ### Members
@@ -1580,7 +1580,7 @@ virtual bool [getAudioDevices(bool input, std::vector<Device>& devs)](#group__av
 
 ## FLVMetadataInjector 
 
-> **Extends:** `scy::PacketProcessor`
+> **Extends:** `icy::PacketProcessor`
 > **Defined in:** `flvmetadatainjector.h`
 
 This class implements a packetizer which appends correct stream headers and modifies the timestamp of FLV packets so Adobe's Flash Player will play our videos mid-stream.
@@ -1733,7 +1733,7 @@ virtual inline void onStreamStateChange(const PacketStreamState & state)
 
 whenever the stream is restarted.
 
-This method is called by the Packet [Stream](./doc/api-base.md#classscy_1_1Stream)
+This method is called by the Packet [Stream](./doc/api-base.md#classicy_1_1Stream)
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -1941,9 +1941,9 @@ TODO:/// - Pluggable algorithms and processors
 
 * Normalization (scaling) for output values
 
-* [Process](./doc/api-base.md#classscy_1_1Process) multiple audio channels properly
+* [Process](./doc/api-base.md#classicy_1_1Process) multiple audio channels properly
 
-* Inherit from [PacketProcessor](./doc/api-base.md#classscy_1_1PacketProcessor)
+* Inherit from [PacketProcessor](./doc/api-base.md#classicy_1_1PacketProcessor)
 
 ### Members
 
@@ -1963,7 +1963,7 @@ TODO:/// - Pluggable algorithms and processors
 | [`onVideo`](#group__av_1gabccd45c480e1118524bd28dbb91f2d15) |  |
 | [`onAudio`](#group__av_1gad9b3381f6e3189275d050327f42a57bf) |  |
 | [`className`](#group__av_1ga14432811560e9bf62c137882300c7e03) |  |
-| [`PacketOut`](#group__av_1gabcf4743d8bd41e4499ccd11191a4fbe2) | Signals on [VideoAnalyzer::Packet](#structscy_1_1av_1_1VideoAnalyzer_1_1Packet) output Raw FFT data is available via [VideoAnalyzer::Stream](#structscy_1_1av_1_1VideoAnalyzer_1_1Stream)->rdftData |
+| [`PacketOut`](#group__av_1gabcf4743d8bd41e4499ccd11191a4fbe2) | Signals on [VideoAnalyzer::Packet](#structicy_1_1av_1_1VideoAnalyzer_1_1Packet) output Raw FFT data is available via [VideoAnalyzer::Stream](#structicy_1_1av_1_1VideoAnalyzer_1_1Stream)->rdftData |
 | [`Complete`](#group__av_1ga2f0831ef8267630b861cdc91158864a6) | Signals on analysis complete. |
 | [`_mutex`](#group__av_1ga758687490e01b5e0f45eda901ab37ae8) |  |
 | [`_options`](#group__av_1gae42dec896e9b00a69bcfebede88b3ff6) |  |
@@ -2119,7 +2119,7 @@ inline const char * className() const
 Signal< void(const VideoAnalyzer::Stream &, const VideoAnalyzer::Packet &)> PacketOut
 ```
 
-Signals on [VideoAnalyzer::Packet](#structscy_1_1av_1_1VideoAnalyzer_1_1Packet) output Raw FFT data is available via [VideoAnalyzer::Stream](#structscy_1_1av_1_1VideoAnalyzer_1_1Stream)->rdftData
+Signals on [VideoAnalyzer::Packet](#structicy_1_1av_1_1VideoAnalyzer_1_1Packet) output Raw FFT data is available via [VideoAnalyzer::Stream](#structicy_1_1av_1_1VideoAnalyzer_1_1Stream)->rdftData
 
 ---
 
@@ -2388,7 +2388,7 @@ int filled
 
 ## MacDeviceWatcher 
 
-> **Extends:** `scy::av::DeviceWatcher`
+> **Extends:** `icy::av::DeviceWatcher`
 
 ### Members
 
@@ -2455,7 +2455,7 @@ IDeviceManager * manager_
 
 ## AudioCapture 
 
-> **Extends:** `scy::av::MediaCapture`
+> **Extends:** `icy::av::MediaCapture`
 > **Defined in:** `audiocapture.h`
 
 This class implements a cross platform audio capturer.
@@ -2868,10 +2868,10 @@ int64_t frames
 
 ## FPSLimiter 
 
-> **Extends:** `scy::PacketProcessor`
+> **Extends:** `icy::PacketProcessor`
 > **Defined in:** `fpscounter.h`
 
-This class limits the throughput rate of IPackets in a [PacketStream](./doc/api-base.md#classscy_1_1PacketStream). If the throughput rate exceeds the max specified FPS then packets will be dropped.
+This class limits the throughput rate of IPackets in a [PacketStream](./doc/api-base.md#classicy_1_1PacketStream). If the throughput rate exceeds the max specified FPS then packets will be dropped.
 
 Note that revious processors must not fragment packets otherwise this class will not be accurate, and the packet drop rate will be too high.
 
@@ -2881,7 +2881,7 @@ Note that revious processors must not fragment packets otherwise this class will
 |------|-------------|
 | [`FPSLimiter`](#group__av_1ga029c9650c19891d96c7d05b720ada193) |  |
 | [`process`](#group__av_1ga44d11b0258baa981ef71b9b5647de97d) | This method performs processing on the given packet and emits the result. |
-| [`onStreamStateChange`](#group__av_1ga159f48189ca69a2e40d20376335249fb) | Called by the [PacketStream](./doc/api-base.md#classscy_1_1PacketStream) to notify when the internal [Stream](./doc/api-base.md#classscy_1_1Stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios. |
+| [`onStreamStateChange`](#group__av_1ga159f48189ca69a2e40d20376335249fb) | Called by the [PacketStream](./doc/api-base.md#classicy_1_1PacketStream) to notify when the internal [Stream](./doc/api-base.md#classicy_1_1Stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios. |
 | [`emitter`](#group__av_1ga59db66b46321468598d83db2a52b5495) |  |
 | [`_max`](#group__av_1ga939b5b9fd83801ddc2fdea386c4e556d) |  |
 | [`_videoOnly`](#group__av_1ga1d2f345f16e43261b3432d15157e58d6) |  |
@@ -2924,7 +2924,7 @@ Note: If packet processing is async (the packet is not in the current thread sco
 virtual inline void onStreamStateChange(const PacketStreamState &)
 ```
 
-Called by the [PacketStream](./doc/api-base.md#classscy_1_1PacketStream) to notify when the internal [Stream](./doc/api-base.md#classscy_1_1Stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios.
+Called by the [PacketStream](./doc/api-base.md#classicy_1_1PacketStream) to notify when the internal [Stream](./doc/api-base.md#classicy_1_1Stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios.
 
 ---
 
@@ -2960,8 +2960,8 @@ legacy::FPSCounter _counter
 
 ## ICapture 
 
-> **Extends:** `scy::PacketStreamAdapter`, `scy::basic::Startable`
-> **Subclasses:** `scy::av::MediaCapture`
+> **Extends:** `icy::PacketStreamAdapter`, `icy::basic::Startable`
+> **Subclasses:** `icy::av::MediaCapture`
 > **Defined in:** `icapture.h`
 
 ### Members
@@ -2973,7 +2973,7 @@ legacy::FPSCounter _counter
 | [`start`](#group__av_1ga001da1b367e05e2a1975dd07e6daab35) |  |
 | [`stop`](#group__av_1gad0feb65608ad2d11078abb46d5918284) |  |
 | [`getEncoderFormat`](#group__av_1ga909c7fab8e95be80ed78d8e847658183) | Sets the input format for encoding with this capture device. |
-| [`onStreamStateChange`](#group__av_1ga1410d332fa091a13dd52ea799f7040de) | Called by the [PacketStream](./doc/api-base.md#classscy_1_1PacketStream) to notify when the internal [Stream](./doc/api-base.md#classscy_1_1Stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios. |
+| [`onStreamStateChange`](#group__av_1ga1410d332fa091a13dd52ea799f7040de) | Called by the [PacketStream](./doc/api-base.md#classicy_1_1PacketStream) to notify when the internal [Stream](./doc/api-base.md#classicy_1_1Stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios. |
 | [`emitter`](#group__av_1ga3a2c153ddf81cd8be57efe0a784a2339) |  |
 
 ---
@@ -3030,7 +3030,7 @@ Sets the input format for encoding with this capture device.
 virtual inline void onStreamStateChange(const PacketStreamState &)
 ```
 
-Called by the [PacketStream](./doc/api-base.md#classscy_1_1PacketStream) to notify when the internal [Stream](./doc/api-base.md#classscy_1_1Stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios.
+Called by the [PacketStream](./doc/api-base.md#classicy_1_1PacketStream) to notify when the internal [Stream](./doc/api-base.md#classicy_1_1Stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios.
 
 ---
 
@@ -3042,8 +3042,8 @@ PacketSignal emitter
 
 ## IEncoder 
 
-> **Extends:** `scy::Stateful< EncoderState >`
-> **Subclasses:** `scy::av::MultiplexEncoder`
+> **Extends:** `icy::Stateful< EncoderState >`
+> **Subclasses:** `icy::av::MultiplexEncoder`
 > **Defined in:** `iencoder.h`
 
 This is the abstract class for all encoders.
@@ -3152,8 +3152,8 @@ virtual inline bool isError() const
 
 ## MediaCapture 
 
-> **Extends:** `scy::av::ICapture`, `scy::basic::Runnable`
-> **Subclasses:** `scy::av::AudioCapture`, `scy::av::VideoCapture`
+> **Extends:** `icy::av::ICapture`, `icy::basic::Runnable`
+> **Subclasses:** `icy::av::AudioCapture`, `icy::av::VideoCapture`
 > **Defined in:** `mediacapture.h`
 
 This class implements a cross platform audio, video, screen and video file capturer.
@@ -3503,8 +3503,8 @@ bool _ratelimit
 
 ## MultiplexEncoder 
 
-> **Extends:** `scy::av::IEncoder`
-> **Subclasses:** `scy::av::MultiplexPacketEncoder`
+> **Extends:** `icy::av::IEncoder`
+> **Subclasses:** `icy::av::MultiplexPacketEncoder`
 > **Defined in:** `multiplexencoder.h`
 
 This class implements a multiplex audio and video encoder.
@@ -3903,7 +3903,7 @@ std::mutex _mutex
 
 ## MultiplexPacketEncoder 
 
-> **Extends:** `scy::av::MultiplexEncoder`, `scy::PacketProcessor`
+> **Extends:** `icy::av::MultiplexEncoder`, `icy::PacketProcessor`
 > **Defined in:** `multiplexpacketencoder.h`
 
 Encodes and multiplexes a realtime video stream form audio / video capture sources. FFmpeg is used for encoding.
@@ -3918,7 +3918,7 @@ Encodes and multiplexes a realtime video stream form audio / video capture sourc
 | [`encode`](#group__av_1ga7db54ef667441a2c57a91193f7ed1b8a) |  |
 | [`accepts`](#group__av_1ga27b350c01a4362cfde30ffd884a5e34c) | This method ensures compatibility with the given packet type. Return false to reject the packet. |
 | [`process`](#group__av_1ga993f962cb2fa800af7c2902e474196f1) | This method performs processing on the given packet and emits the result. |
-| [`onStreamStateChange`](#group__av_1ga8d0ee54bb9b2e3bfff877dcf9aef8b26) | Called by the [PacketStream](./doc/api-base.md#classscy_1_1PacketStream) to notify when the internal [Stream](./doc/api-base.md#classscy_1_1Stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios. |
+| [`onStreamStateChange`](#group__av_1ga8d0ee54bb9b2e3bfff877dcf9aef8b26) | Called by the [PacketStream](./doc/api-base.md#classicy_1_1PacketStream) to notify when the internal [Stream](./doc/api-base.md#classicy_1_1Stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios. |
 | [`_mutex`](#group__av_1ga41b95d96e26fa281735483efd3955956) |  |
 
 ---
@@ -3999,7 +3999,7 @@ Note: If packet processing is async (the packet is not in the current thread sco
 virtual void onStreamStateChange(const PacketStreamState &)
 ```
 
-Called by the [PacketStream](./doc/api-base.md#classscy_1_1PacketStream) to notify when the internal [Stream](./doc/api-base.md#classscy_1_1Stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios.
+Called by the [PacketStream](./doc/api-base.md#classicy_1_1PacketStream) to notify when the internal [Stream](./doc/api-base.md#classicy_1_1Stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios.
 
 ---
 
@@ -4011,7 +4011,7 @@ std::mutex _mutex
 
 ## RealtimePacketQueue 
 
-> **Extends:** `scy::AsyncPacketQueue< PacketT >`
+> **Extends:** `icy::AsyncPacketQueue< PacketT >`
 > **Defined in:** `realtimepacketqueue.h`
 
 This class emits media packets based on their realtime pts value.
@@ -4025,7 +4025,7 @@ This class emits media packets based on their realtime pts value.
 | [`push`](#group__av_1ga139e6f5a0132f139ad53f478c811cea5) |  |
 | [`realTime`](#group__av_1gae25eec661e079ffaf5377ceaf5f74619) |  |
 | [`popNext`](#group__av_1gae94830422713dfb9b8c18e5e4ebdc758) | Pops the next waiting item. |
-| [`onStreamStateChange`](#group__av_1gaa323b0bd9935c88d9c5abe9109245a15) | Called by the [PacketStream](./doc/api-base.md#classscy_1_1PacketStream) to notify when the internal [Stream](./doc/api-base.md#classscy_1_1Stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios. |
+| [`onStreamStateChange`](#group__av_1gaa323b0bd9935c88d9c5abe9109245a15) | Called by the [PacketStream](./doc/api-base.md#classicy_1_1PacketStream) to notify when the internal [Stream](./doc/api-base.md#classicy_1_1Stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios. |
 | [`_startTime`](#group__av_1gaf638e19a348745002a5c13c26dfea851) |  |
 
 ---
@@ -4086,7 +4086,7 @@ Pops the next waiting item.
 virtual inline void onStreamStateChange(const PacketStreamState &)
 ```
 
-Called by the [PacketStream](./doc/api-base.md#classscy_1_1PacketStream) to notify when the internal [Stream](./doc/api-base.md#classscy_1_1Stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios.
+Called by the [PacketStream](./doc/api-base.md#classicy_1_1PacketStream) to notify when the internal [Stream](./doc/api-base.md#classicy_1_1Stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios.
 
 ---
 
@@ -4121,7 +4121,7 @@ inline bool operator()(const MediaPacket * a, const MediaPacket * b)
 
 ## VideoCapture 
 
-> **Extends:** `scy::av::MediaCapture`
+> **Extends:** `icy::av::MediaCapture`
 > **Defined in:** `videocapture.h`
 
 This class implements a cross platform audio capturer.
@@ -4235,9 +4235,9 @@ Represents a system audio, video or render device.
 | [`isAvailable`](#group__av_1ga1e1cd71321a4a5bf06474398eb14a39f) |  |
 | [`type`](#group__av_1ga5895253619f5d138ac222469a70b81cb) |  |
 | [`id`](#group__av_1gac2a5481204b6eb660c3116fae797de7a) |  |
-| [`Device`](#structscy_1_1av_1_1Device_1ga53ea1e4acdb14bfacf39b439fbee83fb) |  |
-| [`print`](#structscy_1_1av_1_1Device_1ga212e9032eac9a85662e69714b9a2d349) |  |
-| [`operator==`](#structscy_1_1av_1_1Device_1ga686faeba93e2f49350e5d317dab86a2c) |  |
+| [`Device`](#structicy_1_1av_1_1Device_1ga53ea1e4acdb14bfacf39b439fbee83fb) |  |
+| [`print`](#structicy_1_1av_1_1Device_1ga212e9032eac9a85662e69714b9a2d349) |  |
+| [`operator==`](#structicy_1_1av_1_1Device_1ga686faeba93e2f49350e5d317dab86a2c) |  |
 
 ---
 
@@ -4408,12 +4408,12 @@ void print(std::ostream & os)
 #### operator== 
 
 ```cpp
-inline bool operator==(const [Device](#structscy_1_1av_1_1Device) & that) const
+inline bool operator==(const [Device](#structicy_1_1av_1_1Device) & that) const
 ```
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `that` | `const [Device](#structscy_1_1av_1_1Device) &` |  |
+| `that` | `const [Device](#structicy_1_1av_1_1Device) &` |  |
 
 ## Options 
 
@@ -4748,7 +4748,7 @@ AVAudioFifo * fifo
 
 ## AudioContext 
 
-> **Subclasses:** `scy::av::AudioDecoder`, `scy::av::AudioEncoder`
+> **Subclasses:** `icy::av::AudioDecoder`, `icy::av::AudioEncoder`
 > **Defined in:** `audiocontext.h`
 
 ### Members
@@ -4961,7 +4961,7 @@ error message
 
 ## AudioDecoder 
 
-> **Extends:** `scy::av::AudioContext`
+> **Extends:** `icy::av::AudioContext`
 > **Defined in:** `audiodecoder.h`
 
 ### Members
@@ -5041,7 +5041,7 @@ Flushes buffered frames. This method should be called once after decoding.
 
 ## AudioEncoder 
 
-> **Extends:** `scy::av::AudioContext`
+> **Extends:** `icy::av::AudioContext`
 > **Defined in:** `audioencoder.h`
 
 ### Members
@@ -5366,10 +5366,10 @@ output sample format
 
 ## Codec 
 
-> **Subclasses:** `scy::av::AudioCodec`, `scy::av::VideoCodec`
+> **Subclasses:** `icy::av::AudioCodec`, `icy::av::VideoCodec`
 > **Defined in:** `codec.h`
 
-[Codec](#structscy_1_1av_1_1Codec) for encoding/decoding media.
+[Codec](#structicy_1_1av_1_1Codec) for encoding/decoding media.
 
 ### Members
 
@@ -5519,7 +5519,7 @@ Weather or not the codec is available for use.
 
 ## AudioCodec 
 
-> **Extends:** `scy::av::Codec`
+> **Extends:** `icy::av::Codec`
 > **Defined in:** `codec.h`
 
 ### Members
@@ -5640,7 +5640,7 @@ One of: u8, s16, s32, flt, dbl, u8p, s16p, s32p, fltp, dblp.
 
 ## VideoCodec 
 
-> **Extends:** `scy::av::Codec`
+> **Extends:** `icy::av::Codec`
 > **Defined in:** `codec.h`
 
 ### Members
@@ -5800,7 +5800,7 @@ std::string pixelFmt
 
 Utilites for RAII:
 
-[Deleter](#structscy_1_1av_1_1Deleter) adaptor for functions like av_free that take a pointer.
+[Deleter](#structicy_1_1av_1_1Deleter) adaptor for functions like av_free that take a pointer.
 
 ### Members
 
@@ -5824,7 +5824,7 @@ inline void operator()(T * p) const
 
 > **Defined in:** `ffmpeg.h`
 
-[Deleter](#structscy_1_1av_1_1Deleter) adaptor for functions like av_freep that take a pointer to a pointer.
+[Deleter](#structicy_1_1av_1_1Deleter) adaptor for functions like av_freep that take a pointer to a pointer.
 
 ### Members
 
@@ -5848,7 +5848,7 @@ inline void operator()(T * p) const
 
 > **Defined in:** `format.h`
 
-Defines a media container format which is available through the [Format](#structscy_1_1av_1_1Format) Registry for encoding/decoding. A format defined preferred default values for each codec.
+Defines a media container format which is available through the [Format](#structicy_1_1av_1_1Format) Registry for encoding/decoding. A format defined preferred default values for each codec.
 
 ### Members
 
@@ -5864,7 +5864,7 @@ Defines a media container format which is available through the [Format](#struct
 | [`toString`](#group__av_1ga55f0817773eba2440856dcac9cc8db04) |  |
 | [`print`](#group__av_1gac2a467b9b251cc8274c3900360e9c58d) |  |
 | [`preferable`](#group__av_1gac0061edac2d666861ddfe6f5171aeb87) |  |
-| [`name`](#group__av_1gab23291d998e8eeeaf780711adb47f279) | Base [Format](#structscy_1_1av_1_1Format) Variables. |
+| [`name`](#group__av_1gab23291d998e8eeeaf780711adb47f279) | Base [Format](#structicy_1_1av_1_1Format) Variables. |
 | [`id`](#group__av_1gae301eb6d3562a0593b3cba4645944965) | The short name of this format. |
 | [`video`](#group__av_1ga8c72beb62c31705f7954bb74941165f8) | The video codec. |
 | [`audio`](#group__av_1ga2d7a7c6b006a17245c5e232d059f59be) | The audio codec. |
@@ -6004,7 +6004,7 @@ static inline bool preferable(const Format & first, const Format & second)
 std::string name
 ```
 
-Base [Format](#structscy_1_1av_1_1Format) Variables.
+Base [Format](#structicy_1_1av_1_1Format) Variables.
 
 The display name of this format.
 
@@ -6158,7 +6158,7 @@ double fps
 
 ## EncoderState 
 
-> **Extends:** `scy::State`
+> **Extends:** `icy::State`
 > **Defined in:** `iencoder.h`
 
 ### Members
@@ -6288,8 +6288,8 @@ duration of time to record in nanoseconds.
 
 ## MediaPacket 
 
-> **Extends:** `scy::RawPacket`
-> **Subclasses:** `scy::av::AudioPacket`, `scy::av::VideoPacket`
+> **Extends:** `icy::RawPacket`
+> **Subclasses:** `icy::av::AudioPacket`, `icy::av::VideoPacket`
 > **Defined in:** `packet.h`
 
 ### Members
@@ -6380,8 +6380,8 @@ int64_t time
 
 ## VideoPacket 
 
-> **Extends:** `scy::av::MediaPacket`
-> **Subclasses:** `scy::av::PlanarVideoPacket`
+> **Extends:** `icy::av::MediaPacket`
+> **Subclasses:** `icy::av::PlanarVideoPacket`
 > **Defined in:** `packet.h`
 
 Video packet for interleaved formats.
@@ -6477,7 +6477,7 @@ bool iframe
 
 ## PlanarVideoPacket 
 
-> **Extends:** `scy::av::VideoPacket`
+> **Extends:** `icy::av::VideoPacket`
 > **Defined in:** `packet.h`
 
 Video packet for planar formats.
@@ -6587,8 +6587,8 @@ std::string pixelFmt
 
 ## AudioPacket 
 
-> **Extends:** `scy::av::MediaPacket`
-> **Subclasses:** `scy::av::PlanarAudioPacket`
+> **Extends:** `icy::av::MediaPacket`
+> **Subclasses:** `icy::av::PlanarAudioPacket`
 > **Defined in:** `packet.h`
 
 Audio packet for interleaved formats.
@@ -6661,7 +6661,7 @@ size_t numSamples
 
 ## PlanarAudioPacket 
 
-> **Extends:** `scy::av::AudioPacket`
+> **Extends:** `icy::av::AudioPacket`
 > **Defined in:** `packet.h`
 
 Audio packet for planar formats.
@@ -6800,7 +6800,7 @@ inline bool operator()(const MediaPacket * a, const MediaPacket * b)
 
 ## VideoContext 
 
-> **Subclasses:** `scy::av::VideoDecoder`, `scy::av::VideoEncoder`
+> **Subclasses:** `icy::av::VideoDecoder`, `icy::av::VideoEncoder`
 > **Defined in:** `videocontext.h`
 
 Base video context from which all video encoders and decoders derive.
@@ -6885,7 +6885,7 @@ virtual AVFrame * convert(AVFrame * iframe)
 
 Convert the video frame and return the result.
 
-The input frame will only be converted if it doesn't match the output format. If the frame is not converted the input frame will be returned. If the input frame format does not match the `[VideoConverter](#structscy_1_1av_1_1VideoConverter)` context then the `[VideoConverter](#structscy_1_1av_1_1VideoConverter)` will be recreated with the input frame params.
+The input frame will only be converted if it doesn't match the output format. If the frame is not converted the input frame will be returned. If the input frame format does not match the `[VideoConverter](#structicy_1_1av_1_1VideoConverter)` context then the `[VideoConverter](#structicy_1_1av_1_1VideoConverter)` will be recreated with the input frame params.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -7113,7 +7113,7 @@ VideoCodec oparams
 
 ## VideoDecoder 
 
-> **Extends:** `scy::av::VideoContext`
+> **Extends:** `icy::av::VideoContext`
 > **Defined in:** `videodecoder.h`
 
 ### Members
@@ -7204,7 +7204,7 @@ Flushes buffered frames. This method should be called after decoding until false
 
 ## VideoEncoder 
 
-> **Extends:** `scy::av::VideoContext`
+> **Extends:** `icy::av::VideoContext`
 > **Defined in:** `videoencoder.h`
 
 ### Members

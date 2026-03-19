@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,10 +9,10 @@
 /// @{
 
 
-#include "scy/task.h"
-#include "scy/logger.h"
-#include "scy/platform.h"
-#include "scy/util.h"
+#include "icy/task.h"
+#include "icy/logger.h"
+#include "icy/platform.h"
+#include "icy/util.h"
 
 #include <iostream>
 #include <thread>
@@ -20,7 +20,7 @@
 
 
 
-namespace scy {
+namespace icy {
 
 
 //
@@ -286,7 +286,7 @@ TaskRunner& TaskRunner::getDefault()
 }
 
 
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

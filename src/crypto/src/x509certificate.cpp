@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,7 +9,7 @@
 /// @{
 
 
-#include "scy/crypto/x509certificate.h"
+#include "icy/crypto/x509certificate.h"
 #include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/opensslv.h>
@@ -18,7 +18,7 @@
 #include <sstream>
 
 
-namespace scy {
+namespace icy {
 namespace crypto {
 
 
@@ -323,7 +323,7 @@ X509* X509Certificate::certificate()
 
 
 } // namespace crypto
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

@@ -1,15 +1,15 @@
 #pragma once
-#include "scy/logger.h"
-#include "scy/net/udpsocket.h"
-#include "scy/time.h"
-#include "scy/timer.h"
+#include "icy/logger.h"
+#include "icy/net/udpsocket.h"
+#include "icy/time.h"
+#include "icy/timer.h"
 #include "turnclienttest.h"
 
 
 using namespace std;
 
 
-namespace scy {
+namespace icy {
 
 
 class UDPResponder : public net::SocketAdapter
@@ -89,7 +89,7 @@ public:
         return false;
     }
 
-    bool onSocketError(net::Socket&, const scy::Error& error)
+    bool onSocketError(net::Socket&, const icy::Error& error)
     {
         LDebug(id, ": On error: ", error.message);
         return false;
@@ -104,6 +104,6 @@ public:
 };
 
 
-} //  namespace scy
+} //  namespace icy
 
 

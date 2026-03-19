@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,15 +9,15 @@
 /// @{
 
 
-#include "scy/crypto/hash.h"
-#include "scy/error.h"
+#include "icy/crypto/hash.h"
+#include "icy/error.h"
 #include <assert.h>
 #include <iostream>
 
 
 
 
-namespace scy {
+namespace icy {
 namespace crypto {
 
 Hash::Hash(const std::string& algorithm)
@@ -95,7 +95,7 @@ const std::string& Hash::algorithm() const
 
 
 } // namespace crypto
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

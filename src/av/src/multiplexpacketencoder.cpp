@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,13 +9,13 @@
 /// @{
 
 
-#include "scy/av/multiplexpacketencoder.h"
+#include "icy/av/multiplexpacketencoder.h"
 #ifdef HAVE_FFMPEG
 
 
 
 
-namespace scy {
+namespace icy {
 namespace av {
 
 
@@ -117,7 +117,7 @@ void MultiplexPacketEncoder::onStreamStateChange(const PacketStreamState& state)
 
 
 } // namespace av
-} // namespace scy
+} // namespace icy
 
 
 #endif

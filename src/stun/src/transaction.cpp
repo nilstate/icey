@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,13 +9,13 @@
 /// @{
 
 
-#include "scy/stun/transaction.h"
-#include "scy/logger.h"
-#include "scy/net/socket.h"
+#include "icy/stun/transaction.h"
+#include "icy/logger.h"
+#include "icy/net/socket.h"
 #include <iostream>
 
 
-namespace scy {
+namespace icy {
 namespace stun {
 
 
@@ -58,7 +58,7 @@ void Transaction::onResponse()
     net::Transaction<Message>::onResponse();
 }
 } // namespace stun
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

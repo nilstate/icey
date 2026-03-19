@@ -16,11 +16,11 @@ cmake .. -DOPENSSL_ROOT_DIR=$(brew --prefix openssl)
 
 For optional dependencies like FFmpeg, see the [Linux instructions](installation-linux.md#install-ffmpeg-optional) - the same `cmake` flags apply.
 
-## Install LibSourcey
+## Install Icey
 
 ```bash
-git clone https://github.com/sourcey/libsourcey.git
-cd libsourcey
+git clone https://github.com/sourcey/icey.git
+cd icey
 mkdir build
 cd build
 cmake .. -DCMAKE_BUILD_TYPE=RELEASE # extra cmake commands here...
@@ -31,5 +31,5 @@ sudo make install
 ## Compile with Xcode
 
 * Generate an Xcode project: `cmake .. -G Xcode`
-* Launch Xcode, open `libsourcey.xcodeproj`
+* Launch Xcode, open `icey.xcodeproj`
 * Select "Debug", build (Cmd-B), then select "Release" and build again

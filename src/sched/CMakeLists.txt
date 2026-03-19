@@ -1,3 +1,3 @@
-scy_add_module(sched
+icy_add_module(sched
   DEPENDS base json
 )

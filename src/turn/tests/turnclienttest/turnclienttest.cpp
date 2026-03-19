@@ -1,7 +1,7 @@
-#include "scy/logger.h"
-#include "scy/turn/fivetuple.h"
-#include "scy/turn/permission.h"
-#include "scy/util.h"
+#include "icy/logger.h"
+#include "icy/turn/fivetuple.h"
+#include "icy/turn/permission.h"
+#include "icy/util.h"
 #include "turnclienttest.h"
 #include "tcpinitiator.h"
 #include "tcpresponder.h"
@@ -14,8 +14,8 @@
 
 
 using namespace std;
-using namespace scy;
-using namespace scy::test;
+using namespace icy;
+using namespace icy::test;
 
 
 int main(int argc, char** argv)

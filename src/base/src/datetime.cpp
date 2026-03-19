@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,11 +9,11 @@
 /// @{
 
 
-#include "scy/datetime.h"
-#include "scy/numeric.h"
-#include "scy/platform.h"
-#include "scy/time.h"
-#include "scy/util.h"
+#include "icy/datetime.h"
+#include "icy/numeric.h"
+#include "icy/platform.h"
+#include "icy/time.h"
+#include "icy/util.h"
 
 #include <cctype>
 #include <chrono>
@@ -23,7 +23,7 @@
 
 
 
-namespace scy {
+namespace icy {
 
 
 // Number of 100ns intervals between the Gregorian epoch (Oct 15, 1582)
@@ -956,34 +956,34 @@ void DateTimeFormatter::append(std::string& str, const DateTime& dateTime,
                             DateTimeFormat::MONTH_NAMES[dateTime.month() - 1]);
                         break;
                     case 'd':
-                        scy::numeric::format0(str, dateTime.day(), 2);
+                        icy::numeric::format0(str, dateTime.day(), 2);
                         break;
                     case 'e':
-                        scy::numeric::format(str, dateTime.day());
+                        icy::numeric::format(str, dateTime.day());
                         break;
                     case 'f':
-                        scy::numeric::format(str, dateTime.day(), 2);
+                        icy::numeric::format(str, dateTime.day(), 2);
                         break;
                     case 'm':
-                        scy::numeric::format0(str, dateTime.month(), 2);
+                        icy::numeric::format0(str, dateTime.month(), 2);
                         break;
                     case 'n':
-                        scy::numeric::format(str, dateTime.month());
+                        icy::numeric::format(str, dateTime.month());
                         break;
                     case 'o':
-                        scy::numeric::format(str, dateTime.month(), 2);
+                        icy::numeric::format(str, dateTime.month(), 2);
                         break;
                     case 'y':
-                        scy::numeric::format0(str, dateTime.year() % 100, 2);
+                        icy::numeric::format0(str, dateTime.year() % 100, 2);
                         break;
                     case 'Y':
-                        scy::numeric::format0(str, dateTime.year(), 4);
+                        icy::numeric::format0(str, dateTime.year(), 4);
                         break;
                     case 'H':
-                        scy::numeric::format0(str, dateTime.hour(), 2);
+                        icy::numeric::format0(str, dateTime.hour(), 2);
                         break;
                     case 'h':
-                        scy::numeric::format0(str, dateTime.hourAMPM(), 2);
+                        icy::numeric::format0(str, dateTime.hourAMPM(), 2);
                         break;
                     case 'a':
                         str.append(dateTime.isAM() ? "am" : "pm");
@@ -992,24 +992,24 @@ void DateTimeFormatter::append(std::string& str, const DateTime& dateTime,
                         str.append(dateTime.isAM() ? "AM" : "PM");
                         break;
                     case 'M':
-                        scy::numeric::format0(str, dateTime.minute(), 2);
+                        icy::numeric::format0(str, dateTime.minute(), 2);
                         break;
                     case 'S':
-                        scy::numeric::format0(str, dateTime.second(), 2);
+                        icy::numeric::format0(str, dateTime.second(), 2);
                         break;
                     case 's':
-                        scy::numeric::format0(str, dateTime.second(), 2);
+                        icy::numeric::format0(str, dateTime.second(), 2);
                         str += '.';
-                        scy::numeric::format0(str, dateTime.millisecond() * 1000 + dateTime.microsecond(), 6);
+                        icy::numeric::format0(str, dateTime.millisecond() * 1000 + dateTime.microsecond(), 6);
                         break;
                     case 'i':
-                        scy::numeric::format0(str, dateTime.millisecond(), 3);
+                        icy::numeric::format0(str, dateTime.millisecond(), 3);
                         break;
                     case 'c':
-                        scy::numeric::format(str, dateTime.millisecond() / 100);
+                        icy::numeric::format(str, dateTime.millisecond() / 100);
                         break;
                     case 'F':
-                        scy::numeric::format0(str, dateTime.millisecond() * 1000 + dateTime.microsecond(), 6);
+                        icy::numeric::format0(str, dateTime.millisecond() * 1000 + dateTime.microsecond(), 6);
                         break;
                     case 'z':
                         tzdISO(str, timeZoneDifferential);
@@ -1038,34 +1038,34 @@ void DateTimeFormatter::append(std::string& str, const Timespan& timespan,
             if (++it != end) {
                 switch (*it) {
                     case 'd':
-                        scy::numeric::format(str, timespan.days());
+                        icy::numeric::format(str, timespan.days());
                         break;
                     case 'H':
-                        scy::numeric::format0(str, timespan.hours(), 2);
+                        icy::numeric::format0(str, timespan.hours(), 2);
                         break;
                     case 'h':
-                        scy::numeric::format(str, timespan.totalHours());
+                        icy::numeric::format(str, timespan.totalHours());
                         break;
                     case 'M':
-                        scy::numeric::format0(str, timespan.minutes(), 2);
+                        icy::numeric::format0(str, timespan.minutes(), 2);
                         break;
                     case 'm':
-                        scy::numeric::format(str, timespan.totalMinutes());
+                        icy::numeric::format(str, timespan.totalMinutes());
                         break;
                     case 'S':
-                        scy::numeric::format0(str, timespan.seconds(), 2);
+                        icy::numeric::format0(str, timespan.seconds(), 2);
                         break;
                     case 's':
-                        scy::numeric::format(str, timespan.totalSeconds());
+                        icy::numeric::format(str, timespan.totalSeconds());
                         break;
                     case 'i':
-                        scy::numeric::format0(str, timespan.milliseconds(), 3);
+                        icy::numeric::format0(str, timespan.milliseconds(), 3);
                         break;
                     case 'c':
-                        scy::numeric::format(str, timespan.milliseconds() / 100);
+                        icy::numeric::format(str, timespan.milliseconds() / 100);
                         break;
                     case 'F':
-                        scy::numeric::format0(str, timespan.milliseconds() * 1000 + timespan.microseconds(), 6);
+                        icy::numeric::format0(str, timespan.milliseconds() * 1000 + timespan.microseconds(), 6);
                         break;
                     default:
                         str += *it;
@@ -1083,14 +1083,14 @@ void DateTimeFormatter::tzdISO(std::string& str, int timeZoneDifferential)
     if (timeZoneDifferential != UTC) {
         if (timeZoneDifferential >= 0) {
             str += '+';
-            scy::numeric::format0(str, timeZoneDifferential / 3600, 2);
+            icy::numeric::format0(str, timeZoneDifferential / 3600, 2);
             str += ':';
-            scy::numeric::format0(str, (timeZoneDifferential % 3600) / 60, 2);
+            icy::numeric::format0(str, (timeZoneDifferential % 3600) / 60, 2);
         } else {
             str += '-';
-            scy::numeric::format0(str, -timeZoneDifferential / 3600, 2);
+            icy::numeric::format0(str, -timeZoneDifferential / 3600, 2);
             str += ':';
-            scy::numeric::format0(str, (-timeZoneDifferential % 3600) / 60, 2);
+            icy::numeric::format0(str, (-timeZoneDifferential % 3600) / 60, 2);
         }
     } else
         str += 'Z';
@@ -1102,12 +1102,12 @@ void DateTimeFormatter::tzdRFC(std::string& str, int timeZoneDifferential)
     if (timeZoneDifferential != UTC) {
         if (timeZoneDifferential >= 0) {
             str += '+';
-            scy::numeric::format0(str, timeZoneDifferential / 3600, 2);
-            scy::numeric::format0(str, (timeZoneDifferential % 3600) / 60, 2);
+            icy::numeric::format0(str, timeZoneDifferential / 3600, 2);
+            icy::numeric::format0(str, (timeZoneDifferential % 3600) / 60, 2);
         } else {
             str += '-';
-            scy::numeric::format0(str, -timeZoneDifferential / 3600, 2);
-            scy::numeric::format0(str, (-timeZoneDifferential % 3600) / 60, 2);
+            icy::numeric::format0(str, -timeZoneDifferential / 3600, 2);
+            icy::numeric::format0(str, (-timeZoneDifferential % 3600) / 60, 2);
         }
     } else
         str += "GMT";
@@ -1806,7 +1806,7 @@ void Stopwatch::restart()
 }
 
 
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

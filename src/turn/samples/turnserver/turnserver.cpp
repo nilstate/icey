@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -21,15 +21,15 @@
 /// @{
 
 
-#include "scy/application.h"
-#include "scy/crypto/hash.h"
-#include "scy/turn/server/server.h"
+#include "icy/application.h"
+#include "icy/crypto/hash.h"
+#include "icy/turn/server/server.h"
 
 
 using namespace std;
-using namespace scy;
-using namespace scy::net;
-using namespace scy::turn;
+using namespace icy;
+using namespace icy::net;
+using namespace icy::turn;
 
 
 // Standard TURN port per RFC 5766
@@ -40,7 +40,7 @@ const std::string SERVER_EXTERNAL_IP("127.0.0.1"); // Set to public IP in produc
 // Hardcoded credentials for demonstration - replace with a real auth backend
 const std::string SERVER_USERNAME("username");
 const std::string SERVER_PASSWORD("password");
-const std::string SERVER_REALM("sourcey.com");
+const std::string SERVER_REALM("0state.com");
 
 
 /// Implements ServerObserver to handle TURN authentication and allocation events.
@@ -151,8 +151,8 @@ int main(void)
         {
             // Configure the TURN server options
             ServerOptions opts;
-            opts.software = "Sourcey STUN/TURN Server [rfc5766]";
-            opts.realm = "sourcey.com";
+            opts.software = "Icey STUN/TURN Server [rfc5766]";
+            opts.realm = "0state.com";
             opts.listenAddr = net::Address(SERVER_BIND_IP, SERVER_BIND_PORT);
             opts.externalIP = SERVER_EXTERNAL_IP;
             opts.allocationDefaultLifetime = 2 * 60 * 1000;   // 2 minutes

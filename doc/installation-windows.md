@@ -26,20 +26,20 @@ Add the FFmpeg `bin` directory to your system `PATH`, then set the `FFMPEG_ROOT_
 cmake .. -DOPENSSL_ROOT_DIR=C:\vendor\OpenSSL-Win64 -DWITH_FFMPEG=ON -DFFMPEG_ROOT_DIR=C:\vendor\ffmpeg-dev
 ```
 
-### Download LibSourcey
+### Download Icey
 
 ```bash
-git clone https://github.com/sourcey/libsourcey.git
+git clone https://github.com/sourcey/icey.git
 ```
 
 ## Generate Project Files
 
-Open the CMake GUI and set the project directory to point to the LibSourcey root directory. Execute "Configure" to do the initial configuration, then adjust any options, then press "Configure" again and then press "Generate".
+Open the CMake GUI and set the project directory to point to the Icey root directory. Execute "Configure" to do the initial configuration, then adjust any options, then press "Configure" again and then press "Generate".
 
 [See here](installation.md#cmake-build-options) for a complete list of build options.
 
 ## Compile with Visual Studio
 
 1. Generate solutions using CMake, as described above. Make sure you choose the proper generator (32-bit or 64-bit)
-2. Launch Visual Studio, locate and open `libsourcey.sln` in your generated build folder. Select "Debug" configuration, build the solution (Ctrl-Shift-B), and/or select "Release" and build it.
+2. Launch Visual Studio, locate and open `icey.sln` in your generated build folder. Select "Debug" configuration, build the solution (Ctrl-Shift-B), and/or select "Release" and build it.
 3. Add `{CMAKE_BINARY_DIR}\bin\Release` and `{CMAKE_BINARY_DIR}\bin\Debug` to your system PATH.

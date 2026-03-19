@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -12,10 +12,10 @@
 //
 
 
-#include "scy/base64.h"
+#include "icy/base64.h"
 
 
-namespace scy {
+namespace icy {
 namespace base64 {
 namespace internal {
 
@@ -222,7 +222,7 @@ ssize_t decode_block(const char* code_in, const size_t length_in, char* plaintex
 
 } // namespace internal
 } // namespace base64
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

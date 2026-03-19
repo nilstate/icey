@@ -2,9 +2,9 @@
 
 
 using namespace std;
-using namespace scy;
-using namespace scy::av;
-using namespace scy::test;
+using namespace icy;
+using namespace icy::av;
+using namespace icy::test;
 
 
 int main(int argc, char** argv)

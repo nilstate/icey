@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,15 +9,15 @@
 /// @{
 
 
-#include "scy/http/client.h"
-#include "scy/logger.h"
-#include "scy/util.h"
+#include "icy/http/client.h"
+#include "icy/logger.h"
+#include "icy/util.h"
 
 #include <algorithm>
 #include <stdexcept>
 
 
-namespace scy {
+namespace icy {
 namespace http {
 
 
@@ -272,7 +272,7 @@ void Client::onConnectionClose(Connection& conn)
 
 
 } // namespace http
-} // namespace scy
+} // namespace icy
 
 
 /// @}

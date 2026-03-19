@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -26,14 +26,14 @@
 /// @{
 
 
-#include "scy/application.h"
-#include "scy/av/devicemanager.h"
-#include "scy/av/mediacapture.h"
-#include "scy/av/videoencoder.h"
-#include "scy/logger.h"
-#include "scy/packetstream.h"
-#include "scy/symple/client.h"
-#include "scy/webrtc/peersession.h"
+#include "icy/application.h"
+#include "icy/av/devicemanager.h"
+#include "icy/av/mediacapture.h"
+#include "icy/av/videoencoder.h"
+#include "icy/logger.h"
+#include "icy/packetstream.h"
+#include "icy/symple/client.h"
+#include "icy/webrtc/peersession.h"
 #include "symplesignaller.h"
 
 #include <iostream>
@@ -41,7 +41,7 @@
 #include <string>
 
 
-using namespace scy;
+using namespace icy;
 
 #define USE_CAMERA 0
 
@@ -81,14 +81,14 @@ public:
                                cap.maxFps, cap.pixelFormat);
         } else {
             std::cerr << "No camera found, falling back to test file" << '\n';
-            capture->openFile(SCY_DATA_DIR "/test.mp4");
+            capture->openFile(ICY_DATA_DIR "/test.mp4");
             capture->setLoopInput(true);
             capture->setLimitFramerate(true);
             videoCap = {640, 480, 30, 30, "yuv420p"};
         }
 #else
         capture = std::make_shared<av::MediaCapture>();
-        capture->openFile(SCY_DATA_DIR "/test.mp4");
+        capture->openFile(ICY_DATA_DIR "/test.mp4");
         capture->setLoopInput(true);
         capture->setLimitFramerate(true);
         videoCap = {640, 480, 30, 30, "yuv420p"};
@@ -192,7 +192,7 @@ private:
 
     void onCreatePresence(smpl::Peer& peer)
     {
-        peer["agent"] = "LibSourcey";
+        peer["agent"] = "Icey";
         peer["type"] = "streamer";
     }
 };

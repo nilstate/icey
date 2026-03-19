@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,11 +9,11 @@
 /// @{
 
 
-#include "scy/symple/presence.h"
-#include "scy/util.h"
+#include "icy/symple/presence.h"
+#include "icy/util.h"
 
 
-namespace scy {
+namespace icy {
 namespace smpl {
 
 
@@ -57,7 +57,7 @@ void Presence::setProbe(bool flag)
 
 
 } // namespace smpl
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

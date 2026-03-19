@@ -1,1 +1,1 @@
-scy_add_sample(httpclient DEPENDS base net http)
+icy_add_sample(httpclient DEPENDS base net http)

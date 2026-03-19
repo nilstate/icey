@@ -1,46 +1,46 @@
 #include "sympletests.h"
-#include "scy/application.h"
-#include "scy/loop.h"
-#include "scy/symple/command.h"
-#include "scy/symple/event.h"
-#include "scy/symple/peer.h"
-#include "scy/symple/presence.h"
-#include "scy/symple/roster.h"
+#include "icy/application.h"
+#include "icy/loop.h"
+#include "icy/symple/command.h"
+#include "icy/symple/event.h"
+#include "icy/symple/peer.h"
+#include "icy/symple/presence.h"
+#include "icy/symple/roster.h"
 
 #include <stdexcept>
 
 
-using namespace scy;
-namespace scy_test = scy::test;
+using namespace icy;
+namespace icy_test = icy::test;
 
 
 int main(int argc, char** argv)
 {
-    scy::Logger::instance().add(
-        std::make_unique<scy::ConsoleChannel>("debug", scy::Level::Debug));
-    scy_test::init();
+    icy::Logger::instance().add(
+        std::make_unique<icy::ConsoleChannel>("debug", icy::Level::Debug));
+    icy_test::init();
 
 
     // =========================================================================
     // Address
     //
-    scy_test::describe("address: user|id parse", []() {
-        scy::smpl::Address a("alice|abc123");
+    icy_test::describe("address: user|id parse", []() {
+        icy::smpl::Address a("alice|abc123");
         expect(a.user == "alice");
         expect(a.id == "abc123");
         expect(a.valid());
         expect(a.toString() == "alice|abc123");
     });
 
-    scy_test::describe("address: user only", []() {
-        scy::smpl::Address a("alice");
+    icy_test::describe("address: user only", []() {
+        icy::smpl::Address a("alice");
         expect(a.user == "alice");
         expect(a.id.empty());
         expect(a.valid());
     });
 
-    scy_test::describe("address: empty invalid", []() {
-        scy::smpl::Address a("");
+    icy_test::describe("address: empty invalid", []() {
+        icy::smpl::Address a("");
         expect(!a.valid());
     });
 
@@ -48,27 +48,27 @@ int main(int argc, char** argv)
     // =========================================================================
     // Peer
     //
-    scy_test::describe("peer: construction from json", []() {
-        scy::json::Value data;
+    icy_test::describe("peer: construction from json", []() {
+        icy::json::Value data;
         data["id"] = "abc123";
         data["user"] = "alice";
         data["name"] = "Alice";
         data["online"] = true;
 
-        scy::smpl::Peer peer(data);
+        icy::smpl::Peer peer(data);
         expect(peer.id() == "abc123");
         expect(peer.user() == "alice");
         expect(peer.name() == "Alice");
         expect(peer.valid());
     });
 
-    scy_test::describe("peer: address format", []() {
-        scy::json::Value data;
+    icy_test::describe("peer: address format", []() {
+        icy::json::Value data;
         data["id"] = "x1";
         data["user"] = "bob";
         data["online"] = true;
 
-        scy::smpl::Peer peer(data);
+        icy::smpl::Peer peer(data);
         auto addr = peer.address();
         expect(addr.user == "bob");
         expect(addr.id == "x1");
@@ -79,11 +79,11 @@ int main(int argc, char** argv)
     // =========================================================================
     // Message
     //
-    scy_test::describe("message: construction and fields", []() {
-        scy::smpl::Message m;
+    icy_test::describe("message: construction and fields", []() {
+        icy::smpl::Message m;
         m.setType("message");
-        m.setTo(scy::smpl::Address("bob|123"));
-        m.setFrom(scy::smpl::Address("alice|456"));
+        m.setTo(icy::smpl::Address("bob|123"));
+        m.setFrom(icy::smpl::Address("alice|456"));
         m["subtype"] = "chat";
         m["data"]["text"] = "hello";
 
@@ -97,8 +97,8 @@ int main(int argc, char** argv)
     // =========================================================================
     // Presence
     //
-    scy_test::describe("presence: probe flag", []() {
-        scy::smpl::Presence p;
+    icy_test::describe("presence: probe flag", []() {
+        icy::smpl::Presence p;
         expect(!p.isProbe());
         p.setProbe(true);
         expect(p.isProbe());
@@ -108,9 +108,9 @@ int main(int argc, char** argv)
     // =========================================================================
     // Roster
     //
-    scy_test::describe("roster: add and get", []() {
-        scy::smpl::Roster roster;
-        auto peer = std::make_unique<scy::smpl::Peer>();
+    icy_test::describe("roster: add and get", []() {
+        icy::smpl::Roster roster;
+        auto peer = std::make_unique<icy::smpl::Peer>();
         (*peer)["id"] = "abc";
         (*peer)["user"] = "alice";
         (*peer)["online"] = true;
@@ -131,8 +131,8 @@ int main(int argc, char** argv)
     // =========================================================================
     // Server
     //
-    scy_test::describe("server: start and shutdown", []() {
-        scy::smpl::Server server;
+    icy_test::describe("server: start and shutdown", []() {
+        icy::smpl::Server server;
         server.start({.host = SERVER_HOST, .port = SERVER_PORT});
         expect(server.peerCount() == 0);
         server.shutdown();
@@ -146,7 +146,7 @@ int main(int argc, char** argv)
     // The test framework runs tests synchronously, so we use
     // runLoop() to pump events for a limited time.
     //
-    scy_test::describe("client: connect and authenticate", []() {
+    icy_test::describe("client: connect and authenticate", []() {
         smpl::Server server;
         server.start({.host = SERVER_HOST, .port = SERVER_PORT, .dynamicRooms = true});
 
@@ -182,7 +182,7 @@ int main(int argc, char** argv)
     });
 
 
-    scy_test::describe("client: two peers presence", []() {
+    icy_test::describe("client: two peers presence", []() {
         smpl::Server server;
         server.start({.host = SERVER_HOST, .port = SERVER_PORT + 1, .dynamicRooms = true});
 
@@ -214,7 +214,7 @@ int main(int argc, char** argv)
     });
 
 
-    scy_test::describe("client: message routing", []() {
+    icy_test::describe("client: message routing", []() {
         smpl::Server server;
         server.start({.host = SERVER_HOST, .port = SERVER_PORT + 2, .dynamicRooms = true});
 
@@ -250,7 +250,7 @@ int main(int argc, char** argv)
     });
 
 
-    scy_test::describe("client: auth failure", []() {
+    icy_test::describe("client: auth failure", []() {
         smpl::Server server;
         smpl::Server::Options sopts;
         sopts.host = SERVER_HOST;
@@ -288,7 +288,7 @@ int main(int argc, char** argv)
     });
 
 
-    scy_test::describe("client: disconnect presence", []() {
+    icy_test::describe("client: disconnect presence", []() {
         smpl::Server server;
         server.start({.host = SERVER_HOST, .port = SERVER_PORT + 4, .dynamicRooms = true});
 
@@ -332,7 +332,7 @@ int main(int argc, char** argv)
     // =========================================================================
     // Server Hardening
     //
-    scy_test::describe("hardening: max connections", []() {
+    icy_test::describe("hardening: max connections", []() {
         smpl::Server server;
         smpl::Server::Options sopts;
         sopts.host = SERVER_HOST;
@@ -374,7 +374,7 @@ int main(int argc, char** argv)
     });
 
 
-    scy_test::describe("hardening: max message size", []() {
+    icy_test::describe("hardening: max message size", []() {
         smpl::Server server;
         smpl::Server::Options sopts;
         sopts.host = SERVER_HOST;
@@ -417,7 +417,7 @@ int main(int argc, char** argv)
     });
 
 
-    scy_test::describe("hardening: rate limiting", []() {
+    icy_test::describe("hardening: rate limiting", []() {
         smpl::Server server;
         smpl::Server::Options sopts;
         sopts.host = SERVER_HOST;
@@ -456,7 +456,7 @@ int main(int argc, char** argv)
     });
 
 
-    scy_test::describe("hardening: graceful shutdown broadcast", []() {
+    icy_test::describe("hardening: graceful shutdown broadcast", []() {
         smpl::Server server;
         server.start({.host = SERVER_HOST, .port = SERVER_PORT + 8});
 
@@ -490,6 +490,6 @@ int main(int argc, char** argv)
     });
 
 
-    scy_test::runAll();
-    return scy_test::finalize();
+    icy_test::runAll();
+    return icy_test::finalize();
 }

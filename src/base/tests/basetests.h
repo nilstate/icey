@@ -1,48 +1,48 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier:	LGPL-2.1+
 //
 
 
 #pragma once
-#include "scy/application.h"
-#include "scy/base.h"
-#include "scy/base64.h"
-#include "scy/buffer.h"
-#include "scy/collection.h"
-#include "scy/datetime.h"
-#include "scy/error.h"
-#include "scy/filesystem.h"
-#include "scy/idler.h"
-#include "scy/ipc.h"
-#include "scy/logger.h"
-#include "scy/packetio.h"
-#include "scy/packetqueue.h"
-#include "scy/packetstream.h"
-#include "scy/platform.h"
-#include "scy/process.h"
-#include "scy/random.h"
-#include "scy/sharedlibrary.h"
-#include "scy/signal.h"
-#include "scy/stateful.h"
-#include "scy/test.h"
-#include "scy/thread.h"
-#include "scy/time.h"
-#include "scy/timer.h"
-#include "scy/util.h"
+#include "icy/application.h"
+#include "icy/base.h"
+#include "icy/base64.h"
+#include "icy/buffer.h"
+#include "icy/collection.h"
+#include "icy/datetime.h"
+#include "icy/error.h"
+#include "icy/filesystem.h"
+#include "icy/idler.h"
+#include "icy/ipc.h"
+#include "icy/logger.h"
+#include "icy/packetio.h"
+#include "icy/packetqueue.h"
+#include "icy/packetstream.h"
+#include "icy/platform.h"
+#include "icy/process.h"
+#include "icy/random.h"
+#include "icy/sharedlibrary.h"
+#include "icy/signal.h"
+#include "icy/stateful.h"
+#include "icy/test.h"
+#include "icy/thread.h"
+#include "icy/time.h"
+#include "icy/timer.h"
+#include "icy/util.h"
 
 #include <sstream>
 
 
-using scy::test::Test;
+using icy::test::Test;
 using std::cerr;
 using std::cout;
 
 
-namespace scy {
+namespace icy {
 
 
 // =============================================================================
@@ -459,7 +459,7 @@ class PacketStreamTest : public Test
 
         // TODO: Test pause/resume functionality
         // Run the thread for 100ms
-        scy::sleep(100);
+        icy::sleep(100);
 
         stream.close();
 
@@ -493,7 +493,7 @@ struct PacketStreamIOTest : public Test
         stream.attach(new StreamWriter(new std::ofstream("output.txt")), 1, true);
         stream.start();
         // Run the thread for 100ms
-        scy::sleep(100);
+        icy::sleep(100);
 
         stream.close();
 
@@ -677,7 +677,7 @@ class IpcRoundTripTest : public Test
                         }
                     },
                     &ipc, "msg" + std::to_string(i)));
-                scy::sleep(5);
+                icy::sleep(5);
             }
         });
 
@@ -704,7 +704,7 @@ class LoggerFilterTest : public Test
 {
     void run()
     {
-#ifdef SCY_ENABLE_LOGGING
+#ifdef ICY_ENABLE_LOGGING
         // Custom channel that captures messages
         struct CaptureChannel : public LogChannel
         {
@@ -763,7 +763,7 @@ class LoggerFilterTest : public Test
 
             Logger::instance().remove("pass_all");
         }
-#endif // SCY_ENABLE_LOGGING
+#endif // ICY_ENABLE_LOGGING
     }
 };
 
@@ -808,11 +808,11 @@ class PacketStreamOverflowTest : public Test
         });
 
         // Give the event loop time to drain some packets
-        scy::sleep(200);
+        icy::sleep(200);
 
         // Run the event loop briefly to dispatch queued items
         uv::runLoop(uv::defaultLoop(), UV_RUN_NOWAIT);
-        scy::sleep(50);
+        icy::sleep(50);
         uv::runLoop(uv::defaultLoop(), UV_RUN_NOWAIT);
 
         producer.join();
@@ -830,7 +830,7 @@ class PacketStreamOverflowTest : public Test
 };
 
 
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

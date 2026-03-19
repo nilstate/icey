@@ -1,5 +1,5 @@
 #pragma once
-#include "scy/test.h"
+#include "icy/test.h"
 #include <iostream>
 
 
@@ -15,7 +15,7 @@
 #define TURN_AUTHORIZE_PEER_IP "127.0.0.1" // for CreatePremission
 
 
-namespace scy {
+namespace icy {
 
 
 inline std::string createLatencyCheck(int packetSize = 1024)
@@ -27,6 +27,6 @@ inline std::string createLatencyCheck(int packetSize = 1024)
 }
 
 
-} //  namespace scy
+} //  namespace icy
 
 

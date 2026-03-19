@@ -2,8 +2,8 @@
 
 using std::cerr;
 using std::cout;
-using namespace scy;
-using namespace scy::test;
+using namespace icy;
+using namespace icy::test;
 
 
 int main(int argc, char** argv)
@@ -307,7 +307,7 @@ int main(int argc, char** argv)
     // Filesystem
     //
     describe("filesystem", []() {
-        std::string path(scy::getExePath());
+        std::string path(icy::getExePath());
         // cout << "executable path: " << path << endl;
         expect(fs::exists(path));
 
@@ -374,7 +374,7 @@ int main(int argc, char** argv)
 
         logger.setWriter(nullptr);
 
-        // logger.getDefault()->setFilter("scy::*");
+        // logger.getDefault()->setFilter("icy::*");
         // Destory the current Logger instance to ensure no crash
         Logger::destroy();
     });
@@ -384,11 +384,11 @@ int main(int argc, char** argv)
     // Platform
     //
     describe("platform", []() {
-        expect(!scy::getExePath().empty());
-        expect(!scy::getCwd().empty());
+        expect(!icy::getExePath().empty());
+        expect(!icy::getCwd().empty());
 
-        // cout << "executable path: " << scy::getExePath() << endl;
-        // cout << "current working directory: " << scy::getCwd() << endl;
+        // cout << "executable path: " << icy::getExePath() << endl;
+        // cout << "current working directory: " << icy::getCwd() << endl;
     });
 
 
@@ -815,19 +815,19 @@ int main(int argc, char** argv)
     // Platform (expanded)
     //
     describe("platform expanded", []() {
-        expect(!scy::getExePath().empty());
-        expect(!scy::getCwd().empty());
+        expect(!icy::getExePath().empty());
+        expect(!icy::getCwd().empty());
 
         // Hostname should be non-empty
-        expect(!scy::getHostname().empty());
+        expect(!icy::getHostname().empty());
 
         // CPU count should be >= 1
-        expect(scy::numCpuCores() >= 1);
+        expect(icy::numCpuCores() >= 1);
 
         // Memory should be > 0
-        expect(scy::getTotalMemory() > 0);
-        expect(scy::getFreeMemory() > 0);
-        expect(scy::getFreeMemory() <= scy::getTotalMemory());
+        expect(icy::getTotalMemory() > 0);
+        expect(icy::getFreeMemory() > 0);
+        expect(icy::getFreeMemory() <= icy::getTotalMemory());
     });
 
 

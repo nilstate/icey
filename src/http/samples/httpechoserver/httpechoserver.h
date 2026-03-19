@@ -1,12 +1,12 @@
 #pragma once
 
-#include "scy/application.h"
-#include "scy/http/server.h"
-#include "scy/net/sslmanager.h"
-#include "scy/net/sslsocket.h"
+#include "icy/application.h"
+#include "icy/http/server.h"
+#include "icy/net/sslmanager.h"
+#include "icy/net/sslsocket.h"
 
 
-namespace scy {
+namespace icy {
 
 
 constexpr uint16_t HttpPort = 1337;
@@ -146,4 +146,4 @@ void runMulticoreBenchmarkServers()
 }
 
 
-} // namespace scy
+} // namespace icy

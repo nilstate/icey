@@ -1,19 +1,19 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
 
 
-#include "scy/webrtc/peersession.h"
-#include "scy/logger.h"
+#include "icy/webrtc/peersession.h"
+#include "icy/logger.h"
 
 #include <stdexcept>
 
 
-namespace scy {
+namespace icy {
 namespace wrtc {
 
 
@@ -371,4 +371,4 @@ const char* stateToString(PeerSession::State state)
 
 
 } // namespace wrtc
-} // namespace scy
+} // namespace icy

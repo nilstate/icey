@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -10,11 +10,11 @@
 //
 
 
-#include "scy/timeout.h"
-#include "scy/util.h"
+#include "icy/timeout.h"
+#include "icy/util.h"
 
 
-namespace scy {
+namespace icy {
 
 
 //
@@ -120,7 +120,7 @@ TimedToken::TimedToken(const std::string& id, long duration)
 }
 
 
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

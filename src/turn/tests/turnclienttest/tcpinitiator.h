@@ -1,11 +1,11 @@
 #pragma once
-#include "scy/logger.h"
-#include "scy/net/tcpsocket.h"
-#include "scy/signal.h"
-#include "scy/time.h"
-#include "scy/timer.h"
-#include "scy/turn/client/tcpclient.h"
-#include "scy/util.h"
+#include "icy/logger.h"
+#include "icy/net/tcpsocket.h"
+#include "icy/signal.h"
+#include "icy/time.h"
+#include "icy/timer.h"
+#include "icy/turn/client/tcpclient.h"
+#include "icy/util.h"
 
 #include <iostream>
 
@@ -13,7 +13,7 @@
 using namespace std;
 
 
-namespace scy {
+namespace icy {
 
 
 struct TCPInitiator : public turn::TCPClientObserver
@@ -137,6 +137,6 @@ struct TCPInitiator : public turn::TCPClientObserver
 };
 
 
-} //  namespace scy
+} //  namespace icy
 
 

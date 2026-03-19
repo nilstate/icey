@@ -1,1 +1,1 @@
-scy_add_test(cryptotests DEPENDS base crypto)
+icy_add_test(cryptotests DEPENDS base crypto)

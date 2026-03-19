@@ -1,1 +1,1 @@
-scy_add_sample(httpbenchmark DEPENDS base net http)
+icy_add_sample(httpbenchmark DEPENDS base net http)

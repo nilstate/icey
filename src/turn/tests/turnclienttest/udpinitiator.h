@@ -1,7 +1,7 @@
 #pragma once
-#include "scy/logger.h"
-#include "scy/time.h"
-#include "scy/turn/client/udpclient.h"
+#include "icy/logger.h"
+#include "icy/time.h"
+#include "icy/turn/client/udpclient.h"
 #include "turnclienttest.h"
 
 #include <iostream>
@@ -10,7 +10,7 @@
 using namespace std;
 
 
-namespace scy {
+namespace icy {
 
 
 class UDPInitiator : public turn::ClientObserver
@@ -120,6 +120,6 @@ protected:
 };
 
 
-} //  namespace scy
+} //  namespace icy
 
 

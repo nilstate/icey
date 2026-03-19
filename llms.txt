@@ -1,14 +1,14 @@
-# LibSourcey
+# Icey
 
 > The C++ Media Stack
 
 C++20 toolkit for media servers, video pipelines, and real-time communication. Unifies FFmpeg, libuv, OpenSSL, and libdatachannel behind a composable PacketStream pipeline. CMake, LGPL-2.1+.
 
-- Source: https://github.com/sourcey/libsourcey
-- Docs: https://sourcey.com/code/libsourcey
+- Source: https://github.com/sourcey/icey
+- Docs: https://0state.com/code/icey
 - Requires: CMake 3.21+, C++20 (GCC 12+, Clang 15+, MSVC 2022+), OpenSSL 3.x
 - Optional: FFmpeg 5+/6+/7+ (-DWITH_FFMPEG=ON), libdatachannel (-DWITH_LIBDATACHANNEL=ON), OpenCV (-DWITH_OPENCV=ON)
-- Namespaces: scy, scy::net, scy::http, scy::av, scy::smpl, scy::wrtc
+- Namespaces: icy, icy::net, icy::http, icy::av, icy::smpl, icy::wrtc
 - All async I/O runs on libuv's single-threaded event loop. Use LocalSignal for lock-free dispatch in event loop context.
 
 ## PacketStream
@@ -16,8 +16,8 @@ C++20 toolkit for media servers, video pipelines, and real-time communication. U
 The core abstraction. Sources emit packets, processors transform them, sinks consume them. Handles backpressure, frame dropping, teardown.
 
 ```cpp
-// Namespace: scy
-// Header: scy/packetstream.h
+// Namespace: icy
+// Header: icy/packetstream.h
 
 PacketStream stream("my-stream");
 
@@ -63,11 +63,11 @@ Custom processors implement `PacketProcessor::process(IPacket& packet)` and call
 
 ## Signal/Slot
 
-Thread-safe observer pattern. All libsourcey events use this.
+Thread-safe observer pattern. All icey events use this.
 
 ```cpp
-// Namespace: scy
-// Header: scy/signal.h
+// Namespace: icy
+// Header: icy/signal.h
 
 Signal<void(int, const std::string&)> MyEvent;
 
@@ -95,8 +95,8 @@ Use `LocalSignal<void(Args...)>` instead of `Signal` when operating on libuv's s
 ## HTTP Server
 
 ```cpp
-// Namespace: scy::http
-// Header: scy/http/server.h
+// Namespace: icy::http
+// Header: icy/http/server.h
 
 http::Server srv{"0.0.0.0", 8080};
 
@@ -147,8 +147,8 @@ conn->response();  // http::Response&
 ## WebSocket
 
 ```cpp
-// Namespace: scy::http::ws
-// Header: scy/http/websocket.h
+// Namespace: icy::http::ws
+// Header: icy/http/websocket.h
 
 // Server-side: upgrade from HTTP connection
 // Detected automatically when client sends Upgrade: websocket
@@ -171,8 +171,8 @@ Opcodes: Continuation, Text, Binary, Close, Ping, Pong.
 ## Media Capture (FFmpeg)
 
 ```cpp
-// Namespace: scy::av
-// Header: scy/av/mediacapture.h
+// Namespace: icy::av
+// Header: icy/av/mediacapture.h
 
 auto capture = std::make_shared<av::MediaCapture>();
 
@@ -208,8 +208,8 @@ MediaCapture runs on a separate thread. It emits VideoPacket and AudioPacket thr
 ## Video Encoder
 
 ```cpp
-// Namespace: scy::av
-// Header: scy/av/videoencoder.h
+// Namespace: icy::av
+// Header: icy/av/videoencoder.h
 
 av::VideoEncoder encoder;
 encoder.iparams.width = 1280;
@@ -236,8 +236,8 @@ encoder.close();
 Manages WebRTC peer connection lifecycle with Symple call signalling.
 
 ```cpp
-// Namespace: scy::wrtc
-// Header: scy/webrtc/peersession.h
+// Namespace: icy::wrtc
+// Header: icy/webrtc/peersession.h
 
 wrtc::PeerSession::Config config;
 config.rtcConfig.iceServers.emplace_back("stun:stun.l.google.com:19302");
@@ -288,8 +288,8 @@ Symple call protocol messages: call:init, call:accept, call:reject, call:offer, 
 Bridges FFmpeg encode/decode with libdatachannel's WebRTC tracks. Created internally by PeerSession, but can be used standalone.
 
 ```cpp
-// Namespace: scy::wrtc
-// Header: scy/webrtc/mediabridge.h
+// Namespace: icy::wrtc
+// Header: icy/webrtc/mediabridge.h
 
 wrtc::MediaBridge bridge;
 
@@ -328,8 +328,8 @@ bridge.detach();
 Real-time messaging, presence, and WebRTC call signalling over WebSocket.
 
 ```cpp
-// Namespace: scy::smpl
-// Header: scy/symple/client.h
+// Namespace: icy::smpl
+// Header: icy/symple/client.h
 
 smpl::Client::Options opts;
 opts.host = "127.0.0.1";
@@ -376,8 +376,8 @@ Client states: Closed -> Connecting -> Authenticating -> Online | Error.
 ## Networking
 
 ```cpp
-// Namespace: scy::net
-// Header: scy/net/socket.h, scy/net/tcpsocket.h, scy/net/sslsocket.h, scy/net/udpsocket.h
+// Namespace: icy::net
+// Header: icy/net/socket.h, icy/net/tcpsocket.h, icy/net/sslsocket.h, icy/net/udpsocket.h
 
 // Create sockets
 auto tcp = net::makeSocket<net::TCPSocket>();
@@ -411,22 +411,22 @@ tcp->loop();         // uv::Loop*
 ```cmake
 # FetchContent (recommended)
 include(FetchContent)
-FetchContent_Declare(libsourcey
-  GIT_REPOSITORY https://github.com/sourcey/libsourcey.git
+FetchContent_Declare(icey
+  GIT_REPOSITORY https://github.com/sourcey/icey.git
   GIT_TAG v2.1.0
 )
-FetchContent_MakeAvailable(libsourcey)
-target_link_libraries(myapp PRIVATE scy_base scy_net scy_http scy_av scy_webrtc scy_symple)
+FetchContent_MakeAvailable(icey)
+target_link_libraries(myapp PRIVATE icy_base icy_net icy_http icy_av icy_webrtc icy_symple)
 
-# Available targets: scy_base, scy_crypto, scy_net, scy_http, scy_json,
-# scy_av, scy_symple, scy_stun, scy_turn, scy_webrtc,
-# scy_archo, scy_pluga, scy_pacm, scy_sched
+# Available targets: icy_base, icy_crypto, icy_net, icy_http, icy_json,
+# icy_av, icy_symple, icy_stun, icy_turn, icy_webrtc,
+# icy_archo, icy_pluga, icy_pacm, icy_sched
 ```
 
 ```bash
 # Build from source
-git clone https://github.com/sourcey/libsourcey.git
-cd libsourcey
+git clone https://github.com/sourcey/icey.git
+cd icey
 cmake -B build -DCMAKE_BUILD_TYPE=Release -DWITH_FFMPEG=ON -DWITH_LIBDATACHANNEL=ON
 cmake --build build --parallel
 ```

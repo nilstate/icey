@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,11 +9,11 @@
 /// @{
 
 
-#include "scy/crypto/hmac.h"
-#include "scy/util.h"
+#include "icy/crypto/hmac.h"
+#include "icy/util.h"
 #include <stdexcept>
 
-#ifdef SCY_WIN
+#ifdef ICY_WIN
 // hack for name collision of OCSP_RESPONSE and wincrypto.h in openssl release
 // 0.9.8h
 // http://www.google.com/search?q=OCSP%5fRESPONSE+wincrypt%2eh
@@ -23,7 +23,7 @@
 #include <openssl/hmac.h>
 
 
-namespace scy {
+namespace icy {
 namespace crypto {
 
 
@@ -44,7 +44,7 @@ std::string computeHMAC(std::string_view input, std::string_view key)
 
 
 } // namespace crypto
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

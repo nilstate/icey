@@ -1,14 +1,14 @@
 cmake_minimum_required(VERSION 3.21)
 
 # Read version from file
-file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" LibSourcey_VERSION)
-string(STRIP "${LibSourcey_VERSION}" LibSourcey_VERSION)
+file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" Icey_VERSION)
+string(STRIP "${Icey_VERSION}" Icey_VERSION)
 
-project(LibSourcey
-  VERSION ${LibSourcey_VERSION}
+project(Icey
+  VERSION ${Icey_VERSION}
   LANGUAGES C CXX
   DESCRIPTION "C++ Networking Evolved"
-  HOMEPAGE_URL "https://github.com/sourcey/libsourcey"
+  HOMEPAGE_URL "https://github.com/sourcey/icey"
 )
 
 # C++20 standard
@@ -28,10 +28,10 @@ if(WIN32)
 endif()
 
 # Include the main build orchestrator
-include(LibSourcey.cmake)
+include(Icey.cmake)
 
 # Package configuration (CPack)
-include(cmake/LibSourceyPackage.cmake)
+include(cmake/IceyPackage.cmake)
 
 # CTest support
 if(BUILD_TESTS)
@@ -64,7 +64,7 @@ endif()
 
 # Build summary
 message(STATUS "")
-message(STATUS "  LibSourcey ${PROJECT_VERSION}")
+message(STATUS "  Icey ${PROJECT_VERSION}")
 message(STATUS "")
 message(STATUS "  Platform:      ${CMAKE_SYSTEM_NAME} ${CMAKE_SYSTEM_PROCESSOR}")
 message(STATUS "  CMake:         ${CMAKE_VERSION}")
@@ -74,9 +74,9 @@ message(STATUS "  C++ compiler:  ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_V
 message(STATUS "  C++ standard:  ${CMAKE_CXX_STANDARD}")
 message(STATUS "  Shared libs:   ${BUILD_SHARED_LIBS}")
 message(STATUS "")
-message(STATUS "  Modules:       ${LibSourcey_BUILD_MODULES}")
-message(STATUS "  Tests:         ${LibSourcey_BUILD_TESTS}")
-message(STATUS "  Samples:       ${LibSourcey_BUILD_SAMPLES}")
+message(STATUS "  Modules:       ${Icey_BUILD_MODULES}")
+message(STATUS "  Tests:         ${Icey_BUILD_TESTS}")
+message(STATUS "  Samples:       ${Icey_BUILD_SAMPLES}")
 message(STATUS "")
 message(STATUS "  OpenSSL:       ${HAVE_OPENSSL}")
 message(STATUS "  FFmpeg:        ${HAVE_FFMPEG}")

@@ -1,13 +1,13 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
 // HTTP Client
 //
-// Demonstrates making an outbound HTTP GET request using the LibSourcey
+// Demonstrates making an outbound HTTP GET request using the Icey
 // HTTP client. Prints the response status, headers, and body.
 //
 // Usage: httpclient [url]
@@ -17,15 +17,15 @@
 /// @{
 
 
-#include "scy/application.h"
-#include "scy/http/client.h"
-#include "scy/logger.h"
+#include "icy/application.h"
+#include "icy/http/client.h"
+#include "icy/logger.h"
 
 #include <iostream>
 #include <string>
 
 
-using namespace scy;
+using namespace icy;
 
 
 int main(int argc, char** argv)

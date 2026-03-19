@@ -4,18 +4,18 @@
 
 | Name | Description |
 |------|-------------|
-| [`InstallMonitor`](#classscy_1_1pacm_1_1InstallMonitor) |  |
-| [`InstallTask`](#classscy_1_1pacm_1_1InstallTask) | This class implements the package installation procedure. |
-| [`PackageManager`](#classscy_1_1pacm_1_1PackageManager) | The [Package](#structscy_1_1pacm_1_1Package) Manager provides an interface for managing, installing, updating and uninstalling Pacm packages. |
-| [`InstallationState`](#structscy_1_1pacm_1_1InstallationState) |  |
-| [`InstallOptions`](#structscy_1_1pacm_1_1InstallOptions) | [Package](#structscy_1_1pacm_1_1Package) installation options. |
-| [`Package`](#structscy_1_1pacm_1_1Package) | This class is a JSON representation of an package belonging to the [PackageManager](#classscy_1_1pacm_1_1PackageManager). |
-| [`Asset`](#structscy_1_1pacm_1_1Package_1_1Asset) | This class represents a archived file asset containing files belonging to the parent package. |
-| [`RemotePackage`](#structscy_1_1pacm_1_1RemotePackage) | This class is a JSON representation of an package existing on the remote server that may be downloaded and installed. |
-| [`LocalPackage`](#structscy_1_1pacm_1_1LocalPackage) | This class is a JSON representation of an installed local package that exists on the file system. |
-| [`Manifest`](#structscy_1_1pacm_1_1LocalPackage_1_1Manifest) | This class provides a list of all package files and their location on the file system. |
-| [`PackagePair`](#structscy_1_1pacm_1_1PackagePair) | This class provides pairing of a local and a remote package. |
-| [`Options`](#structscy_1_1pacm_1_1PackageManager_1_1Options) | [Package](#structscy_1_1pacm_1_1Package) manager initialization options. |
+| [`InstallMonitor`](#classicy_1_1pacm_1_1InstallMonitor) |  |
+| [`InstallTask`](#classicy_1_1pacm_1_1InstallTask) | This class implements the package installation procedure. |
+| [`PackageManager`](#classicy_1_1pacm_1_1PackageManager) | The [Package](#structicy_1_1pacm_1_1Package) Manager provides an interface for managing, installing, updating and uninstalling Pacm packages. |
+| [`InstallationState`](#structicy_1_1pacm_1_1InstallationState) |  |
+| [`InstallOptions`](#structicy_1_1pacm_1_1InstallOptions) | [Package](#structicy_1_1pacm_1_1Package) installation options. |
+| [`Package`](#structicy_1_1pacm_1_1Package) | This class is a JSON representation of an package belonging to the [PackageManager](#classicy_1_1pacm_1_1PackageManager). |
+| [`Asset`](#structicy_1_1pacm_1_1Package_1_1Asset) | This class represents a archived file asset containing files belonging to the parent package. |
+| [`RemotePackage`](#structicy_1_1pacm_1_1RemotePackage) | This class is a JSON representation of an package existing on the remote server that may be downloaded and installed. |
+| [`LocalPackage`](#structicy_1_1pacm_1_1LocalPackage) | This class is a JSON representation of an installed local package that exists on the file system. |
+| [`Manifest`](#structicy_1_1pacm_1_1LocalPackage_1_1Manifest) | This class provides a list of all package files and their location on the file system. |
+| [`PackagePair`](#structicy_1_1pacm_1_1PackagePair) | This class provides pairing of a local and a remote package. |
+| [`Options`](#structicy_1_1pacm_1_1PackageManager_1_1Options) | [Package](#structicy_1_1pacm_1_1Package) manager initialization options. |
 
 ### Members
 
@@ -305,7 +305,7 @@ int _progress
 
 ## InstallTask 
 
-> **Extends:** `scy::basic::Runnable`, `scy::Stateful< InstallationState >`
+> **Extends:** `icy::basic::Runnable`, `icy::Stateful< InstallationState >`
 > **Defined in:** `installtask.h`
 
 This class implements the package installation procedure.
@@ -622,7 +622,7 @@ Idler _runner
 #### _error 
 
 ```cpp
-[scy::Error](./doc/api-base.md#structscy_1_1Error) _error
+[icy::Error](./doc/api-base.md#structicy_1_1Error) _error
 ```
 
 ---
@@ -693,7 +693,7 @@ uv::Loop * _loop
 
 > **Defined in:** `packagemanager.h`
 
-The [Package](#structscy_1_1pacm_1_1Package) Manager provides an interface for managing, installing, updating and uninstalling Pacm packages.
+The [Package](#structicy_1_1pacm_1_1Package) Manager provides an interface for managing, installing, updating and uninstalling Pacm packages.
 
 ### Members
 
@@ -711,19 +711,19 @@ The [Package](#structscy_1_1pacm_1_1Package) Manager provides an interface for m
 | [`saveLocalPackages`](#group__pacm_1ga0dd3c90a7e9f85b20e6c0e44484be0af) |  |
 | [`saveLocalPackage`](#group__pacm_1gaf7b9979bcb8cb9cb83f7ad1cb435879c) | Saves the local package manifest to the file system. |
 | [`parseRemotePackages`](#group__pacm_1ga5a84f69090718da9af13247e64e28156) | Parse the remote packages from the given JSON data string. |
-| [`installPackage`](#group__pacm_1gad295633f0783292623a120b227685090) | [Package](#structscy_1_1pacm_1_1Package) Installation Methods. |
-| [`installPackages`](#group__pacm_1ga606a44cfed11394c05485adc351e9c04) | Installs multiple packages. The same options will be passed to each task. If a [InstallMonitor](#classscy_1_1pacm_1_1InstallMonitor) instance was passed in the tasks will need to be started, otherwise they will be auto-started. The [PackageManager](#classscy_1_1pacm_1_1PackageManager) does not take ownership of the [InstallMonitor](#classscy_1_1pacm_1_1InstallMonitor). |
-| [`updatePackage`](#group__pacm_1ga027124b092208da323cfc62299d9d4bc) | Updates a single package. Throws an exception if the package does not exist. The returned [InstallTask](#classscy_1_1pacm_1_1InstallTask) must be started. |
-| [`updatePackages`](#group__pacm_1gac48da691471662ce57f5815ac9c91ab0) | Updates multiple packages. Throws an exception if the package does not exist. If a [InstallMonitor](#classscy_1_1pacm_1_1InstallMonitor) instance was passed in the tasks will need to be started, otherwise they will be auto-started. The [PackageManager](#classscy_1_1pacm_1_1PackageManager) does not take ownership of the [InstallMonitor](#classscy_1_1pacm_1_1InstallMonitor). |
+| [`installPackage`](#group__pacm_1gad295633f0783292623a120b227685090) | [Package](#structicy_1_1pacm_1_1Package) Installation Methods. |
+| [`installPackages`](#group__pacm_1ga606a44cfed11394c05485adc351e9c04) | Installs multiple packages. The same options will be passed to each task. If a [InstallMonitor](#classicy_1_1pacm_1_1InstallMonitor) instance was passed in the tasks will need to be started, otherwise they will be auto-started. The [PackageManager](#classicy_1_1pacm_1_1PackageManager) does not take ownership of the [InstallMonitor](#classicy_1_1pacm_1_1InstallMonitor). |
+| [`updatePackage`](#group__pacm_1ga027124b092208da323cfc62299d9d4bc) | Updates a single package. Throws an exception if the package does not exist. The returned [InstallTask](#classicy_1_1pacm_1_1InstallTask) must be started. |
+| [`updatePackages`](#group__pacm_1gac48da691471662ce57f5815ac9c91ab0) | Updates multiple packages. Throws an exception if the package does not exist. If a [InstallMonitor](#classicy_1_1pacm_1_1InstallMonitor) instance was passed in the tasks will need to be started, otherwise they will be auto-started. The [PackageManager](#classicy_1_1pacm_1_1PackageManager) does not take ownership of the [InstallMonitor](#classicy_1_1pacm_1_1InstallMonitor). |
 | [`updateAllPackages`](#group__pacm_1gaabc1315c35c2204028ef39ef77201d33) | Updates all installed packages. |
 | [`uninstallPackages`](#group__pacm_1ga21634eceac90c02a342e413eb444a9d1) | Uninstalls multiple packages. |
 | [`uninstallPackage`](#group__pacm_1ga06e4a2f271745f6ea4c50d4a85953bd5) | Uninstalls a single package. |
 | [`hasUnfinalizedPackages`](#group__pacm_1ga736cd4d51f8c5e39dcfa2159fcfa0c8e) | Returns true if there are updates available that have not yet been finalized. Packages may be unfinalized if there were files in use at the time of installation. |
 | [`finalizeInstallations`](#group__pacm_1ga65f16318834b79ddfa651fbbee66b301) | Finalizes active installations by moving all package files to their target destination. If files are to be overwritten they must not be in use or finalization will fail. |
-| [`getInstallTask`](#group__pacm_1gad2d2c89ce41a9e620bdb0abfb005c369) | [Task](./doc/api-base.md#classscy_1_1Task) Helper Methods. |
+| [`getInstallTask`](#group__pacm_1gad2d2c89ce41a9e620bdb0abfb005c369) | [Task](./doc/api-base.md#classicy_1_1Task) Helper Methods. |
 | [`tasks`](#group__pacm_1ga06761269e2391f30c5e0564156af8374) | Returns a list of all tasks. |
 | [`cancelAllTasks`](#group__pacm_1ga86a2bcebdc5c0bd217877ff180f1640b) | Aborts all package installation tasks. All tasks must be aborted before clearing local or remote manifests. |
-| [`getPackagePairs`](#group__pacm_1ga11c411f6e676fb723561f8dc0c7bab4c) | [Package](#structscy_1_1pacm_1_1Package) Helper Methods. |
+| [`getPackagePairs`](#group__pacm_1ga11c411f6e676fb723561f8dc0c7bab4c) | [Package](#structicy_1_1pacm_1_1Package) Helper Methods. |
 | [`getUpdatablePackagePairs`](#group__pacm_1ga8d2d399c321a02b82363387c25641aa0) | Returns a list of package pairs which may be updated. All pairs will have both local and remote package pointers, and the remote version will be newer than the local version. |
 | [`getPackagePair`](#group__pacm_1ga2b2ef4158487fa1d82350994b5af38a9) | Returns a local and remote package pair. An exception will be thrown if either the local or remote packages aren't available or are invalid. |
 | [`getOrCreatePackagePair`](#group__pacm_1gada7825aae6e2a54ee37332750686f67b) | Returns a local and remote package pair. If the local package doesn't exist it will be created from the remote package. If the remote package doesn't exist a NotFoundException will be thrown. |
@@ -891,9 +891,9 @@ Parse the remote packages from the given JSON data string.
 virtual InstallTask::Ptr installPackage(const std::string & name, const InstallOptions & options)
 ```
 
-[Package](#structscy_1_1pacm_1_1Package) Installation Methods.
+[Package](#structicy_1_1pacm_1_1Package) Installation Methods.
 
-Installs a single package. The returned [InstallTask](#classscy_1_1pacm_1_1InstallTask) must be started. If the package is already up-to-date, a nullptr will be returned. Any other error will throw a std::runtime_error.
+Installs a single package. The returned [InstallTask](#classicy_1_1pacm_1_1InstallTask) must be started. If the package is already up-to-date, a nullptr will be returned. Any other error will throw a std::runtime_error.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -908,7 +908,7 @@ Installs a single package. The returned [InstallTask](#classscy_1_1pacm_1_1Insta
 virtual bool installPackages(const StringVec & ids, const InstallOptions & options, InstallMonitor * monitor, bool whiny)
 ```
 
-Installs multiple packages. The same options will be passed to each task. If a [InstallMonitor](#classscy_1_1pacm_1_1InstallMonitor) instance was passed in the tasks will need to be started, otherwise they will be auto-started. The [PackageManager](#classscy_1_1pacm_1_1PackageManager) does not take ownership of the [InstallMonitor](#classscy_1_1pacm_1_1InstallMonitor).
+Installs multiple packages. The same options will be passed to each task. If a [InstallMonitor](#classicy_1_1pacm_1_1InstallMonitor) instance was passed in the tasks will need to be started, otherwise they will be auto-started. The [PackageManager](#classicy_1_1pacm_1_1PackageManager) does not take ownership of the [InstallMonitor](#classicy_1_1pacm_1_1InstallMonitor).
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -925,7 +925,7 @@ Installs multiple packages. The same options will be passed to each task. If a [
 virtual InstallTask::Ptr updatePackage(const std::string & name, const InstallOptions & options)
 ```
 
-Updates a single package. Throws an exception if the package does not exist. The returned [InstallTask](#classscy_1_1pacm_1_1InstallTask) must be started.
+Updates a single package. Throws an exception if the package does not exist. The returned [InstallTask](#classicy_1_1pacm_1_1InstallTask) must be started.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -940,7 +940,7 @@ Updates a single package. Throws an exception if the package does not exist. The
 virtual bool updatePackages(const StringVec & ids, const InstallOptions & options, InstallMonitor * monitor, bool whiny)
 ```
 
-Updates multiple packages. Throws an exception if the package does not exist. If a [InstallMonitor](#classscy_1_1pacm_1_1InstallMonitor) instance was passed in the tasks will need to be started, otherwise they will be auto-started. The [PackageManager](#classscy_1_1pacm_1_1PackageManager) does not take ownership of the [InstallMonitor](#classscy_1_1pacm_1_1InstallMonitor).
+Updates multiple packages. Throws an exception if the package does not exist. If a [InstallMonitor](#classicy_1_1pacm_1_1InstallMonitor) instance was passed in the tasks will need to be started, otherwise they will be auto-started. The [PackageManager](#classicy_1_1pacm_1_1PackageManager) does not take ownership of the [InstallMonitor](#classicy_1_1pacm_1_1InstallMonitor).
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -1025,7 +1025,7 @@ Finalizes active installations by moving all package files to their target desti
 virtual InstallTask::Ptr getInstallTask(const std::string & id) const
 ```
 
-[Task](./doc/api-base.md#classscy_1_1Task) Helper Methods.
+[Task](./doc/api-base.md#classicy_1_1Task) Helper Methods.
 
 Gets the install task for the given package ID.
 
@@ -1061,7 +1061,7 @@ Aborts all package installation tasks. All tasks must be aborted before clearing
 virtual PackagePairVec getPackagePairs() const
 ```
 
-[Package](#structscy_1_1pacm_1_1Package) Helper Methods.
+[Package](#structicy_1_1pacm_1_1Package) Helper Methods.
 
 Returns all package pairs, valid or invalid. Some pairs may not have both local and remote package pointers.
 
@@ -1385,7 +1385,7 @@ Options _options
 
 > **Defined in:** `packagemanager.h`
 
-[Package](#structscy_1_1pacm_1_1Package) manager initialization options.
+[Package](#structicy_1_1pacm_1_1Package) manager initialization options.
 
 ### Members
 
@@ -1528,7 +1528,7 @@ This flag tells the package manager weather or not to clear the package cache if
 
 ## InstallationState 
 
-> **Extends:** `scy::State`
+> **Extends:** `icy::State`
 > **Defined in:** `installtask.h`
 
 ### Members
@@ -1572,7 +1572,7 @@ inline std::string str(unsigned int id) const
 
 > **Defined in:** `installtask.h`
 
-[Package](#structscy_1_1pacm_1_1Package) installation options.
+[Package](#structicy_1_1pacm_1_1Package) installation options.
 
 ### Members
 
@@ -1624,10 +1624,10 @@ Install to the given location, otherwise the manager default `installDir` will b
 ## Package 
 
 > **Extends:** `json::value`
-> **Subclasses:** `scy::pacm::LocalPackage`, `scy::pacm::RemotePackage`
+> **Subclasses:** `icy::pacm::LocalPackage`, `icy::pacm::RemotePackage`
 > **Defined in:** `package.h`
 
-This class is a JSON representation of an package belonging to the [PackageManager](#classscy_1_1pacm_1_1PackageManager).
+This class is a JSON representation of an package belonging to the [PackageManager](#classicy_1_1pacm_1_1PackageManager).
 
 ### Members
 
@@ -2030,7 +2030,7 @@ json::value & root
 
 ## RemotePackage 
 
-> **Extends:** `scy::pacm::Package`
+> **Extends:** `icy::pacm::Package`
 > **Defined in:** `package.h`
 
 This class is a JSON representation of an package existing on the remote server that may be downloaded and installed.
@@ -2123,7 +2123,7 @@ Returns the latest asset for the given SDK version. This method is for safely in
 
 ## LocalPackage 
 
-> **Extends:** `scy::pacm::Package`
+> **Extends:** `icy::pacm::Package`
 > **Defined in:** `package.h`
 
 This class is a JSON representation of an installed local package that exists on the file system.
@@ -2137,7 +2137,7 @@ This class is a JSON representation of an installed local package that exists on
 | [`LocalPackage`](#group__pacm_1ga8d915798d4874783e5f1a93460c8a790) | Create the local package from the remote package reference with the following manipulations. 1) Add a local manifest element. 2) Remove asset mirror elements. |
 | [`~LocalPackage`](#group__pacm_1gae753b7b0b571a560586e8f9f5f04c22b) |  |
 | [`setState`](#group__pacm_1gad38e4481bbac043f2bbcd7dd0cf23c15) | Set's the overall package state. Possible values are: Installing, Installed, Failed, Uninstalled. If the packages completes while still Installing, this means the package has yet to be finalized. |
-| [`setInstallState`](#group__pacm_1ga43dfd9e6481e0d3f7e42767024db6051) | Set's the package installation state. See [InstallationState](#structscy_1_1pacm_1_1InstallationState) for possible values. |
+| [`setInstallState`](#group__pacm_1ga43dfd9e6481e0d3f7e42767024db6051) | Set's the package installation state. See [InstallationState](#structicy_1_1pacm_1_1InstallationState) for possible values. |
 | [`setInstallDir`](#group__pacm_1gad2f95cca3661df99a22d600cda6cf73d) | Set's the installation directory for this package. |
 | [`setInstalledAsset`](#group__pacm_1ga2d16fefb83a30029394f13655f82999f) | Sets the installed asset, once installed. This method also sets the version. |
 | [`setVersion`](#group__pacm_1ga1fe540ab674a6df4f1fe21beba27d0bb) | Sets the current version of the local package. Installation must be complete. |
@@ -2225,7 +2225,7 @@ Set's the overall package state. Possible values are: Installing, Installed, Fai
 virtual void setInstallState(const std::string & state)
 ```
 
-Set's the package installation state. See [InstallationState](#structscy_1_1pacm_1_1InstallationState) for possible values.
+Set's the package installation state. See [InstallationState](#structicy_1_1pacm_1_1InstallationState) for possible values.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -2688,7 +2688,7 @@ RemotePackage * remote
 
 > **Defined in:** `packagemanager.h`
 
-[Package](#structscy_1_1pacm_1_1Package) manager initialization options.
+[Package](#structicy_1_1pacm_1_1Package) manager initialization options.
 
 ### Members
 

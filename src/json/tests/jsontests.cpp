@@ -1,23 +1,23 @@
-#include "scy/base.h"
-#include "scy/filesystem.h"
-#include "scy/json/configuration.h"
-#include "scy/json/iserializable.h"
-#include "scy/json/json.h"
-#include "scy/test.h"
+#include "icy/base.h"
+#include "icy/filesystem.h"
+#include "icy/json/configuration.h"
+#include "icy/json/iserializable.h"
+#include "icy/json/json.h"
+#include "icy/test.h"
 
 #include <fstream>
 #include <sstream>
 
 
 using namespace std;
-using namespace scy;
-using namespace scy::test;
+using namespace icy;
+using namespace icy::test;
 
 
 // Helper: create a temp JSON file and return its path
 static std::string writeTempJson(const std::string& content)
 {
-    std::string path = fs::makePath(SCY_SOURCE_DIR, "..");
+    std::string path = fs::makePath(ICY_SOURCE_DIR, "..");
     fs::addnode(path, "json_test_tmp.json");
     std::ofstream ofs(path);
     ofs << content;
@@ -123,7 +123,7 @@ int main(int argc, char** argv)
     //
     describe("loadFile and saveFile", []() {
         json::Value original;
-        original["name"] = "libsourcey";
+        original["name"] = "icey";
         original["version"] = 2;
         original["features"] = {"networking", "crypto", "av"};
 
@@ -136,7 +136,7 @@ int main(int argc, char** argv)
         json::Value loaded;
         json::loadFile(path, loaded);
 
-        expect(loaded["name"] == "libsourcey");
+        expect(loaded["name"] == "icey");
         expect(loaded["version"] == 2);
         expect(loaded["features"].size() == 3);
         expect(loaded["features"][1] == "crypto");
@@ -351,7 +351,7 @@ int main(int argc, char** argv)
         {
             json::Configuration config;
             config.load(path, true);
-            config.setString("app.name", "libsourcey");
+            config.setString("app.name", "icey");
             config.setInt("app.version", 2);
             config.save();
         }
@@ -360,7 +360,7 @@ int main(int argc, char** argv)
         {
             json::Configuration config;
             config.load(path);
-            expect(config.getString("app.name") == "libsourcey");
+            expect(config.getString("app.name") == "icey");
             expect(config.getInt("app.version") == 2);
         }
 

@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,17 +9,17 @@
 /// @{
 
 
-#include "scy/net/sslcontext.h"
-#include "scy/crypto/crypto.h"
-#include "scy/datetime.h"
-#include "scy/filesystem.h"
-#include "scy/net/sslmanager.h"
+#include "icy/net/sslcontext.h"
+#include "icy/crypto/crypto.h"
+#include "icy/datetime.h"
+#include "icy/filesystem.h"
+#include "icy/net/sslmanager.h"
 
 
 using namespace std;
 
 
-namespace scy {
+namespace icy {
 namespace net {
 
 
@@ -376,7 +376,7 @@ void SSLContext::enableSNI(SSL* ssl, const std::string& hostname)
 
 
 } // namespace net
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

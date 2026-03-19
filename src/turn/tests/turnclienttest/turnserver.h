@@ -2,11 +2,11 @@
 #define TURN_TurnServer_H
 
 
-#include "scy/turn/server/server.h"
+#include "icy/turn/server/server.h"
 #include <iostream>
 
 
-namespace scy {
+namespace icy {
 
 
 struct TestServer : public turn::ServerObserver
@@ -52,8 +52,8 @@ struct TestServer : public turn::ServerObserver
 #define RunTestServer() \
     LDebug("Running TURN Server"); \
     turn::ServerOptions so; \
-    so.software = "Sourcey STUN/TURN Server [rfc5766]"; \
-    so.realm = "sourcey.com"; \
+    so.software = "Icey STUN/TURN Server [rfc5766]"; \
+    so.realm = "0state.com"; \
     so.allocationDefaultLifetime = 1 * 60 * 1000; \
     so.allocationMaxLifetime = 15 * 60 * 1000; \
     so.timerInterval = 5 * 1000; \
@@ -63,7 +63,7 @@ struct TestServer : public turn::ServerObserver
     srv.start();
 
 
-} //  namespace scy
+} //  namespace icy
 
 
 #endif // TURN_TurnServer_H

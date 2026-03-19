@@ -1,17 +1,17 @@
-#include "scy/archo/zipfile.h"
-#include "scy/test.h"
-#include "scy/filesystem.h"
-#include "scy/platform.h"
+#include "icy/archo/zipfile.h"
+#include "icy/test.h"
+#include "icy/filesystem.h"
+#include "icy/platform.h"
 
 
-using namespace scy;
-using namespace scy::test;
+using namespace icy;
+using namespace icy::test;
 
 
 std::string testDataDir(const std::string& file)
 {
     std::string dir;
-    fs::addnode(dir, SCY_SOURCE_DIR);
+    fs::addnode(dir, ICY_SOURCE_DIR);
     fs::addnode(dir, "archo");
     fs::addnode(dir, "tests");
     fs::addnode(dir, "data");
@@ -29,7 +29,7 @@ int main(int argc, char** argv)
         std::string path(testDataDir("test.zip"));
         archo::ZipFile zip(path);
 
-        std::string output(scy::getCwd());
+        std::string output(icy::getCwd());
         fs::addnode(output, "archo");
         zip.extract(output);
 

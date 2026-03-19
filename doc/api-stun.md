@@ -6,18 +6,18 @@ The `stun` module contains a STUN (rfc5389) implementation.
 
 | Name | Description |
 |------|-------------|
-| [`Attribute`](#classscy_1_1stun_1_1Attribute) | The virtual base class for all STUN/TURN attributes. |
-| [`AddressAttribute`](#classscy_1_1stun_1_1AddressAttribute) | Implements a STUN/TURN attribute that contains a socket address. |
-| [`UInt8Attribute`](#classscy_1_1stun_1_1UInt8Attribute) | Implements STUN/TURN attribute that reflects a 32-bit integer. |
-| [`UInt32Attribute`](#classscy_1_1stun_1_1UInt32Attribute) | Implements STUN/TURN attribute that reflects a 32-bit integer. |
-| [`UInt64Attribute`](#classscy_1_1stun_1_1UInt64Attribute) | Implements STUN/TURN attribute that reflects a 64-bit integer. |
-| [`FlagAttribute`](#classscy_1_1stun_1_1FlagAttribute) | Implements STUN/TURN attribute representing a 0 size flag. |
-| [`StringAttribute`](#classscy_1_1stun_1_1StringAttribute) | Implements STUN/TURN attribute that reflects an arbitrary byte string. |
-| [`UInt16ListAttribute`](#classscy_1_1stun_1_1UInt16ListAttribute) | Implements STUN/TURN attribute that reflects a list of attribute names. |
-| [`MessageIntegrity`](#classscy_1_1stun_1_1MessageIntegrity) | Implements STUN/TURN attributes that reflects an internet address. |
-| [`ErrorCode`](#classscy_1_1stun_1_1ErrorCode) | Implements STUN/TURN attribute that reflects an error code. |
-| [`Message`](#classscy_1_1stun_1_1Message) |  |
-| [`Transaction`](#classscy_1_1stun_1_1Transaction) |  |
+| [`Attribute`](#classicy_1_1stun_1_1Attribute) | The virtual base class for all STUN/TURN attributes. |
+| [`AddressAttribute`](#classicy_1_1stun_1_1AddressAttribute) | Implements a STUN/TURN attribute that contains a socket address. |
+| [`UInt8Attribute`](#classicy_1_1stun_1_1UInt8Attribute) | Implements STUN/TURN attribute that reflects a 32-bit integer. |
+| [`UInt32Attribute`](#classicy_1_1stun_1_1UInt32Attribute) | Implements STUN/TURN attribute that reflects a 32-bit integer. |
+| [`UInt64Attribute`](#classicy_1_1stun_1_1UInt64Attribute) | Implements STUN/TURN attribute that reflects a 64-bit integer. |
+| [`FlagAttribute`](#classicy_1_1stun_1_1FlagAttribute) | Implements STUN/TURN attribute representing a 0 size flag. |
+| [`StringAttribute`](#classicy_1_1stun_1_1StringAttribute) | Implements STUN/TURN attribute that reflects an arbitrary byte string. |
+| [`UInt16ListAttribute`](#classicy_1_1stun_1_1UInt16ListAttribute) | Implements STUN/TURN attribute that reflects a list of attribute names. |
+| [`MessageIntegrity`](#classicy_1_1stun_1_1MessageIntegrity) | Implements STUN/TURN attributes that reflects an internet address. |
+| [`ErrorCode`](#classicy_1_1stun_1_1ErrorCode) | Implements STUN/TURN attribute that reflects an error code. |
+| [`Message`](#classicy_1_1stun_1_1Message) |  |
+| [`Transaction`](#classicy_1_1stun_1_1Transaction) |  |
 
 ### Members
 
@@ -35,7 +35,7 @@ STUN_API()
 
 ## Attribute 
 
-> **Subclasses:** `scy::stun::AddressAttribute`, `scy::stun::ErrorCode`, `scy::stun::FlagAttribute`, `scy::stun::MessageIntegrity`, `scy::stun::StringAttribute`, `scy::stun::UInt16ListAttribute`, `scy::stun::UInt32Attribute`, `scy::stun::UInt64Attribute`, `scy::stun::UInt8Attribute`
+> **Subclasses:** `icy::stun::AddressAttribute`, `icy::stun::ErrorCode`, `icy::stun::FlagAttribute`, `icy::stun::MessageIntegrity`, `icy::stun::StringAttribute`, `icy::stun::UInt16ListAttribute`, `icy::stun::UInt32Attribute`, `icy::stun::UInt64Attribute`, `icy::stun::UInt8Attribute`
 > **Defined in:** `attributes.h`
 
 The virtual base class for all STUN/TURN attributes.
@@ -279,7 +279,7 @@ uint16_t _size
 
 ## AddressAttribute 
 
-> **Extends:** `scy::stun::Attribute`
+> **Extends:** `icy::stun::Attribute`
 > **Defined in:** `attributes.h`
 
 Implements a STUN/TURN attribute that contains a socket address.
@@ -415,7 +415,7 @@ net::Address _address
 
 ## UInt8Attribute 
 
-> **Extends:** `scy::stun::Attribute`
+> **Extends:** `icy::stun::Attribute`
 > **Defined in:** `attributes.h`
 
 Implements STUN/TURN attribute that reflects a 32-bit integer.
@@ -559,7 +559,7 @@ uint8_t _bits
 
 ## UInt32Attribute 
 
-> **Extends:** `scy::stun::Attribute`
+> **Extends:** `icy::stun::Attribute`
 > **Defined in:** `attributes.h`
 
 Implements STUN/TURN attribute that reflects a 32-bit integer.
@@ -703,7 +703,7 @@ uint32_t _bits
 
 ## UInt64Attribute 
 
-> **Extends:** `scy::stun::Attribute`
+> **Extends:** `icy::stun::Attribute`
 > **Defined in:** `attributes.h`
 
 Implements STUN/TURN attribute that reflects a 64-bit integer.
@@ -847,7 +847,7 @@ uint64_t _bits
 
 ## FlagAttribute 
 
-> **Extends:** `scy::stun::Attribute`
+> **Extends:** `icy::stun::Attribute`
 > **Defined in:** `attributes.h`
 
 Implements STUN/TURN attribute representing a 0 size flag.
@@ -920,7 +920,7 @@ const uint16_t Size = 0
 
 ## StringAttribute 
 
-> **Extends:** `scy::stun::Attribute`
+> **Extends:** `icy::stun::Attribute`
 > **Defined in:** `attributes.h`
 
 Implements STUN/TURN attribute that reflects an arbitrary byte string.
@@ -1102,7 +1102,7 @@ std::vector< char > _bytes
 
 ## UInt16ListAttribute 
 
-> **Extends:** `scy::stun::Attribute`
+> **Extends:** `icy::stun::Attribute`
 > **Defined in:** `attributes.h`
 
 Implements STUN/TURN attribute that reflects a list of attribute names.
@@ -1247,7 +1247,7 @@ std::vector< uint16_t > _attrTypes
 
 ## MessageIntegrity 
 
-> **Extends:** `scy::stun::Attribute`
+> **Extends:** `icy::stun::Attribute`
 > **Defined in:** `attributes.h`
 
 Implements STUN/TURN attributes that reflects an internet address.
@@ -1453,7 +1453,7 @@ std::string _key
 
 ## ErrorCode 
 
-> **Extends:** `scy::stun::Attribute`
+> **Extends:** `icy::stun::Attribute`
 > **Defined in:** `attributes.h`
 
 Implements STUN/TURN attribute that reflects an error code.
@@ -1646,8 +1646,8 @@ std::string _reason
 
 ## Message 
 
-> **Extends:** `scy::IPacket`
-> **Subclasses:** `scy::turn::Request`
+> **Extends:** `icy::IPacket`
+> **Subclasses:** `icy::turn::Request`
 > **Defined in:** `message.h`
 
 ### Members
@@ -2086,7 +2086,7 @@ std::vector< std::unique_ptr< Attribute > > _attrs
 
 ## Transaction 
 
-> **Extends:** `scy::net::Transaction< Message >`
+> **Extends:** `icy::net::Transaction< Message >`
 > **Defined in:** `transaction.h`
 
 ### Members

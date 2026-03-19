@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -19,22 +19,22 @@
 /// @{
 
 
-#include "scy/application.h"
-#include "scy/av/mediacapture.h"
-#include "scy/av/multiplexpacketencoder.h"
-#include "scy/logger.h"
-#include "scy/packetstream.h"
+#include "icy/application.h"
+#include "icy/av/mediacapture.h"
+#include "icy/av/multiplexpacketencoder.h"
+#include "icy/logger.h"
+#include "icy/packetstream.h"
 
 #include <iostream>
 #include <string>
 
 
-using namespace scy;
+using namespace icy;
 
 
 int main(int argc, char** argv)
 {
-    std::string inputFile = argc > 1 ? argv[1] : SCY_DATA_DIR "/test.mp4";
+    std::string inputFile = argc > 1 ? argv[1] : ICY_DATA_DIR "/test.mp4";
     std::string outputFile = argc > 2 ? argv[2] : "output.mp4";
 
     Logger::instance().add(std::make_unique<ConsoleChannel>("debug", Level::Debug));

@@ -2,7 +2,7 @@
 
 Symple v4 server and client for real-time messaging and presence over native WebSocket.
 
-Part of [libsourcey](https://github.com/sourcey/libsourcey). Implements the same protocol as the [JS server](https://github.com/sourcey/symple-server) and [JS client](https://github.com/sourcey/symple-client).
+Part of [icey](https://github.com/sourcey/icey). Implements the same protocol as the [JS server](https://github.com/icey/symple-server) and [JS client](https://github.com/icey/symple-client).
 
 ## Features
 
@@ -17,7 +17,7 @@ Part of [libsourcey](https://github.com/sourcey/libsourcey). Implements the same
 ## Server
 
 ```cpp
-#include "scy/symple/server.h"
+#include "icy/symple/server.h"
 
 smpl::Server server;
 
@@ -51,7 +51,7 @@ uv::runLoop();
 ## Client
 
 ```cpp
-#include "scy/symple/client.h"
+#include "icy/symple/client.h"
 
 smpl::Client::Options opts;
 opts.host = "127.0.0.1";
@@ -75,7 +75,7 @@ client.connect();
 ## WebRTC Signalling
 
 ```cpp
-#include "scy/webrtc/symplesignaller.h"
+#include "icy/webrtc/symplesignaller.h"
 
 smpl::Client symple(opts);
 symple.connect();
@@ -110,7 +110,7 @@ See [PROTOCOL.md](PROTOCOL.md) for the full wire protocol specification.
 
 ## Building
 
-Symple is built as part of libsourcey:
+Symple is built as part of icey:
 
 ```bash
 cmake -B build -DCMAKE_BUILD_TYPE=Release

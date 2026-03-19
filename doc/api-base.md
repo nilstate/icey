@@ -6,109 +6,109 @@ The `base` module contains reusable cross platform tools and utilities.
 
 | Name | Description |
 |------|-------------|
-| [`Thread`](#classscy_1_1Thread) | This class implements a platform-independent wrapper around an operating system thread. |
-| [`Application`](#classscy_1_1Application) | Main LibSourcey application class. |
-| [`MutableBuffer`](#classscy_1_1MutableBuffer) | The [MutableBuffer](#classscy_1_1MutableBuffer) class provides a safe representation of a buffer that can be modified. It does not own the underlying data, and so is cheap to copy or assign. |
-| [`ConstBuffer`](#classscy_1_1ConstBuffer) | The [ConstBuffer](#classscy_1_1ConstBuffer) class provides a safe representation of a buffer that cannot be modified. It does not own the underlying data, and so is cheap to copy or assign. |
-| [`BitReader`](#classscy_1_1BitReader) | Class for reading binary streams. |
-| [`BitWriter`](#classscy_1_1BitWriter) | Class for reading/writing binary streams. |
-| [`DynamicBitWriter`](#classscy_1_1DynamicBitWriter) | Class for reading/writing dynamically resizable binary streams. |
-| [`AbstractCollection`](#classscy_1_1AbstractCollection) | [AbstractCollection](#classscy_1_1AbstractCollection) is an abstract interface for managing a key-value store of indexed pointers. |
-| [`PointerCollection`](#classscy_1_1PointerCollection) | This collection is used to maintain a map of unique_ptr values indexed by key in a thread-safe way. |
-| [`LiveCollection`](#classscy_1_1LiveCollection) |  |
-| [`KVCollection`](#classscy_1_1KVCollection) | Reusable stack based unique key-value store for DRY coding. |
-| [`NVCollection`](#classscy_1_1NVCollection) | A storage container for a name value collections. This collection can store multiple entries for each name, and it's getters are case-insensitive. |
-| [`Configuration`](#classscy_1_1Configuration) | [Configuration](#classscy_1_1Configuration) is an abstract base class for managing different kinds of configuration storage back ends such as JSON, XML, or database. |
-| [`ScopedConfiguration`](#classscy_1_1ScopedConfiguration) | [ScopedConfiguration](#classscy_1_1ScopedConfiguration) provides multiple levels of configuration for a module. Multiple levels means that there is a module level scope, and a default scope. When a property is accessed, the module scope value will be used if available, otherwise the default scope value will be used. |
-| [`Timestamp`](#classscy_1_1Timestamp) | A [Timestamp](#classscy_1_1Timestamp) stores a monotonic* time value with (theoretical) microseconds resolution. Timestamps can be compared with each other and simple arithmetics are supported. |
-| [`Timespan`](#classscy_1_1Timespan) | A class that represents time spans up to microsecond resolution. |
-| [`DateTime`](#classscy_1_1DateTime) | This class represents an instant in time, expressed in years, months, days, hours, minutes, seconds and milliseconds based on the Gregorian calendar. The class is mainly useful for conversions between UTC, Julian day and Gregorian calendar dates. |
-| [`Timezone`](#classscy_1_1Timezone) | This class provides information about the current timezone. |
-| [`LocalDateTime`](#classscy_1_1LocalDateTime) | This class represents an instant in local time (as opposed to UTC), expressed in years, months, days, hours, minutes, seconds and milliseconds based on the Gregorian calendar. |
-| [`DateTimeFormat`](#classscy_1_1DateTimeFormat) | Definition of date/time formats and various constants used by [DateTimeFormatter](#classscy_1_1DateTimeFormatter) and [DateTimeParser](#classscy_1_1DateTimeParser). |
-| [`DateTimeFormatter`](#classscy_1_1DateTimeFormatter) | This class converts dates and times into strings, supporting a variety of standard and custom formats. |
-| [`DateTimeParser`](#classscy_1_1DateTimeParser) | This class provides a method for parsing dates and times from strings. All parsing methods do their best to parse a meaningful result, even from malformed input strings. |
-| [`Stopwatch`](#classscy_1_1Stopwatch) | A simple facility to measure time intervals with microsecond resolution. |
-| [`Idler`](#classscy_1_1Idler) | Asynchronous type that triggers callbacks when the event loop is idle. |
-| [`Decoder`](#classscy_1_1basic_1_1Decoder) |  |
-| [`Encoder`](#classscy_1_1basic_1_1Encoder) |  |
-| [`Runnable`](#classscy_1_1basic_1_1Runnable) | Abstract interface for classes that can be run and cancelled. |
-| [`Startable`](#classscy_1_1basic_1_1Startable) | Abstract interface for a classes that can be started and stopped. |
-| [`Sendable`](#classscy_1_1basic_1_1Sendable) | Abstract interface for classes that can be sent and cancelled. |
-| [`Queue`](#classscy_1_1ipc_1_1Queue) | IPC queue is for safely passing templated actions between threads and processes. |
-| [`SyncQueue`](#classscy_1_1ipc_1_1SyncQueue) | IPC synchronization queue is for passing templated actions between threads and the event loop we are synchronizing with. |
-| [`LogWriter`](#classscy_1_1LogWriter) | Log output stream writer. |
-| [`AsyncLogWriter`](#classscy_1_1AsyncLogWriter) | [Thread](#classscy_1_1Thread) based log output stream writer. |
-| [`Logger`](#classscy_1_1Logger) | [Logger](#classscy_1_1Logger) class. |
-| [`LogChannel`](#classscy_1_1LogChannel) |  |
-| [`ConsoleChannel`](#classscy_1_1ConsoleChannel) |  |
-| [`FileChannel`](#classscy_1_1FileChannel) |  |
-| [`RotatingFileChannel`](#classscy_1_1RotatingFileChannel) |  |
-| [`IPacket`](#classscy_1_1IPacket) | The basic packet type which is passed around the LibSourcey system. [IPacket](#classscy_1_1IPacket) can be extended for each protocol to enable polymorphic processing and callbacks using [PacketStream](#classscy_1_1PacketStream) and friends. |
-| [`FlagPacket`](#classscy_1_1FlagPacket) | Packet for sending bitwise flags along the packet stream. |
-| [`RawPacket`](#classscy_1_1RawPacket) | [RawPacket](#classscy_1_1RawPacket) is the default data packet type which consists of an optionally managed char pointer and a size value. |
-| [`IPacketCreationStrategy`](#classscy_1_1IPacketCreationStrategy) |  |
-| [`PacketFactory`](#classscy_1_1PacketFactory) |  |
-| [`ThreadedStreamReader`](#classscy_1_1ThreadedStreamReader) | Threaded stream reader class. |
-| [`StreamWriter`](#classscy_1_1StreamWriter) | Packet stream writer class. |
-| [`SyncPacketQueue`](#classscy_1_1SyncPacketQueue) |  |
-| [`AsyncPacketQueue`](#classscy_1_1AsyncPacketQueue) |  |
-| [`PacketStreamAdapter`](#classscy_1_1PacketStreamAdapter) | This class is a wrapper for integrating external classes with the a [PacketStream](#classscy_1_1PacketStream)'s data flow and state machine. |
-| [`PacketProcessor`](#classscy_1_1PacketProcessor) | This class is a virtual interface for creating PacketStreamAdapters which process that and emit the [IPacket](#classscy_1_1IPacket) type. |
-| [`PacketStream`](#classscy_1_1PacketStream) | This class is used for processing and boradcasting IPackets in a flexible way. A [PacketStream](#classscy_1_1PacketStream) consists of one or many PacketSources, one or many PacketProcessors, and one or many delegate receivers. |
-| [`PacketTransaction`](#classscy_1_1PacketTransaction) | This class provides request/response functionality for [IPacket](#classscy_1_1IPacket) types. |
-| [`Pipe`](#classscy_1_1Pipe) | [Pipe](#classscy_1_1Pipe) implementation for process stdio. |
-| [`Process`](#classscy_1_1Process) |  |
-| [`Queue`](#classscy_1_1Queue) | Thread-safe queue container. |
-| [`RunnableQueue`](#classscy_1_1RunnableQueue) |  |
-| [`SyncQueue`](#classscy_1_1SyncQueue) | [SyncQueue](#classscy_1_1SyncQueue) extends [Synchronizer](#classscy_1_1Synchronizer) to implement a synchronized FIFO queue which receives T objects from any thread and synchronizes them for safe consumption by the associated event loop. |
-| [`AsyncQueue`](#classscy_1_1AsyncQueue) | [AsyncQueue](#classscy_1_1AsyncQueue) is a thread-based queue which receives packets from any thread source and dispatches them asynchronously. |
-| [`Random`](#classscy_1_1Random) | [Random](#classscy_1_1Random) implements a pseudo random number generator (PRNG). The PRNG is a nonlinear additive feedback random number generator using 256 bytes of state information and a period of up to 2^69. |
-| [`Runner`](#classscy_1_1Runner) | [Runner](#classscy_1_1Runner) is a virtual interface for implementing asynchronous objects such as threads and futures. |
-| [`StopPropagation`](#classscy_1_1StopPropagation) | Exception to break out of the current [Signal](#classscy_1_1Signal) callback scope. |
-| [`Signal`](#classscy_1_1Signal) | [Signal](#classscy_1_1Signal) and slots implementation. |
-| [`Signal< RT(Args...)>`](#classscy_1_1Signal_3_01RT_07Args_8_8_8_08_4) |  |
-| [`Singleton`](#classscy_1_1Singleton) | Helper template class for managing singleton objects allocated on the heap. |
-| [`State`](#classscy_1_1State) | [State](#classscy_1_1State) class for state machines. |
-| [`Stateful`](#classscy_1_1Stateful) | [State](#classscy_1_1State) machine implementation. |
-| [`Stream`](#classscy_1_1Stream) | Basic stream type for sockets and pipes. |
-| [`Synchronizer`](#classscy_1_1Synchronizer) | [Synchronizer](#classscy_1_1Synchronizer) enables any thread to communicate with the associated event loop via synchronized callbacks. |
-| [`Task`](#classscy_1_1Task) | Abstract class is for implementing any kind asyncronous task. |
-| [`TaskRunner`](#classscy_1_1TaskRunner) | [Runner](#classscy_1_1Runner) for tasks that inherit the `[Task](#classscy_1_1Task)` interface. |
-| [`Test`](#classscy_1_1test_1_1Test) | [Test](#classscy_1_1test_1_1Test) wrapper class. |
-| [`FunctionTest`](#classscy_1_1test_1_1FunctionTest) |  |
-| [`TestRunner`](#classscy_1_1test_1_1TestRunner) | [Test](#classscy_1_1test_1_1Test) manager queue. |
-| [`Timer`](#classscy_1_1Timer) | Asynchronous event based timer. |
-| [`TZInfo`](#classscy_1_1TZInfo) |  |
-| [`Timeout`](#classscy_1_1Timeout) | [Timeout](#classscy_1_1Timeout) counter which expires after a given delay. |
-| [`TimedToken`](#classscy_1_1TimedToken) | Token that expires after the specified duration. |
-| [`OptionParser`](#structscy_1_1OptionParser) |  |
-| [`ShutdownCmd`](#structscy_1_1ShutdownCmd) |  |
-| [`Encoder`](#structscy_1_1base64_1_1Encoder) | Base64 encoder. |
-| [`Decoder`](#structscy_1_1base64_1_1Decoder) | Base64 decoder. |
-| [`Bitwise`](#structscy_1_1Bitwise) | Container for smart management of bitwise integer flags. |
-| [`ILT`](#structscy_1_1NVCollection_1_1ILT) |  |
-| [`AbstractDelegate`](#structscy_1_1AbstractDelegate) | Abstract delegate interface. |
-| [`FunctionDelegate`](#structscy_1_1FunctionDelegate) | The `[FunctionDelegate](#structscy_1_1FunctionDelegate)` contains a `std::function`. |
-| [`ClassDelegate`](#structscy_1_1ClassDelegate) | The `[ClassDelegate](#structscy_1_1ClassDelegate)` contains a pointer to a class member. |
-| [`ConstClassDelegate`](#structscy_1_1ConstClassDelegate) | The `[ConstClassDelegate](#structscy_1_1ConstClassDelegate)` contains a pointer to a `const` class member. |
-| [`PolymorphicDelegate`](#structscy_1_1PolymorphicDelegate) | Polymorphic function delegate. |
-| [`Error`](#structscy_1_1Error) | Basic error type. |
-| [`Encoder`](#structscy_1_1hex_1_1Encoder) | Hex encoder. |
-| [`Decoder`](#structscy_1_1hex_1_1Decoder) | Hex decoder. |
-| [`Action`](#structscy_1_1ipc_1_1Action) | Default action type for executing synchronized callbacks. |
-| [`LogStream`](#structscy_1_1LogStream) |  |
-| [`Dispose`](#structscy_1_1deleter_1_1Dispose) | Deleter functor that calls dispose() on the pointer. |
-| [`Array`](#structscy_1_1deleter_1_1Array) | Deleter functor for array pointers. |
-| [`IPacketInfo`](#structscy_1_1IPacketInfo) | An abstract interface for packet sources to provide extra information about packets. |
-| [`PacketCreationStrategy`](#structscy_1_1PacketCreationStrategy) | This template class implements an adapter that sits between an SignalBase and an object receiving notifications from it. |
-| [`PacketAdapterReference`](#structscy_1_1PacketAdapterReference) | Provides a reference to a [PacketStreamAdapter](#classscy_1_1PacketStreamAdapter) with optional ownership. |
-| [`PacketStreamState`](#structscy_1_1PacketStreamState) |  |
-| [`TransactionState`](#structscy_1_1TransactionState) |  |
-| [`Context`](#structscy_1_1Runner_1_1Context) | [Context](#structscy_1_1Runner_1_1Context) object which we send to the thread context. |
-| [`SharedLibrary`](#structscy_1_1SharedLibrary) |  |
-| [`Deleter`](#structscy_1_1Singleton_1_1Deleter) | Custom deleter that can access private destructors via friendship. |
-| [`Version`](#structscy_1_1util_1_1Version) |  |
+| [`Thread`](#classicy_1_1Thread) | This class implements a platform-independent wrapper around an operating system thread. |
+| [`Application`](#classicy_1_1Application) | Main Icey application class. |
+| [`MutableBuffer`](#classicy_1_1MutableBuffer) | The [MutableBuffer](#classicy_1_1MutableBuffer) class provides a safe representation of a buffer that can be modified. It does not own the underlying data, and so is cheap to copy or assign. |
+| [`ConstBuffer`](#classicy_1_1ConstBuffer) | The [ConstBuffer](#classicy_1_1ConstBuffer) class provides a safe representation of a buffer that cannot be modified. It does not own the underlying data, and so is cheap to copy or assign. |
+| [`BitReader`](#classicy_1_1BitReader) | Class for reading binary streams. |
+| [`BitWriter`](#classicy_1_1BitWriter) | Class for reading/writing binary streams. |
+| [`DynamicBitWriter`](#classicy_1_1DynamicBitWriter) | Class for reading/writing dynamically resizable binary streams. |
+| [`AbstractCollection`](#classicy_1_1AbstractCollection) | [AbstractCollection](#classicy_1_1AbstractCollection) is an abstract interface for managing a key-value store of indexed pointers. |
+| [`PointerCollection`](#classicy_1_1PointerCollection) | This collection is used to maintain a map of unique_ptr values indexed by key in a thread-safe way. |
+| [`LiveCollection`](#classicy_1_1LiveCollection) |  |
+| [`KVCollection`](#classicy_1_1KVCollection) | Reusable stack based unique key-value store for DRY coding. |
+| [`NVCollection`](#classicy_1_1NVCollection) | A storage container for a name value collections. This collection can store multiple entries for each name, and it's getters are case-insensitive. |
+| [`Configuration`](#classicy_1_1Configuration) | [Configuration](#classicy_1_1Configuration) is an abstract base class for managing different kinds of configuration storage back ends such as JSON, XML, or database. |
+| [`ScopedConfiguration`](#classicy_1_1ScopedConfiguration) | [ScopedConfiguration](#classicy_1_1ScopedConfiguration) provides multiple levels of configuration for a module. Multiple levels means that there is a module level scope, and a default scope. When a property is accessed, the module scope value will be used if available, otherwise the default scope value will be used. |
+| [`Timestamp`](#classicy_1_1Timestamp) | A [Timestamp](#classicy_1_1Timestamp) stores a monotonic* time value with (theoretical) microseconds resolution. Timestamps can be compared with each other and simple arithmetics are supported. |
+| [`Timespan`](#classicy_1_1Timespan) | A class that represents time spans up to microsecond resolution. |
+| [`DateTime`](#classicy_1_1DateTime) | This class represents an instant in time, expressed in years, months, days, hours, minutes, seconds and milliseconds based on the Gregorian calendar. The class is mainly useful for conversions between UTC, Julian day and Gregorian calendar dates. |
+| [`Timezone`](#classicy_1_1Timezone) | This class provides information about the current timezone. |
+| [`LocalDateTime`](#classicy_1_1LocalDateTime) | This class represents an instant in local time (as opposed to UTC), expressed in years, months, days, hours, minutes, seconds and milliseconds based on the Gregorian calendar. |
+| [`DateTimeFormat`](#classicy_1_1DateTimeFormat) | Definition of date/time formats and various constants used by [DateTimeFormatter](#classicy_1_1DateTimeFormatter) and [DateTimeParser](#classicy_1_1DateTimeParser). |
+| [`DateTimeFormatter`](#classicy_1_1DateTimeFormatter) | This class converts dates and times into strings, supporting a variety of standard and custom formats. |
+| [`DateTimeParser`](#classicy_1_1DateTimeParser) | This class provides a method for parsing dates and times from strings. All parsing methods do their best to parse a meaningful result, even from malformed input strings. |
+| [`Stopwatch`](#classicy_1_1Stopwatch) | A simple facility to measure time intervals with microsecond resolution. |
+| [`Idler`](#classicy_1_1Idler) | Asynchronous type that triggers callbacks when the event loop is idle. |
+| [`Decoder`](#classicy_1_1basic_1_1Decoder) |  |
+| [`Encoder`](#classicy_1_1basic_1_1Encoder) |  |
+| [`Runnable`](#classicy_1_1basic_1_1Runnable) | Abstract interface for classes that can be run and cancelled. |
+| [`Startable`](#classicy_1_1basic_1_1Startable) | Abstract interface for a classes that can be started and stopped. |
+| [`Sendable`](#classicy_1_1basic_1_1Sendable) | Abstract interface for classes that can be sent and cancelled. |
+| [`Queue`](#classicy_1_1ipc_1_1Queue) | IPC queue is for safely passing templated actions between threads and processes. |
+| [`SyncQueue`](#classicy_1_1ipc_1_1SyncQueue) | IPC synchronization queue is for passing templated actions between threads and the event loop we are synchronizing with. |
+| [`LogWriter`](#classicy_1_1LogWriter) | Log output stream writer. |
+| [`AsyncLogWriter`](#classicy_1_1AsyncLogWriter) | [Thread](#classicy_1_1Thread) based log output stream writer. |
+| [`Logger`](#classicy_1_1Logger) | [Logger](#classicy_1_1Logger) class. |
+| [`LogChannel`](#classicy_1_1LogChannel) |  |
+| [`ConsoleChannel`](#classicy_1_1ConsoleChannel) |  |
+| [`FileChannel`](#classicy_1_1FileChannel) |  |
+| [`RotatingFileChannel`](#classicy_1_1RotatingFileChannel) |  |
+| [`IPacket`](#classicy_1_1IPacket) | The basic packet type which is passed around the Icey system. [IPacket](#classicy_1_1IPacket) can be extended for each protocol to enable polymorphic processing and callbacks using [PacketStream](#classicy_1_1PacketStream) and friends. |
+| [`FlagPacket`](#classicy_1_1FlagPacket) | Packet for sending bitwise flags along the packet stream. |
+| [`RawPacket`](#classicy_1_1RawPacket) | [RawPacket](#classicy_1_1RawPacket) is the default data packet type which consists of an optionally managed char pointer and a size value. |
+| [`IPacketCreationStrategy`](#classicy_1_1IPacketCreationStrategy) |  |
+| [`PacketFactory`](#classicy_1_1PacketFactory) |  |
+| [`ThreadedStreamReader`](#classicy_1_1ThreadedStreamReader) | Threaded stream reader class. |
+| [`StreamWriter`](#classicy_1_1StreamWriter) | Packet stream writer class. |
+| [`SyncPacketQueue`](#classicy_1_1SyncPacketQueue) |  |
+| [`AsyncPacketQueue`](#classicy_1_1AsyncPacketQueue) |  |
+| [`PacketStreamAdapter`](#classicy_1_1PacketStreamAdapter) | This class is a wrapper for integrating external classes with the a [PacketStream](#classicy_1_1PacketStream)'s data flow and state machine. |
+| [`PacketProcessor`](#classicy_1_1PacketProcessor) | This class is a virtual interface for creating PacketStreamAdapters which process that and emit the [IPacket](#classicy_1_1IPacket) type. |
+| [`PacketStream`](#classicy_1_1PacketStream) | This class is used for processing and boradcasting IPackets in a flexible way. A [PacketStream](#classicy_1_1PacketStream) consists of one or many PacketSources, one or many PacketProcessors, and one or many delegate receivers. |
+| [`PacketTransaction`](#classicy_1_1PacketTransaction) | This class provides request/response functionality for [IPacket](#classicy_1_1IPacket) types. |
+| [`Pipe`](#classicy_1_1Pipe) | [Pipe](#classicy_1_1Pipe) implementation for process stdio. |
+| [`Process`](#classicy_1_1Process) |  |
+| [`Queue`](#classicy_1_1Queue) | Thread-safe queue container. |
+| [`RunnableQueue`](#classicy_1_1RunnableQueue) |  |
+| [`SyncQueue`](#classicy_1_1SyncQueue) | [SyncQueue](#classicy_1_1SyncQueue) extends [Synchronizer](#classicy_1_1Synchronizer) to implement a synchronized FIFO queue which receives T objects from any thread and synchronizes them for safe consumption by the associated event loop. |
+| [`AsyncQueue`](#classicy_1_1AsyncQueue) | [AsyncQueue](#classicy_1_1AsyncQueue) is a thread-based queue which receives packets from any thread source and dispatches them asynchronously. |
+| [`Random`](#classicy_1_1Random) | [Random](#classicy_1_1Random) implements a pseudo random number generator (PRNG). The PRNG is a nonlinear additive feedback random number generator using 256 bytes of state information and a period of up to 2^69. |
+| [`Runner`](#classicy_1_1Runner) | [Runner](#classicy_1_1Runner) is a virtual interface for implementing asynchronous objects such as threads and futures. |
+| [`StopPropagation`](#classicy_1_1StopPropagation) | Exception to break out of the current [Signal](#classicy_1_1Signal) callback scope. |
+| [`Signal`](#classicy_1_1Signal) | [Signal](#classicy_1_1Signal) and slots implementation. |
+| [`Signal< RT(Args...)>`](#classicy_1_1Signal_3_01RT_07Args_8_8_8_08_4) |  |
+| [`Singleton`](#classicy_1_1Singleton) | Helper template class for managing singleton objects allocated on the heap. |
+| [`State`](#classicy_1_1State) | [State](#classicy_1_1State) class for state machines. |
+| [`Stateful`](#classicy_1_1Stateful) | [State](#classicy_1_1State) machine implementation. |
+| [`Stream`](#classicy_1_1Stream) | Basic stream type for sockets and pipes. |
+| [`Synchronizer`](#classicy_1_1Synchronizer) | [Synchronizer](#classicy_1_1Synchronizer) enables any thread to communicate with the associated event loop via synchronized callbacks. |
+| [`Task`](#classicy_1_1Task) | Abstract class is for implementing any kind asyncronous task. |
+| [`TaskRunner`](#classicy_1_1TaskRunner) | [Runner](#classicy_1_1Runner) for tasks that inherit the `[Task](#classicy_1_1Task)` interface. |
+| [`Test`](#classicy_1_1test_1_1Test) | [Test](#classicy_1_1test_1_1Test) wrapper class. |
+| [`FunctionTest`](#classicy_1_1test_1_1FunctionTest) |  |
+| [`TestRunner`](#classicy_1_1test_1_1TestRunner) | [Test](#classicy_1_1test_1_1Test) manager queue. |
+| [`Timer`](#classicy_1_1Timer) | Asynchronous event based timer. |
+| [`TZInfo`](#classicy_1_1TZInfo) |  |
+| [`Timeout`](#classicy_1_1Timeout) | [Timeout](#classicy_1_1Timeout) counter which expires after a given delay. |
+| [`TimedToken`](#classicy_1_1TimedToken) | Token that expires after the specified duration. |
+| [`OptionParser`](#structicy_1_1OptionParser) |  |
+| [`ShutdownCmd`](#structicy_1_1ShutdownCmd) |  |
+| [`Encoder`](#structicy_1_1base64_1_1Encoder) | Base64 encoder. |
+| [`Decoder`](#structicy_1_1base64_1_1Decoder) | Base64 decoder. |
+| [`Bitwise`](#structicy_1_1Bitwise) | Container for smart management of bitwise integer flags. |
+| [`ILT`](#structicy_1_1NVCollection_1_1ILT) |  |
+| [`AbstractDelegate`](#structicy_1_1AbstractDelegate) | Abstract delegate interface. |
+| [`FunctionDelegate`](#structicy_1_1FunctionDelegate) | The `[FunctionDelegate](#structicy_1_1FunctionDelegate)` contains a `std::function`. |
+| [`ClassDelegate`](#structicy_1_1ClassDelegate) | The `[ClassDelegate](#structicy_1_1ClassDelegate)` contains a pointer to a class member. |
+| [`ConstClassDelegate`](#structicy_1_1ConstClassDelegate) | The `[ConstClassDelegate](#structicy_1_1ConstClassDelegate)` contains a pointer to a `const` class member. |
+| [`PolymorphicDelegate`](#structicy_1_1PolymorphicDelegate) | Polymorphic function delegate. |
+| [`Error`](#structicy_1_1Error) | Basic error type. |
+| [`Encoder`](#structicy_1_1hex_1_1Encoder) | Hex encoder. |
+| [`Decoder`](#structicy_1_1hex_1_1Decoder) | Hex decoder. |
+| [`Action`](#structicy_1_1ipc_1_1Action) | Default action type for executing synchronized callbacks. |
+| [`LogStream`](#structicy_1_1LogStream) |  |
+| [`Dispose`](#structicy_1_1deleter_1_1Dispose) | Deleter functor that calls dispose() on the pointer. |
+| [`Array`](#structicy_1_1deleter_1_1Array) | Deleter functor for array pointers. |
+| [`IPacketInfo`](#structicy_1_1IPacketInfo) | An abstract interface for packet sources to provide extra information about packets. |
+| [`PacketCreationStrategy`](#structicy_1_1PacketCreationStrategy) | This template class implements an adapter that sits between an SignalBase and an object receiving notifications from it. |
+| [`PacketAdapterReference`](#structicy_1_1PacketAdapterReference) | Provides a reference to a [PacketStreamAdapter](#classicy_1_1PacketStreamAdapter) with optional ownership. |
+| [`PacketStreamState`](#structicy_1_1PacketStreamState) |  |
+| [`TransactionState`](#structicy_1_1TransactionState) |  |
+| [`Context`](#structicy_1_1Runner_1_1Context) | [Context](#structicy_1_1Runner_1_1Context) object which we send to the thread context. |
+| [`SharedLibrary`](#structicy_1_1SharedLibrary) |  |
+| [`Deleter`](#structicy_1_1Singleton_1_1Deleter) | Custom deleter that can access private destructors via friendship. |
+| [`Version`](#structicy_1_1util_1_1Version) |  |
 
 ### Members
 
@@ -405,14 +405,14 @@ SEP_4()
 
 ## Thread 
 
-> **Extends:** `scy::Runner`, `scy::Runner`
+> **Extends:** `icy::Runner`, `icy::Runner`
 > **Defined in:** `thread.h`
 
 This class implements a platform-independent wrapper around an operating system thread.
 
 Platform-independent wrapper around an operating system thread.
 
-This class inherits the `[Runner](#classscy_1_1Runner)` interface and may be used with any implementation that's powered by an asynchronous `[Runner](#classscy_1_1Runner)`.
+This class inherits the `[Runner](#classicy_1_1Runner)` interface and may be used with any implementation that's powered by an asynchronous `[Runner](#classicy_1_1Runner)`.
 
 ### Members
 
@@ -437,14 +437,14 @@ This class inherits the `[Runner](#classscy_1_1Runner)` interface and may be use
 | [`mainID`](#group__base_1ga61fbd13a4564ad111609b13ec008ef91) | Accessor for the main thread ID. |
 | [`_handle`](#group__base_1ga4f306e5416331b9b4131adfc0f45c908) |  |
 | [`_thread`](#group__base_1gac600f9a3aefe15106420b37be988b062) |  |
-| [`Thread`](#classscy_1_1Thread_1ga54fd807dcf46e13b7740713f24487816) | Default constructor. |
-| [`~Thread`](#classscy_1_1Thread_1gaf8d1a393d2f0130b0e8d3e634f50c125) | Destructor. |
-| [`join`](#classscy_1_1Thread_1gad5b13af2dd59884809566c8f95a99f16) | Wait until the thread exits. |
-| [`id`](#classscy_1_1Thread_1gad3ac929d47e0dcadc5f106473d11a148) | Return the native thread handle. |
-| [`currentID`](#classscy_1_1Thread_1ga5c4c221bb4c25036320d22087f72a355) | Return the native thread ID of the current thread. |
-| [`Thread`](#classscy_1_1Thread_1ga2db47dac5c43119f6254de56f3c1c7ad) | NonCopyable and NonMovable. |
-| [`operator=`](#classscy_1_1Thread_1ga5eb15190777fefe4728f8bc2eaf1817e) |  |
-| [`async`](#classscy_1_1Thread_1gac9ec059f9ffbd29d9790a7f95c5c5d21) | Returns true if the implementation is thread-based, or false if it belongs to an event loop. |
+| [`Thread`](#classicy_1_1Thread_1ga54fd807dcf46e13b7740713f24487816) | Default constructor. |
+| [`~Thread`](#classicy_1_1Thread_1gaf8d1a393d2f0130b0e8d3e634f50c125) | Destructor. |
+| [`join`](#classicy_1_1Thread_1gad5b13af2dd59884809566c8f95a99f16) | Wait until the thread exits. |
+| [`id`](#classicy_1_1Thread_1gad3ac929d47e0dcadc5f106473d11a148) | Return the native thread handle. |
+| [`currentID`](#classicy_1_1Thread_1ga5c4c221bb4c25036320d22087f72a355) | Return the native thread ID of the current thread. |
+| [`Thread`](#classicy_1_1Thread_1ga2db47dac5c43119f6254de56f3c1c7ad) | NonCopyable and NonMovable. |
+| [`operator=`](#classicy_1_1Thread_1ga5eb15190777fefe4728f8bc2eaf1817e) |  |
+| [`async`](#classicy_1_1Thread_1gac9ec059f9ffbd29d9790a7f95c5c5d21) | Returns true if the implementation is thread-based, or false if it belongs to an event loop. |
 
 ---
 
@@ -710,7 +710,7 @@ Return the native thread ID of the current thread.
 #### Thread 
 
 ```cpp
-Thread(const [Thread](#classscy_1_1Thread) &) = delete
+Thread(const [Thread](#classicy_1_1Thread) &) = delete
 ```
 
 NonCopyable and NonMovable.
@@ -720,7 +720,7 @@ NonCopyable and NonMovable.
 #### operator= 
 
 ```cpp
-[Thread](#classscy_1_1Thread) & operator=(const [Thread](#classscy_1_1Thread) &) = delete
+[Thread](#classicy_1_1Thread) & operator=(const [Thread](#classicy_1_1Thread) &) = delete
 ```
 
 ---
@@ -737,13 +737,13 @@ Returns true if the implementation is thread-based, or false if it belongs to an
 
 > **Defined in:** `application.h`
 
-Main LibSourcey application class.
+Main Icey application class.
 
 This class exposes basic features required by most applications:
 
 * Running the event loop
 
-* Command line option parsing **See also**: [OptionParser](#structscy_1_1OptionParser)
+* Command line option parsing **See also**: [OptionParser](#structicy_1_1OptionParser)
 
 * Shutdown signal (Ctrl-C) handling
 
@@ -760,7 +760,7 @@ This class exposes basic features required by most applications:
 | [`finalize`](#group__base_1gae94cf187f38a9accf0abdffc868e700a) | Finalize and free any remaining pointers still held by the application event loop. |
 | [`waitForShutdown`](#group__base_1ga648ccd97eb0acd73cb4dc0b2b4ae030a) | Bind the shutdown signal and run the main event loop. |
 | [`bindShutdownSignal`](#group__base_1ga80ca3367db09fde58ffec5b3b17ce960) | Bind the shutdown signal. |
-| [`getDefault`](#group__base_1ga5db9db61083ba33fdfdbd5c8082aba19) | Returns the default [Application](#classscy_1_1Application) singleton, although [Application](#classscy_1_1Application) instances may be initialized individually. |
+| [`getDefault`](#group__base_1ga5db9db61083ba33fdfdbd5c8082aba19) | Returns the default [Application](#classicy_1_1Application) singleton, although [Application](#classicy_1_1Application) instances may be initialized individually. |
 | [`Application`](#group__base_1gad2a86916a222902d29c639cc5daa9d5b) |  |
 | [`operator=`](#group__base_1ga18e7eaa27695f7846fb43289b47b6ee1) |  |
 | [`onShutdownSignal`](#group__base_1gabec6f73a14b517119f8e29b749d783f6) |  |
@@ -859,7 +859,7 @@ Bind the shutdown signal.
 static Application & getDefault()
 ```
 
-Returns the default [Application](#classscy_1_1Application) singleton, although [Application](#classscy_1_1Application) instances may be initialized individually.
+Returns the default [Application](#classicy_1_1Application) singleton, although [Application](#classicy_1_1Application) instances may be initialized individually.
 
 ---
 
@@ -919,7 +919,7 @@ The event loop may be assigned on construction, otherwise the default event loop
 
 > **Defined in:** `buffer.h`
 
-The [MutableBuffer](#classscy_1_1MutableBuffer) class provides a safe representation of a buffer that can be modified. It does not own the underlying data, and so is cheap to copy or assign.
+The [MutableBuffer](#classicy_1_1MutableBuffer) class provides a safe representation of a buffer that can be modified. It does not own the underlying data, and so is cheap to copy or assign.
 
 ### Members
 
@@ -1015,7 +1015,7 @@ size_t _size
 
 > **Defined in:** `buffer.h`
 
-The [ConstBuffer](#classscy_1_1ConstBuffer) class provides a safe representation of a buffer that cannot be modified. It does not own the underlying data, and so is cheap to copy or assign.
+The [ConstBuffer](#classicy_1_1ConstBuffer) class provides a safe representation of a buffer that cannot be modified. It does not own the underlying data, and so is cheap to copy or assign.
 
 ### Members
 
@@ -1136,7 +1136,7 @@ Class for reading binary streams.
 | [`BitReader`](#group__base_1gabf0db9bf938b95829322f00935eb6092) |  |
 | [`BitReader`](#group__base_1ga4d25c7558ec919c38a2aa2bb2d3d549e) |  |
 | [`~BitReader`](#group__base_1ga2b0a8e18dd144d85baaf44b4711ef57f) |  |
-| [`get`](#group__base_1gaeb43583e35589cbf38d5ce90ee77c37d) | Reads a value from the [BitReader](#classscy_1_1BitReader). Returns false if there isn't enough data left for the specified type. Throws a std::out_of_range exception if reading past the limit. |
+| [`get`](#group__base_1gaeb43583e35589cbf38d5ce90ee77c37d) | Reads a value from the [BitReader](#classicy_1_1BitReader). Returns false if there isn't enough data left for the specified type. Throws a std::out_of_range exception if reading past the limit. |
 | [`get`](#group__base_1ga8c868edd08c6881b78fb7b455fbfd4c3) |  |
 | [`getU8`](#group__base_1ga071979552c567a13fe0723ae659cfcbc) |  |
 | [`getU16`](#group__base_1ga7235dad48ba744d85a2ba57b794fe456) |  |
@@ -1148,7 +1148,7 @@ Class for reading binary streams.
 | [`peekU16`](#group__base_1ga48fd6095876041c6835c1b9c8827e2fe) |  |
 | [`peekU24`](#group__base_1ga163dd7b966ff9cfdbb60e9cab30a1eb6) |  |
 | [`peekU32`](#group__base_1gae1f697546db37d27ea8c1f1862af4e3c) |  |
-| [`peekU64`](#group__base_1gad7e4e58bf5874f3ef4c02f639401ce45) | Peeks data from the [BitReader](#classscy_1_1BitReader). -1 is returned if reading past boundary. |
+| [`peekU64`](#group__base_1gad7e4e58bf5874f3ef4c02f639401ce45) | Peeks data from the [BitReader](#classicy_1_1BitReader). -1 is returned if reading past boundary. |
 | [`skipToChar`](#group__base_1ga04c8225dd818b9b318695305516e99c0) |  |
 | [`skipWhitespace`](#group__base_1ga4796e1bd18cae8e4ae8c62398557c74c) |  |
 | [`skipToNextLine`](#group__base_1ga31f4b884ce29c3dcbc6898fde862a5e2) |  |
@@ -1228,7 +1228,7 @@ BitReader(const ConstBuffer & pod, ByteOrder order)
 void get(char * val, size_t len)
 ```
 
-Reads a value from the [BitReader](#classscy_1_1BitReader). Returns false if there isn't enough data left for the specified type. Throws a std::out_of_range exception if reading past the limit.
+Reads a value from the [BitReader](#classicy_1_1BitReader). Returns false if there isn't enough data left for the specified type. Throws a std::out_of_range exception if reading past the limit.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -1356,7 +1356,7 @@ const uint32_t peekU32()
 const uint64_t peekU64()
 ```
 
-Peeks data from the [BitReader](#classscy_1_1BitReader). -1 is returned if reading past boundary.
+Peeks data from the [BitReader](#classicy_1_1BitReader). -1 is returned if reading past boundary.
 
 ---
 
@@ -1581,7 +1581,7 @@ const char * _bytes
 
 ## BitWriter 
 
-> **Subclasses:** `scy::DynamicBitWriter`
+> **Subclasses:** `icy::DynamicBitWriter`
 > **Defined in:** `buffer.h`
 
 Class for reading/writing binary streams.
@@ -2012,7 +2012,7 @@ char * _bytes
 
 ## DynamicBitWriter 
 
-> **Extends:** `scy::BitWriter`
+> **Extends:** `icy::BitWriter`
 > **Defined in:** `buffer.h`
 
 Class for reading/writing dynamically resizable binary streams.
@@ -2115,10 +2115,10 @@ size_t _offset
 
 ## AbstractCollection 
 
-> **Subclasses:** `scy::PointerCollection< std::string, IUser >`, `scy::PointerCollection< std::string, Peer >`, `scy::PointerCollection< std::string, LocalPackage >`, `scy::PointerCollection< std::string, RemotePackage >`, `scy::PointerCollection< std::string, Message >`, `scy::PointerCollection< uint32_t, TCPConnectionPair >`, `scy::PointerCollection< TKey, TValue >`
+> **Subclasses:** `icy::PointerCollection< std::string, IUser >`, `icy::PointerCollection< std::string, Peer >`, `icy::PointerCollection< std::string, LocalPackage >`, `icy::PointerCollection< std::string, RemotePackage >`, `icy::PointerCollection< std::string, Message >`, `icy::PointerCollection< uint32_t, TCPConnectionPair >`, `icy::PointerCollection< TKey, TValue >`
 > **Defined in:** `collection.h`
 
-[AbstractCollection](#classscy_1_1AbstractCollection) is an abstract interface for managing a key-value store of indexed pointers.
+[AbstractCollection](#classicy_1_1AbstractCollection) is an abstract interface for managing a key-value store of indexed pointers.
 
 ### Members
 
@@ -2266,8 +2266,8 @@ void clear()
 
 ## PointerCollection 
 
-> **Extends:** `scy::AbstractCollection< TKey, TValue >`
-> **Subclasses:** `scy::LiveCollection< std::string, IUser >`, `scy::LiveCollection< std::string, Peer >`, `scy::LiveCollection< std::string, LocalPackage >`, `scy::LiveCollection< std::string, RemotePackage >`, `scy::TimedManager< std::string, Message >`, `scy::DiagnosticManager`, `scy::LiveCollection< TKey, TValue >`, `scy::TimedManager< TKey, TValue >`
+> **Extends:** `icy::AbstractCollection< TKey, TValue >`
+> **Subclasses:** `icy::LiveCollection< std::string, IUser >`, `icy::LiveCollection< std::string, Peer >`, `icy::LiveCollection< std::string, LocalPackage >`, `icy::LiveCollection< std::string, RemotePackage >`, `icy::TimedManager< std::string, Message >`, `icy::DiagnosticManager`, `icy::LiveCollection< TKey, TValue >`, `icy::TimedManager< TKey, TValue >`
 > **Defined in:** `collection.h`
 
 This collection is used to maintain a map of unique_ptr values indexed by key in a thread-safe way.
@@ -2501,8 +2501,8 @@ Map _map
 
 ## LiveCollection 
 
-> **Extends:** `scy::PointerCollection< TKey, TValue >`
-> **Subclasses:** `scy::StreamManager`
+> **Extends:** `icy::PointerCollection< TKey, TValue >`
+> **Subclasses:** `icy::StreamManager`
 > **Defined in:** `collection.h`
 
 ### Members
@@ -2699,7 +2699,7 @@ Map _map
 
 ## NVCollection 
 
-> **Subclasses:** `scy::http::FormWriter`, `scy::http::Message`
+> **Subclasses:** `icy::http::FormWriter`, `icy::http::Message`
 > **Defined in:** `collection.h`
 
 A storage container for a name value collections. This collection can store multiple entries for each name, and it's getters are case-insensitive.
@@ -2711,7 +2711,7 @@ A storage container for a name value collections. This collection can store mult
 | [`NVCollection`](#group__base_1ga41eb71d1735c8238b24dcda700c23d21) |  |
 | [`NVCollection`](#group__base_1gaca0d4928654fd5b79fd06612222080b9) |  |
 | [`~NVCollection`](#group__base_1gaed8abfccd111eea9b5cabe59ef8aac46) |  |
-| [`operator=`](#group__base_1ga6e9938e6b926c62d4ccbea0c7a623dec) | Assigns the name-value pairs of another [NVCollection](#classscy_1_1NVCollection) to this one. |
+| [`operator=`](#group__base_1ga6e9938e6b926c62d4ccbea0c7a623dec) | Assigns the name-value pairs of another [NVCollection](#classicy_1_1NVCollection) to this one. |
 | [`operator[]`](#group__base_1gab76fc12abf8a9f13ac81e32d9788cea3) | Returns the value of the (first) name-value pair with the given name. |
 | [`set`](#group__base_1ga36860b3fb325b24ed969668192d2d5ad) | Sets the value of the (first) name-value pair with the given name. |
 | [`add`](#group__base_1gae0cbccd7da15dd37eed7631c853c2565) | Adds a new name-value pair with the given name and value. |
@@ -2763,7 +2763,7 @@ virtual inline ~NVCollection()
 NVCollection & operator=(const NVCollection & nvc)
 ```
 
-Assigns the name-value pairs of another [NVCollection](#classscy_1_1NVCollection) to this one.
+Assigns the name-value pairs of another [NVCollection](#classicy_1_1NVCollection) to this one.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -2971,10 +2971,10 @@ inline bool operator()(const std::string & s1, const std::string & s2) const
 
 ## Configuration 
 
-> **Subclasses:** `scy::json::Configuration`
+> **Subclasses:** `icy::json::Configuration`
 > **Defined in:** `configuration.h`
 
-[Configuration](#classscy_1_1Configuration) is an abstract base class for managing different kinds of configuration storage back ends such as JSON, XML, or database.
+[Configuration](#classicy_1_1Configuration) is an abstract base class for managing different kinds of configuration storage back ends such as JSON, XML, or database.
 
 Subclasses must override the [getRaw()](#group__base_1ga1246d954823215df6d932e78a08bc23b) and [setRaw()](#group__base_1gac6a4023c271c2357334275f15329310d) and methods.
 
@@ -2984,8 +2984,8 @@ This class is safe for multithreaded use.
 
 | Name | Description |
 |------|-------------|
-| [`Configuration`](#group__base_1ga17ab598f09508375af5c81bcca2f7adf) | Creates the [Configuration](#classscy_1_1Configuration). |
-| [`~Configuration`](#group__base_1ga92fedd22f2c662f1fd5ba513dedaad45) | Destroys the [Configuration](#classscy_1_1Configuration). |
+| [`Configuration`](#group__base_1ga17ab598f09508375af5c81bcca2f7adf) | Creates the [Configuration](#classicy_1_1Configuration). |
+| [`~Configuration`](#group__base_1ga92fedd22f2c662f1fd5ba513dedaad45) | Destroys the [Configuration](#classicy_1_1Configuration). |
 | [`exists`](#group__base_1ga46b7b29d78f0cf2939e9ffb3e561652c) | Returns true if the property with the given key exists. |
 | [`getString`](#group__base_1ga05bb2078ab85e6d01e07bd0339e7f051) | Returns the string value of the property with the given name. Throws a NotFoundException if the key does not exist. |
 | [`getString`](#group__base_1ga759bde263c84572e2dca86974b79abe0) | If a property with the given key exists, returns the property's string value, otherwise returns the given default value. |
@@ -3022,7 +3022,7 @@ This class is safe for multithreaded use.
 Configuration()
 ```
 
-Creates the [Configuration](#classscy_1_1Configuration).
+Creates the [Configuration](#classicy_1_1Configuration).
 
 ---
 
@@ -3032,7 +3032,7 @@ Creates the [Configuration](#classscy_1_1Configuration).
 virtual ~Configuration()
 ```
 
-Destroys the [Configuration](#classscy_1_1Configuration).
+Destroys the [Configuration](#classicy_1_1Configuration).
 
 ---
 
@@ -3409,7 +3409,7 @@ std::mutex _mutex
 
 > **Defined in:** `configuration.h`
 
-[ScopedConfiguration](#classscy_1_1ScopedConfiguration) provides multiple levels of configuration for a module. Multiple levels means that there is a module level scope, and a default scope. When a property is accessed, the module scope value will be used if available, otherwise the default scope value will be used.
+[ScopedConfiguration](#classicy_1_1ScopedConfiguration) provides multiple levels of configuration for a module. Multiple levels means that there is a module level scope, and a default scope. When a property is accessed, the module scope value will be used if available, otherwise the default scope value will be used.
 
 Example scoping: Module: channels.[name].modes.[name].[value] Default: modes.[name].[value]
 
@@ -3646,9 +3646,9 @@ std::string defaultScope
 
 > **Defined in:** `datetime.h`
 
-A [Timestamp](#classscy_1_1Timestamp) stores a monotonic* time value with (theoretical) microseconds resolution. Timestamps can be compared with each other and simple arithmetics are supported.
+A [Timestamp](#classicy_1_1Timestamp) stores a monotonic* time value with (theoretical) microseconds resolution. Timestamps can be compared with each other and simple arithmetics are supported.
 
-[*] Note that [Timestamp](#classscy_1_1Timestamp) values are only monotonic as long as the systems's clock is monotonic as well (and not, e.g. set back).
+[*] Note that [Timestamp](#classicy_1_1Timestamp) values are only monotonic as long as the systems's clock is monotonic as well (and not, e.g. set back).
 
 Timestamps are UTC (Coordinated Universal Time) based and thus independent of the timezone in effect on the system.
 
@@ -3662,8 +3662,8 @@ Timestamps are UTC (Coordinated Universal Time) based and thus independent of th
 | [`~Timestamp`](#group__base_1ga9454ae9b51eef4ddfd6a5fc517d5fb89) | Destroys the timestamp. |
 | [`operator=`](#group__base_1gaa6f065d2bafe45160d5830ec7f3fea03) |  |
 | [`operator=`](#group__base_1gad270942977ff386b8295e92d32a4247a) |  |
-| [`swap`](#group__base_1ga051b185aa50b85119422c8069b31f9b1) | Swaps the [Timestamp](#classscy_1_1Timestamp) with another one. |
-| [`update`](#group__base_1gae851ba7fcabd33ddf4b69029b93e7da1) | Updates the [Timestamp](#classscy_1_1Timestamp) with the current time. |
+| [`swap`](#group__base_1ga051b185aa50b85119422c8069b31f9b1) | Swaps the [Timestamp](#classicy_1_1Timestamp) with another one. |
+| [`update`](#group__base_1gae851ba7fcabd33ddf4b69029b93e7da1) | Updates the [Timestamp](#classicy_1_1Timestamp) with the current time. |
 | [`operator==`](#group__base_1gaaff90e64401ed08703d4bab0b09bc5bd) |  |
 | [`operator!=`](#group__base_1ga70b120698ef0ca3429d5e6035e03ab51) |  |
 | [`operator>`](#group__base_1gacdc27b968a6f92a38dfa29f4ce0639ca) |  |
@@ -3765,7 +3765,7 @@ Timestamp & operator=(TimeVal tv)
 void swap(Timestamp & timestamp)
 ```
 
-Swaps the [Timestamp](#classscy_1_1Timestamp) with another one.
+Swaps the [Timestamp](#classicy_1_1Timestamp) with another one.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -3779,7 +3779,7 @@ Swaps the [Timestamp](#classscy_1_1Timestamp) with another one.
 void update()
 ```
 
-Updates the [Timestamp](#classscy_1_1Timestamp) with the current time.
+Updates the [Timestamp](#classicy_1_1Timestamp) with the current time.
 
 ---
 
@@ -4023,17 +4023,17 @@ A class that represents time spans up to microsecond resolution.
 
 | Name | Description |
 |------|-------------|
-| [`Timespan`](#group__base_1ga183ab023a03182a6b62287f31ba4667c) | Creates a zero [Timespan](#classscy_1_1Timespan). |
-| [`Timespan`](#group__base_1ga36bd62906099ad73b6411bbee9df4687) | Creates a [Timespan](#classscy_1_1Timespan). |
-| [`Timespan`](#group__base_1ga9281640ae0cfdf1af90bf219e3ab2502) | Creates a [Timespan](#classscy_1_1Timespan). Useful for creating a [Timespan](#classscy_1_1Timespan) from a struct timeval. |
-| [`Timespan`](#group__base_1gad7c52f4c3f97829b1a2184819c6fdb78) | Creates a [Timespan](#classscy_1_1Timespan). |
-| [`Timespan`](#group__base_1gad644dad5d9fcc72c753fb207aa0f7799) | Creates a [Timespan](#classscy_1_1Timespan) from another one. |
-| [`~Timespan`](#group__base_1ga58f2185a33f9adf2043381a216e7e3d0) | Destroys the [Timespan](#classscy_1_1Timespan). |
+| [`Timespan`](#group__base_1ga183ab023a03182a6b62287f31ba4667c) | Creates a zero [Timespan](#classicy_1_1Timespan). |
+| [`Timespan`](#group__base_1ga36bd62906099ad73b6411bbee9df4687) | Creates a [Timespan](#classicy_1_1Timespan). |
+| [`Timespan`](#group__base_1ga9281640ae0cfdf1af90bf219e3ab2502) | Creates a [Timespan](#classicy_1_1Timespan). Useful for creating a [Timespan](#classicy_1_1Timespan) from a struct timeval. |
+| [`Timespan`](#group__base_1gad7c52f4c3f97829b1a2184819c6fdb78) | Creates a [Timespan](#classicy_1_1Timespan). |
+| [`Timespan`](#group__base_1gad644dad5d9fcc72c753fb207aa0f7799) | Creates a [Timespan](#classicy_1_1Timespan) from another one. |
+| [`~Timespan`](#group__base_1ga58f2185a33f9adf2043381a216e7e3d0) | Destroys the [Timespan](#classicy_1_1Timespan). |
 | [`operator=`](#group__base_1gacb09eb0c421d3ee1567221bbcbfa1686) | Assignment operator. |
 | [`operator=`](#group__base_1ga53a89a4c0d074d07a69651f9b1390ca2) | Assignment operator. |
 | [`assign`](#group__base_1ga8aeb84fe300f38a39ec0ee7cd4a2c463) | Assigns a new span. |
 | [`assign`](#group__base_1ga326e06380b6c271143dd53261061e0a7) | Assigns a new span. Useful for assigning from a struct timeval. |
-| [`swap`](#group__base_1ga3289402362d3f09413c7e27c8a5f84a7) | Swaps the [Timespan](#classscy_1_1Timespan) with another one. |
+| [`swap`](#group__base_1ga3289402362d3f09413c7e27c8a5f84a7) | Swaps the [Timespan](#classicy_1_1Timespan) with another one. |
 | [`operator==`](#group__base_1ga6901eaae07320f3bbf4cbcbdcba58788) |  |
 | [`operator!=`](#group__base_1gac44da14b266ce4dbf80779330cb7090d) |  |
 | [`operator>`](#group__base_1ga7add4d0610dc0b197739f9b3d68dc39f) |  |
@@ -4081,7 +4081,7 @@ A class that represents time spans up to microsecond resolution.
 Timespan()
 ```
 
-Creates a zero [Timespan](#classscy_1_1Timespan).
+Creates a zero [Timespan](#classicy_1_1Timespan).
 
 ---
 
@@ -4091,7 +4091,7 @@ Creates a zero [Timespan](#classscy_1_1Timespan).
 Timespan(TimeDiff microseconds)
 ```
 
-Creates a [Timespan](#classscy_1_1Timespan).
+Creates a [Timespan](#classicy_1_1Timespan).
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -4105,7 +4105,7 @@ Creates a [Timespan](#classscy_1_1Timespan).
 Timespan(long seconds, long microseconds)
 ```
 
-Creates a [Timespan](#classscy_1_1Timespan). Useful for creating a [Timespan](#classscy_1_1Timespan) from a struct timeval.
+Creates a [Timespan](#classicy_1_1Timespan). Useful for creating a [Timespan](#classicy_1_1Timespan) from a struct timeval.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -4120,7 +4120,7 @@ Creates a [Timespan](#classscy_1_1Timespan). Useful for creating a [Timespan](#c
 Timespan(int days, int hours, int minutes, int seconds, int microseconds)
 ```
 
-Creates a [Timespan](#classscy_1_1Timespan).
+Creates a [Timespan](#classicy_1_1Timespan).
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -4138,7 +4138,7 @@ Creates a [Timespan](#classscy_1_1Timespan).
 Timespan(const Timespan & timespan)
 ```
 
-Creates a [Timespan](#classscy_1_1Timespan) from another one.
+Creates a [Timespan](#classicy_1_1Timespan) from another one.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -4152,7 +4152,7 @@ Creates a [Timespan](#classscy_1_1Timespan) from another one.
 ~Timespan()
 ```
 
-Destroys the [Timespan](#classscy_1_1Timespan).
+Destroys the [Timespan](#classicy_1_1Timespan).
 
 ---
 
@@ -4223,7 +4223,7 @@ Assigns a new span. Useful for assigning from a struct timeval.
 void swap(Timespan & timespan)
 ```
 
-Swaps the [Timespan](#classscy_1_1Timespan) with another one.
+Swaps the [Timespan](#classicy_1_1Timespan) with another one.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -4653,11 +4653,11 @@ TimeDiff _span
 
 This class represents an instant in time, expressed in years, months, days, hours, minutes, seconds and milliseconds based on the Gregorian calendar. The class is mainly useful for conversions between UTC, Julian day and Gregorian calendar dates.
 
-The date and time stored in a [DateTime](#classscy_1_1DateTime) is always in UTC (Coordinated Universal Time) and thus independent of the timezone in effect on the system.
+The date and time stored in a [DateTime](#classicy_1_1DateTime) is always in UTC (Coordinated Universal Time) and thus independent of the timezone in effect on the system.
 
 Conversion calculations are based on algorithms collected and described by Peter Baum at [http://vsg.cape.com/~pbaum/date/date0.htm](http://vsg.cape.com/~pbaum/date/date0.htm)
 
-Internally, this class stores a date/time in two forms (UTC and broken down) for performance reasons. Only use this class for conversions between date/time representations. Use the [Timestamp](#classscy_1_1Timestamp) class for everything else.
+Internally, this class stores a date/time in two forms (UTC and broken down) for performance reasons. Only use this class for conversions between date/time representations. Use the [Timestamp](#classicy_1_1Timestamp) class for everything else.
 
 Notes:
 
@@ -4683,18 +4683,18 @@ For more information, please see:
 |------|-------------|
 | [`Months`](#group__base_1ga9e6c37f4daad98cbb93b264905eaf498) | Symbolic names for month numbers (1 to 12). |
 | [`DaysOfWeek`](#group__base_1ga2113d4a106804ff86e3e9e4c144542e7) | Symbolic names for week day numbers (0 to 6). |
-| [`DateTime`](#group__base_1gafc8db97ad1127e27ea8cc055d64bacdc) | Creates a [DateTime](#classscy_1_1DateTime) for the current date and time. |
-| [`DateTime`](#group__base_1ga8757497c5f7df732cc6f84d2c31e997d) | Creates a [DateTime](#classscy_1_1DateTime) for the date and time given in a [Timestamp](#classscy_1_1Timestamp). |
-| [`DateTime`](#group__base_1ga0723f5d0fb69a9f9f2231723b4712c2b) | Creates a [DateTime](#classscy_1_1DateTime) for the given Gregorian date and time. |
-| [`DateTime`](#group__base_1gaa8d974aeec2eaea35d48ac2860c6cfa6) | Creates a [DateTime](#classscy_1_1DateTime) for the given Julian day. |
-| [`DateTime`](#group__base_1gae8ca8fe73a37b81ea207f21115a3218a) | Creates a [DateTime](#classscy_1_1DateTime) from an UtcTimeVal and a TimeDiff. |
-| [`DateTime`](#group__base_1gaa8c6129e0263af535cd47eace907e8da) | Copy constructor. Creates the [DateTime](#classscy_1_1DateTime) from another one. |
-| [`~DateTime`](#group__base_1gaab8ba2987dd09faf606927a8c5c8d57b) | Destroys the [DateTime](#classscy_1_1DateTime). |
-| [`operator=`](#group__base_1gaacf8c5cbf1e8b62928a397989844ca51) | Assigns another [DateTime](#classscy_1_1DateTime). |
-| [`operator=`](#group__base_1gae5bfb492a3b5469b672ab3c8c60ca2b4) | Assigns a [Timestamp](#classscy_1_1Timestamp). |
+| [`DateTime`](#group__base_1gafc8db97ad1127e27ea8cc055d64bacdc) | Creates a [DateTime](#classicy_1_1DateTime) for the current date and time. |
+| [`DateTime`](#group__base_1ga8757497c5f7df732cc6f84d2c31e997d) | Creates a [DateTime](#classicy_1_1DateTime) for the date and time given in a [Timestamp](#classicy_1_1Timestamp). |
+| [`DateTime`](#group__base_1ga0723f5d0fb69a9f9f2231723b4712c2b) | Creates a [DateTime](#classicy_1_1DateTime) for the given Gregorian date and time. |
+| [`DateTime`](#group__base_1gaa8d974aeec2eaea35d48ac2860c6cfa6) | Creates a [DateTime](#classicy_1_1DateTime) for the given Julian day. |
+| [`DateTime`](#group__base_1gae8ca8fe73a37b81ea207f21115a3218a) | Creates a [DateTime](#classicy_1_1DateTime) from an UtcTimeVal and a TimeDiff. |
+| [`DateTime`](#group__base_1gaa8c6129e0263af535cd47eace907e8da) | Copy constructor. Creates the [DateTime](#classicy_1_1DateTime) from another one. |
+| [`~DateTime`](#group__base_1gaab8ba2987dd09faf606927a8c5c8d57b) | Destroys the [DateTime](#classicy_1_1DateTime). |
+| [`operator=`](#group__base_1gaacf8c5cbf1e8b62928a397989844ca51) | Assigns another [DateTime](#classicy_1_1DateTime). |
+| [`operator=`](#group__base_1gae5bfb492a3b5469b672ab3c8c60ca2b4) | Assigns a [Timestamp](#classicy_1_1Timestamp). |
 | [`operator=`](#group__base_1ga40a6a5696a62415686d4ba0f8a36d52c) | Assigns a Julian day. |
 | [`assign`](#group__base_1ga60d82a180ce48c06261f324e8aa32615) | Assigns a Gregorian date and time. |
-| [`swap`](#group__base_1ga2d52b10410733fc42b1d222b78b546f3) | Swaps the [DateTime](#classscy_1_1DateTime) with another one. |
+| [`swap`](#group__base_1ga2d52b10410733fc42b1d222b78b546f3) | Swaps the [DateTime](#classicy_1_1DateTime) with another one. |
 | [`year`](#group__base_1ga8ee24f2380b3a6f0728f1451cec5b846) | Returns the year. |
 | [`month`](#group__base_1ga36843329b8b306cb82a733b46f4d49c7) | Returns the month (1 to 12). |
 | [`week`](#group__base_1gaf5ad099452341c3b5682a8f7352f8422) | Returns the week number within the year. FirstDayOfWeek should be either SUNDAY (0) or MONDAY (1). The returned week number will be from 0 to 53. Week number 1 is the week containing January 4. This is in accordance to ISO 8601. |
@@ -4710,7 +4710,7 @@ For more information, please see:
 | [`millisecond`](#group__base_1gaa7bd963176ae54f61301fca30e02592a) | Returns the millisecond (0 to 999) |
 | [`microsecond`](#group__base_1gad4dbddbc0255cc26c9fd9dafaed353b9) | Returns the microsecond (0 to 999) |
 | [`julianDay`](#group__base_1ga48a04a535ae9290933994bfe0084b176) | Returns the julian day for the date and time. |
-| [`timestamp`](#group__base_1ga591c0712a8e1250820532510a54a49b3) | Returns the date and time expressed as a [Timestamp](#classscy_1_1Timestamp). |
+| [`timestamp`](#group__base_1ga591c0712a8e1250820532510a54a49b3) | Returns the date and time expressed as a [Timestamp](#classicy_1_1Timestamp). |
 | [`utcTime`](#group__base_1gaa67be192392537cf1674d41f56704ab9) | Returns the date and time expressed in UTC-based time. UTC base time is midnight, October 15, 1582. Resolution is 100 nanoseconds. |
 | [`operator==`](#group__base_1ga4262a88ba878383b2b4e0a1712b11649) |  |
 | [`operator!=`](#group__base_1ga82a285c08ba0e9221127a4421211ba75) |  |
@@ -4798,7 +4798,7 @@ Symbolic names for week day numbers (0 to 6).
 DateTime()
 ```
 
-Creates a [DateTime](#classscy_1_1DateTime) for the current date and time.
+Creates a [DateTime](#classicy_1_1DateTime) for the current date and time.
 
 ---
 
@@ -4808,7 +4808,7 @@ Creates a [DateTime](#classscy_1_1DateTime) for the current date and time.
 DateTime(const Timestamp & timestamp)
 ```
 
-Creates a [DateTime](#classscy_1_1DateTime) for the date and time given in a [Timestamp](#classscy_1_1Timestamp).
+Creates a [DateTime](#classicy_1_1DateTime) for the date and time given in a [Timestamp](#classicy_1_1Timestamp).
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -4822,7 +4822,7 @@ Creates a [DateTime](#classscy_1_1DateTime) for the date and time given in a [Ti
 DateTime(int year, int month, int day, int hour, int minute, int second, int millisecond, int microsecond)
 ```
 
-Creates a [DateTime](#classscy_1_1DateTime) for the given Gregorian date and time.
+Creates a [DateTime](#classicy_1_1DateTime) for the given Gregorian date and time.
 
 * year is from 0 to 9999.
 
@@ -4859,7 +4859,7 @@ Creates a [DateTime](#classscy_1_1DateTime) for the given Gregorian date and tim
 DateTime(double julianDay)
 ```
 
-Creates a [DateTime](#classscy_1_1DateTime) for the given Julian day.
+Creates a [DateTime](#classicy_1_1DateTime) for the given Julian day.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -4873,9 +4873,9 @@ Creates a [DateTime](#classscy_1_1DateTime) for the given Julian day.
 DateTime(Timestamp::UtcTimeVal utcTime, Timestamp::TimeDiff diff)
 ```
 
-Creates a [DateTime](#classscy_1_1DateTime) from an UtcTimeVal and a TimeDiff.
+Creates a [DateTime](#classicy_1_1DateTime) from an UtcTimeVal and a TimeDiff.
 
-Mainly used internally by [DateTime](#classscy_1_1DateTime) and friends.
+Mainly used internally by [DateTime](#classicy_1_1DateTime) and friends.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -4890,7 +4890,7 @@ Mainly used internally by [DateTime](#classscy_1_1DateTime) and friends.
 DateTime(const DateTime & dateTime)
 ```
 
-Copy constructor. Creates the [DateTime](#classscy_1_1DateTime) from another one.
+Copy constructor. Creates the [DateTime](#classicy_1_1DateTime) from another one.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -4904,7 +4904,7 @@ Copy constructor. Creates the [DateTime](#classscy_1_1DateTime) from another one
 ~DateTime()
 ```
 
-Destroys the [DateTime](#classscy_1_1DateTime).
+Destroys the [DateTime](#classicy_1_1DateTime).
 
 ---
 
@@ -4914,7 +4914,7 @@ Destroys the [DateTime](#classscy_1_1DateTime).
 DateTime & operator=(const DateTime & dateTime)
 ```
 
-Assigns another [DateTime](#classscy_1_1DateTime).
+Assigns another [DateTime](#classicy_1_1DateTime).
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -4928,7 +4928,7 @@ Assigns another [DateTime](#classscy_1_1DateTime).
 DateTime & operator=(const Timestamp & timestamp)
 ```
 
-Assigns a [Timestamp](#classscy_1_1Timestamp).
+Assigns a [Timestamp](#classicy_1_1Timestamp).
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -4993,7 +4993,7 @@ Assigns a Gregorian date and time.
 void swap(DateTime & dateTime)
 ```
 
-Swaps the [DateTime](#classscy_1_1DateTime) with another one.
+Swaps the [DateTime](#classicy_1_1DateTime) with another one.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -5165,7 +5165,7 @@ Returns the julian day for the date and time.
 inline Timestamp timestamp() const
 ```
 
-Returns the date and time expressed as a [Timestamp](#classscy_1_1Timestamp).
+Returns the date and time expressed as a [Timestamp](#classicy_1_1Timestamp).
 
 ---
 
@@ -5658,7 +5658,7 @@ This class represents an instant in local time (as opposed to UTC), expressed in
 
 In addition to the date and time, the class also maintains a time zone differential, which denotes the difference in seconds from UTC to local time, i.e. UTC = local time - time zone differential.
 
-Although [LocalDateTime](#classscy_1_1LocalDateTime) supports relational and arithmetic operators, all date/time comparisons and date/time arithmetics should be done in UTC, using the [DateTime](#classscy_1_1DateTime) or [Timestamp](#classscy_1_1Timestamp) class for better performance. The relational operators normalize the dates/times involved to UTC before carrying out the comparison.
+Although [LocalDateTime](#classicy_1_1LocalDateTime) supports relational and arithmetic operators, all date/time comparisons and date/time arithmetics should be done in UTC, using the [DateTime](#classicy_1_1DateTime) or [Timestamp](#classicy_1_1Timestamp) class for better performance. The relational operators normalize the dates/times involved to UTC before carrying out the comparison.
 
 The time zone differential is based on the input date and time and current time zone. A number of constructors accept an explicit time zone differential parameter. These should not be used since daylight savings time processing is impossible since the time zone is unknown. Each of the constructors accepting a tzd parameter have been marked as deprecated and may be removed in a future revision.
 
@@ -5666,23 +5666,23 @@ The time zone differential is based on the input date and time and current time 
 
 | Name | Description |
 |------|-------------|
-| [`LocalDateTime`](#group__base_1gaf8f507cd5b10d8089d263b12e34e14fc) | Creates a [LocalDateTime](#classscy_1_1LocalDateTime) with the current date/time for the current time zone. |
-| [`LocalDateTime`](#group__base_1gaa6b69743391798f50ba00facb3b344b8) | Creates a [LocalDateTime](#classscy_1_1LocalDateTime) for the given Gregorian local date and time. |
-| [`LocalDateTime`](#group__base_1gac25cdf7cf37094a68feccb09da251a63) | @ deprecated Creates a [LocalDateTime](#classscy_1_1LocalDateTime) for the given Gregorian date and time in the time zone denoted by the time zone differential in tzd. |
-| [`LocalDateTime`](#group__base_1ga8541afcbe851e21828977693c1130b5b) | Creates a [LocalDateTime](#classscy_1_1LocalDateTime) from the UTC time given in dateTime, using the time zone differential of the current time zone. |
-| [`LocalDateTime`](#group__base_1gab8d6a8ba8d4ce3c43821dc4d8561aa0d) | @ deprecated Creates a [LocalDateTime](#classscy_1_1LocalDateTime) from the UTC time given in dateTime, using the given time zone differential. Adjusts dateTime for the given time zone differential. |
-| [`LocalDateTime`](#group__base_1ga8aaa4e3e37cbac08e70d41e9eff399d0) | @ deprecated Creates a [LocalDateTime](#classscy_1_1LocalDateTime) from the UTC time given in dateTime, using the given time zone differential. If adjust is true, adjusts dateTime for the given time zone differential. |
-| [`LocalDateTime`](#group__base_1gabe29c1922e6895d2d3b7aa1a01c5a40a) | Creates a [LocalDateTime](#classscy_1_1LocalDateTime) for the given Julian day in the local time zone. |
-| [`LocalDateTime`](#group__base_1ga20abd6e936deee4ce9d14af620c008d7) | @ deprecated Creates a [LocalDateTime](#classscy_1_1LocalDateTime) for the given Julian day in the time zone denoted by the time zone differential in tzd. |
-| [`LocalDateTime`](#group__base_1gae63da0ed0e40399b8986a776a3043053) | Copy constructor. Creates the [LocalDateTime](#classscy_1_1LocalDateTime) from another one. |
-| [`~LocalDateTime`](#group__base_1ga173cd6cde153c287ed6c83691329be4e) | Destroys the [LocalDateTime](#classscy_1_1LocalDateTime). |
-| [`operator=`](#group__base_1ga6e18acbc0937ed82dc958f9372504e33) | Assigns another [LocalDateTime](#classscy_1_1LocalDateTime). |
+| [`LocalDateTime`](#group__base_1gaf8f507cd5b10d8089d263b12e34e14fc) | Creates a [LocalDateTime](#classicy_1_1LocalDateTime) with the current date/time for the current time zone. |
+| [`LocalDateTime`](#group__base_1gaa6b69743391798f50ba00facb3b344b8) | Creates a [LocalDateTime](#classicy_1_1LocalDateTime) for the given Gregorian local date and time. |
+| [`LocalDateTime`](#group__base_1gac25cdf7cf37094a68feccb09da251a63) | @ deprecated Creates a [LocalDateTime](#classicy_1_1LocalDateTime) for the given Gregorian date and time in the time zone denoted by the time zone differential in tzd. |
+| [`LocalDateTime`](#group__base_1ga8541afcbe851e21828977693c1130b5b) | Creates a [LocalDateTime](#classicy_1_1LocalDateTime) from the UTC time given in dateTime, using the time zone differential of the current time zone. |
+| [`LocalDateTime`](#group__base_1gab8d6a8ba8d4ce3c43821dc4d8561aa0d) | @ deprecated Creates a [LocalDateTime](#classicy_1_1LocalDateTime) from the UTC time given in dateTime, using the given time zone differential. Adjusts dateTime for the given time zone differential. |
+| [`LocalDateTime`](#group__base_1ga8aaa4e3e37cbac08e70d41e9eff399d0) | @ deprecated Creates a [LocalDateTime](#classicy_1_1LocalDateTime) from the UTC time given in dateTime, using the given time zone differential. If adjust is true, adjusts dateTime for the given time zone differential. |
+| [`LocalDateTime`](#group__base_1gabe29c1922e6895d2d3b7aa1a01c5a40a) | Creates a [LocalDateTime](#classicy_1_1LocalDateTime) for the given Julian day in the local time zone. |
+| [`LocalDateTime`](#group__base_1ga20abd6e936deee4ce9d14af620c008d7) | @ deprecated Creates a [LocalDateTime](#classicy_1_1LocalDateTime) for the given Julian day in the time zone denoted by the time zone differential in tzd. |
+| [`LocalDateTime`](#group__base_1gae63da0ed0e40399b8986a776a3043053) | Copy constructor. Creates the [LocalDateTime](#classicy_1_1LocalDateTime) from another one. |
+| [`~LocalDateTime`](#group__base_1ga173cd6cde153c287ed6c83691329be4e) | Destroys the [LocalDateTime](#classicy_1_1LocalDateTime). |
+| [`operator=`](#group__base_1ga6e18acbc0937ed82dc958f9372504e33) | Assigns another [LocalDateTime](#classicy_1_1LocalDateTime). |
 | [`operator=`](#group__base_1gafa3356c42a95457524c27c2be9a717fd) | Assigns a timestamp. |
 | [`operator=`](#group__base_1ga344e356fccab4631853d9f5cd37de8c6) | Assigns a Julian day in the local time zone. |
 | [`assign`](#group__base_1gaac91b6bebab01e9b755e5b72e9137107) | Assigns a Gregorian local date and time. |
 | [`assign`](#group__base_1ga5a05f078a0a5b372ad43aad8f8505a77) | @ deprecated Assigns a Gregorian local date and time in the time zone denoted by the time zone differential in tzd. |
 | [`assign`](#group__base_1ga1ad03bada11f55c902dbec05d2fc20ba) | @ deprecated Assigns a Julian day in the time zone denoted by the time zone differential in tzd. |
-| [`swap`](#group__base_1ga6bc1c879e4d7b3b04a976c1161ecd5fc) | Swaps the [LocalDateTime](#classscy_1_1LocalDateTime) with another one. |
+| [`swap`](#group__base_1ga6bc1c879e4d7b3b04a976c1161ecd5fc) | Swaps the [LocalDateTime](#classicy_1_1LocalDateTime) with another one. |
 | [`year`](#group__base_1ga8b67a920a92e22ea2b6d4e8a306566c9) | Returns the year. |
 | [`month`](#group__base_1ga8bb9094aac43c17269669b6422448932) | Returns the month (1 to 12). |
 | [`week`](#group__base_1gaad9976490f29168f69b842eda06653cc) | Returns the week number within the year. FirstDayOfWeek should be either SUNDAY (0) or MONDAY (1). The returned week number will be from 0 to 53. Week number 1 is the week containing January 4. This is in accordance to ISO 8601. |
@@ -5700,7 +5700,7 @@ The time zone differential is based on the input date and time and current time 
 | [`julianDay`](#group__base_1gabe283094aa6c16646c54b712f299c040) | Returns the julian day for the date. |
 | [`tzd`](#group__base_1gaf4c12ad2150d60db15fae7b272eab06d) | Returns the time zone differential. |
 | [`utc`](#group__base_1ga416f298027e9fbb02fbbbb59280bce06) | Returns the UTC equivalent for the local date and time. |
-| [`timestamp`](#group__base_1gab031a9c8c582592f94857d03e9732c08) | Returns the date and time expressed as a [Timestamp](#classscy_1_1Timestamp). |
+| [`timestamp`](#group__base_1gab031a9c8c582592f94857d03e9732c08) | Returns the date and time expressed as a [Timestamp](#classicy_1_1Timestamp). |
 | [`utcTime`](#group__base_1ga59f8e28c14dce3c650e5127f5aa9b304) | Returns the UTC equivalent for the local date and time. |
 | [`operator==`](#group__base_1ga33d47d51a7701e0b275500adf395df1a) |  |
 | [`operator!=`](#group__base_1gad10f335463ae82abbc089fc6194e90f7) |  |
@@ -5728,7 +5728,7 @@ The time zone differential is based on the input date and time and current time 
 LocalDateTime()
 ```
 
-Creates a [LocalDateTime](#classscy_1_1LocalDateTime) with the current date/time for the current time zone.
+Creates a [LocalDateTime](#classicy_1_1LocalDateTime) with the current date/time for the current time zone.
 
 ---
 
@@ -5738,7 +5738,7 @@ Creates a [LocalDateTime](#classscy_1_1LocalDateTime) with the current date/time
 LocalDateTime(int year, int month, int day, int hour, int minute, int second, int millisecond, int microsecond)
 ```
 
-Creates a [LocalDateTime](#classscy_1_1LocalDateTime) for the given Gregorian local date and time.
+Creates a [LocalDateTime](#classicy_1_1LocalDateTime) for the given Gregorian local date and time.
 
 * year is from 0 to 9999.
 
@@ -5775,7 +5775,7 @@ Creates a [LocalDateTime](#classscy_1_1LocalDateTime) for the given Gregorian lo
 LocalDateTime(int tzd, int year, int month, int day, int hour, int minute, int second, int millisecond, int microsecond)
 ```
 
-@ deprecated Creates a [LocalDateTime](#classscy_1_1LocalDateTime) for the given Gregorian date and time in the time zone denoted by the time zone differential in tzd.
+@ deprecated Creates a [LocalDateTime](#classicy_1_1LocalDateTime) for the given Gregorian date and time in the time zone denoted by the time zone differential in tzd.
 
 * tzd is in seconds.
 
@@ -5815,7 +5815,7 @@ LocalDateTime(int tzd, int year, int month, int day, int hour, int minute, int s
 LocalDateTime(const DateTime & dateTime)
 ```
 
-Creates a [LocalDateTime](#classscy_1_1LocalDateTime) from the UTC time given in dateTime, using the time zone differential of the current time zone.
+Creates a [LocalDateTime](#classicy_1_1LocalDateTime) from the UTC time given in dateTime, using the time zone differential of the current time zone.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -5829,7 +5829,7 @@ Creates a [LocalDateTime](#classscy_1_1LocalDateTime) from the UTC time given in
 LocalDateTime(int tzd, const DateTime & dateTime)
 ```
 
-@ deprecated Creates a [LocalDateTime](#classscy_1_1LocalDateTime) from the UTC time given in dateTime, using the given time zone differential. Adjusts dateTime for the given time zone differential.
+@ deprecated Creates a [LocalDateTime](#classicy_1_1LocalDateTime) from the UTC time given in dateTime, using the given time zone differential. Adjusts dateTime for the given time zone differential.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -5844,7 +5844,7 @@ LocalDateTime(int tzd, const DateTime & dateTime)
 LocalDateTime(int tzd, const DateTime & dateTime, bool adjust)
 ```
 
-@ deprecated Creates a [LocalDateTime](#classscy_1_1LocalDateTime) from the UTC time given in dateTime, using the given time zone differential. If adjust is true, adjusts dateTime for the given time zone differential.
+@ deprecated Creates a [LocalDateTime](#classicy_1_1LocalDateTime) from the UTC time given in dateTime, using the given time zone differential. If adjust is true, adjusts dateTime for the given time zone differential.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -5860,7 +5860,7 @@ LocalDateTime(int tzd, const DateTime & dateTime, bool adjust)
 LocalDateTime(double julianDay)
 ```
 
-Creates a [LocalDateTime](#classscy_1_1LocalDateTime) for the given Julian day in the local time zone.
+Creates a [LocalDateTime](#classicy_1_1LocalDateTime) for the given Julian day in the local time zone.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -5874,7 +5874,7 @@ Creates a [LocalDateTime](#classscy_1_1LocalDateTime) for the given Julian day i
 LocalDateTime(int tzd, double julianDay)
 ```
 
-@ deprecated Creates a [LocalDateTime](#classscy_1_1LocalDateTime) for the given Julian day in the time zone denoted by the time zone differential in tzd.
+@ deprecated Creates a [LocalDateTime](#classicy_1_1LocalDateTime) for the given Julian day in the time zone denoted by the time zone differential in tzd.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -5889,7 +5889,7 @@ LocalDateTime(int tzd, double julianDay)
 LocalDateTime(const LocalDateTime & dateTime)
 ```
 
-Copy constructor. Creates the [LocalDateTime](#classscy_1_1LocalDateTime) from another one.
+Copy constructor. Creates the [LocalDateTime](#classicy_1_1LocalDateTime) from another one.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -5903,7 +5903,7 @@ Copy constructor. Creates the [LocalDateTime](#classscy_1_1LocalDateTime) from a
 ~LocalDateTime()
 ```
 
-Destroys the [LocalDateTime](#classscy_1_1LocalDateTime).
+Destroys the [LocalDateTime](#classicy_1_1LocalDateTime).
 
 ---
 
@@ -5913,7 +5913,7 @@ Destroys the [LocalDateTime](#classscy_1_1LocalDateTime).
 LocalDateTime & operator=(const LocalDateTime & dateTime)
 ```
 
-Assigns another [LocalDateTime](#classscy_1_1LocalDateTime).
+Assigns another [LocalDateTime](#classicy_1_1LocalDateTime).
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -6047,7 +6047,7 @@ LocalDateTime & assign(int tzd, double julianDay)
 void swap(LocalDateTime & dateTime)
 ```
 
-Swaps the [LocalDateTime](#classscy_1_1LocalDateTime) with another one.
+Swaps the [LocalDateTime](#classicy_1_1LocalDateTime) with another one.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -6239,7 +6239,7 @@ Returns the UTC equivalent for the local date and time.
 inline Timestamp timestamp() const
 ```
 
-Returns the date and time expressed as a [Timestamp](#classscy_1_1Timestamp).
+Returns the date and time expressed as a [Timestamp](#classicy_1_1Timestamp).
 
 ---
 
@@ -6455,7 +6455,7 @@ int _tzd
 
 > **Defined in:** `datetime.h`
 
-Definition of date/time formats and various constants used by [DateTimeFormatter](#classscy_1_1DateTimeFormatter) and [DateTimeParser](#classscy_1_1DateTimeParser).
+Definition of date/time formats and various constants used by [DateTimeFormatter](#classicy_1_1DateTimeFormatter) and [DateTimeParser](#classicy_1_1DateTimeParser).
 
 ### Members
 
@@ -6707,7 +6707,7 @@ Formats the given timestamp according to the given format. The format string is 
 
 * %% - percent sign
 
-Class [DateTimeFormat](#classscy_1_1DateTimeFormat) defines format strings for various standard date/time formats.
+Class [DateTimeFormat](#classicy_1_1DateTimeFormat) defines format strings for various standard date/time formats.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -6921,22 +6921,22 @@ Formats the given timezone differential in RFC format and appends it to the give
 
 This class provides a method for parsing dates and times from strings. All parsing methods do their best to parse a meaningful result, even from malformed input strings.
 
-The returned [DateTime](#classscy_1_1DateTime) will always contain a time in the same timezone as the time in the string. Call [DateTime::makeUTC()](#group__base_1gaef85751cde47a0e909aeddae1775b805) with the timeZoneDifferential returned by [parse()](#group__base_1ga7249fe6e774b64ab401a6f3f97311f26) to convert the [DateTime](#classscy_1_1DateTime) to UTC.
+The returned [DateTime](#classicy_1_1DateTime) will always contain a time in the same timezone as the time in the string. Call [DateTime::makeUTC()](#group__base_1gaef85751cde47a0e909aeddae1775b805) with the timeZoneDifferential returned by [parse()](#group__base_1ga7249fe6e774b64ab401a6f3f97311f26) to convert the [DateTime](#classicy_1_1DateTime) to UTC.
 
 Note: When parsing a time in 12-hour (AM/PM) format, the hour (h) must be parsed before the AM/PM designator (a, A), otherwise the AM/PM designator will be ignored.
 
-See the [DateTimeFormatter](#classscy_1_1DateTimeFormatter) class for a list of supported format specifiers. In addition to the format specifiers supported by [DateTimeFormatter](#classscy_1_1DateTimeFormatter), an additional specifier is supported: r will parse a year given by either two or four digits. Years 69-00 are interpreted in the 20th century (1969-2000), years 01-68 in the 21th century (2001-2068).
+See the [DateTimeFormatter](#classicy_1_1DateTimeFormatter) class for a list of supported format specifiers. In addition to the format specifiers supported by [DateTimeFormatter](#classicy_1_1DateTimeFormatter), an additional specifier is supported: r will parse a year given by either two or four digits. Years 69-00 are interpreted in the 20th century (1969-2000), years 01-68 in the 21th century (2001-2068).
 
 ### Members
 
 | Name | Description |
 |------|-------------|
-| [`parse`](#group__base_1ga7249fe6e774b64ab401a6f3f97311f26) | Parses a date and time in the given format from the given string. Throws a SyntaxException if the string cannot be successfully parsed. Please see [DateTimeFormatter::format()](#group__base_1ga321b8e51f548b4e27bbdd2f54168228a) for a description of the format string. Class [DateTimeFormat](#classscy_1_1DateTimeFormat) defines format strings for various standard date/time formats. |
-| [`parse`](#group__base_1ga7f26e4baca235538426f02338c3342fc) | Parses a date and time in the given format from the given string. Throws a SyntaxException if the string cannot be successfully parsed. Please see [DateTimeFormatter::format()](#group__base_1ga321b8e51f548b4e27bbdd2f54168228a) for a description of the format string. Class [DateTimeFormat](#classscy_1_1DateTimeFormat) defines format strings for various standard date/time formats. |
-| [`tryParse`](#group__base_1ga56574df84989361f4a604e46b46d85b7) | Parses a date and time in the given format from the given string. Returns true if the string has been successfully parsed, false otherwise. Please see [DateTimeFormatter::format()](#group__base_1ga321b8e51f548b4e27bbdd2f54168228a) for a description of the format string. Class [DateTimeFormat](#classscy_1_1DateTimeFormat) defines format strings for various standard date/time formats. |
-| [`parse`](#group__base_1ga3724f5eae88f6d685735d51732eeef1a) | Parses a date and time from the given dateTime string. Before parsing, the method examines the dateTime string for a known date/time format. Throws a SyntaxException if the string cannot be successfully parsed. Please see [DateTimeFormatter::format()](#group__base_1ga321b8e51f548b4e27bbdd2f54168228a) for a description of the format string. Class [DateTimeFormat](#classscy_1_1DateTimeFormat) defines format strings for various standard date/time formats. |
-| [`parse`](#group__base_1ga61d6cfa09678ba2987fe32ba4b54a032) | Parses a date and time from the given dateTime string. Before parsing, the method examines the dateTime string for a known date/time format. Please see [DateTimeFormatter::format()](#group__base_1ga321b8e51f548b4e27bbdd2f54168228a) for a description of the format string. Class [DateTimeFormat](#classscy_1_1DateTimeFormat) defines format strings for various standard date/time formats. |
-| [`tryParse`](#group__base_1ga1fa3ddbd5eac453273f03100e14b4b95) | Parses a date and time from the given dateTime string. Before parsing, the method examines the dateTime string for a known date/time format. Please see [DateTimeFormatter::format()](#group__base_1ga321b8e51f548b4e27bbdd2f54168228a) for a description of the format string. Class [DateTimeFormat](#classscy_1_1DateTimeFormat) defines format strings for various standard date/time formats. |
+| [`parse`](#group__base_1ga7249fe6e774b64ab401a6f3f97311f26) | Parses a date and time in the given format from the given string. Throws a SyntaxException if the string cannot be successfully parsed. Please see [DateTimeFormatter::format()](#group__base_1ga321b8e51f548b4e27bbdd2f54168228a) for a description of the format string. Class [DateTimeFormat](#classicy_1_1DateTimeFormat) defines format strings for various standard date/time formats. |
+| [`parse`](#group__base_1ga7f26e4baca235538426f02338c3342fc) | Parses a date and time in the given format from the given string. Throws a SyntaxException if the string cannot be successfully parsed. Please see [DateTimeFormatter::format()](#group__base_1ga321b8e51f548b4e27bbdd2f54168228a) for a description of the format string. Class [DateTimeFormat](#classicy_1_1DateTimeFormat) defines format strings for various standard date/time formats. |
+| [`tryParse`](#group__base_1ga56574df84989361f4a604e46b46d85b7) | Parses a date and time in the given format from the given string. Returns true if the string has been successfully parsed, false otherwise. Please see [DateTimeFormatter::format()](#group__base_1ga321b8e51f548b4e27bbdd2f54168228a) for a description of the format string. Class [DateTimeFormat](#classicy_1_1DateTimeFormat) defines format strings for various standard date/time formats. |
+| [`parse`](#group__base_1ga3724f5eae88f6d685735d51732eeef1a) | Parses a date and time from the given dateTime string. Before parsing, the method examines the dateTime string for a known date/time format. Throws a SyntaxException if the string cannot be successfully parsed. Please see [DateTimeFormatter::format()](#group__base_1ga321b8e51f548b4e27bbdd2f54168228a) for a description of the format string. Class [DateTimeFormat](#classicy_1_1DateTimeFormat) defines format strings for various standard date/time formats. |
+| [`parse`](#group__base_1ga61d6cfa09678ba2987fe32ba4b54a032) | Parses a date and time from the given dateTime string. Before parsing, the method examines the dateTime string for a known date/time format. Please see [DateTimeFormatter::format()](#group__base_1ga321b8e51f548b4e27bbdd2f54168228a) for a description of the format string. Class [DateTimeFormat](#classicy_1_1DateTimeFormat) defines format strings for various standard date/time formats. |
+| [`tryParse`](#group__base_1ga1fa3ddbd5eac453273f03100e14b4b95) | Parses a date and time from the given dateTime string. Before parsing, the method examines the dateTime string for a known date/time format. Please see [DateTimeFormatter::format()](#group__base_1ga321b8e51f548b4e27bbdd2f54168228a) for a description of the format string. Class [DateTimeFormat](#classicy_1_1DateTimeFormat) defines format strings for various standard date/time formats. |
 | [`parseMonth`](#group__base_1ga4901cfc35835848ebd0026032039fcaf) | Tries to interpret the given range as a month name. The range must be at least three characters long. Returns the month number (1 .. 12) if the month name is valid. Otherwise throws a SyntaxException. |
 | [`parseDayOfWeek`](#group__base_1gad11bed124776792fd833d6347cbc8e0f) | Tries to interpret the given range as a weekday name. The range must be at least three characters long. Returns the weekday number (0 .. 6, where 0 = Synday, 1 = Monday, etc.) if the weekday name is valid. Otherwise throws a SyntaxException. |
 | [`parseTZD`](#group__base_1gab1f9c2e9e62a2704bf88762ab4706b48) |  |
@@ -6950,7 +6950,7 @@ See the [DateTimeFormatter](#classscy_1_1DateTimeFormatter) class for a list of 
 static void parse(const std::string & fmt, const std::string & str, DateTime & dateTime, int & timeZoneDifferential)
 ```
 
-Parses a date and time in the given format from the given string. Throws a SyntaxException if the string cannot be successfully parsed. Please see [DateTimeFormatter::format()](#group__base_1ga321b8e51f548b4e27bbdd2f54168228a) for a description of the format string. Class [DateTimeFormat](#classscy_1_1DateTimeFormat) defines format strings for various standard date/time formats.
+Parses a date and time in the given format from the given string. Throws a SyntaxException if the string cannot be successfully parsed. Please see [DateTimeFormatter::format()](#group__base_1ga321b8e51f548b4e27bbdd2f54168228a) for a description of the format string. Class [DateTimeFormat](#classicy_1_1DateTimeFormat) defines format strings for various standard date/time formats.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -6967,7 +6967,7 @@ Parses a date and time in the given format from the given string. Throws a Synta
 static DateTime parse(const std::string & fmt, const std::string & str, int & timeZoneDifferential)
 ```
 
-Parses a date and time in the given format from the given string. Throws a SyntaxException if the string cannot be successfully parsed. Please see [DateTimeFormatter::format()](#group__base_1ga321b8e51f548b4e27bbdd2f54168228a) for a description of the format string. Class [DateTimeFormat](#classscy_1_1DateTimeFormat) defines format strings for various standard date/time formats.
+Parses a date and time in the given format from the given string. Throws a SyntaxException if the string cannot be successfully parsed. Please see [DateTimeFormatter::format()](#group__base_1ga321b8e51f548b4e27bbdd2f54168228a) for a description of the format string. Class [DateTimeFormat](#classicy_1_1DateTimeFormat) defines format strings for various standard date/time formats.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -6983,7 +6983,7 @@ Parses a date and time in the given format from the given string. Throws a Synta
 static bool tryParse(const std::string & fmt, const std::string & str, DateTime & dateTime, int & timeZoneDifferential)
 ```
 
-Parses a date and time in the given format from the given string. Returns true if the string has been successfully parsed, false otherwise. Please see [DateTimeFormatter::format()](#group__base_1ga321b8e51f548b4e27bbdd2f54168228a) for a description of the format string. Class [DateTimeFormat](#classscy_1_1DateTimeFormat) defines format strings for various standard date/time formats.
+Parses a date and time in the given format from the given string. Returns true if the string has been successfully parsed, false otherwise. Please see [DateTimeFormatter::format()](#group__base_1ga321b8e51f548b4e27bbdd2f54168228a) for a description of the format string. Class [DateTimeFormat](#classicy_1_1DateTimeFormat) defines format strings for various standard date/time formats.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -7000,7 +7000,7 @@ Parses a date and time in the given format from the given string. Returns true i
 static void parse(const std::string & str, DateTime & dateTime, int & timeZoneDifferential)
 ```
 
-Parses a date and time from the given dateTime string. Before parsing, the method examines the dateTime string for a known date/time format. Throws a SyntaxException if the string cannot be successfully parsed. Please see [DateTimeFormatter::format()](#group__base_1ga321b8e51f548b4e27bbdd2f54168228a) for a description of the format string. Class [DateTimeFormat](#classscy_1_1DateTimeFormat) defines format strings for various standard date/time formats.
+Parses a date and time from the given dateTime string. Before parsing, the method examines the dateTime string for a known date/time format. Throws a SyntaxException if the string cannot be successfully parsed. Please see [DateTimeFormatter::format()](#group__base_1ga321b8e51f548b4e27bbdd2f54168228a) for a description of the format string. Class [DateTimeFormat](#classicy_1_1DateTimeFormat) defines format strings for various standard date/time formats.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -7016,7 +7016,7 @@ Parses a date and time from the given dateTime string. Before parsing, the metho
 static DateTime parse(const std::string & str, int & timeZoneDifferential)
 ```
 
-Parses a date and time from the given dateTime string. Before parsing, the method examines the dateTime string for a known date/time format. Please see [DateTimeFormatter::format()](#group__base_1ga321b8e51f548b4e27bbdd2f54168228a) for a description of the format string. Class [DateTimeFormat](#classscy_1_1DateTimeFormat) defines format strings for various standard date/time formats.
+Parses a date and time from the given dateTime string. Before parsing, the method examines the dateTime string for a known date/time format. Please see [DateTimeFormatter::format()](#group__base_1ga321b8e51f548b4e27bbdd2f54168228a) for a description of the format string. Class [DateTimeFormat](#classicy_1_1DateTimeFormat) defines format strings for various standard date/time formats.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -7031,7 +7031,7 @@ Parses a date and time from the given dateTime string. Before parsing, the metho
 static bool tryParse(const std::string & str, DateTime & dateTime, int & timeZoneDifferential)
 ```
 
-Parses a date and time from the given dateTime string. Before parsing, the method examines the dateTime string for a known date/time format. Please see [DateTimeFormatter::format()](#group__base_1ga321b8e51f548b4e27bbdd2f54168228a) for a description of the format string. Class [DateTimeFormat](#classscy_1_1DateTimeFormat) defines format strings for various standard date/time formats.
+Parses a date and time from the given dateTime string. Before parsing, the method examines the dateTime string for a known date/time format. Please see [DateTimeFormatter::format()](#group__base_1ga321b8e51f548b4e27bbdd2f54168228a) for a description of the format string. Class [DateTimeFormat](#classicy_1_1DateTimeFormat) defines format strings for various standard date/time formats.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -7102,7 +7102,7 @@ static int parseAMPM(std::string::const_iterator & it, const std::string::const_
 
 A simple facility to measure time intervals with microsecond resolution.
 
-The [Stopwatch](#classscy_1_1Stopwatch) uses the current system time, so if the system time changes the measured time will be incorrect.
+The [Stopwatch](#classicy_1_1Stopwatch) uses the current system time, so if the system time changes the measured time will be incorrect.
 
 ### Members
 
@@ -7262,12 +7262,12 @@ bool _running
 
 ## Idler 
 
-> **Extends:** `scy::Runner`
+> **Extends:** `icy::Runner`
 > **Defined in:** `idler.h`
 
 Asynchronous type that triggers callbacks when the event loop is idle.
 
-This class inherits the `[Runner](#classscy_1_1Runner)` interface and may be used with any implementation that's powered by an asynchronous `[Runner](#classscy_1_1Runner)`.
+This class inherits the `[Runner](#classicy_1_1Runner)` interface and may be used with any implementation that's powered by an asynchronous `[Runner](#classicy_1_1Runner)`.
 
 ### Members
 
@@ -7402,7 +7402,7 @@ uv::Handle< uv_idle_t > _handle
 
 ## Decoder 
 
-> **Subclasses:** `scy::base64::Decoder`, `scy::hex::Decoder`
+> **Subclasses:** `icy::base64::Decoder`, `icy::hex::Decoder`
 > **Defined in:** `interface.h`
 
 ### Members
@@ -7454,7 +7454,7 @@ virtual inline ssize_t finalize(char *)
 
 ## Encoder 
 
-> **Subclasses:** `scy::base64::Encoder`, `scy::hex::Encoder`
+> **Subclasses:** `icy::base64::Encoder`, `icy::hex::Encoder`
 > **Defined in:** `interface.h`
 
 ### Members
@@ -7506,7 +7506,7 @@ virtual inline ssize_t finalize(char *)
 
 ## Runnable 
 
-> **Subclasses:** `scy::RunnableQueue< IPacket >`, `scy::RunnableQueue< PacketT >`, `scy::AsyncDiagnostic`, `scy::AsyncLogWriter`, `scy::RunnableQueue< T >`, `scy::Task`, `scy::TaskRunner`, `scy::av::MediaCapture`, `scy::pacm::InstallTask`
+> **Subclasses:** `icy::RunnableQueue< IPacket >`, `icy::RunnableQueue< PacketT >`, `icy::AsyncDiagnostic`, `icy::AsyncLogWriter`, `icy::RunnableQueue< T >`, `icy::Task`, `icy::TaskRunner`, `icy::av::MediaCapture`, `icy::pacm::InstallTask`
 > **Defined in:** `interface.h`
 
 Abstract interface for classes that can be run and cancelled.
@@ -7582,7 +7582,7 @@ std::atomic< bool > exit
 
 ## Startable 
 
-> **Subclasses:** `scy::ThreadedStreamReader`, `scy::av::ICapture`, `scy::http::FormWriter`
+> **Subclasses:** `icy::ThreadedStreamReader`, `icy::av::ICapture`, `icy::http::FormWriter`
 > **Defined in:** `interface.h`
 
 Abstract interface for a classes that can be started and stopped.
@@ -7612,7 +7612,7 @@ void stop()
 
 ## Sendable 
 
-> **Subclasses:** `scy::PacketTransaction< sockio::Packet >`, `scy::PacketTransaction< Message >`, `scy::PacketTransaction< PacketT >`
+> **Subclasses:** `icy::PacketTransaction< sockio::Packet >`, `icy::PacketTransaction< Message >`, `icy::PacketTransaction< PacketT >`
 > **Defined in:** `interface.h`
 
 Abstract interface for classes that can be sent and cancelled.
@@ -7642,7 +7642,7 @@ void cancel()
 
 ## Queue 
 
-> **Subclasses:** `scy::ipc::SyncQueue< TAction >`
+> **Subclasses:** `icy::ipc::SyncQueue< TAction >`
 > **Defined in:** `ipc.h`
 
 IPC queue is for safely passing templated actions between threads and processes.
@@ -7748,7 +7748,7 @@ std::deque< TAction * > _actions
 
 ## SyncQueue 
 
-> **Extends:** `scy::ipc::Queue< ipc::Action >`
+> **Extends:** `icy::ipc::Queue< ipc::Action >`
 > **Defined in:** `ipc.h`
 
 IPC synchronization queue is for passing templated actions between threads and the event loop we are synchronizing with.
@@ -7818,7 +7818,7 @@ Synchronizer _sync
 
 ## LogWriter 
 
-> **Subclasses:** `scy::AsyncLogWriter`
+> **Subclasses:** `icy::AsyncLogWriter`
 > **Defined in:** `logger.h`
 
 Log output stream writer.
@@ -7863,10 +7863,10 @@ Writes the given log message stream.
 
 ## AsyncLogWriter 
 
-> **Extends:** `scy::LogWriter`, `scy::basic::Runnable`
+> **Extends:** `icy::LogWriter`, `icy::basic::Runnable`
 > **Defined in:** `logger.h`
 
-[Thread](#classscy_1_1Thread) based log output stream writer.
+[Thread](#classicy_1_1Thread) based log output stream writer.
 
 ### Members
 
@@ -7979,7 +7979,7 @@ std::mutex _mutex
 
 > **Defined in:** `logger.h`
 
-[Logger](#classscy_1_1Logger) class.
+[Logger](#classicy_1_1Logger) class.
 
 ### Members
 
@@ -7995,7 +7995,7 @@ std::mutex _mutex
 | [`getDefault`](#group__base_1ga5a48a75f4ee17d6bc3fa81b92331d64d) | Returns the default log channel, or the nullptr channel if no default channel has been set. |
 | [`write`](#group__base_1gadea484eefd15977b355c26107cd325df) | Writes the given message to the default log channel. The message will be copied. |
 | [`write`](#group__base_1ga267674b14b4556d9acd86e16ef8b331c) | Writes the given message to the default log channel. |
-| [`instance`](#group__base_1ga803744d1eb81ca3ba367c5e0081c1e98) | Returns the default logger singleton. [Logger](#classscy_1_1Logger) instances may be created separately as needed. |
+| [`instance`](#group__base_1ga803744d1eb81ca3ba367c5e0081c1e98) | Returns the default logger singleton. [Logger](#classicy_1_1Logger) instances may be created separately as needed. |
 | [`setInstance`](#group__base_1ga89d453d2d992f8dde3b57732f3c204c5) | Sets the default logger singleton instance. |
 | [`destroy`](#group__base_1ga5972c9db1f70e5a85b85e48401e9168a) | Destroys the default logger singleton instance. |
 | [`Logger`](#group__base_1gae25ba15fd8c92541a296f5be97f0ece8) | NonCopyable and NonMovable. |
@@ -8138,7 +8138,7 @@ Writes the given message to the default log channel.
 static Logger & instance()
 ```
 
-Returns the default logger singleton. [Logger](#classscy_1_1Logger) instances may be created separately as needed.
+Returns the default logger singleton. [Logger](#classicy_1_1Logger) instances may be created separately as needed.
 
 ---
 
@@ -8217,7 +8217,7 @@ std::unique_ptr< LogWriter > _writer
 
 ## LogChannel 
 
-> **Subclasses:** `scy::ConsoleChannel`, `scy::FileChannel`, `scy::RotatingFileChannel`
+> **Subclasses:** `icy::ConsoleChannel`, `icy::FileChannel`, `icy::RotatingFileChannel`
 > **Defined in:** `logger.h`
 
 ### Members
@@ -8395,7 +8395,7 @@ std::string _filter
 
 ## ConsoleChannel 
 
-> **Extends:** `scy::LogChannel`
+> **Extends:** `icy::LogChannel`
 > **Defined in:** `logger.h`
 
 ### Members
@@ -8442,7 +8442,7 @@ virtual void write(const LogStream & stream)
 
 ## FileChannel 
 
-> **Extends:** `scy::LogChannel`
+> **Extends:** `icy::LogChannel`
 > **Defined in:** `logger.h`
 
 ### Members
@@ -8548,7 +8548,7 @@ std::string _path
 
 ## RotatingFileChannel 
 
-> **Extends:** `scy::LogChannel`
+> **Extends:** `icy::LogChannel`
 > **Defined in:** `logger.h`
 
 ### Members
@@ -8731,10 +8731,10 @@ The time the log was last rotated.
 
 ## IPacket 
 
-> **Subclasses:** `scy::FlagPacket`, `scy::RawPacket`, `scy::smpl::Message`, `scy::sockio::Packet`, `scy::stun::Message`
+> **Subclasses:** `icy::FlagPacket`, `icy::RawPacket`, `icy::smpl::Message`, `icy::sockio::Packet`, `icy::stun::Message`
 > **Defined in:** `packet.h`
 
-The basic packet type which is passed around the LibSourcey system. [IPacket](#classscy_1_1IPacket) can be extended for each protocol to enable polymorphic processing and callbacks using [PacketStream](#classscy_1_1PacketStream) and friends.
+The basic packet type which is passed around the Icey system. [IPacket](#classicy_1_1IPacket) can be extended for each protocol to enable polymorphic processing and callbacks using [PacketStream](#classicy_1_1PacketStream) and friends.
 
 ### Members
 
@@ -8937,7 +8937,7 @@ Provides basic information about the packet.
 
 ## FlagPacket 
 
-> **Extends:** `scy::IPacket`
+> **Extends:** `icy::IPacket`
 > **Defined in:** `packet.h`
 
 Packet for sending bitwise flags along the packet stream.
@@ -9026,11 +9026,11 @@ virtual inline const char * className() const
 
 ## RawPacket 
 
-> **Extends:** `scy::IPacket`
-> **Subclasses:** `scy::av::MediaPacket`, `scy::net::SocketPacket`
+> **Extends:** `icy::IPacket`
+> **Subclasses:** `icy::av::MediaPacket`, `icy::net::SocketPacket`
 > **Defined in:** `packet.h`
 
-[RawPacket](#classscy_1_1RawPacket) is the default data packet type which consists of an optionally managed char pointer and a size value.
+[RawPacket](#classicy_1_1RawPacket) is the default data packet type which consists of an optionally managed char pointer and a size value.
 
 ### Members
 
@@ -9219,7 +9219,7 @@ std::unique_ptr< char[]> _owned
 
 ## IPacketCreationStrategy 
 
-> **Subclasses:** `scy::PacketCreationStrategy< PacketT >`
+> **Subclasses:** `icy::PacketCreationStrategy< PacketT >`
 > **Defined in:** `packetfactory.h`
 
 ### Members
@@ -9405,12 +9405,12 @@ PacketCreationStrategyList _types
 
 ## ThreadedStreamReader 
 
-> **Extends:** `scy::PacketStreamAdapter`, `scy::basic::Startable`
+> **Extends:** `icy::PacketStreamAdapter`, `icy::basic::Startable`
 > **Defined in:** `packetio.h`
 
 Threaded stream reader class.
 
-This class can be connected to a `[PacketStream](#classscy_1_1PacketStream)` to read input from any class that derives from `std::istream`. It's most regularly used for reading input files.
+This class can be connected to a `[PacketStream](#classicy_1_1PacketStream)` to read input from any class that derives from `std::istream`. It's most regularly used for reading input files.
 
 ### Members
 
@@ -9504,12 +9504,12 @@ std::istream * _istream
 
 ## StreamWriter 
 
-> **Extends:** `scy::PacketProcessor`
+> **Extends:** `icy::PacketProcessor`
 > **Defined in:** `packetio.h`
 
 Packet stream writer class.
 
-This class can be connected to a `[PacketStream](#classscy_1_1PacketStream)` to write output to any class that derives from `std::ostream`. It's most regularly used for writing output files.
+This class can be connected to a `[PacketStream](#classicy_1_1PacketStream)` to write output to any class that derives from `std::ostream`. It's most regularly used for writing output files.
 
 ### Members
 
@@ -9519,7 +9519,7 @@ This class can be connected to a `[PacketStream](#classscy_1_1PacketStream)` to 
 | [`~StreamWriter`](#group__base_1ga0bdd60e6b4e56dcde24d2b7f372d55e2) |  |
 | [`process`](#group__base_1gae8a1107b09b3644ef7c69ac70bb88459) | This method performs processing on the given packet and emits the result. |
 | [`stream`](#group__base_1gac2501915ffeb2643615ae43936d8aedc) |  |
-| [`onStreamStateChange`](#group__base_1ga22f372f88ca99f812be3e888a40fba77) | Called by the [PacketStream](#classscy_1_1PacketStream) to notify when the internal [Stream](#classscy_1_1Stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios. |
+| [`onStreamStateChange`](#group__base_1ga22f372f88ca99f812be3e888a40fba77) | Called by the [PacketStream](#classicy_1_1PacketStream) to notify when the internal [Stream](#classicy_1_1Stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios. |
 | [`stream`](#group__base_1gaa16cb5b70ea5470206bec6e56ae43b23) |  |
 | [`emitter`](#group__base_1ga1996908eb8e6301955ff4df97c5a22a7) |  |
 | [`_ostream`](#group__base_1ga2e9fe16cc8bec4c2ab33673eda06f4ff) |  |
@@ -9576,7 +9576,7 @@ template<class StreamT> inline StreamT & stream()
 virtual inline void onStreamStateChange(const PacketStreamState &)
 ```
 
-Called by the [PacketStream](#classscy_1_1PacketStream) to notify when the internal [Stream](#classscy_1_1Stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios.
+Called by the [PacketStream](#classicy_1_1PacketStream) to notify when the internal [Stream](#classicy_1_1Stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios.
 
 ---
 
@@ -9604,7 +9604,7 @@ std::ostream * _ostream
 
 ## SyncPacketQueue 
 
-> **Extends:** `scy::SyncQueue< IPacket >`, `scy::PacketProcessor`
+> **Extends:** `icy::SyncQueue< IPacket >`, `icy::PacketProcessor`
 > **Defined in:** `packetqueue.h`
 
 ### Members
@@ -9617,7 +9617,7 @@ std::ostream * _ostream
 | [`process`](#group__base_1ga75df139f954f41a0d315009a2ae5e000) | This method performs processing on the given packet and emits the result. |
 | [`accepts`](#group__base_1ga00793d12f0252f6f4b2e439ecb725829) | This method ensures compatibility with the given packet type. Return false to reject the packet. |
 | [`dispatch`](#group__base_1ga11c2c12c52dd842cd37d83ea8f05147c) | Dispatch a single item to listeners. |
-| [`onStreamStateChange`](#group__base_1ga37f27e601fe6cd6e73c5b3da83b7634d) | Called by the [PacketStream](#classscy_1_1PacketStream) to notify when the internal [Stream](#classscy_1_1Stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios. |
+| [`onStreamStateChange`](#group__base_1ga37f27e601fe6cd6e73c5b3da83b7634d) | Called by the [PacketStream](#classicy_1_1PacketStream) to notify when the internal [Stream](#classicy_1_1Stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios. |
 | [`emitter`](#group__base_1ga9cb2e51e85e32907283c98c62fc5967d) |  |
 
 ---
@@ -9701,7 +9701,7 @@ Dispatch a single item to listeners.
 virtual inline void onStreamStateChange(const PacketStreamState &)
 ```
 
-Called by the [PacketStream](#classscy_1_1PacketStream) to notify when the internal [Stream](#classscy_1_1Stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios.
+Called by the [PacketStream](#classicy_1_1PacketStream) to notify when the internal [Stream](#classicy_1_1Stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios.
 
 ---
 
@@ -9713,7 +9713,7 @@ PacketSignal emitter
 
 ## AsyncPacketQueue 
 
-> **Extends:** `scy::AsyncQueue< IPacket >`, `scy::PacketProcessor`
+> **Extends:** `icy::AsyncQueue< IPacket >`, `icy::PacketProcessor`
 > **Defined in:** `packetqueue.h`
 
 ### Members
@@ -9726,7 +9726,7 @@ PacketSignal emitter
 | [`process`](#group__base_1ga7566b9cd568c49a13b63816ced79121f) | This method performs processing on the given packet and emits the result. |
 | [`accepts`](#group__base_1ga5076d28d49bf343e866c5014e538e8af) | This method ensures compatibility with the given packet type. Return false to reject the packet. |
 | [`dispatch`](#group__base_1gaf6e78ca0279615319d33d7e6aa624e55) | Dispatch a single item to listeners. |
-| [`onStreamStateChange`](#group__base_1gae72126b2b0f118975423119a3ddd6978) | Called by the [PacketStream](#classscy_1_1PacketStream) to notify when the internal [Stream](#classscy_1_1Stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios. |
+| [`onStreamStateChange`](#group__base_1gae72126b2b0f118975423119a3ddd6978) | Called by the [PacketStream](#classicy_1_1PacketStream) to notify when the internal [Stream](#classicy_1_1Stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios. |
 | [`emitter`](#group__base_1gaf462c1a658ea10a25f0159c3adf22054) |  |
 
 ---
@@ -9805,7 +9805,7 @@ Dispatch a single item to listeners.
 virtual inline void onStreamStateChange(const PacketStreamState &)
 ```
 
-Called by the [PacketStream](#classscy_1_1PacketStream) to notify when the internal [Stream](#classscy_1_1Stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios.
+Called by the [PacketStream](#classicy_1_1PacketStream) to notify when the internal [Stream](#classicy_1_1Stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios.
 
 ---
 
@@ -9817,10 +9817,10 @@ PacketSignal emitter
 
 ## PacketStreamAdapter 
 
-> **Subclasses:** `scy::PacketProcessor`, `scy::ThreadedStreamReader`, `scy::av::ICapture`, `scy::http::FormWriter`
+> **Subclasses:** `icy::PacketProcessor`, `icy::ThreadedStreamReader`, `icy::av::ICapture`, `icy::http::FormWriter`
 > **Defined in:** `packetstream.h`
 
-This class is a wrapper for integrating external classes with the a [PacketStream](#classscy_1_1PacketStream)'s data flow and state machine.
+This class is a wrapper for integrating external classes with the a [PacketStream](#classicy_1_1PacketStream)'s data flow and state machine.
 
 ### Members
 
@@ -9834,7 +9834,7 @@ This class is a wrapper for integrating external classes with the a [PacketStrea
 | [`emit`](#group__base_1ga4f329880c10ea2492479ddd90df48b09) |  |
 | [`emit`](#group__base_1ga3b302bbd1b8c8eb21d549eda77ab2e58) |  |
 | [`getEmitter`](#group__base_1ga3c56e12afc6c4863d9f70258dfe6c2a5) | Returns a reference to the outgoing packet signal. |
-| [`onStreamStateChange`](#group__base_1gacaab737ce646207471c5f7bb3b6b794e) | Called by the [PacketStream](#classscy_1_1PacketStream) to notify when the internal [Stream](#classscy_1_1Stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios. |
+| [`onStreamStateChange`](#group__base_1gacaab737ce646207471c5f7bb3b6b794e) | Called by the [PacketStream](#classicy_1_1PacketStream) to notify when the internal [Stream](#classicy_1_1Stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios. |
 | [`PacketStreamAdapter`](#group__base_1ga2e52c68e66f76569dacf29a41cf8a73b) | NonCopyable and NonMovable. |
 | [`operator=`](#group__base_1gab56d24063e6015ea655f22ba9d5723f1) |  |
 | [`_emitter`](#group__base_1ga080cfd0707ca633ed93b77aa066c6e8b) |  |
@@ -9942,7 +9942,7 @@ Returns a reference to the outgoing packet signal.
 virtual inline void onStreamStateChange(const PacketStreamState &)
 ```
 
-Called by the [PacketStream](#classscy_1_1PacketStream) to notify when the internal [Stream](#classscy_1_1Stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios.
+Called by the [PacketStream](#classicy_1_1PacketStream) to notify when the internal [Stream](#classicy_1_1Stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios.
 
 ---
 
@@ -9972,11 +9972,11 @@ PacketSignal & _emitter
 
 ## PacketProcessor 
 
-> **Extends:** `scy::PacketStreamAdapter`
-> **Subclasses:** `scy::AsyncPacketQueue< PacketT >`, `scy::AsyncPacketQueue< T >`, `scy::Base64PacketEncoder`, `scy::StreamWriter`, `scy::SyncPacketQueue< T >`, `scy::av::FLVMetadataInjector`, `scy::av::FPSLimiter`, `scy::av::MultiplexPacketEncoder`, `scy::http::ChunkedAdapter`, `scy::http::MultipartAdapter`
+> **Extends:** `icy::PacketStreamAdapter`
+> **Subclasses:** `icy::AsyncPacketQueue< PacketT >`, `icy::AsyncPacketQueue< T >`, `icy::Base64PacketEncoder`, `icy::StreamWriter`, `icy::SyncPacketQueue< T >`, `icy::av::FLVMetadataInjector`, `icy::av::FPSLimiter`, `icy::av::MultiplexPacketEncoder`, `icy::http::ChunkedAdapter`, `icy::http::MultipartAdapter`
 > **Defined in:** `packetstream.h`
 
-This class is a virtual interface for creating PacketStreamAdapters which process that and emit the [IPacket](#classscy_1_1IPacket) type.
+This class is a virtual interface for creating PacketStreamAdapters which process that and emit the [IPacket](#classicy_1_1IPacket) type.
 
 ### Members
 
@@ -9985,7 +9985,7 @@ This class is a virtual interface for creating PacketStreamAdapters which proces
 | [`PacketProcessor`](#group__base_1gaf3ab7df2c2416fdb3bd4e2b313c8b772) |  |
 | [`process`](#group__base_1gad7adc3fd78dce41f0f96744dfe6d1d50) | This method performs processing on the given packet and emits the result. |
 | [`accepts`](#group__base_1gacb581741dd22cc5c0191397b32419ddc) | This method ensures compatibility with the given packet type. Return false to reject the packet. |
-| [`operator<<`](#group__base_1ga0b09928130bd267d58273ea85be1891a) | [Stream](#classscy_1_1Stream) operator alias for [process()](#group__base_1gad7adc3fd78dce41f0f96744dfe6d1d50) |
+| [`operator<<`](#group__base_1ga0b09928130bd267d58273ea85be1891a) | [Stream](#classicy_1_1Stream) operator alias for [process()](#group__base_1gad7adc3fd78dce41f0f96744dfe6d1d50) |
 
 ---
 
@@ -10033,7 +10033,7 @@ This method ensures compatibility with the given packet type. Return false to re
 virtual inline void operator<<(IPacket & packet)
 ```
 
-[Stream](#classscy_1_1Stream) operator alias for [process()](#group__base_1gad7adc3fd78dce41f0f96744dfe6d1d50)
+[Stream](#classicy_1_1Stream) operator alias for [process()](#group__base_1gad7adc3fd78dce41f0f96744dfe6d1d50)
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -10041,18 +10041,18 @@ virtual inline void operator<<(IPacket & packet)
 
 ## PacketStream 
 
-> **Extends:** `scy::Stateful< PacketStreamState >`
+> **Extends:** `icy::Stateful< PacketStreamState >`
 > **Defined in:** `packetstream.h`
 
-This class is used for processing and boradcasting IPackets in a flexible way. A [PacketStream](#classscy_1_1PacketStream) consists of one or many PacketSources, one or many PacketProcessors, and one or many delegate receivers.
+This class is used for processing and boradcasting IPackets in a flexible way. A [PacketStream](#classicy_1_1PacketStream) consists of one or many PacketSources, one or many PacketProcessors, and one or many delegate receivers.
 
-This class enables the developer to setup a processor chain in order to perform arbitrary processing on data packets using interchangeable packet adapters, and pump the output to any delegate function,/// or even another [PacketStream](#classscy_1_1PacketStream).
+This class enables the developer to setup a processor chain in order to perform arbitrary processing on data packets using interchangeable packet adapters, and pump the output to any delegate function,/// or even another [PacketStream](#classicy_1_1PacketStream).
 
-Note that [PacketStream](#classscy_1_1PacketStream) itself inherits from [PacketStreamAdapter](#classscy_1_1PacketStreamAdapter),/// so a [PacketStream](#classscy_1_1PacketStream) be the source of another [PacketStream](#classscy_1_1PacketStream).
+Note that [PacketStream](#classicy_1_1PacketStream) itself inherits from [PacketStreamAdapter](#classicy_1_1PacketStreamAdapter),/// so a [PacketStream](#classicy_1_1PacketStream) be the source of another [PacketStream](#classicy_1_1PacketStream).
 
-All [PacketStream](#classscy_1_1PacketStream) methods are thread-safe, but once the stream is running you will not be able to attach or detach stream adapters.
+All [PacketStream](#classicy_1_1PacketStream) methods are thread-safe, but once the stream is running you will not be able to attach or detach stream adapters.
 
-In order to synchronize output packets with the application event loop take a look at the [SyncPacketQueue](#classscy_1_1SyncPacketQueue) class. For lengthy operations you can add an [AsyncPacketQueue](#classscy_1_1AsyncPacketQueue) to the start of the stream to defer processing from the PacketSource thread.
+In order to synchronize output packets with the application event loop take a look at the [SyncPacketQueue](#classicy_1_1SyncPacketQueue) class. For lengthy operations you can add an [AsyncPacketQueue](#classicy_1_1AsyncPacketQueue) to the start of the stream to defer processing from the PacketSource thread.
 
 ### Members
 
@@ -10068,14 +10068,14 @@ In order to synchronize output packets with the application event loop take a lo
 | [`reset`](#group__base_1gabf0b20944de791715e6891520fd6784b) | Cleanup all managed stream adapters and reset the stream state. |
 | [`active`](#group__base_1ga6f53641239172c34777c6fae3c96fc98) | Returns true when the stream is in the Active state. |
 | [`stopped`](#group__base_1gaa1485ea7e14fd0d929886604930a4092) | Returns true when the stream is in the Stopping or Stopped state. |
-| [`closed`](#group__base_1ga45d9514c5da12522e7e672f46f433d27) | Returns true when the stream is in the Closed or [Error](#structscy_1_1Error) state. |
+| [`closed`](#group__base_1ga45d9514c5da12522e7e672f46f433d27) | Returns true when the stream is in the Closed or [Error](#structicy_1_1Error) state. |
 | [`lock`](#group__base_1gaa49be3aec494af1412f80a0613d5dc77) | Sets the stream to locked state. In a locked state no new adapters can be added or removed from the stream until the stream is stopped. |
 | [`locked`](#group__base_1gad0ff7534821aebeda8731d5840cef8bb) | Returns true is the stream is currently locked. |
 | [`write`](#group__base_1ga74422f101e021e1eea6ebab7cd36098d) | Writes data to the stream (nocopy). |
 | [`write`](#group__base_1gad7b06d811db22b5c08aa4fce2d86eb19) | Writes data to the stream (copied). |
 | [`write`](#group__base_1ga4bd4ad751e112c62f93db2920677e75b) | Writes an incoming packet onto the stream. |
 | [`attachSource`](#group__base_1ga16adec5b00a33070556dd8531e1825c0) | Attaches a source packet emitter to the stream. The source packet adapter can be another [PacketStream::emitter](#group__base_1ga3d4fa2d39446cd24ce5d8281834b70db). |
-| [`attachSource`](#group__base_1ga42e243c7a6bf9cb7a53725e7ca268e64) | Attaches a source packet emitter to the stream. If owned is true, the stream takes ownership and will delete the pointer. If syncState is true and the source is a [basic::Startable](#classscy_1_1basic_1_1Startable), then the source's [start()](#group__base_1gaa07075299f2271e58f78de3fd7e62b10)/stop() methods will be synchronized when calling [startSources()](#group__base_1gaeb9605f5d35a6aaa92bf427e0989827c)/stopSources(). |
+| [`attachSource`](#group__base_1ga42e243c7a6bf9cb7a53725e7ca268e64) | Attaches a source packet emitter to the stream. If owned is true, the stream takes ownership and will delete the pointer. If syncState is true and the source is a [basic::Startable](#classicy_1_1basic_1_1Startable), then the source's [start()](#group__base_1gaa07075299f2271e58f78de3fd7e62b10)/stop() methods will be synchronized when calling [startSources()](#group__base_1gaeb9605f5d35a6aaa92bf427e0989827c)/stopSources(). |
 | [`attachSource`](#group__base_1gae6f1bb5accd371bd151cfbabc141b331) | Attaches a source packet emitter to the stream. This method enables compatibility with shared_ptr managed adapter instances. |
 | [`detachSource`](#group__base_1ga06e1aa0b843f233d6dc71ca293a24945) | Detaches the given source packet signal from the stream. |
 | [`detachSource`](#group__base_1ga4f77bef24858fbb7bf31b43899c6fd27) | Detaches the given source packet adapter from the stream. |
@@ -10095,22 +10095,22 @@ In order to synchronize output packets with the application event loop take a lo
 | [`numAdapters`](#group__base_1gacd6972c47d4945735771841b16163a46) |  |
 | [`getSource`](#group__base_1ga6921d9eb5ad3fcd1541093db094b47eb) |  |
 | [`getProcessor`](#group__base_1ga54f24499988940ed9dd77f9409cdcf8f) |  |
-| [`getProcessor`](#group__base_1ga74ea091cd48ca43f5a04c8cdf1124c77) | Returns the [PacketProcessor](#classscy_1_1PacketProcessor) at the given position. |
+| [`getProcessor`](#group__base_1ga74ea091cd48ca43f5a04c8cdf1124c77) | Returns the [PacketProcessor](#classicy_1_1PacketProcessor) at the given position. |
 | [`setup`](#group__base_1ga2e71c28fac4871d262138e58e048c641) | Attach the source and processor delegate chain. |
 | [`teardown`](#group__base_1ga7529aa1efb6d052d08b1aa9d64988a03) | Detach the source and processor delegate chain. |
 | [`attachSource`](#group__base_1ga4187fed0c3f68c220a9bb2779481e2db) |  |
 | [`attach`](#group__base_1ga6ab3b5c164ac0bab8137ae0e293b7f99) |  |
 | [`startSources`](#group__base_1gaeb9605f5d35a6aaa92bf427e0989827c) | Start synchronized sources. |
 | [`stopSources`](#group__base_1ga73955535a0312cd3371c3317c1bfa1f0) | Stop synchronized sources. |
-| [`process`](#group__base_1ga379f518fe7c1a50af177b738e0b28f17) | [Process](#classscy_1_1Process) incoming packets. |
+| [`process`](#group__base_1ga379f518fe7c1a50af177b738e0b28f17) | [Process](#classicy_1_1Process) incoming packets. |
 | [`emit`](#group__base_1ga2ec0154d38011167b59aa54a2cdddd98) | Emit the final packet to listeners. |
 | [`synchronizeStates`](#group__base_1ga4abe768801f8b39876834e45ead0ac1e) | Synchronize queued states with adapters. |
 | [`onStateChange`](#group__base_1gae5e38cf390b7ac651342801d09a3e0bb) | Override the [Stateful::onStateChange](#group__base_1ga3c88b4aa8e9343f9bdc1a8c2ae2a5452) method. |
 | [`assertCanModify`](#group__base_1ga8222585fd3f575c67b6b28f1e7cb5217) | Returns true if the given state ID is queued. |
 | [`handleException`](#group__base_1ga40d1f91b9b8cb5216ce132998eaae458) | Handle an internal exception. |
 | [`emitter`](#group__base_1ga3d4fa2d39446cd24ce5d8281834b70db) | Signals to delegates on outgoing packets. |
-| [`Error`](#group__base_1ga91c28709d238b0cfa21ba0929296d981) | Signals that the [PacketStream](#classscy_1_1PacketStream) is in [Error](#structscy_1_1Error) state. If stream output is synchronized then the [Error](#structscy_1_1Error) signal will be sent from the synchronization context, otherwise it will be sent from the async processor context. See [synchronizeOutput()](#group__base_1ga27a797846a098946cf73d80726302a9e) |
-| [`Close`](#group__base_1ga1a7296d92dbedd388ea99ff6436e5037) | Signals that the [PacketStream](#classscy_1_1PacketStream) is in Close state. This signal is sent immediately via the [close()](#group__base_1gac0eec4eda5ff0571b46b4a39af9f7dcf) method, and as such will be sent from the calling thread context. |
+| [`Error`](#group__base_1ga91c28709d238b0cfa21ba0929296d981) | Signals that the [PacketStream](#classicy_1_1PacketStream) is in [Error](#structicy_1_1Error) state. If stream output is synchronized then the [Error](#structicy_1_1Error) signal will be sent from the synchronization context, otherwise it will be sent from the async processor context. See [synchronizeOutput()](#group__base_1ga27a797846a098946cf73d80726302a9e) |
+| [`Close`](#group__base_1ga1a7296d92dbedd388ea99ff6436e5037) | Signals that the [PacketStream](#classicy_1_1PacketStream) is in Close state. This signal is sent immediately via the [close()](#group__base_1gac0eec4eda5ff0571b46b4a39af9f7dcf) method, and as such will be sent from the calling thread context. |
 | [`_mutex`](#group__base_1ga07b9e3677e5d7811efeee61017ea91f4) |  |
 | [`_procMutex`](#group__base_1gacb611f82818fdbd6cbd316240c2e13eb) |  |
 | [`_name`](#group__base_1ga928ac73b404916c524349f82b837a251) |  |
@@ -10229,7 +10229,7 @@ Returns true when the stream is in the Stopping or Stopped state.
 virtual bool closed() const
 ```
 
-Returns true when the stream is in the Closed or [Error](#structscy_1_1Error) state.
+Returns true when the stream is in the Closed or [Error](#structicy_1_1Error) state.
 
 ---
 
@@ -10317,7 +10317,7 @@ Attaches a source packet emitter to the stream. The source packet adapter can be
 virtual void attachSource(PacketStreamAdapter * source, bool owned, bool syncState)
 ```
 
-Attaches a source packet emitter to the stream. If owned is true, the stream takes ownership and will delete the pointer. If syncState is true and the source is a [basic::Startable](#classscy_1_1basic_1_1Startable), then the source's [start()](#group__base_1gaa07075299f2271e58f78de3fd7e62b10)/stop() methods will be synchronized when calling [startSources()](#group__base_1gaeb9605f5d35a6aaa92bf427e0989827c)/stopSources().
+Attaches a source packet emitter to the stream. If owned is true, the stream takes ownership and will delete the pointer. If syncState is true and the source is a [basic::Startable](#classicy_1_1basic_1_1Startable), then the source's [start()](#group__base_1gaa07075299f2271e58f78de3fd7e62b10)/stop() methods will be synchronized when calling [startSources()](#group__base_1gaeb9605f5d35a6aaa92bf427e0989827c)/stopSources().
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -10454,7 +10454,7 @@ virtual void closeOnError(bool flag)
 
 Set the stream to be closed on error (default: true).
 
-With this flag set the stream will be automatically transitioned to Closed state from [Error](#structscy_1_1Error) state.
+With this flag set the stream will be automatically transitioned to Closed state from [Error](#structicy_1_1Error) state.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -10568,7 +10568,7 @@ template<class AdapterT> inline AdapterT * getProcessor(int index)
 inline PacketProcessor * getProcessor(int order)
 ```
 
-Returns the [PacketProcessor](#classscy_1_1PacketProcessor) at the given position.
+Returns the [PacketProcessor](#classicy_1_1PacketProcessor) at the given position.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -10646,7 +10646,7 @@ Stop synchronized sources.
 virtual void process(IPacket & packet)
 ```
 
-[Process](#classscy_1_1Process) incoming packets.
+[Process](#classicy_1_1Process) incoming packets.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -10662,7 +10662,7 @@ void emit(IPacket & packet)
 
 Emit the final packet to listeners.
 
-Synchronized signals such as Close and [Error](#structscy_1_1Error) are sent from this method. See [synchronizeOutput()](#group__base_1ga27a797846a098946cf73d80726302a9e)
+Synchronized signals such as Close and [Error](#structicy_1_1Error) are sent from this method. See [synchronizeOutput()](#group__base_1ga27a797846a098946cf73d80726302a9e)
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -10737,7 +10737,7 @@ Signals to delegates on outgoing packets.
 Signal< void(PacketStream &, const std::exception_ptr &)> Error
 ```
 
-Signals that the [PacketStream](#classscy_1_1PacketStream) is in [Error](#structscy_1_1Error) state. If stream output is synchronized then the [Error](#structscy_1_1Error) signal will be sent from the synchronization context, otherwise it will be sent from the async processor context. See [synchronizeOutput()](#group__base_1ga27a797846a098946cf73d80726302a9e)
+Signals that the [PacketStream](#classicy_1_1PacketStream) is in [Error](#structicy_1_1Error) state. If stream output is synchronized then the [Error](#structicy_1_1Error) signal will be sent from the synchronization context, otherwise it will be sent from the async processor context. See [synchronizeOutput()](#group__base_1ga27a797846a098946cf73d80726302a9e)
 
 ---
 
@@ -10747,7 +10747,7 @@ Signals that the [PacketStream](#classscy_1_1PacketStream) is in [Error](#struct
 Signal< void(PacketStream &)> Close
 ```
 
-Signals that the [PacketStream](#classscy_1_1PacketStream) is in Close state. This signal is sent immediately via the [close()](#group__base_1gac0eec4eda5ff0571b46b4a39af9f7dcf) method, and as such will be sent from the calling thread context.
+Signals that the [PacketStream](#classicy_1_1PacketStream) is in Close state. This signal is sent immediately via the [close()](#group__base_1gac0eec4eda5ff0571b46b4a39af9f7dcf) method, and as such will be sent from the calling thread context.
 
 ---
 
@@ -10823,11 +10823,11 @@ bool _closeOnError
 
 ## PacketTransaction 
 
-> **Extends:** `scy::basic::Sendable`, `scy::Stateful< TransactionState >`
-> **Subclasses:** `scy::net::Transaction< Message >`, `scy::net::Transaction< PacketT >`
+> **Extends:** `icy::basic::Sendable`, `icy::Stateful< TransactionState >`
+> **Subclasses:** `icy::net::Transaction< Message >`, `icy::net::Transaction< PacketT >`
 > **Defined in:** `packettransaction.h`
 
-This class provides request/response functionality for [IPacket](#classscy_1_1IPacket) types.
+This class provides request/response functionality for [IPacket](#classicy_1_1IPacket) types.
 
 PacketTransactions are fire and forget. The object will be deleted after a successful response or a timeout.
 
@@ -11112,10 +11112,10 @@ bool _destroyed
 
 ## Pipe 
 
-> **Extends:** `scy::Stream< uv_pipe_t >`
+> **Extends:** `icy::Stream< uv_pipe_t >`
 > **Defined in:** `pipe.h`
 
-[Pipe](#classscy_1_1Pipe) implementation for process stdio.
+[Pipe](#classicy_1_1Pipe) implementation for process stdio.
 
 ### Members
 
@@ -11398,7 +11398,7 @@ std::vector< char * > _cargs
 
 ## Queue 
 
-> **Subclasses:** `scy::RunnableQueue< IPacket >`, `scy::RunnableQueue< PacketT >`
+> **Subclasses:** `icy::RunnableQueue< IPacket >`, `icy::RunnableQueue< PacketT >`
 > **Defined in:** `queue.h`
 
 Thread-safe queue container.
@@ -11522,8 +11522,8 @@ std::mutex _mutex
 
 ## RunnableQueue 
 
-> **Extends:** `scy::Queue< T * >`, `scy::basic::Runnable`
-> **Subclasses:** `scy::AsyncQueue< IPacket >`, `scy::AsyncQueue< PacketT >`, `scy::SyncQueue< IPacket >`, `scy::AsyncQueue< T >`, `scy::SyncQueue< T >`
+> **Extends:** `icy::Queue< T * >`, `icy::basic::Runnable`
+> **Subclasses:** `icy::AsyncQueue< IPacket >`, `icy::AsyncQueue< PacketT >`, `icy::SyncQueue< IPacket >`, `icy::AsyncQueue< T >`, `icy::SyncQueue< T >`
 > **Defined in:** `queue.h`
 
 ### Members
@@ -11728,11 +11728,11 @@ std::mutex _mutex
 
 ## SyncQueue 
 
-> **Extends:** `scy::RunnableQueue< T >`
-> **Subclasses:** `scy::SyncPacketQueue< T >`
+> **Extends:** `icy::RunnableQueue< T >`
+> **Subclasses:** `icy::SyncPacketQueue< T >`
 > **Defined in:** `queue.h`
 
-[SyncQueue](#classscy_1_1SyncQueue) extends [Synchronizer](#classscy_1_1Synchronizer) to implement a synchronized FIFO queue which receives T objects from any thread and synchronizes them for safe consumption by the associated event loop.
+[SyncQueue](#classicy_1_1SyncQueue) extends [Synchronizer](#classicy_1_1Synchronizer) to implement a synchronized FIFO queue which receives T objects from any thread and synchronizes them for safe consumption by the associated event loop.
 
 ### Members
 
@@ -11740,7 +11740,7 @@ std::mutex _mutex
 |------|-------------|
 | [`SyncQueue`](#group__base_1gae1cf6a31580baa5e4455d193ba3c0b54) |  |
 | [`~SyncQueue`](#group__base_1ga9539ee4bbac1c32eb8c315a15ee0c9b3) | Destruction is deferred to allow enough time for all callbacks to return. |
-| [`push`](#group__base_1ga807c4a3d7d9adf4c15fd9b78121ca830) | Pushes an item onto the queue. Item pointers are now managed by the [SyncQueue](#classscy_1_1SyncQueue). |
+| [`push`](#group__base_1ga807c4a3d7d9adf4c15fd9b78121ca830) | Pushes an item onto the queue. Item pointers are now managed by the [SyncQueue](#classicy_1_1SyncQueue). |
 | [`cancel`](#group__base_1gafd7fe7eff78132084172f272e76c37b7) |  |
 | [`sync`](#group__base_1ga1e3c839536b14db6be1846e40cd16fd4) |  |
 | [`_sync`](#group__base_1gacf0e3e74f572918437858efc1f769a26) |  |
@@ -11777,7 +11777,7 @@ Destruction is deferred to allow enough time for all callbacks to return.
 virtual inline void push(T * item)
 ```
 
-Pushes an item onto the queue. Item pointers are now managed by the [SyncQueue](#classscy_1_1SyncQueue).
+Pushes an item onto the queue. Item pointers are now managed by the [SyncQueue](#classicy_1_1SyncQueue).
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -11809,15 +11809,15 @@ Synchronizer _sync
 
 ## AsyncQueue 
 
-> **Extends:** `scy::RunnableQueue< T >`
-> **Subclasses:** `scy::AsyncPacketQueue< PacketT >`, `scy::AsyncPacketQueue< T >`
+> **Extends:** `icy::RunnableQueue< T >`
+> **Subclasses:** `icy::AsyncPacketQueue< PacketT >`, `icy::AsyncPacketQueue< T >`
 > **Defined in:** `queue.h`
 
-[AsyncQueue](#classscy_1_1AsyncQueue) is a thread-based queue which receives packets from any thread source and dispatches them asynchronously.
+[AsyncQueue](#classicy_1_1AsyncQueue) is a thread-based queue which receives packets from any thread source and dispatches them asynchronously.
 
 This queue is useful for deferring load from operation critical system devices before performing long running tasks.
 
-The thread will call the [RunnableQueue](#classscy_1_1RunnableQueue)'s [run()](#group__base_1ga372c52aa2d9b4c33f9b620dfb2c2af23) method to constantly flush outgoing packets until [cancel()](#group__base_1ga0096428c7d684eb39f378784ee868fa1) is called.
+The thread will call the [RunnableQueue](#classicy_1_1RunnableQueue)'s [run()](#group__base_1ga372c52aa2d9b4c33f9b620dfb2c2af23) method to constantly flush outgoing packets until [cancel()](#group__base_1ga0096428c7d684eb39f378784ee868fa1) is called.
 
 ### Members
 
@@ -11868,7 +11868,7 @@ Thread _thread
 
 > **Defined in:** `random.h`
 
-[Random](#classscy_1_1Random) implements a pseudo random number generator (PRNG). The PRNG is a nonlinear additive feedback random number generator using 256 bytes of state information and a period of up to 2^69.
+[Random](#classicy_1_1Random) implements a pseudo random number generator (PRNG). The PRNG is a nonlinear additive feedback random number generator using 256 bytes of state information and a period of up to 2^69.
 
 ### Members
 
@@ -12146,10 +12146,10 @@ std::unique_ptr< char[]> _buffer
 
 ## Runner 
 
-> **Subclasses:** `scy::Idler`, `scy::Synchronizer`, `scy::Thread`, `scy::Thread`, `scy::Timer`
+> **Subclasses:** `icy::Idler`, `icy::Synchronizer`, `icy::Thread`, `icy::Thread`, `icy::Timer`
 > **Defined in:** `runner.h`
 
-[Runner](#classscy_1_1Runner) is a virtual interface for implementing asynchronous objects such as threads and futures.
+[Runner](#classicy_1_1Runner) is a virtual interface for implementing asynchronous objects such as threads and futures.
 
 ### Members
 
@@ -12161,14 +12161,14 @@ std::unique_ptr< char[]> _buffer
 | [`running`](#group__base_1ga82d2c9fecae021a80e3568fc440ba446) | Returns true if the async context is currently running. |
 | [`cancel`](#group__base_1ga679d52263009759d6c7fd77c53972a0a) | Cancels the async context. |
 | [`cancelled`](#group__base_1ga5374eaf1369a6623367db28f9472e956) | True when the task has been cancelled. It is up to the implementation to return at the earliest possible time. |
-| [`repeating`](#group__base_1gaebdf1e6504e226fc910cd839b4bc1e51) | Returns true if the [Runner](#classscy_1_1Runner) is operating in repeating mode. |
-| [`setRepeating`](#group__base_1ga12c1000762cde5b41c2412ba9172d436) | This setting means the implementation should invoke the target function repeatedly until cancelled. The importance of this method to normalize the functionality of threadded and event loop driven [Runner](#classscy_1_1Runner) models. |
+| [`repeating`](#group__base_1gaebdf1e6504e226fc910cd839b4bc1e51) | Returns true if the [Runner](#classicy_1_1Runner) is operating in repeating mode. |
+| [`setRepeating`](#group__base_1ga12c1000762cde5b41c2412ba9172d436) | This setting means the implementation should invoke the target function repeatedly until cancelled. The importance of this method to normalize the functionality of threadded and event loop driven [Runner](#classicy_1_1Runner) models. |
 | [`async`](#group__base_1ga61903ea9f01179265132953f56ca8a3b) | Returns true if the implementation is thread-based, or false if it belongs to an event loop. |
 | [`tid`](#group__base_1ga8c0368bae16c191ce1f4effd1003fccd) | Return the native thread ID. |
 | [`waitForExit`](#group__base_1ga871cd630b94c2bafee226866b52b0c9c) | Wait until the thread exits. |
 | [`Runner`](#group__base_1ga6f3ded568733fb97244b4f51ffd0ea2c) | NonCopyable and NonMovable. |
 | [`operator=`](#group__base_1gaf76d61099580638ce024f452decf76f4) |  |
-| [`_context`](#group__base_1ga2dea91abc5566c9a613c6cdf253f6aa0) | Shared pointer to the internal [Context](#structscy_1_1Runner_1_1Context). |
+| [`_context`](#group__base_1ga2dea91abc5566c9a613c6cdf253f6aa0) | Shared pointer to the internal [Context](#structicy_1_1Runner_1_1Context). |
 
 ---
 
@@ -12196,7 +12196,7 @@ void start(std::function< void()> target)
 
 Start the asynchronous context with the given invokeback.
 
-The target `Runnable` instance must outlive the `[Runner](#classscy_1_1Runner)`.
+The target `Runnable` instance must outlive the `[Runner](#classicy_1_1Runner)`.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -12240,7 +12240,7 @@ True when the task has been cancelled. It is up to the implementation to return 
 bool repeating() const
 ```
 
-Returns true if the [Runner](#classscy_1_1Runner) is operating in repeating mode.
+Returns true if the [Runner](#classicy_1_1Runner) is operating in repeating mode.
 
 ---
 
@@ -12250,7 +12250,7 @@ Returns true if the [Runner](#classscy_1_1Runner) is operating in repeating mode
 void setRepeating(bool flag)
 ```
 
-This setting means the implementation should invoke the target function repeatedly until cancelled. The importance of this method to normalize the functionality of threadded and event loop driven [Runner](#classscy_1_1Runner) models.
+This setting means the implementation should invoke the target function repeatedly until cancelled. The importance of this method to normalize the functionality of threadded and event loop driven [Runner](#classicy_1_1Runner) models.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -12318,15 +12318,15 @@ Runner & operator=(const Runner &) = delete
 std::shared_ptr< Context > _context
 ```
 
-Shared pointer to the internal [Context](#structscy_1_1Runner_1_1Context).
+Shared pointer to the internal [Context](#structicy_1_1Runner_1_1Context).
 
 ## Context 
 
 > **Defined in:** `runner.h`
 
-[Context](#structscy_1_1Runner_1_1Context) object which we send to the thread context.
+[Context](#structicy_1_1Runner_1_1Context) object which we send to the thread context.
 
-This intermediate object allows us to garecefully handle late invokebacks and so avoid the need for deferred destruction of `[Runner](#classscy_1_1Runner)` objects.
+This intermediate object allows us to garecefully handle late invokebacks and so avoid the need for deferred destruction of `[Runner](#classicy_1_1Runner)` objects.
 
 ### Members
 
@@ -12392,7 +12392,7 @@ bool repeating = false
 > **Extends:** `std::exception`
 > **Defined in:** `signal.h`
 
-Exception to break out of the current [Signal](#classscy_1_1Signal) callback scope.
+Exception to break out of the current [Signal](#classicy_1_1Signal) callback scope.
 
 ### Members
 
@@ -12410,9 +12410,9 @@ virtual ~StopPropagation() = default
 
 ## Signal 
 
-[Signal](#classscy_1_1Signal) and slots implementation.
+[Signal](#classicy_1_1Signal) and slots implementation.
 
-To create a signal, declare member variables of type `[Signal](#classscy_1_1Signal)<...>` in your class. The template parameter is the argument types that will be passed to the callback functions.
+To create a signal, declare member variables of type `[Signal](#classicy_1_1Signal)<...>` in your class. The template parameter is the argument types that will be passed to the callback functions.
 
 Here's a simple example with a class `MyClass` that has a single signal `my_signal` which takes a single `int` argument: class MyClass
 {
@@ -12464,8 +12464,8 @@ Using the above example code, here's an example showing how to emit `my_signal`:
 
 | Name | Description |
 |------|-------------|
-| [`attach`](#group__base_1gac2a3756f75e8e9a1bccb3303ec491dff) | Connects a `lambda` or `std::function` to the `[Signal](#classscy_1_1Signal)`. The returned value can be used to detach the slot. |
-| [`attach`](#group__base_1ga77af5fd67dc1c8929ce0041fa1b573d0) | Connects a `SlotPtr` instance to the `[Signal](#classscy_1_1Signal)`. The returned value can be used to detach the slot. |
+| [`attach`](#group__base_1gac2a3756f75e8e9a1bccb3303ec491dff) | Connects a `lambda` or `std::function` to the `[Signal](#classicy_1_1Signal)`. The returned value can be used to detach the slot. |
+| [`attach`](#group__base_1ga77af5fd67dc1c8929ce0041fa1b573d0) | Connects a `SlotPtr` instance to the `[Signal](#classicy_1_1Signal)`. The returned value can be used to detach the slot. |
 | [`detach`](#group__base_1gaea38b0b03fb3e5a21d5d9514964e7608) | Detaches a previously attached slot. |
 | [`detach`](#group__base_1ga80430b9e160632b7227a1eabfca56213) | Detaches all slots for the given instance. |
 | [`detach`](#group__base_1ga2450e3597bcba5e05d70d99d4e8da569) | Detaches all attached functions for the given instance. |
@@ -12493,7 +12493,7 @@ Using the above example code, here's an example showing how to emit `my_signal`:
 inline int attach(Function const & func, void * instance, int id, int priority) const
 ```
 
-Connects a `lambda` or `std::function` to the `[Signal](#classscy_1_1Signal)`. The returned value can be used to detach the slot.
+Connects a `lambda` or `std::function` to the `[Signal](#classicy_1_1Signal)`. The returned value can be used to detach the slot.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -12510,7 +12510,7 @@ Connects a `lambda` or `std::function` to the `[Signal](#classscy_1_1Signal)`. T
 inline int attach(SlotPtr slot) const
 ```
 
-Connects a `SlotPtr` instance to the `[Signal](#classscy_1_1Signal)`. The returned value can be used to detach the slot.
+Connects a `SlotPtr` instance to the `[Signal](#classicy_1_1Signal)`. The returned value can be used to detach the slot.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -12738,7 +12738,7 @@ Helper template class for managing singleton objects allocated on the heap.
 |------|-------------|
 | [`Singleton`](#group__base_1ga4041a0d028f806012cfe48040f903e76) |  |
 | [`~Singleton`](#group__base_1gac1e0a1036a9f0eb917e31a4a43a33f8b) |  |
-| [`get`](#group__base_1ga116fecf0951357c605749cd1ecfcbdf0) | Returns a pointer to the singleton object held by the [Singleton](#classscy_1_1Singleton). The first call to get will instantiate the singleton. |
+| [`get`](#group__base_1ga116fecf0951357c605749cd1ecfcbdf0) | Returns a pointer to the singleton object held by the [Singleton](#classicy_1_1Singleton). The first call to get will instantiate the singleton. |
 | [`swap`](#group__base_1ga68ed207f0d38a3a8ba424977b06af3c4) | Swaps the old pointer with the new one and returns the old instance. |
 | [`destroy`](#group__base_1ga30845630ba9bebeb153d5519f46e9aef) | Destroys the managed singleton instance. |
 | [`_ptr`](#group__base_1ga5de7a3516a5f2f911e6b7e5b29448a65) |  |
@@ -12768,7 +12768,7 @@ Singleton() = default
 inline S * get()
 ```
 
-Returns a pointer to the singleton object held by the [Singleton](#classscy_1_1Singleton). The first call to get will instantiate the singleton.
+Returns a pointer to the singleton object held by the [Singleton](#classicy_1_1Singleton). The first call to get will instantiate the singleton.
 
 ---
 
@@ -12834,14 +12834,14 @@ inline void operator()(S * p) const
 
 ## State 
 
-> **Subclasses:** `scy::DiagnosticState`, `scy::PacketStreamState`, `scy::TransactionState`, `scy::av::EncoderState`, `scy::pacm::InstallationState`, `scy::sockio::ClientState`, `scy::turn::ClientState`
+> **Subclasses:** `icy::DiagnosticState`, `icy::PacketStreamState`, `icy::TransactionState`, `icy::av::EncoderState`, `icy::pacm::InstallationState`, `icy::sockio::ClientState`, `icy::turn::ClientState`
 > **Defined in:** `stateful.h`
 
-[State](#classscy_1_1State) class for state machines.
+[State](#classicy_1_1State) class for state machines.
 
-This class defined the state for a state machine, and should be extended and passed to implementations of the `[Stateful](#classscy_1_1Stateful)` template.
+This class defined the state for a state machine, and should be extended and passed to implementations of the `[Stateful](#classicy_1_1Stateful)` template.
 
-For an example **See also**: [PacketStreamState](#structscy_1_1PacketStreamState)
+For an example **See also**: [PacketStreamState](#structicy_1_1PacketStreamState)
 
 ### Members
 
@@ -13006,12 +13006,12 @@ std::atomic< ID > _id
 
 > **Defined in:** `stateful.h`
 
-[State](#classscy_1_1State) machine implementation.
+[State](#classicy_1_1State) machine implementation.
 
-For an example **See also**: [PacketStream](#classscy_1_1PacketStream)
+For an example **See also**: [PacketStream](#classicy_1_1PacketStream)
 
 #### Parameters
-* `The` derived `[State](#classscy_1_1State)` type.
+* `The` derived `[State](#classicy_1_1State)` type.
 
 ### Members
 
@@ -13161,7 +13161,7 @@ T _state
 
 ## Stream 
 
-> **Extends:** `scy::uv::Handle< T >`
+> **Extends:** `icy::uv::Handle< T >`
 > **Defined in:** `stream.h`
 
 Basic stream type for sockets and pipes.
@@ -13182,7 +13182,7 @@ Basic stream type for sockets and pipes.
 | [`onRead`](#group__base_1ga0dca15710b5b129077bf165933fc9fd5) |  |
 | [`handleRead`](#group__base_1ga5a41a97f6002d8f5a2b5a455a748e754) | UV callbacks. |
 | [`allocReadBuffer`](#group__base_1gae046b67a5834f8ba7a1c7356e7720e9d) |  |
-| [`Read`](#group__base_1gaa4b7ae83d45685339e7ac7f8308e8555) | [Signal](#classscy_1_1Signal) the notifies when data is available for read. |
+| [`Read`](#group__base_1gaa4b7ae83d45685339e7ac7f8308e8555) | [Signal](#classicy_1_1Signal) the notifies when data is available for read. |
 | [`_buffer`](#group__base_1gabc5b1ed474e8c4e04bedef0c05df5e13) |  |
 | [`_started`](#group__base_1ga3d0d3973d5f49cd52a42642b46ff576e) |  |
 
@@ -13340,7 +13340,7 @@ static inline void allocReadBuffer(uv_handle_t * handle, size_t suggested_size, 
 Signal< void(const char *, const int &)> Read
 ```
 
-[Signal](#classscy_1_1Signal) the notifies when data is available for read.
+[Signal](#classicy_1_1Signal) the notifies when data is available for read.
 
 ---
 
@@ -13360,12 +13360,12 @@ bool _started {false}
 
 ## Synchronizer 
 
-> **Extends:** `scy::Runner`
+> **Extends:** `icy::Runner`
 > **Defined in:** `synchronizer.h`
 
-[Synchronizer](#classscy_1_1Synchronizer) enables any thread to communicate with the associated event loop via synchronized callbacks.
+[Synchronizer](#classicy_1_1Synchronizer) enables any thread to communicate with the associated event loop via synchronized callbacks.
 
-This class inherits the `[Runner](#classscy_1_1Runner)` interface and may be used with any implementation that's powered by an asynchronous `[Runner](#classscy_1_1Runner)`.
+This class inherits the `[Runner](#classicy_1_1Runner)` interface and may be used with any implementation that's powered by an asynchronous `[Runner](#classicy_1_1Runner)`.
 
 ### Members
 
@@ -13522,13 +13522,13 @@ uv::Handle< uv_async_t > _handle
 
 ## Task 
 
-> **Extends:** `scy::basic::Runnable`
-> **Subclasses:** `scy::sched::Task`
+> **Extends:** `icy::basic::Runnable`
+> **Subclasses:** `icy::sched::Task`
 > **Defined in:** `task.h`
 
 Abstract class is for implementing any kind asyncronous task.
 
-Tasks are designed to be run by a [TaskRunner](#classscy_1_1TaskRunner).
+Tasks are designed to be run by a [TaskRunner](#classicy_1_1TaskRunner).
 
 ### Members
 
@@ -13537,12 +13537,12 @@ Tasks are designed to be run by a [TaskRunner](#classscy_1_1TaskRunner).
 | [`Task`](#group__base_1ga785465536aec43f179f47c7439e44aa8) | Constructor. |
 | [`destroy`](#group__base_1gaecd8a85018f8f75ae802dcbf3749bdef) | Sets the task to destroyed state. |
 | [`destroyed`](#group__base_1ga7a28372139954b0ff0c96f99be0418f2) | Signals that the task should be disposed of. |
-| [`repeating`](#group__base_1gaed5e6c02f8118ab86c7ff620ee2ddf48) | Signals that the task's should be called repeatedly by the [TaskRunner](#classscy_1_1TaskRunner). If this returns false the task will be [cancelled()](#group__base_1gab3795d080eae2e58a57f2c63524c8ef3) |
+| [`repeating`](#group__base_1gaed5e6c02f8118ab86c7ff620ee2ddf48) | Signals that the task's should be called repeatedly by the [TaskRunner](#classicy_1_1TaskRunner). If this returns false the task will be [cancelled()](#group__base_1gab3795d080eae2e58a57f2c63524c8ef3) |
 | [`id`](#group__base_1ga4ffbff2b4bfdc71d9a278f9693297bc1) | Unique task ID. |
 | [`Task`](#group__base_1gac513ae573567b9f7708c278c614c7e44) |  |
 | [`operator=`](#group__base_1ga7bdbb1d628d2e2f2865cc2aad59480f2) |  |
 | [`~Task`](#group__base_1gac05de8a5d56fb224bee75277714de893) | Destroctor. Should remain protected. |
-| [`run`](#group__base_1ga0bfb09779b8f6aa9c5e3ce7dd7e4cfe3) | Called by the [TaskRunner](#classscy_1_1TaskRunner) to run the task. Override this method to implement task action. Returning true means the true should be called again, and false will cause the task to be destroyed. The task will similarly be destroyed id [destroy()](#group__base_1gaecd8a85018f8f75ae802dcbf3749bdef) was called during the current task iteration. |
+| [`run`](#group__base_1ga0bfb09779b8f6aa9c5e3ce7dd7e4cfe3) | Called by the [TaskRunner](#classicy_1_1TaskRunner) to run the task. Override this method to implement task action. Returning true means the true should be called again, and false will cause the task to be destroyed. The task will similarly be destroyed id [destroy()](#group__base_1gaecd8a85018f8f75ae802dcbf3749bdef) was called during the current task iteration. |
 | [`_id`](#group__base_1ga1d20300119a652f0ce185bc1510b041f) |  |
 | [`_repeating`](#group__base_1gae5fcfd4789448c078bbc04a24b00849a) |  |
 | [`_destroyed`](#group__base_1ga930e56a65dfd577c40fe7d30f3018e68) |  |
@@ -13589,7 +13589,7 @@ Signals that the task should be disposed of.
 virtual bool repeating() const
 ```
 
-Signals that the task's should be called repeatedly by the [TaskRunner](#classscy_1_1TaskRunner). If this returns false the task will be [cancelled()](#group__base_1gab3795d080eae2e58a57f2c63524c8ef3)
+Signals that the task's should be called repeatedly by the [TaskRunner](#classicy_1_1TaskRunner). If this returns false the task will be [cancelled()](#group__base_1gab3795d080eae2e58a57f2c63524c8ef3)
 
 ---
 
@@ -13639,7 +13639,7 @@ Destroctor. Should remain protected.
 void run()
 ```
 
-Called by the [TaskRunner](#classscy_1_1TaskRunner) to run the task. Override this method to implement task action. Returning true means the true should be called again, and false will cause the task to be destroyed. The task will similarly be destroyed id [destroy()](#group__base_1gaecd8a85018f8f75ae802dcbf3749bdef) was called during the current task iteration.
+Called by the [TaskRunner](#classicy_1_1TaskRunner) to run the task. Override this method to implement task action. Returning true means the true should be called again, and false will cause the task to be destroyed. The task will similarly be destroyed id [destroy()](#group__base_1gaecd8a85018f8f75ae802dcbf3749bdef) was called during the current task iteration.
 
 ---
 
@@ -13667,15 +13667,15 @@ bool _destroyed
 
 ## TaskRunner 
 
-> **Extends:** `scy::basic::Runnable`
-> **Subclasses:** `scy::sched::Scheduler`
+> **Extends:** `icy::basic::Runnable`
+> **Subclasses:** `icy::sched::Scheduler`
 > **Defined in:** `task.h`
 
-[Runner](#classscy_1_1Runner) for tasks that inherit the `[Task](#classscy_1_1Task)` interface.
+[Runner](#classicy_1_1Runner) for tasks that inherit the `[Task](#classicy_1_1Task)` interface.
 
-The `[TaskRunner](#classscy_1_1TaskRunner)` continually loops through each task in the task list calling the task's `[run()](#group__base_1ga07a481d667f1a9c67e881eedcffc10a5)` method.
+The `[TaskRunner](#classicy_1_1TaskRunner)` continually loops through each task in the task list calling the task's `[run()](#group__base_1ga07a481d667f1a9c67e881eedcffc10a5)` method.
 
-The `[TaskRunner](#classscy_1_1TaskRunner)` is powered by an abstract `[Runner](#classscy_1_1Runner)` instance, which means that tasks can be executed in a thread or event loop context.
+The `[TaskRunner](#classicy_1_1TaskRunner)` is powered by an abstract `[Runner](#classicy_1_1Runner)` instance, which means that tasks can be executed in a thread or event loop context.
 
 ### Members
 
@@ -13688,9 +13688,9 @@ The `[TaskRunner](#classscy_1_1TaskRunner)` is powered by an abstract `[Runner](
 | [`destroy`](#group__base_1ga44547fd3858f512ea07c71676059ca7e) | Queues a task for destruction. |
 | [`exists`](#group__base_1ga6f2cdcb41929fb914cdf288e1a00358e) | Returns weather or not a task exists. |
 | [`get`](#group__base_1ga0c78d8e9196bc74fe1a5120974f4c8b9) | Returns the task pointer matching the given ID, or nullptr if no task exists. |
-| [`setRunner`](#group__base_1ga9fe00258dfd9bef1fc91c5a944c6b754) | Set the asynchronous context for packet processing. This may be a [Thread](#classscy_1_1Thread) or another derivative of Async. Must be set before the stream is activated. |
+| [`setRunner`](#group__base_1ga9fe00258dfd9bef1fc91c5a944c6b754) | Set the asynchronous context for packet processing. This may be a [Thread](#classicy_1_1Thread) or another derivative of Async. Must be set before the stream is activated. |
 | [`className`](#group__base_1ga710f2dcbc11de260c76c16b8c8600ca3) |  |
-| [`getDefault`](#group__base_1ga216b6da5a3e0ae72bebf7371ef0e4725) | Returns the default `[TaskRunner](#classscy_1_1TaskRunner)` singleton, although [TaskRunner](#classscy_1_1TaskRunner) instances may be initialized individually. The default runner should be kept for short running tasks such as timers in order to maintain performance. |
+| [`getDefault`](#group__base_1ga216b6da5a3e0ae72bebf7371ef0e4725) | Returns the default `[TaskRunner](#classicy_1_1TaskRunner)` singleton, although [TaskRunner](#classicy_1_1TaskRunner) instances may be initialized individually. The default runner should be kept for short running tasks such as timers in order to maintain performance. |
 | [`run`](#group__base_1ga07a481d667f1a9c67e881eedcffc10a5) | Called by the async context to run the next task. |
 | [`add`](#group__base_1ga3cf9ff9159b170aa7e413bf0b0d0703e) | Adds a task to the runner. |
 | [`remove`](#group__base_1gaca2341833adec925d50db8a5e128f679) | Removes a task from the runner. |
@@ -13702,7 +13702,7 @@ The `[TaskRunner](#classscy_1_1TaskRunner)` is powered by an abstract `[Runner](
 | [`onRemove`](#group__base_1ga3c19020b93c4abaf5006c67a8b1ae474) | Called after a task is removed. |
 | [`onRun`](#group__base_1ga0851ff27ae76aeb33d8d4f289844aa61) | Called after a task has run. |
 | [`Idle`](#group__base_1gabf058e5fccd90bd4c65e22a5bc542ddf) | Fires after completing an iteration of all tasks. |
-| [`Shutdown`](#group__base_1gaf3afae0333fb5b248c320f07a876c682) | Signals when the `[TaskRunner](#classscy_1_1TaskRunner)` is shutting down. |
+| [`Shutdown`](#group__base_1gaf3afae0333fb5b248c320f07a876c682) | Signals when the `[TaskRunner](#classicy_1_1TaskRunner)` is shutting down. |
 | [`_mutex`](#group__base_1ga0f479eb77e6349c2d7db94bd1776b578) |  |
 | [`_runner`](#group__base_1gaac415837586c91449e3ef85c33a2e6f3) |  |
 | [`_tasks`](#group__base_1ga0d19424a7b9506240e72da3a45a4b08c) |  |
@@ -13751,7 +13751,7 @@ virtual bool cancel(Task * task)
 
 Cancels a task.
 
-The task reference will be managed the [TaskRunner](#classscy_1_1TaskRunner) until the task is destroyed.
+The task reference will be managed the [TaskRunner](#classicy_1_1TaskRunner) until the task is destroyed.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -13807,7 +13807,7 @@ Returns the task pointer matching the given ID, or nullptr if no task exists.
 virtual void setRunner(std::shared_ptr< Runner > runner)
 ```
 
-Set the asynchronous context for packet processing. This may be a [Thread](#classscy_1_1Thread) or another derivative of Async. Must be set before the stream is activated.
+Set the asynchronous context for packet processing. This may be a [Thread](#classicy_1_1Thread) or another derivative of Async. Must be set before the stream is activated.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -13829,7 +13829,7 @@ virtual inline const char * className() const
 static TaskRunner & getDefault()
 ```
 
-Returns the default `[TaskRunner](#classscy_1_1TaskRunner)` singleton, although [TaskRunner](#classscy_1_1TaskRunner) instances may be initialized individually. The default runner should be kept for short running tasks such as timers in order to maintain performance.
+Returns the default `[TaskRunner](#classicy_1_1TaskRunner)` singleton, although [TaskRunner](#classicy_1_1TaskRunner) instances may be initialized individually. The default runner should be kept for short running tasks such as timers in order to maintain performance.
 
 ---
 
@@ -13977,7 +13977,7 @@ Fires after completing an iteration of all tasks.
 NullSignal Shutdown
 ```
 
-Signals when the `[TaskRunner](#classscy_1_1TaskRunner)` is shutting down.
+Signals when the `[TaskRunner](#classicy_1_1TaskRunner)` is shutting down.
 
 ---
 
@@ -14005,12 +14005,12 @@ TaskList _tasks
 
 ## Test 
 
-> **Subclasses:** `scy::test::FunctionTest`
+> **Subclasses:** `icy::test::FunctionTest`
 > **Defined in:** `test.h`
 
-[Test](#classscy_1_1test_1_1Test) wrapper class.
+[Test](#classicy_1_1test_1_1Test) wrapper class.
 
-This class is for implementing any kind of unit test that can be executed by a `[TestRunner](#classscy_1_1test_1_1TestRunner)`.
+This class is for implementing any kind of unit test that can be executed by a `[TestRunner](#classicy_1_1test_1_1TestRunner)`.
 
 ### Members
 
@@ -14018,7 +14018,7 @@ This class is for implementing any kind of unit test that can be executed by a `
 |------|-------------|
 | [`Test`](#group__base_1ga77ec963c31149717e725fb25a0d9c3e2) |  |
 | [`~Test`](#group__base_1ga190692773ad0ccef364dbfcd5a10b2a8) | Should remain protected. |
-| [`run`](#group__base_1ga4b2e88e8a32def45844c9fdcf1b4bc5e) | Called by the [TestRunner](#classscy_1_1test_1_1TestRunner) to run the test. |
+| [`run`](#group__base_1ga4b2e88e8a32def45844c9fdcf1b4bc5e) | Called by the [TestRunner](#classicy_1_1test_1_1TestRunner) to run the test. |
 | [`passed`](#group__base_1ga7136d60a9c295927a26d1eee662a9112) | Return true when the test passed without errors. |
 | [`Test`](#group__base_1ga53e1fc6fb63e2228193a074b44f2ae8c) |  |
 | [`operator=`](#group__base_1ga80fa2a2d52c286fd031b8620e2395a42) |  |
@@ -14056,7 +14056,7 @@ Should remain protected.
 void run()
 ```
 
-Called by the [TestRunner](#classscy_1_1test_1_1TestRunner) to run the test.
+Called by the [TestRunner](#classicy_1_1test_1_1TestRunner) to run the test.
 
 ---
 
@@ -14120,7 +14120,7 @@ The test run duration for benchmarking.
 
 ## FunctionTest 
 
-> **Extends:** `scy::test::Test`
+> **Extends:** `icy::test::Test`
 > **Defined in:** `test.h`
 
 ### Members
@@ -14129,7 +14129,7 @@ The test run duration for benchmarking.
 |------|-------------|
 | [`FunctionTest`](#group__base_1gac840656d94f9442624c1b15f4d72bf78) |  |
 | [`~FunctionTest`](#group__base_1gacc32a5204646832c258c30892449531e) |  |
-| [`run`](#group__base_1ga5d3c89ca30abab0fe4020db97ed6e513) | Called by the [TestRunner](#classscy_1_1test_1_1TestRunner) to run the test. |
+| [`run`](#group__base_1ga5d3c89ca30abab0fe4020db97ed6e513) | Called by the [TestRunner](#classicy_1_1test_1_1TestRunner) to run the test. |
 | [`target`](#group__base_1gabc68dd3cfbefe5af9544fb34b9edb6d7) |  |
 
 ---
@@ -14161,7 +14161,7 @@ virtual inline ~FunctionTest()
 virtual inline void run()
 ```
 
-Called by the [TestRunner](#classscy_1_1test_1_1TestRunner) to run the test.
+Called by the [TestRunner](#classicy_1_1test_1_1TestRunner) to run the test.
 
 ---
 
@@ -14175,11 +14175,11 @@ std::function< void()> target
 
 > **Defined in:** `test.h`
 
-[Test](#classscy_1_1test_1_1Test) manager queue.
+[Test](#classicy_1_1test_1_1Test) manager queue.
 
-The `[TestRunner](#classscy_1_1test_1_1TestRunner)` is a queue in charge of running one or many tests.
+The `[TestRunner](#classicy_1_1test_1_1TestRunner)` is a queue in charge of running one or many tests.
 
-When `[run()](#group__base_1gae237ec747f0a785fb2514154a46022b3)` the `[TestRunner](#classscy_1_1test_1_1TestRunner)` loops through each test in the list calling the test's `[run()](#group__base_1gae237ec747f0a785fb2514154a46022b3)` method.
+When `[run()](#group__base_1gae237ec747f0a785fb2514154a46022b3)` the `[TestRunner](#classicy_1_1test_1_1TestRunner)` loops through each test in the list calling the test's `[run()](#group__base_1gae237ec747f0a785fb2514154a46022b3)` method.
 
 ### Members
 
@@ -14191,11 +14191,11 @@ When `[run()](#group__base_1gae237ec747f0a785fb2514154a46022b3)` the `[TestRunne
 | [`get`](#group__base_1gae6eae9609b3a4b78e8508e930e924220) | Return a pointer to the test matching the given name, or nullptr if no matching test exists. |
 | [`run`](#group__base_1gae237ec747f0a785fb2514154a46022b3) | Called by the async context to run the next test. |
 | [`clear`](#group__base_1ga6dd3a9bc14a7c4223d8811bc11651f82) | Destroy and clears all managed tests. |
-| [`current`](#group__base_1gad5960442871ffed66bf6d14a159ec29f) | Return the currently active [Test](#classscy_1_1test_1_1Test) or nullptr. |
+| [`current`](#group__base_1gad5960442871ffed66bf6d14a159ec29f) | Return the currently active [Test](#classicy_1_1test_1_1Test) or nullptr. |
 | [`tests`](#group__base_1ga63d7bb169e8987b0ef42e032a5c15dec) | Return the list of tests. |
 | [`errors`](#group__base_1ga3f6c0d4bd8239546c2ffb09baf3c6d17) | Return a map of tests and errors. |
 | [`passed`](#group__base_1gaa899250db70a6f7d3855a58ac46b9385) | Return true if all tests passed. |
-| [`getDefault`](#group__base_1gac6a1b7a3bb9090c9426d5f785f0979e3) | Return the default `[TestRunner](#classscy_1_1test_1_1TestRunner)` singleton, although `[TestRunner](#classscy_1_1test_1_1TestRunner)` instances may also be initialized individually. |
+| [`getDefault`](#group__base_1gac6a1b7a3bb9090c9426d5f785f0979e3) | Return the default `[TestRunner](#classicy_1_1test_1_1TestRunner)` singleton, although `[TestRunner](#classicy_1_1test_1_1TestRunner)` instances may also be initialized individually. |
 | [`_mutex`](#group__base_1ga55aaec3e17a75e9df9a1640a4830d674) |  |
 | [`_tests`](#group__base_1ga07642f477365332784394b083e0878ec) |  |
 | [`_current`](#group__base_1ga3e5f349d8600497eca5acacd6e853ad7) |  |
@@ -14272,7 +14272,7 @@ Destroy and clears all managed tests.
 Test * current() const
 ```
 
-Return the currently active [Test](#classscy_1_1test_1_1Test) or nullptr.
+Return the currently active [Test](#classicy_1_1test_1_1Test) or nullptr.
 
 ---
 
@@ -14312,7 +14312,7 @@ Return true if all tests passed.
 static TestRunner & getDefault()
 ```
 
-Return the default `[TestRunner](#classscy_1_1test_1_1TestRunner)` singleton, although `[TestRunner](#classscy_1_1test_1_1TestRunner)` instances may also be initialized individually.
+Return the default `[TestRunner](#classicy_1_1test_1_1TestRunner)` singleton, although `[TestRunner](#classicy_1_1test_1_1TestRunner)` instances may also be initialized individually.
 
 ---
 
@@ -14340,7 +14340,7 @@ Test * _current
 
 ## Timer 
 
-> **Extends:** `scy::Runner`
+> **Extends:** `icy::Runner`
 > **Defined in:** `timer.h`
 
 Asynchronous event based timer.
@@ -14369,7 +14369,7 @@ Asynchronous event based timer.
 | [`Timer`](#group__base_1ga7757e24daa73bdf095e93d94050adf57) |  |
 | [`operator=`](#group__base_1gab242b0701daeebee901b2b8b1ceaea9d) |  |
 | [`init`](#group__base_1ga4d7d19830efea92f0944f972caba2fdb) |  |
-| [`Timeout`](#group__base_1ga70ab283148e5fb200fe84f75ea9ea138) | [Signal](#classscy_1_1Signal) that gets triggered on timeout. |
+| [`Timeout`](#group__base_1ga70ab283148e5fb200fe84f75ea9ea138) | [Signal](#classicy_1_1Signal) that gets triggered on timeout. |
 | [`_handle`](#group__base_1gaf4b35f98a8978d847315e8f3415cc639) |  |
 | [`_timeout`](#group__base_1ga146dcd71f59664feead6e84c971c6b9a) |  |
 | [`_interval`](#group__base_1ga0a84a02412fc3e3fe9fed3ce4ff8b7fa) |  |
@@ -14608,7 +14608,7 @@ void init()
 NullSignal Timeout
 ```
 
-[Signal](#classscy_1_1Signal) that gets triggered on timeout.
+[Signal](#classicy_1_1Signal) that gets triggered on timeout.
 
 ---
 
@@ -14682,10 +14682,10 @@ inline const char * name(bool dst)
 
 ## Timeout 
 
-> **Subclasses:** `scy::TimedToken`
+> **Subclasses:** `icy::TimedToken`
 > **Defined in:** `timeout.h`
 
-[Timeout](#classscy_1_1Timeout) counter which expires after a given delay.
+[Timeout](#classicy_1_1Timeout) counter which expires after a given delay.
 
 ### Members
 
@@ -14846,7 +14846,7 @@ long _delay
 
 ## TimedToken 
 
-> **Extends:** `scy::Timeout`
+> **Extends:** `icy::Timeout`
 > **Defined in:** `timeout.h`
 
 Token that expires after the specified duration.
@@ -15037,7 +15037,7 @@ std::function< void(void *)> callback
 
 ## Encoder 
 
-> **Extends:** `scy::basic::Encoder`
+> **Extends:** `icy::basic::Encoder`
 > **Defined in:** `base64.h`
 
 Base64 encoder.
@@ -15149,7 +15149,7 @@ int _buffersize
 
 ## Decoder 
 
-> **Extends:** `scy::basic::Decoder`
+> **Extends:** `icy::basic::Decoder`
 > **Defined in:** `base64.h`
 
 Base64 decoder.
@@ -15412,10 +15412,10 @@ bool operator==(const AbstractDelegate< RT, Args... > & that) const
 
 ## FunctionDelegate 
 
-> **Extends:** `scy::AbstractDelegate< RT, Args... >`
+> **Extends:** `icy::AbstractDelegate< RT, Args... >`
 > **Defined in:** `delegate.h`
 
-The `[FunctionDelegate](#structscy_1_1FunctionDelegate)` contains a `std::function`.
+The `[FunctionDelegate](#structicy_1_1FunctionDelegate)` contains a `std::function`.
 
 ### Members
 
@@ -15468,10 +15468,10 @@ std::function< RT(Args...)> func
 
 ## ClassDelegate 
 
-> **Extends:** `scy::AbstractDelegate< RT, Args... >`
+> **Extends:** `icy::AbstractDelegate< RT, Args... >`
 > **Defined in:** `delegate.h`
 
-The `[ClassDelegate](#structscy_1_1ClassDelegate)` contains a pointer to a class member.
+The `[ClassDelegate](#structicy_1_1ClassDelegate)` contains a pointer to a class member.
 
 This class implements fast delegates and function comparison.
 
@@ -15540,10 +15540,10 @@ RT(Class::* method
 
 ## ConstClassDelegate 
 
-> **Extends:** `scy::AbstractDelegate< RT, Args... >`
+> **Extends:** `icy::AbstractDelegate< RT, Args... >`
 > **Defined in:** `delegate.h`
 
-The `[ConstClassDelegate](#structscy_1_1ConstClassDelegate)` contains a pointer to a `const` class member.
+The `[ConstClassDelegate](#structicy_1_1ConstClassDelegate)` contains a pointer to a `const` class member.
 
 This class implements fast delegates and function comparison.
 
@@ -15612,7 +15612,7 @@ RT(Class::* method
 
 ## PolymorphicDelegate 
 
-> **Extends:** `scy::AbstractDelegate< RT, IT & >`
+> **Extends:** `icy::AbstractDelegate< RT, IT & >`
 > **Defined in:** `delegate.h`
 
 Polymorphic function delegate.
@@ -15786,7 +15786,7 @@ std::exception_ptr exception
 
 ## Encoder 
 
-> **Extends:** `scy::basic::Encoder`
+> **Extends:** `icy::basic::Encoder`
 > **Defined in:** `hex.h`
 
 Hex encoder.
@@ -15884,7 +15884,7 @@ int _uppercase
 
 ## Decoder 
 
-> **Extends:** `scy::basic::Decoder`
+> **Extends:** `icy::basic::Decoder`
 > **Defined in:** `hex.h`
 
 Hex decoder.
@@ -16163,7 +16163,7 @@ inline void operator()(T * ptr)
 
 ## IPacketInfo 
 
-> **Subclasses:** `scy::net::PacketInfo`
+> **Subclasses:** `icy::net::PacketInfo`
 > **Defined in:** `packet.h`
 
 An abstract interface for packet sources to provide extra information about packets.
@@ -16202,7 +16202,7 @@ IPacketInfo * clone() const
 
 ## PacketCreationStrategy 
 
-> **Extends:** `scy::IPacketCreationStrategy`
+> **Extends:** `icy::IPacketCreationStrategy`
 > **Defined in:** `packetfactory.h`
 
 This template class implements an adapter that sits between an SignalBase and an object receiving notifications from it.
@@ -16270,7 +16270,7 @@ int _priority
 
 > **Defined in:** `packetstream.h`
 
-Provides a reference to a [PacketStreamAdapter](#classscy_1_1PacketStreamAdapter) with optional ownership.
+Provides a reference to a [PacketStreamAdapter](#classicy_1_1PacketStreamAdapter) with optional ownership.
 
 ### Members
 
@@ -16363,7 +16363,7 @@ bool syncState
 
 ## PacketStreamState 
 
-> **Extends:** `scy::State`
+> **Extends:** `icy::State`
 > **Defined in:** `packetstream.h`
 
 ### Members
@@ -16406,7 +16406,7 @@ inline std::string str(unsigned int id) const
 
 ## TransactionState 
 
-> **Extends:** `scy::State`
+> **Extends:** `icy::State`
 > **Defined in:** `packettransaction.h`
 
 ### Members
@@ -16448,9 +16448,9 @@ inline std::string str(unsigned int id) const
 
 > **Defined in:** `runner.h`
 
-[Context](#structscy_1_1Runner_1_1Context) object which we send to the thread context.
+[Context](#structicy_1_1Runner_1_1Context) object which we send to the thread context.
 
-This intermediate object allows us to garecefully handle late invokebacks and so avoid the need for deferred destruction of `[Runner](#classscy_1_1Runner)` objects.
+This intermediate object allows us to garecefully handle late invokebacks and so avoid the need for deferred destruction of `[Runner](#classicy_1_1Runner)` objects.
 
 ### Members
 

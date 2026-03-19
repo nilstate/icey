@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,14 +9,14 @@
 /// @{
 
 
-#include "scy/turn/server/tcpallocation.h"
-#include "scy/logger.h"
-#include "scy/turn/server/server.h"
+#include "icy/turn/server/tcpallocation.h"
+#include "icy/logger.h"
+#include "icy/turn/server/server.h"
 
 #include <stdexcept>
 
 
-namespace scy {
+namespace icy {
 namespace turn {
 
 
@@ -270,7 +270,7 @@ net::Address TCPAllocation::relayedAddress() const
 
 
 } // namespace turn
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

@@ -1,30 +1,30 @@
 #pragma once
 
 
-#include "scy/base.h"
-#include "scy/crypto/hash.h"
-#include "scy/filesystem.h"
-#include "scy/http/authenticator.h"
-#include "scy/http/client.h"
-#include "scy/http/connection.h"
-#include "scy/http/cookie.h"
-#include "scy/http/form.h"
-#include "scy/http/packetizers.h"
-#include "scy/http/server.h"
-#include "scy/http/url.h"
-#include "scy/http/util.h"
-#include "scy/http/websocket.h"
-#include "scy/idler.h"
-#include "scy/interface.h"
-#include "scy/net/sslcontext.h"
-#include "scy/net/sslmanager.h"
-#include "scy/test.h"
-#include "scy/timer.h"
+#include "icy/base.h"
+#include "icy/crypto/hash.h"
+#include "icy/filesystem.h"
+#include "icy/http/authenticator.h"
+#include "icy/http/client.h"
+#include "icy/http/connection.h"
+#include "icy/http/cookie.h"
+#include "icy/http/form.h"
+#include "icy/http/packetizers.h"
+#include "icy/http/server.h"
+#include "icy/http/url.h"
+#include "icy/http/util.h"
+#include "icy/http/websocket.h"
+#include "icy/idler.h"
+#include "icy/interface.h"
+#include "icy/net/sslcontext.h"
+#include "icy/net/sslmanager.h"
+#include "icy/test.h"
+#include "icy/timer.h"
 
 #include "../samples/httpechoserver/httpechoserver.h"
 
 
-using scy::test::Test;
+using icy::test::Test;
 using std::cerr;
 using std::cout;
 
@@ -33,7 +33,7 @@ using std::cout;
 #define TEST_HTTPS_PORT 1338
 
 
-namespace scy {
+namespace icy {
 
 
 //
@@ -135,7 +135,7 @@ struct HTTPEchoTest
 };
 
 
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

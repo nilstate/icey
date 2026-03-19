@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,9 +9,9 @@
 /// @{
 
 
-#include "scy/util.h"
-#include "scy/base64.h"
-#include "scy/random.h"
+#include "icy/util.h"
+#include "icy/base64.h"
+#include "icy/random.h"
 
 #include <memory>
 
@@ -25,7 +25,7 @@
 
 
 
-namespace scy {
+namespace icy {
 namespace util {
 
 
@@ -36,7 +36,7 @@ std::string string_vprintf(const char* fmt, va_list args)
     // Grow the buffer size until the output is no longer truncated
     while (true) {
         va_list args_copy;
-#if defined(SCY_WIN)
+#if defined(ICY_WIN)
         args_copy = args;
         size_t nwritten = _vsnprintf(buf, size - 1, fmt, args_copy);
 #else
@@ -364,7 +364,7 @@ std::streamsize copyToString(std::istream& istr, std::string& str,
 
 
 } // namespace util
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

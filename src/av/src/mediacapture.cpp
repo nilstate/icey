@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,13 +9,13 @@
 /// @{
 
 
-#include "scy/av/mediacapture.h"
+#include "icy/av/mediacapture.h"
 
 #ifdef HAVE_FFMPEG
 
-#include "scy/av/devicemanager.h"
-#include "scy/logger.h"
-#include "scy/platform.h"
+#include "icy/av/devicemanager.h"
+#include "icy/logger.h"
+#include "icy/platform.h"
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -25,7 +25,7 @@ extern "C" {
 
 
 
-namespace scy {
+namespace icy {
 namespace av {
 
 
@@ -351,7 +351,7 @@ std::string MediaCapture::error() const
 
 
 } // namespace av
-} // namespace scy
+} // namespace icy
 
 
 #endif

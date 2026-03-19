@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,12 +9,12 @@
 /// @{
 
 
-#include "scy/test.h"
-#include "scy/logger.h"
-#include "scy/loop.h"
-#include "scy/singleton.h"
-#include "scy/time.h"
-#include "scy/util.h"
+#include "icy/test.h"
+#include "icy/logger.h"
+#include "icy/loop.h"
+#include "icy/singleton.h"
+#include "icy/time.h"
+#include "icy/util.h"
 
 #include <cassert>
 #include <chrono>
@@ -26,7 +26,7 @@ using std::cerr;
 using std::cout;
 
 
-namespace scy {
+namespace icy {
 namespace test {
 
 
@@ -270,7 +270,7 @@ bool Test::passed()
 
 
 } // namespace test
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

@@ -1,22 +1,22 @@
-#include "scy/base.h"
-#include "scy/logger.h"
-#include "scy/net/address.h"
-#include "scy/net/socketemitter.h"
-#include "scy/net/sslcontext.h"
-#include "scy/net/sslmanager.h"
-#include "scy/net/sslsocket.h"
-#include "scy/net/tcpsocket.h"
-#include "scy/net/udpsocket.h"
-#include "scy/test.h"
-#include "scy/time.h"
+#include "icy/base.h"
+#include "icy/logger.h"
+#include "icy/net/address.h"
+#include "icy/net/socketemitter.h"
+#include "icy/net/sslcontext.h"
+#include "icy/net/sslmanager.h"
+#include "icy/net/sslsocket.h"
+#include "icy/net/tcpsocket.h"
+#include "icy/net/udpsocket.h"
+#include "icy/test.h"
+#include "icy/time.h"
 
 #include "../samples/echoserver/tcpechoserver.h"
 #include "../samples/echoserver/udpechoserver.h"
 #include "clientsockettest.h"
 
 
-using namespace scy;
-using namespace scy::test;
+using namespace icy;
+using namespace icy::test;
 
 
 int main(int argc, char** argv)
@@ -25,8 +25,8 @@ int main(int argc, char** argv)
     test::init();
 
     net::SSLManager::initNoVerifyServer(
-        std::string(SCY_SOURCE_DIR) + "/net/tests/key.pem",
-        std::string(SCY_SOURCE_DIR) + "/net/tests/cert.pem");
+        std::string(ICY_SOURCE_DIR) + "/net/tests/key.pem",
+        std::string(ICY_SOURCE_DIR) + "/net/tests/cert.pem");
     net::SSLManager::initNoVerifyClient();
 
 
@@ -223,7 +223,7 @@ int main(int argc, char** argv)
     // DNS Resolver Test
     //
     describe("dns resolver test", []() {
-        // net::resolveDNS("sourcey.com", 80, [&](const net::DNSResult& dns) {
+        // net::resolveDNS("0state.com", 80, [&](const net::DNSResult& dns) {
         //     expect(dns.success());
         // });
         // net::resolveDNS("thishadbetternotexizt.com", 8888, [&](const net::DNSResult& dns) {
@@ -237,11 +237,11 @@ int main(int argc, char** argv)
             //     expect(event.status == 0);
             //     success = event.status == 0;
             // };
-            // wrap->resolve("sourcey.com", 80);
+            // wrap->resolve("0state.com", 80);
             // uv::runLoop();
             // expect(success);
             bool success = false;
-            net::dns::resolve("sourcey.com", 80, [&](int err, const net::Address& addr) {
+            net::dns::resolve("0state.com", 80, [&](int err, const net::Address& addr) {
                 expect(err == 0);
                 success = err == 0;
             });
@@ -297,7 +297,7 @@ int main(int argc, char** argv)
         }
         {
             net::TCPSocket socket;
-            socket.connect("sourcey.com", 80); // with DNS
+            socket.connect("0state.com", 80); // with DNS
         }
         {
             net::TCPSocket socket;
@@ -310,7 +310,7 @@ int main(int argc, char** argv)
         }
         {
             net::SSLSocket socket;
-            socket.connect("sourcey.com", 80);
+            socket.connect("0state.com", 80);
         }
         {
             net::UDPSocket socket;
@@ -318,7 +318,7 @@ int main(int argc, char** argv)
         }
         {
             net::UDPSocket socket;
-            socket.connect("sourcey.com", 80);
+            socket.connect("0state.com", 80);
         }
         {
             net::UDPSocket socket;
@@ -333,7 +333,7 @@ int main(int argc, char** argv)
     describe("tcp socket reconnection test", []() {
         int connected = 0;
         net::SocketEmitter socket(std::make_shared<net::TCPSocket>());
-        socket->connect("sourcey.com", 80);
+        socket->connect("0state.com", 80);
         socket.Connect += [&](net::Socket& sock) -> bool {
             connected++;
             sock.close();
@@ -342,7 +342,7 @@ int main(int argc, char** argv)
         socket.Close += [&](net::Socket& sock) -> bool {
             // connect again on close
             if (connected == 1) {
-                sock.connect("sourcey.com", 80);
+                sock.connect("0state.com", 80);
                 // assert(0);
             }
             return false;
@@ -380,7 +380,7 @@ int main(int argc, char** argv)
             sock.close();
             return false;
         };
-        socket.Error += [&](net::Socket& sock, const scy::Error& err) -> bool {
+        socket.Error += [&](net::Socket& sock, const icy::Error& err) -> bool {
             LError("SSL hostname verification error: ", err.message);
             gotError = true;
             return false;

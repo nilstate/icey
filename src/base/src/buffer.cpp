@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,10 +9,10 @@
 /// @{
 
 
-#include "scy/buffer.h"
-#include "scy/byteorder.h"
-#include "scy/logger.h"
-#include "scy/util.h"
+#include "icy/buffer.h"
+#include "icy/byteorder.h"
+#include "icy/logger.h"
+#include "icy/util.h"
 
 #include <cstddef>
 #include <cstring>
@@ -20,7 +20,7 @@
 #include <stdexcept>
 
 
-namespace scy {
+namespace icy {
 
 
 //
@@ -645,7 +645,7 @@ bool DynamicBitWriter::update(const char* val, size_t len, size_t pos)
 }
 
 
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

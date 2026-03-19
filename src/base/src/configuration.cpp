@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,12 +9,12 @@
 /// @{
 
 
-#include "scy/configuration.h"
-#include "scy/error.h"
-#include "scy/util.h"
+#include "icy/configuration.h"
+#include "icy/error.h"
+#include "icy/util.h"
 
 
-namespace scy {
+namespace icy {
 
 
 Configuration::Configuration()
@@ -380,7 +380,7 @@ std::string ScopedConfiguration::getScopedKey(const std::string& key,
 }
 
 
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

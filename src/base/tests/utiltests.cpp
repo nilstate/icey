@@ -1,16 +1,16 @@
-#include "scy/base.h"
-#include "scy/iregistry.h"
-#include "scy/platform.h"
-#include "scy/ratelimiter.h"
-#include "scy/test.h"
-#include "scy/timeout.h"
+#include "icy/base.h"
+#include "icy/iregistry.h"
+#include "icy/platform.h"
+#include "icy/ratelimiter.h"
+#include "icy/test.h"
+#include "icy/timeout.h"
 
 #include <thread>
 
 
 using namespace std;
-using namespace scy;
-using namespace scy::test;
+using namespace icy;
+using namespace icy::test;
 
 
 // =============================================================================

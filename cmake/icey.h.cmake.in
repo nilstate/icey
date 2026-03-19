@@ -1,0 +1,130 @@
+// Name of library
+#define ICY_NAME "${PROJECT_NAME}"
+
+// Define the library version
+#define ICY_VERSION "${PROJECT_VERSION}"
+#define ICY_VERSION_MAJOR ${PROJECT_VERSION_MAJOR}
+#define ICY_VERSION_MINOR ${PROJECT_VERSION_MINOR}
+#define ICY_VERSION_PATCH ${PROJECT_VERSION_PATCH}
+
+// Define the source path
+#define ICY_SOURCE_DIR "${Icey_SOURCE_DIR}"
+
+// Define the build path
+#define ICY_BUILD_DIR "${CMAKE_BINARY_DIR}"
+
+// Define the installation path
+#define ICY_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}"
+
+// Building as shared library (.so or .dll)
+#cmakedefine ICY_SHARED_LIBRARY
+
+// Enable logging
+#cmakedefine ICY_ENABLE_LOGGING
+
+// Attempt to recover from internal exceptions
+#cmakedefine ICY_EXCEPTION_RECOVERY
+
+// Icey modules
+#cmakedefine HAVE_ICY_base
+#cmakedefine HAVE_ICY_crypto
+#cmakedefine HAVE_ICY_net
+#cmakedefine HAVE_ICY_http
+#cmakedefine HAVE_ICY_json
+#cmakedefine HAVE_ICY_av
+#cmakedefine HAVE_ICY_socketio
+#cmakedefine HAVE_ICY_symple
+#cmakedefine HAVE_ICY_stun
+#cmakedefine HAVE_ICY_turn
+#cmakedefine HAVE_ICY_util
+#cmakedefine HAVE_ICY_sched
+#cmakedefine HAVE_ICY_archo
+#cmakedefine HAVE_ICY_pacm
+#cmakedefine HAVE_ICY_pluga
+// OpenSSL library
+#cmakedefine HAVE_OPENSSL
+
+// FFmpeg video library
+#cmakedefine HAVE_FFMPEG
+#cmakedefine HAVE_FFMPEG_AVCODEC
+#cmakedefine HAVE_FFMPEG_AVFORMAT
+#cmakedefine HAVE_FFMPEG_AVUTIL
+#cmakedefine HAVE_FFMPEG_AVFILTER
+#cmakedefine HAVE_FFMPEG_AVDEVICE
+#cmakedefine HAVE_FFMPEG_AVRESAMPLE
+#cmakedefine HAVE_FFMPEG_SWRESAMPLE
+#cmakedefine HAVE_FFMPEG_SWSCALE
+#cmakedefine HAVE_FFMPEG_POSTPROC
+
+// OpenCV library
+#cmakedefine HAVE_OPENCV
+
+// Define to 1 if you have the <inttypes.h> header file.
+#cmakedefine HAVE_INTTYPES_H 1
+
+// Enable macros for format specifiers in <inttypes.h>
+#define __STDC_FORMAT_MACROS
+
+
+//
+/// Platform and compiler definitions
+//
+
+#ifdef _WIN32 // Windows (x64 and x86)
+#define ICY_WIN
+#endif
+#if __unix__ // Unix
+#define ICY_UNIX
+#endif
+#if __posix__ // POSIX
+#define ICY_POSIX
+#endif
+#if __linux__ // Linux
+#define ICY_LINUX
+#endif
+#if __APPLE__ // Mac OS
+#define ICY_APPLE
+#endif
+#if __GNUC__ // GCC compiler
+#define ICY_GNUC
+#endif
+#if defined(__MINGW32__) || defined(__MINGW64__) // MinGW
+#define ICY_MINGW
+#endif
+
+
+//
+/// Windows specific
+//
+
+#ifdef ICY_WIN
+
+// Verify that we're building with the multithreaded
+// versions of the runtime libraries
+#if defined(_MSC_VER) && !defined(_MT)
+#error Must compile with /MD, /MDd, /MT or /MTd
+#endif
+
+// Check debug/release settings consistency
+#if defined(NDEBUG) && defined(_DEBUG)
+#error Inconsistent build settings (check for /MD[d])
+#endif
+
+// Unicode Support
+#if defined(UNICODE)
+#define ICY_UNICODE
+#endif
+
+// Disable unnecessary warnings
+#if defined(_MSC_VER)
+#pragma warning(disable : 4201) // nonstandard extension used : nameless struct/union
+#pragma warning(disable : 4251) // ... needs to have dll-interface warning
+#pragma warning(disable : 4355) // 'this' : used in base member initializer list
+#pragma warning(disable : 4996) // VC++ 8.0 deprecation warnings
+#pragma warning(disable : 4351) // new behavior: elements of array '...' will be default initialized
+#pragma warning(disable : 4675) // resolved overload was found by argument-dependent lookup
+#pragma warning(disable : 4100) // MSVS 'unreferenced formal parameter' warnings showing false positives
+#pragma warning(disable : 4706) // assignment within conditional expression
+#endif
+
+#endif // ICY_WIN

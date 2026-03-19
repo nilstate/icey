@@ -1,33 +1,33 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier:	LGPL-2.1+
 //
 
 
 #pragma once
-#include "scy/av/audiobuffer.h"
-#include "scy/av/audiocapture.h"
-#include "scy/av/audiodecoder.h"
-#include "scy/av/audioencoder.h"
-#include "scy/av/audioresampler.h"
-#include "scy/av/devicemanager.h"
-#include "scy/av/format.h"
-#include "scy/av/formatregistry.h"
-#include "scy/av/fpscounter.h"
-#include "scy/av/mediacapture.h"
-#include "scy/av/multiplexpacketencoder.h"
-#include "scy/av/realtimepacketqueue.h"
-#include "scy/av/videocapture.h"
-#include "scy/av/videodecoder.h"
-#include "scy/av/videoencoder.h"
-#include "scy/base.h"
-#include "scy/filesystem.h"
-#include "scy/logger.h"
-#include "scy/test.h"
-#include "scy/util.h"
+#include "icy/av/audiobuffer.h"
+#include "icy/av/audiocapture.h"
+#include "icy/av/audiodecoder.h"
+#include "icy/av/audioencoder.h"
+#include "icy/av/audioresampler.h"
+#include "icy/av/devicemanager.h"
+#include "icy/av/format.h"
+#include "icy/av/formatregistry.h"
+#include "icy/av/fpscounter.h"
+#include "icy/av/mediacapture.h"
+#include "icy/av/multiplexpacketencoder.h"
+#include "icy/av/realtimepacketqueue.h"
+#include "icy/av/videocapture.h"
+#include "icy/av/videodecoder.h"
+#include "icy/av/videoencoder.h"
+#include "icy/base.h"
+#include "icy/filesystem.h"
+#include "icy/logger.h"
+#include "icy/test.h"
+#include "icy/util.h"
 #include <chrono>
 #include <random>
 
@@ -39,18 +39,18 @@ extern "C" {
 #endif
 
 
-using scy::test::Test;
+using icy::test::Test;
 using std::cerr;
 using std::cout;
 
 
-namespace scy {
+namespace icy {
 
 
 static const int kNumberFramesWanted = 200;
 static const int kInNumSamples = 1024;
 
-#ifdef SCY_WIN
+#ifdef ICY_WIN
 // Use native aac encoder on Windows since newer FFmpeg
 // version should always be available.
 #define ACC_ENCODER "aac"
@@ -73,7 +73,7 @@ static const int kInNumSamples = 1024;
 
 std::string sampleDataDir(const std::string& file)
 {
-    std::string dir(SCY_DATA_DIR);
+    std::string dir(ICY_DATA_DIR);
     if (!file.empty())
         fs::addnode(dir, file);
     return dir;
@@ -200,7 +200,7 @@ class VideoFileTranscoderTest : public Test
 
         while (!capture->stopping()) {
             LDebug("Waiting for completion");
-            scy::sleep(10);
+            icy::sleep(10);
         }
 
         // Check output file size
@@ -295,7 +295,7 @@ class MultiplexCaptureEncoderTest : public Test
         // Encode 100 frames and break
         while (video.video()->seconds < 10 && !video.stopping() && !audio.stopping()) {
             // LDebug("Waiting for completion: ", numFramesRemaining);
-            scy::sleep(10);
+            icy::sleep(10);
         }
 
         // Stop and flush the stream
@@ -525,7 +525,7 @@ class AudioCaptureTest : public Test
 
         while (numFramesRemaining > 0 && !capture.stopping()) {
             LDebug("Waiting for completion: ", numFramesRemaining);
-            scy::sleep(10);
+            icy::sleep(10);
         }
 
         output.close();
@@ -592,7 +592,7 @@ class AudioCaptureEncoderTest : public Test
 
         while (numFramesRemaining > 0 && !capture.stopping()) {
             LDebug("Waiting for completion: ", numFramesRemaining);
-            scy::sleep(10);
+            icy::sleep(10);
         }
 
         LDebug("Number samples remaining: ", encoder.fifo.available());
@@ -688,7 +688,7 @@ class AudioCaptureResamplerTest : public Test
 
         while (numFramesRemaining > 0) {
             LDebug("Waiting for completion: ", numFramesRemaining);
-            scy::sleep(10);
+            icy::sleep(10);
         }
 
         capture.stop();
@@ -733,7 +733,7 @@ class AudioCaptureResamplerTest : public Test
 //
 //         while (numFramesRemaining > 0) {
 //             LDebug("Waiting for completion: ", numFramesRemaining);
-//             scy::sleep(10);
+//             icy::sleep(10);
 //         }
 //
 //         // Verify stream processed all expected frames
@@ -833,7 +833,7 @@ class RealtimeMediaQueueTest : public Test
 
         while (numFramesRemaining > 0) {
             // LDebug("Waiting for completion: ", numFramesRemaining);
-            scy::sleep(10);
+            icy::sleep(10);
         }
 
         // Verify stream ran for a non-zero duration
@@ -1022,7 +1022,7 @@ class RealtimeMediaQueueTest : public Test
 //
 //         std::puts("Press any key to continue...");
 //         std::getchar();
-//         //scy::pause();
+//         //icy::pause();
 //
 //         util::clearList(threads);
 //     }
@@ -1368,7 +1368,7 @@ class RealtimeMediaQueueTest : public Test
 //             //LDebug("#################### Exiting");
 //
 //             // Wait for enter keypress
-//             //scy::pause();
+//             //icy::pause();
 //
 //             // Finalize the application to free all memory
 //             // Note: 2 tiny mem leaks (964 bytes) are from OpenCV
@@ -1517,7 +1517,7 @@ class RealtimeMediaQueueTest : public Test
 //             //Poco::format("Audio Capture Thread %d", i))
 //         }
 //
-//         //scy::pause();
+//         //icy::pause();
 //
 //         util::clearList(threads);
 //     }
@@ -1538,7 +1538,7 @@ class RealtimeMediaQueueTest : public Test
 //
 //         AudioCapture* capture = new AudioCapture(0, 1, 16000);
 //         capture.attach(packetSlot(this, &Tests::onCaptureTestAudioCapture));
-//         //scy::pause();
+//         //icy::pause();
 //         capture.detach(packetSlot(this, &Tests::onCaptureTestAudioCapture));
 //         delete capture;
 //
@@ -1546,7 +1546,7 @@ class RealtimeMediaQueueTest : public Test
 //         capture.attach(packetSlot(this, &Tests::onCaptureTestAudioCapture));
 //         //audioCapture->start();
 //
-//         //scy::pause();
+//         //icy::pause();
 //
 //         capture.detach(packetSlot(this, &Tests::onCaptureTestAudioCapture));
 //         delete capture;
@@ -1590,7 +1590,7 @@ class RealtimeMediaQueueTest : public Test
 //
 //
 //                 //options.iformat.video.pixfmt =
-//                 (scy::av::PixelFormat::ID)AV_PIX_FMT_GRAY8;
+//                 (icy::av::PixelFormat::ID)AV_PIX_FMT_GRAY8;
 //                 //AV_PIX_FMT_BGR8; //AV_PIX_FMT_BGR32 // AV_PIX_FMT_BGR32
 //                 //MotionDetector* detector = new MotionDetector();
 //                 //detector->setVideoCapture(videoCapture);
@@ -1676,7 +1676,7 @@ class RealtimeMediaQueueTest : public Test
 //         TCPServer srv(new TCPServerConnectionFactoryImpl<MediaConnection>(),
 //         svs);
 //         srv.start();
-//         //scy::pause();
+//         //icy::pause();
 //     }
 //
 //
@@ -1708,7 +1708,7 @@ class RealtimeMediaQueueTest : public Test
 //         enc.attach(packetSlot(this,
 //         &Tests::onCaptureRecorderTestVideoEncoded));
 //         enc.start();
-//         //scy::pause();
+//         //icy::pause();
 //         enc.stop();
 //
 //         LDebug("Running Capture Encoder Test: END");
@@ -1762,7 +1762,7 @@ class RealtimeMediaQueueTest : public Test
 //
 //         audioCapture->start();
 //         enc.start();
-//         //scy::pause();
+//         //icy::pause();
 //         enc.stop();
 //     }
 // #endif
@@ -1840,7 +1840,7 @@ class RealtimeMediaQueueTest : public Test
 //         CaptureRecorder enc(audioCapture.get(), options);
 //
 //         enc.start();
-//         scy::pause();
+//         icy::pause();
 //         enc.stop();
 //     }
 //
@@ -1875,7 +1875,7 @@ class RealtimeMediaQueueTest : public Test
 //         stream.attach(encoder, 5, true);
 //
 //         stream.start();
-//         scy::pause();
+//         icy::pause();
 //         stream.stop();
 //     }
 //
@@ -1916,7 +1916,7 @@ class RealtimeMediaQueueTest : public Test
 //         //CaptureRecorder enc(audioCapture, options);
 //
 //         stream.start();
-//         scy::pause();
+//         icy::pause();
 //         stream.stop();
 //     }
 // };
@@ -2146,7 +2146,7 @@ class AudioDecoderTest : public Test
 #endif // HAVE_FFMPEG
 
 
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

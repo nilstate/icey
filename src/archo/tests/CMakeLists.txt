@@ -1,1 +1,1 @@
-scy_add_test(archotests DEPENDS base archo)
+icy_add_test(archotests DEPENDS base archo)

@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,11 +9,11 @@
 /// @{
 
 
-#include "scy/av/audiocapture.h"
+#include "icy/av/audiocapture.h"
 
 #ifdef HAVE_FFMPEG
 
-#include "scy/av/devicemanager.h"
+#include "icy/av/devicemanager.h"
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -23,7 +23,7 @@ extern "C" {
 
 
 
-namespace scy {
+namespace icy {
 namespace av {
 
 
@@ -73,7 +73,7 @@ void AudioCapture::openAudio(const std::string& device, int channels, int sample
 
     // Set custom parameters for devices.
     // NOTE: This doesn't work for DirectShow
-#ifndef SCY_WIN
+#ifndef ICY_WIN
     if (sampleRate > 0)
         av_dict_set_int(&iparams, "sample_rate", sampleRate, 0);
     if (channels > 0)
@@ -100,7 +100,7 @@ void AudioCapture::openAudio(const std::string& device, int channels, int sample
 
 
 } // namespace av
-} // namespace scy
+} // namespace icy
 
 
 #endif

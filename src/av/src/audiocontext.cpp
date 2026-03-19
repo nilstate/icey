@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,19 +9,19 @@
 /// @{
 
 
-#include "scy/av/audiocontext.h"
-#include "scy/av/audioresampler.h"
+#include "icy/av/audiocontext.h"
+#include "icy/av/audioresampler.h"
 
 
 #ifdef HAVE_FFMPEG
 
-#include "scy/av/ffmpeg.h"
-#include "scy/logger.h"
+#include "icy/av/ffmpeg.h"
+#include "icy/logger.h"
 
 
 
 
-namespace scy {
+namespace icy {
 namespace av {
 
 
@@ -190,7 +190,7 @@ AVSampleFormat selectSampleFormat(const AVCodec* codec, av::AudioCodec& params)
 
 
 } // namespace av
-} // namespace scy
+} // namespace icy
 
 
 #endif

@@ -1,14 +1,14 @@
 ///
 //
-// LibSourcey HTTP Benchmark
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey HTTP Benchmark
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
 
-#include "scy/application.h"
-#include "scy/http/server.h"
-#include "scy/logger.h"
+#include "icy/application.h"
+#include "icy/http/server.h"
+#include "icy/logger.h"
 
 #include <uv.h>
 #include <llhttp.h>
@@ -18,7 +18,7 @@
 #include <thread>
 
 
-using namespace scy;
+using namespace icy;
 
 
 constexpr uint16_t BenchmarkPort = 1337;
@@ -26,7 +26,7 @@ static const net::Address address("0.0.0.0", BenchmarkPort);
 
 
 // =============================================================================
-// LibSourcey HTTP server variants
+// Icey HTTP server variants
 // =============================================================================
 
 /// Single-threaded benchmark server.
@@ -42,7 +42,7 @@ void runSingleCore()
         conn->sendHeader();
     };
 
-    std::cout << "LibSourcey HTTP benchmark (single-core) listening on port "
+    std::cout << "Icey HTTP benchmark (single-core) listening on port "
               << BenchmarkPort << '\n';
     waitForShutdown();
 }
@@ -60,7 +60,7 @@ void runKeepAlive()
         conn->sendHeader();
     };
 
-    std::cout << "LibSourcey HTTP benchmark (keep-alive) listening on port "
+    std::cout << "Icey HTTP benchmark (keep-alive) listening on port "
               << BenchmarkPort << '\n';
     waitForShutdown();
 }
@@ -99,7 +99,7 @@ void runMultiCore()
         threads.push_back(std::make_unique<Thread>([]() { runMulticoreInstance(); }));
     }
 
-    std::cout << "LibSourcey HTTP benchmark (multicore x" << ncpus
+    std::cout << "Icey HTTP benchmark (multicore x" << ncpus
               << ") listening on port " << BenchmarkPort << '\n';
 
     for (auto& thread : threads) {
@@ -121,7 +121,7 @@ void runEcho()
         };
     };
 
-    std::cout << "LibSourcey HTTP echo (single-core) listening on port "
+    std::cout << "Icey HTTP echo (single-core) listening on port "
               << BenchmarkPort << '\n';
     waitForShutdown();
 }
@@ -264,7 +264,7 @@ void run()
 int main(int argc, char** argv)
 {
     // Match libuv's thread pool size to CPU cores
-#ifdef SCY_UNIX
+#ifdef ICY_UNIX
     int ncores = std::thread::hardware_concurrency();
     setenv("UV_THREADPOOL_SIZE", std::to_string(ncores).c_str(), 1);
 #endif

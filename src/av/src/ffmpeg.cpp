@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,9 +9,9 @@
 /// @{
 
 
-#include "scy/av/ffmpeg.h"
-#include "scy/logger.h"
-#include "scy/util.h"
+#include "icy/av/ffmpeg.h"
+#include "icy/logger.h"
+#include "icy/util.h"
 
 #ifdef HAVE_FFMPEG
 
@@ -20,7 +20,7 @@
 #include <stdexcept>
 
 
-namespace scy {
+namespace icy {
 namespace av {
 namespace internal {
 
@@ -137,12 +137,12 @@ void printEncoders(std::ostream& ost, const char* delim)
 
 
 } // namespace av
-} // namespace scy
+} // namespace icy
 
 
 #else
 
-namespace scy {
+namespace icy {
 namespace av {
 
 
@@ -157,7 +157,7 @@ void uninitializeFFmpeg()
 
 
 } // namespace av
-} // namespace scy
+} // namespace icy
 
 
 #endif

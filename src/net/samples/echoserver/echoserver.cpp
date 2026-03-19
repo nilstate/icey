@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -22,15 +22,15 @@
 /// @{
 
 
-#include "scy/application.h"
-#include "scy/logger.h"
-#include "scy/net/sslmanager.h"
+#include "icy/application.h"
+#include "icy/logger.h"
+#include "icy/net/sslmanager.h"
 #include "tcpechoserver.h"
 #include "udpechoserver.h"
 #include <iostream>
 
 
-using namespace scy;
+using namespace icy;
 
 
 const uint16_t TcpPort = 1337;

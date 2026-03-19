@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -32,26 +32,26 @@
 /// @{
 
 
-#include "scy/application.h"
-#include "scy/av/mediacapture.h"
-#include "scy/av/multiplexpacketencoder.h"
-#include "scy/http/server.h"
-#include "scy/http/websocket.h"
-#include "scy/logger.h"
-#include "scy/packetstream.h"
-#include "scy/symple/client.h"
+#include "icy/application.h"
+#include "icy/av/mediacapture.h"
+#include "icy/av/multiplexpacketencoder.h"
+#include "icy/http/server.h"
+#include "icy/http/websocket.h"
+#include "icy/logger.h"
+#include "icy/packetstream.h"
+#include "icy/symple/client.h"
 
 #include <iostream>
 #include <memory>
 #include <string>
 
 
-using namespace scy;
+using namespace icy;
 
 #define USE_AVDEVICE_CAPTURE 0
 
 #if USE_AVDEVICE_CAPTURE
-#include "scy/av/videocapture.h"
+#include "icy/av/videocapture.h"
 #endif
 
 static constexpr uint16_t StreamPort = 329;
@@ -216,7 +216,7 @@ public:
 
     void onCreatePresence(smpl::Peer& peer)
     {
-        peer["agent"] = "LibSourcey";
+        peer["agent"] = "Icey";
         peer["type"] = "streamer";
     }
 };
@@ -253,7 +253,7 @@ int main(int argc, char** argv)
     gCapture = capture;
 #else
     gCapture = std::make_shared<av::MediaCapture>();
-    gCapture->openFile(SCY_DATA_DIR "/test.mp4");
+    gCapture->openFile(ICY_DATA_DIR "/test.mp4");
     gCapture->setLoopInput(true);
     gCapture->setLimitFramerate(true);
 #endif

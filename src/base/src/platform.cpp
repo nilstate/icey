@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,8 +9,8 @@
 /// @{
 
 
-#include "scy/platform.h"
-#include "scy/error.h"
+#include "icy/platform.h"
+#include "icy/error.h"
 
 #include "uv.h"
 
@@ -23,7 +23,7 @@
 #include <string_view>
 #include <vector>
 
-#ifdef SCY_WIN
+#ifdef ICY_WIN
 #include <versionhelpers.h>
 #include <windows.h>
 #include <winsock2.h>
@@ -35,7 +35,7 @@
 #define PATHMAX 1024
 
 
-namespace scy {
+namespace icy {
 
 
 std::string getExePath()
@@ -124,7 +124,7 @@ bool getEnvBool(std::string_view name)
 /// Windows helpers
 //
 
-#ifdef SCY_WIN
+#ifdef ICY_WIN
 
 bool isWindowsVistaOrLater()
 {
@@ -166,7 +166,7 @@ std::string toUtf8(const std::wstring& wstr)
 #endif
 
 
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

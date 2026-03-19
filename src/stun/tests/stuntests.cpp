@@ -1,16 +1,16 @@
-#include "scy/base.h"
-#include "scy/logger.h"
-#include "scy/stun/message.h"
-#include "scy/test.h"
-#include "scy/util.h"
+#include "icy/base.h"
+#include "icy/logger.h"
+#include "icy/stun/message.h"
+#include "icy/test.h"
+#include "icy/util.h"
 
 #include <algorithm>
 #include <stdexcept>
 
 
 using namespace std;
-using namespace scy;
-using namespace scy::test;
+using namespace icy;
+using namespace icy::test;
 
 
 
@@ -262,7 +262,7 @@ int main(int argc, char** argv)
     describe("string attribute software", []() {
         stun::Message msg(stun::Message::Request, stun::Message::Binding);
 
-        std::string sw = "LibSourcey STUN";
+        std::string sw = "Icey STUN";
         auto software = new stun::Software;
         software->copyBytes(sw.c_str(), sw.size());
         msg.add(software);

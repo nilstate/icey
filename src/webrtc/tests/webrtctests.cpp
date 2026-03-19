@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -11,9 +11,9 @@
 
 
 using namespace std;
-using namespace scy;
-using namespace scy::wrtc;
-using namespace scy::test;
+using namespace icy;
+using namespace icy::wrtc;
+using namespace icy::test;
 
 
 int main(int argc, char** argv)

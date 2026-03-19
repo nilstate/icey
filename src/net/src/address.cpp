@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,15 +9,15 @@
 /// @{
 
 
-#include "scy/net/address.h"
-#include "scy/logger.h"
-#include "scy/util.h"
+#include "icy/net/address.h"
+#include "icy/logger.h"
+#include "icy/util.h"
 #include <cstdint>
 
 
 
 
-namespace scy {
+namespace icy {
 namespace net {
 
 
@@ -104,7 +104,7 @@ private:
 // IPv6AddressBase
 //
 
-#if defined(SCY_HAVE_IPv6)
+#if defined(ICY_HAVE_IPv6)
 
 
 class Net_API IPv6AddressBase : public AddressBase
@@ -159,7 +159,7 @@ private:
 };
 
 
-#endif // SCY_HAVE_IPv6
+#endif // ICY_HAVE_IPv6
 
 
 //
@@ -220,7 +220,7 @@ Address::Address(const struct sockaddr* addr, socklen_t length)
     if (length == sizeof(struct sockaddr_in))
         _base = std::make_shared<IPv4AddressBase>(
             reinterpret_cast<const struct sockaddr_in*>(addr));
-#if defined(SCY_HAVE_IPv6)
+#if defined(ICY_HAVE_IPv6)
     else if (length == sizeof(struct sockaddr_in6))
         _base = std::make_shared<IPv6AddressBase>(
             reinterpret_cast<const struct sockaddr_in6*>(addr));
@@ -381,7 +381,7 @@ uint16_t Address::resolveService(const std::string& service)
 
 
 } // namespace net
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

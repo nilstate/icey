@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,13 +9,13 @@
 /// @{
 
 
-#include "scy/logger.h"
-#include "scy/datetime.h"
-#include "scy/platform.h"
+#include "icy/logger.h"
+#include "icy/datetime.h"
+#include "icy/platform.h"
 
-#include "scy/filesystem.h"
-#include "scy/time.h"
-#include "scy/util.h"
+#include "icy/filesystem.h"
+#include "icy/time.h"
+#include "icy/util.h"
 
 #include <chrono>
 #include <iterator>
@@ -24,7 +24,7 @@
 
 
 
-namespace scy {
+namespace icy {
 
 
 static Singleton<Logger> singleton;
@@ -132,7 +132,7 @@ void Logger::write(const LogStream& stream)
 
 void Logger::write(std::unique_ptr<LogStream> stream)
 {
-#ifdef SCY_ENABLE_LOGGING
+#ifdef ICY_ENABLE_LOGGING
     std::lock_guard<std::mutex> guard(_mutex);
     if (stream->channel == nullptr)
         stream->channel = _defaultChannel;
@@ -169,7 +169,7 @@ LogWriter::~LogWriter()
 
 void LogWriter::write(std::unique_ptr<LogStream> stream)
 {
-#ifdef SCY_ENABLE_LOGGING
+#ifdef ICY_ENABLE_LOGGING
     stream->channel->write(*stream);
 #endif
 }
@@ -195,7 +195,7 @@ AsyncLogWriter::~AsyncLogWriter()
     // when unloading shared libraries when the logger is not
     // explicitly shutdown().
     // while (_thread.running())
-    //    scy::sleep(10);
+    //    icy::sleep(10);
     _thread.join();
 
     // Flush remaining items synchronously
@@ -238,7 +238,7 @@ void AsyncLogWriter::run()
 
 bool AsyncLogWriter::writeNext()
 {
-#ifdef SCY_ENABLE_LOGGING
+#ifdef ICY_ENABLE_LOGGING
     std::unique_ptr<LogStream> next;
     {
         std::lock_guard<std::mutex> guard(_mutex);
@@ -261,7 +261,7 @@ bool AsyncLogWriter::writeNext()
 //
 
 
-#ifdef SCY_ENABLE_LOGGING
+#ifdef ICY_ENABLE_LOGGING
 
 LogStream::LogStream(Level level, std::string realm, int line, const char* channel)
     : level(level)
@@ -317,7 +317,7 @@ LogChannel::LogChannel(std::string name, Level level,
 void LogChannel::write(std::string message, Level level,
                        std::string realm)
 {
-#ifdef SCY_ENABLE_LOGGING
+#ifdef ICY_ENABLE_LOGGING
     LogStream stream(level, std::move(realm), 0);
     stream << std::move(message);
     write(stream);
@@ -333,7 +333,7 @@ void LogChannel::write(const LogStream& stream)
 
 void LogChannel::format(const LogStream& stream, std::ostream& ost)
 {
-#ifdef SCY_ENABLE_LOGGING
+#ifdef ICY_ENABLE_LOGGING
     if (!_timeFormat.empty())
         ost << time::print(time::toLocal(stream.ts), _timeFormat.c_str());
     ost << " [" << getStringFromLevel(stream.level) << "] ";
@@ -367,7 +367,7 @@ ConsoleChannel::ConsoleChannel(std::string name, Level level,
 
 void ConsoleChannel::write(const LogStream& stream)
 {
-#ifdef SCY_ENABLE_LOGGING
+#ifdef ICY_ENABLE_LOGGING
     if (_level > stream.level)
         return;
 
@@ -435,7 +435,7 @@ void FileChannel::close()
 
 void FileChannel::write(const LogStream& stream)
 {
-#ifdef SCY_ENABLE_LOGGING
+#ifdef ICY_ENABLE_LOGGING
     if (this->level() > stream.level)
         return;
 
@@ -503,7 +503,7 @@ RotatingFileChannel::~RotatingFileChannel()
 
 void RotatingFileChannel::write(const LogStream& stream)
 {
-#ifdef SCY_ENABLE_LOGGING
+#ifdef ICY_ENABLE_LOGGING
     if (this->level() > stream.level)
         return;
 
@@ -547,7 +547,7 @@ void RotatingFileChannel::rotate()
 }
 
 
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

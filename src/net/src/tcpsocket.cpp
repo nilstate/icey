@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,13 +9,13 @@
 /// @{
 
 
-#include "scy/net/tcpsocket.h"
-#include "scy/logger.h"
+#include "icy/net/tcpsocket.h"
+#include "icy/logger.h"
 
 
 
 
-namespace scy {
+namespace icy {
 namespace net {
 
 
@@ -198,7 +198,7 @@ bool TCPSocket::setSimultaneousAccepts(bool enable)
 {
     if (!initialized())
         return false;
-#ifdef SCY_WIN
+#ifdef ICY_WIN
     return uv_tcp_simultaneous_accepts(get(), enable ? 1 : 0) == 0;
 #else
     return false;
@@ -210,7 +210,7 @@ bool TCPSocket::setReusePort()
 {
     if (!initialized())
         return false;
-#if SCY_HAS_KERNEL_SOCKET_LOAD_BALANCING
+#if ICY_HAS_KERNEL_SOCKET_LOAD_BALANCING
     if (_af == AF_UNSPEC) {
         LError("bind() must be called before setReusePort()");
         return false;
@@ -278,7 +278,7 @@ net::Address TCPSocket::peerAddress() const
 }
 
 
-void TCPSocket::setError(const scy::Error& err)
+void TCPSocket::setError(const icy::Error& err)
 {
     if (error().any())
         return; // don't overwrite existing error
@@ -286,7 +286,7 @@ void TCPSocket::setError(const scy::Error& err)
 }
 
 
-const scy::Error& TCPSocket::error() const
+const icy::Error& TCPSocket::error() const
 {
     return Stream::error();
 }
@@ -385,7 +385,7 @@ void TCPSocket::acceptConnection()
 // }
 
 
-void TCPSocket::onError(const scy::Error& error)
+void TCPSocket::onError(const icy::Error& error)
 {
     LDebug("Error:", error.message);
     onSocketError(*this, error);
@@ -401,7 +401,7 @@ void TCPSocket::onClose()
 
 
 } // namespace net
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

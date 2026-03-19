@@ -4,8 +4,8 @@
 
 | Name | Description |
 |------|-------------|
-| [`Configuration`](#classscy_1_1json_1_1Configuration) | JSON configuration file |
-| [`ISerializable`](#classscy_1_1json_1_1ISerializable) |  |
+| [`Configuration`](#classicy_1_1json_1_1Configuration) | JSON configuration file |
+| [`ISerializable`](#classicy_1_1json_1_1ISerializable) |  |
 
 ### Members
 
@@ -23,19 +23,19 @@ JSON_API()
 
 ## Configuration 
 
-> **Extends:** `scy::Configuration`
+> **Extends:** `icy::Configuration`
 > **Defined in:** `configuration.h`
 
 JSON configuration file
 
-See base [Configuration](#classscy_1_1json_1_1Configuration) for all accessors
+See base [Configuration](#classicy_1_1json_1_1Configuration) for all accessors
 
 ### Members
 
 | Name | Description |
 |------|-------------|
 | [`Configuration`](#group__json_1gac214c65bca41dbeb2b93de599bf33860) |  |
-| [`~Configuration`](#group__json_1ga041eaafa3e57334159495db3f7c8f31a) | Destroys the [Configuration](#classscy_1_1json_1_1Configuration). |
+| [`~Configuration`](#group__json_1ga041eaafa3e57334159495db3f7c8f31a) | Destroys the [Configuration](#classicy_1_1json_1_1Configuration). |
 | [`load`](#group__json_1gaa92c45c4c4628a4edb8a3d7652e07750) |  |
 | [`load`](#group__json_1ga28c81762c1884c20e06818b09d2ea74a) |  |
 | [`save`](#group__json_1ga561f1c272c7e613c15b4827b5be26112) |  |
@@ -69,7 +69,7 @@ Configuration()
 virtual ~Configuration()
 ```
 
-Destroys the [Configuration](#classscy_1_1json_1_1Configuration).
+Destroys the [Configuration](#classicy_1_1json_1_1Configuration).
 
 ---
 
@@ -250,7 +250,7 @@ std::mutex _mutex
 
 ## ISerializable 
 
-> **Subclasses:** `scy::sched::Scheduler`, `scy::sched::Task`, `scy::sched::Trigger`
+> **Subclasses:** `icy::sched::Scheduler`, `icy::sched::Task`, `icy::sched::Trigger`
 > **Defined in:** `iserializable.h`
 
 ### Members

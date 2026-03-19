@@ -4,39 +4,39 @@
 
 | Name | Description |
 |------|-------------|
-| [`Address`](#classscy_1_1net_1_1Address) |  |
-| [`PacketSocketEmitter`](#classscy_1_1net_1_1PacketSocketEmitter) |  |
-| [`Socket`](#classscy_1_1net_1_1Socket) | Base socket implementation from which all sockets derive. |
-| [`SocketPacket`](#classscy_1_1net_1_1SocketPacket) | [SocketPacket](#classscy_1_1net_1_1SocketPacket) is the default packet type emitted by sockets. [SocketPacket](#classscy_1_1net_1_1SocketPacket) provides peer address information and a buffer reference for nocopy binary operations. |
-| [`SocketAdapter`](#classscy_1_1net_1_1SocketAdapter) | [SocketAdapter](#classscy_1_1net_1_1SocketAdapter) is the abstract interface for all socket classes. A [SocketAdapter](#classscy_1_1net_1_1SocketAdapter) can also be attached to a [Socket](#classscy_1_1net_1_1Socket) in order to override default [Socket](#classscy_1_1net_1_1Socket) callbacks and behaviour, while still maintaining the default [Socket](#classscy_1_1net_1_1Socket) interface (see Socket::setAdapter). |
-| [`SocketEmitter`](#classscy_1_1net_1_1SocketEmitter) | [SocketAdapter](#classscy_1_1net_1_1SocketAdapter) class that adds signal callbacks for sockets. Asde from adding a signal interface the class works as a wrapper for the socket instance, and is designed to be used the same way as a `std::unique_ptr` by overriding the ->() operator. |
-| [`SSLAdapter`](#classscy_1_1net_1_1SSLAdapter) |  |
-| [`SSLContext`](#classscy_1_1net_1_1SSLContext) | This class encapsulates context information for an SSL server or client, such as the certificate verification mode and the location of certificates and private key files, as well as the list of supported ciphers. |
-| [`SSLManager`](#classscy_1_1net_1_1SSLManager) | [SSLManager](#classscy_1_1net_1_1SSLManager) is a singleton for holding the default server/client Context and handling callbacks for certificate verification errors and private key passphrases. |
-| [`VerificationErrorDetails`](#classscy_1_1net_1_1VerificationErrorDetails) | A utility class for certificate error handling. |
-| [`SSLSession`](#classscy_1_1net_1_1SSLSession) | This class encapsulates a SSL session object used with session caching on the client side. |
-| [`SSLSocket`](#classscy_1_1net_1_1SSLSocket) | SSL socket implementation. |
-| [`TCPSocket`](#classscy_1_1net_1_1TCPSocket) | TCP socket implementation. |
-| [`Transaction`](#classscy_1_1net_1_1Transaction) | This class provides request/response functionality for [IPacket](./doc/api-base.md#classscy_1_1IPacket) types emitted from a [Socket](#classscy_1_1net_1_1Socket). |
-| [`UDPSocket`](#classscy_1_1net_1_1UDPSocket) | UDP socket implementation. |
-| [`AddressBase`](#classscy_1_1net_1_1AddressBase) |  |
-| [`IPv4AddressBase`](#classscy_1_1net_1_1IPv4AddressBase) |  |
-| [`PacketInfo`](#structscy_1_1net_1_1PacketInfo) | Provides information about packets emitted from a socket. See [SocketPacket](#classscy_1_1net_1_1SocketPacket). |
-| [`Ref`](#structscy_1_1net_1_1SocketAdapter_1_1Ref) |  |
+| [`Address`](#classicy_1_1net_1_1Address) |  |
+| [`PacketSocketEmitter`](#classicy_1_1net_1_1PacketSocketEmitter) |  |
+| [`Socket`](#classicy_1_1net_1_1Socket) | Base socket implementation from which all sockets derive. |
+| [`SocketPacket`](#classicy_1_1net_1_1SocketPacket) | [SocketPacket](#classicy_1_1net_1_1SocketPacket) is the default packet type emitted by sockets. [SocketPacket](#classicy_1_1net_1_1SocketPacket) provides peer address information and a buffer reference for nocopy binary operations. |
+| [`SocketAdapter`](#classicy_1_1net_1_1SocketAdapter) | [SocketAdapter](#classicy_1_1net_1_1SocketAdapter) is the abstract interface for all socket classes. A [SocketAdapter](#classicy_1_1net_1_1SocketAdapter) can also be attached to a [Socket](#classicy_1_1net_1_1Socket) in order to override default [Socket](#classicy_1_1net_1_1Socket) callbacks and behaviour, while still maintaining the default [Socket](#classicy_1_1net_1_1Socket) interface (see Socket::setAdapter). |
+| [`SocketEmitter`](#classicy_1_1net_1_1SocketEmitter) | [SocketAdapter](#classicy_1_1net_1_1SocketAdapter) class that adds signal callbacks for sockets. Asde from adding a signal interface the class works as a wrapper for the socket instance, and is designed to be used the same way as a `std::unique_ptr` by overriding the ->() operator. |
+| [`SSLAdapter`](#classicy_1_1net_1_1SSLAdapter) |  |
+| [`SSLContext`](#classicy_1_1net_1_1SSLContext) | This class encapsulates context information for an SSL server or client, such as the certificate verification mode and the location of certificates and private key files, as well as the list of supported ciphers. |
+| [`SSLManager`](#classicy_1_1net_1_1SSLManager) | [SSLManager](#classicy_1_1net_1_1SSLManager) is a singleton for holding the default server/client Context and handling callbacks for certificate verification errors and private key passphrases. |
+| [`VerificationErrorDetails`](#classicy_1_1net_1_1VerificationErrorDetails) | A utility class for certificate error handling. |
+| [`SSLSession`](#classicy_1_1net_1_1SSLSession) | This class encapsulates a SSL session object used with session caching on the client side. |
+| [`SSLSocket`](#classicy_1_1net_1_1SSLSocket) | SSL socket implementation. |
+| [`TCPSocket`](#classicy_1_1net_1_1TCPSocket) | TCP socket implementation. |
+| [`Transaction`](#classicy_1_1net_1_1Transaction) | This class provides request/response functionality for [IPacket](./doc/api-base.md#classicy_1_1IPacket) types emitted from a [Socket](#classicy_1_1net_1_1Socket). |
+| [`UDPSocket`](#classicy_1_1net_1_1UDPSocket) | UDP socket implementation. |
+| [`AddressBase`](#classicy_1_1net_1_1AddressBase) |  |
+| [`IPv4AddressBase`](#classicy_1_1net_1_1IPv4AddressBase) |  |
+| [`PacketInfo`](#structicy_1_1net_1_1PacketInfo) | Provides information about packets emitted from a socket. See [SocketPacket](#classicy_1_1net_1_1SocketPacket). |
+| [`Ref`](#structicy_1_1net_1_1SocketAdapter_1_1Ref) |  |
 
 ### Members
 
 | Name | Description |
 |------|-------------|
-| [`SCY_HAVE_IPv6`](#group__net_1gab13f08bf90488904c8a33b55bd07d704) | Windows. |
+| [`ICY_HAVE_IPv6`](#group__net_1gab13f08bf90488904c8a33b55bd07d704) | Windows. |
 | [`Net_API`](#group__net_1gae68e75c96e9669ffa526fadc5d953721) | Linux. |
 
 ---
 
-#### SCY_HAVE_IPv6 
+#### ICY_HAVE_IPv6 
 
 ```cpp
-SCY_HAVE_IPv6()
+ICY_HAVE_IPv6()
 ```
 
 Windows.
@@ -60,15 +60,15 @@ Linux.
 | Name | Description |
 |------|-------------|
 | [`Family`](#group__net_1gaf91e77d155f2852974bbae5a2da34106) | Possible address families for IP addresses. |
-| [`Address`](#group__net_1ga4376b5c4c7a0390b9148741c61331775) | Creates a wildcard (all zero) IPv4 [Address](#classscy_1_1net_1_1Address). |
-| [`Address`](#group__net_1ga9738fe42686a855ffaa0ceb14541c42c) | Creates a [Address](#classscy_1_1net_1_1Address) from an IP address and a port number. |
-| [`Address`](#group__net_1ga1ebca1dc763be19d20ec69be97bbb3d7) | Creates a [Address](#classscy_1_1net_1_1Address) by copying another one. |
-| [`Address`](#group__net_1gac57cc836572c64291fe739745be8e25e) | Creates a [Address](#classscy_1_1net_1_1Address) from a native socket address. |
-| [`Address`](#group__net_1gacde53f645ce818600709e240dbf510eb) | Creates a [Address](#classscy_1_1net_1_1Address) from an IP address and a service name or port number. |
-| [`Address`](#group__net_1ga94e2bed4c55e369c97a2d229d2b591e6) | Creates a [Address](#classscy_1_1net_1_1Address) from an IP address or host name and a port number/service name. Host name/address and port number must be separated by a colon. In case of an IPv6 address, the address part must be enclosed in brackets. |
-| [`~Address`](#group__net_1ga5b9e05ed6187c478f65d0d57ad4cdb35) | Destroys the [Address](#classscy_1_1net_1_1Address). |
-| [`operator=`](#group__net_1ga3b3ec108da40cf5fafd15cc21b4388bd) | Assigns another [Address](#classscy_1_1net_1_1Address). |
-| [`swap`](#group__net_1ga877434e8e2b5a266d99f9f35be0882b0) | Swaps the [Address](#classscy_1_1net_1_1Address) with another one. |
+| [`Address`](#group__net_1ga4376b5c4c7a0390b9148741c61331775) | Creates a wildcard (all zero) IPv4 [Address](#classicy_1_1net_1_1Address). |
+| [`Address`](#group__net_1ga9738fe42686a855ffaa0ceb14541c42c) | Creates a [Address](#classicy_1_1net_1_1Address) from an IP address and a port number. |
+| [`Address`](#group__net_1ga1ebca1dc763be19d20ec69be97bbb3d7) | Creates a [Address](#classicy_1_1net_1_1Address) by copying another one. |
+| [`Address`](#group__net_1gac57cc836572c64291fe739745be8e25e) | Creates a [Address](#classicy_1_1net_1_1Address) from a native socket address. |
+| [`Address`](#group__net_1gacde53f645ce818600709e240dbf510eb) | Creates a [Address](#classicy_1_1net_1_1Address) from an IP address and a service name or port number. |
+| [`Address`](#group__net_1ga94e2bed4c55e369c97a2d229d2b591e6) | Creates a [Address](#classicy_1_1net_1_1Address) from an IP address or host name and a port number/service name. Host name/address and port number must be separated by a colon. In case of an IPv6 address, the address part must be enclosed in brackets. |
+| [`~Address`](#group__net_1ga5b9e05ed6187c478f65d0d57ad4cdb35) | Destroys the [Address](#classicy_1_1net_1_1Address). |
+| [`operator=`](#group__net_1ga3b3ec108da40cf5fafd15cc21b4388bd) | Assigns another [Address](#classicy_1_1net_1_1Address). |
+| [`swap`](#group__net_1ga877434e8e2b5a266d99f9f35be0882b0) | Swaps the [Address](#classicy_1_1net_1_1Address) with another one. |
 | [`host`](#group__net_1gad8fbd6353a1f03ef3e0346ef1be64800) | Returns the host IP address. |
 | [`port`](#group__net_1ga36e14fd72aceb8470cb7e6d2931ca622) | Returns the port number. |
 | [`length`](#group__net_1ga474b01eea594bde98f3dca27ca6d09bd) | Returns the length of the internal native socket address. |
@@ -108,7 +108,7 @@ Possible address families for IP addresses.
 Address()
 ```
 
-Creates a wildcard (all zero) IPv4 [Address](#classscy_1_1net_1_1Address).
+Creates a wildcard (all zero) IPv4 [Address](#classicy_1_1net_1_1Address).
 
 ---
 
@@ -118,7 +118,7 @@ Creates a wildcard (all zero) IPv4 [Address](#classscy_1_1net_1_1Address).
 Address(const std::string & host, uint16_t port)
 ```
 
-Creates a [Address](#classscy_1_1net_1_1Address) from an IP address and a port number.
+Creates a [Address](#classicy_1_1net_1_1Address) from an IP address and a port number.
 
 The IP address must either be a domain name, or it must be in dotted decimal (IPv4) or hex string (IPv6) format.
 
@@ -135,7 +135,7 @@ The IP address must either be a domain name, or it must be in dotted decimal (IP
 Address(const Address & addr)
 ```
 
-Creates a [Address](#classscy_1_1net_1_1Address) by copying another one.
+Creates a [Address](#classicy_1_1net_1_1Address) by copying another one.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -149,7 +149,7 @@ Creates a [Address](#classscy_1_1net_1_1Address) by copying another one.
 Address(const struct sockaddr * addr, socklen_t length)
 ```
 
-Creates a [Address](#classscy_1_1net_1_1Address) from a native socket address.
+Creates a [Address](#classicy_1_1net_1_1Address) from a native socket address.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -164,7 +164,7 @@ Creates a [Address](#classscy_1_1net_1_1Address) from a native socket address.
 Address(const std::string & host, const std::string & port)
 ```
 
-Creates a [Address](#classscy_1_1net_1_1Address) from an IP address and a service name or port number.
+Creates a [Address](#classicy_1_1net_1_1Address) from an IP address and a service name or port number.
 
 The IP address must either be a domain name, or it must be in dotted decimal (IPv4) or hex string (IPv6) format.
 
@@ -183,11 +183,11 @@ The given port must either be a decimal port number, or a service name.
 explicit Address(const std::string & hostAndPort)
 ```
 
-Creates a [Address](#classscy_1_1net_1_1Address) from an IP address or host name and a port number/service name. Host name/address and port number must be separated by a colon. In case of an IPv6 address, the address part must be enclosed in brackets.
+Creates a [Address](#classicy_1_1net_1_1Address) from an IP address or host name and a port number/service name. Host name/address and port number must be separated by a colon. In case of an IPv6 address, the address part must be enclosed in brackets.
 
 Examples: 192.168.1.10:80
 
-www.sourcey.com:8080
+www.0state.com:8080
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -201,7 +201,7 @@ www.sourcey.com:8080
 ~Address()
 ```
 
-Destroys the [Address](#classscy_1_1net_1_1Address).
+Destroys the [Address](#classicy_1_1net_1_1Address).
 
 ---
 
@@ -211,7 +211,7 @@ Destroys the [Address](#classscy_1_1net_1_1Address).
 Address & operator=(const Address & addr)
 ```
 
-Assigns another [Address](#classscy_1_1net_1_1Address).
+Assigns another [Address](#classicy_1_1net_1_1Address).
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -225,7 +225,7 @@ Assigns another [Address](#classscy_1_1net_1_1Address).
 void swap(Address & addr)
 ```
 
-Swaps the [Address](#classscy_1_1net_1_1Address) with another one.
+Swaps the [Address](#classicy_1_1net_1_1Address) with another one.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -394,15 +394,15 @@ std::shared_ptr< AddressBase > _base
 
 ## PacketSocketEmitter 
 
-> **Extends:** `scy::net::SocketEmitter`, `scy::Signal< void(IPacket &)>`
-> **Subclasses:** `scy::net::Transaction< Message >`, `scy::net::Transaction< PacketT >`
+> **Extends:** `icy::net::SocketEmitter`, `icy::Signal< void(IPacket &)>`
+> **Subclasses:** `icy::net::Transaction< Message >`, `icy::net::Transaction< PacketT >`
 > **Defined in:** `packetsocket.h`
 
 ### Members
 
 | Name | Description |
 |------|-------------|
-| [`PacketSocketEmitter`](#group__net_1ga3140a2a25a6ce7db74108f3111235015) | Creates the [PacketSocketEmitter](#classscy_1_1net_1_1PacketSocketEmitter) This class should have a higher priority than standard sockets so we can parse data packets first. Creates and dispatches a packet utilizing the available creation strategies. For best performance the most used strategies should have the highest priority. |
+| [`PacketSocketEmitter`](#group__net_1ga3140a2a25a6ce7db74108f3111235015) | Creates the [PacketSocketEmitter](#classicy_1_1net_1_1PacketSocketEmitter) This class should have a higher priority than standard sockets so we can parse data packets first. Creates and dispatches a packet utilizing the available creation strategies. For best performance the most used strategies should have the highest priority. |
 | [`~PacketSocketEmitter`](#group__net_1ga9d770233ff68edeace9e64b262a61abc) |  |
 | [`onSocketRecv`](#group__net_1gadc517059efc11e7b96c9aac48d3621f4) |  |
 | [`onPacket`](#group__net_1ga0de3859d43f868dbbdb88fda6e713092) |  |
@@ -416,7 +416,7 @@ std::shared_ptr< AddressBase > _base
 PacketSocketEmitter(const Socket::Ptr & socket)
 ```
 
-Creates the [PacketSocketEmitter](#classscy_1_1net_1_1PacketSocketEmitter) This class should have a higher priority than standard sockets so we can parse data packets first. Creates and dispatches a packet utilizing the available creation strategies. For best performance the most used strategies should have the highest priority.
+Creates the [PacketSocketEmitter](#classicy_1_1net_1_1PacketSocketEmitter) This class should have a higher priority than standard sockets so we can parse data packets first. Creates and dispatches a packet utilizing the available creation strategies. For best performance the most used strategies should have the highest priority.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -468,8 +468,8 @@ The packet factory.
 
 ## Socket 
 
-> **Extends:** `scy::net::SocketAdapter`
-> **Subclasses:** `scy::net::TCPSocket`, `scy::net::UDPSocket`
+> **Extends:** `icy::net::SocketAdapter`
+> **Subclasses:** `icy::net::TCPSocket`, `icy::net::UDPSocket`
 > **Defined in:** `socket.h`
 
 Base socket implementation from which all sockets derive.
@@ -524,7 +524,7 @@ void connect(const Address & address)
 
 Connects to the given peer IP address.
 
-Throws an exception if the address is malformed. Connection errors can be handled via the [Error](./doc/api-base.md#structscy_1_1Error) signal.
+Throws an exception if the address is malformed. Connection errors can be handled via the [Error](./doc/api-base.md#structicy_1_1Error) signal.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -540,7 +540,7 @@ void connect(const std::string & host, uint16_t port)
 
 Resolves and connects to the given host address.
 
-Throws an Exception if the host is malformed. Since the DNS callback is asynchronous implementations need to listen for the [Error](./doc/api-base.md#structscy_1_1Error) signal for handling connection errors.
+Throws an Exception if the host is malformed. Since the DNS callback is asynchronous implementations need to listen for the [Error](./doc/api-base.md#structicy_1_1Error) signal for handling connection errors.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -639,7 +639,7 @@ The transport protocol: TCP, UDP or SSLTCP.
 #### setError 
 
 ```cpp
-void setError(const [scy::Error](./doc/api-base.md#structscy_1_1Error) & err)
+void setError(const [icy::Error](./doc/api-base.md#structicy_1_1Error) & err)
 ```
 
 Sets the socket error.
@@ -648,14 +648,14 @@ Setting the error will result in socket closure.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `err` | `const [scy::Error](./doc/api-base.md#structscy_1_1Error) &` |  |
+| `err` | `const [icy::Error](./doc/api-base.md#structicy_1_1Error) &` |  |
 
 ---
 
 #### error 
 
 ```cpp
-const [scy::Error](./doc/api-base.md#structscy_1_1Error) & error() const
+const [icy::Error](./doc/api-base.md#structicy_1_1Error) & error() const
 ```
 
 Return the socket error if any.
@@ -722,10 +722,10 @@ int _af { AF_UNSPEC }
 
 ## SocketPacket 
 
-> **Extends:** `scy::RawPacket`
+> **Extends:** `icy::RawPacket`
 > **Defined in:** `socket.h`
 
-[SocketPacket](#classscy_1_1net_1_1SocketPacket) is the default packet type emitted by sockets. [SocketPacket](#classscy_1_1net_1_1SocketPacket) provides peer address information and a buffer reference for nocopy binary operations.
+[SocketPacket](#classicy_1_1net_1_1SocketPacket) is the default packet type emitted by sockets. [SocketPacket](#classicy_1_1net_1_1SocketPacket) provides peer address information and a buffer reference for nocopy binary operations.
 
 The referenced packet buffer lifetime is only guaranteed for the duration of the receiver callback.
 
@@ -735,7 +735,7 @@ The referenced packet buffer lifetime is only guaranteed for the duration of the
 |------|-------------|
 | [`SocketPacket`](#group__net_1gaec154054d8c54269655aa062d8fe1ffd) |  |
 | [`SocketPacket`](#group__net_1gad327456520e77574cd3cb730ccc0a75a) |  |
-| [`packetInfo`](#group__net_1gaf192ea8a4488fdb7ff04961999496954) | Returns the [PacketInfo](#structscy_1_1net_1_1PacketInfo) for this socket packet. |
+| [`packetInfo`](#group__net_1gaf192ea8a4488fdb7ff04961999496954) | Returns the [PacketInfo](#structicy_1_1net_1_1PacketInfo) for this socket packet. |
 | [`~SocketPacket`](#group__net_1ga3e883a20f382b845e90c1047e8ff03f1) |  |
 | [`print`](#group__net_1ga319694029ed98f048cdaf68330e31807) |  |
 | [`clone`](#group__net_1gad4dc225d63a642fb0eb1b43c271c796c) |  |
@@ -777,7 +777,7 @@ inline SocketPacket(const SocketPacket & that)
 inline PacketInfo * packetInfo() const
 ```
 
-Returns the [PacketInfo](#structscy_1_1net_1_1PacketInfo) for this socket packet.
+Returns the [PacketInfo](#structicy_1_1net_1_1PacketInfo) for this socket packet.
 
 ---
 
@@ -839,30 +839,30 @@ virtual inline const char * className() const
 
 ## SocketAdapter 
 
-> **Subclasses:** `scy::http::Connection`, `scy::http::ConnectionAdapter`, `scy::http::ConnectionStream`, `scy::http::Server`, `scy::net::Socket`, `scy::net::SocketEmitter`, `scy::sockio::Client`
+> **Subclasses:** `icy::http::Connection`, `icy::http::ConnectionAdapter`, `icy::http::ConnectionStream`, `icy::http::Server`, `icy::net::Socket`, `icy::net::SocketEmitter`, `icy::sockio::Client`
 > **Defined in:** `socketadapter.h`
 
-[SocketAdapter](#classscy_1_1net_1_1SocketAdapter) is the abstract interface for all socket classes. A [SocketAdapter](#classscy_1_1net_1_1SocketAdapter) can also be attached to a [Socket](#classscy_1_1net_1_1Socket) in order to override default [Socket](#classscy_1_1net_1_1Socket) callbacks and behaviour, while still maintaining the default [Socket](#classscy_1_1net_1_1Socket) interface (see Socket::setAdapter).
+[SocketAdapter](#classicy_1_1net_1_1SocketAdapter) is the abstract interface for all socket classes. A [SocketAdapter](#classicy_1_1net_1_1SocketAdapter) can also be attached to a [Socket](#classicy_1_1net_1_1Socket) in order to override default [Socket](#classicy_1_1net_1_1Socket) callbacks and behaviour, while still maintaining the default [Socket](#classicy_1_1net_1_1Socket) interface (see Socket::setAdapter).
 
-This class also be extended to implement custom processing for received socket data before it is dispatched to the application (see [PacketSocketEmitter](#classscy_1_1net_1_1PacketSocketEmitter) and [Transaction](#classscy_1_1net_1_1Transaction) classes).
+This class also be extended to implement custom processing for received socket data before it is dispatched to the application (see [PacketSocketEmitter](#classicy_1_1net_1_1PacketSocketEmitter) and [Transaction](#classicy_1_1net_1_1Transaction) classes).
 
 ### Members
 
 | Name | Description |
 |------|-------------|
-| [`SocketAdapter`](#group__net_1ga35ca78ac04abbd6828af02fb1b65e6d1) | Creates the [SocketAdapter](#classscy_1_1net_1_1SocketAdapter). |
-| [`~SocketAdapter`](#group__net_1gac06480990b5301cb185000fe8bf860e4) | Destroys the [SocketAdapter](#classscy_1_1net_1_1SocketAdapter). |
+| [`SocketAdapter`](#group__net_1ga35ca78ac04abbd6828af02fb1b65e6d1) | Creates the [SocketAdapter](#classicy_1_1net_1_1SocketAdapter). |
+| [`~SocketAdapter`](#group__net_1gac06480990b5301cb185000fe8bf860e4) | Destroys the [SocketAdapter](#classicy_1_1net_1_1SocketAdapter). |
 | [`send`](#group__net_1gae0701649bbdbe02ac987c21dbf180745) | Sends the given data buffer to the connected peer. Returns the number of bytes sent or -1 on error. No exception will be thrown. For TCP sockets the given peer address must match the connected peer address. |
 | [`send`](#group__net_1ga4d695c349c6c483b36bc2a406ffa8554) |  |
 | [`sendPacket`](#group__net_1ga51b07fc133c1761959118191f392509e) | Sends the given packet to the connected peer. Returns the number of bytes sent or -1 on error. No exception will be thrown. For TCP sockets the given peer address must match the connected peer address. |
 | [`sendPacket`](#group__net_1ga7ef73b7c3d563756f492e9abc196c77d) |  |
 | [`sendPacket`](#group__net_1ga6d7c711236a3570235353f634f9d1a77) | Sends the given packet to the connected peer. This method provides delegate compatability, and unlike other send methods throws an exception if the underlying socket is closed. |
 | [`setSender`](#group__net_1ga566fd551c24638ab22d42f6c6082d85f) | Sets the pointer to the outgoing data adapter. Send methods proxy data to this adapter by default. |
-| [`sender`](#group__net_1gaf327b8e4712403322638ea10151dc1d6) | Returns the output [SocketAdapter](#classscy_1_1net_1_1SocketAdapter) pointer. |
+| [`sender`](#group__net_1gaf327b8e4712403322638ea10151dc1d6) | Returns the output [SocketAdapter](#classicy_1_1net_1_1SocketAdapter) pointer. |
 | [`addReceiver`](#group__net_1ga255f77677b0e9b2d95b663c413f16fee) | Sets the pointer to the incoming data adapter. Events proxy data to this adapter by default. |
 | [`removeReceiver`](#group__net_1ga523f50c94ac42d49d81efb8a4ff81629) | Remove the given receiver. |
 | [`hasReceiver`](#group__net_1ga083660a332c15c43e6a1945d59b3f0d7) | Returns true if the given receiver is connected. |
-| [`receivers`](#group__net_1ga1e96c66f9d52faadb197b59c75cefb67) | Returns the input [SocketAdapter](#classscy_1_1net_1_1SocketAdapter) pointer. |
+| [`receivers`](#group__net_1ga1e96c66f9d52faadb197b59c75cefb67) | Returns the input [SocketAdapter](#classicy_1_1net_1_1SocketAdapter) pointer. |
 | [`onSocketConnect`](#group__net_1ga8dae1c179274b0571d1b5d8040f5afd8) | These virtual methods can be overridden as necessary to intercept socket events before they hit the application. |
 | [`onSocketRecv`](#group__net_1ga48f8129547ba9eaac88094e059205529) |  |
 | [`onSocketError`](#group__net_1ga5658d5b01a3ff4cbad6010190aefe3b7) |  |
@@ -881,7 +881,7 @@ This class also be extended to implement custom processing for received socket d
 SocketAdapter(SocketAdapter * sender)
 ```
 
-Creates the [SocketAdapter](#classscy_1_1net_1_1SocketAdapter).
+Creates the [SocketAdapter](#classicy_1_1net_1_1SocketAdapter).
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -895,7 +895,7 @@ Creates the [SocketAdapter](#classscy_1_1net_1_1SocketAdapter).
 virtual ~SocketAdapter()
 ```
 
-Destroys the [SocketAdapter](#classscy_1_1net_1_1SocketAdapter).
+Destroys the [SocketAdapter](#classicy_1_1net_1_1SocketAdapter).
 
 ---
 
@@ -993,7 +993,7 @@ Sets the pointer to the outgoing data adapter. Send methods proxy data to this a
 SocketAdapter * sender()
 ```
 
-Returns the output [SocketAdapter](#classscy_1_1net_1_1SocketAdapter) pointer.
+Returns the output [SocketAdapter](#classicy_1_1net_1_1SocketAdapter) pointer.
 
 ---
 
@@ -1047,7 +1047,7 @@ Returns true if the given receiver is connected.
 std::vector< SocketAdapter * > receivers()
 ```
 
-Returns the input [SocketAdapter](#classscy_1_1net_1_1SocketAdapter) pointer.
+Returns the input [SocketAdapter](#classicy_1_1net_1_1SocketAdapter) pointer.
 
 ---
 
@@ -1173,21 +1173,21 @@ bool alive
 
 ## SocketEmitter 
 
-> **Extends:** `scy::net::SocketAdapter`
-> **Subclasses:** `scy::http::ws::WebSocketAdapter`, `scy::net::PacketSocketEmitter`
+> **Extends:** `icy::net::SocketAdapter`
+> **Subclasses:** `icy::http::ws::WebSocketAdapter`, `icy::net::PacketSocketEmitter`
 > **Defined in:** `socketemitter.h`
 
-[SocketAdapter](#classscy_1_1net_1_1SocketAdapter) class that adds signal callbacks for sockets. Asde from adding a signal interface the class works as a wrapper for the socket instance, and is designed to be used the same way as a `std::unique_ptr` by overriding the ->() operator.
+[SocketAdapter](#classicy_1_1net_1_1SocketAdapter) class that adds signal callbacks for sockets. Asde from adding a signal interface the class works as a wrapper for the socket instance, and is designed to be used the same way as a `std::unique_ptr` by overriding the ->() operator.
 
 ### Members
 
 | Name | Description |
 |------|-------------|
-| [`SocketEmitter`](#group__net_1ga6a57fd61fe37d7d7aae29fb85d708d0f) | Creates the [SocketEmitter](#classscy_1_1net_1_1SocketEmitter). |
+| [`SocketEmitter`](#group__net_1ga6a57fd61fe37d7d7aae29fb85d708d0f) | Creates the [SocketEmitter](#classicy_1_1net_1_1SocketEmitter). |
 | [`SocketEmitter`](#group__net_1gac0c6fd442346109bae43fd86e490268a) | Copy constructor. |
-| [`~SocketEmitter`](#group__net_1ga371482dd5151aea7cb88803946a09144) | Destroys the [SocketAdapter](#classscy_1_1net_1_1SocketAdapter). |
-| [`addReceiver`](#group__net_1ga33c730a0439c41d71c1bd673320f71bf) | Adds an input [SocketAdapter](#classscy_1_1net_1_1SocketAdapter) for receiving socket signals. |
-| [`removeReceiver`](#group__net_1gaa962167a885ba5f15a3420771f861204) | Removes an input [SocketAdapter](#classscy_1_1net_1_1SocketAdapter). |
+| [`~SocketEmitter`](#group__net_1ga371482dd5151aea7cb88803946a09144) | Destroys the [SocketAdapter](#classicy_1_1net_1_1SocketAdapter). |
+| [`addReceiver`](#group__net_1ga33c730a0439c41d71c1bd673320f71bf) | Adds an input [SocketAdapter](#classicy_1_1net_1_1SocketAdapter) for receiving socket signals. |
+| [`removeReceiver`](#group__net_1gaa962167a885ba5f15a3420771f861204) | Removes an input [SocketAdapter](#classicy_1_1net_1_1SocketAdapter). |
 | [`swap`](#group__net_1gae5c17082651ccf5847bbec840fa89443) | Swap the underlying socket pointer. |
 | [`as`](#group__net_1ga9a944688f65c76fa9fda90d4927e2b3d) | Cast getter for the underlying socket. |
 | [`operator->`](#group__net_1gaa66861023d067035a62030280a7c36e6) | Accessor to the underlying socket. |
@@ -1209,7 +1209,7 @@ bool alive
 SocketEmitter(const Socket::Ptr & socket)
 ```
 
-Creates the [SocketEmitter](#classscy_1_1net_1_1SocketEmitter).
+Creates the [SocketEmitter](#classicy_1_1net_1_1SocketEmitter).
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -1237,7 +1237,7 @@ Copy constructor.
 virtual ~SocketEmitter()
 ```
 
-Destroys the [SocketAdapter](#classscy_1_1net_1_1SocketAdapter).
+Destroys the [SocketAdapter](#classicy_1_1net_1_1SocketAdapter).
 
 ---
 
@@ -1247,7 +1247,7 @@ Destroys the [SocketAdapter](#classscy_1_1net_1_1SocketAdapter).
 virtual void addReceiver(SocketAdapter * adapter)
 ```
 
-Adds an input [SocketAdapter](#classscy_1_1net_1_1SocketAdapter) for receiving socket signals.
+Adds an input [SocketAdapter](#classicy_1_1net_1_1SocketAdapter) for receiving socket signals.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -1261,7 +1261,7 @@ Adds an input [SocketAdapter](#classscy_1_1net_1_1SocketAdapter) for receiving s
 virtual void removeReceiver(SocketAdapter * adapter)
 ```
 
-Removes an input [SocketAdapter](#classscy_1_1net_1_1SocketAdapter).
+Removes an input [SocketAdapter](#classicy_1_1net_1_1SocketAdapter).
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -1334,13 +1334,13 @@ virtual void onSocketRecv(Socket & socket, const MutableBuffer & buffer, const A
 #### onSocketError 
 
 ```cpp
-virtual void onSocketError(Socket & socket, const [scy::Error](./doc/api-base.md#structscy_1_1Error) & error)
+virtual void onSocketError(Socket & socket, const [icy::Error](./doc/api-base.md#structicy_1_1Error) & error)
 ```
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `socket` | `Socket &` |  |
-| `error` | `const [scy::Error](./doc/api-base.md#structscy_1_1Error) &` |  |
+| `error` | `const [icy::Error](./doc/api-base.md#structicy_1_1Error) &` |  |
 
 ---
 
@@ -1379,7 +1379,7 @@ Signals when data is received by the socket.
 #### Error 
 
 ```cpp
-Signal< void(Socket &, const [scy::Error](./doc/api-base.md#structscy_1_1Error) &)> Error
+Signal< void(Socket &, const [icy::Error](./doc/api-base.md#structicy_1_1Error) &)> Error
 ```
 
 Signals that the socket is closed in error. This signal will be sent just before the Closed signal.
@@ -1741,7 +1741,7 @@ Creates a Context.
 
 * cipherList specifies the supported ciphers in OpenSSL notation.
 
-Note: If the private key is protected by a passphrase, a PrivateKeyPassphraseHandler must have been setup with the [SSLManager](#classscy_1_1net_1_1SSLManager), or the [SSLManager](#classscy_1_1net_1_1SSLManager)'s PrivateKeyPassphraseRequired event must be handled.
+Note: If the private key is protected by a passphrase, a PrivateKeyPassphraseHandler must have been setup with the [SSLManager](#classicy_1_1net_1_1SSLManager), or the [SSLManager](#classicy_1_1net_1_1SSLManager)'s PrivateKeyPassphraseRequired event must be handled.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -1841,7 +1841,7 @@ Sets the private key to be used by the Context.
 
 Note that [useCertificate()](#group__net_1ga840711ee078f8ee6432aaef8b50b48b9) must always be called before usePrivateKey().
 
-Note: If the private key is protected by a passphrase, a PrivateKeyPassphraseHandler must have been setup with the [SSLManager](#classscy_1_1net_1_1SSLManager), or the [SSLManager](#classscy_1_1net_1_1SSLManager)'s PrivateKeyPassphraseRequired event must be handled. Adds the given certificate to the list of trusted certificates that will be used for verification.
+Note: If the private key is protected by a passphrase, a PrivateKeyPassphraseHandler must have been setup with the [SSLManager](#classicy_1_1net_1_1SSLManager), or the [SSLManager](#classicy_1_1net_1_1SSLManager)'s PrivateKeyPassphraseRequired event must be handled. Adds the given certificate to the list of trusted certificates that will be used for verification.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -2064,26 +2064,26 @@ bool _extendedVerificationErrorDetails
 
 > **Defined in:** `sslmanager.h`
 
-[SSLManager](#classscy_1_1net_1_1SSLManager) is a singleton for holding the default server/client Context and handling callbacks for certificate verification errors and private key passphrases.
+[SSLManager](#classicy_1_1net_1_1SSLManager) is a singleton for holding the default server/client Context and handling callbacks for certificate verification errors and private key passphrases.
 
 ### Members
 
 | Name | Description |
 |------|-------------|
-| [`initializeServer`](#group__net_1ga5476ccf3e346e493c3d053a21f3f2b29) | Initializes the server side of the [SSLManager](#classscy_1_1net_1_1SSLManager) server-side [SSLContext](#classscy_1_1net_1_1SSLContext). |
-| [`initializeClient`](#group__net_1ga4472c80b8b9152947333589515621051) | Initializes the client side of the [SSLManager](#classscy_1_1net_1_1SSLManager) with a default client-side [SSLContext](#classscy_1_1net_1_1SSLContext). |
+| [`initializeServer`](#group__net_1ga5476ccf3e346e493c3d053a21f3f2b29) | Initializes the server side of the [SSLManager](#classicy_1_1net_1_1SSLManager) server-side [SSLContext](#classicy_1_1net_1_1SSLContext). |
+| [`initializeClient`](#group__net_1ga4472c80b8b9152947333589515621051) | Initializes the client side of the [SSLManager](#classicy_1_1net_1_1SSLManager) with a default client-side [SSLContext](#classicy_1_1net_1_1SSLContext). |
 | [`defaultServerContext`](#group__net_1ga5888698b042c4c4a16d69fc98cb0e582) | Returns the default Context used by the server if initialized. |
 | [`defaultClientContext`](#group__net_1gaf06768dcfa955ebdd5b9c3977682e6ea) | Returns the default Context used by the client if initialized. |
-| [`shutdown`](#group__net_1ga4061d56eaf906bf79a0713310a3841c5) | Shuts down the [SSLManager](#classscy_1_1net_1_1SSLManager) and releases the default Context objects. After a call to [shutdown()](#group__net_1ga4061d56eaf906bf79a0713310a3841c5), the [SSLManager](#classscy_1_1net_1_1SSLManager) can no longer be used. |
-| [`instance`](#group__net_1gad3081151d10c5c6c4247f891925f93a7) | Returns the instance of the [SSLManager](#classscy_1_1net_1_1SSLManager) singleton. |
-| [`destroy`](#group__net_1ga64402426d6371b93d7a3544da637621f) | Shuts down and destroys the [SSLManager](#classscy_1_1net_1_1SSLManager) singleton instance. |
+| [`shutdown`](#group__net_1ga4061d56eaf906bf79a0713310a3841c5) | Shuts down the [SSLManager](#classicy_1_1net_1_1SSLManager) and releases the default Context objects. After a call to [shutdown()](#group__net_1ga4061d56eaf906bf79a0713310a3841c5), the [SSLManager](#classicy_1_1net_1_1SSLManager) can no longer be used. |
+| [`instance`](#group__net_1gad3081151d10c5c6c4247f891925f93a7) | Returns the instance of the [SSLManager](#classicy_1_1net_1_1SSLManager) singleton. |
+| [`destroy`](#group__net_1ga64402426d6371b93d7a3544da637621f) | Shuts down and destroys the [SSLManager](#classicy_1_1net_1_1SSLManager) singleton instance. |
 | [`initNoVerifyClient`](#group__net_1ga9ea94e19abecb2e8227dbda1d577f093) | Initializes a default no verify client context that's useful for testing. |
 | [`initNoVerifyServer`](#group__net_1ga71aad45fb6aceb1a551c247c90523e8d) | Initializes a default no verify server context that's useful for testing. |
 | [`verifyClientCallback`](#group__net_1gaf4e686f568fceeba5b78df815a050745) | The return value of this method defines how errors in verification are handled. Return 0 to terminate the handshake, or 1 to continue despite the error. |
 | [`verifyServerCallback`](#group__net_1gacc7394320818b4d2fe6c75f486876d76) | The return value of this method defines how errors in verification are handled. Return 0 to terminate the handshake, ' or 1 to continue despite the error. |
 | [`privateKeyPassphraseCallback`](#group__net_1ga5266f886ac5eb14dcd5e3df0f80c5dc0) | Method is invoked by OpenSSL to retrieve a passwd for an encrypted certificate. The request is delegated to the PrivatekeyPassword event. This method returns the length of the password. |
-| [`SSLManager`](#group__net_1gac04b1f45008ee73e39c9e05e3f86c7c8) | Creates the [SSLManager](#classscy_1_1net_1_1SSLManager). |
-| [`~SSLManager`](#group__net_1gaa643df995c0323b8c4e4d5f6e0cd8558) | Destroys the [SSLManager](#classscy_1_1net_1_1SSLManager). |
+| [`SSLManager`](#group__net_1gac04b1f45008ee73e39c9e05e3f86c7c8) | Creates the [SSLManager](#classicy_1_1net_1_1SSLManager). |
+| [`~SSLManager`](#group__net_1gaa643df995c0323b8c4e4d5f6e0cd8558) | Destroys the [SSLManager](#classicy_1_1net_1_1SSLManager). |
 | [`verifyCallback`](#group__net_1gaaca523b350828a78b7dfbd7792e50868) | The return value of this method defines how errors in verification are handled. Return 0 to terminate the handshake, or 1 to continue despite the error. |
 | [`ServerVerificationError`](#group__net_1ga5c8d1a58ad63cfe7fd8c6ef8da2bc7bc) | Fired whenever a certificate verification error is detected by the server during a handshake. |
 | [`ClientVerificationError`](#group__net_1ga79cecc2be9b8293b79f9dc92b3ab967d) | Fired whenever a certificate verification error is detected by the client during a handshake. |
@@ -2100,7 +2100,7 @@ bool _extendedVerificationErrorDetails
 void initializeServer(SSLContext::Ptr ptrContext)
 ```
 
-Initializes the server side of the [SSLManager](#classscy_1_1net_1_1SSLManager) server-side [SSLContext](#classscy_1_1net_1_1SSLContext).
+Initializes the server side of the [SSLManager](#classicy_1_1net_1_1SSLManager) server-side [SSLContext](#classicy_1_1net_1_1SSLContext).
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -2114,7 +2114,7 @@ Initializes the server side of the [SSLManager](#classscy_1_1net_1_1SSLManager) 
 void initializeClient(SSLContext::Ptr ptrContext)
 ```
 
-Initializes the client side of the [SSLManager](#classscy_1_1net_1_1SSLManager) with a default client-side [SSLContext](#classscy_1_1net_1_1SSLContext).
+Initializes the client side of the [SSLManager](#classicy_1_1net_1_1SSLManager) with a default client-side [SSLContext](#classicy_1_1net_1_1SSLContext).
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -2148,9 +2148,9 @@ Returns the default Context used by the client if initialized.
 void shutdown()
 ```
 
-Shuts down the [SSLManager](#classscy_1_1net_1_1SSLManager) and releases the default Context objects. After a call to [shutdown()](#group__net_1ga4061d56eaf906bf79a0713310a3841c5), the [SSLManager](#classscy_1_1net_1_1SSLManager) can no longer be used.
+Shuts down the [SSLManager](#classicy_1_1net_1_1SSLManager) and releases the default Context objects. After a call to [shutdown()](#group__net_1ga4061d56eaf906bf79a0713310a3841c5), the [SSLManager](#classicy_1_1net_1_1SSLManager) can no longer be used.
 
-Normally, it's not necessary to call this method directly, as this will be called either by [uninitializeSSL()](#group__net_1gab2698107bdb6a2b9a2bcea869e26d50b), or when the [SSLManager](#classscy_1_1net_1_1SSLManager) instance is destroyed.
+Normally, it's not necessary to call this method directly, as this will be called either by [uninitializeSSL()](#group__net_1gab2698107bdb6a2b9a2bcea869e26d50b), or when the [SSLManager](#classicy_1_1net_1_1SSLManager) instance is destroyed.
 
 ---
 
@@ -2160,7 +2160,7 @@ Normally, it's not necessary to call this method directly, as this will be calle
 static SSLManager & instance()
 ```
 
-Returns the instance of the [SSLManager](#classscy_1_1net_1_1SSLManager) singleton.
+Returns the instance of the [SSLManager](#classicy_1_1net_1_1SSLManager) singleton.
 
 ---
 
@@ -2170,7 +2170,7 @@ Returns the instance of the [SSLManager](#classscy_1_1net_1_1SSLManager) singlet
 static void destroy()
 ```
 
-Shuts down and destroys the [SSLManager](#classscy_1_1net_1_1SSLManager) singleton instance.
+Shuts down and destroys the [SSLManager](#classicy_1_1net_1_1SSLManager) singleton instance.
 
 ---
 
@@ -2252,7 +2252,7 @@ Method is invoked by OpenSSL to retrieve a passwd for an encrypted certificate. 
 SSLManager()
 ```
 
-Creates the [SSLManager](#classscy_1_1net_1_1SSLManager).
+Creates the [SSLManager](#classicy_1_1net_1_1SSLManager).
 
 ---
 
@@ -2262,7 +2262,7 @@ Creates the [SSLManager](#classscy_1_1net_1_1SSLManager).
 ~SSLManager()
 ```
 
-Destroys the [SSLManager](#classscy_1_1net_1_1SSLManager).
+Destroys the [SSLManager](#classicy_1_1net_1_1SSLManager).
 
 ---
 
@@ -2344,8 +2344,8 @@ A utility class for certificate error handling.
 
 | Name | Description |
 |------|-------------|
-| [`VerificationErrorDetails`](#group__net_1ga6149cde284d053bbb8ea7f7d4febf260) | Creates the [VerificationErrorDetails](#classscy_1_1net_1_1VerificationErrorDetails). _ignoreError is per default set to false. |
-| [`~VerificationErrorDetails`](#group__net_1ga341d067a4369d88415b30f9d6acf9516) | Destroys the [VerificationErrorDetails](#classscy_1_1net_1_1VerificationErrorDetails). |
+| [`VerificationErrorDetails`](#group__net_1ga6149cde284d053bbb8ea7f7d4febf260) | Creates the [VerificationErrorDetails](#classicy_1_1net_1_1VerificationErrorDetails). _ignoreError is per default set to false. |
+| [`~VerificationErrorDetails`](#group__net_1ga341d067a4369d88415b30f9d6acf9516) | Destroys the [VerificationErrorDetails](#classicy_1_1net_1_1VerificationErrorDetails). |
 | [`certificate`](#group__net_1gaa61f1bc21123f77329fcc4c2e9c1b3a5) | Returns the certificate that caused the error. |
 | [`errorDepth`](#group__net_1ga7f64fe88500e3df99bd0bd7cd8d2d598) | Returns the position of the certificate in the certificate chain. |
 | [`errorNumber`](#group__net_1gac0130d1cbbca92575e2259000f792cef) | Returns the id of the error. |
@@ -2366,7 +2366,7 @@ A utility class for certificate error handling.
 VerificationErrorDetails(const crypto::X509Certificate & cert, int errDepth, int errNum, const std::string & errMsg)
 ```
 
-Creates the [VerificationErrorDetails](#classscy_1_1net_1_1VerificationErrorDetails). _ignoreError is per default set to false.
+Creates the [VerificationErrorDetails](#classicy_1_1net_1_1VerificationErrorDetails). _ignoreError is per default set to false.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -2383,7 +2383,7 @@ Creates the [VerificationErrorDetails](#classscy_1_1net_1_1VerificationErrorDeta
 ~VerificationErrorDetails()
 ```
 
-Destroys the [VerificationErrorDetails](#classscy_1_1net_1_1VerificationErrorDetails).
+Destroys the [VerificationErrorDetails](#classicy_1_1net_1_1VerificationErrorDetails).
 
 ---
 
@@ -2563,7 +2563,7 @@ SSL_SESSION * _ptr
 
 ## SSLSocket 
 
-> **Extends:** `scy::net::TCPSocket`
+> **Extends:** `icy::net::TCPSocket`
 > **Defined in:** `sslsocket.h`
 
 SSL socket implementation.
@@ -2576,7 +2576,7 @@ SSL socket implementation.
 | [`SSLSocket`](#group__net_1ga6ef56420a681a95cd42e066a842b1b63) |  |
 | [`SSLSocket`](#group__net_1ga0d27d1f822710a64478dffc4fad17f98) |  |
 | [`~SSLSocket`](#group__net_1ga55a2e9ca93a9fcaddbf2bad40a57966b) |  |
-| [`bind`](#group__net_1gaa16ace2e62e4b075bba8920cfbd098ad) | Initialize the [SSLSocket](#classscy_1_1net_1_1SSLSocket) with the given [SSLContext](#classscy_1_1net_1_1SSLContext). |
+| [`bind`](#group__net_1gaa16ace2e62e4b075bba8920cfbd098ad) | Initialize the [SSLSocket](#classicy_1_1net_1_1SSLSocket) with the given [SSLContext](#classicy_1_1net_1_1SSLContext). |
 | [`listen`](#group__net_1ga68e4327abb9e2bdb1ed7e3a6e7c0e49b) | Listens the socket on the given address. |
 | [`shutdown`](#group__net_1ga8d6ff3564619b9ea9cb1cc0aa54aa760) | Shuts down the connection by attempting an orderly SSL shutdown, then actually shutting down the TCP connection. |
 | [`close`](#group__net_1ga0fe89adb626dcd2aeaba9b941ea3c6cf) | Closes the socket forcefully. |
@@ -2652,7 +2652,7 @@ virtual ~SSLSocket()
 virtual void bind(const net::Address & address, unsigned flags)
 ```
 
-Initialize the [SSLSocket](#classscy_1_1net_1_1SSLSocket) with the given [SSLContext](#classscy_1_1net_1_1SSLContext).
+Initialize the [SSLSocket](#classicy_1_1net_1_1SSLSocket) with the given [SSLContext](#classicy_1_1net_1_1SSLContext).
 
 Initializes the socket and establishes a secure connection to the TCP server at the given address.
 
@@ -2881,8 +2881,8 @@ net::SSLAdapter _sslAdapter
 
 ## TCPSocket 
 
-> **Extends:** `scy::Stream< uv_tcp_t >`, `scy::net::Socket`
-> **Subclasses:** `scy::net::SSLSocket`
+> **Extends:** `icy::Stream< uv_tcp_t >`, `icy::net::Socket`
+> **Subclasses:** `icy::net::SSLSocket`
 > **Defined in:** `tcpsocket.h`
 
 TCP socket implementation.
@@ -2919,7 +2919,7 @@ TCP socket implementation.
 | [`onConnect`](#group__net_1gac2ec475984519b881e9756cf6a2d5cac) |  |
 | [`onRead`](#group__net_1gad149233e10e70b3d978e949201eda69d) |  |
 | [`onRecv`](#group__net_1ga5cddc3672cd38ebb92e2b699c68599bf) |  |
-| [`onError`](#group__net_1ga0f18b40e4845de47e56d67df0ae40b86) | [Error](./doc/api-base.md#structscy_1_1Error) callback. Override to handle errors. The error may be a UV error, or a custom error. |
+| [`onError`](#group__net_1ga0f18b40e4845de47e56d67df0ae40b86) | [Error](./doc/api-base.md#structicy_1_1Error) callback. Override to handle errors. The error may be a UV error, or a custom error. |
 | [`onClose`](#group__net_1ga9123b0743cd6eb593b093a9ee20fe319) | Close callback. Override to handle closure. |
 | [`init`](#group__net_1gab18632622e10ee1c7324b2704cf0a03e) | Initializes the underlying socket context. |
 | [`reset`](#group__net_1ga2b0d3646563e08be2697a365e1157e9e) | Resets the socket context for reuse. |
@@ -2978,7 +2978,7 @@ virtual void connect(const net::Address & address)
 
 Connects to the given peer IP address.
 
-Throws an exception if the address is malformed. Connection errors can be handled via the [Error](./doc/api-base.md#structscy_1_1Error) signal.
+Throws an exception if the address is malformed. Connection errors can be handled via the [Error](./doc/api-base.md#structicy_1_1Error) signal.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -2994,7 +2994,7 @@ virtual void connect(const std::string & host, uint16_t port)
 
 Resolves and connects to the given host address.
 
-Throws an Exception if the host is malformed. Since the DNS callback is asynchronous implementations need to listen for the [Error](./doc/api-base.md#structscy_1_1Error) signal for handling connection errors.
+Throws an Exception if the host is malformed. Since the DNS callback is asynchronous implementations need to listen for the [Error](./doc/api-base.md#structicy_1_1Error) signal for handling connection errors.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -3143,21 +3143,21 @@ const SocketMode mode() const
 #### setError 
 
 ```cpp
-virtual void setError(const [scy::Error](./doc/api-base.md#structscy_1_1Error) & error)
+virtual void setError(const [icy::Error](./doc/api-base.md#structicy_1_1Error) & error)
 ```
 
 Set the error and triggers callbacks.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `error` | `const [scy::Error](./doc/api-base.md#structscy_1_1Error) &` |  |
+| `error` | `const [icy::Error](./doc/api-base.md#structicy_1_1Error) &` |  |
 
 ---
 
 #### error 
 
 ```cpp
-virtual const [scy::Error](./doc/api-base.md#structscy_1_1Error) & error() const
+virtual const [icy::Error](./doc/api-base.md#structicy_1_1Error) & error() const
 ```
 
 Return the socket error if any.
@@ -3260,14 +3260,14 @@ virtual void onRecv(const MutableBuffer & buf)
 #### onError 
 
 ```cpp
-virtual void onError(const [scy::Error](./doc/api-base.md#structscy_1_1Error) & error)
+virtual void onError(const [icy::Error](./doc/api-base.md#structicy_1_1Error) & error)
 ```
 
-[Error](./doc/api-base.md#structscy_1_1Error) callback. Override to handle errors. The error may be a UV error, or a custom error.
+[Error](./doc/api-base.md#structicy_1_1Error) callback. Override to handle errors. The error may be a UV error, or a custom error.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `error` | `const [scy::Error](./doc/api-base.md#structscy_1_1Error) &` |  |
+| `error` | `const [icy::Error](./doc/api-base.md#structicy_1_1Error) &` |  |
 
 ---
 
@@ -3317,10 +3317,10 @@ SocketMode _mode
 
 ## Transaction 
 
-> **Extends:** `scy::PacketTransaction< PacketT >`, `scy::net::PacketSocketEmitter`
+> **Extends:** `icy::PacketTransaction< PacketT >`, `icy::net::PacketSocketEmitter`
 > **Defined in:** `transaction.h`
 
-This class provides request/response functionality for [IPacket](./doc/api-base.md#classscy_1_1IPacket) types emitted from a [Socket](#classscy_1_1net_1_1Socket).
+This class provides request/response functionality for [IPacket](./doc/api-base.md#classicy_1_1IPacket) types emitted from a [Socket](#classicy_1_1net_1_1Socket).
 
 ### Members
 
@@ -3450,7 +3450,7 @@ Address _peerAddress
 
 ## UDPSocket 
 
-> **Extends:** `scy::uv::Handle< uv_udp_t >`, `scy::net::Socket`
+> **Extends:** `icy::uv::Handle< uv_udp_t >`, `icy::net::Socket`
 > **Defined in:** `udpsocket.h`
 
 UDP socket implementation.
@@ -3481,7 +3481,7 @@ UDP socket implementation.
 | [`onRecv`](#group__net_1ga1b142a3c18ca885e72d45aff466723a9) |  |
 | [`init`](#group__net_1gaa3b285eec570adc6aa71add9c23aff76) | Initializes the underlying socket context. |
 | [`reset`](#group__net_1ga426001966462dda0611a52d27e09f295) | Resets the socket context for reuse. |
-| [`onError`](#group__net_1ga31d96f40e2012f8069ef47ea3c8d4f4e) | [Error](./doc/api-base.md#structscy_1_1Error) callback. Override to handle errors. The error may be a UV error, or a custom error. |
+| [`onError`](#group__net_1ga31d96f40e2012f8069ef47ea3c8d4f4e) | [Error](./doc/api-base.md#structicy_1_1Error) callback. Override to handle errors. The error may be a UV error, or a custom error. |
 | [`onClose`](#group__net_1ga45f862d7b7395e07da0a2d3c369dcb80) | Close callback. Override to handle closure. |
 | [`recvStart`](#group__net_1ga33d1b77ebd07eade126a299151ef5258) |  |
 | [`recvStop`](#group__net_1gaf16dae934756ee7a561a7cc965cde0bd) |  |
@@ -3520,7 +3520,7 @@ virtual void connect(const net::Address & address)
 
 Connects to the given peer IP address.
 
-Throws an exception if the address is malformed. Connection errors can be handled via the [Error](./doc/api-base.md#structscy_1_1Error) signal.
+Throws an exception if the address is malformed. Connection errors can be handled via the [Error](./doc/api-base.md#structicy_1_1Error) signal.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -3536,7 +3536,7 @@ virtual void connect(const std::string & host, uint16_t port)
 
 Resolves and connects to the given host address.
 
-Throws an Exception if the host is malformed. Since the DNS callback is asynchronous implementations need to listen for the [Error](./doc/api-base.md#structscy_1_1Error) signal for handling connection errors.
+Throws an Exception if the host is malformed. Since the DNS callback is asynchronous implementations need to listen for the [Error](./doc/api-base.md#structicy_1_1Error) signal for handling connection errors.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -3676,21 +3676,21 @@ Returns the UDP transport protocol.
 #### setError 
 
 ```cpp
-virtual void setError(const [scy::Error](./doc/api-base.md#structscy_1_1Error) & error)
+virtual void setError(const [icy::Error](./doc/api-base.md#structicy_1_1Error) & error)
 ```
 
 Set the error and triggers callbacks.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `error` | `const [scy::Error](./doc/api-base.md#structscy_1_1Error) &` |  |
+| `error` | `const [icy::Error](./doc/api-base.md#structicy_1_1Error) &` |  |
 
 ---
 
 #### error 
 
 ```cpp
-virtual const [scy::Error](./doc/api-base.md#structscy_1_1Error) & error() const
+virtual const [icy::Error](./doc/api-base.md#structicy_1_1Error) & error() const
 ```
 
 Return the socket error if any.
@@ -3763,14 +3763,14 @@ Resets the socket context for reuse.
 #### onError 
 
 ```cpp
-virtual void onError(const [scy::Error](./doc/api-base.md#structscy_1_1Error) & error)
+virtual void onError(const [icy::Error](./doc/api-base.md#structicy_1_1Error) & error)
 ```
 
-[Error](./doc/api-base.md#structscy_1_1Error) callback. Override to handle errors. The error may be a UV error, or a custom error.
+[Error](./doc/api-base.md#structicy_1_1Error) callback. Override to handle errors. The error may be a UV error, or a custom error.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `error` | `const [scy::Error](./doc/api-base.md#structscy_1_1Error) &` |  |
+| `error` | `const [icy::Error](./doc/api-base.md#structicy_1_1Error) &` |  |
 
 ---
 
@@ -3846,7 +3846,7 @@ Buffer _buffer
 
 ## AddressBase 
 
-> **Subclasses:** `scy::net::IPv4AddressBase`
+> **Subclasses:** `icy::net::IPv4AddressBase`
 
 ### Members
 
@@ -3945,7 +3945,7 @@ AddressBase & operator=(const AddressBase &) = delete
 
 ## IPv4AddressBase 
 
-> **Extends:** `scy::net::AddressBase`
+> **Extends:** `icy::net::AddressBase`
 
 ### Members
 
@@ -4053,10 +4053,10 @@ struct sockaddr_in _addr
 
 ## PacketInfo 
 
-> **Extends:** `scy::IPacketInfo`
+> **Extends:** `icy::IPacketInfo`
 > **Defined in:** `socket.h`
 
-Provides information about packets emitted from a socket. See [SocketPacket](#classscy_1_1net_1_1SocketPacket).
+Provides information about packets emitted from a socket. See [SocketPacket](#classicy_1_1net_1_1SocketPacket).
 
 ### Members
 

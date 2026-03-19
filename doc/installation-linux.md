@@ -11,7 +11,7 @@ sudo apt-get install -y build-essential pkg-config git cmake openssl libssl-dev
 
 ### Install FFmpeg (optional)
 
-FFmpeg is an optional but recommended dependency that's required to make use of LibSourcey's media encoding capabilities.
+FFmpeg is an optional but recommended dependency that's required to make use of Icey's media encoding capabilities.
 
 On most Linux distributions you can install FFmpeg development libraries from the package manager:
 
@@ -33,7 +33,7 @@ cmake .. -DWITH_FFMPEG=ON -DFFMPEG_ROOT_DIR=<PATH_TO_FFMPEG_BUILD_DIRECTORY>
 
 ### Install OpenCV (optional)
 
-OpenCV is an optional dependency used by LibSourcey for video capture, video analysis and computer vision algorithms.
+OpenCV is an optional dependency used by Icey for video capture, video analysis and computer vision algorithms.
 
 ```bash
 # Ubuntu/Debian
@@ -55,17 +55,17 @@ sudo ldconfig
 
 Note: if you're compiling FFmpeg yourself (as above), build OpenCV with `WITH_FFMPEG=OFF` to avoid conflicting FFmpeg libraries on your system.
 
-Enable OpenCV in the LibSourcey build:
+Enable OpenCV in the Icey build:
 
 ```bash
 cmake .. -DWITH_OPENCV=ON
 ```
 
-### Install LibSourcey
+### Install Icey
 
 ```bash
-git clone https://github.com/sourcey/libsourcey.git
-cd libsourcey
+git clone https://github.com/sourcey/icey.git
+cd icey
 mkdir build
 cd build
 cmake .. -DCMAKE_BUILD_TYPE=RELEASE # extra cmake commands here...

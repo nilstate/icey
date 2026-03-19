@@ -1,1 +1,1 @@
-scy_add_sample(mjpegserver DEPENDS base crypto net http av)
+icy_add_sample(mjpegserver DEPENDS base crypto net http av)

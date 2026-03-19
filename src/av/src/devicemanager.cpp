@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,60 +9,60 @@
 /// @{
 
 
-#include "scy/av/devicemanager.h"
-#include "scy/logger.h"
+#include "icy/av/devicemanager.h"
+#include "icy/logger.h"
 
 
-#if defined(SCY_WIN)
-#include "scy/av/win32/mediafoundation.h"
-#define SCY_VIDEO_INPUTS \
+#if defined(ICY_WIN)
+#include "icy/av/win32/mediafoundation.h"
+#define ICY_VIDEO_INPUTS \
     {                    \
         "dshow"}
-#define SCY_VIDEO_OUTPUTS \
+#define ICY_VIDEO_OUTPUTS \
     {                     \
     }
-#define SCY_SCREEN_INPUTS \
+#define ICY_SCREEN_INPUTS \
     {                     \
         "gdigrab"}
-#define SCY_AUDIO_INPUTS \
+#define ICY_AUDIO_INPUTS \
     {                    \
         "dshow"}
-#define SCY_AUDIO_OUTPUTS \
+#define ICY_AUDIO_OUTPUTS \
     {                     \
         "dshow"}
-#elif defined(SCY_APPLE)
-#include "scy/av/apple/avfoundation.h"
-#include "scy/av/apple/coreaudio.h"
-#define SCY_VIDEO_INPUTS \
+#elif defined(ICY_APPLE)
+#include "icy/av/apple/avfoundation.h"
+#include "icy/av/apple/coreaudio.h"
+#define ICY_VIDEO_INPUTS \
     {                    \
         "avfoundation"}
-#define SCY_VIDEO_OUTPUTS \
+#define ICY_VIDEO_OUTPUTS \
     {                     \
     }
-#define SCY_SCREEN_INPUTS \
+#define ICY_SCREEN_INPUTS \
     {                     \
         "avfoundation"}
-#define SCY_AUDIO_INPUTS \
+#define ICY_AUDIO_INPUTS \
     {                    \
         "avfoundation"}
-#define SCY_AUDIO_OUTPUTS \
+#define ICY_AUDIO_OUTPUTS \
     {                     \
         "avfoundation"}
-#elif defined(SCY_LINUX)
-#include "scy/av/linux/v4l2.h"
-#define SCY_VIDEO_INPUTS \
+#elif defined(ICY_LINUX)
+#include "icy/av/linux/v4l2.h"
+#define ICY_VIDEO_INPUTS \
     {                    \
         "v4l2"}
-#define SCY_VIDEO_OUTPUTS \
+#define ICY_VIDEO_OUTPUTS \
     {                     \
     }
-#define SCY_SCREEN_INPUTS \
+#define ICY_SCREEN_INPUTS \
     {                     \
         "pipewire", "x11grab"}
-#define SCY_AUDIO_INPUTS \
+#define ICY_AUDIO_INPUTS \
     {                    \
         "pipewire", "pulse", "alsa"}
-#define SCY_AUDIO_OUTPUTS \
+#define ICY_AUDIO_OUTPUTS \
     {                     \
         "pipewire", "pulse", "alsa"}
 #endif
@@ -70,7 +70,7 @@
 
 
 
-namespace scy {
+namespace icy {
 namespace av {
 
 
@@ -253,11 +253,11 @@ DeviceManager::DeviceManager()
 #endif
 
     // Create platform-specific device watcher
-#if defined(SCY_WIN)
+#if defined(ICY_WIN)
     _watcher = std::make_unique<WindowsDeviceWatcher>(this);
-#elif defined(SCY_APPLE)
+#elif defined(ICY_APPLE)
     _watcher = std::make_unique<AppleDeviceWatcher>(this);
-#elif defined(SCY_LINUX)
+#elif defined(ICY_LINUX)
     _watcher = std::make_unique<LinuxDeviceWatcher>(this);
 #endif
 }
@@ -385,13 +385,13 @@ bool DeviceManager::getDefaultSpeaker(Device& device) const
 
 const AVInputFormat* DeviceManager::findVideoInputFormat() const
 {
-    return internal::findDefaultInputFormat(SCY_VIDEO_INPUTS);
+    return internal::findDefaultInputFormat(ICY_VIDEO_INPUTS);
 }
 
 
 const AVInputFormat* DeviceManager::findAudioInputFormat() const
 {
-    return internal::findDefaultInputFormat(SCY_AUDIO_INPUTS);
+    return internal::findDefaultInputFormat(ICY_AUDIO_INPUTS);
 }
 
 #endif // HAVE_FFMPEG
@@ -404,17 +404,17 @@ bool DeviceManager::getDeviceList(Device::Type type, std::vector<av::Device>& de
 // Use native platform APIs for device enumeration where available.
 // FFmpeg's avdevice implementations don't list devices properly:
 // https://trac.ffmpeg.org/ticket/4486
-#if defined(SCY_WIN)
+#if defined(ICY_WIN)
     if (type == Device::VideoInput)
         return mediafoundation::getDeviceList(type, devices);
     if (type == Device::AudioInput || type == Device::AudioOutput)
         return wasapi::getDeviceList(type, devices);
-#elif defined(SCY_APPLE)
+#elif defined(ICY_APPLE)
     if (type == Device::VideoInput || type == Device::AudioInput)
         return avfoundation::getDeviceList(type, devices);
     if (type == Device::AudioOutput)
         return coreaudio::getDeviceList(type, devices);
-#elif defined(SCY_LINUX)
+#elif defined(ICY_LINUX)
     if (type == Device::VideoInput)
         return v4l2::getDeviceList(type, devices);
 #endif
@@ -423,13 +423,13 @@ bool DeviceManager::getDeviceList(Device::Type type, std::vector<av::Device>& de
     // FFmpeg avdevice fallback for output devices and Linux audio input
     switch (type) {
         case Device::VideoInput:
-            return internal::getInputDeviceList(SCY_VIDEO_INPUTS, type, devices);
+            return internal::getInputDeviceList(ICY_VIDEO_INPUTS, type, devices);
         case Device::AudioInput:
-            return internal::getInputDeviceList(SCY_AUDIO_INPUTS, type, devices);
+            return internal::getInputDeviceList(ICY_AUDIO_INPUTS, type, devices);
         case Device::VideoOutput:
-            return internal::getOutputDeviceList(SCY_VIDEO_OUTPUTS, type, devices);
+            return internal::getOutputDeviceList(ICY_VIDEO_OUTPUTS, type, devices);
         case Device::AudioOutput:
-            return internal::getOutputDeviceList(SCY_AUDIO_OUTPUTS, type, devices);
+            return internal::getOutputDeviceList(ICY_AUDIO_OUTPUTS, type, devices);
         default:
             LWarn("Unknown device type: ", static_cast<int>(type));
             return false;
@@ -547,7 +547,7 @@ DeviceManager::negotiateAudioCapture(std::string_view deviceName, int sampleRate
 
 
 } // namespace av
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

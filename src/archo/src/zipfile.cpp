@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,8 +9,8 @@
 /// @{
 
 
-#include "scy/archo/zipfile.h"
-#include "scy/logger.h"
+#include "icy/archo/zipfile.h"
+#include "icy/logger.h"
 
 #include <cstring>
 #include <filesystem>
@@ -19,7 +19,7 @@
 
 
 
-namespace scy {
+namespace icy {
 namespace archo {
 
 
@@ -256,7 +256,7 @@ std::string ZipFile::currentFileName()
 
 
 } // namespace archo
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -17,18 +17,18 @@
 /// @{
 
 
-#include "scy/application.h"
-#include "scy/av/devicemanager.h"
-#include "scy/av/videocapture.h"
-#include "scy/packetstream.h"
-#include "scy/logger.h"
+#include "icy/application.h"
+#include "icy/av/devicemanager.h"
+#include "icy/av/videocapture.h"
+#include "icy/packetstream.h"
+#include "icy/logger.h"
 
 #include <chrono>
 #include <iostream>
 #include <thread>
 
 
-using namespace scy;
+using namespace icy;
 
 
 int main(int argc, char** argv)

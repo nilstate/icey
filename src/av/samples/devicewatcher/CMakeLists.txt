@@ -1,1 +1,1 @@
-scy_add_sample(devicewatcher DEPENDS base av)
+icy_add_sample(devicewatcher DEPENDS base av)

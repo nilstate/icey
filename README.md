@@ -1,6 +1,6 @@
-# LibSourcey
+# Icey
 
-[![CI](https://github.com/sourcey/libsourcey/actions/workflows/ci.yml/badge.svg)](https://github.com/sourcey/libsourcey/actions/workflows/ci.yml)
+[![CI](https://github.com/sourcey/icey/actions/workflows/ci.yml/badge.svg)](https://github.com/sourcey/icey/actions/workflows/ci.yml)
 [![License: LGPL-2.1+](https://img.shields.io/badge/license-LGPL--2.1%2B-blue.svg)](LICENSE.md)
 
 > The C++ Media Stack
@@ -15,13 +15,13 @@ stream.attach(&session->media().videoSender(), 5);
 stream.start();
 ```
 
-LibSourcey is the connective tissue: a modular C++20 toolkit that unifies FFmpeg, libuv, OpenSSL, and libdatachannel into a single composable pipeline. Capture, encode, transport, signalling, and relay. All dependencies managed via CMake FetchContent. Builds in minutes.
+Icey is the connective tissue: a modular C++20 toolkit that unifies FFmpeg, libuv, OpenSSL, and libdatachannel into a single composable pipeline. Capture, encode, transport, signalling, and relay. All dependencies managed via CMake FetchContent. Builds in minutes.
 
 **[Documentation](doc/SUMMARY.md)** | **[Changelog](CHANGELOG.md)** | **[Contributing](doc/contributing.md)** | **[LGPL-2.1+](LICENSE.md)**
 
-## Why LibSourcey
+## Why Icey
 
-| | libWebRTC (Google) | libdatachannel | GStreamer | **LibSourcey** |
+| | libWebRTC (Google) | libdatachannel | GStreamer | **Icey** |
 |---|---|---|---|---|
 | Build system | GN/Ninja | CMake | Meson | **CMake** |
 | Build time | Hours | Minutes | 30+ min | **Minutes** |
@@ -33,7 +33,7 @@ LibSourcey is the connective tissue: a modular C++20 toolkit that unifies FFmpeg
 | TURN server | No | No | No | **RFC 5766 (built-in)** |
 | Language | C++ | C++17 | C/GObject | **C++20** |
 
-libdatachannel gives you the WebRTC transport pipe. LibSourcey gives you the pipe, the water, and the faucet.
+libdatachannel gives you the WebRTC transport pipe. Icey gives you the pipe, the water, and the faucet.
 
 ## Architecture
 
@@ -58,7 +58,7 @@ WebRTC send path:
                                                         │
   Browser ◀── RTP/SRTP ◀── DTLS ◀── ICE (libjuice) ◀───┘
                                       │
-                              LibSourcey TURN server
+                              Icey TURN server
                               (relay for symmetric NATs)
 
 WebRTC receive path:
@@ -94,7 +94,7 @@ session.StateChanged += [&](wrtc::PeerSession::State state) {
 };
 ```
 
-See [src/webrtc/samples/webcam-streamer/](src/webrtc/samples/webcam-streamer/) or read [WebRTC in 150 Lines of C++](https://sourcey.com/code/libsourcey/webrtc-in-150-lines).
+See [src/webrtc/samples/webcam-streamer/](src/webrtc/samples/webcam-streamer/) or read [WebRTC in 150 Lines of C++](https://0state.com/code/icey/webrtc-in-150-lines).
 
 ### Record a browser's camera server-side
 
@@ -121,11 +121,11 @@ See [src/turn/samples/turnserver/](src/turn/samples/turnserver/).
 | Server | Req/sec | Latency |
 | ------ | ------: | ------: |
 | Raw libuv+llhttp | 96,088 | 1.04ms |
-| **LibSourcey** | **72,209** | **1.43ms** |
+| **Icey** | **72,209** | **1.43ms** |
 | Go 1.25 net/http | 53,878 | 2.31ms |
 | Node.js v20 | 45,514 | 3.56ms |
 
-LibSourcey delivers **75% of raw libuv throughput** while providing a complete HTTP stack (connection management, header construction, WebSocket upgrade, streaming responses). It outperforms Go's `net/http` by 34% and Node.js by 59%. All three share the same foundation (libuv for async IO, llhttp for HTTP parsing); the difference is pure runtime overhead.
+Icey delivers **75% of raw libuv throughput** while providing a complete HTTP stack (connection management, header construction, WebSocket upgrade, streaming responses). It outperforms Go's `net/http` by 34% and Node.js by 59%. All three share the same foundation (libuv for async IO, llhttp for HTTP parsing); the difference is pure runtime overhead.
 
 See [src/http/samples/httpbenchmark/](src/http/samples/httpbenchmark/) for methodology.
 
@@ -154,8 +154,8 @@ Optional: FFmpeg 5+/6+/7+ (`-DWITH_FFMPEG=ON`), OpenCV 3.0+ (`-DWITH_OPENCV=ON`)
 ### Build from source
 
 ```bash
-git clone https://github.com/sourcey/libsourcey.git
-cd libsourcey
+git clone https://github.com/sourcey/icey.git
+cd icey
 cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON
 cmake --build build --parallel $(nproc)
 ctest --test-dir build --output-on-failure
@@ -165,12 +165,12 @@ ctest --test-dir build --output-on-failure
 
 ```cmake
 include(FetchContent)
-FetchContent_Declare(libsourcey
-  GIT_REPOSITORY https://github.com/sourcey/libsourcey.git
+FetchContent_Declare(icey
+  GIT_REPOSITORY https://github.com/sourcey/icey.git
   GIT_TAG v2.1.0
 )
-FetchContent_MakeAvailable(libsourcey)
-target_link_libraries(myapp PRIVATE scy_base scy_net scy_http)
+FetchContent_MakeAvailable(icey)
+target_link_libraries(myapp PRIVATE icy_base icy_net icy_http)
 ```
 
 ### find_package
@@ -178,8 +178,8 @@ target_link_libraries(myapp PRIVATE scy_base scy_net scy_http)
 After installing (`cmake --install build`):
 
 ```cmake
-find_package(LibSourcey REQUIRED)
-target_link_libraries(myapp PRIVATE scy_base scy_net scy_http)
+find_package(Icey REQUIRED)
+target_link_libraries(myapp PRIVATE icy_base icy_net icy_http)
 ```
 
 ## Code Examples

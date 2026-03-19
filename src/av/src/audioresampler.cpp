@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,17 +9,17 @@
 /// @{
 
 
-#include "scy/av/audioresampler.h"
+#include "icy/av/audioresampler.h"
 
 #ifdef HAVE_FFMPEG
 
-#include "scy/logger.h"
-#include "scy/util.h"
+#include "icy/logger.h"
+#include "icy/util.h"
 
 
 
 
-namespace scy {
+namespace icy {
 namespace av {
 
 
@@ -204,7 +204,7 @@ int AudioResampler::resample(uint8_t** inSamples, int inNumSamples)
 
 
 } // namespace av
-} // namespace scy
+} // namespace icy
 
 
 #endif

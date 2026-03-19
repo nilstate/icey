@@ -1,10 +1,10 @@
 #pragma once
 
-#include "scy/net/socketadapter.h"
-#include "scy/net/udpsocket.h"
+#include "icy/net/socketadapter.h"
+#include "icy/net/udpsocket.h"
 
 
-namespace scy {
+namespace icy {
 namespace net {
 
 
@@ -44,7 +44,7 @@ public:
         return false;
     }
 
-    bool onSocketError(Socket&, const scy::Error& error) override
+    bool onSocketError(Socket&, const icy::Error& error) override
     {
         LError("On error: ", error.message);
         return false;
@@ -59,4 +59,4 @@ public:
 
 
 } // namespace net
-} // namespace scy
+} // namespace icy

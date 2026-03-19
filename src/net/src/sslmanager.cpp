@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,15 +9,15 @@
 /// @{
 
 
-#include "scy/net/sslmanager.h"
-#include "scy/net/sslcontext.h"
-#include "scy/singleton.h"
+#include "icy/net/sslmanager.h"
+#include "icy/net/sslcontext.h"
+#include "icy/singleton.h"
 
 
 using namespace std;
 
 
-namespace scy {
+namespace icy {
 namespace net {
 
 
@@ -194,7 +194,7 @@ VerificationErrorDetails::~VerificationErrorDetails() noexcept
 
 
 } // namespace net
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

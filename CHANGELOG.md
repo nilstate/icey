@@ -76,7 +76,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - HTTP benchmark suite and performance section in README
 - `SO_REUSEPORT` support via `Server::setReusePort()` for multicore HTTP serving
 - `NullSharedMutex` and `LocalSignal` for lock-free signal dispatch on single-threaded event loops
-- `SCY_DATA_DIR` compile definition for test/sample data paths
+- `ICY_DATA_DIR` compile definition for test/sample data paths
 
 ### Changed
 
@@ -88,7 +88,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - `smpl::Client::close()` uses `_closing` guard to prevent re-entrant close
 - Symple client no longer depends on socketio module; uses native WebSocket via HTTP module
 - WebRTC module `DEPENDS` drops symple (signalling is transport-agnostic)
-- `SKIP_EXPORT` option added to `scy_add_module` for FetchContent dependency conflicts
+- `SKIP_EXPORT` option added to `icy_add_module` for FetchContent dependency conflicts
 - README rewritten: WebRTC hero example, comparison table vs libWebRTC/libdatachannel/GStreamer/Pion, architecture diagram, module table
 - Conan recipe added with per-module components and optional FFmpeg/OpenCV features
 - `std::endl` replaced with `'\n'` throughout (removes redundant flush from logger macros)
@@ -139,7 +139,7 @@ Keep-alive benchmark results (single vCPU, wrk -t4 -c100 -d10s):
 | Server | req/s | Latency |
 | --- | --- | --- |
 | Raw libuv+llhttp | 96,088 | 1.04ms |
-| LibSourcey | 72,209 | 1.43ms |
+| Icey | 72,209 | 1.43ms |
 | Go 1.25 net/http | 53,878 | 2.31ms |
 | Node.js v20 | 45,514 | 3.56ms |
 
@@ -151,7 +151,7 @@ Keep-alive benchmark results (single vCPU, wrk -t4 -c100 -d10s):
 - Windows build: added missing `<ostream>` include in error.h (MSVC string_view needs full definition)
 - Windows build: replaced `SIGKILL` with `SIGTERM` in process.h (SIGKILL not defined on MSVC)
 - Windows build: added `<csignal>` to application.cpp and process.h
-- macOS linker: removed unnecessary `-ldl` from Apple config in LibSourcey.cmake
+- macOS linker: removed unnecessary `-ldl` from Apple config in Icey.cmake
 - CI: fixed sanitizer env var syntax (split matrix.env into env_name/env_value)
 - CI: removed ccache from coverage job (incompatible with gcov instrumentation)
 - CI: added `submodules: recursive` to all checkout steps
@@ -186,9 +186,9 @@ Keep-alive benchmark results (single vCPU, wrk -t4 -c100 -d10s):
 
 ### Build system
 
-- Rewrote CMake build system with modern target-based dependencies and `scy_add_module()` pattern
+- Rewrote CMake build system with modern target-based dependencies and `icy_add_module()` pattern
 - Replaced vendored sources with CMake FetchContent (libuv, zlib, llhttp, nlohmann/json)
-- CMake 3.21 minimum, with proper `find_package(LibSourcey)` and FetchContent consumer support
+- CMake 3.21 minimum, with proper `find_package(Icey)` and FetchContent consumer support
 - CPack packaging support (deb, rpm, tar.gz)
 - External module plugin pattern for out-of-tree modules
 - Multi-stage Docker build on Ubuntu 24.04 LTS

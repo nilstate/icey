@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,12 +9,12 @@
 /// @{
 
 
-#include "scy/av/videocapture.h"
-#include "scy/util.h"
+#include "icy/av/videocapture.h"
+#include "icy/util.h"
 
 #ifdef HAVE_FFMPEG
 
-#include "scy/av/devicemanager.h"
+#include "icy/av/devicemanager.h"
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -24,7 +24,7 @@ extern "C" {
 
 
 
-namespace scy {
+namespace icy {
 namespace av {
 
 
@@ -108,7 +108,7 @@ void VideoCapture::openVideo(const std::string& device, int width, int height,
 
 
 } // namespace av
-} // namespace scy
+} // namespace icy
 
 
 #endif

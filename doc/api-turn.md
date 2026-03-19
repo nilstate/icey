@@ -6,30 +6,30 @@ The `turn` module contains TURN (rfc5766) client and server implementations.
 
 | Name | Description |
 |------|-------------|
-| [`Client`](#classscy_1_1turn_1_1Client) |  |
-| [`TCPClient`](#classscy_1_1turn_1_1TCPClient) |  |
-| [`UDPClient`](#classscy_1_1turn_1_1UDPClient) |  |
-| [`FiveTuple`](#classscy_1_1turn_1_1FiveTuple) | The 5-TUPLE consists of a local, a remote address, and the transport protocol used by the client to communicate with the server.                                                           +---------+ |
-| [`IAllocation`](#classscy_1_1turn_1_1IAllocation) | All TURN operations revolve around allocations, and all TURN messages are associated with an allocation. An allocation conceptually consists of the following state data: |
-| [`Server`](#classscy_1_1turn_1_1Server) | TURN server rfc5766 implementation. |
-| [`ServerAllocation`](#classscy_1_1turn_1_1ServerAllocation) |  |
-| [`TCPAllocation`](#classscy_1_1turn_1_1TCPAllocation) |  |
-| [`TCPConnectionPair`](#classscy_1_1turn_1_1TCPConnectionPair) |  |
-| [`UDPAllocation`](#classscy_1_1turn_1_1UDPAllocation) |  |
-| [`Request`](#classscy_1_1turn_1_1Request) |  |
-| [`ClientState`](#structscy_1_1turn_1_1ClientState) |  |
-| [`ClientObserver`](#structscy_1_1turn_1_1ClientObserver) |  |
-| [`Options`](#structscy_1_1turn_1_1Client_1_1Options) |  |
-| [`TCPClientObserver`](#structscy_1_1turn_1_1TCPClientObserver) |  |
-| [`RelayConnectionBinding`](#structscy_1_1turn_1_1RelayConnectionBinding) |  |
-| [`Permission`](#structscy_1_1turn_1_1Permission) | TURN permission for a user session. |
-| [`ServerOptions`](#structscy_1_1turn_1_1ServerOptions) | [Configuration](./doc/api-base.md#classscy_1_1Configuration) options for the TURN server. |
-| [`ServerObserver`](#structscy_1_1turn_1_1ServerObserver) | The [ServerObserver](#structscy_1_1turn_1_1ServerObserver) receives callbacks for and is responsible for managing allocation and bandwidth quotas, authentication methods and authentication. |
+| [`Client`](#classicy_1_1turn_1_1Client) |  |
+| [`TCPClient`](#classicy_1_1turn_1_1TCPClient) |  |
+| [`UDPClient`](#classicy_1_1turn_1_1UDPClient) |  |
+| [`FiveTuple`](#classicy_1_1turn_1_1FiveTuple) | The 5-TUPLE consists of a local, a remote address, and the transport protocol used by the client to communicate with the server.                                                           +---------+ |
+| [`IAllocation`](#classicy_1_1turn_1_1IAllocation) | All TURN operations revolve around allocations, and all TURN messages are associated with an allocation. An allocation conceptually consists of the following state data: |
+| [`Server`](#classicy_1_1turn_1_1Server) | TURN server rfc5766 implementation. |
+| [`ServerAllocation`](#classicy_1_1turn_1_1ServerAllocation) |  |
+| [`TCPAllocation`](#classicy_1_1turn_1_1TCPAllocation) |  |
+| [`TCPConnectionPair`](#classicy_1_1turn_1_1TCPConnectionPair) |  |
+| [`UDPAllocation`](#classicy_1_1turn_1_1UDPAllocation) |  |
+| [`Request`](#classicy_1_1turn_1_1Request) |  |
+| [`ClientState`](#structicy_1_1turn_1_1ClientState) |  |
+| [`ClientObserver`](#structicy_1_1turn_1_1ClientObserver) |  |
+| [`Options`](#structicy_1_1turn_1_1Client_1_1Options) |  |
+| [`TCPClientObserver`](#structicy_1_1turn_1_1TCPClientObserver) |  |
+| [`RelayConnectionBinding`](#structicy_1_1turn_1_1RelayConnectionBinding) |  |
+| [`Permission`](#structicy_1_1turn_1_1Permission) | TURN permission for a user session. |
+| [`ServerOptions`](#structicy_1_1turn_1_1ServerOptions) | [Configuration](./doc/api-base.md#classicy_1_1Configuration) options for the TURN server. |
+| [`ServerObserver`](#structicy_1_1turn_1_1ServerObserver) | The [ServerObserver](#structicy_1_1turn_1_1ServerObserver) receives callbacks for and is responsible for managing allocation and bandwidth quotas, authentication methods and authentication. |
 
 ## Client 
 
-> **Extends:** `scy::Stateful< ClientState >`, `scy::turn::IAllocation`
-> **Subclasses:** `scy::turn::TCPClient`, `scy::turn::UDPClient`
+> **Extends:** `icy::Stateful< ClientState >`, `icy::turn::IAllocation`
+> **Subclasses:** `icy::turn::TCPClient`, `icy::turn::UDPClient`
 > **Defined in:** `client.h`
 
 ### Members
@@ -392,12 +392,12 @@ Options & options()
 #### setError 
 
 ```cpp
-virtual void setError(const [scy::Error](./doc/api-base.md#structscy_1_1Error) & error)
+virtual void setError(const [icy::Error](./doc/api-base.md#structicy_1_1Error) & error)
 ```
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `error` | `const [scy::Error](./doc/api-base.md#structscy_1_1Error) &` |  |
+| `error` | `const [icy::Error](./doc/api-base.md#structicy_1_1Error) &` |  |
 
 ---
 
@@ -508,7 +508,7 @@ Timer _timer
 #### _error 
 
 ```cpp
-[scy::Error](./doc/api-base.md#structscy_1_1Error) _error
+[icy::Error](./doc/api-base.md#structicy_1_1Error) _error
 ```
 
 ---
@@ -646,7 +646,7 @@ net::Address serverAddr
 
 ## TCPClient 
 
-> **Extends:** `scy::turn::Client`
+> **Extends:** `icy::turn::Client`
 > **Defined in:** `tcpclient.h`
 
 ### Members
@@ -934,7 +934,7 @@ ConnectionManager _connections
 
 ## UDPClient 
 
-> **Extends:** `scy::turn::Client`
+> **Extends:** `icy::turn::Client`
 > **Defined in:** `udpclient.h`
 
 ### Members
@@ -1178,7 +1178,7 @@ net::TransportType _transport
 
 ## IAllocation 
 
-> **Subclasses:** `scy::turn::Client`, `scy::turn::ServerAllocation`
+> **Subclasses:** `icy::turn::Client`, `icy::turn::ServerAllocation`
 > **Defined in:** `iallocation.h`
 
 All TURN operations revolve around allocations, and all TURN messages are associated with an allocation. An allocation conceptually consists of the following state data:
@@ -1958,8 +1958,8 @@ Timer _timer
 
 ## ServerAllocation 
 
-> **Extends:** `scy::turn::IAllocation`
-> **Subclasses:** `scy::turn::TCPAllocation`, `scy::turn::UDPAllocation`
+> **Extends:** `icy::turn::IAllocation`
+> **Subclasses:** `icy::turn::TCPAllocation`, `icy::turn::UDPAllocation`
 > **Defined in:** `serverallocation.h`
 
 ### Members
@@ -1976,7 +1976,7 @@ Timer _timer
 | [`maxTimeRemaining`](#group__turn_1gac32ad9173f59a4ee7fff11ae498a96f6) |  |
 | [`server`](#group__turn_1gac782e622e15da990801af994dbfa7bfa) |  |
 | [`print`](#group__turn_1ga7e83857083889f67c5f29a754a34aa24) |  |
-| [`refreshDeleteRequested`](#group__turn_1ga5872b7dd0f15d787034ef80180d54995) | Returns true if the refresh request set lifetime to 0, signaling the parent [Server](#classscy_1_1turn_1_1Server) to delete this allocation. |
+| [`refreshDeleteRequested`](#group__turn_1ga5872b7dd0f15d787034ef80180d54995) | Returns true if the refresh request set lifetime to 0, signaling the parent [Server](#classicy_1_1turn_1_1Server) to delete this allocation. |
 | [`ServerAllocation`](#group__turn_1gae436d8a65e9a1a8a6f22cdeb46967690) | NonCopyable and NonMovable. |
 | [`operator=`](#group__turn_1gafc5723b65e7b03176bd894f75717676c) |  |
 | [`_maxLifetime`](#group__turn_1gaffd29cbaf5c7b75d02f538b1f9535f97) |  |
@@ -2096,7 +2096,7 @@ virtual void print(std::ostream & os) const
 inline bool refreshDeleteRequested() const
 ```
 
-Returns true if the refresh request set lifetime to 0, signaling the parent [Server](#classscy_1_1turn_1_1Server) to delete this allocation.
+Returns true if the refresh request set lifetime to 0, signaling the parent [Server](#classicy_1_1turn_1_1Server) to delete this allocation.
 
 ---
 
@@ -2142,7 +2142,7 @@ bool _refreshDeleteRequested = false
 
 ## TCPAllocation 
 
-> **Extends:** `scy::turn::ServerAllocation`
+> **Extends:** `icy::turn::ServerAllocation`
 > **Defined in:** `tcpallocation.h`
 
 ### Members
@@ -2357,7 +2357,7 @@ TCPConnectionPairMap _pairs
 | [`onPeerConnectError`](#group__turn_1gabcbaa9d2da0811338030f6368c5eecea) | Connection error callback for Connect request. |
 | [`onClientDataReceived`](#group__turn_1ga7850f0162f9bdd3d1d7b853a59324ddd) |  |
 | [`onPeerDataReceived`](#group__turn_1gae93b12998cb75c2784b8b4a83b8ed78e) |  |
-| [`onConnectionClosed`](#group__turn_1ga4f90949f22078df17775d5907451fa47) | Callback for handing either client or peer connections which result in the destruction of the [TCPConnectionPair](#classscy_1_1turn_1_1TCPConnectionPair). |
+| [`onConnectionClosed`](#group__turn_1ga4f90949f22078df17775d5907451fa47) | Callback for handing either client or peer connections which result in the destruction of the [TCPConnectionPair](#classicy_1_1turn_1_1TCPConnectionPair). |
 | [`startTimeout`](#group__turn_1ga36352c6ddc19d8bdfef9968df7dcc165) | Starts the ConnectionBind request timeout. |
 | [`requestDeletion`](#group__turn_1ga2ac9623b2eccd557b9a56fae2cd0beca) | Signals the parent allocation to handle deletion instead of destroying ourselves directly. |
 | [`expired`](#group__turn_1gae31259009aac3c03ea440ec0a4bb8ff7) | Return true if the peer `ConnectionBind` request timed out. |
@@ -2506,7 +2506,7 @@ void onPeerDataReceived(net::Socket & socket, const MutableBuffer & buffer, cons
 void onConnectionClosed(net::Socket & socket)
 ```
 
-Callback for handing either client or peer connections which result in the destruction of the [TCPConnectionPair](#classscy_1_1turn_1_1TCPConnectionPair).
+Callback for handing either client or peer connections which result in the destruction of the [TCPConnectionPair](#classicy_1_1turn_1_1TCPConnectionPair).
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -2650,7 +2650,7 @@ stun::TransactionID transactionID
 
 ## UDPAllocation 
 
-> **Extends:** `scy::turn::ServerAllocation`
+> **Extends:** `icy::turn::ServerAllocation`
 > **Defined in:** `udpallocation.h`
 
 ### Members
@@ -2759,7 +2759,7 @@ net::SocketEmitter _relaySocket
 
 ## Request 
 
-> **Extends:** `scy::stun::Message`
+> **Extends:** `icy::stun::Message`
 > **Defined in:** `types.h`
 
 ### Members
@@ -2821,7 +2821,7 @@ std::string hash
 
 ## ClientState 
 
-> **Extends:** `scy::State`
+> **Extends:** `icy::State`
 > **Defined in:** `client.h`
 
 ### Members
@@ -2857,7 +2857,7 @@ virtual inline std::string toString() const
 
 ## ClientObserver 
 
-> **Subclasses:** `scy::turn::TCPClientObserver`
+> **Subclasses:** `icy::turn::TCPClientObserver`
 > **Defined in:** `client.h`
 
 ### Members
@@ -3053,7 +3053,7 @@ net::Address serverAddr
 
 ## TCPClientObserver 
 
-> **Extends:** `scy::turn::ClientObserver`
+> **Extends:** `icy::turn::ClientObserver`
 > **Defined in:** `tcpclient.h`
 
 ### Members
@@ -3229,7 +3229,7 @@ Timeout timeout
 
 > **Defined in:** `server.h`
 
-[Configuration](./doc/api-base.md#classscy_1_1Configuration) options for the TURN server.
+[Configuration](./doc/api-base.md#classicy_1_1Configuration) options for the TURN server.
 
 ### Members
 
@@ -3352,7 +3352,7 @@ bool enableUDP
 
 > **Defined in:** `server.h`
 
-The [ServerObserver](#structscy_1_1turn_1_1ServerObserver) receives callbacks for and is responsible for managing allocation and bandwidth quotas, authentication methods and authentication.
+The [ServerObserver](#structicy_1_1turn_1_1ServerObserver) receives callbacks for and is responsible for managing allocation and bandwidth quotas, authentication methods and authentication.
 
 ### Members
 

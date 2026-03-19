@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,12 +9,12 @@
 /// @{
 
 
-#include "scy/filesystem.h"
+#include "icy/filesystem.h"
 #include <filesystem>
 #include <fstream>
 #include <stdexcept>
 #include <string>
-#if defined(_MSC_VER) && defined(SCY_UNICODE)
+#if defined(_MSC_VER) && defined(ICY_UNICODE)
 #include <codecvt>
 #include <locale>
 #include <memory>
@@ -25,11 +25,11 @@
 namespace stdfs = std::filesystem;
 
 
-namespace scy {
+namespace icy {
 namespace fs {
 
 
-#ifdef SCY_WIN
+#ifdef ICY_WIN
 const char delimiter = '\\';
 const char* separator = "\\";
 #else
@@ -178,7 +178,7 @@ std::string normalize(std::string_view path)
 
 std::string transcode(std::string_view path)
 {
-#if defined(_MSC_VER) && defined(SCY_UNICODE)
+#if defined(_MSC_VER) && defined(ICY_UNICODE)
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> convert;
     std::wstring uniPath = convert.from_bytes(std::string(path));
     DWORD len = WideCharToMultiByte(
@@ -215,7 +215,7 @@ bool savefile(std::string_view path, const char* data, size_t size,
 
 
 } // namespace fs
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

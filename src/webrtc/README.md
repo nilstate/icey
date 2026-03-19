@@ -1,14 +1,14 @@
 # WebRTC
 
-> Lightweight WebRTC media transport for LibSourcey
+> Lightweight WebRTC media transport for Icey
 
-[![CI](https://github.com/sourcey/libsourcey/actions/workflows/ci.yml/badge.svg)](https://github.com/sourcey/libsourcey/actions/workflows/ci.yml)
+[![CI](https://github.com/sourcey/icey/actions/workflows/ci.yml/badge.svg)](https://github.com/sourcey/icey/actions/workflows/ci.yml)
 
-**Repository**: [https://github.com/sourcey/libsourcey](https://github.com/sourcey/libsourcey)
-**Dependencies**: LibSourcey (base, net, crypto, av, symple), [libdatachannel](https://github.com/paullouisageneau/libdatachannel), OpenSSL 3.x, FFmpeg 5+
+**Repository**: [https://github.com/sourcey/icey](https://github.com/sourcey/icey)
+**Dependencies**: Icey (base, net, crypto, av, symple), [libdatachannel](https://github.com/paullouisageneau/libdatachannel), OpenSSL 3.x, FFmpeg 5+
 **Licence**: LGPL-2.1+
 
-WebRTC media transport without Google's libwebrtc. Uses libdatachannel for ICE, DTLS-SRTP, and data channels; LibSourcey's AV module for FFmpeg encode/decode; and Symple for signalling. Point the ICE config at your LibSourcey TURN server for fully self-hosted relay.
+WebRTC media transport without Google's libwebrtc. Uses libdatachannel for ICE, DTLS-SRTP, and data channels; Icey's AV module for FFmpeg encode/decode; and Symple for signalling. Point the ICE config at your Icey TURN server for fully self-hosted relay.
 
 ## Architecture
 
@@ -19,7 +19,7 @@ Three layers, each independently usable:
 Factory functions that create libdatachannel tracks with the correct RTP packetizer/depacketizer chains.
 
 ```cpp
-#include "scy/webrtc/track.h"
+#include "icy/webrtc/track.h"
 
 auto pc = std::make_shared<rtc::PeerConnection>(config);
 
@@ -48,8 +48,8 @@ pc->onTrack([](std::shared_ptr<rtc::Track> track) {
 Per-track PacketStream integration. One sender or receiver per track.
 
 ```cpp
-#include "scy/webrtc/tracksender.h"
-#include "scy/webrtc/trackreceiver.h"
+#include "icy/webrtc/tracksender.h"
+#include "icy/webrtc/trackreceiver.h"
 
 // Send: capture -> encode -> WebRTC
 wrtc::WebRtcTrackSender videoSender(video);
@@ -82,7 +82,7 @@ recvStream.start();
 `MediaBridge` creates tracks and adapters for the common case. Video-only, audio-only, or both.
 
 ```cpp
-#include "scy/webrtc/mediabridge.h"
+#include "icy/webrtc/mediabridge.h"
 
 wrtc::MediaBridge bridge;
 bridge.attach(pc, {
@@ -104,7 +104,7 @@ bridge.BitrateEstimate += slot(&encoder, &Encoder::setBitrate);
 `PeerSession` adds Symple call signalling. Speaks the same protocol as `symple-client-player`'s CallManager in the browser.
 
 ```cpp
-#include "scy/webrtc/peersession.h"
+#include "icy/webrtc/peersession.h"
 
 wrtc::PeerSession session(sympleClient, {
     .rtcConfig = { .iceServers = { "turn:your-server.com:3478" } },
@@ -128,7 +128,7 @@ For custom signalling backends (plain WebSocket, REST, MQTT), use layers 1 and 2
 Maps between RTP codec names and FFmpeg encoder names, queries FFmpeg at runtime.
 
 ```cpp
-#include "scy/webrtc/codecnegotiator.h"
+#include "icy/webrtc/codecnegotiator.h"
 
 // Negotiate best codec from remote SDP offer
 auto codec = wrtc::CodecNegotiator::negotiateVideo({"H264", "VP8", "VP9"});
@@ -153,7 +153,7 @@ cmake -B build \
 cmake --build build
 ```
 
-libdatachannel is fetched automatically via CMake FetchContent (v0.24.1). It brings libjuice (ICE), usrsctp (data channels), and libsrtp (SRTP) as bundled submodules. OpenSSL is shared with LibSourcey.
+libdatachannel is fetched automatically via CMake FetchContent (v0.24.1). It brings libjuice (ICE), usrsctp (data channels), and libsrtp (SRTP) as bundled submodules. OpenSSL is shared with Icey.
 
 ## How it fits together
 
@@ -169,17 +169,17 @@ Application
 |   +-- Data channels
 +-- AV module (FFmpeg encode/decode)
 +-- TURN server (self-hosted relay)
-    +-- libsourcey stun/turn modules (server side)
+    +-- icey stun/turn modules (server side)
     +-- libjuice STUN/TURN client (inside libdatachannel)
 ```
 
 libdatachannel handles: ICE, DTLS, SRTP, SCTP, RTP packetization, RTCP feedback.
-LibSourcey handles: media capture, FFmpeg codecs, signalling, TURN relay, PacketStream pipelines.
+Icey handles: media capture, FFmpeg codecs, signalling, TURN relay, PacketStream pipelines.
 
 ## Files
 
 ```
-include/scy/webrtc/
+include/icy/webrtc/
   webrtc.h            Module header, DLL exports
   codecnegotiator.h   RTP <-> FFmpeg codec mapping
   track.h             Layer 1: track factory functions

@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,10 +9,10 @@
 /// @{
 
 
-#include "scy/stateful.h"
+#include "icy/stateful.h"
 
 
-namespace scy {
+namespace icy {
 
 
 State::State(State::ID id)
@@ -72,7 +72,7 @@ std::string State::toString() const
 }
 
 
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,13 +9,13 @@
 /// @{
 
 
-#include "scy/av/formatregistry.h"
+#include "icy/av/formatregistry.h"
 
 #include <string_view>
 
 
 
-namespace scy {
+namespace icy {
 namespace av {
 
 
@@ -158,7 +158,7 @@ Format& FormatRegistry::defaultLocked()
 
 
 } // namespace av
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

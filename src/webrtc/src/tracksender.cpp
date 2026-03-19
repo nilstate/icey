@@ -1,17 +1,17 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
 
 
-#include "scy/webrtc/tracksender.h"
-#include "scy/logger.h"
+#include "icy/webrtc/tracksender.h"
+#include "icy/logger.h"
 
 
-namespace scy {
+namespace icy {
 namespace wrtc {
 
 
@@ -108,4 +108,4 @@ bool WebRtcTrackSender::bound() const
 
 
 } // namespace wrtc
-} // namespace scy
+} // namespace icy

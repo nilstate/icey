@@ -1,4 +1,4 @@
-scy_add_module(av
+icy_add_module(av
   DEPENDS base
   PRETTY_NAME AV
 )

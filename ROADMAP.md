@@ -1,4 +1,4 @@
-# LibSourcey v2 Roadmap
+# Icey v2 Roadmap
 
 > C++20, modern dependencies, production-ready quality.
 
@@ -24,7 +24,7 @@ Lightweight WebRTC media stack via libdatachannel. See `src/webrtc/README.md`
 - libdatachannel via FetchContent (libjuice ICE, libsrtp SRTP, usrsctp data channels)
 - FFmpeg encode/decode <> libdatachannel RTP Track bridge
 - Symple signalling for SDP/candidate exchange
-- libsourcey TURN server as self-hosted relay infrastructure
+- icey TURN server as self-hosted relay infrastructure
 - Samples: webcam-streamer, file-streamer, media-recorder, data-echo
 
 ### 2.2 - Networking
@@ -55,7 +55,7 @@ Lightweight WebRTC media stack via libdatachannel. See `src/webrtc/README.md`
 - `concept` constraints replacing SFINAE
 - Signal/slot delegate simplification
 - GarbageCollector/deleteLater audit
-- Error strategy (scy::Error vs std::error_code vs std::expected)
+- Error strategy (icy::Error vs std::error_code vs std::expected)
 - `std::optional` for nullable returns
 - MutableBuffer/ConstBuffer -> `std::span<std::byte>` evaluation
 
@@ -122,7 +122,7 @@ Build system overhaul (target-based CMake, FetchContent). Dependency updates (li
 
 ### Build System
 
-`scy_add_module(name DEPENDS dep1 dep2 PACKAGES Pkg::Lib)` is the core abstraction. Auto-discovery via `subdirlist`, platform filtering, install/export generation. External module plugin via `src/.gitignore` whitelist.
+`icy_add_module(name DEPENDS dep1 dep2 PACKAGES Pkg::Lib)` is the core abstraction. Auto-discovery via `subdirlist`, platform filtering, install/export generation. External module plugin via `src/.gitignore` whitelist.
 
 ### Custom GC & Deferred Deletion
 

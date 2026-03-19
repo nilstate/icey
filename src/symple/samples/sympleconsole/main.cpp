@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -20,18 +20,18 @@
 /// @{
 
 
-#include "scy/application.h"
-#include "scy/filesystem.h"
-#include "scy/ipc.h"
-#include "scy/net/sslmanager.h"
-#include "scy/symple/client.h"
-#include "scy/util.h"
+#include "icy/application.h"
+#include "icy/filesystem.h"
+#include "icy/ipc.h"
+#include "icy/net/sslmanager.h"
+#include "icy/symple/client.h"
+#include "icy/util.h"
 
 #include <iostream>
 #include <stdexcept>
 
 
-using namespace scy;
+using namespace icy;
 
 #define USE_SSL 0
 
@@ -39,11 +39,11 @@ using namespace scy;
 /// Wraps the Symple client with a console UI for interactive messaging.
 /// Uses an IPC sync queue to safely pass user input from the console thread
 /// to the libuv event loop thread.
-class SympleApplication : public scy::Application
+class SympleApplication : public icy::Application
 {
 public:
-    scy::smpl::Client client;
-    scy::ipc::SyncQueue<> ipc;  // thread-safe bridge: console thread -> event loop
+    icy::smpl::Client client;
+    icy::ipc::SyncQueue<> ipc;  // thread-safe bridge: console thread -> event loop
     bool showHelp;
 
     SympleApplication()
@@ -57,8 +57,8 @@ public:
     {
         std::cout
             << "\nSymple Console Client v0.1.0"
-               "\n(c) Sourcey"
-               "\nhttps://sourcey.com/symple"
+               "\n(c) Icey"
+               "\nhttps://0state.com/symple"
                "\n"
                "\nGeneral options:"
                "\n  -help           Print help"
@@ -87,7 +87,7 @@ public:
             } else if (key == "host") {
                 client.options().host = value;
             } else if (key == "port") {
-                client.options().port = scy::util::strtoi<uint16_t>(value);
+                client.options().port = icy::util::strtoi<uint16_t>(value);
             } else if (key == "token") {
                 client.options().token = value;
             } else if (key == "user") {
@@ -97,7 +97,7 @@ public:
             } else if (key == "type") {
                 client.options().type = value;
             } else if (key == "logfile") {
-                auto log = dynamic_cast<scy::FileChannel*>(scy::Logger::instance().get("Symple"));
+                auto log = dynamic_cast<icy::FileChannel*>(icy::Logger::instance().get("Symple"));
                 log->setPath(value);
             } else {
                 LWarn("Unknown option: ", key, "=", value);
@@ -133,7 +133,7 @@ public:
 
             // Console input runs on a separate thread because std::getchar()
             // blocks, and we can't block the libuv event loop
-            scy::Thread console([](void* arg) {
+            icy::Thread console([](void* arg) {
                 auto app = static_cast<SympleApplication*>(arg);
 
                 char o = 0;
@@ -154,15 +154,15 @@ public:
                         std::string data;
                         std::getline(std::cin, data);
 
-                        auto message = new scy::smpl::Message();
+                        auto message = new icy::smpl::Message();
                         message->setData(data);
 
                         std::cout << "Sending message: " << data << '\n';
                         // app->client.send(message, true);
 
                         // Push to IPC queue so the send happens on the event loop thread
-                        app->ipc.push(new scy::ipc::Action(
-                            [app](const scy::ipc::Action& a) { app->onSyncMessage(a); },
+                        app->ipc.push(new icy::ipc::Action(
+                            [app](const icy::ipc::Action& a) { app->onSyncMessage(a); },
                             message));
                     }
 
@@ -172,8 +172,8 @@ public:
                         auto data = new std::string();
                         std::getline(std::cin, *data);
 
-                        app->ipc.push(new scy::ipc::Action(
-                            [app](const scy::ipc::Action& a) { app->onSyncCommand(a); },
+                        app->ipc.push(new icy::ipc::Action(
+                            [app](const icy::ipc::Action& a) { app->onSyncCommand(a); },
                             data, "join"));
                     }
 
@@ -183,8 +183,8 @@ public:
                         auto data = new std::string();
                         std::getline(std::cin, *data);
 
-                        app->ipc.push(new scy::ipc::Action(
-                            [app](const scy::ipc::Action& a) { app->onSyncCommand(a); },
+                        app->ipc.push(new icy::ipc::Action(
+                            [app](const icy::ipc::Action& a) { app->onSyncCommand(a); },
                             data, "leave"));
                     }
 
@@ -212,9 +212,9 @@ public:
     }
 
     /// Called on the event loop thread when a message arrives via IPC.
-    void onSyncMessage(const scy::ipc::Action& action)
+    void onSyncMessage(const icy::ipc::Action& action)
     {
-        auto message = static_cast<scy::smpl::Message*>(action.arg);
+        auto message = static_cast<icy::smpl::Message*>(action.arg);
 
         // Send without transaction
         // client.send(*message);
@@ -227,7 +227,7 @@ public:
         delete message;
     }
 
-    void onSyncCommand(const scy::ipc::Action& action)
+    void onSyncCommand(const icy::ipc::Action& action)
     {
         auto arg = static_cast<std::string*>(action.arg);
 
@@ -238,37 +238,37 @@ public:
         }
     }
 
-    void onAckState(void* sender, scy::TransactionState& state, const scy::TransactionState&)
+    void onAckState(void* sender, icy::TransactionState& state, const icy::TransactionState&)
     {
         LDebug("####### On announce response: ", state);
 
-        // auto transaction = static_cast<scy::sockio::Transaction*>(sender);
+        // auto transaction = static_cast<icy::sockio::Transaction*>(sender);
         switch (state.id()) {
-            case scy::TransactionState::Success:
+            case icy::TransactionState::Success:
                 // Handle transaction success
                 break;
 
-            case scy::TransactionState::Failed:
+            case icy::TransactionState::Failed:
                 // Handle transaction failure
                 break;
         }
     }
 
-    void onRecvMessage(scy::smpl::Message& message)
+    void onRecvMessage(icy::smpl::Message& message)
     {
         LDebug("####### On message: ", message.className());
 
         // Handle incoming Symple messages here
     }
 
-    void onRecvPresence(scy::smpl::Presence& presence)
+    void onRecvPresence(icy::smpl::Presence& presence)
     {
         LDebug("####### On presence: ", presence.className());
 
         // Handle incoming Symple presences here
     }
 
-    void onRecvEvent(scy::smpl::Event& event)
+    void onRecvEvent(icy::smpl::Event& event)
     {
         LDebug("####### On event: ", event.className());
 
@@ -282,29 +282,29 @@ public:
             throw std::runtime_error("Announce failed with status: " + std::to_string(status));
     }
 
-    void onClientStateChange(void*, scy::sockio::ClientState& state, const scy::sockio::ClientState& oldState)
+    void onClientStateChange(void*, icy::sockio::ClientState& state, const icy::sockio::ClientState& oldState)
     {
         SDebug << "Client state changed: " << state << ": "
                << client.ws().socket->address();
 
         switch (state.id()) {
-            case scy::sockio::ClientState::Connecting:
+            case icy::sockio::ClientState::Connecting:
                 break;
-            case scy::sockio::ClientState::Connected:
+            case icy::sockio::ClientState::Connected:
                 break;
-            case scy::sockio::ClientState::Online:
+            case icy::sockio::ClientState::Online:
                 std::cout << "Client online" << '\n';
 
                 // Join the public room
                 client.joinRoom("public");
                 break;
-            case scy::sockio::ClientState::Error:
+            case icy::sockio::ClientState::Error:
                 std::cout << "Client disconnected" << '\n';
                 break;
         }
     }
 
-    void onCreatePresence(scy::smpl::Peer& peer)
+    void onCreatePresence(icy::smpl::Peer& peer)
     {
         LDebug("####### Updating presence data");
 
@@ -319,11 +319,11 @@ public:
 int main(int argc, char** argv)
 {
     // Setup the logger
-    scy::Logger::instance().add(std::make_unique<scy::ConsoleChannel>("debug", scy::Level::Trace));
+    icy::Logger::instance().add(std::make_unique<icy::ConsoleChannel>("debug", icy::Level::Trace));
 
     // Init SSL client context
 #if USE_SSL
-    scy::net::SSLManager::initNoVerifyClient();
+    icy::net::SSLManager::initNoVerifyClient();
 #endif
 
     // Run the application
@@ -335,8 +335,8 @@ int main(int argc, char** argv)
 
     // Cleanup all singletons
 #if USE_SSL
-    scy::net::SSLManager::destroy();
+    icy::net::SSLManager::destroy();
 #endif
-    scy::Logger::destroy();
+    icy::Logger::destroy();
     return 0;
 }

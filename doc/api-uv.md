@@ -6,17 +6,17 @@ The `uv` module contains C++ wrappers for `libuv`.
 
 | Name | Description |
 |------|-------------|
-| [`Handle`](#classscy_1_1uv_1_1Handle) | Wrapper class for managing `uv_handle_t` variants. |
-| [`Context`](#structscy_1_1uv_1_1Context) | Shared `libuv` handle context. |
-| [`BasicEvent`](#structscy_1_1uv_1_1BasicEvent) | Default request callback event. |
-| [`Request`](#structscy_1_1uv_1_1Request) | Wrapper class for managing `uv_req_t` variants. |
-| [`ConnectReq`](#structscy_1_1uv_1_1ConnectReq) | [Stream](./doc/api-base.md#classscy_1_1Stream) connection request for sockets and pipes. |
-| [`GetAddrInfoEvent`](#structscy_1_1uv_1_1GetAddrInfoEvent) | Get address info request callback event. |
-| [`GetAddrInfoReq`](#structscy_1_1uv_1_1GetAddrInfoReq) | DNS resolver request to get the IP address of a hostname. |
+| [`Handle`](#classicy_1_1uv_1_1Handle) | Wrapper class for managing `uv_handle_t` variants. |
+| [`Context`](#structicy_1_1uv_1_1Context) | Shared `libuv` handle context. |
+| [`BasicEvent`](#structicy_1_1uv_1_1BasicEvent) | Default request callback event. |
+| [`Request`](#structicy_1_1uv_1_1Request) | Wrapper class for managing `uv_req_t` variants. |
+| [`ConnectReq`](#structicy_1_1uv_1_1ConnectReq) | [Stream](./doc/api-base.md#classicy_1_1Stream) connection request for sockets and pipes. |
+| [`GetAddrInfoEvent`](#structicy_1_1uv_1_1GetAddrInfoEvent) | Get address info request callback event. |
+| [`GetAddrInfoReq`](#structicy_1_1uv_1_1GetAddrInfoReq) | DNS resolver request to get the IP address of a hostname. |
 
 ## Handle 
 
-> **Subclasses:** `scy::Stream< uv_pipe_t >`, `scy::Stream< uv_tcp_t >`, `scy::Stream< T >`
+> **Subclasses:** `icy::Stream< uv_pipe_t >`, `icy::Stream< uv_tcp_t >`, `icy::Stream< T >`
 > **Defined in:** `handle.h`
 
 Wrapper class for managing `uv_handle_t` variants.
@@ -51,7 +51,7 @@ This class manages the handle during it's lifecycle and safely handles the async
 | [`tid`](#group__uv_1ga2528dc53f1af808d3fa0dc05563deb4c) | Return the parent thread ID. |
 | [`context`](#group__uv_1gac4b3ca8752769915f33c76924d3bbbd3) | Return the shared handle pointer context. |
 | [`assertThread`](#group__uv_1gaa46a6be75e3a975a003a938631eb6ae2) | Assert the call is from the parent event loop thread. |
-| [`onError`](#group__uv_1gaffc115aedb14ff27a16613570738753c) | [Error](./doc/api-base.md#structscy_1_1Error) callback. Override to handle errors. The error may be a UV error, or a custom error. |
+| [`onError`](#group__uv_1gaffc115aedb14ff27a16613570738753c) | [Error](./doc/api-base.md#structicy_1_1Error) callback. Override to handle errors. The error may be a UV error, or a custom error. |
 | [`onClose`](#group__uv_1gad6564419640315d2933cb9d08f948c53) | Close callback. Override to handle closure. |
 | [`Handle`](#group__uv_1ga0b418ca2765a4f2b6295ab4226fe0e0e) | NonCopyable and NonMovable. |
 | [`operator=`](#group__uv_1gad883c6796c902047357383f64ee0f164) |  |
@@ -203,7 +203,7 @@ Return true is the handle has been closed.
 #### error 
 
 ```cpp
-inline const [scy::Error](./doc/api-base.md#structscy_1_1Error) & error() const
+inline const [icy::Error](./doc/api-base.md#structicy_1_1Error) & error() const
 ```
 
 Return the error context if any.
@@ -301,7 +301,7 @@ Reset the internal handle pointer and container state.
 #### get 
 
 ```cpp
-template<typename [Handle](#classscy_1_1uv_1_1Handle)> inline Handle * get() const
+template<typename [Handle](#classicy_1_1uv_1_1Handle)> inline Handle * get() const
 ```
 
 Return a typecasted pointer to the managed handle.
@@ -344,7 +344,7 @@ Assert the call is from the parent event loop thread.
 virtual inline void onError(const Error & error)
 ```
 
-[Error](./doc/api-base.md#structscy_1_1Error) callback. Override to handle errors. The error may be a UV error, or a custom error.
+[Error](./doc/api-base.md#structicy_1_1Error) callback. Override to handle errors. The error may be a UV error, or a custom error.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -516,7 +516,7 @@ This class povides safe access to the parent handle incase the handle gets destr
 | [`defaultCallback`](#group__uv_1ga9b5acaa79eb6c49487c376ef6dd897e4) |  |
 | [`req`](#group__uv_1ga1c2d4993bdd5fa576901b59c677811b3) |  |
 | [`callback`](#group__uv_1ga93497dface68fec7c3073c4ae1fbb621) |  |
-| [`invoke`](#structscy_1_1uv_1_1Request_1ga182893e356c9cbfd3702b52afef6850b) |  |
+| [`invoke`](#structicy_1_1uv_1_1Request_1ga182893e356c9cbfd3702b52afef6850b) |  |
 
 ---
 
@@ -583,10 +583,10 @@ template<typename F, typename... Args> inline auto invoke(F && f, Args &&... arg
 
 ## ConnectReq 
 
-> **Extends:** `scy::uv::Request< uv_connect_t >`
+> **Extends:** `icy::uv::Request< uv_connect_t >`
 > **Defined in:** `request.h`
 
-[Stream](./doc/api-base.md#classscy_1_1Stream) connection request for sockets and pipes.
+[Stream](./doc/api-base.md#classicy_1_1Stream) connection request for sockets and pipes.
 
 ### Members
 
@@ -661,7 +661,7 @@ struct addrinfo * addr
 
 ## GetAddrInfoReq 
 
-> **Extends:** `scy::uv::Request< uv_getaddrinfo_t, GetAddrInfoEvent >`
+> **Extends:** `icy::uv::Request< uv_getaddrinfo_t, GetAddrInfoEvent >`
 > **Defined in:** `request.h`
 
 DNS resolver request to get the IP address of a hostname.

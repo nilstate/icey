@@ -5,13 +5,13 @@ body:
   - type: markdown
     attributes:
       value: |
-        Have an idea for LibSourcey? Describe it below.
+        Have an idea for Icey? Describe it below.
 
   - type: textarea
     id: problem
     attributes:
       label: Problem or use case
-      description: What are you trying to do that LibSourcey doesn't support well today?
+      description: What are you trying to do that Icey doesn't support well today?
     validations:
       required: true
 

@@ -1,8 +1,8 @@
 {
-  "name": "libsourcey",
+  "name": "icey",
   "version": "2.1.0",
   "description": "C++ Networking Evolved - cross-platform modules for high-performance networked and media streaming applications",
-  "homepage": "https://sourcey.com/code/libsourcey",
+  "homepage": "https://0state.com/code/icey",
   "license": "LGPL-2.1-or-later",
   "dependencies": [
     "openssl",

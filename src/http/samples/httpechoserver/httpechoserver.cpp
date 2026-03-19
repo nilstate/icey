@@ -1,10 +1,10 @@
 #include "httpechoserver.h"
-#include "scy/logger.h"
-#include "scy/net/sslmanager.h"
+#include "icy/logger.h"
+#include "icy/net/sslmanager.h"
 #include <iostream>
 
 
-using namespace scy;
+using namespace icy;
 
 
 int main(int argc, char** argv)
@@ -13,7 +13,7 @@ int main(int argc, char** argv)
     // Linux kernel 3.9 or newer in RELEASE mode with ENABLE_LOGGING=OFF
 
     // Match libuv's thread pool size to CPU cores for better I/O throughput
-#ifdef SCY_UNIX
+#ifdef ICY_UNIX
     int ncores = std::thread::hardware_concurrency();
     // std::cout << "threadpool size: " << ncores << std::endl;
     setenv("UV_THREADPOOL_SIZE", std::to_string(ncores).c_str(), 1);

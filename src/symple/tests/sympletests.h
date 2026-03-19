@@ -1,11 +1,11 @@
 #pragma once
 
 
-#include "scy/base.h"
-#include "scy/logger.h"
-#include "scy/symple/client.h"
-#include "scy/symple/server.h"
-#include "scy/test.h"
+#include "icy/base.h"
+#include "icy/logger.h"
+#include "icy/symple/client.h"
+#include "icy/symple/server.h"
+#include "icy/test.h"
 
 #include <iostream>
 #include <stdexcept>
@@ -15,7 +15,7 @@
 #define SERVER_PORT 14500
 
 
-namespace scy {
+namespace icy {
 
 
 /// Test client that connects to the C++ Symple server.
@@ -86,4 +86,4 @@ public:
 };
 
 
-} // namespace scy
+} // namespace icy

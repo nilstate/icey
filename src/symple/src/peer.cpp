@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,11 +9,11 @@
 /// @{
 
 
-#include "scy/symple/peer.h"
-#include "scy/logger.h"
+#include "icy/symple/peer.h"
+#include "icy/logger.h"
 
 
-namespace scy {
+namespace icy {
 namespace smpl {
 
 
@@ -142,7 +142,7 @@ void Peer::setHost(std::string_view host)
 
 
 } // namespace smpl
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

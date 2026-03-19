@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,10 +9,10 @@
 /// @{
 
 
-#include "scy/sched/scheduler.h"
-#include "scy/datetime.h"
-#include "scy/logger.h"
-#include "scy/platform.h"
+#include "icy/sched/scheduler.h"
+#include "icy/datetime.h"
+#include "icy/logger.h"
+#include "icy/platform.h"
 
 #include <algorithm>
 #include <stdexcept>
@@ -21,7 +21,7 @@
 using namespace std;
 
 
-namespace scy {
+namespace icy {
 namespace sched {
 
 
@@ -126,7 +126,7 @@ void Scheduler::run()
     }
 
     // Prevent 100% CPU
-    scy::sleep(3);
+    icy::sleep(3);
 }
 
 
@@ -149,7 +149,7 @@ void Scheduler::update()
     // Sort the task list so the next task to
     // trigger is at the front of the queue.
     sort(_tasks.begin(), _tasks.end(),
-        [](const std::unique_ptr<scy::Task>& l, const std::unique_ptr<scy::Task>& r) {
+        [](const std::unique_ptr<icy::Task>& l, const std::unique_ptr<icy::Task>& r) {
             return sched::Task::CompareTimeout(l.get(), r.get());
         });
 }
@@ -213,7 +213,7 @@ TaskFactory& Scheduler::factory()
 
 
 } // namespace sched
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,9 +9,9 @@
 /// @{
 
 
-#include "scy/turn/server/server.h"
-#include "scy/buffer.h"
-#include "scy/logger.h"
+#include "icy/turn/server/server.h"
+#include "icy/buffer.h"
+#include "icy/logger.h"
 
 #include <algorithm>
 #include <memory>
@@ -19,10 +19,10 @@
 
 
 using std::min;
-using namespace scy::net;
+using namespace icy::net;
 
 
-namespace scy {
+namespace icy {
 namespace turn {
 
 
@@ -576,7 +576,7 @@ TCPAllocation* Server::getTCPAllocation(const uint32_t& connectionID)
 
 
 } // namespace turn
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

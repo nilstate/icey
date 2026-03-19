@@ -1,6 +1,6 @@
 # Modules
 
-LibSourcey is organised into 14 modules. Each module builds as a separate library and declares its dependencies via CMake.
+Icey is organised into 14 modules. Each module builds as a separate library and declares its dependencies via CMake.
 
 ## Dependency Diagram
 

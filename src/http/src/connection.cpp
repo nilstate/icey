@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,16 +9,16 @@
 /// @{
 
 
-#include "scy/http/connection.h"
-#include "scy/http/client.h"
-#include "scy/http/server.h"
-#include "scy/logger.h"
-#include "scy/memory.h"
+#include "icy/http/connection.h"
+#include "icy/http/client.h"
+#include "icy/http/server.h"
+#include "icy/logger.h"
+#include "icy/memory.h"
 
 #include <stdexcept>
 
 
-namespace scy {
+namespace icy {
 namespace http {
 
 
@@ -111,7 +111,7 @@ void Connection::replaceAdapter(std::nullptr_t)
 }
 
 
-void Connection::setError(const scy::Error& err)
+void Connection::setError(const icy::Error& err)
 {
     _error = err;
 }
@@ -132,7 +132,7 @@ bool Connection::onSocketRecv(net::Socket& socket, const MutableBuffer& buffer, 
 }
 
 
-bool Connection::onSocketError(net::Socket& socket, const scy::Error& error)
+bool Connection::onSocketError(net::Socket& socket, const icy::Error& error)
 {
     if (error.err == UV_EOF) {
         // Close the connection when the other side does
@@ -182,7 +182,7 @@ bool Connection::closed() const
 }
 
 
-scy::Error Connection::error() const
+icy::Error Connection::error() const
 {
     return _error;
 }
@@ -315,7 +315,7 @@ void ConnectionAdapter::onParserChunk(const char* buf, size_t len)
 }
 
 
-void ConnectionAdapter::onParserError(const scy::Error& err)
+void ConnectionAdapter::onParserError(const icy::Error& err)
 {
     LWarn("On parser error: ", err.message);
 
@@ -405,7 +405,7 @@ Connection::Ptr ConnectionStream::connection()
 
 
 } // namespace http
-} // namespace scy
+} // namespace icy
 
 
 /// @}

@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,12 +9,12 @@
 /// @{
 
 
-#include "scy/http/cookie.h"
-#include "scy/datetime.h"
-#include "scy/http/url.h"
+#include "icy/http/cookie.h"
+#include "icy/datetime.h"
+#include "icy/http/url.h"
 
 
-namespace scy {
+namespace icy {
 namespace http {
 
 
@@ -251,7 +251,7 @@ std::string Cookie::unescape(std::string_view str)
 
 
 } // namespace http
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

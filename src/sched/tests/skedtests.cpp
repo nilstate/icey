@@ -1,14 +1,14 @@
-#include "scy/base.h"
-#include "scy/datetime.h"
-#include "scy/logger.h"
-#include "scy/platform.h"
-#include "scy/sched/scheduler.h"
-#include "scy/test.h"
+#include "icy/base.h"
+#include "icy/datetime.h"
+#include "icy/logger.h"
+#include "icy/platform.h"
+#include "icy/sched/scheduler.h"
+#include "icy/test.h"
 
 
 using namespace std;
-using namespace scy;
-using namespace scy::test;
+using namespace icy;
+using namespace icy::test;
 
 
 static sched::Scheduler scheduler;
@@ -77,7 +77,7 @@ int main(int argc, char** argv)
             scheduler.serialize(json);
 
             // Wait for the task to complete
-            scy::sleep(1500);
+            icy::sleep(1500);
             expect(taskRunTimes == 1);
         }
 
@@ -109,7 +109,7 @@ int main(int argc, char** argv)
                    << before.dump(4);
 
             // Wait for the task to complete
-            scy::sleep(1500);
+            icy::sleep(1500);
             expect(taskRunTimes == 1);
 
             // Output scheduler tasks as JSON after run
@@ -142,7 +142,7 @@ int main(int argc, char** argv)
             // LDebug("##### Sched Print Output END");
 
             // Wait for the task to complete
-            scy::sleep(1000);
+            icy::sleep(1000);
             expect(taskRunTimes == 3);
         }
 

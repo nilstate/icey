@@ -1,1 +1,1 @@
-scy_add_test(webrtctests DEPENDS base av webrtc)
+icy_add_test(webrtctests DEPENDS base av webrtc)

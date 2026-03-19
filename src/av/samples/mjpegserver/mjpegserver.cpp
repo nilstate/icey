@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -20,24 +20,24 @@
 /// @{
 
 
-#include "scy/application.h"
-#include "scy/av/multiplexpacketencoder.h"
-#include "scy/av/mediacapture.h"
-#include "scy/http/packetizers.h"
-#include "scy/http/server.h"
-#include "scy/logger.h"
-#include "scy/packetstream.h"
+#include "icy/application.h"
+#include "icy/av/multiplexpacketencoder.h"
+#include "icy/av/mediacapture.h"
+#include "icy/http/packetizers.h"
+#include "icy/http/server.h"
+#include "icy/logger.h"
+#include "icy/packetstream.h"
 
 #include <iostream>
 #include <memory>
 
 
-using namespace scy;
+using namespace icy;
 
 #define USE_AVDEVICE_CAPTURE 0
 
 #if USE_AVDEVICE_CAPTURE
-#include "scy/av/videocapture.h"
+#include "icy/av/videocapture.h"
 #endif
 
 
@@ -136,7 +136,7 @@ int main(int argc, char** argv)
 #else
     // Stream from a video file (no hardware required)
     gCapture = std::make_shared<av::MediaCapture>();
-    gCapture->openFile(SCY_DATA_DIR "/test.mp4");
+    gCapture->openFile(ICY_DATA_DIR "/test.mp4");
     gCapture->setLoopInput(true);
     gCapture->setLimitFramerate(true);
 #endif

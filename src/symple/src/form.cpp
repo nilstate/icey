@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,13 +9,13 @@
 /// @{
 
 
-#include "scy/symple/form.h"
-#include "scy/util.h"
+#include "icy/symple/form.h"
+#include "icy/util.h"
 
 #include <stdexcept>
 
 
-namespace scy {
+namespace icy {
 namespace smpl {
 
 
@@ -414,7 +414,7 @@ void FormField::addValue(bool value)
 
 
 } // namespace smpl
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

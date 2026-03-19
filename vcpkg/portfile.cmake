@@ -1,6 +1,6 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
-    REPO sourcey/libsourcey
+    REPO icey/icey
     REF "v${VERSION}"
     SHA512 0  # Update with actual hash when publishing
 )
@@ -21,7 +21,7 @@ vcpkg_cmake_configure(
 )
 
 vcpkg_cmake_install()
-vcpkg_cmake_config_fixup(CONFIG_PATH lib/cmake/LibSourcey)
+vcpkg_cmake_config_fixup(CONFIG_PATH lib/cmake/Icey)
 vcpkg_fixup_pkgconfig()
 vcpkg_copy_pdbs()
 

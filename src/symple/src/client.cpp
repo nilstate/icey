@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,14 +9,14 @@
 /// @{
 
 
-#include "scy/symple/client.h"
-#include "scy/logger.h"
+#include "icy/symple/client.h"
+#include "icy/logger.h"
 
 #include <algorithm>
 #include <stdexcept>
 
 
-namespace scy {
+namespace icy {
 namespace smpl {
 
 
@@ -525,7 +525,7 @@ std::string Client::buildUrl() const
 
 
 } // namespace smpl
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

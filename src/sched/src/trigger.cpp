@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,16 +9,16 @@
 /// @{
 
 
-#include "scy/sched/trigger.h"
-#include "scy/datetime.h"
-#include "scy/logger.h"
-#include "scy/sched/scheduler.h"
+#include "icy/sched/trigger.h"
+#include "icy/datetime.h"
+#include "icy/logger.h"
+#include "icy/sched/scheduler.h"
 
 
 using namespace std;
 
 
-namespace scy {
+namespace icy {
 namespace sched {
 
 
@@ -225,7 +225,7 @@ void DailyTrigger::update()
 
 
 } // namespace sched
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

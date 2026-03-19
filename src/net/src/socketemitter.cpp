@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,12 +9,12 @@
 /// @{
 
 
-#include "scy/net/socketemitter.h"
+#include "icy/net/socketemitter.h"
 
 
 
 
-namespace scy {
+namespace icy {
 namespace net {
 
 
@@ -66,7 +66,7 @@ void SocketEmitter::addReceiver(SocketAdapter* adapter)
         throw std::invalid_argument("SocketEmitter: adapter priority exceeds 100");
     (void)Connect.attach([adapter](Socket& s) { return adapter->onSocketConnect(s); }, adapter, -1, adapter->priority);
     (void)Recv.attach([adapter](Socket& s, const MutableBuffer& b, const Address& a) { return adapter->onSocketRecv(s, b, a); }, adapter, -1, adapter->priority);
-    (void)Error.attach([adapter](Socket& s, const scy::Error& e) { return adapter->onSocketError(s, e); }, adapter, -1, adapter->priority);
+    (void)Error.attach([adapter](Socket& s, const icy::Error& e) { return adapter->onSocketError(s, e); }, adapter, -1, adapter->priority);
     (void)Close.attach([adapter](Socket& s) { return adapter->onSocketClose(s); }, adapter, -1, adapter->priority);
 }
 
@@ -102,7 +102,7 @@ bool SocketEmitter::onSocketRecv(Socket& socket, const MutableBuffer& buffer, co
 }
 
 
-bool SocketEmitter::onSocketError(Socket& socket, const scy::Error& error)
+bool SocketEmitter::onSocketError(Socket& socket, const icy::Error& error)
 {
     if (SocketAdapter::onSocketError(socket, error))
         return true;
@@ -119,7 +119,7 @@ bool SocketEmitter::onSocketClose(Socket& socket)
 
 
 } // namespace net
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

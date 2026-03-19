@@ -1,12 +1,12 @@
 #pragma once
 
-#include "scy/logger.h"
-#include "scy/net/address.h"
+#include "icy/logger.h"
+#include "icy/net/address.h"
 
 #include <memory>
 
 
-namespace scy {
+namespace icy {
 namespace net {
 
 
@@ -87,4 +87,4 @@ public:
 
 
 } // namespace net
-} // namespace scy
+} // namespace icy

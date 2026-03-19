@@ -1,12 +1,12 @@
 #pragma once
 
-#include "scy/net/sslsocket.h"
-#include "scy/net/tcpsocket.h"
+#include "icy/net/sslsocket.h"
+#include "icy/net/tcpsocket.h"
 
 #include <algorithm>
 
 
-namespace scy {
+namespace icy {
 namespace net {
 
 
@@ -94,4 +94,4 @@ using SSLEchoServer = EchoServer<SSLSocket>;
 
 
 } // namespace net
-} // namespace scy
+} // namespace icy

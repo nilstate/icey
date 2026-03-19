@@ -67,7 +67,7 @@ Browser ─── WSS /ws ──── Symple v4 (signalling, presence, rooms)
 
 ## Dependencies
 
-All existing libsourcey modules:
+All existing icey modules:
 
 ```
 media-server

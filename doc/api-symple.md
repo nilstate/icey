@@ -4,21 +4,21 @@
 
 | Name | Description |
 |------|-------------|
-| [`Client`](#classscy_1_1smpl_1_1Client) |  |
-| [`TCPClient`](#classscy_1_1smpl_1_1TCPClient) |  |
-| [`SSLClient`](#classscy_1_1smpl_1_1SSLClient) |  |
-| [`Command`](#classscy_1_1smpl_1_1Command) |  |
-| [`Event`](#classscy_1_1smpl_1_1Event) |  |
-| [`FormElement`](#classscy_1_1smpl_1_1FormElement) |  |
-| [`Form`](#classscy_1_1smpl_1_1Form) |  |
-| [`FormField`](#classscy_1_1smpl_1_1FormField) |  |
-| [`Message`](#classscy_1_1smpl_1_1Message) |  |
-| [`Peer`](#classscy_1_1smpl_1_1Peer) | This class represents a peer on the network. A [Peer](#classscy_1_1smpl_1_1Peer) object may also contain arbitrary data set by the client to share with other peers on the network. **See also**: [Address](#structscy_1_1smpl_1_1Address) for further methods and [basic](./doc/api-undefined.md#namespacescy_1_1basic) accessors. |
-| [`Presence`](#classscy_1_1smpl_1_1Presence) |  |
-| [`Roster`](#classscy_1_1smpl_1_1Roster) | The [Roster](#classscy_1_1smpl_1_1Roster) provides a registry for active network peers indexed by session ID. |
-| [`Address`](#structscy_1_1smpl_1_1Address) | The [Address](#structscy_1_1smpl_1_1Address) structure is an endpoint identifier for a peer on the network. The format is like so: user|id |
-| [`Options`](#structscy_1_1smpl_1_1Client_1_1Options) |  |
-| [`Filter`](#structscy_1_1smpl_1_1Filter) |  |
+| [`Client`](#classicy_1_1smpl_1_1Client) |  |
+| [`TCPClient`](#classicy_1_1smpl_1_1TCPClient) |  |
+| [`SSLClient`](#classicy_1_1smpl_1_1SSLClient) |  |
+| [`Command`](#classicy_1_1smpl_1_1Command) |  |
+| [`Event`](#classicy_1_1smpl_1_1Event) |  |
+| [`FormElement`](#classicy_1_1smpl_1_1FormElement) |  |
+| [`Form`](#classicy_1_1smpl_1_1Form) |  |
+| [`FormField`](#classicy_1_1smpl_1_1FormField) |  |
+| [`Message`](#classicy_1_1smpl_1_1Message) |  |
+| [`Peer`](#classicy_1_1smpl_1_1Peer) | This class represents a peer on the network. A [Peer](#classicy_1_1smpl_1_1Peer) object may also contain arbitrary data set by the client to share with other peers on the network. **See also**: [Address](#structicy_1_1smpl_1_1Address) for further methods and [basic](./doc/api-undefined.md#namespaceicy_1_1basic) accessors. |
+| [`Presence`](#classicy_1_1smpl_1_1Presence) |  |
+| [`Roster`](#classicy_1_1smpl_1_1Roster) | The [Roster](#classicy_1_1smpl_1_1Roster) provides a registry for active network peers indexed by session ID. |
+| [`Address`](#structicy_1_1smpl_1_1Address) | The [Address](#structicy_1_1smpl_1_1Address) structure is an endpoint identifier for a peer on the network. The format is like so: user|id |
+| [`Options`](#structicy_1_1smpl_1_1Client_1_1Options) |  |
+| [`Filter`](#structicy_1_1smpl_1_1Filter) |  |
 
 ### Members
 
@@ -36,8 +36,8 @@ Symple_API()
 
 ## Client 
 
-> **Extends:** `scy::sockio::Client`
-> **Subclasses:** `scy::smpl::SSLClient`, `scy::smpl::TCPClient`
+> **Extends:** `icy::sockio::Client`
+> **Subclasses:** `icy::smpl::SSLClient`, `icy::smpl::TCPClient`
 > **Defined in:** `client.h`
 
 ### Members
@@ -48,11 +48,11 @@ Symple_API()
 | [`~Client`](#group__symple_1ga1eb6bbd30e54e4c0e918c7ce43fadeec) |  |
 | [`connect`](#group__symple_1gaa8c97bf06d3fc80ceea252a2a611c5c7) |  |
 | [`close`](#group__symple_1gae27e4556310a4b935ffe78b62bbe3a9c) |  |
-| [`send`](#group__symple_1ga4dffb71d16288852dbeb54e38ce9cc82) | Send a message. May be a polymorphic [Command](#classscy_1_1smpl_1_1Command), [Presence](#classscy_1_1smpl_1_1Presence), [Event](#classscy_1_1smpl_1_1Event) or other ... |
+| [`send`](#group__symple_1ga4dffb71d16288852dbeb54e38ce9cc82) | Send a message. May be a polymorphic [Command](#classicy_1_1smpl_1_1Command), [Presence](#classicy_1_1smpl_1_1Presence), [Event](#classicy_1_1smpl_1_1Event) or other ... |
 | [`send`](#group__symple_1ga6e121b7e49c36023f49190c9ab5bebef) | Send a string message. The message must be a valid Symple message otherwise it will not be delivered. |
 | [`createTransaction`](#group__symple_1ga51add0f918bee39b510fad050c973db9) | Create a Transaction object with the given message which will notify on Ack response from the server. |
 | [`respond`](#group__symple_1gaea0ec59bcf35da1f20a3cd46adf1e4f4) | Swap the 'to' and 'from' fields and send the given message. |
-| [`sendPresence`](#group__symple_1gaa2b2c55f34473f05b397c88e6a1f1e19) | Broadcast presence to the user group scope. The outgoing [Presence](#classscy_1_1smpl_1_1Presence) object may be modified via the CreatePresence signal. |
+| [`sendPresence`](#group__symple_1gaa2b2c55f34473f05b397c88e6a1f1e19) | Broadcast presence to the user group scope. The outgoing [Presence](#classicy_1_1smpl_1_1Presence) object may be modified via the CreatePresence signal. |
 | [`sendPresence`](#group__symple_1gaaf17806e06f596c196e007c5e98a0ea6) | Send directed presence to the given peer. |
 | [`joinRoom`](#group__symple_1ga426afee6e4914560d5b82fb9098898d6) | Join the given room. |
 | [`leaveRoom`](#group__symple_1ga7d696ae2396d9da0d87c7d0ed464b579) | Leave the given room. |
@@ -62,18 +62,18 @@ Symple_API()
 | [`roster`](#group__symple_1ga6998f1375a4767e630a98f60cb304300) | Return the roster which stores all online peers. |
 | [`persistence`](#group__symple_1ga7ee28acdc40837302c167b543fc56a15) | Return the persistence manager which stores long lived messages. |
 | [`options`](#group__symple_1ga6272271fea7d57a5719e2da9163b3224) | Return a reference to the client options object. |
-| [`operator>>`](#group__symple_1ga991c5b0bbcca7d16536b0dccce4107d2) | [Stream](./doc/api-base.md#classscy_1_1Stream) operator alias for [send()](#group__symple_1ga4dffb71d16288852dbeb54e38ce9cc82). |
+| [`operator>>`](#group__symple_1ga991c5b0bbcca7d16536b0dccce4107d2) | [Stream](./doc/api-base.md#classicy_1_1Stream) operator alias for [send()](#group__symple_1ga4dffb71d16288852dbeb54e38ce9cc82). |
 | [`onPresenceData`](#group__symple_1gaac8e9b77fda748176c2c99787b4d4355) | Update the roster from the given client object. |
 | [`announce`](#group__symple_1gadf0ac053e026a7c792d00ac165cb1298) | Called when a new connection is established to announce and authenticate the peer on the server. |
 | [`reset`](#group__symple_1gafe1d7b3e16488e4a61f6fc045601dc2a) | Resets variables and data at the beginning and end of each session. |
-| [`createPresence`](#group__symple_1gace2ee9e3f211f1fb9979953c6d0dfa34) | Creates a [Presence](#classscy_1_1smpl_1_1Presence) object. |
+| [`createPresence`](#group__symple_1gace2ee9e3f211f1fb9979953c6d0dfa34) | Creates a [Presence](#classicy_1_1smpl_1_1Presence) object. |
 | [`emit`](#group__symple_1ga805c44b00ddf3dfeba913dea6a03330d) | Override PacketSignal::emit. |
 | [`onOnline`](#group__symple_1ga34e2a7ff6cc2292a40102a0d51917cd6) |  |
 | [`onAnnounceState`](#group__symple_1gae30976d64dc3e2b64b470eb0774fdf16) |  |
 | [`Announce`](#group__symple_1ga0228d93d0cedc21b61f12a580bb7c6b9) | Signals Notifies the outside application about the response status code of our [announce()](#group__symple_1gadf0ac053e026a7c792d00ac165cb1298) call. Possible status codes are: // - 200: Authentication success |
 | [`PeerConnected`](#group__symple_1ga01d918d49dcf259d612543a353a7e98e) | Signals when a peer connects. |
 | [`PeerDisconnected`](#group__symple_1ga317fcf03f379f086db4b77bbc58ba7f6) | Signals when a peer disconnects. |
-| [`CreatePresence`](#group__symple_1ga026c3952b78bd1b4b4f18d9bd815e94e) | Called by [createPresence()](#group__symple_1gace2ee9e3f211f1fb9979953c6d0dfa34) so outside classes can modify the outgoing [Peer](#classscy_1_1smpl_1_1Peer) JSON object. |
+| [`CreatePresence`](#group__symple_1ga026c3952b78bd1b4b4f18d9bd815e94e) | Called by [createPresence()](#group__symple_1gace2ee9e3f211f1fb9979953c6d0dfa34) so outside classes can modify the outgoing [Peer](#classicy_1_1smpl_1_1Peer) JSON object. |
 | [`_roster`](#group__symple_1ga8a6dc184e85eb02e1180a6ff11af402f) |  |
 | [`_ourID`](#group__symple_1ga7aa335a7730f803fabab6a0ac7bf629f) |  |
 | [`_persistence`](#group__symple_1ga0ecdbbbdc4f57cac6e7b5fda9072f5fa) |  |
@@ -126,7 +126,7 @@ virtual void close()
 virtual int send(Message & message, bool ack)
 ```
 
-Send a message. May be a polymorphic [Command](#classscy_1_1smpl_1_1Command), [Presence](#classscy_1_1smpl_1_1Presence), [Event](#classscy_1_1smpl_1_1Event) or other ...
+Send a message. May be a polymorphic [Command](#classicy_1_1smpl_1_1Command), [Presence](#classicy_1_1smpl_1_1Presence), [Event](#classicy_1_1smpl_1_1Event) or other ...
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -185,7 +185,7 @@ Swap the 'to' and 'from' fields and send the given message.
 virtual int sendPresence(bool probe)
 ```
 
-Broadcast presence to the user group scope. The outgoing [Presence](#classscy_1_1smpl_1_1Presence) object may be modified via the CreatePresence signal.
+Broadcast presence to the user group scope. The outgoing [Presence](#classicy_1_1smpl_1_1Presence) object may be modified via the CreatePresence signal.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -302,7 +302,7 @@ Return a reference to the client options object.
 virtual Client & operator>>(Message & message)
 ```
 
-[Stream](./doc/api-base.md#classscy_1_1Stream) operator alias for [send()](#group__symple_1ga4dffb71d16288852dbeb54e38ce9cc82).
+[Stream](./doc/api-base.md#classicy_1_1Stream) operator alias for [send()](#group__symple_1ga4dffb71d16288852dbeb54e38ce9cc82).
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -351,7 +351,7 @@ Resets variables and data at the beginning and end of each session.
 virtual void createPresence(Presence & p)
 ```
 
-Creates a [Presence](#classscy_1_1smpl_1_1Presence) object.
+Creates a [Presence](#classicy_1_1smpl_1_1Presence) object.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -436,7 +436,7 @@ Signals when a peer disconnects.
 Signal< void(Peer &)> CreatePresence
 ```
 
-Called by [createPresence()](#group__symple_1gace2ee9e3f211f1fb9979953c6d0dfa34) so outside classes can modify the outgoing [Peer](#classscy_1_1smpl_1_1Peer) JSON object.
+Called by [createPresence()](#group__symple_1gace2ee9e3f211f1fb9979953c6d0dfa34) so outside classes can modify the outgoing [Peer](#classicy_1_1smpl_1_1Peer) JSON object.
 
 ---
 
@@ -582,7 +582,7 @@ std::string token
 
 ## TCPClient 
 
-> **Extends:** `scy::smpl::Client`
+> **Extends:** `icy::smpl::Client`
 > **Defined in:** `client.h`
 
 ### Members
@@ -606,7 +606,7 @@ TCPClient(const Client::Options & options, uv::Loop * loop)
 
 ## SSLClient 
 
-> **Extends:** `scy::smpl::Client`
+> **Extends:** `icy::smpl::Client`
 > **Defined in:** `client.h`
 
 ### Members
@@ -630,7 +630,7 @@ SSLClient(const Client::Options & options, uv::Loop * loop)
 
 ## Command 
 
-> **Extends:** `scy::smpl::Message`
+> **Extends:** `icy::smpl::Message`
 > **Defined in:** `command.h`
 
 ### Members
@@ -772,7 +772,7 @@ bool matches(const std::string & xnode) const
 
 ## Event 
 
-> **Extends:** `scy::smpl::Message`
+> **Extends:** `icy::smpl::Message`
 > **Defined in:** `event.h`
 
 ### Members
@@ -879,7 +879,7 @@ void setTime(std::time_t time)
 
 ## FormElement 
 
-> **Subclasses:** `scy::smpl::Form`, `scy::smpl::FormField`
+> **Subclasses:** `icy::smpl::Form`, `icy::smpl::FormField`
 > **Defined in:** `form.h`
 
 ### Members
@@ -904,7 +904,7 @@ void setTime(std::time_t time)
 | [`addField`](#group__symple_1ga474c9727e83a9ce0e0b206d246379d6c) |  |
 | [`getField`](#group__symple_1gac9715a4fffff97d29092698755242cab) |  |
 | [`getField`](#group__symple_1gad7d9fdada931140ef706d58036afb0fe) |  |
-| [`hasField`](#group__symple_1gae28386fbc730fd60fea605384563dc1c) | Returns true if the given [Address](#structscy_1_1smpl_1_1Address) matches any of the internal form element IDs. If the partial flag is set then substring matches will be counted. |
+| [`hasField`](#group__symple_1gae28386fbc730fd60fea605384563dc1c) | Returns true if the given [Address](#structicy_1_1smpl_1_1Address) matches any of the internal form element IDs. If the partial flag is set then substring matches will be counted. |
 | [`setLive`](#group__symple_1ga88878fc79bdeed108b06703d29fab26b) | Live fields or elements are used to submit partial sections a form, without sending the entire form. |
 | [`live`](#group__symple_1gace9f6fd60c701c643d660971c159ce43) | Returns true if this field is live, meaning the form-processing entity should auto-update this field's value whenever it changes. |
 | [`clearElements`](#group__symple_1gac2ee4183b9d5465c0036ee4a4c38e562) | Clears child elements matching the given ID. |
@@ -1134,7 +1134,7 @@ bool getField(const std::string & id, FormField & field, bool partial)
 bool hasField(const std::string & id, bool partial)
 ```
 
-Returns true if the given [Address](#structscy_1_1smpl_1_1Address) matches any of the internal form element IDs. If the partial flag is set then substring matches will be counted.
+Returns true if the given [Address](#structicy_1_1smpl_1_1Address) matches any of the internal form element IDs. If the partial flag is set then substring matches will be counted.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -1250,7 +1250,7 @@ The root pointer is just a reference to the externally managed JSON value memory
 
 ## Form 
 
-> **Extends:** `scy::smpl::FormElement`
+> **Extends:** `icy::smpl::FormElement`
 > **Defined in:** `form.h`
 
 ### Members
@@ -1361,7 +1361,7 @@ Notifies the form is a partial section of the form. This is used for transmittin
 
 ## FormField 
 
-> **Extends:** `scy::smpl::FormElement`
+> **Extends:** `icy::smpl::FormElement`
 > **Defined in:** `form.h`
 
 ### Members
@@ -1591,8 +1591,8 @@ bool boolValue() const
 
 ## Message 
 
-> **Extends:** `json::value`, `scy::IPacket`
-> **Subclasses:** `scy::smpl::Command`, `scy::smpl::Event`, `scy::smpl::Presence`
+> **Extends:** `json::value`, `icy::IPacket`
+> **Subclasses:** `icy::smpl::Command`, `icy::smpl::Event`, `icy::smpl::Presence`
 > **Defined in:** `message.h`
 
 ### Members
@@ -2086,7 +2086,7 @@ virtual inline const char * className() const
 > **Extends:** `json::value`
 > **Defined in:** `peer.h`
 
-This class represents a peer on the network. A [Peer](#classscy_1_1smpl_1_1Peer) object may also contain arbitrary data set by the client to share with other peers on the network. **See also**: [Address](#structscy_1_1smpl_1_1Address) for further methods and [basic](./doc/api-undefined.md#namespacescy_1_1basic) accessors.
+This class represents a peer on the network. A [Peer](#classicy_1_1smpl_1_1Peer) object may also contain arbitrary data set by the client to share with other peers on the network. **See also**: [Address](#structicy_1_1smpl_1_1Address) for further methods and [basic](./doc/api-undefined.md#namespaceicy_1_1basic) accessors.
 
 ### Members
 
@@ -2291,7 +2291,7 @@ virtual inline const char * className() const
 
 ## Presence 
 
-> **Extends:** `scy::smpl::Message`
+> **Extends:** `icy::smpl::Message`
 > **Defined in:** `presence.h`
 
 ### Members
@@ -2367,10 +2367,10 @@ void setProbe(bool flag)
 
 ## Roster 
 
-> **Extends:** `scy::LiveCollection< std::string, Peer >`
+> **Extends:** `icy::LiveCollection< std::string, Peer >`
 > **Defined in:** `roster.h`
 
-The [Roster](#classscy_1_1smpl_1_1Roster) provides a registry for active network peers indexed by session ID.
+The [Roster](#classicy_1_1smpl_1_1Roster) provides a registry for active network peers indexed by session ID.
 
 ### Members
 
@@ -2447,7 +2447,7 @@ virtual inline const char * className() const
 
 > **Defined in:** `address.h`
 
-The [Address](#structscy_1_1smpl_1_1Address) structure is an endpoint identifier for a peer on the network. The format is like so: user|id
+The [Address](#structicy_1_1smpl_1_1Address) structure is an endpoint identifier for a peer on the network. The format is like so: user|id
 
 ### Members
 

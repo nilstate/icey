@@ -5,7 +5,7 @@
   },
   "turn": {
     "port": 3478,
-    "realm": "sourcey.com",
+    "realm": "0state.com",
     "externalIp": ""
   },
   "media": {

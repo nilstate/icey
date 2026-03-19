@@ -1,6 +1,6 @@
 ## Installation
 
-LibSourcey uses CMake to generate project files for your compiler. The codebase is cross-platform and compiles on any system with a C++20 compiler.
+Icey uses CMake to generate project files for your compiler. The codebase is cross-platform and compiles on any system with a C++20 compiler.
 
 Platform-specific guides:
 
@@ -19,7 +19,7 @@ Platform-specific guides:
 | Option | Default | Description |
 | ------ | ------- | ----------- |
 | `BUILD_SHARED_LIBS` | `OFF` | Build shared libraries (.dll/.so) instead of static (.lib/.a) |
-| `BUILD_MODULES` | `ON` | Build all LibSourcey modules |
+| `BUILD_MODULES` | `ON` | Build all Icey modules |
 | `BUILD_MODULE_xxx` | | Enable or disable a specific module |
 | `BUILD_APPLICATIONS` | `ON` | Build applications |
 | `BUILD_TESTS` | `OFF` | Build module tests |
@@ -68,17 +68,17 @@ cmake --install build --prefix /usr/local
 ## Docker
 
 ```bash
-docker build -t libsourcey .
+docker build -t icey .
 ```
 
 Multi-stage Ubuntu 24.04 image via the included `Dockerfile`.
 
 ## External module plugin
 
-LibSourcey supports external modules that live outside the main source tree. Create a directory with a `CMakeLists.txt` that uses `scy_add_module()`:
+Icey supports external modules that live outside the main source tree. Create a directory with a `CMakeLists.txt` that uses `icy_add_module()`:
 
 ```cmake
-scy_add_module(mymodule
+icy_add_module(mymodule
   DEPENDS base net
   PACKAGES OpenSSL::SSL
   PRETTY_NAME MyModule
@@ -88,12 +88,12 @@ scy_add_module(mymodule
 Then pass the module path when configuring:
 
 ```bash
-cmake -B build -DBUILD_MODULE_mymodule=ON -DLibSourcey_EXTRA_MODULES=/path/to/mymodule
+cmake -B build -DBUILD_MODULE_mymodule=ON -DIcey_EXTRA_MODULES=/path/to/mymodule
 ```
 
 ## Building packages
 
-LibSourcey can be packaged into `deb`, `rpm`, `tar.gz`, `zip` and other formats using CPack:
+Icey can be packaged into `deb`, `rpm`, `tar.gz`, `zip` and other formats using CPack:
 
 ```bash
 cd build

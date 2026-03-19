@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,16 +9,16 @@
 /// @{
 
 
-#include "scy/stun/message.h"
-#include "scy/logger.h"
-#include "scy/util.h"
+#include "icy/stun/message.h"
+#include "icy/logger.h"
+#include "icy/util.h"
 
 #include <sstream>
 #include <stdexcept>
 #include <utility>
 
 
-namespace scy {
+namespace icy {
 namespace stun {
 
 
@@ -382,7 +382,7 @@ void Message::setMethod(MethodType type)
     _method = type;
 }
 } // namespace stun
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

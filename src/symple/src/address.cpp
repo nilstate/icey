@@ -1,7 +1,7 @@
 ///
 //
-// LibSourcey
-// Copyright (c) 2005, Sourcey <https://sourcey.com>
+// Icey
+// Copyright (c) 2005, Icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -9,14 +9,14 @@
 /// @{
 
 
-#include "scy/symple/address.h"
-#include "scy/util.h"
+#include "icy/symple/address.h"
+#include "icy/util.h"
 
 #include <sstream>
 #include <stdexcept>
 
 
-namespace scy {
+namespace icy {
 namespace smpl {
 
 
@@ -97,7 +97,7 @@ bool Address::operator==(std::string& r)
 
 
 } // namespace smpl
-} // namespace scy
+} // namespace icy
 
 
 /// @\}

@@ -4,7 +4,7 @@ Pull requests are always welcome. If you fix or improve anything, feel free to f
 
 ## Getting started
 
-1. [Fork LibSourcey on GitHub](https://github.com/sourcey/libsourcey)
+1. [Fork Icey on GitHub](https://github.com/sourcey/icey)
 2. Create a feature branch (`git checkout -b my-feature`)
 3. Build and run the tests to make sure everything passes before you start:
 
@@ -50,7 +50,7 @@ ctest --test-dir build --output-on-failure
 
 ## Regenerating API docs
 
-The API reference in `doc/` is generated from source using [Doxygen](https://www.doxygen.nl/) and [Moxygen](https://github.com/sourcey/moxygen). Prerequisites: `doxygen` and `npx` (Node.js).
+The API reference in `doc/` is generated from source using [Doxygen](https://www.doxygen.nl/) and [Moxygen](https://github.com/icey/moxygen). Prerequisites: `doxygen` and `npx` (Node.js).
 
 ```bash
 doxygen Doxyfile
