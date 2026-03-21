@@ -81,6 +81,7 @@ Base_API bool waitFor(std::function<bool()> condition, int timeoutMs = 3000);
 class Base_API Test
 {
 public:
+    /// @param name Human-readable name displayed in test output.
     Test(const std::string& name = "Unnamed Test");
 
     /// Should remain protected.
@@ -110,12 +111,14 @@ protected:
 };
 
 
-// Test class that runs a static or lambda function.
+/// Test wrapper for standalone test functions
 class Base_API FunctionTest : public Test
 {
 public:
     std::function<void()> target;
 
+    /// @param target Lambda or function to execute as the test body.
+    /// @param name   Human-readable test name.
     FunctionTest(std::function<void()> target,
                  const std::string& name = "Unnamed Test")
         : Test(name)
@@ -148,14 +151,17 @@ public:
     TestRunner();
     virtual ~TestRunner();
 
-    /// Add a test to the runner.
+    /// Adds a test to the runner and prints its name to stdout.
+    /// @param test Non-null pointer to the test; the runner takes ownership.
     void add(Test* test);
 
     /// Return a pointer to the test matching the given name,
     /// or nullptr if no matching test exists.
+    /// @param name Test name to search for.
+    /// @return Matching test pointer or nullptr.
     Test* get(std::string_view name) const;
 
-    /// Called by the async context to run the next test.
+    /// Runs all registered tests sequentially, printing results to stdout.
     void run();
 
     /// Destroy and clears all managed tests.

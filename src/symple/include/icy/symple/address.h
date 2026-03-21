@@ -28,20 +28,44 @@ namespace smpl {
 struct Symple_API Address
 {
 public:
+    /// Constructs an empty (invalid) address.
     Address();
+
+    /// Parses an address string of the form `user|id`.
+    /// @param addr Address string to parse.
     Address(std::string_view addr);
+
+    /// Constructs an address from explicit user and session ID components.
+    /// @param user User identifier.
+    /// @param id   Session ID.
     Address(const std::string& user,
             const std::string& id);
     // const std::string& group,
     virtual ~Address();
 
+    /// Parses an address string of the form `user|id`.
+    /// Populates the `user` and `id` fields.
+    /// @param addr Address string to parse.
+    /// @return True if the result is a valid address.
     bool parse(std::string_view addr);
 
+    /// Returns true if at least one of `user` or `id` is non-empty.
     [[nodiscard]] bool valid() const;
+
+    /// Writes the address in `user|id` format to the given stream.
+    /// @param os Output stream.
     void print(std::ostream& os) const;
+
+    /// Returns the address as a string in `user|id` format.
+    /// @return Serialised address string.
     [[nodiscard]] std::string toString() const;
 
+    /// Compares two addresses for equality (both user and id must match).
+    /// @param r Address to compare against.
     bool operator==(const Address& r);
+
+    /// Compares this address's string representation against a string.
+    /// @param r String to compare against.
     bool operator==(std::string& r);
 
     friend std::ostream& operator<<(std::ostream& os, const Address& addr)

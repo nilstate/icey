@@ -5,7 +5,9 @@
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
-/// @addtogroup json
+/// @defgroup json JSON module
+///
+/// JSON serialization using nlohmann/json.
 /// @{
 
 

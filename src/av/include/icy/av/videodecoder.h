@@ -24,24 +24,33 @@ namespace icy {
 namespace av {
 
 
+/// Decodes compressed video packets into raw frames
 struct VideoDecoder : public VideoContext
 {
+    /// Construct a decoder for the given stream.
+    /// The codec parameters are read from the stream's codecpar.
+    /// @param stream  The AVStream to decode; must remain valid for the lifetime of this decoder.
     VideoDecoder(AVStream* stream);
     ~VideoDecoder() noexcept override;
 
+    /// Initialise the AVCodecContext from the stream's codec parameters.
     virtual void create() override;
+
+    /// Open the codec and initialise any required pixel format conversion context.
     virtual void open() override;
+
+    /// Close and free the AVCodecContext and associated resources.
     virtual void close() override;
 
-    /// Decodes a the given input packet.
-    /// Input packets should use the raw `AVStream` time base. Time base
-    /// conversion will happen internally.
-    /// Returns true an output packet was was decoded, false otherwise.
+    /// Decode the given compressed video packet and emit the decoded frame.
+    /// Input packets must use the raw AVStream time base; time base conversion
+    /// to microseconds is performed internally.
+    /// @param ipacket  The compressed video packet to decode.
+    /// @return True if an output frame was decoded and emitted, false otherwise.
     [[nodiscard]] bool decode(AVPacket& ipacket) override;
 
-    /// Flushes buffered frames.
-    /// This method should be called after decoding
-    /// until false is returned.
+    /// Flush any frames buffered inside the decoder.
+    /// Call repeatedly after the last packet until false is returned.
     void flush() override;
 };
 

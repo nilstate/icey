@@ -33,9 +33,13 @@ namespace net {
 /// A wrapper for the OpenSSL SSL connection context.
 /// Currently coupled to SSLSocket for BIO read/write callbacks.
 class Net_API SSLSocket;
+/// Manages the OpenSSL context and BIO buffers for an SSL socket connection
 class Net_API SSLAdapter
 {
 public:
+    /// Constructs the SSLAdapter and associates it with the given socket.
+    /// The socket pointer must remain valid for the lifetime of this adapter.
+    /// @param socket The owning SSLSocket that sends and receives raw data.
     SSLAdapter(net::SSLSocket* socket);
     ~SSLAdapter() noexcept;
 
@@ -73,8 +77,20 @@ public:
     /// Must be called before initClient() to enable hostname verification.
     void setHostname(const std::string& hostname);
 
+    /// Feeds encrypted data received from the network into the SSL read BIO.
+    /// Triggers a flush, which drives the handshake or decrypts and delivers
+    /// plaintext to the socket via onRecv().
+    /// @param data Pointer to the encrypted bytes.
+    /// @param len  Number of bytes to feed.
     void addIncomingData(const char* data, size_t len);
+
+    /// Queues plaintext data for encryption and transmission.
+    /// @param data String view of the plaintext payload.
     void addOutgoingData(std::string_view data);
+
+    /// Queues plaintext data for encryption and transmission.
+    /// @param data Pointer to the plaintext bytes.
+    /// @param len  Number of bytes to queue.
     void addOutgoingData(const char* data, size_t len);
 
 protected:

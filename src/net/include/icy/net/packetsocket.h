@@ -28,20 +28,28 @@ namespace net {
 //
 
 
+/// Socket adapter that emits received data as packets
 class Net_API PacketSocketEmitter : public SocketEmitter
     , public PacketSignal
 {
 public:
-    /// Creates the PacketSocketEmitter
-    /// This class should have a higher priority than standard
-    /// sockets so we can parse data packets first.
-    /// Creates and dispatches a packet utilizing the available
-    /// creation strategies. For best performance the most used
-    /// strategies should have the highest priority.
+    /// Creates the PacketSocketEmitter and attaches it to the given socket.
+    ///
+    /// The emitter should be assigned a higher priority than plain socket
+    /// adapters so that packet parsing occurs before generic data callbacks.
+    /// Packets are created and dispatched using the registered factory strategies;
+    /// strategies with the highest priority are tried first.
+    /// @param socket Optional socket to attach to immediately.
     PacketSocketEmitter(const Socket::Ptr& socket = nullptr);
 
     virtual ~PacketSocketEmitter() noexcept;
 
+    /// Parses raw received data into packets via the factory and forwards each
+    /// parsed packet to onPacket(). Returns true if propagation should stop.
+    /// @param socket      The socket that received the data.
+    /// @param buffer      The raw received data buffer.
+    /// @param peerAddress The sender's address.
+    /// @return true if the event was consumed and should not propagate further.
     virtual bool onSocketRecv(Socket& socket, const MutableBuffer& buffer, const Address& peerAddress) override;
 
     /// Process a parsed packet. Returns true to stop propagation.

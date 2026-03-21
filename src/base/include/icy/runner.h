@@ -37,43 +37,47 @@ public:
     Runner();
     virtual ~Runner();
 
-    /// Start the asynchronous context with the given invokeback.
-    ///
-    /// The target `Runnable` instance must outlive the `Runner`.
+    /// Starts the asynchronous context with the given callback.
+    /// The callback must remain valid for the lifetime of the `Runner`.
+    /// @param target Callable to invoke when the context runs.
     virtual void start(std::function<void()> target) = 0;
 
     /// Returns true if the async context is currently running.
+    /// @return True if the runner's context has been started and has not yet stopped.
     bool running() const;
 
-    /// Cancels the async context.
+    /// Signals the async context to stop at the earliest opportunity.
     void cancel();
 
-    /// True when the task has been cancelled.
-    /// It is up to the implementation to return at the
-    /// earliest possible time.
+    /// Returns true if the context has been cancelled.
+    /// The implementation is responsible for exiting as soon as possible after cancellation.
+    /// @return True if `cancel()` has been called.
     bool cancelled() const;
 
-    /// Returns true if the Runner is operating in repeating mode.
+    /// Returns true if the runner is in repeating mode.
+    /// @return True if the target function is invoked in a loop until cancelled.
     bool repeating() const;
 
-    /// This setting means the implementation should invoke the
-    /// target function repeatedly until cancelled. The importance
-    /// of this method to normalize the functionality of threadded
-    /// and event loop driven Runner models.
+    /// Enables or disables repeating mode.
+    /// When repeating, the target function is invoked repeatedly until `cancel()` is called.
+    /// This normalizes behaviour across thread-based and event-loop-based `Runner` implementations.
+    /// Must be called before `start()`.
+    /// @param flag True to enable repeating mode, false to run the target once.
     void setRepeating(bool flag);
 
-    /// Returns true if the implementation is thread-based, or false
-    /// if it belongs to an event loop.
+    /// Returns true if the implementation is thread-based.
+    /// @return True for thread-backed runners, false for event-loop-driven runners.
     virtual bool async() const = 0;
 
-    /// Return the native thread ID.
+    /// Returns the native thread ID of the thread running the async context.
+    /// @return `std::thread::id` of the runner thread, or a default-constructed ID if not started.
     std::thread::id tid() const;
 
-    /// Wait until the thread exits.
-    ///
-    /// The thread should be cancelled beore invokeing this method.
-    /// This method must be invokeed from outside the current thread
-    /// context or deadlock will ensue.
+    /// Blocks until the async context exits or the timeout elapses.
+    /// The context should be cancelled before calling this method.
+    /// Must be called from outside the runner's own thread to avoid deadlock.
+    /// @param timeout Maximum number of milliseconds to wait. Pass 0 to wait indefinitely.
+    /// @return True if the context exited cleanly, false if the timeout was reached (throws instead).
     bool waitForExit(int timeout = 5000);
 
     /// Context object which we send to the thread context.
@@ -87,14 +91,15 @@ public:
         std::atomic<bool> cancelled;
         bool repeating = false;
 
-        // The implementation is responsible for resetting
-        // the context if it is to be reused.
+        /// Resets the context to its initial state so it can be reused.
+        /// The implementation must call this before restarting a `Runner`.
         void reset()
         {
             running = false;
             cancelled = false;
         }
 
+        /// Default constructor; calls `reset()` to initialize fields.
         Context()
         {
             reset();
@@ -121,7 +126,11 @@ protected:
 namespace internal {
 
 
-/// Helper function for running an async context.
+/// Runs a function inside a `Runner::Context`, setting running/tid state and
+/// looping if `repeating` is set. Catches exceptions if `ICY_EXCEPTION_RECOVERY` is defined.
+/// @param c Shared context used to track running/cancelled/repeating state.
+/// @param func Callable to invoke.
+/// @param args Arguments forwarded to `func`.
 template <typename Function, typename... Args>
 inline void runAsync(std::shared_ptr<Runner::Context> c, Function func, Args... args)
 {
@@ -153,6 +162,9 @@ struct DeferredCallable
     Function func;
     std::tuple<Args...> args;
 
+    /// @param c Shared runner context for cancellation checks.
+    /// @param f Callable to store.
+    /// @param a Arguments to store alongside the callable.
     DeferredCallable(std::shared_ptr<Runner::Context> c, Function&& f, Args&&... a)
         : ctx(c)
         , func(f)
@@ -160,6 +172,7 @@ struct DeferredCallable
     {
     }
 
+    /// Invokes the stored callable with the stored arguments.
     void invoke()
     {
         std::apply(func, args);

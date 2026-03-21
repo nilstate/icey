@@ -27,6 +27,9 @@ namespace v4l2 {
 
 /// Enumerate video input devices using V4L2.
 /// Populates device capabilities (resolutions, frame rates, pixel formats).
+/// @param type     Must be Device::VideoInput.
+/// @param devices  Output vector to fill with discovered devices.
+/// @return True if enumeration succeeded.
 bool getDeviceList(Device::Type type, std::vector<av::Device>& devices);
 
 
@@ -41,13 +44,19 @@ bool getDeviceList(Device::Type type, std::vector<av::Device>& devices);
 class AV_API LinuxDeviceWatcher : public DeviceWatcher
 {
 public:
+    /// @param manager  The DeviceManager whose DevicesChanged signal will be emitted on changes.
     explicit LinuxDeviceWatcher(DeviceManager* manager);
     ~LinuxDeviceWatcher() noexcept override;
 
+    /// Begin monitoring via libudev inotify events.
+    /// @return True if the udev monitor was successfully started.
     bool start() override;
+
+    /// Stop monitoring and close the udev monitor.
     void stop() override;
 
 private:
+    /// Internal implementation for LinuxDeviceWatcher
     struct Impl;
     std::unique_ptr<Impl> _impl;
     DeviceManager* _manager;

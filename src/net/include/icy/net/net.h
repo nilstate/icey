@@ -5,7 +5,9 @@
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
-/// @addtogroup net
+/// @defgroup net Net module
+///
+/// TCP/SSL/UDP networking, socket adapters, DNS resolution.
 /// @{
 
 
@@ -81,15 +83,19 @@ namespace icy {
 namespace net {
 
 
+/// Maximum size of a single TCP receive buffer, in bytes.
 constexpr int MAX_TCP_PACKET_SIZE = 64 * 1024;
+
+/// Maximum size of a single UDP datagram payload, in bytes.
 constexpr int MAX_UDP_PACKET_SIZE = 1500;
 
 
+/// Transport protocol identifier used to distinguish socket types at runtime.
 enum TransportType
 {
-    UDP,
-    TCP,
-    SSLTCP
+    UDP,    ///< Unreliable datagram protocol.
+    TCP,    ///< Reliable stream protocol.
+    SSLTCP  ///< TLS-encrypted TCP stream.
 };
 
 

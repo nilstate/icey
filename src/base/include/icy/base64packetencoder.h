@@ -22,6 +22,7 @@ namespace icy {
 
 
 /// @addtogroup base
+/// Packet processor that Base64-encodes packet data
 class /* ICY_EXTERN */ Base64PacketEncoder : public PacketProcessor
 {
 public:
@@ -30,6 +31,9 @@ public:
     {
     }
 
+    /// Base64-encodes the payload of an incoming `RawPacket` and emits the result.
+    /// @param packet Incoming packet; must be castable to `RawPacket`.
+    /// @throws std::bad_cast if the packet is not a `RawPacket`.
     virtual void process(IPacket& packet) override
     {
         auto& p = dynamic_cast<RawPacket&>(packet); // cast or throw

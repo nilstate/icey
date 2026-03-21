@@ -22,6 +22,7 @@
 namespace icy {
 
 
+/// State definitions for diagnostic providers
 struct DiagnosticState : public State
 {
     enum Type
@@ -32,6 +33,10 @@ struct DiagnosticState : public State
         Failed
     };
 
+    /// Returns a human-readable string for the given state ID.
+    /// @param id A DiagnosticState::Type value.
+    /// @return State name string.
+    /// @throws std::logic_error for unknown IDs.
     std::string str(unsigned int id) const override
     {
         switch (id) {
@@ -55,6 +60,7 @@ struct DiagnosticState : public State
 //
 
 
+/// Abstract interface for diagnostic information providers
 class /* ICY_EXTERN */ IDiagnostic : public Stateful<DiagnosticState>
 {
 public:
@@ -66,11 +72,22 @@ public:
     std::vector<std::string> summary; ///< The diagnostic summary, maybe including
                                       ///< troubleshooting information on failure.
 
+    /// Resets state to None and invokes run() to perform the diagnostic check.
     virtual void check();
+
+    /// Clears the summary and resets state to None.
     virtual void reset();
 
+    /// Returns true if the diagnostic has reached a terminal state (Passed or Failed).
+    /// @return true if complete.
     virtual bool complete() const;
+
+    /// Returns true if the diagnostic state is Passed.
+    /// @return true if passed.
     virtual bool passed() const;
+
+    /// Returns true if the diagnostic state is Failed.
+    /// @return true if failed.
     virtual bool failed() const;
 
     /// Signals when a new text item is added
@@ -84,13 +101,18 @@ protected:
     /// Override to implement diagnostic logic.
     virtual void run() = 0;
 
+    /// Transitions the state to Passed.
+    /// @return true if the state transition succeeded.
     virtual bool pass();
+
+    /// Transitions the state to Failed.
+    /// @return true if the state transition succeeded.
     virtual bool fail();
+
+    /// Appends text to the summary list and emits SummaryUpdated.
+    /// @param text Summary line to append.
     virtual void addSummary(const std::string& text);
 };
-
-
-using DiagnosticStore = PointerCollection<std::string, IDiagnostic>;
 
 
 //
@@ -98,6 +120,7 @@ using DiagnosticStore = PointerCollection<std::string, IDiagnostic>;
 //
 
 
+/// Asynchronous diagnostic information collector
 class /* ICY_EXTERN */ AsyncDiagnostic : public IDiagnostic
     , public basic::Runnable
 {
@@ -106,6 +129,7 @@ public:
 
     void run() override = 0;
 
+    /// Resets the diagnostic and launches run() on a background thread.
     void check() override
     {
         reset();
@@ -122,33 +146,29 @@ protected:
 //
 
 
-class /* ICY_EXTERN */ DiagnosticManager : public DiagnosticStore
+/// Registry and manager for diagnostic providers
+class /* ICY_EXTERN */ DiagnosticManager : public KeyedStore<std::string, IDiagnostic>
 {
 public:
     DiagnosticManager();
-    virtual ~DiagnosticManager();
+    ~DiagnosticManager();
 
+    /// Adds a diagnostic, taking ownership.
+    bool addDiagnostic(std::unique_ptr<IDiagnostic> test);
+
+    /// Removes and deletes the diagnostic registered under name.
     bool freeDiagnostic(const std::string& name);
 
-    /// Adds a IDiagnostic test instance.
-    bool addDiagnostic(IDiagnostic* test);
+    /// Returns the diagnostic or nullptr.
+    IDiagnostic* getDiagnostic(const std::string& name) const;
 
-    /// Returns the IDiagnostic instance or throws
-    /// a NotFoundException exception.
-    virtual IDiagnostic* getDiagnostic(const std::string& name);
-
-    virtual void resetAll();
-
-    /// Runs all managed IDiagnostic tests.
-    /// DiagnosticsComplete will be dispatched on
-    /// completion.
-    virtual void checkAll();
-
-    virtual bool allComplete();
+    void resetAll();
+    void checkAll();
+    bool allComplete() const;
 
     NullSignal DiagnosticsComplete;
 
-    virtual void onDiagnosticStateChange(void*, DiagnosticState& state, const DiagnosticState&);
+    void onDiagnosticStateChange(void*, DiagnosticState& state, const DiagnosticState&);
 };
 
 

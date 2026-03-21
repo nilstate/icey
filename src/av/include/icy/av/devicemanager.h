@@ -90,11 +90,21 @@ struct AV_API Device
     std::vector<VideoCapability> videoCapabilities;
     std::vector<AudioCapability> audioCapabilities;
 
+    /// Construct a device with Unknown type and empty fields.
     Device();
+
+    /// Construct a device with explicit fields.
+    /// @param type       The device type (VideoInput, AudioInput, etc.).
+    /// @param id         The platform-specific device identifier.
+    /// @param name       The human-readable device name.
+    /// @param isDefault  True if this is the system default device of its type.
     Device(Type type, const std::string& id, const std::string& name, bool isDefault = false);
 
+    /// Print device details (type, id, name, capabilities) to the given stream.
+    /// @param os  The output stream to write to.
     void print(std::ostream& os) const;
 
+    /// Equality based on type, id, and name.
     bool operator==(const Device& that) const
     {
         return type == that.type && id == that.id && name == that.name;
@@ -206,34 +216,75 @@ public:
 //
 
 
+/// Enumerates and manages system audio and video devices
 class AV_API DeviceManager
 {
 public:
     DeviceManager();
     ~DeviceManager() noexcept;
 
-    /// Device enumeration
+    /// Populate @p devices with all connected video input (camera) devices.
+    /// @param devices  Output vector to fill.
+    /// @return True if enumeration succeeded (even if the list is empty).
     bool getCameras(std::vector<Device>& devices) const;
+
+    /// Populate @p devices with all connected audio input (microphone) devices.
+    /// @param devices  Output vector to fill.
+    /// @return True if enumeration succeeded.
     bool getMicrophones(std::vector<Device>& devices) const;
+
+    /// Populate @p devices with all connected audio output (speaker) devices.
+    /// @param devices  Output vector to fill.
+    /// @return True if enumeration succeeded.
     bool getSpeakers(std::vector<Device>& devices) const;
 
-    /// Default devices (returns first device, with isDefault preferred)
+    /// Return the default (or first available) camera.
+    /// @param device  Output Device to fill.
+    /// @return True if a camera was found.
     bool getDefaultCamera(Device& device) const;
+
+    /// Return the default (or first available) microphone.
+    /// @param device  Output Device to fill.
+    /// @return True if a microphone was found.
     bool getDefaultMicrophone(Device& device) const;
+
+    /// Return the default (or first available) speaker.
+    /// @param device  Output Device to fill.
+    /// @return True if a speaker was found.
     bool getDefaultSpeaker(Device& device) const;
 
-    /// Find device by name or id
+    /// Find a camera by display name or device id.
+    /// @param name    The name or id to search for.
+    /// @param device  Output Device to fill if found.
+    /// @return True if a matching device was found.
     bool findCamera(std::string_view name, Device& device) const;
+
+    /// Find a microphone by display name or device id.
+    /// @param name    The name or id to search for.
+    /// @param device  Output Device to fill if found.
+    /// @return True if a matching device was found.
     bool findMicrophone(std::string_view name, Device& device) const;
+
+    /// Find a speaker by display name or device id.
+    /// @param name    The name or id to search for.
+    /// @param device  Output Device to fill if found.
+    /// @return True if a matching device was found.
     bool findSpeaker(std::string_view name, Device& device) const;
 
-    /// Base device list populated by platform-specific backends.
+    /// Populate @p devices from the platform-specific backend for the given type.
+    /// @param type     The device type to enumerate.
+    /// @param devices  Output vector to fill.
+    /// @return True if enumeration succeeded.
     bool getDeviceList(Device::Type type, std::vector<av::Device>& devices) const;
 
-    /// Bitmask of detected media capabilities.
+    /// @return A bitmask of MediaCapabilities flags indicating which capture/render types are available.
     int getCapabilities() const;
 
+    /// Replace the active device watcher. Takes ownership.
+    /// @param watcher  The new DeviceWatcher, or nullptr to disable watching.
     void setWatcher(DeviceWatcher* watcher);
+
+    /// @return The currently active DeviceWatcher, or nullptr if none has been set.
     DeviceWatcher* watcher() const;
 
     /// Print all devices to the output stream.

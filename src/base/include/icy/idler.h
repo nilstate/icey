@@ -31,10 +31,15 @@ namespace icy {
 class Base_API Idler : public Runner
 {
 public:
-    /// Create the idler with the given event loop.
+    /// Create the idler bound to @p loop without starting it.
+    ///
+    /// @param loop  Event loop to associate with. Defaults to the process-wide default loop.
     Idler(uv::Loop* loop = uv::defaultLoop());
 
-    /// Create and start the idler with the given callback.
+    /// Create and immediately start the idler on the default loop.
+    ///
+    /// @param func  Callable invoked on every idle iteration.
+    /// @param args  Arguments forwarded to @p func.
     template <typename Function, typename... Args>
     explicit Idler(Function&& func, Args&&... args)
         : _handle(uv::defaultLoop())
@@ -43,7 +48,11 @@ public:
         start(std::forward<Function>(func), std::forward<Args>(args)...);
     }
 
-    /// Create and start the idler with the given callback and event loop.
+    /// Create and immediately start the idler on the given loop.
+    ///
+    /// @param loop  Event loop to associate with.
+    /// @param func  Callable invoked on every idle iteration.
+    /// @param args  Arguments forwarded to @p func.
     template <typename Function, typename... Args>
     explicit Idler(uv::Loop* loop, Function&& func, Args&&... args)
         : _handle(loop)
@@ -52,7 +61,14 @@ public:
         start(std::forward<Function>(func), std::forward<Args>(args)...);
     }
 
-    /// Start the idler with the given callback function.
+    /// Start the idler, invoking @p func (with @p args) on every idle iteration.
+    ///
+    /// The idler always runs in repeating mode; cancel via `Runner::cancel()`.
+    /// Throws `std::logic_error` if the handle is already active or the runner
+    /// context reports it is still running.
+    ///
+    /// @param func  Callable invoked each time the event loop is idle.
+    /// @param args  Arguments forwarded to @p func on each invocation.
     template <typename Function, typename... Args>
     void start(Function&& func, Args&&... args)
     {
@@ -86,16 +102,21 @@ public:
         _handle.throwLastError("Cannot start idler");
     }
 
-    /// Start the idler with the given callback function.
+    /// Start the idler with a type-erased callback (implements `Runner::start`).
+    ///
+    /// @param func  Callback invoked on every idle iteration.
     void start(std::function<void()> func) override;
 
     virtual ~Idler() = default;
 
+    /// @return  Reference to the underlying `uv_idle_t` handle wrapper.
     uv::Handle<uv_idle_t>& handle();
 
 protected:
+    /// Initialize the underlying `uv_idle_t` handle and unref it from the loop.
     virtual void init();
 
+    /// @return  `false`; the idler is event-loop-driven, not thread-based.
     bool async() const override;
 
     uv::Handle<uv_idle_t> _handle;

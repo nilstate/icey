@@ -32,44 +32,82 @@ namespace icy {
 namespace util {
 
 
-/// Printf style string formatting for POD types.
+/// Printf-style string formatting for POD types.
+/// @param fmt printf format string.
+/// @param ... Format arguments.
+/// @return Formatted string.
 Base_API std::string format(const char* fmt, ...);
 
-/// Replaces special characters in the given string with
-/// underscores and transform to lowercase.
+/// Replaces all non-alphanumeric characters in str with underscores and converts to lowercase.
+/// @param str String to transform in place.
 Base_API void toUnderscore(std::string& str);
 
-/// Checks if the string is a number
+/// Returns true if str consists entirely of digit characters.
+/// @param str String to test.
+/// @return true if every character in str is a decimal digit.
 Base_API bool isNumber(std::string_view str);
 
-/// Returns true if the string ends with the given substring.
+/// Returns true if str ends with the given suffix.
+/// @param str    String to test.
+/// @param suffix Suffix to look for.
+/// @return true if str ends with suffix.
 Base_API bool endsWith(std::string_view str, std::string_view suffix);
 
 /// Replaces non-alphanumeric characters.
+/// Removes all non-alphanumeric characters from str in place.
+/// @param str         String to modify.
+/// @param allowSpaces If true, ASCII spaces are preserved.
 Base_API void removeSpecialCharacters(std::string& str, bool allowSpaces = false);
+
+/// Replaces all non-alphanumeric characters in str with `with` in place.
+/// @param str         String to modify.
+/// @param with        Replacement character (default: '_').
+/// @param allowSpaces If true, ASCII spaces are preserved rather than replaced.
 Base_API void replaceSpecialCharacters(std::string& str, char with = '_',
                                        bool allowSpaces = false);
 
-/// String to hex value.
+/// Attempts to parse a hex string into an unsigned integer.
+/// @param s     Hex string (with or without 0x prefix).
+/// @param value Output: parsed value on success.
+/// @return true if parsing succeeded, false otherwise.
 Base_API bool tryParseHex(std::string_view s, unsigned& value);
+
+/// Parses a hex string into an unsigned integer.
+/// @param s Hex string (with or without 0x prefix).
+/// @return Parsed value.
+/// @throws std::invalid_argument if the string is not valid hex.
 Base_API unsigned parseHex(std::string_view s);
 
-/// Dumps the binary representation of the
-/// given buffer to the output string.
+/// Formats the binary contents of data as a hex+ASCII dump string.
+/// @param data Pointer to the buffer to dump.
+/// @param len  Number of bytes to dump.
+/// @return Multi-line hex dump string.
 Base_API std::string dumpbin(const char* data, size_t len);
 
-/// Compares two version strings ie. 3.7.8.0 > 3.2.1.0
-/// If L (local) is greater than R (remote) the function returns true.
-/// If L is equal or less than R the function returns false.
+/// Compares two dot-separated version strings.
+/// @param l Left (local) version string.
+/// @param r Right (remote) version string.
+/// @return true if l is strictly greater than r, false if l is equal or less.
 Base_API bool compareVersion(std::string_view l, std::string_view r);
 
-/// Matches two node lists against each other.
+/// Checks whether node matches xnode by splitting both on delim and comparing element-wise.
+/// @param node  Node list string to test.
+/// @param xnode Expected node list pattern.
+/// @param delim Delimiter used to split both strings (default: "\r\n").
+/// @return true if all elements of node match the corresponding elements of xnode.
 Base_API bool matchNodes(std::string_view node, std::string_view xnode,
                          std::string_view delim = "\r\n");
+
+/// Checks whether params matches xparams element-wise.
+/// @param params  Parameter list to test.
+/// @param xparams Expected parameter list.
+/// @return true if every element of params matches the corresponding element of xparams.
 Base_API bool matchNodes(const std::vector<std::string>& params,
                          const std::vector<std::string>& xparams);
 
-/// Returns the pointer memory address as a string.
+/// Returns the memory address of ptr as a hex string (e.g. "0x7f3a2b10c0").
+/// @param ptr Pointer whose address to format.
+/// @return Hex string representation of the pointer value.
 std::string memAddress(const void* ptr);
 
 
@@ -77,7 +115,10 @@ std::string memAddress(const void* ptr);
 // Type converters
 //
 
-/// Converts integer T to string.
+/// Converts an integer (or any stream-insertable type) to its string representation.
+/// @tparam T Type to convert; must support `operator<<` on std::ostream.
+/// @param t Value to convert.
+/// @return String representation of t.
 template <typename T>
 std::string itostr(const T& t)
 {
@@ -86,9 +127,11 @@ std::string itostr(const T& t)
     return oss.str();
 }
 
-/// Converts string to integer T.
-/// Ensure the integer type has
-/// sufficient storage capacity.
+/// Parses a string into integer type T using std::istringstream.
+/// Returns 0 if parsing fails. Ensure T has sufficient range for the value.
+/// @tparam T Target integer type.
+/// @param s  String to parse.
+/// @return Parsed value, or 0 on failure.
 template <typename T>
 T strtoi(std::string_view s)
 {
@@ -103,13 +146,19 @@ T strtoi(std::string_view s)
 // Random generators
 //
 
-/// Generates a 31-bit pseudo random number.
+/// Generates a 31-bit pseudo random number using the internal Random instance.
+/// @return Pseudo random uint32_t value.
 Base_API uint32_t randomNumber();
 
-/// Generates a random string.
+/// Generates a random alphanumeric string of the given length.
+/// @param size Number of characters to generate.
+/// @return Random string of length size.
 Base_API std::string randomString(int size);
 
-/// Generates a random (optionally base64 encoded) binary key.
+/// Generates a random binary string of the given byte length.
+/// @param size     Number of random bytes to generate.
+/// @param doBase64 If true, returns the bytes as a base64-encoded string.
+/// @return Random binary string, optionally base64-encoded.
 Base_API std::string randomBinaryString(int size, bool doBase64 = false);
 
 
@@ -117,12 +166,32 @@ Base_API std::string randomBinaryString(int size, bool doBase64 = false);
 // String splitters
 //
 
-/// Splits the given string at the delimiter string.
+/// Splits str on the delimiter string and appends tokens to elems.
+/// @param str   String to split.
+/// @param delim Delimiter string.
+/// @param elems Output vector; tokens are appended to it.
+/// @param limit Maximum number of splits (-1 for unlimited).
 Base_API void split(std::string_view str, std::string_view delim, std::vector<std::string>& elems, int limit = -1);
+
+/// Splits str on the delimiter string and returns the tokens as a vector.
+/// @param str   String to split.
+/// @param delim Delimiter string.
+/// @param limit Maximum number of splits (-1 for unlimited).
+/// @return Vector of token strings.
 Base_API std::vector<std::string> split(std::string_view str, std::string_view delim, int limit = -1);
 
-/// Splits the given string at the delimiter character.
+/// Splits str on the delimiter character and appends tokens to elems.
+/// @param str   String to split.
+/// @param delim Delimiter character.
+/// @param elems Output vector; tokens are appended to it.
+/// @param limit Maximum number of splits (-1 for unlimited).
 Base_API void split(std::string_view str, char delim, std::vector<std::string>& elems, int limit = -1);
+
+/// Splits str on the delimiter character and returns the tokens as a vector.
+/// @param str   String to split.
+/// @param delim Delimiter character.
+/// @param limit Maximum number of splits (-1 for unlimited).
+/// @return Vector of token strings.
 Base_API std::vector<std::string> split(std::string_view str, char delim, int limit = -1);
 
 
@@ -193,6 +262,12 @@ S replace(const S& str, const S& from, const S& to,
     return result;
 }
 
+/// Returns a copy of str with all occurrences of from replaced by to (C-string overload).
+/// @param str   Source string.
+/// @param from  Substring to search for; must not be empty.
+/// @param to    Replacement string.
+/// @param start Position in str at which to begin searching (default: 0).
+/// @return New string with all replacements applied.
 template <class S>
 S replace(const S& str, const typename S::value_type* from,
           const typename S::value_type* to, typename S::size_type start = 0)
@@ -358,8 +433,10 @@ S& toLowerInPlace(S& str)
 // String case-insensitive comparators
 //
 
-/// Case-insensitive string comparison.
-/// Returns negative if a < b, zero if equal, positive if a > b.
+/// Case-insensitive string comparison (locale-independent, ASCII only).
+/// @param a First string.
+/// @param b Second string.
+/// @return Negative if a < b, zero if a == b, positive if a > b.
 inline int icompare(std::string_view a, std::string_view b)
 {
     auto it1 = a.begin(), end1 = a.end();
@@ -382,14 +459,25 @@ inline int icompare(std::string_view a, std::string_view b)
 // Stream copiers
 //
 
-/// Copy all data from istr to ostr one byte at a time.
+/// Copies all bytes from istr to ostr one byte at a time (no internal buffer).
+/// @param istr Source stream.
+/// @param ostr Destination stream.
+/// @return Total number of bytes copied.
 Base_API std::streamsize copyStreamUnbuffered(std::istream& istr, std::ostream& ostr);
 
-/// Copy all data from istr to ostr using a buffer of the given size.
+/// Copies all bytes from istr to ostr using an internal buffer.
+/// @param istr       Source stream.
+/// @param ostr       Destination stream.
+/// @param bufferSize Internal buffer size in bytes (default: 8192).
+/// @return Total number of bytes copied.
 Base_API std::streamsize copyStream(std::istream& istr, std::ostream& ostr,
                                     size_t bufferSize = 8192);
 
-/// Read all data from istr into str using a buffer of the given size.
+/// Reads all bytes from istr and appends them to str.
+/// @param istr       Source stream.
+/// @param str        Output string to append data to.
+/// @param bufferSize Internal buffer size in bytes (default: 8192).
+/// @return Total number of bytes read.
 Base_API std::streamsize copyToString(std::istream& istr, std::string& str,
                                       size_t bufferSize = 8192);
 
@@ -398,8 +486,12 @@ Base_API std::streamsize copyToString(std::istream& istr, std::string& str,
 // Version string helper
 //
 
+/// Semantic version number with major, minor, and patch fields
 struct Version
 {
+    /// Parses a dot-separated version string into up to four numeric fields.
+    /// Unspecified fields default to 0. Examples: "1.2.3", "2.0", "3.7.8.0".
+    /// @param version Dot-separated version string.
     Version(std::string_view version)
     {
         int parts[4] = {0, 0, 0, 0};
@@ -421,6 +513,10 @@ struct Version
         build = parts[3];
     }
 
+    /// Returns true if this version is strictly less than other.
+    /// Compares fields in major, minor, revision, build order.
+    /// @param other Version to compare against.
+    /// @return true if this < other.
     bool operator<(const Version& other)
     {
         if (major < other.major)
@@ -434,12 +530,19 @@ struct Version
         return false;
     }
 
+    /// Returns true if all four version fields are equal.
+    /// @param other Version to compare against.
+    /// @return true if this == other.
     bool operator==(const Version& other) const
     {
         return major == other.major && minor == other.minor &&
                revision == other.revision && build == other.build;
     }
 
+    /// Writes the version to a stream in "major.minor.revision.build" format.
+    /// @param stream Output stream.
+    /// @param ver    Version to format.
+    /// @return Reference to stream.
     friend std::ostream& operator<<(std::ostream& stream, const Version& ver)
     {
         stream << ver.major;

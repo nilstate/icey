@@ -27,6 +27,7 @@ namespace icy {
 namespace av {
 
 
+/// FIFO buffer for queuing audio samples between encoding stages
 struct AV_API AudioBuffer
 {
     AudioBuffer();
@@ -43,7 +44,11 @@ struct AV_API AudioBuffer
     /// @param channels    The number of audio channels.
     /// @param numSamples  The initial buffer capacity in samples per channel.
     void alloc(const std::string& sampleFmt, int channels, int numSamples = 1024);
+
+    /// Discard all samples currently held in the FIFO without freeing the buffer.
     void reset();
+
+    /// Free the underlying AVAudioFifo buffer.
     void close();
 
     /// Write samples into the FIFO buffer.
@@ -59,9 +64,11 @@ struct AV_API AudioBuffer
     /// @return True if enough samples were available.
     bool read(void** samples, int numSamples);
 
+    /// Return the number of samples per channel currently available in the FIFO.
+    /// @return The number of available samples, or zero if the buffer is not allocated.
     int available() const;
 
-    AVAudioFifo* fifo;
+    AVAudioFifo* fifo; ///< Underlying FFmpeg audio FIFO handle.
 };
 
 

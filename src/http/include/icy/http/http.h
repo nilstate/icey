@@ -5,7 +5,9 @@
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
-/// @addtogroup http
+/// @defgroup http HTTP module
+///
+/// HTTP client/server, WebSocket support, form handling, cookies, URL parsing.
 /// @{
 
 #pragma once

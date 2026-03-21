@@ -37,10 +37,11 @@ public:
     /// Returns the stored OpenSSL SSL_SESSION object.
     SSL_SESSION* sslSession() const;
 
-    /// Creates a new Session object, using the given
-    /// SSL_SESSION object.
+    /// Creates a new SSLSession wrapping the given OpenSSL session object.
     ///
-    /// The SSL_SESSION's reference count is not changed.
+    /// The SSL_SESSION's reference count is not incremented; the SSLSession
+    /// takes ownership and will call SSL_SESSION_free() on destruction.
+    /// @param ptr The OpenSSL session object to wrap.
     SSLSession(SSL_SESSION* ptr);
 
     /// Destroys the Session.
@@ -49,6 +50,7 @@ public:
     /// SSL_SESSION object.
     ~SSLSession() noexcept;
 
+    /// Constructs an empty SSLSession with a null session pointer.
     SSLSession();
 
     SSLSession(const SSLSession&) = delete;

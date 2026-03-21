@@ -50,6 +50,7 @@ public:
         Ended        ///< Call ended (auto-resets to Idle)
     };
 
+    /// Configuration for WebRTC peer session establishment
     struct Config
     {
         rtc::Configuration rtcConfig;
@@ -66,23 +67,68 @@ public:
     PeerSession(const PeerSession&) = delete;
     PeerSession& operator=(const PeerSession&) = delete;
 
+    /// Initiate an outgoing call to a remote peer.
+    /// Sends a "init" control message and transitions to Ringing.
+    /// @param peerId  Remote peer identifier passed to the signaller.
+    /// @throws std::logic_error if not currently in the Idle state.
     void call(const std::string& peerId);
+
+    /// Accept an incoming call.
+    /// Creates the PeerConnection, sends "accept", and transitions to Connecting.
+    /// @throws std::logic_error if not currently in the Incoming state.
     void accept();
+
+    /// Reject an incoming call.
+    /// Sends a "reject" control message and transitions to Ended.
+    /// @param reason  Human-readable reason string forwarded to the remote peer.
+    /// @throws std::logic_error if not currently in the Incoming state.
     void reject(const std::string& reason = "declined");
+
+    /// Terminate the active or ringing call.
+    /// Sends a "hangup" control message, closes the PeerConnection, and
+    /// transitions to Ended. Safe to call from any non-Idle/Ended state.
+    /// @param reason  Human-readable reason string forwarded to the remote peer.
     void hangup(const std::string& reason = "hangup");
 
+    /// Send a UTF-8 string message over the data channel.
+    /// Silently dropped if the data channel is not open.
+    /// @param message  String to send.
     void sendData(const std::string& message);
+
+    /// Send raw binary data over the data channel.
+    /// Silently dropped if the data channel is not open.
+    /// @param data  Pointer to the byte buffer.
+    /// @param size  Number of bytes to send.
     void sendData(const std::byte* data, size_t size);
 
+    /// Emitted whenever the session state changes.
+    /// Parameter: new State value.
     Signal<void(State)> StateChanged;
+
+    /// Emitted when a remote peer initiates a call (state transitions to Incoming).
+    /// Parameter: remote peer identifier.
     Signal<void(const std::string&)> IncomingCall;
+
+    /// Emitted when a message arrives on the data channel.
+    /// Parameter: rtc::message_variant (string or binary).
     Signal<void(rtc::message_variant)> DataReceived;
 
+    /// Current session state. Thread-safe.
     [[nodiscard]] State state() const;
+
+    /// Identifier of the remote peer for the current or most recent call.
+    /// Empty when Idle.
     [[nodiscard]] std::string remotePeerId() const;
+
+    /// Media bridge for this session. Valid for the lifetime of the PeerSession.
     [[nodiscard]] MediaBridge& media();
+    /// @copydoc media()
     [[nodiscard]] const MediaBridge& media() const;
+
+    /// The underlying PeerConnection, or nullptr when Idle/Ended.
     [[nodiscard]] std::shared_ptr<rtc::PeerConnection> peerConnection();
+
+    /// The data channel, or nullptr if none is open.
     [[nodiscard]] std::shared_ptr<rtc::DataChannel> dataChannel();
 
 private:
@@ -105,6 +151,9 @@ private:
 };
 
 
+/// Convert a PeerSession::State to a lowercase C string for logging.
+/// @param state  State value to convert.
+/// @return       One of: "idle", "ringing", "incoming", "connecting", "active", "ended".
 [[nodiscard]] WEBRTC_API const char* stateToString(PeerSession::State state);
 
 

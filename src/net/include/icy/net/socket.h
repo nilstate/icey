@@ -29,8 +29,12 @@ namespace icy {
 namespace net {
 
 
-/// Helper method for instantiating Sockets wrapped in a `std::shared_ptr`
-/// that will be garbage collected on destruction.
+/// Creates a socket of type SocketT wrapped in a shared_ptr.
+///
+/// The socket is automatically destroyed when the last shared_ptr owner releases it.
+/// @tparam SocketT  The concrete socket type to instantiate (e.g. TCPSocket, UDPSocket).
+/// @param loop      Event loop to associate with the socket; defaults to the default loop.
+/// @return A shared_ptr owning the newly created socket.
 template <class SocketT>
 inline std::shared_ptr<SocketT> makeSocket(uv::Loop* loop = uv::defaultLoop())
 {
@@ -152,18 +156,24 @@ struct PacketInfo : public IPacketInfo
     /// For TCP this will always be connected address.
     Address peerAddress;
 
+    /// Constructs PacketInfo with the originating socket and peer address.
+    /// @param socket      Shared pointer to the socket that received the packet.
+    /// @param peerAddress Address of the remote peer that sent the packet.
     PacketInfo(const Socket::Ptr& socket, const Address& peerAddress)
         : socket(socket)
         , peerAddress(peerAddress)
     {
     }
 
+    /// Copy constructor.
+    /// @param r Source PacketInfo to copy from.
     PacketInfo(const PacketInfo& r)
         : socket(r.socket)
         , peerAddress(r.peerAddress)
     {
     }
 
+    /// Returns a heap-allocated copy of this PacketInfo.
     virtual std::unique_ptr<IPacketInfo> clone() const { return std::make_unique<PacketInfo>(*this); }
 
     virtual ~PacketInfo() noexcept = default;
@@ -184,18 +194,28 @@ struct PacketInfo : public IPacketInfo
 class Net_API SocketPacket : public RawPacket
 {
 public:
+    /// Constructs a SocketPacket wrapping the received buffer.
+    ///
+    /// The buffer data pointer remains valid only for the duration of the
+    /// enclosing receive callback; do not retain references beyond that scope.
+    /// @param socket      Shared pointer to the receiving socket.
+    /// @param buffer      View of the raw received bytes.
+    /// @param peerAddress Address of the remote sender.
     SocketPacket(const Socket::Ptr& socket, const MutableBuffer& buffer, const Address& peerAddress)
-        : RawPacket(bufferCast<char*>(buffer), buffer.size(), 0, nullptr,
+        : RawPacket(bufferCast<char*>(buffer), buffer.size(), 0,
                     std::make_unique<PacketInfo>(socket, peerAddress))
     {
     }
 
+    /// Copy constructor; shares the underlying buffer reference.
+    /// @param that Source SocketPacket to copy.
     SocketPacket(const SocketPacket& that)
         : RawPacket(that)
     {
     }
 
     /// Returns the PacketInfo for this socket packet.
+    /// @return Pointer to the associated PacketInfo (never null for a valid packet).
     PacketInfo* packetInfo() const
     {
         return static_cast<PacketInfo*>(info.get());
@@ -203,25 +223,32 @@ public:
 
     virtual ~SocketPacket() noexcept = default;
 
+    /// Prints a one-line description of the packet to @p os.
+    /// @param os Output stream to write to.
     virtual void print(std::ostream& os) const
     {
         os << className() << ": " << packetInfo()->peerAddress << '\n';
     }
 
+    /// Returns a heap-allocated copy of this SocketPacket.
     virtual std::unique_ptr<IPacket> clone() const { return std::make_unique<SocketPacket>(*this); }
 
+    /// Not supported; always throws std::logic_error.
     virtual ssize_t read(const ConstBuffer&)
     {
         throw std::logic_error("SocketPacket::read not supported; write only");
         return 0;
     }
 
+    /// Appends the packet payload to @p buf.
+    /// @param buf Destination buffer to append raw bytes to.
     virtual void write(Buffer& buf) const
     {
         // buf.append(data(), size());
         buf.insert(buf.end(), data(), data() + size());
     }
 
+    /// @return The string "SocketPacket".
     virtual const char* className() const { return "SocketPacket"; }
 };
 

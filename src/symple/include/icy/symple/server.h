@@ -42,35 +42,58 @@ namespace smpl {
 class ServerPeer
 {
 public:
+    /// Constructs a peer bound to the given server-side connection.
+    /// @param conn The underlying WebSocket server connection.
     ServerPeer(http::ServerConnection& conn);
 
-    /// Send a JSON message to this peer.
+    /// Serialises and sends a JSON message over the WebSocket connection.
+    /// Logs a warning if the send fails; does not throw.
+    /// @param msg JSON value to send.
     void send(const json::Value& msg);
 
-    /// Join a room.
+    /// Adds this peer to the named room (local tracking only).
+    /// @param room Room name to join.
     void join(const std::string& room);
 
-    /// Leave a room.
+    /// Removes this peer from the named room (local tracking only).
+    /// @param room Room name to leave.
     void leave(const std::string& room);
 
-    /// Leave all rooms.
+    /// Removes this peer from all rooms (local tracking only).
     void leaveAll();
 
+    /// Returns a mutable reference to the peer data object.
     [[nodiscard]] Peer& peer() { return _peer; }
+
+    /// Returns a const reference to the peer data object.
     [[nodiscard]] const Peer& peer() const { return _peer; }
+
+    /// Returns the session ID assigned to this peer.
     [[nodiscard]] std::string id() const;
+
+    /// Returns the set of room names this peer is currently joined to.
     [[nodiscard]] const std::unordered_set<std::string>& rooms() const { return _rooms; }
+
+    /// Returns true if the peer has completed authentication.
     [[nodiscard]] bool authenticated() const { return _authenticated; }
 
+    /// Marks the peer as authenticated or unauthenticated.
+    /// @param v True to mark as authenticated.
     void setAuthenticated(bool v) { _authenticated = v; }
+
+    /// Replaces the peer's data object.
+    /// @param p New peer data.
     void setPeer(const Peer& p) { _peer = p; }
 
+    /// Returns a reference to the underlying server connection.
     http::ServerConnection& connection() { return _conn; }
 
     /// Per-peer rate limiter. Returns false if message should be dropped.
     [[nodiscard]] bool checkRate() { return _rateLimiter.canSend(); }
 
-    /// Configure rate limit (messages per window).
+    /// Configures the per-peer rate limit.
+    /// @param rate    Maximum messages allowed per window.
+    /// @param seconds Duration of the rate window in seconds.
     void setRateLimit(double rate, double seconds) {
         _rateLimiter.rate = rate;
         _rateLimiter.seconds = seconds;
@@ -108,6 +131,7 @@ private:
 class Server
 {
 public:
+    /// Configuration options for the Symple server
     struct Options
     {
         std::string host = "0.0.0.0";
@@ -122,20 +146,29 @@ public:
         double rateSeconds = 10.0;    ///< Rate window in seconds
     };
 
+    /// Constructs a server using the given event loop.
+    /// @param loop libuv event loop; defaults to uv::defaultLoop().
     Server(uv::Loop* loop = uv::defaultLoop());
     ~Server();
 
     Server(const Server&) = delete;
     Server& operator=(const Server&) = delete;
 
+    /// Starts the server with the given options.
+    /// Begins accepting WebSocket connections on opts.host:opts.port.
+    /// @param opts Server configuration options.
     void start(const Options& opts);
 
-    /// Start with a custom HTTP responder factory for non-WebSocket requests.
+    /// Starts the server with a custom HTTP factory for non-WebSocket requests.
     /// The Symple server handles WebSocket upgrades internally; any other
     /// HTTP request (e.g. static files, REST API) is delegated to this factory.
+    /// @param opts        Server configuration options.
+    /// @param httpFactory Factory for HTTP responders; may be nullptr.
     void start(const Options& opts,
                std::unique_ptr<http::ServerConnectionFactory> httpFactory);
 
+    /// Broadcasts a shutdown notice to all peers, closes the listen socket,
+    /// and releases all internal state. Safe to call more than once.
     void shutdown();
 
     /// Broadcast a message to all peers in a room (excluding sender).
@@ -193,7 +226,9 @@ public:
     [[nodiscard]] http::Server& httpServer() { return *_http; }
 
 private:
+    /// Handler for incoming Symple protocol messages
     class Responder;
+    /// Factory for creating server-side peer connections
     class Factory;
 
     void onAuth(ServerPeer& peer, const json::Value& msg);
@@ -224,6 +259,7 @@ private:
     std::unordered_map<http::ServerConnection*, std::string> _connToPeer;
 
     // Virtual peers: session ID -> {peer data, rooms, message handler}
+    /// Server-side virtual peer representation
     struct VirtualPeer
     {
         Peer peer;

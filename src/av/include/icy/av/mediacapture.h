@@ -47,20 +47,40 @@ public:
     MediaCapture(MediaCapture&&) = delete;
     MediaCapture& operator=(MediaCapture&&) = delete;
 
+    /// Open a media file for decoding. Automatically detects video and audio streams.
+    /// @param file  Path to the media file.
     void openFile(const std::string& file) override;
     // #ifdef HAVE_FFMPEG_AVDEVICE
     // virtual void openCamera(const std::string& device, int width = -1, int height = -1, double framerate = -1);
     // virtual void openMicrophone(const std::string& device, int channels = -1, int sampleRate = -1);
     // #endif
+
+    /// Stop the capture thread and close the media stream and all decoders.
     void close() override;
 
+    /// Start the background capture and decode thread.
+    /// Throws std::runtime_error if no media streams have been opened.
     virtual void start() override;
+
+    /// Signal the capture thread to stop and join it before returning.
     virtual void stop() override;
 
+    /// Entry point for the background capture thread.
+    /// Reads and decodes packets from the format context until EOF or stop() is called.
     virtual void run() override;
 
+    /// Fill @p format with the combined encoder-ready video and audio codec parameters.
+    /// @param format  Output Format struct to populate.
     void getEncoderFormat(Format& format) override;
+
+    /// Fill @p params with the decoder's output audio codec parameters.
+    /// Throws std::runtime_error if audio parameters have not been initialised.
+    /// @param params  Output AudioCodec struct to populate.
     void getEncoderAudioCodec(AudioCodec& params) override;
+
+    /// Fill @p params with the decoder's output video codec parameters.
+    /// Throws std::runtime_error if video parameters have not been initialised.
+    /// @param params  Output VideoCodec struct to populate.
     void getEncoderVideoCodec(VideoCodec& params) override;
 
     /// Continuously loop the input file when set.
@@ -74,10 +94,19 @@ public:
     /// not always reliable.
     void setRealtimePTS(bool flag);
 
+    /// @return The underlying AVFormatContext (thread-safe, mutex-protected).
     AVFormatContext* formatCtx() const;
+
+    /// @return The active VideoDecoder, or nullptr if no video stream was opened.
     VideoDecoder* video() const;
+
+    /// @return The active AudioDecoder, or nullptr if no audio stream was opened.
     AudioDecoder* audio() const;
+
+    /// @return True if the capture thread has been asked to stop.
     bool stopping() const;
+
+    /// @return The last error message, or an empty string if no error has occurred.
     std::string error() const;
 
     /// Signals that the capture thread is closing.

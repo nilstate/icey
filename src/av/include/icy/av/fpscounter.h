@@ -47,8 +47,10 @@ public:
     double fps;
     int64_t frames;
 
+    /// Initialise the counter with all zeroes.
     FPSCounter() { reset(); }
 
+    /// Reset all counters and the SMA window to zero.
     void reset()
     {
         fps = 0;
@@ -60,6 +62,8 @@ public:
             tickList[i] = 0;
     }
 
+    /// Record a new frame and update the FPS estimate.
+    /// Must be called once per frame. Updates `fps` and increments `frames`.
     void tick()
     {
         frames++;
@@ -76,6 +80,7 @@ public:
 
 namespace legacy {
 
+/// Legacy frames-per-second counter
 struct FPSCounter
 {
     clock_t start;
@@ -89,6 +94,7 @@ struct FPSCounter
         reset();
     }
 
+    /// Begin a new timing cycle (calls endFrame() first if already started).
     void tick()
     {
         if (started())
@@ -96,6 +102,7 @@ struct FPSCounter
         startFrame();
     }
 
+    /// Reset all counters to zero.
     void reset()
     {
         start = 0;
@@ -105,16 +112,20 @@ struct FPSCounter
         frames = 0;
     }
 
+    /// @return True if startFrame() has been called and the timer is running.
     bool started()
     {
         return start != 0;
     }
 
+    /// Record the frame start time.
     void startFrame()
     {
         start = clock();
     }
 
+    /// Record the frame end time and update the cumulative FPS average.
+    /// @return The updated FPS value.
     double endFrame()
     {
         end = clock();
@@ -138,6 +149,9 @@ struct FPSCounter
 class AV_API FPSLimiter : public PacketProcessor
 {
 public:
+    /// Construct the limiter.
+    /// @param max        The maximum allowed frame rate in frames per second.
+    /// @param videoOnly  If true, non-VideoPacket packets are always forwarded regardless of rate.
     FPSLimiter(int max, bool videoOnly = false)
         : PacketProcessor(this->emitter)
         , _max(max)
@@ -145,6 +159,8 @@ public:
     {
     }
 
+    /// Process a packet: forward it if within the rate limit, drop it otherwise.
+    /// @param packet  The incoming packet to evaluate.
     virtual void process(IPacket& packet)
     {
         // traceL("FPLLimiter", this)("Processing")
@@ -164,6 +180,7 @@ public:
         emit(packet);
     }
 
+    /// Reset the FPS counter when the stream state changes.
     virtual void onStreamStateChange(const PacketStreamState&)
     {
         _counter.reset();

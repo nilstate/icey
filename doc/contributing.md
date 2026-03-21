@@ -50,14 +50,14 @@ ctest --test-dir build --output-on-failure
 
 ## Regenerating API docs
 
-The API reference in `doc/` is generated from source using [Doxygen](https://www.doxygen.nl/) and [Moxygen](https://github.com/icey/moxygen). Prerequisites: `doxygen` and `npx` (Node.js).
+The API reference in `doc/api/` is generated from source using [Doxygen](https://www.doxygen.nl/) and [Moxygen](https://github.com/sourcey/moxygen). Prerequisites: `doxygen` and `npx` (Node.js).
 
 ```bash
 doxygen Doxyfile
-npx moxygen --groups --output=./doc/api-%s.md ./build/doxygen/xml
+npx moxygen --groups --output=./doc/api/%s.md ./build/doxygen/xml
 ```
 
-This parses C++ source into XML, then converts it into the `doc/api-*.md` markdown files.
+This parses C++ source into XML, then converts it into the `doc/api/*.md` markdown files.
 
 ## Licence
 

@@ -22,18 +22,28 @@ namespace icy {
 namespace av {
 
 
+/// Singleton registry of available media container formats for encoding and decoding
 class AV_API FormatRegistry
 {
 public:
+    /// Return the singleton FormatRegistry instance.
     static FormatRegistry& instance();
 
     FormatRegistry();
     virtual ~FormatRegistry() noexcept;
 
+    /// Return the format with the given display name.
+    /// Throws std::runtime_error if no format with that name is registered.
+    /// @param name  The display name to look up.
     virtual Format& get(std::string_view name);
+
+    /// Return the format with the given short ID (e.g. "mp4").
+    /// Throws std::runtime_error if no format with that ID is registered.
+    /// @param id  The short format ID to look up.
     virtual Format& getByID(std::string_view id);
 
-    /// Returns the default media format.
+    /// Return the format with the given name, or the default format if not found.
+    /// @param name  The display name to look up.
     virtual Format& getOrDefault(std::string_view name);
 
     /// If a default has been specified it will be
@@ -52,9 +62,14 @@ public:
     /// Sets the default fallback media format.
     virtual void setDefault(std::string_view name);
 
+    /// @return True if a format with the given display name is registered.
+    /// @param name  The display name to check.
     virtual bool exists(std::string_view name);
+
+    /// Remove all registered formats and clear the default.
     virtual void clear();
 
+    /// @return A snapshot copy of all registered formats.
     virtual FormatList formats() const;
 
 private:

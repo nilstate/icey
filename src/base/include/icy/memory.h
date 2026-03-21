@@ -21,9 +21,13 @@
 namespace icy {
 
 
-/// Schedule deferred deletion on the next event loop iteration.
+/// Schedules deferred deletion of ptr on the next event loop iteration.
 /// This is essential for deleting objects that may still be referenced
 /// by pending libuv callbacks (e.g. socket adapters with in-flight I/O).
+/// Uses a self-cleaning uv_idle_t handle that fires once and then closes itself.
+/// @tparam T Type of the object to delete.
+/// @param ptr  Object to delete. Does nothing if nullptr.
+/// @param loop Event loop on which to schedule the deletion.
 template <typename T>
 inline void deleteLater(T* ptr, uv::Loop* loop)
 {
@@ -57,8 +61,15 @@ public:
     RefCounted(const RefCounted&) noexcept : _refCount(0) {}
     RefCounted& operator=(const RefCounted&) noexcept { return *this; }
 
+    /// Increments the reference count. Called by IntrusivePtr on acquisition.
     void addRef() const noexcept { ++_refCount; }
+
+    /// Decrements the reference count.
+    /// @return true if the count reached zero (caller should delete the object).
     bool releaseRef() const noexcept { return --_refCount == 0; }
+
+    /// Returns the current reference count.
+    /// @return Current reference count.
     [[nodiscard]] int refCount() const noexcept { return _refCount; }
 
 protected:
@@ -139,21 +150,37 @@ public:
         return *this;
     }
 
+    /// Releases ownership of the current pointer, decrementing its refcount.
+    /// The pointer is set to null.
     void reset() noexcept
     {
         IntrusivePtr().swap(*this);
     }
 
+    /// Releases the current pointer and takes ownership of p, incrementing its refcount.
+    /// @param p New raw pointer to manage (may be nullptr).
     void reset(T* p) noexcept
     {
         IntrusivePtr(p).swap(*this);
     }
 
+    /// Returns the raw pointer without transferring ownership.
+    /// @return Raw pointer to the managed object, or nullptr.
     T* get() const noexcept { return _ptr; }
+
+    /// Dereferences the managed pointer.
+    /// @return Reference to the managed object.
     T& operator*() const noexcept { return *_ptr; }
+
+    /// Member access on the managed pointer.
+    /// @return Raw pointer to the managed object.
     T* operator->() const noexcept { return _ptr; }
+
+    /// Returns true if the pointer is non-null.
     explicit operator bool() const noexcept { return _ptr != nullptr; }
 
+    /// Swaps the managed pointer with another IntrusivePtr.
+    /// @param r The other IntrusivePtr to swap with.
     void swap(IntrusivePtr& r) noexcept { std::swap(_ptr, r._ptr); }
 
     /// Release ownership without decrementing refcount.
@@ -171,7 +198,10 @@ private:
 };
 
 
-/// Create an IntrusivePtr with a new object. Equivalent to make_shared.
+/// Creates an IntrusivePtr managing a newly heap-allocated T. Equivalent to std::make_shared.
+/// @tparam T    Type to construct; must inherit from RefCounted<T>.
+/// @param args  Arguments forwarded to T's constructor.
+/// @return IntrusivePtr<T> owning the new object.
 template <typename T, typename... Args>
 IntrusivePtr<T> makeIntrusive(Args&&... args)
 {
@@ -183,9 +213,13 @@ namespace deleter {
 
 
 /// Deleter functor that calls dispose() on the pointer.
+/// Useful with std::unique_ptr for objects that require a dispose() call
+/// rather than direct deletion.
 template <class T>
 struct Dispose
 {
+    /// Calls ptr->dispose() if ptr is non-null.
+    /// @param ptr Pointer to dispose; may be nullptr.
     void operator()(T* ptr)
     {
         if (!ptr) return;
@@ -195,10 +229,12 @@ struct Dispose
 };
 
 
-/// Deleter functor for array pointers.
+/// Deleter functor for array pointers. Calls delete[] on the pointer.
 template <class T>
 struct Array
 {
+    /// Calls delete[] on ptr if non-null.
+    /// @param ptr Array pointer to delete; may be nullptr.
     void operator()(T* ptr)
     {
         if (!ptr) return;

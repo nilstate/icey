@@ -41,6 +41,8 @@ namespace av {
 class AV_API MultiplexEncoder : public IEncoder
 {
 public:
+    /// Construct the encoder with the given options.
+    /// @param options  The encoder configuration (input/output formats and file paths).
     MultiplexEncoder(const EncoderOptions& options = EncoderOptions());
     ~MultiplexEncoder() noexcept override;
 
@@ -49,11 +51,19 @@ public:
     MultiplexEncoder(MultiplexEncoder&&) = delete;
     MultiplexEncoder& operator=(MultiplexEncoder&&) = delete;
 
+    /// Open the output container, create codec streams, and write the format header.
     virtual void init() override;
+
+    /// Flush encoded packets, write the format trailer, and close the output container.
     virtual void uninit() override;
+
+    /// Release all resources allocated by init() without writing a trailer.
     void cleanup() override;
 
+    /// Create the video encoder and add the stream to the output container.
     void createVideo() override;
+
+    /// Flush and free the video encoder and its stream.
     void freeVideo() override;
 
     /// Encode a single video frame.
@@ -83,7 +93,10 @@ public:
     [[nodiscard]] virtual bool encodeVideo(uint8_t* data[4], int linesize[4], int width, int height,
                                            int64_t time = AV_NOPTS_VALUE);
 
+    /// Create the audio encoder and add the stream to the output container.
     void createAudio() override;
+
+    /// Flush and free the audio encoder and its stream.
     void freeAudio() override;
 
     /// Encode a single interleaved audio frame.
@@ -102,11 +115,16 @@ public:
     [[nodiscard]] virtual bool encodeAudio(uint8_t* data[4], int numSamples,
                                            int64_t time = AV_NOPTS_VALUE);
 
-    /// Flush and beffered or queued packets.
+    /// Flush any buffered or queued packets to the output container.
     void flush() override;
 
+    /// @return A reference to the encoder's configuration options.
     EncoderOptions& options();
+
+    /// @return The active VideoEncoder, or nullptr if video has not been created.
     VideoEncoder* video();
+
+    /// @return The active AudioEncoder, or nullptr if audio has not been created.
     AudioEncoder* audio();
 
     PacketSignal emitter;

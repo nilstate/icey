@@ -19,8 +19,7 @@
 namespace icy {
 
 
-/// @addtogroup base
-/// A simple message rate limiter based on the token bucket algorithm.
+/// Token bucket rate limiter for throttling message send frequency
 class /* ICY_EXTERN */ RateLimiter
 {
 public:
@@ -28,6 +27,9 @@ public:
     double seconds;   ///< Over how many seconds
     double allowance; ///< Remaining send allowance
 
+    /// Constructs a token bucket limiter.
+    /// @param rate    Maximum number of messages permitted in the window.
+    /// @param seconds Duration of the replenishment window in seconds.
     RateLimiter(double rate = 5.0, double seconds = 6.0)
         : rate(rate)
         , seconds(seconds)
@@ -37,6 +39,10 @@ public:
     {
     }
 
+    /// Returns true if a message may be sent without exceeding the rate limit.
+    /// Replenishes the token bucket based on elapsed time since the last check,
+    /// then consumes one token. Returns false if the bucket is empty.
+    /// @return true if sending is allowed, false if the rate limit is exceeded.
     bool canSend()
     {
         auto current = std::chrono::steady_clock::now();

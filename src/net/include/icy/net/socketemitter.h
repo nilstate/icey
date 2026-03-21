@@ -31,10 +31,13 @@ namespace net {
 class Net_API SocketEmitter : public SocketAdapter
 {
 public:
-    /// Creates the SocketEmitter
+    /// Creates the SocketEmitter and optionally attaches it to a socket.
+    /// If @p socket is provided, this emitter registers itself as a receiver.
+    /// @param socket Optional socket to attach to; pass nullptr to attach later via swap().
     SocketEmitter(const Socket::Ptr& socket = nullptr);
 
-    /// Copy constructor
+    /// Copy constructor; copies all signal connections and attaches to the same socket.
+    /// @param that The SocketEmitter to copy from.
     SocketEmitter(const SocketEmitter& that);
 
     /// Destroys the SocketAdapter.
@@ -54,23 +57,32 @@ public:
     /// Signals that the underlying socket is closed.
     LocalSignal<bool(Socket&)> Close;
 
-    /// Adds an input SocketAdapter for receiving socket signals.
+    /// Attaches a SocketAdapter as a receiver; wires it to all four socket signals.
+    /// @param adapter The adapter to attach; its priority determines signal ordering.
     virtual void addReceiver(SocketAdapter* adapter) override;
 
-    /// Removes an input SocketAdapter.
+    /// Detaches a SocketAdapter from all four socket signals.
+    /// @param adapter The adapter to detach.
     virtual void removeReceiver(SocketAdapter* adapter) override;
 
-    /// Swap the underlying socket pointer.
+    /// Replaces the underlying socket with @p socket.
+    ///
+    /// Throws std::logic_error if the emitter already has an attached socket.
+    /// @param socket The new socket to attach.
     virtual void swap(const Socket::Ptr& socket);
 
-    /// Cast getter for the underlying socket.
+    /// Returns the underlying socket cast to type T, or nullptr if the cast fails.
+    /// @tparam T  Derived socket type to cast to.
+    /// @return Pointer to the socket as T, or nullptr on type mismatch.
     template <class T>
     T* as()
     {
         return dynamic_cast<T*>(impl.get());
     }
 
-    /// Accessor to the underlying socket.
+    /// Returns a raw pointer to the underlying socket for direct method access.
+    /// Follows shared_ptr semantics; the caller must not delete the returned pointer.
+    /// @return Raw pointer to the socket (never null if a socket was attached).
     Socket* operator->() const
     {
         return impl.get();
@@ -81,10 +93,13 @@ public:
     Socket::Ptr impl;
 
 protected:
-    /// Internal callback events.
+    /// Forwards the connect event to chained adapters, then fires the Connect signal.
     bool onSocketConnect(Socket& socket) override;
+    /// Forwards the recv event to chained adapters, then fires the Recv signal.
     bool onSocketRecv(Socket& socket, const MutableBuffer& buffer, const Address& peerAddress) override;
+    /// Forwards the error event to chained adapters, then fires the Error signal.
     bool onSocketError(Socket& socket, const icy::Error& error) override;
+    /// Forwards the close event to chained adapters, then fires the Close signal.
     bool onSocketClose(Socket& socket) override;
 };
 

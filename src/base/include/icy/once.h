@@ -20,7 +20,11 @@
 namespace icy {
 
 
-/// Run the given function at the beginning of the next event loop iteration.
+/// Schedules func to run once at the beginning of the next event loop iteration.
+/// Uses a uv_prepare_t handle that self-destructs after the first invocation.
+/// @param loop Event loop on which to schedule the callback.
+/// @param func Callable to invoke on the next loop tick.
+/// @param args Arguments forwarded to func.
 template <typename Function, typename... Args>
 void runOnce(uv::Loop* loop, Function&& func, Args&&... args)
 {

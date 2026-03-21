@@ -1,6 +1,6 @@
-## Installation
+# Installation
 
-Icey uses CMake to generate project files for your compiler. The codebase is cross-platform and compiles on any system with a C++20 compiler.
+Icey uses CMake to build from source. The codebase is cross-platform and requires a C++20 compiler.
 
 Platform-specific guides:
 
@@ -8,61 +8,93 @@ Platform-specific guides:
 * [macOS](installation-osx.md)
 * [Windows](installation-windows.md)
 
-## Dependencies
+## Requirements
 
-* **OpenSSL 3.x** (required) - SSL networking, encryption and cryptography
-* **FFmpeg 6+/7+** (optional) - Media encoding, decoding, device capture via the `av` module
-* **OpenCV 3.0+** (optional) - Video capture and computer vision
+| Requirement | Version |
+| ----------- | ------- |
+| CMake | 3.21+ |
+| C++ compiler | GCC 12+, Clang 15+, AppleClang 15+, MSVC 2022 |
+| OpenSSL | 3.x |
+| pkg-config | (Linux/macOS only) |
 
-## CMake build options
+## Optional Dependencies
 
-| Option | Default | Description |
-| ------ | ------- | ----------- |
-| `BUILD_SHARED_LIBS` | `OFF` | Build shared libraries (.dll/.so) instead of static (.lib/.a) |
-| `BUILD_MODULES` | `ON` | Build all Icey modules |
-| `BUILD_MODULE_xxx` | | Enable or disable a specific module |
-| `BUILD_APPLICATIONS` | `ON` | Build applications |
-| `BUILD_TESTS` | `OFF` | Build module tests |
-| `BUILD_SAMPLES` | `OFF` | Build module samples |
-| `BUILD_ALPHA` | `OFF` | Build alpha development modules |
-| `WITH_FFMPEG` | `OFF` | Enable FFmpeg support |
-| `WITH_OPENCV` | `OFF` | Enable OpenCV support |
-| `ENABLE_LOGGING` | `ON` | Enable internal debug logging |
+These are auto-detected by CMake. If found on your system, the corresponding modules build automatically.
 
-For an exhaustive list of options check the `CMakeLists.txt` in the project root.
+| Dependency | Enables | Install |
+| ---------- | ------- | ------- |
+| FFmpeg 5+/6+/7+ | `av` module (capture, encode, decode) | `apt install libavcodec-dev libavformat-dev libswscale-dev libavdevice-dev` |
+| OpenCV 3.0+ | OpenCV integration in `av` | `apt install libopencv-dev` |
+| libdatachannel | `webrtc` module | fetched via CMake FetchContent |
 
-## Example configurations
+## Build
 
 ```bash
-# Minimum build (base only)
-cmake -B build -DCMAKE_BUILD_TYPE=Debug -DBUILD_MODULES=OFF \
-  -DBUILD_MODULE_base=ON
-
-# Networking build
-cmake -B build -DCMAKE_BUILD_TYPE=Debug -DBUILD_MODULES=OFF -DBUILD_TESTS=ON \
-  -DBUILD_MODULE_base=ON -DBUILD_MODULE_crypto=ON -DBUILD_MODULE_net=ON
-
-# HTTP build
-cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_MODULES=OFF \
-  -DBUILD_TESTS=ON -DBUILD_SAMPLES=ON \
-  -DBUILD_MODULE_base=ON -DBUILD_MODULE_crypto=ON \
-  -DBUILD_MODULE_json=ON -DBUILD_MODULE_net=ON \
-  -DBUILD_MODULE_http=ON
-
-# Media build (with FFmpeg)
-cmake -B build -DCMAKE_BUILD_TYPE=Debug -DBUILD_MODULES=OFF -DBUILD_TESTS=ON \
-  -DWITH_FFMPEG=ON -DBUILD_MODULE_base=ON -DBUILD_MODULE_av=ON
-
-# STUN/TURN build
-cmake -B build -DCMAKE_BUILD_TYPE=Debug -DBUILD_MODULES=OFF \
-  -DBUILD_MODULE_base=ON -DBUILD_MODULE_crypto=ON \
-  -DBUILD_MODULE_net=ON -DBUILD_MODULE_stun=ON -DBUILD_MODULE_turn=ON
+git clone https://github.com/sourcey/icey.git
+cd icey
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON
+cmake --build build --parallel $(nproc)
+ctest --test-dir build --output-on-failure
 ```
 
-## Installing
+## Install
 
 ```bash
 cmake --install build --prefix /usr/local
+```
+
+## CMake Options
+
+| Option | Default | Description |
+| ------ | ------- | ----------- |
+| `BUILD_TESTS` | `OFF` | Build module tests |
+| `BUILD_TESTS_<module>` | `OFF` | Build tests for a specific module |
+| `BUILD_SAMPLES` | `OFF` | Build module samples |
+| `BUILD_SAMPLES_<module>` | `OFF` | Build samples for a specific module |
+| `BUILD_MODULE_<name>` | `ON` | Set to `OFF` to disable a specific module |
+| `BUILD_SHARED_LIBS` | `OFF` | Build shared libraries instead of static |
+| `ENABLE_NATIVE_ARCH` | `ON` | Tune for build machine CPU (`-march=native`) |
+| `ENABLE_LTO` | `ON` | Enable link-time optimization |
+| `ASAN` | `OFF` | Enable AddressSanitizer |
+
+## Example Configurations
+
+```bash
+# Full build with tests
+cmake -B build -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON
+
+# Disable a module you don't need
+cmake -B build -DBUILD_MODULE_pacm=OFF -DBUILD_MODULE_pluga=OFF
+
+# Sanitizer build
+cmake -B build -DCMAKE_BUILD_TYPE=Debug -DASAN=ON -DBUILD_TESTS=ON
+
+# Point to custom FFmpeg
+cmake -B build -DFFMPEG_ROOT=/opt/ffmpeg
+
+# Point to custom OpenSSL (macOS)
+cmake -B build -DOPENSSL_ROOT_DIR=$(brew --prefix openssl)
+```
+
+## Use as a Dependency
+
+### CMake FetchContent (recommended)
+
+```cmake
+include(FetchContent)
+FetchContent_Declare(icey
+  GIT_REPOSITORY https://github.com/sourcey/icey.git
+  GIT_TAG v2.1.0
+)
+FetchContent_MakeAvailable(icey)
+target_link_libraries(myapp PRIVATE icy_base icy_net icy_http)
+```
+
+### find_package (after installing)
+
+```cmake
+find_package(Icey REQUIRED)
+target_link_libraries(myapp PRIVATE icy_base icy_net icy_http)
 ```
 
 ## Docker
@@ -72,31 +104,3 @@ docker build -t icey .
 ```
 
 Multi-stage Ubuntu 24.04 image via the included `Dockerfile`.
-
-## External module plugin
-
-Icey supports external modules that live outside the main source tree. Create a directory with a `CMakeLists.txt` that uses `icy_add_module()`:
-
-```cmake
-icy_add_module(mymodule
-  DEPENDS base net
-  PACKAGES OpenSSL::SSL
-  PRETTY_NAME MyModule
-)
-```
-
-Then pass the module path when configuring:
-
-```bash
-cmake -B build -DBUILD_MODULE_mymodule=ON -DIcey_EXTRA_MODULES=/path/to/mymodule
-```
-
-## Building packages
-
-Icey can be packaged into `deb`, `rpm`, `tar.gz`, `zip` and other formats using CPack:
-
-```bash
-cd build
-cmake .. -DCPACK_GENERATOR=DEB
-cpack
-```

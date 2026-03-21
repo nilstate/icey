@@ -5,7 +5,9 @@
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
-/// @addtogroup symple
+/// @defgroup symple Symple module
+///
+/// Realtime messaging protocol for presence, rooms, and WebRTC signalling.
 /// @{
 
 

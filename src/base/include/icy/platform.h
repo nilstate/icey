@@ -64,12 +64,34 @@ Base_API bool getEnvBool(std::string_view name);
 
 #ifdef ICY_WIN
 
+/// Returns true if the current OS is Windows Vista or later.
+/// @return true if running on Windows Vista (6.0) or a newer release.
 Base_API bool isWindowsVistaOrLater();
+
+/// Returns true if the current OS is Windows XP or later.
+/// @return true if running on Windows XP (5.1) or a newer release.
 Base_API bool isWindowsXpOrLater();
 
+/// Converts a UTF-8 byte sequence to a UTF-16 wide string.
+/// @param utf8 Pointer to the UTF-8 encoded input.
+/// @param len  Number of bytes to convert.
+/// @return UTF-16 wide string.
 Base_API std::wstring toUtf16(const char* utf8, size_t len);
+
+/// Converts a UTF-8 string_view to a UTF-16 wide string.
+/// @param str UTF-8 encoded input.
+/// @return UTF-16 wide string.
 Base_API std::wstring toUtf16(std::string_view str);
+
+/// Converts a UTF-16 wide character sequence to a UTF-8 string.
+/// @param wide Pointer to the UTF-16 encoded input.
+/// @param len  Number of wide characters to convert.
+/// @return UTF-8 encoded string.
 Base_API std::string toUtf8(const wchar_t* wide, size_t len);
+
+/// Converts a UTF-16 wide string to a UTF-8 string.
+/// @param wstr UTF-16 encoded input.
+/// @return UTF-8 encoded string.
 Base_API std::string toUtf8(const std::wstring& wstr);
 
 #endif

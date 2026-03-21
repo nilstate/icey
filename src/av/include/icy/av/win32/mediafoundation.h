@@ -27,6 +27,9 @@ namespace mediafoundation {
 
 /// Enumerate video and audio input devices using Media Foundation.
 /// Populates device capabilities (resolutions, frame rates, pixel formats).
+/// @param type     The device type to enumerate (VideoInput or AudioInput).
+/// @param devices  Output vector to fill with discovered devices.
+/// @return True if enumeration succeeded.
 bool getDeviceList(Device::Type type, std::vector<av::Device>& devices);
 
 
@@ -38,6 +41,9 @@ namespace wasapi {
 
 /// Enumerate audio input and output devices using WASAPI.
 /// Populates audio capabilities (sample rates, channels, formats).
+/// @param type     The device type to enumerate (AudioInput or AudioOutput).
+/// @param devices  Output vector to fill with discovered devices.
+/// @return True if enumeration succeeded.
 bool getDeviceList(Device::Type type, std::vector<av::Device>& devices);
 
 
@@ -53,13 +59,19 @@ bool getDeviceList(Device::Type type, std::vector<av::Device>& devices);
 class AV_API WindowsDeviceWatcher : public DeviceWatcher
 {
 public:
+    /// @param manager  The DeviceManager whose DevicesChanged signal will be emitted on changes.
     explicit WindowsDeviceWatcher(DeviceManager* manager);
     ~WindowsDeviceWatcher() noexcept override;
 
+    /// Begin monitoring via IMMNotificationClient and RegisterDeviceNotification.
+    /// @return True if monitoring was successfully started.
     bool start() override;
+
+    /// Stop monitoring and unregister all device notifications.
     void stop() override;
 
 private:
+    /// Internal implementation for WindowsDeviceWatcher
     struct Impl;
     std::unique_ptr<Impl> _impl;
     DeviceManager* _manager;

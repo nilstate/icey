@@ -21,10 +21,15 @@ namespace icy {
 namespace crypto {
 
 
-/// HMAC is a MAC (message authentication code), i.e. a keyed hash function
-/// used for message authentication, which is based on a hash function (SHA1).
+/// Computes an HMAC-SHA1 message authentication code.
 ///
-/// Input is the data to be signed, and key is the private password.
+/// Uses OpenSSL HMAC with SHA-1 as the underlying digest. The output is a
+/// 20-byte raw binary string (not hex-encoded).
+///
+/// @param input Data to authenticate.
+/// @param key   Secret key used for the HMAC computation.
+/// @return 20-byte raw binary HMAC-SHA1 digest.
+/// @throws std::runtime_error if OpenSSL returns an unexpected digest length.
 [[nodiscard]] std::string computeHMAC(std::string_view input, std::string_view key);
 
 

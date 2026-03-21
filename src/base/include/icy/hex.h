@@ -39,6 +39,12 @@ struct Encoder : public basic::Encoder
     {
     }
 
+    /// Encodes binary input as lowercase hex characters, optionally inserting
+    /// newlines every `_lineLength` output characters.
+    /// @param inbuf  Input buffer to encode.
+    /// @param nread  Number of bytes to read from inbuf.
+    /// @param outbuf Destination buffer; must have capacity >= nread * 2 + nread/_lineLength + 1.
+    /// @return Number of bytes written to outbuf.
     virtual ssize_t encode(const char* inbuf, size_t nread, char* outbuf) override
     {
         // static const int eof = std::char_traits<char>::eof();
@@ -60,10 +66,17 @@ struct Encoder : public basic::Encoder
         return nwrite;
     }
 
+    /// No-op finalizer; hex encoding has no pending state.
+    /// @return Always 0.
     virtual ssize_t finalize(char* /* outbuf */) override { return 0; }
 
+    /// Controls whether encoded output uses uppercase hex digits (A-F) or lowercase (a-f).
+    /// @param flag true for uppercase, false for lowercase.
     void setUppercase(bool flag) { _uppercase = flag ? 16 : 0; }
 
+    /// Sets the maximum number of output characters per line before a newline is inserted.
+    /// Set to 0 to disable line wrapping.
+    /// @param lineLength Characters per line.
     void setLineLength(int lineLength) { _lineLength = lineLength; }
 
     int _linePos;
@@ -102,6 +115,12 @@ struct Decoder : public basic::Decoder
     }
     virtual ~Decoder() {}
 
+    /// Decodes hex-encoded input to binary. Whitespace in the input is ignored.
+    /// A trailing unpaired nibble is buffered and prepended on the next call.
+    /// @param inbuf  Hex-encoded input buffer.
+    /// @param nread  Number of bytes to read from inbuf.
+    /// @param outbuf Destination buffer; must have capacity >= nread / 2.
+    /// @return Number of decoded bytes written to outbuf.
     virtual ssize_t decode(const char* inbuf, size_t nread, char* outbuf) override
     {
         int n;
@@ -127,8 +146,17 @@ struct Decoder : public basic::Decoder
         return nwrite;
     }
 
+    /// No-op finalizer; hex decoding has no pending output state.
+    /// @return Always 0.
     virtual ssize_t finalize(char* /* outbuf */) override { return 0; }
 
+    /// Reads the next non-whitespace character from inbuf, prepending any
+    /// buffered lastbyte before consuming from the stream.
+    /// @param inbuf  Input buffer.
+    /// @param nread  Total bytes in inbuf.
+    /// @param rpos   Current read position; advanced on each consumed byte.
+    /// @param c      Output: the next non-whitespace character.
+    /// @return true if more input remains after c was read, false otherwise.
     bool readnext(const char* inbuf, size_t nread, size_t& rpos,
                   char& c)
     {
@@ -145,6 +173,10 @@ struct Decoder : public basic::Decoder
         return rpos < nread;
     }
 
+    /// Converts an ASCII hex character to its 4-bit integer value.
+    /// @param n ASCII character ('0'-'9', 'a'-'f', 'A'-'F').
+    /// @return Integer value in the range [0, 15].
+    /// @throws std::runtime_error if n is not a valid hex character.
     int nybble(const int n)
     {
         if (n >= '0' && n <= '9')
@@ -157,6 +189,9 @@ struct Decoder : public basic::Decoder
             throw std::runtime_error("Invalid hex format");
     }
 
+    /// Returns true if c is an ASCII whitespace character (space, CR, tab, LF).
+    /// @param c Character to test.
+    /// @return true if c is whitespace.
     bool iswspace(const char c)
     {
         return c == ' ' || c == '\r' || c == '\t' || c == '\n';

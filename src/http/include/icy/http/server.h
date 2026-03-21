@@ -39,10 +39,16 @@ class HTTP_API ServerConnection : public Connection
 public:
     using Ptr = std::shared_ptr<ServerConnection>;
 
+    /// Creates a ServerConnection attached to the given server and socket.
+    /// @param server The owning HTTP server instance.
+    /// @param socket The accepted TCP socket for this connection.
     ServerConnection(Server& server, net::TCPSocket::Ptr socket);
     virtual ~ServerConnection();
 
+    /// Returns the owning Server instance.
     [[nodiscard]] Server& server();
+
+    /// Returns true if the connection has been upgraded (e.g. to WebSocket).
     [[nodiscard]] bool upgraded() const { return _upgrade; }
 
     /// Reset this connection for reuse with a new socket.
@@ -86,6 +92,8 @@ protected:
 class HTTP_API ServerResponder
 {
 public:
+    /// Creates a ServerResponder for the given connection.
+    /// @param connection The server connection this responder handles.
     ServerResponder(ServerConnection& connection)
         : _connection(connection)
     {
@@ -93,21 +101,36 @@ public:
 
     virtual ~ServerResponder() = default;
 
+    /// Called when the incoming request headers have been parsed.
+    /// @param request The parsed HTTP request with headers populated.
     virtual void onHeaders(Request& /* request */) {}
+
+    /// Called for each chunk of incoming request body data.
+    /// @param body Buffer containing a chunk of the request body.
     virtual void onPayload(const MutableBuffer& /* body */) {}
+
+    /// Called when the complete HTTP request has been received.
+    /// Derived classes should write their response here.
+    /// @param request The fully received HTTP request.
+    /// @param response The HTTP response to populate and send.
     virtual void onRequest(Request& /* request */, Response& /* response */) {}
+
+    /// Called when the connection is closed.
     virtual void onClose() {};
 
+    /// Returns the underlying server connection.
     [[nodiscard]] ServerConnection& connection()
     {
         return _connection;
     }
 
+    /// Returns the current HTTP request from the underlying connection.
     [[nodiscard]] Request& request()
     {
         return _connection.request();
     }
 
+    /// Returns the current HTTP response from the underlying connection.
     [[nodiscard]] Response& response()
     {
         return _connection.response();
@@ -154,6 +177,8 @@ struct DateCache
     size_t len = 0;
     std::time_t lastSecond = 0;
 
+    /// Refreshes the cached Date header string if the current second has changed.
+    /// No-op if called multiple times within the same second.
     void update()
     {
         auto now = std::time(nullptr);
@@ -170,7 +195,10 @@ struct DateCache
         }
     }
 
+    /// Returns a pointer to the formatted "Date: ...\r\n" header string.
     [[nodiscard]] const char* data() const { return buf; }
+
+    /// Returns the byte length of the formatted Date header string.
     [[nodiscard]] size_t size() const { return len; }
 };
 
@@ -181,6 +209,8 @@ struct DateCache
 class ConnectionPool
 {
 public:
+    /// Takes a connection from the pool for reuse.
+    /// @return A pooled connection, or nullptr if the pool is empty.
     ServerConnection::Ptr acquire()
     {
         if (_pool.empty()) return nullptr;
@@ -189,6 +219,9 @@ public:
         return conn;
     }
 
+    /// Returns a connection to the pool after use.
+    /// @param conn The connection to return.
+    /// @return true if accepted into the pool; false if the pool is full.
     bool release(ServerConnection::Ptr conn)
     {
         if (_pool.size() >= _maxSize) return false;
@@ -196,7 +229,11 @@ public:
         return true;
     }
 
+    /// Sets the maximum number of connections the pool will hold.
+    /// @param n Maximum pool capacity.
     void setMaxSize(size_t n) { _maxSize = n; }
+
+    /// Returns the current number of connections held in the pool.
     [[nodiscard]] size_t size() const { return _pool.size(); }
 
 private:
@@ -213,19 +250,38 @@ private:
 class HTTP_API Server : public net::SocketAdapter
 {
 public:
-    /// Construct with a loop (creates a plain TCP socket internally).
+    /// Constructs an HTTP server on the given host and port using an internally created TCP socket.
+    /// @param host Bind address (e.g. "0.0.0.0" or "127.0.0.1").
+    /// @param port TCP port to listen on.
+    /// @param loop Event loop to use. Defaults to the default libuv loop.
+    /// @param factory Connection and responder factory. Defaults to the base factory.
     Server(const std::string& host, short port,
            uv::Loop* loop = uv::defaultLoop(),
            std::unique_ptr<ServerConnectionFactory> factory = std::make_unique<ServerConnectionFactory>());
+
+    /// Constructs an HTTP server on the given address using an internally created TCP socket.
+    /// @param address Bind address and port.
+    /// @param loop Event loop to use. Defaults to the default libuv loop.
+    /// @param factory Connection and responder factory.
     Server(const net::Address& address,
            uv::Loop* loop = uv::defaultLoop(),
            std::unique_ptr<ServerConnectionFactory> factory = std::make_unique<ServerConnectionFactory>());
 
-    /// Construct with a custom socket (e.g. SSLSocket for HTTPS).
-    /// The loop is derived from the socket.
+    /// Constructs an HTTP server on the given host and port using a caller-supplied socket.
+    /// Useful for HTTPS by passing an SSLSocket. The event loop is derived from the socket.
+    /// @param host Bind address.
+    /// @param port TCP port to listen on.
+    /// @param socket Pre-created socket (e.g. SSLSocket for HTTPS).
+    /// @param factory Connection and responder factory.
     Server(const std::string& host, short port,
            net::TCPSocket::Ptr socket,
            std::unique_ptr<ServerConnectionFactory> factory = std::make_unique<ServerConnectionFactory>());
+
+    /// Constructs an HTTP server on the given address using a caller-supplied socket.
+    /// The event loop is derived from the socket.
+    /// @param address Bind address and port.
+    /// @param socket Pre-created socket (e.g. SSLSocket for HTTPS).
+    /// @param factory Connection and responder factory.
     Server(const net::Address& address,
            net::TCPSocket::Ptr socket,
            std::unique_ptr<ServerConnectionFactory> factory = std::make_unique<ServerConnectionFactory>());

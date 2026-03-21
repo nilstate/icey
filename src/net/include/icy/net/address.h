@@ -21,11 +21,9 @@ namespace icy {
 namespace net {
 
 
-/// This class represents an internet (IP) endpoint/socket
-/// address. The address can belong either to the
-/// IPv4 or the IPv6 address family and consists of a
-/// host address and a port number.
+/// Base class for network address implementations
 class Net_API AddressBase;
+/// Represents an IPv4 or IPv6 socket address with host and port
 class Net_API Address
 {
 public:
@@ -106,12 +104,27 @@ public:
     /// ie. not wildcard.
     bool valid() const;
 
+    /// Resolves a service name or decimal port string to a port number.
+    /// @param service Service name (e.g. "http") or decimal port string (e.g. "80").
+    /// @return The resolved port number in host byte order.
     static uint16_t resolveService(const std::string& service);
 
+    /// Returns true if the given string is a valid IPv4 or IPv6 address.
+    /// @param address The string to validate.
+    /// @return true if the address parses as a valid IP address, false otherwise.
     static bool validateIP(const std::string& address);
 
+    /// Compares two addresses for ordering (by family then port).
+    /// @param addr The address to compare against.
+    /// @return true if this address is less than @p addr.
     bool operator<(const Address& addr) const;
+
+    /// Returns true if the host and port of both addresses are equal.
+    /// @param addr The address to compare against.
     bool operator==(const Address& addr) const;
+
+    /// Returns true if the host or port of the addresses differ.
+    /// @param addr The address to compare against.
     bool operator!=(const Address& addr) const;
 
     friend std::ostream& operator<<(std::ostream& stream, const Address& addr)

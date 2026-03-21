@@ -33,7 +33,16 @@ class Sched_API Task : public icy::Task
     , public json::ISerializable
 {
 public:
+    /// Constructs a detached task without an associated scheduler.
+    /// A trigger must be set before scheduling.
+    /// @param type Registered type name used by TaskFactory.
+    /// @param name Human-readable display name.
     Task(const std::string& type = "", const std::string& name = "");
+
+    /// Constructs a task associated with the given scheduler.
+    /// @param scheduler Scheduler that will own and run this task.
+    /// @param type Registered type name used by TaskFactory.
+    /// @param name Human-readable display name.
     Task(Scheduler& scheduler, const std::string& type, const std::string& name = "");
 
     // virtual void start();
@@ -44,6 +53,10 @@ public:
     /// Deserializes the task from JSON.
     virtual void deserialize(json::Value& root) override;
 
+    /// Creates a trigger of type T, attaches it to this task, and returns a raw pointer to it.
+    /// Ownership of the trigger is transferred to this task.
+    /// @tparam T A concrete subclass of sched::Trigger.
+    /// @return Raw pointer to the newly created trigger (still owned by this task).
     template <typename T>
     T* createTrigger()
     {
@@ -53,6 +66,8 @@ public:
         return raw;
     }
 
+    /// Replaces the current trigger with @p trigger.
+    /// @param trigger Owning pointer to the new trigger; must not be null before calling.
     void setTrigger(std::unique_ptr<sched::Trigger> trigger);
 
     /// Returns a reference to the associated
@@ -69,8 +84,14 @@ public:
     /// or an exception will be thrown.
     std::int64_t remaining() const;
 
+    /// Returns the registered type string for this task.
     std::string type() const;
+
+    /// Returns the human-readable display name of this task.
     std::string name() const;
+
+    /// Sets the human-readable display name.
+    /// @param name New display name.
     void setName(const std::string& name);
 
     virtual ~Task();

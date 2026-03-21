@@ -151,7 +151,16 @@ private:
 };
 
 
+/// Returns the standard reason phrase for the given HTTP status code
+/// (e.g. "OK" for StatusCode::OK, "Not Found" for StatusCode::NotFound).
+/// @param status HTTP status code.
+/// @return Null-terminated reason phrase string.
 [[nodiscard]] const char* getStatusCodeReason(StatusCode status);
+
+/// Returns a combined "NNN Reason" string for the given HTTP status code
+/// (e.g. "200 OK").
+/// @param status HTTP status code.
+/// @return Null-terminated status code string.
 [[nodiscard]] const char* getStatusCodeString(StatusCode status);
 
 

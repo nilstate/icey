@@ -1,35 +1,38 @@
 # Installing on macOS
 
-This guide uses [Homebrew](https://brew.sh). Works on both Intel and Apple Silicon Macs.
+Uses [Homebrew](https://brew.sh). Works on both Intel and Apple Silicon.
 
-## Install Dependencies
+## Dependencies
 
 ```bash
 brew install cmake openssl
 ```
 
-CMake should find OpenSSL automatically. If not, set the path:
+### FFmpeg (optional)
 
 ```bash
-cmake .. -DOPENSSL_ROOT_DIR=$(brew --prefix openssl)
+brew install ffmpeg
 ```
 
-For optional dependencies like FFmpeg, see the [Linux instructions](installation-linux.md#install-ffmpeg-optional) - the same `cmake` flags apply.
-
-## Install Icey
+## Build and Install
 
 ```bash
 git clone https://github.com/sourcey/icey.git
 cd icey
-mkdir build
-cd build
-cmake .. -DCMAKE_BUILD_TYPE=RELEASE # extra cmake commands here...
-make
-sudo make install
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON \
+  -DOPENSSL_ROOT_DIR=$(brew --prefix openssl)
+cmake --build build --parallel $(sysctl -n hw.ncpu)
+ctest --test-dir build --output-on-failure
+sudo cmake --install build
 ```
 
-## Compile with Xcode
+## Xcode
 
-* Generate an Xcode project: `cmake .. -G Xcode`
-* Launch Xcode, open `icey.xcodeproj`
-* Select "Debug", build (Cmd-B), then select "Release" and build again
+Generate an Xcode project instead of Makefiles:
+
+```bash
+cmake -B build -G Xcode -DOPENSSL_ROOT_DIR=$(brew --prefix openssl)
+open build/icey.xcodeproj
+```
+
+See [installation.md](installation.md) for the full list of CMake options.

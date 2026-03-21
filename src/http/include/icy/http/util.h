@@ -20,36 +20,47 @@ namespace icy {
 namespace http {
 
 
-/// Parses the URI part from a HTTP request.
+/// Extracts the URI (path and query) from a raw HTTP request line.
+/// @param request Raw HTTP request line (e.g. "GET /path?q=1 HTTP/1.1").
+/// @return The URI portion (e.g. "/path?q=1").
 std::string parseURI(std::string_view request);
 
-/// Parses the URI against the expression.
+/// Tests whether a URI matches a glob-style expression.
+/// @param uri The URI to test.
+/// @param expression Pattern to match against. '*' matches any sequence of characters.
+/// @return true if the URI matches the expression.
 bool matchURL(std::string_view uri, std::string_view expression);
 
-/// Parses an item from a HTTP cookie.
+/// Extracts a named attribute from a Cookie header value.
+/// @param cookie Full Cookie header value (e.g. "name=value; Path=/; HttpOnly").
+/// @param item Attribute name to find (e.g. "Path").
+/// @return The value of the named attribute, or an empty string if not found.
 std::string parseCookieItem(std::string_view cookie, std::string_view item);
 
-/// Splits and adds the URI query parameters into the given collection.
+/// Parses URL query parameters from a URI into key-value pairs.
+/// Handles percent-decoding of names and values.
+/// @param uri URI string optionally containing a '?' query component.
+/// @param out Collection to populate with parsed parameters.
+/// @return true if at least one parameter was parsed; false otherwise.
 bool splitURIParameters(std::string_view uri, NVCollection& out);
 
-/// Splits the given std::string into a value and a collection of parameters.
-/// Parameters are expected to be separated by semicolons.
+/// Splits a header-style parameter string into a primary value and named attributes.
+/// Attributes are separated by ';'. Enclosing quotes are stripped from values.
 ///
-/// Enclosing quotes of parameter values are removed.
+/// Example input: "multipart/mixed; boundary=\"boundary-01234567\""
+/// Output value: "multipart/mixed", parameters: { "boundary" -> "boundary-01234567" }
 ///
-/// For example, the std::string
-///   multipart/mixed; boundary="boundary-01234567"
-/// is split into the value
-///   multipart/mixed
-/// and the parameter
-///   boundary -> boundary-01234567
+/// @param s Input string to split.
+/// @param value Receives the primary value before the first ';'.
+/// @param parameters Receives the parsed attribute key-value pairs.
 void splitParameters(const std::string& s, std::string& value,
                      NVCollection& parameters);
 
-/// Splits the given std::string into a collection of parameters.
-/// Parameters are expected to be separated by semicolons.
-///
-/// Enclosing quotes of parameter values are removed.
+/// Splits a substring (defined by iterators) into named attributes.
+/// Attributes are separated by ';'. Enclosing quotes are stripped from values.
+/// @param begin Iterator to the start of the string to parse.
+/// @param end Iterator past the end of the string to parse.
+/// @param parameters Receives the parsed attribute key-value pairs.
 void splitParameters(const std::string::const_iterator& begin,
                      const std::string::const_iterator& end,
                      NVCollection& parameters);

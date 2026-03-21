@@ -25,11 +25,25 @@ namespace http {
 class HTTP_API ParserObserver
 {
 public:
+    /// Called for each parsed HTTP header name/value pair.
+    /// @param name Header field name.
+    /// @param value Header field value.
     virtual void onParserHeader(const std::string& name, const std::string& value) = 0;
+
+    /// Called when all HTTP headers have been parsed.
+    /// @param upgrade True if the connection should be upgraded (e.g. to WebSocket).
     virtual void onParserHeadersEnd(bool upgrade) = 0;
+
+    /// Called for each chunk of body data received.
+    /// @param data Pointer to the body data chunk.
+    /// @param len Length of the chunk in bytes.
     virtual void onParserChunk(const char* data, size_t len) = 0;
+
+    /// Called when the HTTP message is fully parsed.
     virtual void onParserEnd() = 0;
 
+    /// Called when a parse error occurs.
+    /// @param err Error details from llhttp.
     virtual void onParserError(const Error& err) = 0;
 };
 
@@ -39,8 +53,16 @@ public:
 class HTTP_API Parser
 {
 public:
+    /// Creates a response parser. The response object is populated as data is parsed.
+    /// @param response HTTP response object to populate.
     Parser(http::Response* response);
+
+    /// Creates a request parser. The request object is populated as data is parsed.
+    /// @param request HTTP request object to populate.
     Parser(http::Request* request);
+
+    /// Creates a parser of the given type without binding a message object.
+    /// @param type Either HTTP_REQUEST or HTTP_RESPONSE.
     Parser(llhttp_type_t type);
     ~Parser();
 
@@ -49,10 +71,13 @@ public:
     Parser(Parser&&) = delete;
     Parser& operator=(Parser&&) = delete;
 
-    /// Parse a HTTP packet.
+    /// Feeds a buffer of raw HTTP data into the parser.
     ///
-    /// Returns true of the message is complete, false if incomplete.
-    /// Reset the parser state for a new message
+    /// May be called multiple times for streaming data. The parser state
+    /// persists between calls. On completion or error, the observer is notified.
+    /// @param data Pointer to the input data buffer.
+    /// @param length Number of bytes in the buffer.
+    /// @return Number of bytes consumed (always equal to `length` unless an error occurred).
     size_t parse(const char* data, size_t length);
 
     /// Reset the internal state (reinitialises llhttp).
@@ -73,15 +98,28 @@ public:
     /// Returns the parser type (HTTP_REQUEST or HTTP_RESPONSE).
     [[nodiscard]] llhttp_type_t type() const { return _type; }
 
+    /// Binds an HTTP request object to populate during parsing.
+    /// Must only be called when no message is currently set and type is HTTP_REQUEST.
+    /// @param request The request object to populate.
     void setRequest(http::Request* request);
+
+    /// Binds an HTTP response object to populate during parsing.
+    /// Must only be called when no message is currently set and type is HTTP_RESPONSE.
+    /// @param response The response object to populate.
     void setResponse(http::Response* response);
+
+    /// Sets the observer that receives parser events.
+    /// @param observer Observer to notify. May be nullptr to clear.
     void setObserver(ParserObserver* observer);
 
     /// Clear request/response pointers so they can be re-set.
     /// Used when resetting a pooled connection for reuse.
     void clearMessage();
 
+    /// Returns the currently bound message (request or response), or nullptr.
     [[nodiscard]] http::Message* message();
+
+    /// Returns the current parser observer, or nullptr if none is set.
     [[nodiscard]] ParserObserver* observer() const;
 
 protected:

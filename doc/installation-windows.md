@@ -1,45 +1,48 @@
 # Installing on Windows
 
-## Install Dependencies
+## Requirements
 
-### Install Git
+- [Git](https://git-scm.com/)
+- [CMake 3.21+](https://cmake.org/download/)
+- [Visual Studio 2022](https://visualstudio.microsoft.com/) (C++ workload)
 
-[Download git-scm](https://git-scm.com/)
+## Dependencies
 
-### Install CMake
+### OpenSSL
 
-[Download CMake](https://cmake.org/download/)
+Install via [vcpkg](https://vcpkg.io/):
 
-### Install OpenSSL
-
-Install OpenSSL using [vcpkg](https://vcpkg.io/) or download prebuilt binaries from [slproweb.com](https://slproweb.com/products/Win32OpenSSL.html).
-
-Set the `OPENSSL_ROOT_DIR` CMake variable to point to your OpenSSL installation directory and the build system will do the rest.
-
-### Install FFmpeg (optional)
-
-Download FFmpeg development libraries from [gyan.dev](https://www.gyan.dev/ffmpeg/builds/) (both shared and dev packages).
-
-Add the FFmpeg `bin` directory to your system `PATH`, then set the `FFMPEG_ROOT_DIR` CMake variable:
-
-```bash
-cmake .. -DOPENSSL_ROOT_DIR=C:\vendor\OpenSSL-Win64 -DWITH_FFMPEG=ON -DFFMPEG_ROOT_DIR=C:\vendor\ffmpeg-dev
+```powershell
+vcpkg install openssl:x64-windows
 ```
 
-### Download Icey
+Or download prebuilt binaries from [slproweb.com](https://slproweb.com/products/Win32OpenSSL.html) and set `OPENSSL_ROOT_DIR`.
 
-```bash
+### FFmpeg (optional)
+
+Download development libraries from [gyan.dev](https://www.gyan.dev/ffmpeg/builds/). Add the `bin` directory to your system `PATH`, then set `FFMPEG_ROOT`:
+
+```powershell
+cmake -B build -DFFMPEG_ROOT=C:\vendor\ffmpeg
+```
+
+## Build
+
+### Command line
+
+```powershell
 git clone https://github.com/sourcey/icey.git
+cd icey
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON -DOPENSSL_ROOT_DIR=C:\vendor\OpenSSL-Win64
+cmake --build build --config Release --parallel
+ctest --test-dir build -C Release --output-on-failure
+cmake --install build --prefix C:\icey
 ```
 
-## Generate Project Files
+### Visual Studio
 
-Open the CMake GUI and set the project directory to point to the Icey root directory. Execute "Configure" to do the initial configuration, then adjust any options, then press "Configure" again and then press "Generate".
+1. Open CMake GUI, point source to the Icey root, configure, generate
+2. Open `build/icey.sln` in Visual Studio
+3. Build Debug and/or Release configurations
 
-[See here](installation.md#cmake-build-options) for a complete list of build options.
-
-## Compile with Visual Studio
-
-1. Generate solutions using CMake, as described above. Make sure you choose the proper generator (32-bit or 64-bit)
-2. Launch Visual Studio, locate and open `icey.sln` in your generated build folder. Select "Debug" configuration, build the solution (Ctrl-Shift-B), and/or select "Release" and build it.
-3. Add `{CMAKE_BINARY_DIR}\bin\Release` and `{CMAKE_BINARY_DIR}\bin\Debug` to your system PATH.
+See [installation.md](installation.md) for the full list of CMake options.

@@ -28,12 +28,16 @@ namespace turn {
 static constexpr int PERMISSION_LIFETIME = 5 * 60 * 1000;
 
 
-/// TURN permission for a user session
+/// A single TURN permission entry associating a peer IP with a 5-minute expiry timer.
+/// Per RFC 5766 section 8, permissions last exactly 300 seconds and must be refreshed
+/// via a new CreatePermission request before they expire.
 struct Permission
 {
-    std::string ip;
-    Timeout timeout;
+    std::string ip; ///< IPv4 address string of the permitted peer.
+    Timeout timeout; ///< Countdown timer; expires after PERMISSION_LIFETIME milliseconds.
 
+    /// Constructs a permission for @p ip and immediately starts the expiry timer.
+    /// @param ip IPv4 address string of the permitted peer.
     Permission(const std::string& ip)
         : ip(ip)
         , timeout(PERMISSION_LIFETIME)
@@ -41,8 +45,12 @@ struct Permission
         refresh();
     }
 
+    /// Resets the expiry timer, extending the permission lifetime by another 300 seconds.
     void refresh() { timeout.reset(); }
 
+    /// Equality comparison against an IP string.
+    /// @param r IPv4 address string to compare against.
+    /// @return true if this permission's IP matches @p r.
     bool operator==(std::string_view r) const { return ip == r; }
 };
 

@@ -86,15 +86,36 @@ public:
     /// Returns true if the given receiver is connected.
     virtual bool hasReceiver(SocketAdapter* adapter);
 
-    /// Returns the input SocketAdapter pointer
+    /// Returns all currently registered input SocketAdapter pointers.
+    /// Dead (removed) entries are excluded from the returned list.
     std::vector<SocketAdapter*> receivers();
 
-    /// These virtual methods can be overridden as necessary
-    /// to intercept socket events before they hit the application.
-    /// Return true to stop propagation to subsequent receivers.
+    /// Called when the socket establishes a connection.
+    /// Forwards the event to all registered receivers in priority order.
+    /// Override to intercept before the application sees the event.
+    /// @param socket The connected socket.
+    /// @return true to stop propagation to subsequent receivers.
     virtual bool onSocketConnect(Socket& socket);
+
+    /// Called when data is received from the socket.
+    /// Forwards the event to all registered receivers in priority order.
+    /// @param socket      The socket that received data.
+    /// @param buffer      The received data buffer.
+    /// @param peerAddress Address of the sender.
+    /// @return true to stop propagation to subsequent receivers.
     virtual bool onSocketRecv(Socket& socket, const MutableBuffer& buffer, const Address& peerAddress);
+
+    /// Called when the socket encounters an error.
+    /// Forwards the event to all registered receivers in priority order.
+    /// @param socket The socket that encountered the error.
+    /// @param error  Error details.
+    /// @return true to stop propagation to subsequent receivers.
     virtual bool onSocketError(Socket& socket, const Error& error);
+
+    /// Called when the socket is closed.
+    /// Forwards the event to all registered receivers in priority order.
+    /// @param socket The socket that was closed.
+    /// @return true to stop propagation to subsequent receivers.
     virtual bool onSocketClose(Socket& socket);
 
     /// The priority of this adapter for STL sort operations.
@@ -103,6 +124,7 @@ public:
 protected:
     virtual void cleanupReceivers();
 
+    /// Reference-counted handle to a SocketAdapter
     struct Ref
     {
         SocketAdapter* ptr;

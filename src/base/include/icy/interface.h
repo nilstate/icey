@@ -29,23 +29,44 @@ namespace icy {
 namespace basic {
 
 
+/// Abstract interface for stream decoders
 class Base_API Decoder
 {
 public:
     Decoder() = default;
     virtual ~Decoder() = default;
 
+    /// Decodes nread bytes from inbuf and writes decoded output to outbuf.
+    /// @param inbuf  Encoded input buffer.
+    /// @param nread  Number of bytes to decode from inbuf.
+    /// @param outbuf Destination buffer for decoded output.
+    /// @return Number of bytes written to outbuf, or -1 on error.
     virtual ssize_t decode(const char* inbuf, size_t nread, char* outbuf) = 0;
+
+    /// Flushes any buffered state and writes final output to outbuf.
+    /// @param outbuf Destination buffer for any remaining output.
+    /// @return Number of bytes written, or 0 if nothing to flush.
     virtual ssize_t finalize(char* /* outbuf */) { return 0; }
 };
 
 
+/// Abstract interface for stream encoders
 class Base_API Encoder
 {
 public:
     Encoder() = default;
     virtual ~Encoder() = default;
+
+    /// Encodes nread bytes from inbuf and writes encoded output to outbuf.
+    /// @param inbuf  Raw input buffer to encode.
+    /// @param nread  Number of bytes to encode from inbuf.
+    /// @param outbuf Destination buffer for encoded output.
+    /// @return Number of bytes written to outbuf, or -1 on error.
     virtual ssize_t encode(const char* inbuf, size_t nread, char* outbuf) = 0;
+
+    /// Flushes any buffered state and writes final output to outbuf.
+    /// @param outbuf Destination buffer for any remaining output.
+    /// @return Number of bytes written, or 0 if nothing to flush.
     virtual ssize_t finalize(char* /* outbuf */) { return 0; }
 };
 
@@ -86,7 +107,10 @@ protected:
 class Base_API Startable
 {
 public:
+    /// Starts the object (e.g. begins processing or listening).
     virtual void start() = 0;
+
+    /// Stops the object (e.g. halts processing or closes resources).
     virtual void stop() = 0;
 };
 
@@ -95,7 +119,11 @@ public:
 class Base_API Sendable
 {
 public:
+    /// Initiates the send operation.
+    /// @return true if the send was dispatched successfully, false otherwise.
     virtual bool send() = 0;
+
+    /// Cancels a pending send operation.
     virtual void cancel() = 0;
 };
 

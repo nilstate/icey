@@ -28,6 +28,11 @@ namespace net {
 //
 
 
+/// Populates @p hosts with all local network interface addresses.
+///
+/// Each entry is an IPv4 address constructed from the interface's address4 field.
+/// The results include loopback and any other active interfaces reported by libuv.
+/// @param hosts Vector to append the discovered addresses to.
 inline void getNetworkInterfaces(std::vector<net::Address>& hosts)
 {
     uv_interface_address_t* info;
@@ -65,6 +70,11 @@ int uv___stream_fd(const uv_stream_t* handle);
 #endif
 
 
+/// Returns the current send buffer size for a socket handle, in bytes.
+/// Passes val=0 to uv_send_buffer_size, which queries rather than sets the value.
+/// @tparam T  The libuv handle type (e.g. uv_tcp_t, uv_udp_t).
+/// @param handle The socket handle to query.
+/// @return The send buffer size, or a libuv error code on failure.
 template <typename T>
 int getServerSocketSendBufSize(uv::Handle<T>& handle)
 {
@@ -73,6 +83,11 @@ int getServerSocketSendBufSize(uv::Handle<T>& handle)
 }
 
 
+/// Returns the current receive buffer size for a socket handle, in bytes.
+/// Passes val=0 to uv_recv_buffer_size, which queries rather than sets the value.
+/// @tparam T  The libuv handle type (e.g. uv_tcp_t, uv_udp_t).
+/// @param handle The socket handle to query.
+/// @return The receive buffer size, or a libuv error code on failure.
 template <typename T>
 int getServerSocketRecvBufSize(uv::Handle<T>& handle)
 {
@@ -81,6 +96,11 @@ int getServerSocketRecvBufSize(uv::Handle<T>& handle)
 }
 
 
+/// Sets the send buffer size for a socket handle.
+/// @tparam T    The libuv handle type (e.g. uv_tcp_t, uv_udp_t).
+/// @param handle The socket handle to configure.
+/// @param size   The desired send buffer size in bytes.
+/// @return 0 on success, or a libuv error code on failure.
 template <typename T>
 int setServerSocketSendBufSize(uv::Handle<T>& handle, int size)
 {
@@ -88,6 +108,11 @@ int setServerSocketSendBufSize(uv::Handle<T>& handle, int size)
 }
 
 
+/// Sets the receive buffer size for a socket handle.
+/// @tparam T    The libuv handle type (e.g. uv_tcp_t, uv_udp_t).
+/// @param handle The socket handle to configure.
+/// @param size   The desired receive buffer size in bytes.
+/// @return 0 on success, or a libuv error code on failure.
 template <typename T>
 int setServerSocketRecvBufSize(uv::Handle<T>& handle, int size)
 {

@@ -29,12 +29,17 @@ namespace http {
 class HTTP_API ChunkedAdapter : public IPacketizer
 {
 public:
-    Connection::Ptr connection;
-    std::string contentType;
-    std::string frameSeparator;
-    bool initial;
-    bool nocopy;
+    Connection::Ptr connection; ///< HTTP connection to send the initial response header through.
+    std::string contentType;    ///< Content-Type value for the chunked response.
+    std::string frameSeparator; ///< Optional separator written before each chunk payload.
+    bool initial;               ///< True until the first chunk is processed and the header emitted.
+    bool nocopy;                ///< If true, header/data/footer are emitted as separate packets.
 
+    /// Creates a ChunkedAdapter that sends its initial response header through the given connection.
+    /// The content type is read from the connection's outgoing header.
+    /// @param connection HTTP connection to use. May be nullptr to emit a raw response instead.
+    /// @param frameSeparator Optional data prepended to each chunk payload.
+    /// @param nocopy If true, header and payload are emitted as separate packets (avoids copies).
     ChunkedAdapter(Connection::Ptr connection = nullptr, const std::string& frameSeparator = "", bool nocopy = true)
         : PacketProcessor(this->emitter)
         , connection(connection)
@@ -43,6 +48,11 @@ public:
     {
     }
 
+    /// Creates a ChunkedAdapter that emits its own raw HTTP/1.1 200 response header.
+    /// Use this when no Connection object is available.
+    /// @param contentType Content-Type value for the response.
+    /// @param frameSeparator Optional data prepended to each chunk payload.
+    /// @param nocopy If true, header and payload are emitted as separate packets.
     ChunkedAdapter(const std::string& contentType, const std::string& frameSeparator = "", bool nocopy = true)
         : PacketProcessor(this->emitter)
         , connection(nullptr)
@@ -55,8 +65,9 @@ public:
 
     virtual ~ChunkedAdapter() {}
 
-    /// Sets HTTP headers for the initial response.
-    /// This method must not include the final carriage return.
+    /// Emits the initial HTTP/1.1 200 OK response headers with chunked transfer encoding.
+    /// If a connection is set, headers are written through it; otherwise a raw response
+    /// string is emitted via the packet signal.
     virtual void emitHeader()
     {
         // Flush connection headers if the connection is set.
@@ -91,6 +102,10 @@ public:
         }
     }
 
+    /// Encodes an incoming packet as a chunked transfer encoding chunk and emits it.
+    /// Emits the HTTP response headers on the first call.
+    /// @param packet Packet containing the raw payload data.
+    /// @throws std::invalid_argument if the packet does not carry data.
     virtual void process(IPacket& packet) override
     {
         LTrace("Processing:", packet.size());
@@ -143,11 +158,15 @@ public:
 class HTTP_API MultipartAdapter : public IPacketizer
 {
 public:
-    Connection::Ptr connection;
-    std::string contentType;
-    bool isBase64;
-    bool initial;
+    Connection::Ptr connection; ///< HTTP connection for sending the initial response header.
+    std::string contentType;    ///< Content-Type of each part (e.g. "image/jpeg").
+    bool isBase64;              ///< If true, adds "Content-Transfer-Encoding: base64" to each part.
+    bool initial;               ///< True until the first chunk is processed and the boundary header emitted.
 
+    /// Creates a MultipartAdapter that sends headers through the given connection.
+    /// The per-part content type is read from the connection's outgoing header.
+    /// @param connection HTTP connection to use for sending the initial multipart header.
+    /// @param base64 If true, indicates parts are base64-encoded.
     MultipartAdapter(Connection::Ptr connection, bool base64 = false)
         : IPacketizer(this->emitter)
         , connection(connection)
@@ -157,6 +176,10 @@ public:
     {
     }
 
+    /// Creates a MultipartAdapter that emits its own raw HTTP/1.1 200 response header.
+    /// Use this when no Connection object is available.
+    /// @param contentType Content-Type for each multipart part.
+    /// @param base64 If true, indicates parts are base64-encoded.
     MultipartAdapter(const std::string& contentType, bool base64 = false)
         : IPacketizer(this->emitter)
         , connection(nullptr)
@@ -168,6 +191,8 @@ public:
 
     virtual ~MultipartAdapter() {}
 
+    /// Emits the initial HTTP/1.1 200 OK response with Content-Type multipart/x-mixed-replace.
+    /// If a connection is set, headers are written through it; otherwise a raw response string is emitted.
     virtual void emitHeader()
     {
         // Flush connection headers if the connection is set.
@@ -199,7 +224,8 @@ public:
         }
     }
 
-    /// Sets HTTP header for the current chunk.
+    /// Emits the MIME boundary and per-part headers (Content-Type, optionally
+    /// Content-Transfer-Encoding) for the next multipart chunk.
     virtual void emitChunkHeader()
     {
         // Write the chunk header
@@ -214,6 +240,9 @@ public:
         emit(hst.str());
     }
 
+    /// Wraps the incoming packet as a multipart chunk and emits it downstream.
+    /// Emits the multipart HTTP response headers on the first call.
+    /// @param packet Packet containing the raw payload data.
     virtual void process(IPacket& packet)
     {
         // Write the initial HTTP response header

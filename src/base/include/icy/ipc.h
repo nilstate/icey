@@ -34,10 +34,14 @@ struct Action
 {
     using Callback = std::function<void(const Action&)>;
 
-    Callback target;
-    void* arg;
-    std::string data;
+    Callback target;  ///< The callable to invoke when the action is dispatched.
+    void* arg;        ///< Optional opaque pointer passed to the callback.
+    std::string data; ///< Optional string payload passed to the callback.
 
+    /// Constructs an Action with the given callback, optional argument, and optional data.
+    /// @param target Callback to invoke on dispatch.
+    /// @param arg    Opaque pointer passed to the callback (default: nullptr).
+    /// @param data   String payload passed to the callback (default: empty).
     Action(Callback target, void* arg = nullptr, const std::string& data = "")
         : target(target)
         , arg(arg)
@@ -57,6 +61,10 @@ public:
 
     virtual ~Queue() {}
 
+    /// Pushes an action onto the queue and triggers a post notification.
+    /// Takes ownership of action; the queue deletes it after execution.
+    /// Thread-safe.
+    /// @param action Heap-allocated action to enqueue.
     virtual void push(TAction* action)
     {
         {
@@ -66,6 +74,10 @@ public:
         post();
     }
 
+    /// Removes and returns the next action from the front of the queue.
+    /// The caller takes ownership of the returned pointer.
+    /// Thread-safe.
+    /// @return Pointer to the next action, or nullptr if the queue is empty.
     virtual TAction* pop()
     {
         if (_actions.empty())
@@ -76,6 +88,8 @@ public:
         return next;
     }
 
+    /// Drains the queue by invoking and deleting every pending action in order.
+    /// Must be called from the thread that owns the event loop.
     virtual void runSync()
     {
         TAction* next = nullptr;
@@ -85,10 +99,15 @@ public:
         }
     }
 
+    /// Closes the underlying notification handle. No-op in the base implementation.
     virtual void close() {}
 
+    /// Signals the event loop that new actions are available. No-op in the base implementation.
     virtual void post() {}
 
+    /// Blocks the calling thread until the queue is empty or the timeout elapses.
+    /// Polls every 10 ms. Logs a warning if the timeout is reached.
+    /// @param timeout Maximum time to wait (default: 5000 ms).
     void waitForSync(std::chrono::milliseconds timeout = std::chrono::milliseconds(5000))
     {
         auto deadline = std::chrono::steady_clock::now() + timeout;
@@ -118,6 +137,8 @@ template <typename TAction = ipc::Action>
 class SyncQueue : public Queue<TAction>
 {
 public:
+    /// Constructs a SyncQueue bound to the given libuv event loop.
+    /// @param loop Event loop to synchronize with (default: the process-wide default loop).
     SyncQueue(uv::Loop* loop = uv::defaultLoop())
         : _sync([this]() { this->runSync(); }, loop)
     {
@@ -125,10 +146,14 @@ public:
 
     virtual ~SyncQueue() {}
 
+    /// Closes the underlying Synchronizer handle and stops loop wakeups.
     virtual void close() { _sync.close(); }
 
+    /// Wakes up the event loop so pending actions are dispatched via runSync().
     virtual void post() { _sync.post(); }
 
+    /// Returns a reference to the internal Synchronizer.
+    /// @return Reference to the Synchronizer used for loop wakeup.
     virtual Synchronizer& sync() { return _sync; }
 
 protected:

@@ -37,9 +37,11 @@ public:
     /// Default constructor.
     Thread();
 
-    /// Templated constructor.
-    ///
-    /// This constructor starts the thread with the given function.
+    /// Constructs a `Thread` and immediately starts it with the given function and arguments.
+    /// @tparam Function Callable type.
+    /// @tparam Args Argument types forwarded to the function.
+    /// @param func Callable to execute on the new thread.
+    /// @param args Arguments forwarded to `func`.
     template <typename Function, typename... Args>
     explicit Thread(Function&& func, Args&&... args)
     {
@@ -51,9 +53,12 @@ public:
     /// Destructor.
     virtual ~Thread();
 
-    /// Start a function with veradic arguments.
-    ///
-    /// This method starts the thread with the given function.
+    /// Starts the thread with a variadic function and arguments.
+    /// The thread is started immediately; the previous thread must have exited before calling again.
+    /// @tparam Function Callable type.
+    /// @tparam Args Argument types forwarded to the function.
+    /// @param func Callable to execute on the new thread.
+    /// @param args Arguments forwarded to `func`.
     template <typename Function, typename... Args>
     void start(Function&& func, Args&&... args)
     {
@@ -62,7 +67,9 @@ public:
                               std::forward<Args>(args)...);
     }
 
-    /// Start the asynchronous context with the given void function.
+    /// Starts the thread with a `std::function` callback.
+    /// Overrides `Runner::start`; delegates to the variadic `start` template.
+    /// @param func Callable to execute on the new thread.
     void start(std::function<void()> func) override;
 
     /// Wait until the thread exits.

@@ -26,13 +26,14 @@ namespace icy {
 /// Provides timed persistent data storage for class instances.
 /// TValue must implement the clone() method.
 template <class TKey, class TValue>
-class /* ICY_EXTERN */ TimedManager : public PointerCollection<TKey, TValue>
+class /* ICY_EXTERN */ TimedManager : public KeyedStore<TKey, TValue>
 {
 public:
-    using Base = PointerCollection<TKey, TValue>;
-    using Base::add; // inherit base add overloads
+    using Base = KeyedStore<TKey, TValue>;
     using TimeoutMap = std::map<TValue*, Timeout>;
 
+    /// Constructs a TimedManager and starts the internal expiry-check timer.
+    /// @param loop Event loop used by the internal timer (default: process-wide default loop).
     TimedManager(uv::Loop* loop = uv::defaultLoop())
         : _timer(100, 100, loop) // check every 100ms
     {
@@ -47,19 +48,19 @@ public:
     /// specified timeout value.
     /// If the timeout is 0 the item will be stored indefinitely.
     /// The TimedManager assumes ownership of the given pointer.
-    virtual void add(const TKey& key, TValue* item, long timeout = 0)
+    void add(const TKey& key, std::unique_ptr<TValue> item, long timeout = 0)
     {
-        Base::free(key);      // Free existing item and timeout (if any)
-        Base::add(key, item); // Add new entry
+        Base::erase(key); // Free existing item and timeout (if any)
+        auto* raw = &Base::add(key, std::move(item));
         if (timeout > 0)
-            setTimeout(item, timeout);
+            setTimeout(raw, timeout);
     }
 
     /// Update the item expiry timeout
     virtual bool expires(const TKey& key, long timeout)
     {
         LTrace("Set expires: ", key, ": ", timeout);
-        return expires(Base::get(key, false), timeout);
+        return expires(Base::get(key), timeout);
     }
 
     /// Update the item expiry timeout
@@ -69,6 +70,7 @@ public:
         return setTimeout(item, timeout);
     }
 
+    /// Removes all items and their associated timeouts.
     virtual void clear() override
     {
         Base::clear();
@@ -77,6 +79,12 @@ public:
     }
 
 protected:
+    /// Sets or removes the expiry timeout for a specific item pointer.
+    /// If timeout > 0, starts a countdown; if timeout == 0, removes any existing timeout.
+    /// @param item    Pointer to the managed item.
+    /// @param timeout Delay in milliseconds, or 0 to clear the timeout.
+    /// @return true on success.
+    /// @throws std::logic_error if item is nullptr.
     virtual bool setTimeout(TValue* item, long timeout)
     {
         if (item) {
@@ -98,6 +106,10 @@ protected:
         return false;
     }
 
+    /// Called when an item is removed from the collection.
+    /// Erases the item's timeout entry and calls the base implementation.
+    /// @param key  Key of the removed item.
+    /// @param item Pointer to the removed item.
     virtual void onRemove(const TKey& key, TValue* item) override
     {
         // Remove timeout entry
@@ -109,11 +121,21 @@ protected:
         Base::onRemove(key, item);
     }
 
+    /// Called when an item's timeout expires. Default implementation removes and deletes the item.
+    /// @param item Pointer to the expired item.
     virtual void onTimeout(TValue* item)
     {
-        Base::remove(item); // removes and deletes via unique_ptr
+        // Find by pointer and erase by key
+        for (auto& [key, val] : this->_map) {
+            if (val.get() == item) {
+                Base::erase(key);
+                return;
+            }
+        }
     }
 
+    /// Internal timer callback; iterates all tracked timeouts and calls onTimeout()
+    /// for any that have expired.
     void onTimerUpdate()
     {
         _tmutex.lock();

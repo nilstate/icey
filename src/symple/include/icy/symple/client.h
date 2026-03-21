@@ -88,6 +88,7 @@ class Symple_API Client : public Stateful<ClientState>
                         , public PacketSignal
 {
 public:
+    /// Connection and authentication options for the Symple client
     struct Options
     {
         std::string host = "127.0.0.1";

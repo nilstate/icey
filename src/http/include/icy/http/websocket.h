@@ -123,43 +123,64 @@ inline constexpr char ProtocolVersion[] = "13";
 class HTTP_API WebSocketFramer
 {
 public:
-    /// Creates a Socket using the given Socket.
+    /// Creates a WebSocketFramer operating in the given endpoint mode.
+    /// Client-side framers mask outgoing payloads; server-side framers do not.
+    /// @param mode ServerSide or ClientSide.
     WebSocketFramer(ws::Mode mode);
 
     virtual ~WebSocketFramer();
 
-    /// Writes a WebSocket protocol frame from the given data.
+    /// Encodes `data` into a WebSocket frame and writes it to `frame`.
+    /// @param data Pointer to the payload data.
+    /// @param len Payload length in bytes.
+    /// @param flags Frame flags: ws::SendFlags::Text, ws::SendFlags::Binary,
+    ///              or a control frame opcode combined with FrameFlags::Fin.
+    /// @param frame BitWriter to write the encoded frame into.
+    /// @return Total number of bytes written to the frame buffer (header + payload).
     virtual size_t writeFrame(const char* data, size_t len, int flags, BitWriter& frame);
 
-    /// Reads a single WebSocket frame from the given buffer (frame).
+    /// Decodes a single WebSocket frame from `frame`.
     ///
-    /// The actual payload length is returned, and the beginning of the
-    /// payload buffer will be assigned in the second (payload) argument.
-    /// No data is copied.
+    /// The payload is unmasked in-place in the source buffer; no copy is made.
+    /// `payload` is set to point at the start of the payload within `frame`'s buffer.
     ///
-    /// If the frame is invalid or too big an exception will be thrown.
-    /// Return true when the handshake has completed successfully.
+    /// @param frame BitReader positioned at the start of a frame.
+    /// @param payload Set to point at the start of the decoded payload. Not null-terminated.
+    /// @return Payload length in bytes.
+    /// @throws std::runtime_error on protocol violations or if the buffer is too small.
     virtual uint64_t readFrame(BitReader& frame, char*& payload);
 
+    /// Returns true if the WebSocket handshake has completed successfully.
     [[nodiscard]] bool handshakeComplete() const;
 
     //
     /// Server side
 
+    /// Validates the client upgrade request and writes a 101 Switching Protocols response.
+    /// Sets the internal state to mark the handshake as complete.
+    /// @param request Incoming HTTP upgrade request.
+    /// @param response HTTP response to populate with the handshake reply.
+    /// @throws std::runtime_error if the request is not a valid WebSocket upgrade.
     void acceptServerRequest(http::Request& request, http::Response& response);
 
     //
     /// Client side
 
-    /// Appends the WS hanshake HTTP request hearers.
+    /// Populates `request` with the WebSocket upgrade headers (Connection, Upgrade,
+    /// Sec-WebSocket-Key, Sec-WebSocket-Version) to initiate the handshake.
+    /// @param request HTTP request to add upgrade headers to.
     void createClientHandshakeRequest(http::Request& request);
 
-    /// Checks the veracity the HTTP handshake response.
-    /// Returns true on success, false if the request should
-    /// be resent (in case of authentication), or throws on error.
+    /// Validates the server's 101 Switching Protocols response.
+    /// @param response The HTTP response received from the server.
+    /// @return true if the handshake succeeded and data can flow.
+    /// @throws std::runtime_error if the server rejected or mishandled the upgrade.
     bool checkClientHandshakeResponse(http::Response& response);
 
-    /// Verifies the handshake response or thrown and exception.
+    /// Completes the client-side handshake by verifying Connection, Upgrade and
+    /// Sec-WebSocket-Accept headers. Advances internal state to "complete".
+    /// @param response The 101 Switching Protocols response from the server.
+    /// @throws std::runtime_error if any required header is missing or incorrect.
     void completeClientHandshake(http::Response& response);
 
 protected:
@@ -176,7 +197,8 @@ protected:
     enum
     {
         FRAME_FLAG_MASK = 0x80,
-        MAX_HEADER_LENGTH = 14
+        MAX_HEADER_LENGTH = 14,
+        MAX_MESSAGE_SIZE = 64 * 1024 * 1024 // 64 MB max reassembled message
     };
 
 private:
@@ -212,12 +234,34 @@ private:
 class HTTP_API WebSocketAdapter : public net::SocketEmitter
 {
 public:
+    /// Creates a WebSocketAdapter using the given socket, mode and HTTP message objects.
+    /// @param socket The underlying TCP or SSL socket.
+    /// @param mode ServerSide or ClientSide.
+    /// @param request HTTP request used for the handshake.
+    /// @param response HTTP response used for the handshake.
     WebSocketAdapter(const net::Socket::Ptr& socket, ws::Mode mode,
                      http::Request& request, http::Response& response);
 
+    /// Frames and sends data to the peer's address.
+    /// @param data Pointer to the payload.
+    /// @param len Payload length in bytes.
+    /// @param flags ws::SendFlags::Text or ws::SendFlags::Binary.
+    /// @return Number of bytes sent, or -1 on error.
     virtual ssize_t send(const char* data, size_t len, int flags = 0) override;                               // flags = ws::Text || ws::Binary
+
+    /// Frames and sends data to a specific peer address (for UDP-backed sockets).
+    /// @param data Pointer to the payload.
+    /// @param len Payload length in bytes.
+    /// @param peerAddr Destination address.
+    /// @param flags ws::SendFlags::Text or ws::SendFlags::Binary.
+    /// @return Number of bytes sent, or -1 on error.
     virtual ssize_t send(const char* data, size_t len, const net::Address& peerAddr, int flags = 0) override; // flags = ws::Text || ws::Binary
 
+    /// Sends a WebSocket CLOSE frame with the given status code and message,
+    /// then closes the underlying socket.
+    /// @param statusCode WebSocket close status code (e.g. 1000 for normal close).
+    /// @param statusMessage Human-readable reason for closing.
+    /// @return true if the close frame was sent successfully.
     virtual bool shutdown(uint16_t statusCode, const std::string& statusMessage);
 
     /// Pointer to the underlying socket.
@@ -227,18 +271,36 @@ public:
     //
     /// Client side
 
+    /// Sends the WebSocket HTTP upgrade request to initiate the handshake.
+    /// Called automatically on socket connect.
     virtual void sendClientRequest();
+
+    /// Parses the server's HTTP upgrade response and completes the handshake.
+    /// Any data remaining in the buffer after the HTTP response is re-fed as WebSocket frames.
+    /// @param buffer Buffer containing the server's HTTP response.
+    /// @param peerAddr Address of the peer.
     virtual void handleClientResponse(const MutableBuffer& buffer, const net::Address& peerAddr);
 
     //
     /// Server side
 
+    /// Parses the client's HTTP upgrade request and sends the 101 response.
+    /// @param buffer Buffer containing the client's HTTP upgrade request.
+    /// @param peerAddr Address of the peer.
     virtual void handleServerRequest(const MutableBuffer& buffer, const net::Address& peerAddr);
 
+    /// @private Called by the socket on connect; initiates the client handshake.
     virtual bool onSocketConnect(net::Socket& socket) override;
+
+    /// @private Called by the socket on each received buffer;
+    /// handles handshake or frame parsing depending on state.
     virtual bool onSocketRecv(net::Socket& socket, const MutableBuffer& buffer, const net::Address& peerAddress) override;
+
+    /// @private Called by the socket on close; resets framer state.
     virtual bool onSocketClose(net::Socket& socket) override;
 
+    /// Called when the WebSocket handshake completes.
+    /// Emits the connect event to downstream handlers.
     virtual void onHandshakeComplete();
 
 protected:
@@ -270,7 +332,10 @@ public:
 
     virtual ~WebSocket();
 
+    /// Returns the HTTP request used during the WebSocket handshake.
     [[nodiscard]] http::Request& request();
+
+    /// Returns the HTTP response received during the WebSocket handshake.
     [[nodiscard]] http::Response& response();
 
 protected:
@@ -288,9 +353,15 @@ protected:
 class HTTP_API ConnectionAdapter : public WebSocketAdapter
 {
 public:
+    /// Creates a ConnectionAdapter for upgrading an existing HTTP connection to WebSocket.
+    /// Disables automatic header sending on the underlying connection.
+    /// @param connection The HTTP connection to upgrade.
+    /// @param mode ServerSide or ClientSide.
     ConnectionAdapter(Connection* connection, ws::Mode mode);
     virtual ~ConnectionAdapter();
 
+    /// Called when the WebSocket handshake completes.
+    /// Emits the connect event via the socket emitter chain.
     virtual void onHandshakeComplete();
 
 protected:

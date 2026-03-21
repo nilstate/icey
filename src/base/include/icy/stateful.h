@@ -33,18 +33,45 @@ class Base_API State
 public:
     using ID = uint32_t;
 
+    /// @param id Initial state ID. Defaults to 0.
     State(ID id = 0);
+
+    /// Copy constructor.
+    /// @param that State to copy from.
     State(const State& that);
+
+    /// Copy assignment.
+    /// @param that State to assign from.
     State& operator=(const State& that);
     virtual ~State() = default;
 
+    /// Returns the current state ID.
+    /// @return Atomic state ID value.
     ID id() const;
+
+    /// Sets the state ID.
+    /// @param id New state ID to assign.
     void set(ID id);
 
+    /// Returns a human-readable string for the given state ID.
+    /// Override in derived classes to provide meaningful names.
+    /// @param id State ID to convert.
+    /// @return String representation of the state, or "undefined" by default.
     virtual std::string str(ID id) const;
+
+    /// Returns a human-readable string for the current state ID.
+    /// @return Result of `str(id())`.
     virtual std::string toString() const;
 
+    /// Returns true if the current state ID equals the given ID.
+    /// @param id State ID to compare against.
+    /// @return True if IDs match.
     bool equals(ID id) const;
+
+    /// Returns true if the current state ID is in the inclusive range [lid, rid].
+    /// @param lid Lower bound state ID.
+    /// @param rid Upper bound state ID.
+    /// @return True if lid <= id() <= rid.
     bool between(ID lid, ID rid) const;
 
     bool operator==(const State& that) const { return equals(that.id()); }
@@ -74,17 +101,29 @@ public:
 
     virtual ~Stateful() {}
 
+    /// Returns true if the current state ID equals the given ID.
+    /// @param id State ID to compare against.
+    /// @return True if the current state matches.
     virtual bool stateEquals(typename T::ID id) const
     {
         return _state.id() == id;
     }
 
+    /// Returns true if the current state ID is in the inclusive range [lid, rid].
+    /// @param lid Lower bound state ID.
+    /// @param rid Upper bound state ID.
+    /// @return True if lid <= state.id() <= rid.
     virtual bool stateBetween(typename T::ID lid, typename T::ID rid) const
     {
         return _state.id() >= lid && _state.id() <= rid;
     }
 
+    /// Returns a mutable reference to the current state.
+    /// @return Reference to the internal state object.
     virtual T& state() { return _state; }
+
+    /// Returns a copy of the current state.
+    /// @return Current state value.
     virtual const T state() const { return _state; }
 
     /// Signals when the state changes.

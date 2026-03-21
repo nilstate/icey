@@ -25,9 +25,14 @@ namespace icy {
 namespace turn {
 
 
+/// UDP transport TURN client for datagram-based relay allocations.
+/// Uses a single UDP socket for both STUN signalling and Send/Data Indications.
+/// All Client methods apply; data is relayed via sendData() using Send Indications.
 class TURN_API UDPClient : public Client
 {
 public:
+    /// @param observer Observer for allocation lifecycle and data relay events.
+    /// @param options  Client configuration; defaults to loopback server, 5-min lifetime.
     UDPClient(ClientObserver& observer, const Options& options = Options());
     virtual ~UDPClient();
 };

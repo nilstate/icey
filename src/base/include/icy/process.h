@@ -27,13 +27,17 @@ namespace icy {
 using ProcessOptions = uv_process_options_t;
 
 
+/// Spawns and manages a child process with stdin/stdout/stderr pipes
 class Base_API Process
 {
 public:
-    /// Default constructor.
+    /// Constructs a `Process` attached to the given event loop.
+    /// @param loop Event loop to use for I/O and exit notifications. Defaults to the default loop.
     Process(uv::Loop* loop = uv::defaultLoop());
 
-    /// Constructor with command line arguments.
+    /// Constructs a `Process` with initial command-line arguments.
+    /// @param args Initializer list of argument strings. The first element is typically the executable path.
+    /// @param loop Event loop to use for I/O and exit notifications. Defaults to the default loop.
     Process(std::initializer_list<std::string> args, uv::Loop* loop = uv::defaultLoop());
 
     /// Destructor.
@@ -70,7 +74,9 @@ public:
     /// Throws an exception on error.
     void spawn();
 
-    /// Kills the process.
+    /// Sends a signal to the process.
+    /// @param signum Signal number to send (default: `SIGTERM`).
+    /// @return True if the signal was sent successfully, false if the process is not running or handle is invalid.
     bool kill(int signum = SIGTERM);
 
     /// Returns the process PID, or 0 if not spawned.

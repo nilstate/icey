@@ -32,7 +32,8 @@ class Base_API TaskRunner;
 class Base_API Task : public basic::Runnable
 {
 public:
-    /// Constructor.
+    /// @param repeat If true, the `TaskRunner` will call `run()` repeatedly;
+    ///               if false, the task is cancelled after one execution.
     Task(bool repeat = false);
 
     /// Sets the task to destroyed state.
@@ -92,6 +93,7 @@ protected:
 class Base_API TaskRunner : public basic::Runnable
 {
 public:
+    /// @param runner Async runner to drive task execution; defaults to a new `Thread`.
     TaskRunner(std::shared_ptr<Runner> runner = nullptr);
     virtual ~TaskRunner();
 

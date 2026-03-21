@@ -101,7 +101,7 @@ bridge.KeyframeRequested += slot(&encoder, &Encoder::forceKeyframe);
 bridge.BitrateEstimate += slot(&encoder, &Encoder::setBitrate);
 ```
 
-`PeerSession` adds Symple call signalling. Speaks the same protocol as `symple-client-player`'s CallManager in the browser.
+`PeerSession` adds Symple call signalling. Speaks the same protocol as `symple-player`'s CallManager in the browser.
 
 ```cpp
 #include "icy/webrtc/peersession.h"
@@ -188,3 +188,7 @@ include/icy/webrtc/
   mediabridge.h       Layer 3: multi-track convenience wrapper
   peersession.h       Layer 3: Symple call protocol
 ```
+
+## Documentation
+
+**[Full documentation →](../../doc/webrtc.md)**

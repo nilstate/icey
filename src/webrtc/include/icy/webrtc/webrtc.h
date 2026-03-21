@@ -5,7 +5,9 @@
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
-/// @addtogroup webrtc
+/// @defgroup webrtc WebRTC module
+///
+/// WebRTC media transport via libdatachannel; peer sessions, media bridge, codec negotiation.
 /// @{
 
 

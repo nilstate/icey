@@ -54,8 +54,11 @@ enum MonthOfTheYeay
 
 // ---------------------------------------------------------------------
 //
+/// Base class for scheduled task triggers that determine when a task should run
 struct Trigger : public json::ISerializable
 {
+    /// @param type Registered type name used by TaskFactory.
+    /// @param name Human-readable display name.
     Trigger(const std::string& type = "", const std::string& name = "");
 
     /// Updates the scheduleAt value to the
@@ -75,7 +78,12 @@ struct Trigger : public json::ISerializable
     /// Returns false by default.
     virtual bool expired();
 
+    /// Serializes timing state (type, name, createdAt, scheduleAt, lastRunAt, timesRun) to @p root.
+    /// @param root JSON object to populate.
     virtual void serialize(json::Value& root) override;
+
+    /// Deserializes timing state from @p root.
+    /// @param root JSON object previously produced by serialize().
     virtual void deserialize(json::Value& root) override;
 
     /// The type of this trigger class.
@@ -101,30 +109,45 @@ struct Trigger : public json::ISerializable
 
 // ---------------------------------------------------------------------
 //
+/// Trigger that fires exactly once at the scheduled time and then expires
 struct OnceOnlyTrigger : public Trigger
 {
+    /// Constructs the trigger with type "OnceOnlyTrigger".
     OnceOnlyTrigger();
 
+    /// No-op; scheduleAt is set once at construction and never advanced.
     virtual void update() override
     {
         // Nothing to do since scheduleAt contains
         // the correct date and we run once only.
     }
 
+    /// Returns true after the task has run at least once.
     virtual bool expired();
 };
 
 
 // ---------------------------------------------------------------------
 //
+/// Trigger that fires repeatedly at a fixed time interval
 struct IntervalTrigger : public Trigger
 {
+    /// Constructs the trigger with type "IntervalTrigger" and maxTimes = 0 (unlimited).
     IntervalTrigger();
 
+    /// Advances scheduleAt by one `interval` period.
     virtual void update() override;
+
+    /// Returns true when maxTimes > 0 and timesRun >= maxTimes.
     virtual bool expired();
 
+    /// Serializes interval fields (days, hours, minutes, seconds) in addition to base fields.
+    /// @param root JSON object to populate.
     virtual void serialize(json::Value& root) override;
+
+    /// Deserializes interval fields from @p root.
+    /// Throws if the resulting interval is zero.
+    /// @param root JSON object previously produced by serialize().
     virtual void deserialize(json::Value& root) override;
 
     /// This value represents the interval to wait
@@ -140,10 +163,14 @@ struct IntervalTrigger : public Trigger
 
 // ---------------------------------------------------------------------
 //
+/// Trigger that fires once per day at a configured time, with optional day-of-week exclusions
 struct DailyTrigger : public Trigger
 {
+    /// Constructs the trigger with type "DailyTrigger".
     DailyTrigger();
 
+    /// Computes the next scheduleAt value by advancing to the next non-excluded weekday
+    /// at the configured timeOfDay.
     virtual void update() override;
 
     /// This value represents the time of day the

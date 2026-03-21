@@ -5,7 +5,9 @@
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
-/// @addtogroup av
+/// @defgroup av AV module
+///
+/// Audio/video encoding, decoding, device capture, and media formats.
 /// @{
 
 

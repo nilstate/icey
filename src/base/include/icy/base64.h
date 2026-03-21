@@ -55,13 +55,28 @@ struct encodestate
     int nullptrlterminate; // added
 };
 
+/// Resets an `encodestate` to its initial state.
+/// @param state_in State to initialize.
 Base_API void init_encodestate(internal::encodestate* state_in);
 
+/// Maps a 6-bit value to its Base64 alphabet character.
+/// @param value_in Input value in the range 0–63.
+/// @return Corresponding Base64 character.
 Base_API char encode_value(char value_in);
 
+/// Encodes a block of binary data into Base64 characters.
+/// @param readbuf_in Input binary data.
+/// @param length_in  Number of bytes to encode.
+/// @param code_out   Output buffer; must be large enough to hold 4/3 * length_in bytes.
+/// @param state_in   Encoder state; maintains context across calls.
+/// @return Number of Base64 characters written to `code_out`.
 Base_API ssize_t encode_block(const char* readbuf_in, size_t length_in, char* code_out,
                               internal::encodestate* state_in);
 
+/// Writes any remaining Base64 padding characters and a trailing newline.
+/// @param code_out Output buffer; must be at least 5 bytes.
+/// @param state_in Encoder state from the preceding `encode_block` calls.
+/// @return Number of characters written to `code_out`.
 Base_API ssize_t encode_blockend(char* code_out, internal::encodestate* state_in);
 
 
@@ -71,12 +86,17 @@ Base_API ssize_t encode_blockend(char* code_out, internal::encodestate* state_in
 /// Base64 encoder.
 struct Encoder : public basic::Encoder
 {
+    /// @param buffersize Internal read buffer size in bytes.
     Encoder(int buffersize = BUFFER_SIZE)
         : _buffersize(buffersize)
     {
         internal::init_encodestate(&_state);
     }
 
+    /// Encodes the entire input stream and writes Base64 output to `ostrm`.
+    /// Resets the encoder state after completion.
+    /// @param istrm Source stream to encode.
+    /// @param ostrm Destination stream for Base64 output.
     void encode(std::istream& istrm, std::ostream& ostrm)
     {
         const int N = _buffersize;
@@ -98,6 +118,10 @@ struct Encoder : public basic::Encoder
         internal::init_encodestate(&_state);
     }
 
+    /// Encodes a string to Base64 and appends the result to `out`.
+    /// Resets the encoder state after completion.
+    /// @param in  Input string.
+    /// @param out Output string to which Base64 characters are appended.
     void encode(const std::string& in, std::string& out)
     {
         auto encbuf = std::make_unique<char[]>(in.length() * 2);
@@ -110,16 +134,28 @@ struct Encoder : public basic::Encoder
         internal::init_encodestate(&_state);
     }
 
+    /// Encodes a raw buffer, writing Base64 characters to `outbuf`.
+    /// May be called multiple times before calling `finalize()`.
+    /// @param inbuf  Input binary data.
+    /// @param nread  Number of bytes to encode.
+    /// @param outbuf Output buffer; must be at least `nread * 4 / 3 + 4` bytes.
+    /// @return Number of Base64 characters written.
     ssize_t encode(const char* inbuf, size_t nread, char* outbuf) override
     {
         return internal::encode_block(inbuf, nread, outbuf, &_state);
     }
 
+    /// Writes any pending padding and resets the encoder state.
+    /// Must be called once after all `encode()` calls to flush the final block.
+    /// @param outbuf Output buffer; must be at least 5 bytes.
+    /// @return Number of characters written.
     ssize_t finalize(char* outbuf) override
     {
         return internal::encode_blockend(outbuf, &_state);
     }
 
+    /// Sets the line wrap length for encoded output (0 disables line wrapping).
+    /// @param lineLength Characters per line; use 0 to disable.
     void setLineLength(int lineLength) { _state.linelength = lineLength; }
 
     internal::encodestate _state;
@@ -127,7 +163,11 @@ struct Encoder : public basic::Encoder
 };
 
 
-/// Convert an STL container to Base64.
+/// Encodes an STL byte container to a Base64 string.
+/// @tparam T Container type with a `size()` method and contiguous `operator[]`.
+/// @param bytes      Input data container.
+/// @param lineLength Characters per line in the output (0 disables wrapping).
+/// @return Base64-encoded string.
 template <typename T>
 inline std::string encode(const T& bytes, int lineLength = LINE_LENGTH)
 {
@@ -171,10 +211,21 @@ struct decodestate
     char plainchar;
 };
 
+/// Resets a `decodestate` to its initial state.
+/// @param state_in State to initialize.
 Base_API void init_decodestate(internal::decodestate* state_in);
 
+/// Maps a Base64 alphabet character to its 6-bit value.
+/// @param value_in Base64 character.
+/// @return Decoded 6-bit value, or a negative sentinel on invalid input.
 Base_API ssize_t decode_value(char value_in);
 
+/// Decodes a block of Base64 characters into binary data.
+/// @param inbuf    Input Base64 characters.
+/// @param nread    Number of input characters to decode.
+/// @param outbuf   Output buffer; must be at least `nread * 3 / 4` bytes.
+/// @param state_in Decoder state; maintains context across calls.
+/// @return Number of binary bytes written to `outbuf`.
 Base_API ssize_t decode_block(const char* inbuf, const size_t nread, char* outbuf,
                               internal::decodestate* state_in);
 
@@ -185,19 +236,32 @@ Base_API ssize_t decode_block(const char* inbuf, const size_t nread, char* outbu
 /// Base64 decoder.
 struct Decoder : public basic::Decoder
 {
+    /// @param buffersize Internal read buffer size in bytes.
     Decoder(int buffersize = BUFFER_SIZE)
         : _buffersize(buffersize)
     {
         internal::init_decodestate(&_state);
     }
 
+    /// Decodes a single Base64 character to its 6-bit value.
+    /// @param value_in Base64 character.
+    /// @return Decoded 6-bit value, or a negative sentinel on invalid input.
     ssize_t decode(char value_in) { return internal::decode_value(value_in); }
 
+    /// Decodes a raw Base64 buffer into binary data.
+    /// @param inbuf  Input Base64 characters.
+    /// @param nread  Number of characters to decode.
+    /// @param outbuf Output buffer; must be at least `nread * 3 / 4` bytes.
+    /// @return Number of binary bytes written.
     ssize_t decode(const char* inbuf, size_t nread, char* outbuf) override
     {
         return internal::decode_block(inbuf, nread, outbuf, &_state);
     }
 
+    /// Decodes the entire input stream and writes binary output to `ostrm`.
+    /// Resets the decoder state after completion.
+    /// @param istrm Source stream of Base64 data.
+    /// @param ostrm Destination stream for decoded binary output.
     void decode(std::istream& istrm, std::ostream& ostrm)
     {
         const int N = _buffersize;
@@ -221,7 +285,10 @@ struct Decoder : public basic::Decoder
 };
 
 
-/// Decode an STL container from Base64.
+/// Decodes a Base64-encoded STL container to a binary string.
+/// @tparam T Container type with a `size()` method and contiguous `operator[]`.
+/// @param bytes Input Base64 data container.
+/// @return Decoded binary string.
 template <typename T>
 inline std::string decode(const T& bytes)
 {

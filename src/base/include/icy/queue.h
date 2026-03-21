@@ -30,47 +30,57 @@ template <typename T>
 class Queue
 {
 public:
+    /// Appends an item to the back of the queue (thread-safe).
+    /// @param data Item to enqueue.
     void push(const T& data)
     {
         std::lock_guard<std::mutex> guard(_mutex);
         _queue.push_back(data);
     }
 
+    /// @return True if the queue contains no items.
     bool empty() const
     {
         return _queue.empty();
     }
 
+    /// @return Mutable reference to the front item (thread-safe).
     T& front()
     {
         std::lock_guard<std::mutex> guard(_mutex);
         return _queue.front();
     }
 
+    /// @return Const reference to the front item (thread-safe).
     T const& front() const
     {
         std::lock_guard<std::mutex> guard(_mutex);
         return _queue.front();
     }
 
+    /// @return Mutable reference to the back item (thread-safe).
     T& back()
     {
         std::lock_guard<std::mutex> guard(_mutex);
         return _queue.back();
     }
 
+    /// @return Const reference to the back item (thread-safe).
     T const& back() const
     {
         std::lock_guard<std::mutex> guard(_mutex);
         return _queue.back();
     }
 
+    /// Removes the front item from the queue (thread-safe).
     void pop()
     {
         std::lock_guard<std::mutex> guard(_mutex);
         _queue.pop_front();
     }
 
+    /// Sorts all queued items using the given comparator (thread-safe).
+    /// @tparam Compare Comparator type compatible with `std::sort`.
     template <typename Compare>
     void sort()
     {
@@ -78,12 +88,14 @@ public:
         std::sort(_queue.begin(), _queue.end(), Compare());
     }
 
+    /// @return Number of items currently in the queue (thread-safe).
     size_t size()
     {
         std::lock_guard<std::mutex> guard(_mutex);
         return _queue.size();
     }
 
+    /// @return Mutable reference to the underlying deque (thread-safe).
     std::deque<T>& queue()
     {
         std::lock_guard<std::mutex> guard(_mutex);
@@ -101,6 +113,7 @@ protected:
 //
 
 
+/// Queue of runnable tasks for sequential execution
 template <class T>
 class RunnableQueue : public Queue<T*>
     , public basic::Runnable
@@ -110,6 +123,8 @@ public:
     /// Must be set before the queue is running.
     std::function<void(T&)> ondispatch;
 
+    /// @param limit   Maximum number of queued items; oldest are purged when exceeded (0 = unlimited).
+    /// @param timeout Dispatch timeout in milliseconds; 0 means run until cancel() is called.
     RunnableQueue(int limit = 2048, int timeout = 0)
         : _limit(limit)
         , _timeout(timeout)
@@ -191,12 +206,16 @@ public:
             ondispatch(item);
     }
 
+    /// @return Current dispatch timeout in milliseconds.
     int timeout()
     {
         std::lock_guard<std::mutex> guard(_mutex);
         return _timeout;
     }
 
+    /// Sets the dispatch timeout. Must only be called when the queue is empty.
+    /// @param milliseconds New timeout in milliseconds.
+    /// @throws std::logic_error if the queue is non-empty.
     void setTimeout(int milliseconds)
     {
         std::lock_guard<std::mutex> guard(_mutex);
@@ -258,6 +277,9 @@ class SyncQueue : public RunnableQueue<T>
 public:
     using Queue = RunnableQueue<T>;
 
+    /// @param loop    Event loop used by the internal `Synchronizer`.
+    /// @param limit   Maximum queued items; oldest are dropped when exceeded.
+    /// @param timeout Dispatch timeout in milliseconds passed to `RunnableQueue`.
     SyncQueue(uv::Loop* loop, int limit = 2048, int timeout = 20)
         : Queue(limit, timeout)
         , _sync([this]() { this->run(); }, loop)
@@ -270,14 +292,17 @@ public:
     {
     }
 
-    /// Pushes an item onto the queue.
-    /// Item pointers are now managed by the SyncQueue.
+    /// Pushes an item onto the queue and wakes the event loop for dispatch.
+    /// Ownership of `item` is transferred to the queue.
+    /// @param item Heap-allocated item to enqueue; the queue takes ownership.
     void push(T* item) override
     {
         Queue::push(item);
         _sync.post();
     }
 
+    /// Cancels the queue and its underlying synchronizer.
+    /// @param flag True to cancel, false to un-cancel.
     void cancel(bool flag = true) override
     {
         Queue::cancel(flag);
@@ -287,6 +312,7 @@ public:
             _sync.close();
     }
 
+    /// @return Reference to the underlying `Synchronizer` handle.
     Synchronizer& sync() { return _sync; }
 
 protected:
@@ -313,12 +339,15 @@ class AsyncQueue : public RunnableQueue<T>
 public:
     using Queue = RunnableQueue<T>;
 
+    /// @param limit Maximum number of queued items before oldest are dropped.
     AsyncQueue(int limit = 2048)
         : Queue(limit)
         , _thread([this]() { this->run(); })
     {
     }
 
+    /// Cancels the queue and joins the dispatch thread.
+    /// @param flag True to cancel, false to un-cancel.
     void cancel(bool flag = true) override
     {
         Queue::cancel(flag);

@@ -44,6 +44,10 @@ enum class Level
 };
 
 
+/// Converts a log level string to its corresponding `Level` enum value.
+/// Unrecognized strings default to `Level::Trace`.
+/// @param level Lowercase level string: "trace", "debug", "info", "warn", "error", or "fatal".
+/// @return The matching `Level` enum value.
 inline Level getLevelFromString(const char* level)
 {
     if (strcmp(level, "trace") == 0)
@@ -62,6 +66,9 @@ inline Level getLevelFromString(const char* level)
 }
 
 
+/// Converts a `Level` enum value to its lowercase string representation.
+/// @param level The log level to convert.
+/// @return Lowercase C string: "trace", "debug", "info", "warn", "error", or "fatal".
 inline const char* getStringFromLevel(Level level)
 {
     switch (level) {
@@ -82,6 +89,7 @@ inline const char* getStringFromLevel(Level level)
 }
 
 
+/// Log output stream for formatted logging
 struct Base_API LogStream;
 class Base_API LogChannel;
 
@@ -324,24 +332,52 @@ struct LogStream
 //
 
 
+/// Named log output channel with configurable severity level and formatting
 class Base_API LogChannel
 {
 public:
+    /// @param name Unique channel name.
+    /// @param level Minimum severity level; messages below this level are dropped.
+    /// @param timeFormat strftime-compatible format string for timestamps.
     LogChannel(std::string name, Level level = Level::Debug,
                std::string timeFormat = "%H:%M:%S");
     virtual ~LogChannel() = default;
 
+    /// Writes a log stream entry to this channel.
+    /// @param stream The log stream to write.
     virtual void write(const LogStream& stream);
+
+    /// Writes a plain message to this channel.
+    /// @param message Log message text.
+    /// @param level Severity level for the message.
+    /// @param realm Optional source realm (e.g. file or class name).
     virtual void write(std::string message, Level level = Level::Debug,
                        std::string realm = "");
+
+    /// Formats a log stream entry into the given output stream.
+    /// @param stream The log stream to format.
+    /// @param ost The output stream to write the formatted message into.
     virtual void format(const LogStream& stream, std::ostream& ost);
 
+    /// Returns the channel name.
     std::string name() const { return _name; };
+
+    /// Returns the minimum severity level.
     Level level() const { return _level; };
+
+    /// Returns the timestamp format string.
     std::string timeFormat() const { return _timeFormat; };
 
+    /// Sets the minimum severity level.
+    /// @param level Messages below this level are dropped.
     void setLevel(Level level) { _level = level; };
+
+    /// Sets the timestamp format string.
+    /// @param format strftime-compatible format string.
     void setTimeFormat(std::string format) { _timeFormat = std::move(format); };
+
+    /// Sets a realm filter; only messages whose realm matches are written.
+    /// @param filter Realm substring or pattern to match against.
     void setFilter(std::string filter) { _filter = std::move(filter); }
 
 protected:
@@ -364,13 +400,20 @@ using NullChannel = LogChannel;
 //
 
 
+/// Log channel that writes formatted messages to standard output
 class Base_API ConsoleChannel : public LogChannel
 {
 public:
+    /// @param name Unique channel name.
+    /// @param level Minimum severity level; messages below this level are dropped.
+    /// @param timeFormat strftime-compatible format string for timestamps.
     ConsoleChannel(std::string name, Level level = Level::Debug,
                    std::string timeFormat = "%H:%M:%S");
     virtual ~ConsoleChannel() = default;
 
+    /// Formats and writes the log stream entry to stdout.
+    /// Messages below the channel level or filtered by realm are silently dropped.
+    /// @param stream The log stream to write.
     void write(const LogStream& stream) override;
 };
 
@@ -380,17 +423,30 @@ public:
 //
 
 
+/// Log channel that writes formatted messages to a file
 class Base_API FileChannel : public LogChannel
 {
 public:
+    /// @param name Unique channel name.
+    /// @param path Path to the output log file. Directories are created if needed.
+    /// @param level Minimum severity level; messages below this level are dropped.
+    /// @param timeFormat strftime-compatible format string for timestamps.
     FileChannel(std::string name, std::string path,
                 Level level = Level::Debug,
                 std::string timeFormat = "%H:%M:%S");
     virtual ~FileChannel();
 
+    /// Formats and writes the log stream entry to the file.
+    /// Opens the file on first write if not already open.
+    /// @param stream The log stream to write.
     void write(const LogStream& stream) override;
 
+    /// Sets the file path and reopens the file stream.
+    /// @param path Path to the new log file.
     void setPath(const std::string& path);
+
+    /// Returns the current log file path.
+    /// @return Absolute or relative path to the log file.
     std::string path() const;
 
 protected:
@@ -408,9 +464,16 @@ protected:
 //
 
 
+/// Log channel that writes to time-rotated log files
 class Base_API RotatingFileChannel : public LogChannel
 {
 public:
+    /// @param name Unique channel name.
+    /// @param dir Directory in which rotated log files are written.
+    /// @param level Minimum severity level; messages below this level are dropped.
+    /// @param extension File extension for log files (without leading dot).
+    /// @param rotationInterval Seconds between log rotations (default: 12 hours).
+    /// @param timeFormat strftime-compatible format string for timestamps.
     RotatingFileChannel(std::string name,
                         std::string dir,
                         Level level = Level::Debug,
@@ -419,15 +482,33 @@ public:
                         std::string timeFormat = "%H:%M:%S");
     virtual ~RotatingFileChannel();
 
+    /// Formats and writes the log stream entry to the current log file.
+    /// Rotates the file if the rotation interval has elapsed.
+    /// @param stream The log stream to write.
     void write(const LogStream& stream) override;
+
+    /// Closes the current log file and opens a new one with a timestamped filename.
     virtual void rotate();
 
+    /// Returns the directory where log files are written.
     std::string dir() const { return _dir; };
+
+    /// Returns the filename of the currently open log file.
     std::string filename() const { return _filename; };
+
+    /// Returns the rotation interval in seconds.
     int rotationInterval() const { return _rotationInterval; };
 
+    /// Sets the output directory for rotated log files.
+    /// @param dir Target directory path.
     void setDir(std::string dir) { _dir = std::move(dir); };
+
+    /// Sets the file extension for rotated log files.
+    /// @param ext Extension without leading dot (e.g. "log").
     void setExtension(std::string ext) { _extension = std::move(ext); };
+
+    /// Sets the rotation interval.
+    /// @param interval Number of seconds between rotations.
     void setRotationInterval(int interval) { _rotationInterval = interval; };
 
 protected:

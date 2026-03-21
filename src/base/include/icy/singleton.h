@@ -28,8 +28,9 @@ public:
 
     ~Singleton() = default;
 
-    /// Returns a pointer to the singleton object held by the Singleton.
-    /// The first call to get will instantiate the singleton.
+    /// Returns a pointer to the managed singleton, instantiating it on first call.
+    /// Thread-safe; protected by an internal mutex.
+    /// @return Pointer to the singleton instance (never null).
     S* get()
     {
         std::lock_guard<std::mutex> guard(_m);
@@ -38,7 +39,11 @@ public:
         return _ptr.get();
     }
 
-    /// Swaps the old pointer with the new one and returns the old instance.
+    /// Replaces the managed singleton with newPtr and returns the previous instance.
+    /// The caller takes ownership of the returned pointer.
+    /// Thread-safe; protected by an internal mutex.
+    /// @param newPtr Replacement instance (may be nullptr).
+    /// @return Previously managed pointer (caller must delete if non-null).
     S* swap(S* newPtr)
     {
         std::lock_guard<std::mutex> guard(_m);
@@ -47,7 +52,8 @@ public:
         return oldPtr;
     }
 
-    /// Destroys the managed singleton instance.
+    /// Destroys the managed singleton instance and resets the internal pointer to null.
+    /// Thread-safe; protected by an internal mutex.
     void destroy()
     {
         std::lock_guard<std::mutex> guard(_m);

@@ -5,7 +5,9 @@
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
-/// @addtogroup archo
+/// @defgroup archo Archive module
+///
+/// Archive and ZIP file handling.
 /// @{
 
 

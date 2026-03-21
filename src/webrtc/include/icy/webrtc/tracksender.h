@@ -68,9 +68,22 @@ public:
     /// Unbind from the current track.
     void unbind();
 
-    /// PacketProcessor interface.
+    /// Send an encoded media frame to the bound WebRTC track.
+    /// Converts the FFmpeg microsecond timestamp to an RTP timestamp using
+    /// the track's clock rate, then calls rtc::Track::sendFrame(). Only
+    /// forwards the packet downstream on a successful send.
+    /// @param packet  An av::VideoPacket or av::AudioPacket carrying the
+    ///                encoded frame data and a microsecond timestamp.
     void process(IPacket& packet) override;
+
+    /// Return true if packet is an av::MediaPacket (VideoPacket or AudioPacket).
+    /// @param packet  Packet to test. May be nullptr.
+    /// @return        True if the packet can be processed by this sender.
     bool accepts(IPacket* packet) override;
+
+    /// Called by the PacketStream when stream state changes.
+    /// Logs when the stream is stopping; no other action is taken.
+    /// @param state  New PacketStream state.
     void onStreamStateChange(const PacketStreamState& state) override;
 
     /// True if this sender is bound to a video track.

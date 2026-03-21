@@ -24,10 +24,15 @@ namespace icy {
 namespace av {
 
 
+/// Timestamped media packet carrying raw audio or video data
 struct MediaPacket : public RawPacket
 {
-    int64_t time; // microseconds
+    int64_t time; ///< Presentation timestamp in microseconds.
 
+    /// Construct with a non-owning or owning mutable buffer.
+    /// @param data  Pointer to the raw data buffer (may be null).
+    /// @param size  Size of the buffer in bytes.
+    /// @param time  Presentation timestamp in microseconds.
     MediaPacket(uint8_t* data = nullptr, size_t size = 0, int64_t time = 0)
         : RawPacket(reinterpret_cast<char*>(data), size)
         , time(time)
@@ -35,12 +40,16 @@ struct MediaPacket : public RawPacket
     }
 
     /// Construct with const data (copied, owning).
+    /// @param data  Pointer to the const raw data buffer (data is copied).
+    /// @param size  Size of the buffer in bytes.
+    /// @param time  Presentation timestamp in microseconds.
     MediaPacket(const uint8_t* data, size_t size, int64_t time = 0)
         : RawPacket(reinterpret_cast<const char*>(data), size)
         , time(time)
     {
     }
 
+    /// Copy constructor.
     MediaPacket(const MediaPacket& r)
         : RawPacket(r)
         , time(r.time)
@@ -49,6 +58,7 @@ struct MediaPacket : public RawPacket
 
     virtual ~MediaPacket() = default;
 
+    /// @return A heap-allocated copy of this packet.
     virtual std::unique_ptr<IPacket> clone() const override { return std::make_unique<MediaPacket>(*this); }
 
     virtual const char* className() const override { return "MediaPacket"; }
@@ -58,14 +68,20 @@ struct MediaPacket : public RawPacket
 /// Video packet for interleaved formats
 struct VideoPacket : public MediaPacket
 {
-    int width;
-    int height;
-    bool iframe;
+    int width;    ///< Frame width in pixels.
+    int height;   ///< Frame height in pixels.
+    bool iframe;  ///< True if this is an intra (keyframe) frame.
 
     /// Non-owning pointer to the encoded AVPacket from FFmpeg.
     /// Set by VideoEncoder, read by MultiplexEncoder.
     AVPacket* avpacket = nullptr;
 
+    /// Construct a video packet with an interleaved buffer.
+    /// @param data    Pointer to the raw frame buffer (may be null).
+    /// @param size    Size of the buffer in bytes.
+    /// @param width   Frame width in pixels.
+    /// @param height  Frame height in pixels.
+    /// @param time    Presentation timestamp in microseconds.
     VideoPacket(uint8_t* data = nullptr, size_t size = 0,
                 int width = 0, int height = 0, int64_t time = 0)
         : MediaPacket(data, size, time)
@@ -75,6 +91,7 @@ struct VideoPacket : public MediaPacket
     {
     }
 
+    /// Copy constructor. The avpacket pointer is shallow-copied (non-owning).
     VideoPacket(const VideoPacket& r)
         : MediaPacket(r)
         , width(r.width)
@@ -86,6 +103,7 @@ struct VideoPacket : public MediaPacket
 
     virtual ~VideoPacket() = default;
 
+    /// @return A heap-allocated copy of this packet.
     virtual std::unique_ptr<IPacket> clone() const override { return std::make_unique<VideoPacket>(*this); }
 
     virtual const char* className() const override { return "VideoPacket"; }
@@ -111,11 +129,21 @@ struct PlanarVideoPacket : public VideoPacket
     /// Set by VideoDecoder.
     AVFrame* avframe = nullptr;
 
+    /// Construct a planar video packet, copying the plane pointers (not the pixel data).
+    /// @param data      Array of up to 4 per-plane data pointers.
+    /// @param linesize  Array of per-plane byte strides.
+    /// @param pixelFmt  The pixel format string (e.g. "yuv420p").
+    /// @param width     Frame width in pixels.
+    /// @param height    Frame height in pixels.
+    /// @param time      Presentation timestamp in microseconds.
     PlanarVideoPacket(uint8_t* data[4], const int linesize[4], const std::string& pixelFmt = "",
                       int width = 0, int height = 0, int64_t time = 0);
+
+    /// Copy constructor. Performs a deep copy of the owned buffer if owns_buffer is set.
     PlanarVideoPacket(const PlanarVideoPacket& r);
     virtual ~PlanarVideoPacket() noexcept;
 
+    /// @return A heap-allocated deep copy of this packet.
     virtual std::unique_ptr<IPacket> clone() const override { return std::make_unique<PlanarVideoPacket>(*this); }
 
     const char* className() const override { return "PlanarVideoPacket"; }
@@ -125,12 +153,17 @@ struct PlanarVideoPacket : public VideoPacket
 /// Audio packet for interleaved formats
 struct AudioPacket : public MediaPacket
 {
-    size_t numSamples; // number of samples per channel
+    size_t numSamples; ///< Number of audio samples per channel.
 
     /// Non-owning pointer to the encoded AVPacket from FFmpeg.
     /// Set by AudioEncoder, read by MultiplexEncoder.
     AVPacket* avpacket = nullptr;
 
+    /// Construct an audio packet with an interleaved sample buffer.
+    /// @param data        Pointer to the interleaved sample buffer (may be null).
+    /// @param size        Size of the buffer in bytes.
+    /// @param numSamples  Number of samples per channel.
+    /// @param time        Presentation timestamp in microseconds.
     AudioPacket(uint8_t* data = nullptr, size_t size = 0,
                 size_t numSamples = 0,
                 int64_t time = 0)
@@ -141,8 +174,10 @@ struct AudioPacket : public MediaPacket
 
     virtual ~AudioPacket() = default;
 
+    /// @return A heap-allocated copy of this packet.
     virtual std::unique_ptr<IPacket> clone() const override { return std::make_unique<AudioPacket>(*this); }
 
+    /// @return A pointer to the raw interleaved sample buffer.
     virtual uint8_t* samples() const
     {
         return reinterpret_cast<uint8_t*>(_data);
@@ -167,11 +202,20 @@ struct PlanarAudioPacket : public AudioPacket
     std::string sampleFmt;
     bool owns_buffer = false;
 
+    /// Construct a planar audio packet, copying the plane pointers (not the sample data).
+    /// @param data        Array of up to 4 per-channel sample buffers.
+    /// @param channels    Number of audio channels.
+    /// @param numSamples  Number of samples per channel.
+    /// @param sampleFmt   The sample format string (e.g. "fltp").
+    /// @param time        Presentation timestamp in microseconds.
     PlanarAudioPacket(uint8_t* data[4], int channels = 0, size_t numSamples = 0, //, size_t size = 0
                       const std::string& sampleFmt = "", int64_t time = 0);
+
+    /// Copy constructor. Performs a deep copy of the owned buffer if owns_buffer is set.
     PlanarAudioPacket(const PlanarAudioPacket& r);
     virtual ~PlanarAudioPacket() noexcept;
 
+    /// @return A heap-allocated deep copy of this packet.
     virtual std::unique_ptr<IPacket> clone() const override { return std::make_unique<PlanarAudioPacket>(*this); }
 
     virtual const char* className() const override { return "PlanarAudioPacket"; }

@@ -26,12 +26,19 @@ namespace icy {
 namespace av {
 
 
+/// Encodes raw video frames into a compressed format
 struct VideoEncoder : public VideoContext
 {
+    /// Construct an encoder, optionally tied to an existing muxer context.
+    /// @param format  The AVFormatContext that will receive encoded packets, or nullptr for standalone use.
     VideoEncoder(AVFormatContext* format = nullptr);
     ~VideoEncoder() noexcept override;
 
+    /// Initialise the AVCodecContext using oparams.
+    /// Adds a video stream to @p format if one was provided at construction.
     virtual void create() override;
+
+    /// Close and free the AVCodecContext and associated resources.
     virtual void close() override;
 
     /// Encode a single video frame.
@@ -50,7 +57,9 @@ struct VideoEncoder : public VideoContext
     /// @param pts       The presentation timestamp in stream time base units.
     [[nodiscard]] bool encode(uint8_t* data[4], int linesize[4], int64_t pts) override;
 
-    /// Encode a single AVFrame.
+    /// Encode a single AVFrame (typically from a decoder or converter).
+    /// @param iframe  The source video frame with all fields set.
+    /// @return True if an encoded packet was produced and emitted.
     [[nodiscard]] bool encode(AVFrame* iframe) override;
 
     /// Flush remaining packets to be encoded.

@@ -150,8 +150,20 @@ protected:
     /// The implementation is responsible for emitting the PropertyChanged signal.
     virtual void setRaw(const std::string& key, const std::string& value) = 0;
 
+    /// Parses a decimal or `0x`-prefixed hexadecimal string to int.
+    /// @param value String representation of the integer.
+    /// @return Parsed integer value.
     static int parseInt(std::string_view value);
+
+    /// Parses a decimal or `0x`-prefixed hexadecimal string to int64.
+    /// @param value String representation of the integer.
+    /// @return Parsed 64-bit integer value.
     static std::int64_t parseLargeInt(std::string_view value);
+
+    /// Parses a boolean string (true/false/yes/no/on/off/0/1, case-insensitive).
+    /// @param value String representation of the boolean.
+    /// @return Parsed boolean.
+    /// @throws std::runtime_error on unrecognised input.
     static bool parseBool(std::string_view value);
 
 protected:
@@ -183,29 +195,83 @@ private:
 class Base_API ScopedConfiguration
 {
 public:
+    /// @param config       Backing configuration store.
+    /// @param currentScope Key prefix for the module-level scope.
+    /// @param defaultScope Key prefix for the default/fallback scope.
     ScopedConfiguration(Configuration& config, const std::string& currentScope,
                         const std::string& defaultScope);
     ScopedConfiguration(const ScopedConfiguration& that);
 
+    /// Returns the string value, trying `currentScope` first then `defaultScope`.
+    /// @param key              Property key (without scope prefix).
+    /// @param defaultValue     Fallback when neither scope has the key.
+    /// @param forceDefaultScope If true, skips `currentScope` and reads from `defaultScope` only.
+    /// @return Property value or `defaultValue`.
     std::string getString(const std::string& key,
                           const std::string& defaultValue,
                           bool forceDefaultScope = false) const;
+
+    /// Returns the int value, trying `currentScope` first then `defaultScope`.
+    /// @param key              Property key (without scope prefix).
+    /// @param defaultValue     Fallback when neither scope has the key.
+    /// @param forceDefaultScope If true, reads from `defaultScope` only.
+    /// @return Property value or `defaultValue`.
     int getInt(const std::string& key, int defaultValue,
                bool forceDefaultScope = false) const;
+
+    /// Returns the double value, trying `currentScope` first then `defaultScope`.
+    /// @param key              Property key (without scope prefix).
+    /// @param defaultValue     Fallback when neither scope has the key.
+    /// @param forceDefaultScope If true, reads from `defaultScope` only.
+    /// @return Property value or `defaultValue`.
     double getDouble(const std::string& key, double defaultValue,
                      bool forceDefaultScope = false) const;
+
+    /// Returns the bool value, trying `currentScope` first then `defaultScope`.
+    /// @param key              Property key (without scope prefix).
+    /// @param defaultValue     Fallback when neither scope has the key.
+    /// @param forceDefaultScope If true, reads from `defaultScope` only.
+    /// @return Property value or `defaultValue`.
     bool getBool(const std::string& key, bool defaultValue,
                  bool forceDefaultScope = false) const;
 
+    /// Writes a string value under the scoped key.
+    /// @param key          Property key (without scope prefix).
+    /// @param value        Value to store.
+    /// @param defaultScope If true, writes to `defaultScope`; otherwise to `currentScope`.
     void setString(const std::string& key, const std::string& value,
                    bool defaultScope = false);
+
+    /// Writes an int value under the scoped key.
+    /// @param key          Property key (without scope prefix).
+    /// @param value        Value to store.
+    /// @param defaultScope If true, writes to `defaultScope`; otherwise to `currentScope`.
     void setInt(const std::string& key, int value, bool defaultScope = false);
+
+    /// Writes a double value under the scoped key.
+    /// @param key          Property key (without scope prefix).
+    /// @param value        Value to store.
+    /// @param defaultScope If true, writes to `defaultScope`; otherwise to `currentScope`.
     void setDouble(const std::string& key, double value,
                    bool defaultScope = false);
+
+    /// Writes a bool value under the scoped key.
+    /// @param key          Property key (without scope prefix).
+    /// @param value        Value to store.
+    /// @param defaultScope If true, writes to `defaultScope`; otherwise to `currentScope`.
     void setBool(const std::string& key, bool value, bool defaultScope = false);
 
+    /// @param key Property key (without scope prefix).
+    /// @return Fully qualified key in `currentScope`.
     std::string getCurrentScope(const std::string& key) const;
+
+    /// @param key Property key (without scope prefix).
+    /// @return Fully qualified key in `defaultScope`.
     std::string getDafaultKey(const std::string& key) const;
+
+    /// @param key          Property key (without scope prefix).
+    /// @param defaultScope If true, returns the `defaultScope` key; otherwise `currentScope` key.
+    /// @return Fully qualified scoped key string.
     std::string getScopedKey(const std::string& key,
                              bool defaultScope = false) const;
 

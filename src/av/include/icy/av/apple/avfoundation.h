@@ -26,6 +26,11 @@ namespace av {
 namespace avfoundation {
 
 
+/// Enumerate video input devices using AVFoundation.
+/// Populates device capabilities (resolutions, frame rates, pixel formats).
+/// @param type     Must be Device::VideoInput.
+/// @param devices  Output vector to fill with discovered devices.
+/// @return True if enumeration succeeded.
 bool getDeviceList(Device::Type type, std::vector<av::Device>& devices);
 
 

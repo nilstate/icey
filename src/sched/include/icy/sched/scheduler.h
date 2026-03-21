@@ -35,14 +35,31 @@ public:
     Scheduler();
     virtual ~Scheduler();
 
+    /// Adds @p task to the scheduler and starts running it on its configured trigger.
+    /// The scheduler takes ownership of the task.
+    /// @param task Task to schedule; must have a trigger set.
     virtual void schedule(sched::Task* task);
+
     using TaskRunner::cancel; // inherit cancel(Task*) and cancel(bool)
+
+    /// Removes @p task from the scheduler and cancels any pending execution.
+    /// @param task Task to cancel.
     virtual void cancel(sched::Task* task);
+
+    /// Removes all scheduled tasks.
     void clear() override;
 
+    /// Serializes all scheduled tasks and their triggers to @p root.
+    /// @param root JSON array to append serialized task entries to.
     virtual void serialize(json::Value& root) override;
+
+    /// Reconstructs the task list from @p root using the TaskFactory.
+    /// Skips entries that fail to deserialize and logs the error.
+    /// @param root JSON array previously produced by serialize().
     virtual void deserialize(json::Value& root) override;
 
+    /// Writes a pretty-printed JSON representation of all tasks to @p ost.
+    /// @param ost Output stream to write to.
     virtual void print(std::ostream& ost);
 
     /// Returns the default Scheduler singleton,

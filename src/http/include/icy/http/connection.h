@@ -30,17 +30,28 @@ namespace http {
 class HTTP_API ConnectionStream;
 class HTTP_API ConnectionAdapter;
 /// @ingroup http
+/// Base HTTP connection managing socket I/O and message lifecycle
 class HTTP_API Connection : public net::SocketAdapter
 {
 public:
     using Ptr = std::shared_ptr<Connection>;
 
+    /// Creates a Connection using the given TCP socket.
+    /// @param socket The TCP socket to use for I/O. Defaults to a new TCPSocket.
     Connection(const net::TCPSocket::Ptr& socket = std::make_shared<net::TCPSocket>());
     virtual ~Connection() noexcept;
 
+    /// Called when the incoming HTTP headers have been fully parsed.
     virtual void onHeaders() = 0;
+
+    /// Called for each chunk of incoming body data after headers are complete.
+    /// @param buffer Buffer containing the received data chunk.
     virtual void onPayload(const MutableBuffer&) = 0;
+
+    /// Called when the incoming HTTP message is fully received.
     virtual void onComplete() = 0;
+
+    /// Called when the connection is closed.
     virtual void onClose() = 0;
 
     /// Send raw data to the peer.
@@ -88,7 +99,10 @@ public:
     /// The HTTP response headers.
     [[nodiscard]] Response& response();
 
+    /// Returns the incoming HTTP message header (request or response depending on role).
     virtual http::Message* incomingHeader() = 0;
+
+    /// Returns the outgoing HTTP message header (request or response depending on role).
     virtual http::Message* outgoingHeader() = 0;
 
 protected:
@@ -128,9 +142,17 @@ class HTTP_API ConnectionAdapter : public ParserObserver
     , public net::SocketAdapter
 {
 public:
+    /// Creates a ConnectionAdapter for the given connection.
+    /// @param connection Owning HTTP connection.
+    /// @param type Parser type: HTTP_REQUEST for server side, HTTP_RESPONSE for client side.
     ConnectionAdapter(Connection* connection, llhttp_type_t type);
     virtual ~ConnectionAdapter();
 
+    /// Sends data to the peer, flushing the outgoing HTTP header first if needed.
+    /// @param data Pointer to the data buffer.
+    /// @param len Number of bytes to send.
+    /// @param flags Send flags (unused for HTTP, used for WebSocket frame type).
+    /// @return Number of bytes sent, or -1 on error.
     virtual ssize_t send(const char* data, size_t len, int flags = 0);
 
     /// Remove the given receiver.
@@ -139,11 +161,17 @@ public:
     /// matches the current receiver.
     void removeReceiver(SocketAdapter* adapter) override;
 
+    /// Returns the HTTP parser instance.
     [[nodiscard]] Parser& parser();
+
+    /// Returns the owning Connection pointer, or nullptr if detached.
     [[nodiscard]] Connection* connection();
 
-    /// Reset the adapter for reuse with a new socket and request.
+    /// Resets the adapter for reuse with a new socket and request.
+    /// Clears the parser state and re-wires the sender without reallocating.
     /// Used by the connection pool to avoid destroying/recreating adapters.
+    /// @param sender New socket adapter to send data through.
+    /// @param request New HTTP request object for the parser to populate.
     void reset(net::SocketAdapter* sender, http::Request* request);
 
 protected:
@@ -169,12 +197,15 @@ protected:
 
 /// @ingroup http
 /// HTTP progress signal for upload and download progress notifications.
+///
+/// Emits a double in the range [0, 100] as data is transferred.
+/// Set `total` to the expected byte count before calling `update()`.
 class HTTP_API ProgressSignal : public Signal<void(const double&)>
 {
 public:
-    void* sender;
-    uint64_t current;
-    uint64_t total;
+    void* sender;      ///< Optional context pointer identifying the sender.
+    uint64_t current;  ///< Bytes transferred so far.
+    uint64_t total;    ///< Total expected bytes (from Content-Length).
 
     ProgressSignal()
         : sender(nullptr)
@@ -183,8 +214,12 @@ public:
     {
     }
 
+    /// Returns the current transfer progress as a percentage (0-100).
     [[nodiscard]] double progress() const { return (current / (total * 1.0)) * 100; }
 
+    /// Advances the progress counter by `nread` bytes and emits the updated percentage.
+    /// @param nread Number of bytes just transferred.
+    /// @throws std::runtime_error if current would exceed total.
     void update(int nread)
     {
         if (current > total) {
@@ -206,6 +241,10 @@ public:
 class HTTP_API ConnectionStream : public net::SocketAdapter
 {
 public:
+    /// Creates a ConnectionStream wrapping the given HTTP connection.
+    /// Wires the Outgoing stream emitter to the connection adapter and
+    /// registers this stream to receive incoming data from the adapter.
+    /// @param connection The HTTP connection to wrap.
     ConnectionStream(Connection::Ptr connection);
     virtual ~ConnectionStream();
 

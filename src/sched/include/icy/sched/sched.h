@@ -5,7 +5,9 @@
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
-/// @addtogroup sched
+/// @defgroup sched Sched module
+///
+/// Task scheduler for deferred and periodic jobs.
 /// @{
 
 

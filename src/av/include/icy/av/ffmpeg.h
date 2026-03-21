@@ -43,8 +43,19 @@ void uninitializeFFmpeg();
 /// Get an error string for the given error code.
 std::string averror(const int error);
 
+/// Print all available FFmpeg demuxer (input) format names to the given stream.
+/// @param ost    The output stream to write to.
+/// @param delim  Delimiter inserted between each name.
 void printInputFormats(std::ostream& ost, const char* delim = " ");
+
+/// Print all available FFmpeg muxer (output) format names to the given stream.
+/// @param ost    The output stream to write to.
+/// @param delim  Delimiter inserted between each name.
 void printOutputFormats(std::ostream& ost, const char* delim = " ");
+
+/// Print all available FFmpeg encoder names to the given stream.
+/// @param ost    The output stream to write to.
+/// @param delim  Delimiter inserted between each name.
 void printEncoders(std::ostream& ost, const char* delim = " ");
 
 

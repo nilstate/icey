@@ -165,16 +165,43 @@ private:
 //
 
 
+/// Returns true if the given Authorization header value uses HTTP Basic authentication.
+/// @param header Value of the Authorization or WWW-Authenticate header.
 [[nodiscard]] bool isBasicCredentials(std::string_view header);
+
+/// Returns true if the given Authorization header value uses HTTP Digest authentication.
+/// @param header Value of the Authorization or WWW-Authenticate header.
 [[nodiscard]] bool isDigestCredentials(std::string_view header);
+
+/// Returns true if the request contains a Basic Authorization header.
+/// @param request HTTP request to inspect.
 [[nodiscard]] bool hasBasicCredentials(const http::Request& request);
+
+/// Returns true if the request contains a Digest Authorization header.
+/// @param request HTTP request to inspect.
 [[nodiscard]] bool hasDigestCredentials(const http::Request& request);
+
+/// Returns true if the request contains a Basic Proxy-Authorization header.
+/// @param request HTTP request to inspect.
 [[nodiscard]] bool hasProxyBasicCredentials(const http::Request& request);
+
+/// Returns true if the request contains a Digest Proxy-Authorization header.
+/// @param request HTTP request to inspect.
 [[nodiscard]] bool hasProxyDigestCredentials(const http::Request& request);
 
+/// Splits a "user:password" user-info string into separate username and password strings.
+/// If no ':' is present, the entire string is treated as the username and password is empty.
+/// @param userInfo Input string in the form "user:password".
+/// @param username Receives the extracted username.
+/// @param password Receives the extracted password.
 void extractCredentials(std::string_view userInfo, std::string& username,
                         std::string& password);
 
+/// Extracts username and password from the user-info component of a URL.
+/// Does nothing if the URL has no user-info part.
+/// @param uri URL to extract credentials from.
+/// @param username Receives the extracted username.
+/// @param password Receives the extracted password.
 void extractCredentials(const http::URL& uri, std::string& username,
                         std::string& password);
 

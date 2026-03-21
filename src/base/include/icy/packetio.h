@@ -32,6 +32,7 @@ class ThreadedStreamReader : public PacketSource
     , public basic::Startable
 {
 public:
+    /// @param is Input stream to read from; takes ownership.
     ThreadedStreamReader(std::istream* is)
         : PacketSource(this->emitter)
         , _istream(is)
@@ -39,6 +40,7 @@ public:
         _runner.setRepeating(true);
     }
 
+    /// Stops the reader thread and deletes the owned stream.
     ~ThreadedStreamReader()
     {
         stop();
@@ -48,6 +50,8 @@ public:
         }
     }
 
+    /// Starts the reader thread; emits one line per iteration as a RawPacket.
+    /// Emits a FlagPacket with `PacketFlags::Final` on EOF.
     void start() override
     {
         _runner.start([](void* arg) {
@@ -63,11 +67,16 @@ public:
                       this);
     }
 
+    /// Cancels the reader thread.
     void stop() override
     {
         _runner.cancel();
     }
 
+    /// Returns the internal stream cast to `StreamT`.
+    /// @tparam StreamT Target stream type derived from `std::istream`.
+    /// @return Reference to the cast stream.
+    /// @throws std::runtime_error if the cast fails.
     template <class StreamT>
     StreamT& stream()
     {
@@ -78,6 +87,7 @@ public:
         return *stream;
     }
 
+    /// @return Reference to the underlying input stream.
     std::istream& stream() { return *_istream; }
 
     PacketSignal emitter;
@@ -98,12 +108,14 @@ protected:
 class StreamWriter : public PacketProcessor
 {
 public:
+    /// @param stream Output stream to write to; takes ownership.
     StreamWriter(std::ostream* stream)
         : PacketProcessor(this->emitter)
         , _ostream(stream)
     {
     }
 
+    /// Closes any open `std::ofstream` and deletes the owned stream.
     virtual ~StreamWriter()
     {
         if (_ostream) {
@@ -114,6 +126,9 @@ public:
         }
     }
 
+    /// Serializes the packet via `write()`, flushes it to the output stream,
+    /// then forwards the packet to the next processor.
+    /// @param packet Incoming packet to process.
     virtual void process(IPacket& packet) override
     {
         Buffer buffer;
@@ -125,6 +140,10 @@ public:
         emit(packet);
     }
 
+    /// Returns the internal output stream cast to `StreamT`.
+    /// @tparam StreamT Target stream type derived from `std::ostream`.
+    /// @return Reference to the cast stream.
+    /// @throws std::runtime_error if the cast fails.
     template <class StreamT>
     StreamT& stream()
     {
@@ -135,6 +154,8 @@ public:
         return *stream;
     }
 
+    /// Closes the output file on `Closed` or `Error` stream state transitions.
+    /// @param state New stream state.
     void onStreamStateChange(const PacketStreamState& state) override
     {
         //LTrace("Stream state: ", state);
@@ -155,6 +176,8 @@ public:
         }
     }
 
+    /// @return Reference to the underlying output stream.
+    /// @throws std::runtime_error if the stream pointer is null.
     std::ostream& stream()
     {
         if (!_ostream)

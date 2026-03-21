@@ -28,37 +28,47 @@ public:
     /// Creates and initializes the PRNG.
     /// The stateSize parameter is accepted for API compatibility
     /// but is ignored; the engine always uses mt19937's fixed state size.
+    /// @param stateSize Ignored; present for API compatibility only.
     Random(int stateSize = 256);
 
     /// Destroys the PRNG.
     ~Random();
 
     /// Seeds the pseudo random generator with the given seed.
+    /// @param seed 32-bit seed value.
     void seed(uint32_t seed);
 
-    /// Seeds the pseudo random generator with a random seed
-    /// obtained from std::random_device.
+    /// Seeds the pseudo random generator with entropy from std::random_device.
     void seed();
 
-    /// Returns the next 31-bit pseudo random number.
+    /// Returns the next pseudo random number from the mt19937 engine.
+    /// @return Pseudo random uint32_t value.
     uint32_t next();
 
-    /// Returns the next 31-bit pseudo random number modulo n.
+    /// Returns the next pseudo random number in the range [0, n).
+    /// @param n Upper bound (exclusive).
+    /// @return Pseudo random value in [0, n).
     uint32_t next(uint32_t n);
 
-    /// Returns the next pseudo random character.
+    /// Returns the next pseudo random byte as a char.
+    /// @return Pseudo random char value.
     char nextChar();
 
-    /// Returns the next boolean pseudo random value.
+    /// Returns the next pseudo random boolean value.
+    /// @return true or false with equal probability.
     bool nextBool();
 
-    /// Returns the next float pseudo random number between 0.0 and 1.0.
+    /// Returns the next pseudo random float in [0.0, 1.0].
+    /// @return Pseudo random float value.
     float nextFloat();
 
-    /// Returns the next double pseudo random number between 0.0 and 1.0.
+    /// Returns the next pseudo random double in [0.0, 1.0].
+    /// @return Pseudo random double value.
     double nextDouble();
 
-    /// Fills the buffer with random bytes from std::random_device.
+    /// Fills the buffer with cryptographically random bytes from std::random_device.
+    /// @param seed   Buffer to fill.
+    /// @param length Number of bytes to write into seed.
     static void getSeed(char* seed, unsigned length);
 
 private:

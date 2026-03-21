@@ -45,23 +45,33 @@ static constexpr int kErrorInsufficientCapacity = 508;
 static constexpr int kErrorOperationNotSupported = 600;
 
 
+/// Result returned by ServerObserver::authenticateRequest() to control how
+/// the server proceeds with an incoming STUN request.
 enum class AuthenticationState
 {
-    Authenticating = 1,
-    Authorized = 2,
-    QuotaReached = 3,
-    NotAuthorized = 4
+    Authenticating = 1, ///< Authentication is in progress; server holds the request.
+    Authorized = 2,     ///< Credentials verified; request may proceed.
+    QuotaReached = 3,   ///< User quota exceeded; respond with 486.
+    NotAuthorized = 4   ///< Credentials rejected; respond with 401.
 };
 
 
+/// A STUN message annotated with the transport type and source/destination addresses
+/// needed for server-side routing and response generation.
 class TURN_API Request : public stun::Message
 {
 public:
-    net::TransportType transport;
-    net::Address localAddress;
-    net::Address remoteAddress;
-    std::string hash; // for MessageIntegrity signing
+    net::TransportType transport; ///< Protocol on which the request arrived (UDP or TCP).
+    net::Address localAddress;   ///< Server's local address that received the request.
+    net::Address remoteAddress;  ///< Client's remote address (used to build the 5-tuple).
+    std::string hash;            ///< Pre-computed MessageIntegrity key for signing responses.
 
+    /// Constructs a Request by copying a parsed STUN message and annotating it
+    /// with the transport context.
+    /// @param message       Parsed STUN message.
+    /// @param transport     Transport protocol on which the message arrived.
+    /// @param localAddress  Server-side local address.
+    /// @param remoteAddress Client-side remote address.
     Request(const stun::Message& message, net::TransportType transport,
             const net::Address& localAddress = net::Address(),
             const net::Address& remoteAddress = net::Address())

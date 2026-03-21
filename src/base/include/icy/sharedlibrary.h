@@ -20,6 +20,7 @@
 namespace icy {
 
 
+/// Loads a shared library at runtime and resolves exported symbols
 struct SharedLibrary
 {
     /// Opens a shared library.
@@ -52,6 +53,10 @@ struct SharedLibrary
         return true;
     }
 
+    /// Reads the last libuv dynamic-linker error, stores it in _error, and throws
+    /// a std::runtime_error with the combined prefix and error message.
+    /// @param prefix Human-readable context string prepended to the error detail.
+    /// @throws std::runtime_error always.
     void setError(const std::string& prefix)
     {
         std::string err(uv_dlerror(&_lib));
@@ -61,6 +66,9 @@ struct SharedLibrary
         throw std::runtime_error(prefix + ": " + err);
     }
 
+    /// Returns the last error message recorded by setError().
+    /// Empty if no error has occurred.
+    /// @return Last error string.
     std::string error() const { return _error; }
 
 protected:

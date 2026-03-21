@@ -1,63 +1,101 @@
 # Getting Started
 
-Welcome to Icey! If something's missing or outdated, please submit a [pull request](../README.md#contributing) with your updates.
+## Quick Start
 
-Before going any further please follow the [installation guide](installation.md) to compile and install Icey on your system.
+The fastest way to use Icey is CMake FetchContent. No manual cloning, no system installation; CMake downloads and builds only the modules you need.
 
-Once Icey is installed you have a number of choices for how to include the libraries in your own project:
+```cmake
+cmake_minimum_required(VERSION 3.21)
+project(myapp)
 
-### 1) Using `pkg-config` (Linux only)
+include(FetchContent)
+FetchContent_Declare(icey
+  GIT_REPOSITORY https://github.com/sourcey/icey.git
+  GIT_TAG v2.1.0
+)
+FetchContent_MakeAvailable(icey)
 
-After running `make install` the `pkg-config` script is located in `/usr/local/lib/pkgconfig/icey.pc` by default.
+add_executable(myapp src/main.cpp)
+target_link_libraries(myapp PRIVATE icy_base icy_net icy_http)
+```
+
+Each module is a separate CMake target prefixed with `icy_`. Link only what you use; dependencies resolve automatically.
+
+## Available Targets
+
+| Target | Module | Optional Dependencies |
+| ------ | ------ | --------------------- |
+| `icy_base` | [Base](modules/base.md) | — |
+| `icy_crypto` | [Crypto](modules/crypto.md) | OpenSSL 3.x |
+| `icy_net` | [Net](modules/net.md) | — |
+| `icy_http` | [HTTP](modules/http.md) | — |
+| `icy_json` | [JSON](modules/json.md) | — |
+| `icy_av` | [AV](modules/av.md) | FFmpeg 5+/6+/7+ |
+| `icy_webrtc` | [WebRTC](modules/webrtc.md) | libdatachannel |
+| `icy_symple` | [Symple](modules/symple.md) | — |
+| `icy_stun` | [STUN](modules/stun.md) | — |
+| `icy_turn` | [TURN](modules/turn.md) | — |
+| `icy_archo` | [Archo](modules/archo.md) | — |
+| `icy_pacm` | [Pacm](modules/pacm.md) | — |
+| `icy_pluga` | [Pluga](modules/pluga.md) | — |
+| `icy_sched` | [Sched](modules/sched.md) | — |
+
+## Building from Source
+
+If you prefer to build and install Icey on your system:
 
 ```bash
-g++ -o test test.cpp $(pkg-config --libs --cflags icey)
+git clone https://github.com/sourcey/icey.git
+cd icey
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON
+cmake --build build --parallel $(nproc)
+ctest --test-dir build --output-on-failure
 ```
 
-### 2) Using CMake
-
-If you're already using CMake then including Icey with CMake is recommended. Once you have built and installed Icey you can include all the libraries and headers by adding the following lines to your `CMakeLists.txt`:
+Then use `find_package` in your project:
 
 ```cmake
-# The Icey root directory must be set
-set(Icey_ROOT_DIR "" CACHE STRING "Where is the Icey root directory located?")
-
-# Tell CMake where to locate the Icey .cmake files
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${Icey_ROOT_DIR}/cmake)
-set(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} ${Icey_ROOT_DIR}/cmake)
-
-# Include Icey with specified modules (example: base net crypto http)
-find_package(Icey COMPONENTS base net crypto http REQUIRED)
+find_package(Icey REQUIRED)
+target_link_libraries(myapp PRIVATE icy_base icy_net icy_http)
 ```
 
-### 3) Extending the build system
+See the [installation guide](installation.md) for platform-specific instructions ([Linux](installation-linux.md), [macOS](installation-osx.md), [Windows](installation-windows.md)).
 
-The third option is to include the Icey CMake build system in your own project. This method builds Icey modules alongside your own project as dependencies. [See here](installation.md#cmake-build-options) for a complete list of build options.
+## Enabling Optional Modules
 
-This method is only recommended for advanced users who want their project tightly coupled with Icey.
+Some modules require external libraries. Icey auto-detects dependencies via `find_package`; there are no `WITH_*` flags to set. Install the libraries so CMake can find them and the corresponding modules build automatically.
 
-Below is an example `CMakeLists.txt`:
+- **`icy_av`** (FFmpeg): install `libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libswresample-dev` (Ubuntu/Debian) or `ffmpeg` (Homebrew). Point CMake at a custom build with `-DFFmpeg_ROOT=/path/to/ffmpeg`.
+- **`icy_webrtc`** (libdatachannel): no installation needed; CMake fetches it automatically via FetchContent when `icy_webrtc` is requested.
+- **`icy_crypto`, `icy_net`, `icy_stun`, `icy_turn`** (OpenSSL): install `libssl-dev` (Ubuntu/Debian) or `openssl` (Homebrew). These modules are disabled if OpenSSL is not found.
 
-```cmake
-cmake_minimum_required(VERSION 3.14)
-project(exampleapp)
+The user-settable CMake options are: `BUILD_TESTS`, `BUILD_SHARED_LIBS`, `ENABLE_NATIVE_ARCH`, `ENABLE_LTO`, `ASAN`.
 
-# Set the source directory
-set(sourcedir src)
+## Your First Program
 
-# Include Icey
-include("../icey/Icey.cmake")
+A minimal HTTP echo server:
 
-include_directories(${sourcedir} ${Icey_INCLUDE_DIRS})
-link_libraries(${Icey_LIBRARIES})
+```cpp
+#include "icy/http/server.h"
+#include "icy/loop.h"
 
-file(GLOB_RECURSE sources ${sourcedir}/*.cpp)
-file(GLOB_RECURSE headers ${sourcedir}/*.h)
-
-add_executable(exampleapp ${sources} ${headers})
-install(TARGETS exampleapp)
+int main() {
+    icy::http::Server srv{"0.0.0.0", 8080};
+    srv.Connection += [](icy::http::ServerConnection::Ptr conn) {
+        conn->Payload += [](icy::http::ServerConnection& conn,
+                            const icy::MutableBuffer& buf) {
+            conn.send(icy::bufferCast<const char*>(buf), buf.size());
+            conn.close();
+        };
+    };
+    srv.start();
+    icy::uv::runLoop();
+    return 0;
+}
 ```
 
 ## Next Steps
 
-Once Icey is included in your project you're ready to start using the API. Check out the [code examples](examples.md) and [API reference](api-base.md) to start cutting code.
+- Browse the [module guides](modules.md) for architecture, usage, and code examples
+- Explore the samples in each module's `samples/` directory
+- Read the [contributing guide](contributing.md) if you want to send a PR

@@ -32,12 +32,16 @@ class Base_API Stream : public uv::Handle<T>
 public:
     using Handle = uv::Handle<T>;
 
+    /// Construct the stream bound to @p loop with a 64 KiB read buffer.
+    ///
+    /// @param loop  Event loop to associate this stream with.
     Stream(uv::Loop* loop = uv::defaultLoop())
         : uv::Handle<T>(loop)
         , _buffer(65536)
     {
     }
 
+    /// Destroy the stream, stopping reads and freeing pooled write requests.
     virtual ~Stream()
     {
         close();
@@ -57,8 +61,13 @@ public:
         Handle::close();
     }
 
-    /// Sends a shutdown packet to the connected peer.
-    /// Return true if the shutdown packet was sent.
+    /// Send a TCP/pipe shutdown request to the connected peer.
+    ///
+    /// Issues a half-close: no further writes will be accepted after this, but
+    /// the stream remains open for reading until the peer also closes.
+    ///
+    /// @return  `true` if the shutdown request was submitted successfully;
+    ///          `false` if the stream is not active.
     bool shutdown()
     {
         Handle::assertThread();
@@ -71,11 +80,17 @@ public:
                            }) == 0;
     }
 
-    /// Writes data to the stream.
+    /// Write @p len bytes from @p data to the stream.
     ///
-    /// Return false if the underlying socket is closed or if the write
-    /// queue has exceeded the high water mark (backpressure).
-    /// This method does not throw an exception.
+    /// The write is non-blocking; data is buffered by libuv. Returns `false`
+    /// without throwing if the stream is inactive, reads have not started, or
+    /// the internal write queue exceeds the high-water mark.
+    ///
+    /// @param data  Pointer to the bytes to send. Must remain valid until the
+    ///              write completion callback fires.
+    /// @param len   Number of bytes to send.
+    /// @return      `true` if the write was queued; `false` on backpressure or
+    ///              if the stream is not in a writable state.
     bool write(const char* data, size_t len)
     {
         if (!Handle::active() || !_started)
@@ -108,9 +123,16 @@ public:
     /// When the write queue exceeds this size, write() returns false.
     void setHighWaterMark(size_t bytes) { _highWaterMark = bytes; }
 
-    /// Write data to the target stream.
+    /// Write @p len bytes from @p data together with a stream handle over an
+    /// IPC pipe (uses `uv_write2`).
     ///
-    /// This method is only valid for IPC streams.
+    /// Only valid for named-pipe handles opened with IPC mode enabled.
+    /// Throws `std::logic_error` if called on a non-IPC pipe.
+    ///
+    /// @param data  Bytes to send alongside the handle.
+    /// @param len   Number of bytes to send.
+    /// @param send  Stream handle to pass to the receiving process.
+    /// @return      `true` if the write was queued; `false` on error.
     bool write(const char* data, size_t len, uv_stream_t* send)
     {
         if (!Handle::active() || !_started)
@@ -125,16 +147,26 @@ public:
         });
     }
 
-    /// Return the uv_stream_t pointer.
+    /// Return the underlying `uv_stream_t` pointer cast from the native handle.
+    ///
+    /// @return  Pointer to the `uv_stream_t`, or `nullptr` if the handle is closed.
     uv_stream_t* stream()
     {
         return this->template get<uv_stream_t>();
     }
 
-    /// Signal the notifies when data is available for read.
+    /// Emitted when data has been received from the peer.
+    ///
+    /// Slot signature: `void(const char* data, const int& len)`
     Signal<void(const char*, const int&)> Read;
 
 protected:
+    /// Begin reading from the stream by registering libuv read callbacks.
+    ///
+    /// Sets the stream's `data` pointer to `this` so callbacks can recover the
+    /// C++ object. Has no effect and returns `false` if already started.
+    ///
+    /// @return  `true` if `uv_read_start` was called successfully.
     virtual bool readStart()
     {
         // LTrace("Read start: ", ptr());
@@ -146,6 +178,12 @@ protected:
         return Handle::invoke(&uv_read_start, stream(), Stream::allocReadBuffer, handleRead);
     }
 
+    /// Stop reading from the stream.
+    ///
+    /// No further read callbacks will fire after this returns. Has no effect
+    /// and returns `false` if not currently started.
+    ///
+    /// @return  `true` if `uv_read_stop` was called successfully.
     virtual bool readStop()
     {
         // LTrace("Read stop: ", ptr());
@@ -156,6 +194,13 @@ protected:
         return Handle::invoke(&uv_read_stop, stream());
     }
 
+    /// Called by `handleRead` when @p len bytes of @p data arrive.
+    ///
+    /// The default implementation emits the `Read` signal. Override to intercept
+    /// data before it reaches signal subscribers.
+    ///
+    /// @param data  Pointer into the read buffer; valid only for this call.
+    /// @param len   Number of valid bytes in @p data.
     virtual void onRead(const char* data, size_t len)
     {
         // LTrace("On read: ", len);
@@ -168,6 +213,12 @@ protected:
     //
     /// UV callbacks
 
+    /// libuv read callback. Dispatches to `onRead()`, handles EOF by closing
+    /// the stream gracefully, and propagates other errors via `setUVError()`.
+    ///
+    /// @param handle  The libuv stream that produced data.
+    /// @param nread   Bytes read (>= 0), `UV_EOF`, or a negative error code.
+    /// @param buf     Buffer containing the received data.
     static void handleRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf)
     {
         // LTrace("Handle read: ", nread);
@@ -195,6 +246,12 @@ protected:
 #endif
     }
 
+    /// libuv allocate-buffer callback. Provides the stream's internal buffer,
+    /// growing it if libuv requests more space than the current allocation.
+    ///
+    /// @param handle          The libuv handle requesting a buffer.
+    /// @param suggested_size  Minimum size libuv would like for the buffer.
+    /// @param buf             Output: filled with the buffer base and length.
     static void allocReadBuffer(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf)
     {
         auto& buffer = reinterpret_cast<Stream*>(handle->data)->_buffer;
@@ -205,6 +262,10 @@ protected:
         buf->len = buffer.size();
     }
 
+    /// Return a `uv_write_t` from the freelist, or allocate a new one if
+    /// the pool is empty.
+    ///
+    /// @return  Pointer to an unused `uv_write_t`.
     uv_write_t* allocWriteReq()
     {
         if (!_writeReqFree.empty()) {
@@ -215,6 +276,9 @@ protected:
         return new uv_write_t;
     }
 
+    /// Return @p req to the freelist, or delete it if the pool is at capacity.
+    ///
+    /// @param req  Write request to recycle or free.
     void freeWriteReq(uv_write_t* req)
     {
         if (_writeReqFree.size() < 8) { // cap pool size

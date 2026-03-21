@@ -81,34 +81,58 @@ public:
     };
 
     virtual ~Attribute() {}
+
+    /// Returns a deep copy of this attribute.
     virtual std::unique_ptr<Attribute> clone() = 0;
 
     /// Reads the body (not the type or size) for this
-    /// type of attribute from  the given buffer. Return
-    /// value is true if successful.
+    /// type of attribute from the given buffer.
+    /// @param reader Source bit reader positioned at the attribute body.
     virtual void read(BitReader& reader) = 0;
 
-    /// Writes the body (not the type or size) to the
-    /// given buffer. Return value is true if successful.
+    /// Writes the body (not the type or size) to the given buffer.
+    /// @param writer Destination bit writer.
     virtual void write(BitWriter& writer) const = 0;
 
-    /// Creates an attribute object with the given type
-    /// and size.
+    /// Creates an attribute of the given wire type and body size.
+    /// Returns nullptr if the type is unknown or the size is invalid.
+    /// @param type  Wire type code (one of Attribute::Type).
+    /// @param size  Body length in bytes as read from the wire header.
+    /// @return Owning pointer to the new attribute, or nullptr on failure.
     [[nodiscard]] static std::unique_ptr<Attribute> create(uint16_t type, uint16_t size = 0);
 
+    /// @return The wire type code for this attribute.
     [[nodiscard]] uint16_t type() const;
+
+    /// @return The body length of this attribute in bytes (before padding).
     [[nodiscard]] uint16_t size() const;
 
+    /// Advances the reader past any 4-byte alignment padding that follows
+    /// this attribute's body.
+    /// @param reader Reader to advance.
     void consumePadding(BitReader& reader) const;
+
+    /// Writes zero-fill padding bytes to align this attribute to a 4-byte
+    /// boundary.
+    /// @param writer Writer to append padding to.
     void writePadding(BitWriter& writer) const;
 
     static constexpr uint16_t TypeID = 0;
 
+    /// @return Human-readable name for this attribute's type.
     [[nodiscard]] std::string typeString();
+
+    /// @param type Wire type code.
+    /// @return Human-readable name for the given type code.
     [[nodiscard]] static std::string typeString(uint16_t type);
 
 protected:
+    /// @param type Wire type code for this attribute.
+    /// @param size Initial body length in bytes.
     Attribute(uint16_t type, uint16_t size = 0);
+
+    /// Updates the stored body length.
+    /// @param size New body length in bytes.
     void setLength(uint16_t size);
 
     uint16_t _type;
@@ -116,19 +140,26 @@ protected:
 };
 
 
-///
 /// Implements a STUN/TURN attribute that contains a socket address.
+/// Handles XOR encoding/decoding for address and port as required by
+/// RFC 5389 section 15.2.
 class STUN_API AddressAttribute : public Attribute
 {
 public:
-    AddressAttribute(uint16_t type, bool ipv4 = true); // bool xor,
+    /// @param type Wire type code (e.g. XorMappedAddress::TypeID).
+    /// @param ipv4 When true, initialises the size for IPv4; otherwise IPv6.
+    AddressAttribute(uint16_t type, bool ipv4 = true);
+
+    /// Copy constructor; duplicates the stored address.
     AddressAttribute(const AddressAttribute& r);
 
+    /// @copydoc Attribute::clone
     std::unique_ptr<Attribute> clone() override;
 
     static constexpr uint16_t IPv4Size = 8;
     static constexpr uint16_t IPv6Size = 20;
 
+    /// @return The STUN address family (IPv4, IPv6, or Undefined) of the stored address.
     [[nodiscard]] stun::AddressFamily family() const
     {
         switch (_address.family()) {
@@ -140,11 +171,17 @@ public:
         return stun::AddressFamily::Undefined;
     }
 
+    /// @return The decoded socket address stored in this attribute.
     [[nodiscard]] virtual net::Address address() const;
 
+    /// @copydoc Attribute::read
     void read(BitReader& reader) override;
+
+    /// @copydoc Attribute::write
     void write(BitWriter& writer) const override;
 
+    /// Sets the address to encode into this attribute.
+    /// @param addr Address to store.
     virtual void setAddress(const net::Address& addr) { _address = addr; }
 
 private:
@@ -152,22 +189,36 @@ private:
 };
 
 
-///
-/// Implements STUN/TURN attribute that reflects a 32-bit integer.
+/// Implements a STUN/TURN attribute that holds an 8-bit integer.
 class STUN_API UInt8Attribute : public Attribute
 {
 public:
+    /// @param type Wire type code for the concrete attribute.
     UInt8Attribute(uint16_t type);
+
+    /// Copy constructor.
     UInt8Attribute(const UInt8Attribute& r);
 
+    /// @copydoc Attribute::clone
     std::unique_ptr<Attribute> clone() override;
 
     static constexpr uint16_t Size = 1;
 
+    /// @return The stored 8-bit value.
     [[nodiscard]] uint8_t value() const { return _bits; }
+
+    /// Sets the stored 8-bit value.
+    /// @param bits Value to store.
     void setValue(uint8_t bits) { _bits = bits; }
 
+    /// Returns the state of a single bit within the stored byte.
+    /// @param index Bit position (0 = LSB, 7 = MSB).
+    /// @return true if the bit is set.
     [[nodiscard]] bool getBit(int index) const;
+
+    /// Sets or clears a single bit within the stored byte.
+    /// @param index Bit position (0 = LSB, 7 = MSB).
+    /// @param value true to set, false to clear.
     void setBit(int index, bool value);
 
     void read(BitReader& reader) override;
@@ -178,22 +229,36 @@ private:
 };
 
 
-///
-/// Implements STUN/TURN attribute that reflects a 32-bit integer.
+/// Implements a STUN/TURN attribute that holds a 32-bit integer.
 class STUN_API UInt32Attribute : public Attribute
 {
 public:
+    /// @param type Wire type code for the concrete attribute.
     UInt32Attribute(uint16_t type);
+
+    /// Copy constructor.
     UInt32Attribute(const UInt32Attribute& r);
 
+    /// @copydoc Attribute::clone
     std::unique_ptr<Attribute> clone() override;
 
     static constexpr uint16_t Size = 4;
 
+    /// @return The stored 32-bit value.
     [[nodiscard]] uint32_t value() const { return _bits; }
+
+    /// Sets the stored 32-bit value.
+    /// @param bits Value to store.
     void setValue(uint32_t bits) { _bits = bits; }
 
+    /// Returns the state of a single bit within the stored word.
+    /// @param index Bit position (0 = LSB, 31 = MSB).
+    /// @return true if the bit is set.
     [[nodiscard]] bool getBit(int index) const;
+
+    /// Sets or clears a single bit within the stored word.
+    /// @param index Bit position (0 = LSB, 31 = MSB).
+    /// @param value true to set, false to clear.
     void setBit(int index, bool value);
 
     void read(BitReader& reader) override;
@@ -204,22 +269,36 @@ private:
 };
 
 
-///
-/// Implements STUN/TURN attribute that reflects a 64-bit integer.
+/// Implements a STUN/TURN attribute that holds a 64-bit integer.
 class STUN_API UInt64Attribute : public Attribute
 {
 public:
+    /// @param type Wire type code for the concrete attribute.
     UInt64Attribute(uint16_t type);
+
+    /// Copy constructor.
     UInt64Attribute(const UInt64Attribute& r);
 
+    /// @copydoc Attribute::clone
     std::unique_ptr<Attribute> clone() override;
 
     static constexpr uint16_t Size = 8;
 
+    /// @return The stored 64-bit value.
     [[nodiscard]] uint64_t value() const { return _bits; }
+
+    /// Sets the stored 64-bit value.
+    /// @param bits Value to store.
     void setValue(uint64_t bits) { _bits = bits; }
 
+    /// Returns the state of a single bit within the stored quad-word.
+    /// @param index Bit position (0 = LSB, 63 = MSB).
+    /// @return true if the bit is set.
     [[nodiscard]] bool getBit(int index) const;
+
+    /// Sets or clears a single bit within the stored quad-word.
+    /// @param index Bit position (0 = LSB, 63 = MSB).
+    /// @param value true to set, false to clear.
     void setBit(int index, bool value);
 
     void read(BitReader& reader) override;
@@ -229,40 +308,72 @@ private:
     uint64_t _bits;
 };
 
-/// Implements STUN/TURN attribute representing a 0 size flag.
+/// Implements a zero-length STUN/TURN flag attribute (presence implies the flag is set).
 class STUN_API FlagAttribute : public Attribute
 {
 public:
+    /// @param type Wire type code for the concrete attribute.
     FlagAttribute(uint16_t type);
 
+    /// @copydoc Attribute::clone
     std::unique_ptr<Attribute> clone() override;
 
     static constexpr uint16_t Size = 0;
 
+    /// No-op: flag attributes carry no body bytes.
     void read(BitReader&) override { /* flags have no body */ }
+
+    /// No-op: flag attributes carry no body bytes.
     void write(BitWriter&) const override { /* flags have no body */ }
 };
 
 
-///
-/// Implements STUN/TURN attribute that reflects an arbitrary byte string
+/// Implements a STUN/TURN attribute that holds an arbitrary byte string.
+/// Used for Username, Password, Realm, Nonce, Software, Data, and similar attributes.
 class STUN_API StringAttribute : public Attribute
 {
 public:
+    /// @param type Wire type code for the concrete attribute.
+    /// @param size Initial body length in bytes (0 for variable-length attributes).
     StringAttribute(uint16_t type, uint16_t size = 0);
+
+    /// Copy constructor; duplicates stored bytes.
     StringAttribute(const StringAttribute& r);
     virtual ~StringAttribute();
 
+    /// @copydoc Attribute::clone
     std::unique_ptr<Attribute> clone() override;
 
+    /// @return Pointer to the raw byte buffer.
     [[nodiscard]] const char* bytes() const { return _bytes.data(); }
+
+    /// Replaces the stored bytes with a copy of the given buffer and
+    /// updates the attribute's reported size.
+    /// @param bytes Source data pointer.
+    /// @param size  Number of bytes to copy.
     void setBytes(const char* bytes, unsigned size);
 
+    /// @return The stored bytes as a std::string.
     [[nodiscard]] std::string asString() const;
-    void copyBytes(const char* bytes); //  uses strlen
+
+    /// Copies a null-terminated string into the attribute, using strlen
+    /// to determine the length.
+    /// @param bytes Null-terminated source string.
+    void copyBytes(const char* bytes);
+
+    /// Copies an arbitrary block of memory into the attribute.
+    /// @param bytes Source data pointer.
+    /// @param size  Number of bytes to copy.
     void copyBytes(const void* bytes, unsigned size);
 
+    /// Returns a single byte from the stored buffer.
+    /// @param index Zero-based byte offset.
+    /// @return The byte value at @p index.
     [[nodiscard]] uint8_t getByte(int index) const;
+
+    /// Overwrites a single byte in the stored buffer.
+    /// @param index Zero-based byte offset.
+    /// @param value New value to write.
     void setByte(int index, uint8_t value);
 
     void read(BitReader& reader) override;
@@ -273,20 +384,37 @@ private:
 };
 
 
-///
-/// Implements STUN/TURN attribute that reflects a list of attribute names.
+/// Implements a STUN/TURN attribute that holds a list of attribute type codes.
+/// Used by the UNKNOWN-ATTRIBUTES attribute (RFC 5389 section 15.9).
 class STUN_API UInt16ListAttribute : public Attribute
 {
 public:
+    /// @param type Wire type code for the concrete attribute.
+    /// @param size Initial body length in bytes.
     UInt16ListAttribute(uint16_t type, uint16_t size);
+
+    /// Copy constructor; duplicates the type list.
     UInt16ListAttribute(const UInt16ListAttribute& r);
     virtual ~UInt16ListAttribute();
 
+    /// @copydoc Attribute::clone
     std::unique_ptr<Attribute> clone() override;
 
+    /// @return Number of attribute type codes in the list.
     [[nodiscard]] size_t size() const;
+
+    /// Returns the type code at the given list position.
+    /// @param index Zero-based list index.
+    /// @return Attribute type code at @p index.
     [[nodiscard]] uint16_t getType(int index) const;
+
+    /// Overwrites the type code at the given list position.
+    /// @param index Zero-based list index.
+    /// @param value New attribute type code.
     void setType(int index, uint16_t value);
+
+    /// Appends a type code to the list and updates the attribute size.
+    /// @param value Attribute type code to append.
     void addType(uint16_t value);
 
     void read(BitReader& reader) override;
@@ -297,8 +425,10 @@ private:
 };
 
 
-///
-/// Implements STUN/TURN attributes that reflects an internet address.
+/// Implements the STUN MESSAGE-INTEGRITY attribute (RFC 5389 section 15.4).
+/// On write, computes an HMAC-SHA1 over the message bytes preceding this
+/// attribute when a key is set. On read, captures the raw HMAC bytes and
+/// the input bytes needed to verify them later via verifyHmac().
 class STUN_API MessageIntegrity : public Attribute
 {
 public:
@@ -306,19 +436,36 @@ public:
     MessageIntegrity(const MessageIntegrity& r);
     virtual ~MessageIntegrity();
 
+    /// @copydoc Attribute::clone
     std::unique_ptr<Attribute> clone() override;
 
     static constexpr uint16_t TypeID = 0x0008;
-    static constexpr uint16_t Size = 20;
+    static constexpr uint16_t Size = 20; ///< HMAC-SHA1 output is always 20 bytes.
 
+    /// Verifies the stored HMAC against the stored input bytes using @p key.
+    /// @param key HMAC key (MD5 of username:realm:password for long-term creds).
+    /// @return true if the computed HMAC matches the stored HMAC.
     [[nodiscard]] bool verifyHmac(std::string_view key) const;
 
+    /// @return The raw message bytes captured at read time, used for HMAC verification.
     [[nodiscard]] std::string input() const { return _input; }
+
+    /// @return The raw 20-byte HMAC value as read from the wire.
     [[nodiscard]] std::string hmac() const { return _hmac; }
+
+    /// @return The HMAC key set for outgoing message signing (empty if not set).
     [[nodiscard]] std::string key() const { return _key; }
 
+    /// Sets the raw message bytes used as HMAC input during verification.
+    /// @param input Byte string of the message up to this attribute.
     void setInput(const std::string& input) { _input = input; }
+
+    /// Sets the raw HMAC value (used when copying a received attribute).
+    /// @param hmac 20-byte HMAC string.
     void setHmac(const std::string& hmac) { _hmac = hmac; }
+
+    /// Sets the HMAC key; triggers HMAC computation on write().
+    /// @param key MD5 digest of the long-term credential (username:realm:password).
     void setKey(const std::string& key) { _key = key; }
 
     void read(BitReader& reader) override;
@@ -331,28 +478,43 @@ private:
 };
 
 
-///
-/// Implements STUN/TURN attribute that reflects an error code.
+/// Implements the STUN ERROR-CODE attribute (RFC 5389 section 15.6).
+/// Encodes a 3-digit error code as a class (hundreds digit) and number
+/// (tens + units digits), plus an optional UTF-8 reason phrase.
 class STUN_API ErrorCode : public Attribute
 {
 public:
+    /// @param size Initial body length in bytes (must be >= MinSize).
     ErrorCode(uint16_t size = MinSize);
+
+    /// Copy constructor.
     ErrorCode(const ErrorCode& r);
     virtual ~ErrorCode();
 
+    /// @copydoc Attribute::clone
     std::unique_ptr<Attribute> clone() override;
 
     static constexpr uint16_t TypeID = 0x0009;
-    static constexpr uint16_t MinSize = 4;
+    static constexpr uint16_t MinSize = 4; ///< 4 bytes before the reason phrase.
 
+    /// Sets the error code, splitting it into class and number fields.
+    /// @param code 3-digit error code (e.g. 401, 438).
     void setErrorCode(int code);
-    // void setErrorClass(uint8_t eClass);
-    // void setErrorNumber(uint8_t eNumber);
+
+    /// Sets the UTF-8 reason phrase and updates the attribute size.
+    /// @param reason Human-readable error description.
     void setReason(const std::string& reason);
 
+    /// @return The full 3-digit error code (class * 100 + number).
     [[nodiscard]] int errorCode() const;
+
+    /// @return The hundreds digit of the error code (e.g. 4 for a 4xx error).
     [[nodiscard]] uint8_t errorClass() const { return _class; }
+
+    /// @return The tens+units portion of the error code (0-99).
     [[nodiscard]] uint8_t errorNumber() const { return _number; }
+
+    /// @return The reason phrase string (may be empty).
     [[nodiscard]] const std::string& reason() const { return _reason; }
 
     void read(BitReader& reader) override;

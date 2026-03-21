@@ -26,6 +26,7 @@ namespace icy {
 //
 
 
+/// Synchronized packet queue for event loop integration
 template <class T = IPacket>
 class SyncPacketQueue : public SyncQueue<T>
     , public PacketProcessor
@@ -34,12 +35,16 @@ public:
     using Queue = SyncQueue<T>;
     using Processor = PacketProcessor;
 
+    /// @param loop Event loop to synchronize dispatch onto.
+    /// @param maxSize Maximum number of queued packets before oldest are dropped.
     SyncPacketQueue(uv::Loop* loop, int maxSize = 1024)
         : Queue(loop, maxSize)
         , Processor(this->emitter)
     {
     }
 
+    /// Uses the default libuv event loop.
+    /// @param maxSize Maximum number of queued packets before oldest are dropped.
     SyncPacketQueue(int maxSize = 1024)
         : Queue(uv::defaultLoop(), maxSize)
         , Processor(this->emitter)
@@ -48,14 +53,25 @@ public:
 
     virtual ~SyncPacketQueue() {}
 
+    /// Clones the incoming packet and pushes it onto the queue for synchronized dispatch.
+    /// Drops the packet with a warning if the queue has been cancelled.
+    /// @param packet Incoming packet to enqueue.
     virtual void process(IPacket& packet) override;
+
+    /// Returns true if the packet can be cast to type `T`.
+    /// @param packet Packet to test.
+    /// @return True if `dynamic_cast<T*>(packet)` succeeds.
     virtual bool accepts(IPacket* packet) override;
 
     PacketSignal emitter;
 
 protected:
+    /// Emits the packet to downstream processors from the event loop thread.
+    /// @param packet Packet to dispatch.
     void dispatch(T& packet) override;
 
+    /// Cancels the queue on `Closed` or `Error` stream state transitions.
+    /// @param state New stream state.
     void onStreamStateChange(const PacketStreamState&) override;
 };
 
@@ -118,6 +134,7 @@ inline void SyncPacketQueue<T>::onStreamStateChange(const PacketStreamState& sta
 //
 
 
+/// Thread-based asynchronous packet dispatch queue
 template <class T = IPacket>
 class AsyncPacketQueue : public AsyncQueue<T>
     , public PacketProcessor
@@ -126,6 +143,7 @@ public:
     using Queue = AsyncQueue<T>;
     using Processor = PacketProcessor;
 
+    /// @param maxSize Maximum number of queued packets before oldest are dropped.
     AsyncPacketQueue(int maxSize = 1024)
         : Queue(maxSize)
         , Processor(this->emitter)
@@ -134,16 +152,28 @@ public:
 
     virtual ~AsyncPacketQueue() {}
 
+    /// Flushes remaining packets, cancels the queue, and joins the dispatch thread.
     virtual void close();
 
+    /// Clones the incoming packet and pushes it onto the async queue.
+    /// Drops the packet with a warning if the queue has been cancelled.
+    /// @param packet Incoming packet to enqueue.
     void process(IPacket& packet) override;
+
+    /// Returns true if the packet can be cast to type `T`.
+    /// @param packet Packet to test.
+    /// @return True if `dynamic_cast<T*>(packet)` succeeds.
     bool accepts(IPacket* packet) override;
 
     PacketSignal emitter;
 
 protected:
+    /// Emits the packet to downstream processors from the async thread.
+    /// @param packet Packet to dispatch.
     void dispatch(T& packet) override;
 
+    /// Closes the queue on `Error` or `Closed` stream state transitions.
+    /// @param state New stream state.
     void onStreamStateChange(const PacketStreamState&) override;
 };
 

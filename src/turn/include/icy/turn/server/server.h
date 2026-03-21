@@ -65,6 +65,7 @@ struct ServerOptions
 
     bool enableTCP;
     bool enableUDP;
+    bool enableLocalIPPermissions; ///< Auto-grant permissions for RFC 1918/loopback addresses
 
     ServerOptions()
     {
@@ -79,33 +80,37 @@ struct ServerOptions
         earlyMediaBufferSize = kServerEarlyMediaBufferSize;
         enableTCP = true;
         enableUDP = true;
+        enableLocalIPPermissions = true;
     }
 };
 
 
-/// The ServerObserver receives callbacks for and is responsible
-/// for managing allocation and bandwidth quotas, authentication
-/// methods and authentication.
+/// Observer interface that the application must implement to participate in
+/// server-side allocation management and authentication.
+///
+/// The observer is responsible for enforcing per-user allocation quotas and
+/// bandwidth limits. Implementations may perform authentication synchronously
+/// (returning Authorized/NotAuthorized immediately) or asynchronously
+/// (returning Authenticating and calling handleRequest() again later).
 struct ServerObserver
 {
+    /// Called after a new allocation is successfully created.
+    /// @param server The server that owns the allocation.
+    /// @param alloc  The newly created allocation (lifetime managed by the server).
     virtual void onServerAllocationCreated(Server* server, IAllocation* alloc) = 0;
+
+    /// Called just before an allocation is destroyed (expired, deleted, or server stopped).
+    /// @param server The server that owned the allocation.
+    /// @param alloc  The allocation being removed; do not delete this pointer.
     virtual void onServerAllocationRemoved(Server* server, IAllocation* alloc) = 0;
 
-    /// The observer class can implement authentication
-    /// using the long-term credential mechanism of [RFC5389].
-    /// The class design is such that authentication can be preformed
-    /// asynchronously against a remote database, or locally.
-    /// The default implementation returns true to all requests.
-    ///
-    /// To mitigate either intentional or unintentional denial-of-service
-    /// attacks against the server by clients with valid usernames and
-    /// passwords, it is RECOMMENDED that the server impose limits on both
-    /// the number of allocations active at one time for a given username and
-    /// on the amount of bandwidth those allocations can use.  The server
-    /// should reject new allocations that would exceed the limit on the
-    /// allowed number of allocations active at one time with a 486
-    /// (Allocation Quota Exceeded) (see Section 6.2), and should discard
-    /// application data traffic that exceeds the bandwidth quota.
+    /// Authenticates an incoming STUN request using the long-term credential mechanism
+    /// (RFC 5389 section 10.2). Return Authorized to proceed, NotAuthorized to reject
+    /// with a 401, QuotaReached to reject with a 486, or Authenticating to defer until
+    /// the result is available asynchronously.
+    /// @param server  The server receiving the request.
+    /// @param request The STUN request to authenticate.
+    /// @return An AuthenticationState indicating how to proceed.
     virtual AuthenticationState authenticateRequest(Server* server, Request& request) = 0;
 };
 
@@ -113,46 +118,126 @@ struct ServerObserver
 using ServerAllocationMap = std::map<FiveTuple, std::unique_ptr<ServerAllocation>>;
 
 
-/// TURN server rfc5766 implementation
+/// TURN server RFC 5766 / RFC 6062 implementation.
+/// Listens on UDP and/or TCP, authenticates requests via ServerObserver,
+/// and manages ServerAllocation objects for each 5-tuple.
 class TURN_API Server
 {
 public:
+    /// @param observer Observer used for authentication and allocation lifecycle events.
+    /// @param options  Server configuration; defaults to 0.0.0.0:3478 with TCP and UDP enabled.
     Server(ServerObserver& observer, const ServerOptions& options = ServerOptions());
     virtual ~Server();
 
+    /// Binds and listens on the configured address, then starts the maintenance timer.
     virtual void start();
+
+    /// Stops the timer, destroys all allocations, and closes server sockets.
     virtual void stop();
 
+    /// Routes an authenticated request to the appropriate handler based on state.
+    /// Pending (Authenticating) requests are held until the observer calls back.
+    /// @param request Incoming STUN request.
+    /// @param state   Result of the observer's authenticateRequest() call.
     void handleRequest(Request& request, AuthenticationState state);
+
+    /// Dispatches an already-authorized request to the specific method handler.
+    /// @param request Authorized STUN request.
     void handleAuthorizedRequest(Request& request);
+
+    /// Handles a Binding request; responds with XOR-MAPPED-ADDRESS.
+    /// @param request Incoming Binding request.
     void handleBindingRequest(Request& request);
+
+    /// Handles an Allocate request; creates a UDP or TCP ServerAllocation and
+    /// sends a success response with XOR-RELAYED-ADDRESS and LIFETIME.
+    /// @param request Incoming Allocate request.
     void handleAllocateRequest(Request& request);
+
+    /// Handles a ConnectionBind request by locating the TCPAllocation that owns
+    /// the given CONNECTION-ID and delegating to it.
+    /// @param request Incoming ConnectionBind request.
     void handleConnectionBindRequest(Request& request);
 
+    /// Sends a STUN response, signing it with MessageIntegrity if the request had a hash.
+    /// Routes via UDP or TCP depending on request.transport.
+    /// @param request  The original request (provides transport and remote address).
+    /// @param response The response message to send.
     void respond(Request& request, stun::Message& response);
+
+    /// Constructs and sends an error response with SOFTWARE, REALM, NONCE, and ERROR-CODE.
+    /// @param request    The original request.
+    /// @param errorCode  STUN error code (e.g. 400, 401, 437).
+    /// @param errorDesc  Human-readable error description string.
     void respondError(Request& request, int errorCode, const char* errorDesc);
 
     /// Returns a snapshot copy of the allocation map for safe iteration.
-    /// Callers receive raw pointers that are valid only while the
-    /// corresponding unique_ptr in _allocations is alive.
+    /// Returned raw pointers are valid only while the server holds the allocations.
+    /// @return Map from FiveTuple to raw ServerAllocation pointers.
     std::map<FiveTuple, ServerAllocation*> allocations() const;
+
+    /// Transfers ownership of @p alloc to the server and notifies the observer.
+    /// @param alloc Newly constructed allocation to register.
     void addAllocation(std::unique_ptr<ServerAllocation> alloc);
+
+    /// Removes @p alloc from the map and notifies the observer.
+    /// Called automatically from the ServerAllocation destructor.
+    /// @param alloc Allocation being destroyed.
     void removeAllocation(ServerAllocation* alloc);
+
+    /// Looks up an allocation by its 5-tuple.
+    /// @param tuple The 5-tuple to search for.
+    /// @return Pointer to the matching allocation, or nullptr if not found.
     [[nodiscard]] ServerAllocation* getAllocation(const FiveTuple& tuple);
+
+    /// Finds the TCPAllocation that owns a TCPConnectionPair with the given connection ID.
+    /// @param connectionID TURN CONNECTION-ID to search for.
+    /// @return Pointer to the owning TCPAllocation, or nullptr if not found.
     [[nodiscard]] TCPAllocation* getTCPAllocation(const uint32_t& connectionID);
+
+    /// Returns the accepted TCP socket whose peer address matches @p remoteAddr.
+    /// @param remoteAddr Peer address to search for.
+    /// @return Shared pointer to the socket, or empty if not found.
     [[nodiscard]] net::TCPSocket::Ptr getTCPSocket(const net::Address& remoteAddr);
+
+    /// Removes a TCP control socket from the server's socket list and unregisters callbacks.
+    /// Called when the socket is handed off to a TCPAllocation (ConnectionBind).
+    /// @param socket The socket to release.
     void releaseTCPSocket(const net::Socket& socket);
 
+    /// @return Reference to the observer provided at construction.
     ServerObserver& observer();
+
+    /// @return Reference to the mutable options struct.
     ServerOptions& options();
+
+    /// @return Reference to the UDP server socket.
     net::UDPSocket& udpSocket();
+
+    /// @return Reference to the TCP server listening socket.
     net::TCPSocket& tcpSocket();
+
+    /// @return Reference to the maintenance timer.
     Timer& timer();
 
+    /// Accept callback for the TCP listening socket; registers new connections
+    /// for STUN message processing.
+    /// @param sock Newly accepted TCP socket.
     void onTCPAcceptConnection(const net::TCPSocket::Ptr& sock);
+
+    /// Close callback for accepted TCP sockets; removes the socket from the list.
+    /// @param socket The closed socket.
     bool onTCPSocketClosed(net::Socket& socket);
+
+    /// Receive callback for both UDP and TCP sockets; parses STUN messages and
+    /// calls handleRequest() for each one.
+    /// @param socket      The receiving socket.
+    /// @param buffer      Received data buffer.
+    /// @param peerAddress Source address of the data.
     bool onSocketRecv(net::Socket& socket, const MutableBuffer& buffer,
                       const net::Address& peerAddress);
+
+    /// Periodic maintenance callback; expires and removes stale allocations.
     void onTimer();
 
 private:

@@ -26,6 +26,15 @@ namespace net {
 namespace dns {
 
 
+/// Resolves a hostname to a network address asynchronously.
+///
+/// The callback is invoked on the event loop thread when resolution completes.
+/// On failure, the callback receives a non-zero status and an empty Address.
+/// @param host    Hostname or IP address string to resolve.
+/// @param port    Port number to associate with the resolved address.
+/// @param callback Invoked with (status, resolved Address); status is 0 on success.
+/// @param loop    Event loop to use; defaults to the default loop.
+/// @return A request handle whose lifetime controls the in-flight DNS query.
 inline auto resolve(const std::string& host, int port,
                     std::function<void(int, const net::Address&)> callback,
                     uv::Loop* loop = uv::defaultLoop())

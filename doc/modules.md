@@ -1,29 +1,28 @@
 # Modules
 
-Icey is organised into 14 modules. Each module builds as a separate library and declares its dependencies via CMake.
+Icey is organised into 14 modules. Each module builds as a separate library and declares its dependencies via CMake. Enable only what you need; dependencies resolve automatically.
 
 ## Dependency Diagram
 
-```
+```text
                         symple
                        /  |   \
-                socketio  |    \
-               / |  \  \  |    \
-              /  |   \  json    \
-             /   |    \  |       \
-            /    |     http     sched
-           /     |    / |  \
-          /      |   /  |   \
-         /       net    |    \
-         \      / \     |    /
-          \    /   \    |   /
-           crypto   \   |  /
-              \      \  | /
-               \      base
-                \      |
-                 \    libuv (vendored)
-                  \
-            openssl (system)
+                      /   |    \
+                     /   json    \
+                    /     |       \
+                   /     http     sched
+                  /     / |  \
+                 /     /  |   \
+                /    net   |    \
+                \   / \    |    /
+                 \ /   \   |   /
+                crypto  \  |  /
+                  \      \ | /
+                   \      base
+                    \      |
+                     \    libuv (vendored)
+                      \
+                openssl (system)
 
             archo     pluga     av
               |         |       |
@@ -37,6 +36,13 @@ Icey is organised into 14 modules. Each module builds as a separate library and 
            |
           base
 
+          webrtc
+         / | \ \ \
+       base net crypto av json
+        |                |
+       libuv            base
+      (+libdatachannel, OpenSSL 3.x, FFmpeg)
+
           pacm
          / | \ \
        net json http archo
@@ -48,18 +54,18 @@ Icey is organised into 14 modules. Each module builds as a separate library and 
 ## Module Overview
 
 | Module | Description | Dependencies |
-|--------|-------------|--------------|
-| **base** | Core platform abstractions, event loop (libuv), signals, streams, logging, filesystem, process, timers, rate limiter, stream manager, timed manager | libuv (vendored) |
-| **crypto** | Cryptographic operations - hashing, HMAC, RSA, X509 certificates | base, OpenSSL |
-| **net** | TCP/SSL/UDP networking, socket adapters, DNS resolution | base, crypto |
-| **http** | HTTP client/server, WebSocket support, form handling, cookies, URL parsing | base, net, crypto |
-| **json** | JSON serialization using nlohmann/json | base |
-| **av** | Audio/video encoding, decoding, device capture, media formats | base, FFmpeg (optional) |
-| **socketio** | Socket.IO protocol implementation | base, crypto, net, http, json |
-| **symple** | Realtime messaging protocol for presence and messaging | base, crypto, net, http, socketio, json |
-| **stun** | STUN protocol (RFC 5389) for NAT traversal | base, net, crypto |
-| **turn** | TURN relay server (RFC 5766) for media relaying | base, net, stun, crypto |
-| **pacm** | Package manager for distributing and installing plugins | base, net, json, http, archo, crypto |
-| **archo** | Archive and ZIP handling | base |
-| **pluga** | Plugin system for shared library loading | base |
-| **sched** | Task scheduler for deferred and periodic jobs | base, json |
+| ------ | ----------- | ------------ |
+| **[base](modules/base.md)** | Event loop (libuv), signals, PacketStream pipeline, logging, filesystem, timers | libuv (vendored) |
+| **[crypto](modules/crypto.md)** | Hashing, HMAC, symmetric ciphers, X.509 certificates, RSA | base, OpenSSL |
+| **[net](modules/net.md)** | TCP/SSL/UDP sockets, chainable adapters, async DNS | base, crypto |
+| **[http](modules/http.md)** | HTTP client/server, WebSocket, forms, cookies, streaming | base, net, crypto |
+| **[json](modules/json.md)** | JSON serialization (nlohmann/json), configuration | base |
+| **[av](modules/av.md)** | FFmpeg capture, encode, decode, device management | base, FFmpeg (optional) |
+| **[webrtc](modules/webrtc.md)** | WebRTC media transport via libdatachannel | base, net, crypto, av, json, libdatachannel, OpenSSL 3.x, FFmpeg 5+ |
+| **[symple](modules/symple.md)** | Real-time messaging, presence, rooms, WebRTC signalling | base, crypto, net, http, json |
+| **[stun](modules/stun.md)** | RFC 5389 STUN for NAT traversal | base, net, crypto |
+| **[turn](modules/turn.md)** | RFC 5766 TURN relay server and client | base, net, stun, crypto |
+| **[archo](modules/archo.md)** | ZIP archive extraction | base |
+| **[pacm](modules/pacm.md)** | Package manager for plugin distribution | base, net, json, http, archo, crypto |
+| **[pluga](modules/pluga.md)** | Plugin system for shared library loading | base |
+| **[sched](modules/sched.md)** | Task scheduler for deferred and periodic jobs | base, json |

@@ -24,20 +24,28 @@ namespace icy {
 namespace av {
 
 
+/// Decodes compressed audio packets into raw sample frames
 struct AudioDecoder : public AudioContext
 {
+    /// Construct a decoder for the given stream.
+    /// The codec parameters are read from the stream's codecpar.
+    /// @param stream  The AVStream to decode; must remain valid for the lifetime of this decoder.
     AudioDecoder(AVStream* stream);
     ~AudioDecoder() noexcept override;
 
+    /// Initialise the AVCodecContext from the stream's codec parameters.
     virtual void create() override;
+
+    /// Close and free the AVCodecContext and associated resources.
     virtual void close() override;
 
-    /// Decodes a the given input packet.
-    /// Returns true an output packet was created, false otherwise.
+    /// Decode the given compressed audio packet and emit the decoded samples.
+    /// @param ipacket  The compressed audio packet to decode.
+    /// @return True if one or more output frames were decoded and emitted, false otherwise.
     [[nodiscard]] bool decode(AVPacket& ipacket) override;
 
-    /// Flushes buffered frames.
-    /// This method should be called once after decoding.
+    /// Flush any frames buffered inside the decoder.
+    /// Call this after the last packet to retrieve all remaining decoded output.
     void flush() override;
 };
 

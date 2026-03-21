@@ -5,7 +5,9 @@
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
-/// @addtogroup crypto
+/// @defgroup crypto Crypto module
+///
+/// Cryptographic operations; hashing, HMAC, RSA, X509 certificates.
 /// @{
 
 
@@ -65,53 +67,85 @@ using ByteVec = std::vector<unsigned char>;
 
 namespace internal {
 
-/// Check return values from OpenSSL and throw an exception if it failed.
+/// Checks an OpenSSL return value and throws on failure.
+///
+/// @param ret   Return value from an OpenSSL API call; zero indicates failure.
+/// @param error Optional error message to throw instead of the OpenSSL error
+///              string. If null, the last OpenSSL error string is used.
+/// @throws std::runtime_error on failure.
 void api(int ret, const char* error = nullptr);
 
-/// Throws the last OpenSSL error.
+/// Throws a std::runtime_error containing all pending OpenSSL error strings.
+///
+/// Drains the OpenSSL error queue, concatenates the messages with "; ", and
+/// throws the result.
+/// @throws std::runtime_error always.
 void throwError();
 
-/// Allows template functions to accept a wide range of buffer types.
-/// See constructor definitions below for all compatible types.
-/// The class uses const_cast for maximum flexibility, so use with care.
-/// Also ensure that std::string is contiguous on your platform
-/// before using the std::string constructors (C++11 guarantees it).
+/// Type-erasing buffer view used to accept a wide range of buffer types in
+/// template cipher and hash methods.
+///
+/// Uses const_cast internally for maximum flexibility; callers must ensure
+/// the underlying data is not modified through a const T pointer. C++11
+/// guarantees std::string contiguity, so string-based constructors are safe.
+///
+/// @tparam T Pointer type of the underlying buffer (e.g. unsigned char*).
 template <typename T>
 struct Raw
 {
-    T ptr;
-    size_t len;
+    T ptr;       ///< Pointer to the start of the buffer.
+    size_t len;  ///< Length of the buffer in bytes.
 
+    /// Constructs from an existing pointer and explicit length.
+    ///
+    /// @param ptr Pointer to the buffer.
+    /// @param len Number of bytes in the buffer.
     Raw(T ptr, size_t len)
         : ptr(ptr)
         , len(len)
     {
     }
 
+    /// Constructs from a const char pointer and explicit length.
+    ///
+    /// @param ptr Pointer to the buffer.
+    /// @param len Number of bytes in the buffer.
     Raw(const char* ptr, size_t len)
         : ptr(reinterpret_cast<T>(const_cast<char*>(ptr)))
         , len(len)
     {
     }
 
+    /// Constructs from a mutable std::string, pointing into its internal buffer.
+    ///
+    /// @param str Source string; must outlive this Raw instance.
     Raw(std::string& str)
     {
         ptr = reinterpret_cast<T>(&str[0]);
         len = str.length();
     }
 
+    /// Constructs from a const std::string, pointing into its internal buffer.
+    ///
+    /// @param str Source string; must outlive this Raw instance.
     Raw(const std::string& str)
     {
         ptr = reinterpret_cast<T>(const_cast<char*>(&str[0]));
         len = str.length();
     }
 
+    /// Constructs from a const std::vector<char>.
+    ///
+    /// @param vec Source vector; must outlive this Raw instance.
     Raw(const std::vector<char>& vec)
     {
         ptr = reinterpret_cast<T>(const_cast<char*>(&vec[0]));
         len = vec.size();
     }
 
+    /// Constructs from a const ByteVec (std::vector<unsigned char>).
+    ///
+    /// @param vec Source vector; must outlive this Raw instance.
     Raw(const ByteVec& vec)
     {
         ptr = reinterpret_cast<T>(const_cast<unsigned char*>(&vec[0]));

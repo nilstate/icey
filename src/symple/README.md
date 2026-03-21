@@ -130,3 +130,7 @@ cmake --build build --target sympletests
 ## License
 
 LGPL-2.1+
+
+## Documentation
+
+**[Full documentation →](../../doc/symple.md)**

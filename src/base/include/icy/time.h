@@ -43,36 +43,52 @@ static const int64_t kNumNanosecsPerMicrosec = kNumNanosecsPerSec / kNumMicrosec
 ///   2005-01-01T11:00:00Z
 static const char* ISO8601Format = "%Y-%m-%dT%H:%M:%SZ";
 
-/// Return the number of UTC milliseconds since epoch.
+/// Returns the current wall-clock time as a UTC time_t (seconds since epoch).
+/// @return Current UTC time in seconds since the Unix epoch.
 Base_API std::time_t now();
 
-/// Return the current process time in decimal seconds.
+/// Returns the elapsed process time in decimal seconds using a monotonic clock.
+/// @return Process time in seconds.
 Base_API double clockSecs();
 
-/// Cross-platform time formatting.
+/// Formats a broken-down time value using the given strftime format string.
+/// @param dt  Broken-down time to format.
+/// @param fmt strftime format string (default: ISO8601Format).
+/// @return Formatted time string.
 Base_API std::string print(const std::tm& dt, const char* fmt = ISO8601Format);
 
-/// Print the current local time using the given format.
+/// Formats the current local time using the given strftime format string.
+/// @param fmt strftime format string (default: ISO8601Format).
+/// @return Formatted local time string.
 Base_API std::string printLocal(const char* fmt = ISO8601Format);
 
-/// Print the current UTC time using the given format.
+/// Formats the current UTC time using the given strftime format string.
+/// @param fmt strftime format string (default: ISO8601Format).
+/// @return Formatted UTC time string.
 Base_API std::string printUTC(const char* fmt = ISO8601Format);
 
-/// Convert the given time value to local time.
-/// Uses thread-safe native functions.
+/// Converts a time_t value to a broken-down local time structure.
+/// Uses thread-safe native functions (localtime_r / localtime_s).
+/// @param time UTC time value to convert.
+/// @return Broken-down local time.
 Base_API std::tm toLocal(const std::time_t& time);
 
-/// Convert the given time value to UTC time.
-/// Uses thread-safe native functions.
+/// Converts a time_t value to a broken-down UTC time structure.
+/// Uses thread-safe native functions (gmtime_r / gmtime_s).
+/// @param time UTC time value to convert.
+/// @return Broken-down UTC time.
 Base_API std::tm toUTC(const std::time_t& time);
 
-/// Return a local ISO8601 formatted date time string.
+/// Returns the current local time as an ISO8601 formatted string.
+/// @return ISO8601 local time string.
 Base_API std::string getLocal();
 
-/// Return a UTC ISO8601 formatted date time string.
+/// Returns the current UTC time as an ISO8601 formatted string.
+/// @return ISO8601 UTC time string.
 Base_API std::string getUTC();
 
-/// Return the current high-resolution real time in nanoseconds.
+/// Returns the current high-resolution monotonic time in nanoseconds.
+/// @return Current time in nanoseconds (suitable for measuring intervals).
 Base_API uint64_t hrtime();
 
 

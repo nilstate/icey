@@ -35,6 +35,7 @@ namespace av {
 
 // ---------------------------------------------------------------------
 //
+/// Converts audio samples between different formats, sample rates, and channel layouts
 struct AudioResampler
 {
     AudioResampler(const AudioCodec& iparams = AudioCodec(),
@@ -46,7 +47,12 @@ struct AudioResampler
     AudioResampler(AudioResampler&&) = delete;
     AudioResampler& operator=(AudioResampler&&) = delete;
 
+    /// Initialise the libswresample context using iparams and oparams.
+    /// Throws std::runtime_error if the context is already open or if
+    /// required parameters (channels, sample rate, format) are missing.
     void open();
+
+    /// Free the libswresample context and release the output sample buffer.
     void close();
 
     /// Convert the input samples to the output format.

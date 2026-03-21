@@ -40,14 +40,23 @@ class Base_API Synchronizer : public Runner
 public:
     // using uv::Handle<uv_async_t>;
 
-    /// Create the synchronization context the given event loop.
+    /// Creates a synchronizer attached to the given event loop without a callback.
+    /// Call `start()` separately to register the callback before using `post()`.
+    /// @param loop Event loop to attach the async handle to.
     Synchronizer(uv::Loop* loop);
 
-    /// Create the synchronization context the given event loop and method.
-    /// The target method will be called from the event loop context.
+    /// Creates and immediately starts a synchronizer with a single callback function.
+    /// The target is invoked from the event loop context each time `post()` is called.
+    /// @param target Callback to invoke on each event loop wakeup.
+    /// @param loop Event loop to attach the async handle to.
     Synchronizer(std::function<void()> target, uv::Loop* loop = uv::defaultLoop());
 
-    /// Create the synchronization context the given event loop and method.
+    /// Creates and immediately starts a synchronizer with a variadic callback.
+    /// @tparam Function Callable type.
+    /// @tparam Args Argument types forwarded to the function.
+    /// @param func Callable to invoke on each event loop wakeup.
+    /// @param args Arguments forwarded to `func`.
+    /// @param loop Event loop to attach the async handle to.
     template <typename Function, typename... Args>
     explicit Synchronizer(Function&& func, Args&&... args, uv::Loop* loop = uv::defaultLoop())
         : _handle(loop)
@@ -65,7 +74,13 @@ public:
     /// This is not atomic, so do not expect a callback for every request.
     void post();
 
-    /// Start the synchronizer with the given callback.
+    /// Starts the synchronizer with a variadic callback function.
+    /// The callback is invoked from the event loop each time `post()` is called.
+    /// Throws `std::logic_error` if already running or if the handle is null.
+    /// @tparam Function Callable type.
+    /// @tparam Args Argument types forwarded to the function.
+    /// @param func Callable to invoke on each event loop wakeup.
+    /// @param args Arguments forwarded to `func`.
     template <typename Function, typename... Args>
     void start(Function&& func, Args&&... args)
     {
@@ -101,14 +116,21 @@ public:
             throw std::logic_error("Synchronizer handle failed to become active");
     }
 
-    /// Start the synchronizer with the given callback function.
+    /// Starts the synchronizer with a `std::function` callback.
+    /// Overrides `Runner::start`; delegates to the variadic `start` template.
+    /// @param func Callback invoked from the event loop on each `post()` call.
     void start(std::function<void()> func) override;
 
+    /// Cancels the synchronizer, signalling the associated callback to stop.
+    /// A subsequent `post()` is needed to wake up the event loop so it can process the cancellation.
     virtual void cancel();
 
+    /// Cancels the synchronizer and closes the underlying `uv_async_t` handle.
+    /// Safe to call multiple times; no-op if already closed.
     virtual void close();
-    // virtual bool closed();
 
+    /// Returns a reference to the underlying libuv async handle.
+    /// @return Reference to the `uv::Handle<uv_async_t>`.
     uv::Handle<uv_async_t>& handle();
 
 protected:

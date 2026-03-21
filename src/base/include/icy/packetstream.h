@@ -41,13 +41,34 @@ struct PacketStreamState;
 class Base_API PacketStreamAdapter
 {
 public:
+    /// Construct the adapter, binding it to the given packet signal.
+    /// @param emitter The outgoing packet signal owned by the subclass.
     PacketStreamAdapter(PacketSignal& emitter);
     virtual ~PacketStreamAdapter() {};
 
+    /// Emit a mutable raw buffer as a packet.
+    /// @param data  Pointer to the buffer (not copied; caller retains ownership).
+    /// @param len   Number of bytes in the buffer.
+    /// @param flags Optional packet flags (see PacketFlags).
     virtual void emit(char* data, size_t len, unsigned flags = 0);
+
+    /// Emit a read-only raw buffer as a packet (data is copied internally).
+    /// @param data  Pointer to the buffer.
+    /// @param len   Number of bytes in the buffer.
+    /// @param flags Optional packet flags (see PacketFlags).
     virtual void emit(const char* data, size_t len, unsigned flags = 0);
+
+    /// Emit a string as a packet (data is copied internally).
+    /// @param str   String payload.
+    /// @param flags Optional packet flags (see PacketFlags).
     virtual void emit(const std::string& str, unsigned flags = 0);
+
+    /// Emit a flag-only packet carrying no payload data.
+    /// @param flags Packet flags to embed in the emitted FlagPacket.
     virtual void emit(unsigned flags = 0);
+
+    /// Emit an existing packet directly onto the outgoing signal.
+    /// @param packet The packet to forward; must remain valid for the duration of the call.
     virtual void emit(IPacket& packet);
 
     /// Returns a reference to the outgoing packet signal.
@@ -145,6 +166,10 @@ struct PacketAdapterReference
     {
     }
 
+    /// Comparator for sorting references by ascending order value.
+    /// @param l Left-hand reference.
+    /// @param r Right-hand reference.
+    /// @return true if @p l should appear before @p r in the processor chain.
     static bool compareOrder(const PacketAdapterReference::Ptr& l,
                              const PacketAdapterReference::Ptr& r)
     {
@@ -174,6 +199,7 @@ constexpr unsigned operator|(PacketFlags lhs, PacketFlags rhs)
 //
 
 
+/// State machine states for PacketStream
 struct PacketStreamState : public State
 {
     enum class Type : unsigned int
@@ -257,7 +283,11 @@ class Base_API PacketStream : public Stateful<PacketStreamState>
 public:
     using Ptr = std::shared_ptr<PacketStream>;
 
+    /// Construct a named packet stream.
+    /// @param name Optional human-readable name used in log output.
     PacketStream(const std::string& name = "");
+
+    /// Destroy the stream; calls close() then reset() to release all adapters.
     virtual ~PacketStream();
 
     PacketStream(const PacketStream&) = delete;
@@ -300,29 +330,41 @@ public:
     /// Returns true is the stream is currently locked.
     virtual bool locked() const;
 
-    /// Writes data to the stream (nocopy).
+    /// Write a mutable buffer into the stream without copying.
+    /// The caller must keep the buffer alive until processing completes.
+    /// @param data Pointer to the raw data buffer.
+    /// @param len  Number of bytes to process.
     virtual void write(char* data, size_t len);
 
-    /// Writes data to the stream (copied).
+    /// Write a read-only buffer into the stream; data is copied internally.
+    /// @param data Pointer to the raw data buffer.
+    /// @param len  Number of bytes to process.
     virtual void write(const char* data, size_t len);
 
-    /// Writes an incoming packet onto the stream.
+    /// Write a packet directly into the processing chain.
+    /// @param packet Packet to process; moved into the stream.
     virtual void write(IPacket&& packet);
 
-    /// Attaches a source packet emitter to the stream.
-    /// The source packet adapter can be another PacketStream::emitter.
+    /// Attach a bare packet signal as a stream source.
+    /// The signal is wrapped in an unowned PacketStreamAdapter internally.
+    /// Useful when the source is another PacketStream::emitter.
+    /// @param source The packet signal to attach; must outlive the stream.
     virtual void attachSource(PacketSignal& source);
 
-    /// Attaches a source packet emitter to the stream.
-    /// If owned is true, the stream takes ownership and will delete the pointer.
-    /// If syncState is true and the source is a basic::Startable, then
-    /// the source's start()/stop() methods will be synchronized when
-    /// calling startSources()/stopSources().
+    /// Attach a PacketStreamAdapter as a source.
+    /// @param source    The adapter to attach; must not be null.
+    /// @param owned     If true the stream takes ownership and deletes the pointer on teardown.
+    /// @param syncState If true and @p source implements basic::Startable, its
+    ///                  start()/stop() will be called by startSources()/stopSources().
     virtual void attachSource(PacketStreamAdapter* source, bool owned = true, bool syncState = false);
 
-    /// Attaches a source packet emitter to the stream.
-    /// This method enables compatibility with shared_ptr managed adapter
-    /// instances.
+    /// Attach a shared_ptr-managed source adapter to the stream.
+    /// The stream shares ownership; the adapter is kept alive at least until teardown.
+    /// Throws std::runtime_error if @p ptr does not derive from PacketStreamAdapter.
+    /// @tparam C        Adapter type; must derive from PacketStreamAdapter.
+    /// @param ptr       Shared pointer to the adapter instance.
+    /// @param syncState If true and @p ptr implements basic::Startable, its
+    ///                  start()/stop() will be called by startSources()/stopSources().
     template <class C>
     void attachSource(std::shared_ptr<C> ptr, bool syncState = false)
     {
@@ -335,20 +377,34 @@ public:
             std::move(ptr), 0, syncState));
     }
 
-    /// Detaches the given source packet signal from the stream.
+    /// Detach a source by its packet signal.
+    /// Disconnects the signal from the stream's process slot and removes the adapter entry.
+    /// @param source The packet signal previously attached via attachSource(PacketSignal&).
+    /// @return true if the source was found and removed, false otherwise.
     virtual bool detachSource(PacketSignal& source);
 
-    /// Detaches the given source packet adapter from the stream.
+    /// Detach a source by its adapter pointer.
+    /// Disconnects the adapter's emitter from the stream's process slot and removes the entry.
+    /// @param source Pointer to the adapter previously attached.
+    /// @return true if the source was found and removed, false otherwise.
     virtual bool detachSource(PacketStreamAdapter* source);
 
-    /// Attaches a packet processor to the stream.
-    /// Order determines the position of the processor in the stream queue.
-    /// If owned is true, the stream takes ownership and will delete the pointer.
+    /// Attach a packet processor to the stream.
+    /// Processors are executed in ascending order of their @p order value.
+    /// Pass order = -1 to append at the end of the current processor list.
+    /// Valid range is -1 to 101; values outside this range throw std::invalid_argument.
+    /// @param proc  The processor to attach; must not be null.
+    /// @param order Position in the processing chain (lower runs first).
+    /// @param owned If true the stream takes ownership and deletes the pointer on teardown.
     virtual void attach(PacketProcessor* proc, int order = 0, bool owned = true);
 
-    /// Attaches a packet processor to the stream.
-    /// This method enables compatibility with shared_ptr managed adapter
-    /// instances.
+    /// Attach a shared_ptr-managed processor to the stream.
+    /// The stream shares ownership; the processor is kept alive at least until teardown.
+    /// Throws std::runtime_error if @p ptr does not derive from PacketProcessor.
+    /// @tparam C        Processor type; must derive from PacketProcessor.
+    /// @param ptr       Shared pointer to the processor instance.
+    /// @param order     Position in the processing chain (lower runs first).
+    /// @param syncState Reserved for future use; currently unused.
     template <class C>
     void attach(std::shared_ptr<C> ptr, int order = 0, bool syncState = false)
     {
@@ -362,32 +418,43 @@ public:
             std::move(ptr), order, syncState));
     }
 
-    /// Detaches a packet processor from the stream.
+    /// Detach a packet processor from the stream.
+    /// The processor's delegate connections are removed; ownership is released if held.
+    /// @param proc Pointer to the processor to remove.
+    /// @return true if the processor was found and removed, false otherwise.
     virtual bool detach(PacketProcessor* proc);
 
-    /// Synchronize stream output packets with the given event loop.
+    /// Synchronize stream output packets with a libuv event loop.
+    /// Internally attaches a SyncPacketQueue at order 101 so that all packets
+    /// emitted by the processor chain are dispatched from the loop thread rather
+    /// than the source thread. Must be called before start().
+    /// @param loop The event loop to synchronize output onto; must not be null.
     virtual void synchronizeOutput(uv::Loop* loop);
 
-    /// Set the stream to auto start if inactive (default: false).
-    ///
-    /// With this flag set the stream will automatically transition to
-    /// Active state if the in either the None or Locaked state.
+    /// Enable or disable auto-start behaviour (default: false).
+    /// When enabled, the stream automatically transitions to Active state
+    /// upon receiving the first packet while in the None or Locked state.
+    /// Must be called before start().
+    /// @param flag true to enable auto-start, false to disable.
     virtual void autoStart(bool flag);
 
-    /// Set the stream to be closed on error (default: true).
-    ///
-    /// With this flag set the stream will be automatically transitioned
-    /// to Closed state from Error state.
+    /// Enable or disable close-on-error behaviour (default: true).
+    /// When enabled, an unhandled processor exception causes the stream to
+    /// transition from Error to Closed state automatically.
+    /// @param flag true to close the stream on error, false to remain in Error state.
     virtual void closeOnError(bool flag);
 
     /// Accessors for the unmanaged client data pointer.
     // virtual void setClientData(void* data);
     // virtual void* clientData() const;
 
-    /// Returns the stream error (if any).
+    /// Return the last captured exception, if the stream is in Error state.
+    /// The pointer is null when no error has occurred.
+    /// @return A reference to the stored exception_ptr; empty if no error.
     const std::exception_ptr& error();
 
-    /// Returns the name of the packet stream.
+    /// Return the name assigned to this stream at construction.
+    /// @return The stream name; empty string if none was provided.
     std::string name() const;
 
     /// Signals to delegates on outgoing packets.
@@ -413,10 +480,24 @@ public:
     /// Returns a list of all stream processors.
     PacketAdapterVec processors() const;
 
+    /// Return the number of source adapters currently registered.
+    /// @return Source count; thread-safe.
     int numSources() const;
+
+    /// Return the number of processor adapters currently registered.
+    /// @return Processor count; thread-safe.
     int numProcessors() const;
+
+    /// Return the total number of adapters (sources + processors).
+    /// @return Combined adapter count; thread-safe.
     int numAdapters() const;
 
+    /// Return the nth source of type AdapterT, or nullptr if not found.
+    /// Sources are searched in their registered order; only adapters that
+    /// dynamic_cast successfully to AdapterT are counted.
+    /// @tparam AdapterT Target type; must derive from PacketStreamAdapter.
+    /// @param index     Zero-based index among matching sources (default 0).
+    /// @return Pointer to the matching adapter, or nullptr.
     template <class AdapterT>
     AdapterT* getSource(int index = 0)
     {
@@ -434,6 +515,12 @@ public:
         return nullptr;
     }
 
+    /// Return the nth processor of type AdapterT, or nullptr if not found.
+    /// Processors are searched in their registered order; only adapters that
+    /// dynamic_cast successfully to AdapterT are counted.
+    /// @tparam AdapterT Target type; must derive from PacketProcessor.
+    /// @param index     Zero-based index among matching processors (default 0).
+    /// @return Pointer to the matching processor, or nullptr.
     template <class AdapterT>
     AdapterT* getProcessor(int index = 0)
     {
@@ -451,7 +538,10 @@ public:
         return nullptr;
     }
 
-    /// Returns the PacketProcessor at the given position.
+    /// Return the processor registered at a specific order value.
+    /// Unlike the template overload, this searches by order rather than by type and index.
+    /// @param order The order value to match (default 0).
+    /// @return Pointer to the matching processor, or nullptr if none registered at that order.
     PacketProcessor* getProcessor(int order = 0)
     {
         std::lock_guard<std::mutex> guard(_mutex);

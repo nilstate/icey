@@ -33,12 +33,19 @@ namespace icy {
 namespace av {
 
 
+/// Encodes raw audio samples into a compressed format
 struct AudioEncoder : public AudioContext
 {
+    /// Construct an encoder, optionally tied to an existing muxer context.
+    /// @param format  The AVFormatContext that will receive encoded packets, or nullptr for standalone use.
     AudioEncoder(AVFormatContext* format = nullptr);
     ~AudioEncoder() noexcept override;
 
+    /// Initialise the AVCodecContext using oparams.
+    /// Adds an audio stream to @p format if one was provided at construction.
     virtual void create() override;
+
+    /// Close and free the AVCodecContext, FIFO buffer, and associated resources.
     virtual void close() override;
 
     /// Encode interleaved audio samples.
@@ -57,7 +64,9 @@ struct AudioEncoder : public AudioContext
     /// @param opacket    The output packet data will be encoded to.
     [[nodiscard]] bool encode(uint8_t* samples[4], const int numSamples, const int64_t pts) override;
 
-    /// Encode a single AVFrame from the decoder.
+    /// Encode a single AVFrame (typically from a decoder or resampler).
+    /// @param iframe  The source audio frame with all fields set.
+    /// @return True if an encoded packet was produced and emitted.
     [[nodiscard]] bool encode(AVFrame* iframe) override;
 
     /// Flush remaining packets to be encoded.

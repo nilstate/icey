@@ -54,10 +54,14 @@ namespace wrtc {
 class WEBRTC_API WebRtcTrackReceiver : public PacketStreamAdapter
 {
 public:
+    /// Construct an unbound receiver. Call bind() to attach a remote track.
     WebRtcTrackReceiver();
 
     /// Bind to a remote track. Must be called after setupReceiveTrack().
+    /// Installs an onFrame callback that converts each depacketized frame to
+    /// a VideoPacket or AudioPacket and emits it on the PacketStream.
     /// The track type (video/audio) is detected from the SDP description.
+    /// @param track  Remote track from the PeerConnection::onTrack callback.
     void bind(std::shared_ptr<rtc::Track> track);
 
     PacketSignal emitter;

@@ -29,6 +29,8 @@ class AV_API MultiplexPacketEncoder : public MultiplexEncoder
     , public PacketProcessor
 {
 public:
+    /// Construct the encoder with the given options.
+    /// @param options  The encoder configuration (input/output formats and file paths).
     MultiplexPacketEncoder(const EncoderOptions& options = EncoderOptions());
     virtual ~MultiplexPacketEncoder() noexcept;
 
@@ -37,10 +39,20 @@ public:
     MultiplexPacketEncoder(MultiplexPacketEncoder&&) = delete;
     MultiplexPacketEncoder& operator=(MultiplexPacketEncoder&&) = delete;
 
+    /// Encode a VideoPacket, dispatching to the planar or interleaved encode path as appropriate.
+    /// @param packet  The video packet to encode.
     virtual void encode(VideoPacket& packet);
+
+    /// Encode an AudioPacket, dispatching to the planar or interleaved encode path as appropriate.
+    /// @param packet  The audio packet to encode.
     virtual void encode(AudioPacket& packet);
 
+    /// @return True if the packet is an av::MediaPacket (audio or video).
     virtual bool accepts(IPacket* packet) override;
+
+    /// Dispatch the incoming packet to encode(VideoPacket&) or encode(AudioPacket&).
+    /// Throws std::invalid_argument if the packet type is unrecognised.
+    /// @param packet  The incoming media packet.
     virtual void process(IPacket& packet) override;
 
 protected:

@@ -24,7 +24,22 @@ namespace icy {
 using PacketSignal = Signal<void(IPacket&)>;
 
 
-/// Signal slot that allows listeners to filter polymorphic `IPacket` types.
+/// Creates a signal slot that filters by packet subtype `PT` before invoking `method`.
+///
+/// The returned slot is connected to a `PacketSignal` (which broadcasts `IPacket&`).
+/// The slot performs a `dynamic_cast` on each received packet; if the cast succeeds,
+/// the listener method is called with the derived type `PT`. Non-matching packets are
+/// silently ignored.
+///
+/// @tparam Class   Listener class type.
+/// @tparam RT      Return type of the listener method.
+/// @tparam PT      Derived packet type the listener expects (must derive from `IT`).
+/// @tparam IT      Base packet interface type; defaults to `IPacket`.
+/// @param instance Pointer to the listener object.
+/// @param method   Member function pointer on `Class` accepting a `PT&`.
+/// @param id       Optional slot identifier; -1 for automatic assignment.
+/// @param priority Optional slot priority; higher values run first.
+/// @return A shared slot suitable for connecting to a `PacketSignal`.
 template <class Class, class RT, class PT, class IT = IPacket>
 std::shared_ptr<internal::Slot<RT, IT&>>
 packetSlot(Class* instance, RT (Class::*method)(PT&), int id = -1, int priority = -1)

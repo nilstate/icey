@@ -18,7 +18,6 @@
 #include "icy/turn/permission.h"
 #include "icy/turn/turn.h"
 #include "icy/turn/types.h"
-#include <mutex>
 
 
 namespace icy {
@@ -75,6 +74,9 @@ static constexpr std::int64_t kDefaultAllocationLifetime = 10 * 60 * 1000;
 class TURN_API IAllocation
 {
 public:
+    /// @param tuple    The 5-tuple identifying this allocation.
+    /// @param username Authenticated username associated with this allocation.
+    /// @param lifetime Initial lifetime in seconds.
     IAllocation(const FiveTuple& tuple = FiveTuple(),
                 const std::string& username = "",
                 std::int64_t lifetime = kDefaultAllocationLifetime);
@@ -85,18 +87,23 @@ public:
     IAllocation(IAllocation&&) = delete;
     IAllocation& operator=(IAllocation&&) = delete;
 
-    /// Updates the allocation's internal timeout and bandwidth
-    /// usage each time the allocation is used.
+    /// Updates the last-activity timestamp and accumulates bandwidth usage.
+    /// Call this whenever data is relayed through the allocation.
+    /// @param numBytes Number of bytes relayed (0 just refreshes the timestamp).
     virtual void updateUsage(std::int64_t numBytes = 0);
 
-    /// Sets the lifetime of the allocation and resets the timeout.
+    /// Sets the allocation lifetime in seconds and resets the activity timestamp,
+    /// effectively extending the expiry from the current moment.
+    /// @param lifetime New lifetime in seconds.
     virtual void setLifetime(std::int64_t lifetime);
 
-    /// Sets the bandwidth limit in bytes for this allocation.
+    /// Sets the maximum number of bytes this allocation may relay in its lifetime.
+    /// Pass 0 to disable bandwidth limiting.
+    /// @param numBytes Bandwidth cap in bytes (0 = unlimited).
     virtual void setBandwidthLimit(std::int64_t numBytes);
 
-    /// Returns true if the allocation is expired ie. is timed
-    /// out or the bandwidth limit has been reached.
+    /// @return true if the allocation's lifetime has elapsed or the bandwidth
+    ///         quota has been exhausted.
     [[nodiscard]] virtual bool expired() const;
 
     /// Returns true if the allocation's deleted flag is set
@@ -107,24 +114,56 @@ public:
     /// See Server::onTimer() and Client::onTimer()
     [[nodiscard]] virtual bool deleted() const;
 
+    /// @return The configured bandwidth limit in bytes (0 means unlimited).
     [[nodiscard]] virtual std::int64_t bandwidthLimit() const;
+
+    /// @return Total bytes transferred through this allocation since creation.
     [[nodiscard]] virtual std::int64_t bandwidthUsed() const;
+
+    /// @return Bytes remaining before the bandwidth quota is exhausted.
+    ///         Returns a large sentinel value when no limit is configured.
     [[nodiscard]] virtual std::int64_t bandwidthRemaining() const;
+
+    /// @return Seconds until the allocation expires (0 if already expired).
     [[nodiscard]] virtual std::int64_t timeRemaining() const;
 
+    /// @return Reference to the 5-tuple identifying this allocation.
     virtual FiveTuple& tuple();
+
+    /// @return The username associated with this allocation.
     [[nodiscard]] virtual std::string username() const;
+
+    /// @return The configured lifetime in seconds.
     [[nodiscard]] virtual std::int64_t lifetime() const;
+
+    /// @return A copy of the current permission list.
     [[nodiscard]] virtual PermissionList permissions() const;
 
+    /// @return The relay transport address assigned to this allocation.
     [[nodiscard]] virtual net::Address relayedAddress() const = 0;
 
+    /// Adds a permission for @p ip, or refreshes the existing one.
+    /// @param ip IPv4 address string to permit.
     virtual void addPermission(const std::string& ip);
+
+    /// Adds (or refreshes) permissions for multiple IPs.
+    /// @param ips List of IPv4 address strings.
     virtual void addPermissions(const IPList& ips);
+
+    /// Removes the permission for @p ip if present.
+    /// @param ip IPv4 address string to remove.
     virtual void removePermission(const std::string& ip);
+
+    /// Removes all permissions from the list.
     virtual void removeAllPermissions();
+
+    /// Removes any permissions whose 5-minute lifetime has elapsed.
     virtual void removeExpiredPermissions();
-    // virtual void refreshAllPermissions();
+
+    /// Checks whether a permission exists for @p peerIP.
+    /// Local addresses (192.168.x.x and 127.x.x.x) are always permitted.
+    /// @param peerIP IPv4 address string to check.
+    /// @return true if a valid (non-expired) permission exists.
     [[nodiscard]] virtual bool hasPermission(const std::string& peerIP);
 
     virtual void print(std::ostream& os) const
@@ -140,7 +179,6 @@ public:
     }
 
 protected:
-    mutable std::mutex _mutex;
     FiveTuple _tuple;
     std::string _username;
     PermissionList _permissions;

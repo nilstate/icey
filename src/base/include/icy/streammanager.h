@@ -19,43 +19,30 @@
 namespace icy {
 
 
-using StreamManagerBase = LiveCollection<std::string, PacketStream>;
-
-
-class /* ICY_EXTERN */ StreamManager : public StreamManagerBase
+/// Manages a named collection of PacketStream instances with lifecycle callbacks
+class /* ICY_EXTERN */ StreamManager : public KeyedStore<std::string, PacketStream>
 {
 public:
-    using Manager = StreamManagerBase;
-    using Map = Manager::Map;
-
-public:
     StreamManager();
-    virtual ~StreamManager();
+    ~StreamManager();
 
-    virtual bool addStream(PacketStream* stream, bool whiny = true);
-    virtual bool closeStream(const std::string& name, bool whiny = true);
-    virtual void closeAll();
-    virtual PacketStream* getStream(const std::string& name, bool whiny = true);
+    bool addStream(PacketStream* stream, bool whiny = true);
+    bool addStream(std::unique_ptr<PacketStream> stream, bool whiny = true);
+    bool closeStream(const std::string& name, bool whiny = true);
+    void closeAll();
 
-    /// Returns the first stream in the list, or nullptr.
-    virtual PacketStream* getDefaultStream();
+    PacketStream* getStream(const std::string& name, bool whiny = true) const;
+    PacketStream* getDefaultStream() const;
 
-    virtual const Map& streams() const;
-
-    virtual void print(std::ostream& os) const;
+    void print(std::ostream& os) const;
 
 protected:
-    /// Called after a stream is added.
-    virtual void onAdd(const std::string&, PacketStream* task) override;
+    void onAdd(const std::string&, PacketStream* stream) override;
+    void onRemove(const std::string&, PacketStream* stream) override;
 
-    /// Called after a stream is removed.
-    virtual void onRemove(const std::string&, PacketStream* task) override;
-
-    virtual void onStreamStateChange(void* sender, PacketStreamState& state, const PacketStreamState&);
+    void onStreamStateChange(void* sender, PacketStreamState& state, const PacketStreamState&);
 
     virtual const char* className() const { return "Stream Manager"; };
-
-protected:
 };
 
 
