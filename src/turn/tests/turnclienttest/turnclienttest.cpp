@@ -1,5 +1,6 @@
 #include "icy/logger.h"
 #include "icy/turn/fivetuple.h"
+#include "icy/turn/iallocation.h"
 #include "icy/turn/permission.h"
 #include "icy/util.h"
 #include "turnclienttest.h"
@@ -10,6 +11,7 @@
 #include "udpresponder.h"
 
 #include <iostream>
+#include <map>
 #include <thread>
 
 
@@ -25,85 +27,110 @@ int main(int argc, char** argv)
 #endif
 
     Logger::instance().add(std::make_unique<ConsoleChannel>("debug", Level::Trace));
-    // Logger::instance().setWriter(std::make_unique<AsyncLogWriter>());
     test::init();
 
     turn::Client::Options co;
     co.serverAddr = net::Address(TURN_SERVER_IP, TURN_SERVER_PORT);
     co.username = TURN_SERVER_USERNAME;
     co.password = TURN_SERVER_PASSWORD;
-    co.lifetime = 120 * 1000; // 1 minute
+    co.lifetime = 120 * 1000; // 2 minutes
     co.timeout = 10 * 1000;
     co.timerInterval = 3 * 1000;
 
 
     // =========================================================================
-    // TURN TCP Client
+    // TURN TCP Client (integration; requires event loop)
     //
-    describe("TURN TCP client", [&]() {
-#if RAISE_LOCAL_SERVER
-        RunTestServer()
-#endif
-            TCPInitiator initiator(0, co);
+    describe("TURN TCP client integration", [&]() {
+        turn::ServerOptions so;
+        so.software = "Icey STUN/TURN Server [rfc5766]";
+        so.realm = "0state.com";
+        so.allocationDefaultLifetime = 1 * 60 * 1000;
+        so.allocationMaxLifetime = 15 * 60 * 1000;
+        so.timerInterval = 5 * 1000;
+        so.listenAddr = net::Address("127.0.0.1", 3478);
+        so.externalIP = TURN_SERVER_EXTERNAL_IP;
+        TestServer srv(so);
+        srv.start();
+
+        TCPInitiator initiator(0, co);
         TCPResponder responder(0);
+
+        bool testDone = false;
+        bool testSuccess = false;
 
         initiator.AllocationCreated += [&]() {
             LDebug("Initiator allocation created");
-
-            // Start the responder when the allocation is created
             responder.connect(initiator.client.relayedAddress());
         };
 
         initiator.TestComplete += [&](bool success) {
             LDebug("Test complete: ", success);
-            expect(success);
-            initiator.shutdown();
-            responder.shutdown();
-#if RAISE_LOCAL_SERVER
-            srv.stop();
-#endif
+            testSuccess = success;
+            testDone = true;
         };
 
         initiator.initiate(TURN_AUTHORIZE_PEER_IP);
 
-        uv::runLoop();
+        expect(test::waitFor([&] { return testDone; }, 30000));
+        expect(testSuccess);
+
+        initiator.shutdown();
+        responder.shutdown();
+        srv.stop();
+
+        // Drain the event loop to let libuv close callbacks complete
+        // before the next test starts binding new sockets.
+        test::waitFor([] { return false; }, 200);
     });
 
 
     // =========================================================================
-    // TURN UDP Client
+    // TURN UDP Client (integration; requires event loop)
     //
-    describe("TURN UDP client", [&]() {
-#if RAISE_LOCAL_SERVER
-        RunTestServer()
-#endif
-            UDPInitiator initiator(0, co);
+    describe("TURN UDP client integration", [&]() {
+        turn::ServerOptions so;
+        so.software = "Icey STUN/TURN Server [rfc5766]";
+        so.realm = "0state.com";
+        so.allocationDefaultLifetime = 1 * 60 * 1000;
+        so.allocationMaxLifetime = 15 * 60 * 1000;
+        so.timerInterval = 5 * 1000;
+        so.listenAddr = net::Address("127.0.0.1", 3479); // different port
+        so.externalIP = TURN_SERVER_EXTERNAL_IP;
+        TestServer srv(so);
+        srv.start();
+
+        turn::Client::Options uco = co;
+        uco.serverAddr = net::Address(TURN_SERVER_IP, 3479);
+
+        UDPInitiator initiator(0, uco);
         UDPResponder responder(0);
+
+        bool testDone = false;
+        bool testSuccess = false;
 
         initiator.AllocationCreated += [&]() {
             LDebug("Initiator allocation created");
-
-            // Start the responder when the allocation is created
             responder.connect(initiator.client.relayedAddress());
-
-            // Set the local responder address for UDP send indications
             initiator.responderAddress = net::Address(
                 TURN_AUTHORIZE_PEER_IP, responder.socket.address().port());
         };
 
         initiator.TestComplete += [&](bool success) {
             LDebug("Test complete: ", success);
-            expect(success);
-            initiator.shutdown();
-            responder.shutdown();
-#if RAISE_LOCAL_SERVER
-            srv.stop();
-#endif
+            testSuccess = success;
+            testDone = true;
         };
 
         initiator.initiate(TURN_AUTHORIZE_PEER_IP);
 
-        uv::runLoop();
+        expect(test::waitFor([&] { return testDone; }, 30000));
+        expect(testSuccess);
+
+        initiator.shutdown();
+        responder.shutdown();
+        srv.stop();
+        test::waitFor([] { return false; }, 200);
     });
 
 
@@ -141,8 +168,32 @@ int main(int argc, char** argv)
         turn::FiveTuple a(net::Address("1.0.0.1", 1), net::Address("2.0.0.1", 2), net::TransportType::UDP);
         turn::FiveTuple b(net::Address("1.0.0.2", 1), net::Address("2.0.0.1", 2), net::TransportType::UDP);
 
-        // Just ensure < doesn't crash and provides a total order
-        expect((a < b) || (b < a) || (a == b));
+        // Different hosts should produce a strict ordering
+        expect((a < b) || (b < a));
+        expect(!(a == b));
+    });
+
+    describe("five tuple ordering strict weak", []() {
+        // Verify the ordering is usable as a std::map key with varied tuples
+        turn::FiveTuple tuples[] = {
+            {net::Address("1.0.0.1", 100), net::Address("2.0.0.1", 200), net::TransportType::UDP},
+            {net::Address("1.0.0.1", 100), net::Address("2.0.0.1", 200), net::TransportType::TCP},
+            {net::Address("1.0.0.1", 101), net::Address("2.0.0.1", 200), net::TransportType::UDP},
+            {net::Address("1.0.0.2", 100), net::Address("2.0.0.1", 200), net::TransportType::UDP},
+            {net::Address("1.0.0.1", 100), net::Address("2.0.0.2", 200), net::TransportType::UDP},
+        };
+
+        // All distinct tuples should be distinguishable as map keys
+        std::map<turn::FiveTuple, int> m;
+        for (int i = 0; i < 5; i++) {
+            m[tuples[i]] = i;
+        }
+        expect(m.size() == 5);
+
+        // Each key should map back to its original value
+        for (int i = 0; i < 5; i++) {
+            expect(m[tuples[i]] == i);
+        }
     });
 
     describe("five tuple toString", []() {
@@ -187,6 +238,108 @@ int main(int argc, char** argv)
 
         auto notFound = std::find(perms.begin(), perms.end(), std::string("99.99.99.99"));
         expect(notFound == perms.end());
+    });
+
+
+    // =========================================================================
+    // IAllocation - lifetime and bandwidth
+    //
+    describe("allocation lifetime", []() {
+        struct TestAlloc : public turn::IAllocation {
+            TestAlloc(int64_t lifetime) : IAllocation(turn::FiveTuple(), "test", lifetime) {}
+            net::Address relayedAddress() const override { return net::Address("0.0.0.0", 0); }
+        };
+
+        TestAlloc alloc(10); // 10 seconds
+        expect(!alloc.expired());
+        expect(!alloc.deleted());
+        expect(alloc.timeRemaining() > 0);
+        expect(alloc.timeRemaining() <= 10);
+        expect(alloc.username() == "test");
+        expect(alloc.lifetime() == 10);
+    });
+
+    describe("allocation bandwidth limit", []() {
+        struct TestAlloc : public turn::IAllocation {
+            TestAlloc() : IAllocation(turn::FiveTuple(), "test", 600) {}
+            net::Address relayedAddress() const override { return net::Address("0.0.0.0", 0); }
+        };
+
+        TestAlloc alloc;
+        expect(alloc.bandwidthRemaining() > 1000000);
+        expect(alloc.bandwidthUsed() == 0);
+        expect(!alloc.expired());
+
+        alloc.setBandwidthLimit(1000);
+        expect(alloc.bandwidthLimit() == 1000);
+        expect(alloc.bandwidthRemaining() == 1000);
+
+        alloc.updateUsage(400);
+        expect(alloc.bandwidthUsed() == 400);
+        expect(alloc.bandwidthRemaining() == 600);
+        expect(!alloc.expired());
+
+        alloc.updateUsage(600);
+        expect(alloc.bandwidthUsed() == 1000);
+        expect(alloc.bandwidthRemaining() == 0);
+        expect(alloc.expired());
+    });
+
+    describe("allocation permissions", []() {
+        struct TestAlloc : public turn::IAllocation {
+            TestAlloc() : IAllocation(turn::FiveTuple(), "test", 600) {}
+            net::Address relayedAddress() const override { return net::Address("0.0.0.0", 0); }
+        };
+
+        TestAlloc alloc;
+        expect(!alloc.hasPermission("10.0.0.1"));
+
+        alloc.addPermission("10.0.0.1");
+        expect(alloc.hasPermission("10.0.0.1"));
+        expect(!alloc.hasPermission("10.0.0.2"));
+
+        turn::IPList ips = {"10.0.0.2", "10.0.0.3"};
+        alloc.addPermissions(ips);
+        expect(alloc.hasPermission("10.0.0.2"));
+        expect(alloc.hasPermission("10.0.0.3"));
+
+        alloc.removePermission("10.0.0.2");
+        expect(!alloc.hasPermission("10.0.0.2"));
+
+        alloc.removeAllPermissions();
+        expect(!alloc.hasPermission("10.0.0.1"));
+    });
+
+    describe("allocation permission refresh", []() {
+        struct TestAlloc : public turn::IAllocation {
+            TestAlloc() : IAllocation(turn::FiveTuple(), "test", 600) {}
+            net::Address relayedAddress() const override { return net::Address("0.0.0.0", 0); }
+        };
+
+        TestAlloc alloc;
+        alloc.addPermission("10.0.0.1");
+        auto perms1 = alloc.permissions();
+        expect(perms1.size() == 1);
+
+        // Adding the same IP should refresh, not duplicate
+        alloc.addPermission("10.0.0.1");
+        auto perms2 = alloc.permissions();
+        expect(perms2.size() == 1);
+    });
+
+    describe("allocation set lifetime", []() {
+        struct TestAlloc : public turn::IAllocation {
+            TestAlloc() : IAllocation(turn::FiveTuple(), "test", 5) {}
+            net::Address relayedAddress() const override { return net::Address("0.0.0.0", 0); }
+        };
+
+        TestAlloc alloc;
+        expect(alloc.lifetime() == 5);
+        expect(alloc.timeRemaining() > 0);
+
+        alloc.setLifetime(600);
+        expect(alloc.lifetime() == 600);
+        expect(alloc.timeRemaining() > 5);
     });
 
 

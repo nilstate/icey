@@ -51,8 +51,8 @@ TCPAllocation::~TCPAllocation()
     _control.Close -= slot(this, &TCPAllocation::onControlClosed);
     _control->close();
 
-    this->pairs().clear();
-
+    // Clear the pair map; IntrusivePtr releases each pair.
+    _pairs.clear();
 
     LTrace("Destroy TCP allocation: OK");
 }
@@ -68,24 +68,20 @@ void TCPAllocation::onPeerAccept(const net::TCPSocket::Ptr& socket)
     }
     LTrace("Has permission for: ", socket->peerAddress());
 
-    auto pair = new TCPConnectionPair(*this);
+    auto pair = makeIntrusive<TCPConnectionPair>(*this);
     pair->setPeerSocket(socket);
 
     stun::Message response(stun::Message::Indication,
                            stun::Message::ConnectionAttempt);
 
-    auto addrAttr = new stun::XorPeerAddress;
-    addrAttr->setAddress(socket->peerAddress());
-    response.add(addrAttr);
-
-    auto connAttr = new stun::ConnectionID;
-    connAttr->setValue(pair->connectionID);
-    response.add(connAttr);
+    response.add<stun::XorPeerAddress>().setAddress(socket->peerAddress());
+    response.add<stun::ConnectionID>().setValue(pair->connectionID);
 
     sendToControl(response);
 
-    STrace << "Peer connection accepted with ID: " << pair->connectionID
-          ;
+    STrace << "Peer connection accepted with ID: " << pair->connectionID;
+
+    _pairs[pair->connectionID] = std::move(pair);
 }
 
 
@@ -110,18 +106,17 @@ bool TCPAllocation::onTimer()
 {
     LTrace("On timer");
 
-    // Clean up any expired Connect request peer connections.
-    // Collect keys first since free() modifies the map.
-    std::vector<uint32_t>
-        expired;
-    for (auto& [key, pair] : this->pairs().map()) {
+    // Clean up expired or pending-delete connection pairs.
+    // Collect keys first since erase modifies the map.
+    std::vector<uint32_t> expired;
+    for (auto& [key, pair] : _pairs) {
         if (pair->expired() || pair->pendingDelete) {
-            LTrace("On timer: Removing expired/deleted peer");
+            LTrace("On timer: Removing expired/deleted peer: ", key);
             expired.push_back(key);
         }
     }
     for (auto key : expired) {
-        this->pairs().free(key);
+        _pairs.erase(key);
     }
 
     return ServerAllocation::onTimer();
@@ -133,13 +128,14 @@ void TCPAllocation::handleConnectRequest(Request& request)
     LTrace("Handle Connect request");
 
     auto peerAttr = request.get<stun::XorPeerAddress>();
-    if (!peerAttr || peerAttr->family() != stun::AddressFamily::IPv4) {
+    if (!peerAttr || peerAttr->family() == stun::AddressFamily::Undefined) {
         server().respondError(request, kErrorBadRequest, "Bad Request");
         return;
     }
 
-    auto pair = new TCPConnectionPair(*this);
+    auto pair = makeIntrusive<TCPConnectionPair>(*this);
     pair->transactionID = request.transactionID();
+    _pairs[pair->connectionID] = pair;
     pair->doPeerConnect(peerAttr->address());
 }
 
@@ -165,11 +161,12 @@ void TCPAllocation::handleConnectionBindRequest(Request& request)
             throw std::runtime_error(
                 "ConnectionBind missing CONNECTION-ID attribute");
 
-        pair = pairs().get(connAttr->value(), false);
-        if (!pair) {
+        auto it = _pairs.find(connAttr->value());
+        if (it == _pairs.end()) {
             throw std::runtime_error("No client for ConnectionBind request: " +
                                      util::itostr(connAttr->value()));
         }
+        pair = it->second.get();
 
         if (pair->isDataConnection) {
             throw std::runtime_error("Already a peer data connection: " +
@@ -186,7 +183,6 @@ void TCPAllocation::handleConnectionBindRequest(Request& request)
         // Reassign the socket base instance to the client connection.
         pair->setClientSocket(socket);
         if (!pair->makeDataConnection()) {
-            // Must have a client and peer by now
             throw std::runtime_error("BUG: Data connection binding failed");
         }
 
@@ -194,11 +190,10 @@ void TCPAllocation::handleConnectionBindRequest(Request& request)
             throw std::logic_error("Data connection flag not set after makeDataConnection");
     } catch (std::exception& exc) {
         LError("ConnectionBind error: ", exc.what());
-        server()
-            .respondError(request, kErrorBadRequest, "Bad Request");
+        server().respondError(request, kErrorBadRequest, "Bad Request");
 
         if (pair && !pair->isDataConnection) {
-            pairs().free(pair->connectionID);
+            _pairs.erase(pair->connectionID);
         }
 
         // Close the incoming connection
@@ -214,19 +209,17 @@ void TCPAllocation::sendPeerConnectResponse(TCPConnectionPair* pair, bool succes
     if (pair->transactionID.empty())
         throw std::logic_error("sendPeerConnectResponse called with empty transactionID");
 
-    stun::Message response(stun::Message::SuccessResponse,
+    stun::Message response(success ? stun::Message::SuccessResponse
+                                    : stun::Message::ErrorResponse,
                            stun::Message::Connect);
     response.setTransactionID(pair->transactionID);
 
     if (success) {
-        auto connAttr = new stun::ConnectionID;
-        connAttr->setValue(pair->connectionID);
-        response.add(connAttr);
+        response.add<stun::ConnectionID>().setValue(pair->connectionID);
     } else {
-        auto errorCodeAttr = new stun::ErrorCode();
-        errorCodeAttr->setErrorCode(kErrorConnectionTimeoutOrFailure);
-        errorCodeAttr->setReason("Connection Timeout or Failure");
-        response.add(errorCodeAttr);
+        auto& err = response.add<stun::ErrorCode>();
+        err.setErrorCode(kErrorConnectionTimeoutOrFailure);
+        err.setReason("Connection Timeout or Failure");
     }
 
     sendToControl(response);
@@ -243,9 +236,6 @@ int TCPAllocation::sendToControl(stun::Message& message)
 bool TCPAllocation::onControlClosed(net::Socket& socket)
 {
     LTrace("Control socket disconnected");
-
-    // The allocation will be destroyed on the
-    // next timer call to IAllocation::deleted()
     _deleted = true;
     return false;
 }

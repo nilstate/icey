@@ -69,7 +69,7 @@ void UDPAllocation::handleSendIndication(Request& request)
     LTrace("Handle Send Indication");
 
     auto peerAttr = request.get<stun::XorPeerAddress>();
-    if (!peerAttr || peerAttr->family() != stun::AddressFamily::IPv4) {
+    if (!peerAttr || peerAttr->family() == stun::AddressFamily::Undefined) {
         LError("Send Indication error: No Peer Address");
         // silently discard...
         return;
@@ -130,13 +130,10 @@ bool UDPAllocation::onPeerDataReceived(net::Socket&,
         LWarn("External IP not set, using peer address directly: ", peerHost);
     }
 
-    auto peerAttr = new stun::XorPeerAddress;
-    peerAttr->setAddress(net::Address(peerHost, peerAddress.port()));
-    message.add(peerAttr);
-
-    auto dataAttr = new stun::Data;
-    dataAttr->copyBytes(bufferCast<const char*>(buffer), buffer.size());
-    message.add(dataAttr);
+    message.add<stun::XorPeerAddress>().setAddress(
+        net::Address(peerHost, peerAddress.port()));
+    message.add<stun::Data>().copyBytes(
+        bufferCast<const char*>(buffer), buffer.size());
 
     STrace << "Send data indication:"
            << "\n\tFrom: " << peerAddress << "\n\tTo: " << _tuple.remote()

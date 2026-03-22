@@ -70,12 +70,16 @@ void ServerAllocation::handleRefreshRequest(Request& request)
         throw std::logic_error("handleRefreshRequest called with non-Request class");
 
     // Compute the appropriate LIFETIME for this allocation.
+    // RFC 5766 section 7.2: If no LIFETIME attribute is present, use
+    // the default lifetime configured on the server.
     auto lifetimeAttr = request.get<stun::Lifetime>();
-    if (!lifetimeAttr) {
-        return;
+    uint32_t desiredLifetime;
+    if (lifetimeAttr) {
+        desiredLifetime = std::min<uint32_t>(
+            _server.options().allocationMaxLifetime / 1000, lifetimeAttr->value());
+    } else {
+        desiredLifetime = _server.options().allocationDefaultLifetime / 1000;
     }
-    uint32_t desiredLifetime = std::min<uint32_t>(
-        _server.options().allocationMaxLifetime / 1000, lifetimeAttr->value());
 
     if (desiredLifetime > 0) {
         setLifetime(desiredLifetime);
@@ -89,9 +93,7 @@ void ServerAllocation::handleRefreshRequest(Request& request)
                            stun::Message::Refresh);
     response.setTransactionID(request.transactionID());
 
-    auto resLifetimeAttr = new stun::Lifetime;
-    resLifetimeAttr->setValue(desiredLifetime);
-    response.add(resLifetimeAttr);
+    response.add<stun::Lifetime>().setValue(desiredLifetime);
 
     _server.respond(request, response);
 }
@@ -103,7 +105,7 @@ void ServerAllocation::handleCreatePermission(Request& request)
 
     for (int i = 0; i < _server.options().allocationMaxPermissions; i++) {
         auto peerAttr = request.get<stun::XorPeerAddress>(i);
-        if (!peerAttr || peerAttr->family() != stun::AddressFamily::IPv4) {
+        if (!peerAttr || peerAttr->family() == stun::AddressFamily::Undefined) {
             if (i == 0) {
                 _server.respondError(request, kErrorBadRequest, "Bad Request");
                 return;
@@ -124,7 +126,7 @@ void ServerAllocation::handleCreatePermission(Request& request)
 bool ServerAllocation::onTimer()
 {
     LTrace("ServerAllocation: On timer: ", IAllocation::deleted());
-    if (IAllocation::deleted())
+    if (IAllocation::deleted() || _refreshDeleteRequested)
         return false; // bye bye
 
     removeExpiredPermissions();
@@ -142,6 +144,24 @@ std::int64_t ServerAllocation::maxTimeRemaining() const
 std::int64_t ServerAllocation::timeRemaining() const
 {
     return std::min<std::int64_t>(IAllocation::timeRemaining(), maxTimeRemaining());
+}
+
+
+bool ServerAllocation::hasPermission(const std::string& peerIP)
+{
+    if (IAllocation::hasPermission(peerIP))
+        return true;
+
+    if (_server.options().enableLocalIPPermissions) {
+        if (peerIP.find("192.168.") == 0 || peerIP.find("10.") == 0 ||
+            peerIP.find("172.") == 0 || peerIP.find("127.") == 0 ||
+            peerIP == "::1" || peerIP.find("fe80:") == 0) {
+            LWarn("Auto-granting permission for local IP: ", peerIP);
+            return true;
+        }
+    }
+
+    return false;
 }
 
 

@@ -124,19 +124,22 @@ std::unique_ptr<IPacket> Message::clone() const
 }
 
 
-void Message::add(Attribute* attr)
+void Message::add(std::unique_ptr<Attribute> attr)
 {
-    add(std::unique_ptr<Attribute>(attr));
+    _attrs.push_back(std::move(attr));
 }
 
 
-void Message::add(std::unique_ptr<Attribute> attr)
+uint16_t Message::computeBodySize() const
 {
-    size_t attrLength = attr->size();
-    if (attrLength % 4 != 0)
-        attrLength += (4 - (attrLength % 4));
-    _size += attrLength + kAttributeHeaderSize;
-    _attrs.push_back(std::move(attr));
+    uint16_t size = 0;
+    for (const auto& attr : _attrs) {
+        size_t attrLength = attr->size();
+        if (attrLength % 4 != 0)
+            attrLength += (4 - (attrLength % 4));
+        size += static_cast<uint16_t>(attrLength + kAttributeHeaderSize);
+    }
+    return size;
 }
 
 
@@ -161,18 +164,28 @@ ssize_t Message::read(const ConstBuffer& buf)
     try {
         BitReader reader(buf);
 
-        // Message type
+        // Message type - RFC 5389 section 6:
+        // The message type field is decomposed as:
+        //   M11..M7 | C1 | M6..M4 | C0 | M3..M0
+        // where M = method bits, C = class bits.
         uint16_t type;
         reader.getU16(type);
-        if (type & 0x8000) {
-            // RTP and RTCP set MSB of first byte, since first two bits are version,
-            // and version is always 2 (10). If set, this is not a STUN packet.
+        if (type & 0xC000) {
+            // First two bits must be zero for STUN (RFC 5389 section 6).
+            // RTP/RTCP sets MSB since version is always 2 (10).
             LWarn("Not STUN packet");
             return 0;
         }
 
-        uint16_t classType = type & 0x0110;
-        uint16_t methodType = type & 0x000F;
+        // Extract class: C1 is bit 8, C0 is bit 4
+        uint16_t classType = ((type >> 7) & 0x02) | ((type >> 4) & 0x01);
+        // Reconstruct the class in our internal format (C1C0 shifted to bits 8,4)
+        classType = ((classType & 0x02) << 7) | ((classType & 0x01) << 4);
+
+        // Extract method: M11..M7 from bits 14..9, M6..M4 from bits 7..5, M3..M0 from bits 3..0
+        uint16_t methodType = ((type >> 2) & 0x0F80) |
+                               ((type >> 1) & 0x0070) |
+                               (type & 0x000F);
         if (!isValidMethod(methodType)) {
             LWarn("STUN message unknown method: ", methodType);
             return 0;
@@ -181,15 +194,24 @@ ssize_t Message::read(const ConstBuffer& buf)
         _class = classType;
         _method = methodType;
 
-        // Message length
+        // Message length (body size, not including the 20-byte header)
         reader.getU16(_size);
-        if (_size > buf.size()) {
-            LWarn("STUN message larger than buffer: ", _size, " > ", buf.size());
+        if (_size % 4 != 0) {
+            LWarn("STUN message length not 4-byte aligned: ", _size);
+            return 0;
+        }
+        if (static_cast<size_t>(_size) + kMessageHeaderSize > buf.size()) {
+            LWarn("STUN message larger than buffer: ", _size + kMessageHeaderSize, " > ", buf.size());
             return 0;
         }
 
-        // Magic cookie
-        reader.skip(kMagicCookieLength);
+        // Magic cookie - RFC 5389 section 6: fixed value 0x2112A442
+        uint32_t cookie;
+        reader.getU32(cookie);
+        if (cookie != kMagicCookie) {
+            LWarn("Invalid STUN magic cookie: ", cookie);
+            return 0;
+        }
 
         // Transaction ID
         std::string transactionID;
@@ -213,10 +235,13 @@ ssize_t Message::read(const ConstBuffer& buf)
             if (attr) {
                 attr->read(reader); // parse or throw
                 _attrs.push_back(std::move(attr));
-            } else
-                SWarn << "Failed to parse attribute: "
+            } else {
+                // Skip unknown attribute body + padding
+                reader.skip(attrLength + padLength);
+                SWarn << "Skipping unknown attribute: "
                       << Attribute::typeString(attrType) << ": " << attrLength
                      ;
+            }
 
             rest -= (attrLength + kAttributeHeaderSize + padLength);
         }
@@ -238,8 +263,17 @@ ssize_t Message::read(const ConstBuffer& buf)
 void Message::write(Buffer& buf) const
 {
     DynamicBitWriter writer(buf);
-    writer.putU16(static_cast<uint16_t>(_class | _method));
-    writer.putU16(_size);
+    // Encode message type per RFC 5389 section 6:
+    //   M11..M7 | C1 | M6..M4 | C0 | M3..M0
+    uint16_t c1 = (_class >> 7) & 0x02;  // C1 from bit 8
+    uint16_t c0 = (_class >> 4) & 0x01;  // C0 from bit 4
+    uint16_t type = ((_method & 0x0F80) << 2) |
+                    (c1 << 7) |
+                    ((_method & 0x0070) << 1) |
+                    (c0 << 4) |
+                    (_method & 0x000F);
+    writer.putU16(type);
+    writer.putU16(computeBodySize());
     writer.putU32(kMagicCookie);
     writer.put(_transactionID.c_str(), _transactionID.size());
 
@@ -273,32 +307,48 @@ std::string Message::classString() const
 std::string Message::errorString(uint16_t errorCode) const
 {
     switch (errorCode) {
+        case TryAlternate:
+            return "Try Alternate";
         case BadRequest:
-            return "BAD REQUEST";
+            return "Bad Request";
         case NotAuthorized:
-            return "UNAUTHORIZED";
+            return "Unauthorized";
+        case Forbidden:
+            return "Forbidden";
         case UnknownAttribute:
-            return "UNKNOWN ATTRIBUTE";
+            return "Unknown Attribute";
         case StaleCredentials:
-            return "STALE CREDENTIALS";
+            return "Stale Credentials";
         case IntegrityCheckFailure:
-            return "INTEGRITY CHECK FAILURE";
+            return "Integrity Check Failure";
         case MissingUsername:
-            return "MISSING USERNAME";
+            return "Missing Username";
         case UseTLS:
-            return "USE TLS";
+            return "Use TLS";
+        case AllocationMismatch:
+            return "Allocation Mismatch";
+        case StaleNonce:
+            return "Stale Nonce";
+        case WrongCredentials:
+            return "Wrong Credentials";
+        case UnsupportedTransport:
+            return "Unsupported Transport Protocol";
+        case AllocationQuotaReached:
+            return "Allocation Quota Reached";
         case RoleConflict:
-            return "Role Conflict"; // (487) rfc5245
+            return "Role Conflict";
         case ServerError:
-            return "SERVER ERROR";
+            return "Server Error";
+        case InsufficientCapacity:
+            return "Insufficient Capacity";
         case GlobalFailure:
-            return "GLOBAL FAILURE";
+            return "Global Failure";
         case ConnectionAlreadyExists:
             return "Connection Already Exists";
         case ConnectionTimeoutOrFailure:
             return "Connection Timeout or Failure";
         default:
-            return "UnknownError";
+            return "Unknown Error";
     }
 }
 

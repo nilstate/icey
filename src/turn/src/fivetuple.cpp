@@ -47,15 +47,15 @@ bool FiveTuple::operator==(const FiveTuple& r) const
 
 bool FiveTuple::operator<(const FiveTuple& r) const
 {
-    if (_remote.port() < r._remote.port())
+    if (_transport < r._transport)
         return true;
-    if (r._remote.port() < _remote.port())
+    if (r._transport < _transport)
         return false;
-    if (_local.port() < r._local.port())
+    if (_remote < r._remote)
         return true;
-    if (r._local.port() < _local.port())
+    if (r._remote < _remote)
         return false;
-    return false;
+    return _local < r._local;
 }
 
 

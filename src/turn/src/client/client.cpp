@@ -66,13 +66,12 @@ void Client::shutdown()
 {
     _timer.stop();
 
-    for (auto it = _transactions.begin(); it != _transactions.end();) {
-        LTrace("Shutdown base: Delete transaction: ", *it);
-        (*it)->StateChange -= slot(this, &Client::onTransactionProgress);
-        // delete *it;
-        (*it)->dispose();
-        it = _transactions.erase(it);
+    for (auto& txn : _transactions) {
+        LTrace("Shutdown base: Disposing transaction: ", txn.get());
+        txn->StateChange -= slot(this, &Client::onTransactionProgress);
+        txn->dispose();
     }
+    _transactions.clear();
 
     _socket.Connect -= slot(this, &Client::onSocketConnect);
     _socket.Recv -= slot(this, &Client::onSocketRecv);
@@ -150,11 +149,10 @@ void Client::sendRefresh()
     transaction->request().setClass(stun::Message::Request);
     transaction->request().setMethod(stun::Message::Refresh);
 
-    auto lifetimeAttr = new stun::Lifetime;
-    lifetimeAttr->setValue(static_cast<uint32_t>(_options.lifetime) / 1000);
-    transaction->request().add(lifetimeAttr);
+    transaction->request().add<stun::Lifetime>().setValue(
+        static_cast<uint32_t>(_options.lifetime) / 1000);
 
-    sendAuthenticatedTransaction(transaction);
+    sendAuthenticatedTransaction(transaction.get());
 }
 
 
@@ -200,19 +198,20 @@ void Client::handleRefreshResponse(const stun::Message& response)
 }
 
 
-bool Client::removeTransaction(stun::Transaction* transaction)
+stun::Transaction::Ptr Client::removeTransaction(stun::Transaction* transaction)
 {
     LTrace("Removing transaction: ", transaction);
 
     for (auto it = _transactions.begin(); it != _transactions.end(); ++it) {
-        if (*it == transaction) {
-            (*it)->StateChange -= slot(this, &Client::onTransactionProgress);
+        if (it->get() == transaction) {
+            stun::Transaction::Ptr ptr = std::move(*it);
+            ptr->StateChange -= slot(this, &Client::onTransactionProgress);
             _transactions.erase(it);
-            return true;
+            return ptr;
         }
     }
     LWarn("Attempted to remove unknown transaction: ", transaction);
-    return false;
+    return nullptr;
 }
 
 
@@ -223,22 +222,16 @@ void Client::authenticateRequest(stun::Message& request)
         return;
 
     if (_options.username.size()) {
-        auto usernameAttr = new stun::Username;
-        usernameAttr->copyBytes(_options.username.c_str(),
-                                _options.username.size());
-        request.add(usernameAttr);
+        request.add<stun::Username>().copyBytes(
+            _options.username.c_str(), _options.username.size());
     }
 
     if (_realm.size()) {
-        auto realmAttr = new stun::Realm;
-        realmAttr->copyBytes(_realm.c_str(), _realm.size());
-        request.add(realmAttr);
+        request.add<stun::Realm>().copyBytes(_realm.c_str(), _realm.size());
     }
 
     if (_nonce.size()) {
-        auto nonceAttr = new stun::Nonce;
-        nonceAttr->copyBytes(_nonce.c_str(), _nonce.size());
-        request.add(nonceAttr);
+        request.add<stun::Nonce>().copyBytes(_nonce.c_str(), _nonce.size());
     }
 
     if (_realm.size() && _options.password.size()) {
@@ -248,9 +241,7 @@ void Client::authenticateRequest(stun::Message& request)
         STrace << "Generating HMAC: data="
                << (_options.username + ":" + _realm + ":" + _options.password)
                << ", key=" << engine.digestStr();
-        auto integrityAttr = new stun::MessageIntegrity;
-        integrityAttr->setKey(engine.digestStr());
-        request.add(integrityAttr);
+        request.add<stun::MessageIntegrity>().setKey(engine.digestStr());
     }
 }
 
@@ -264,9 +255,9 @@ bool Client::sendAuthenticatedTransaction(stun::Transaction* transaction)
 }
 
 
-stun::Transaction* Client::createTransaction(const net::Socket::Ptr& socket)
+stun::Transaction::Ptr Client::createTransaction(const net::Socket::Ptr& socket)
 {
-    auto transaction = new stun::Transaction(
+    auto transaction = makeIntrusive<stun::Transaction>(
         socket ? socket : _socket.impl, _options.serverAddr, _options.timeout, 1);
     transaction->StateChange += slot(this, &Client::onTransactionProgress);
     _transactions.push_back(transaction);
@@ -327,17 +318,15 @@ void Client::sendAllocate()
     transaction->request().setClass(stun::Message::Request);
     transaction->request().setMethod(stun::Message::Allocate);
 
-    auto transportAttr = new stun::RequestedTransport;
-    transportAttr->setValue(transportProtocol() << 24);
-    transaction->request().add(transportAttr);
+    transaction->request().add<stun::RequestedTransport>().setValue(
+        transportProtocol() << 24);
 
     if (_options.lifetime) {
-        auto lifetimeAttr = new stun::Lifetime;
-        lifetimeAttr->setValue(static_cast<uint32_t>(_options.lifetime) / 1000);
-        transaction->request().add(lifetimeAttr);
+        transaction->request().add<stun::Lifetime>().setValue(
+            static_cast<uint32_t>(_options.lifetime) / 1000);
     }
 
-    sendAuthenticatedTransaction(transaction);
+    sendAuthenticatedTransaction(transaction.get());
 }
 
 
@@ -356,14 +345,14 @@ void Client::handleAllocateResponse(const stun::Message& response)
     }
 
     auto mappedAttr = response.get<stun::XorMappedAddress>();
-    if (!mappedAttr || mappedAttr->family() != stun::AddressFamily::IPv4) {
+    if (!mappedAttr || mappedAttr->family() == stun::AddressFamily::Undefined) {
         LWarn("Allocate response missing or invalid XorMappedAddress");
         return;
     }
     _mappedAddress = mappedAttr->address();
 
     auto relayedAttr = response.get<stun::XorRelayedAddress>();
-    if (!relayedAttr || relayedAttr->family() != stun::AddressFamily::IPv4) {
+    if (!relayedAttr || relayedAttr->family() == stun::AddressFamily::Undefined) {
         LWarn("Allocate response missing or invalid XorRelayedAddress");
         return;
     }
@@ -461,9 +450,23 @@ void Client::handleAllocateErrorResponse(const stun::Message& response)
             LWarn("Server returned Allocation Mismatch (437)");
             break;
 
-        case kErrorStaleNonce:
-            LWarn("Server returned Stale Nonce (438)");
-            break;
+        case kErrorStaleNonce: {
+            // RFC 5389 section 10.2.3: If a 438 response is received, the
+            // client updates the nonce and re-sends the request.
+            LTrace("Stale Nonce (438): updating nonce and retrying");
+            const stun::Nonce* nonceAttr = response.get<stun::Nonce>();
+            if (nonceAttr) {
+                _nonce = nonceAttr->asString();
+            }
+            const stun::Realm* realmAttr = response.get<stun::Realm>();
+            if (realmAttr) {
+                _realm = realmAttr->asString();
+            }
+            if (!_nonce.empty() && !_realm.empty()) {
+                sendAllocate();
+                return;
+            }
+        } break;
 
         case kErrorWrongCredentials:
             LWarn("Server returned Wrong Credentials (441)");
@@ -532,12 +535,11 @@ void Client::sendCreatePermission()
 
     for (const auto& perm : _permissions) {
         LTrace("Create permission request: ", perm.ip);
-        auto peerAttr = new stun::XorPeerAddress;
-        peerAttr->setAddress(net::Address(perm.ip, 0));
-        transaction->request().add(peerAttr);
+        transaction->request().add<stun::XorPeerAddress>().setAddress(
+            net::Address(perm.ip, 0));
     }
 
-    sendAuthenticatedTransaction(transaction);
+    sendAuthenticatedTransaction(transaction.get());
 }
 
 
@@ -594,13 +596,8 @@ void Client::sendData(const char* data, size_t size, const net::Address& peerAdd
     request.setClass(stun::Message::Indication);
     request.setMethod(stun::Message::SendIndication);
 
-    auto peerAttr = new stun::XorPeerAddress;
-    peerAttr->setAddress(peerAddress);
-    request.add(peerAttr);
-
-    auto dataAttr = new stun::Data;
-    dataAttr->copyBytes(data, size);
-    request.add(dataAttr);
+    request.add<stun::XorPeerAddress>().setAddress(peerAddress);
+    request.add<stun::Data>().copyBytes(data, size);
 
     // Ensure permissions exist for the peer.
     if (!hasPermission(peerAddress.host())) {
@@ -629,7 +626,7 @@ void Client::sendData(const char* data, size_t size, const net::Address& peerAdd
 void Client::handleDataIndication(const stun::Message& response)
 {
     auto peerAttr = response.get<stun::XorPeerAddress>();
-    if (!peerAttr || peerAttr->family() != stun::AddressFamily::IPv4) {
+    if (!peerAttr || peerAttr->family() == stun::AddressFamily::Undefined) {
         LWarn("Data indication missing or invalid XorPeerAddress");
         return;
     }
@@ -652,11 +649,21 @@ void Client::onTransactionProgress(void* sender, TransactionState& state, const 
 {
     LTrace("Transaction state change: ", sender, ": ", state);
 
-    auto transaction = static_cast<stun::Transaction*>(sender);
-    transaction->response().opaque = transaction;
+    auto* raw = static_cast<stun::Transaction*>(sender);
+
+    // Store an IntrusivePtr in the response so TCPClient handlers can access
+    // the original request (e.g. to extract XorPeerAddress). The IntrusivePtr
+    // keeps the transaction alive as long as the response message exists.
+    // Find our Ptr in the list and copy it.
+    for (const auto& txn : _transactions) {
+        if (txn.get() == raw) {
+            raw->response().opaque = txn; // copy the IntrusivePtr into std::any
+            break;
+        }
+    }
 
     if (!closed())
-        _observer.onTransactionResponse(*this, *transaction);
+        _observer.onTransactionResponse(*this, *raw);
 
     switch (state.id()) {
         case TransactionState::Running:
@@ -665,26 +672,29 @@ void Client::onTransactionProgress(void* sender, TransactionState& state, const 
         case TransactionState::Success: {
             STrace << "STUN transaction success:"
                    << "\n\tState: " << state.toString()
-                   << "\n\tFrom: " << transaction->peerAddress().toString()
-                   << "\n\tRequest: " << transaction->request().toString()
-                   << "\n\tResponse: " << transaction->response().toString()
+                   << "\n\tFrom: " << raw->peerAddress().toString()
+                   << "\n\tRequest: " << raw->request().toString()
+                   << "\n\tResponse: " << raw->response().toString()
                   ;
 
-            if (removeTransaction(transaction)) {
-                if (!handleResponse(transaction->response())) {
+            // Remove from list but hold an IntrusivePtr to keep alive during handling
+            auto ref = removeTransaction(raw);
+            if (ref) {
+                if (!handleResponse(ref->response())) {
                     STrace << "Unhandled STUN response: "
-                           << transaction->response().toString();
+                           << ref->response().toString();
                 }
             }
+            // ref drops here; transaction deleted if no other refs
         } break;
 
         case TransactionState::Failed:
             SWarn << "STUN transaction error:"
                   << "\n\tState: " << state.toString()
-                  << "\n\tFrom: " << transaction->peerAddress().toString()
-                  << "\n\tData: " << transaction->response().toString();
+                  << "\n\tFrom: " << raw->peerAddress().toString()
+                  << "\n\tData: " << raw->response().toString();
 
-            if (removeTransaction(transaction)) {
+            if (removeTransaction(raw)) {
                 setError("Transaction failed");
             }
             break;
@@ -694,12 +704,23 @@ void Client::onTransactionProgress(void* sender, TransactionState& state, const 
 
 void Client::onTimer()
 {
-    if (expired())
+    if (expired()) {
         // Attempt to re-allocate
         sendAllocate();
-
-    else if (timeRemaining() < lifetime() * 0.33)
+    } else if (timeRemaining() < lifetime() * 0.33) {
         sendRefresh();
+    }
+
+    // Refresh permissions before they expire (5 min lifetime per RFC 5766).
+    // Re-send CreatePermission when roughly 1 minute remains.
+    if (stateEquals(ClientState::Success) && !_permissions.empty()) {
+        for (const auto& perm : _permissions) {
+            if (perm.timeout.running() && perm.timeout.remaining() < 60 * 1000) {
+                sendCreatePermission();
+                break;
+            }
+        }
+    }
 
     _observer.onTimer(*this);
 }

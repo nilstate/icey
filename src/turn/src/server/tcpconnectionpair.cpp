@@ -29,10 +29,11 @@ TCPConnectionPair::TCPConnectionPair(TCPAllocation& allocation)
     , earlyPeerData(0)
     , connectionID(util::randomNumber())
     , isDataConnection(false)
+    , timeout(kConnectionBindTimeout)
 {
-    while (!allocation.pairs().add(connectionID, this, false)) {
+    // Ensure unique ID; the caller adds us to the pair map after construction.
+    while (allocation.pairs().count(connectionID))
         connectionID = util::randomNumber();
-    }
     LTrace("Create: ", connectionID);
 }
 
@@ -54,10 +55,8 @@ TCPConnectionPair::~TCPConnectionPair()
         peer->close();
     }
 
-    if (!allocation.pairs().exists(connectionID))
-        LWarn("Connection pair not found in allocation pairs during destruction: ", connectionID);
-    allocation.pairs()
-        .remove(connectionID);
+    // The pair map owns our IntrusivePtr; the map erase triggers this
+    // destructor. We only clean up our own sockets here.
 }
 
 
@@ -77,7 +76,7 @@ bool TCPConnectionPair::doPeerConnect(const net::Address& peerAddr)
         peer.Connect += slot(this, &TCPConnectionPair::onPeerConnectSuccess);
         peer.Error += slot(this, &TCPConnectionPair::onPeerConnectError);
 
-        client->connect(peerAddr);
+        peer->connect(peerAddr);
     } catch (std::exception& exc) {
         LError("Peer connect error: ", exc.what());
         return false;
@@ -125,10 +124,10 @@ bool TCPConnectionPair::makeDataConnection()
     if (!peer.impl || !client.impl)
         return false;
 
-    peer.Recv += slot(this, &TCPConnectionPair::onPeerDataReceived);
+    // Client data receive handler (peer was already subscribed in setPeerSocket)
     client.Recv += slot(this, &TCPConnectionPair::onClientDataReceived);
 
-    // Relase and unbind the client socket from the server.
+    // Release and unbind the client socket from the server.
     // The client socket instance, events and data will be
     // managed by the TCPConnectionPair from now on.
 

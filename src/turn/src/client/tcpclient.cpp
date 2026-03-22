@@ -76,11 +76,9 @@ void TCPClient::sendConnectRequest(const net::Address& peerAddress)
     transaction->request().setClass(stun::Message::Request);
     transaction->request().setMethod(stun::Message::Connect);
 
-    auto peerAttr = new stun::XorPeerAddress;
-    peerAttr->setAddress(peerAddress);
-    transaction->request().add(peerAttr);
+    transaction->request().add<stun::XorPeerAddress>().setAddress(peerAddress);
 
-    sendAuthenticatedTransaction(transaction);
+    sendAuthenticatedTransaction(transaction.get());
 }
 
 
@@ -130,9 +128,9 @@ bool TCPClient::handleResponse(const stun::Message& response)
 
 void TCPClient::handleConnectResponse(const stun::Message& response)
 {
-    auto transaction = static_cast<stun::Transaction*>(response.opaque);
+    auto transaction = std::any_cast<stun::Transaction::Ptr>(response.opaque).get();
     auto peerAttr = transaction->request().get<stun::XorPeerAddress>();
-    if (!peerAttr || (peerAttr && peerAttr->family() != stun::AddressFamily::IPv4)) {
+    if (!peerAttr || (peerAttr && peerAttr->family() == stun::AddressFamily::Undefined)) {
         LWarn("Connect response missing valid XorPeerAddress in original request");
         return;
     }
@@ -149,9 +147,9 @@ void TCPClient::handleConnectResponse(const stun::Message& response)
 
 void TCPClient::handleConnectErrorResponse(const stun::Message& response)
 {
-    auto transaction = static_cast<stun::Transaction*>(response.opaque);
+    auto transaction = std::any_cast<stun::Transaction::Ptr>(response.opaque).get();
     auto peerAttr = transaction->request().get<stun::XorPeerAddress>();
-    if (!peerAttr || (peerAttr && peerAttr->family() != stun::AddressFamily::IPv4)) {
+    if (!peerAttr || (peerAttr && peerAttr->family() == stun::AddressFamily::Undefined)) {
         LWarn("Connect error response missing valid XorPeerAddress");
         return;
     }
@@ -163,7 +161,7 @@ void TCPClient::handleConnectErrorResponse(const stun::Message& response)
 void TCPClient::handleConnectionAttemptIndication(const stun::Message& response)
 {
     auto peerAttr = response.get<stun::XorPeerAddress>();
-    if (!peerAttr || (peerAttr && peerAttr->family() != stun::AddressFamily::IPv4)) {
+    if (!peerAttr || (peerAttr && peerAttr->family() == stun::AddressFamily::Undefined)) {
         LWarn("ConnectionAttempt indication missing valid XorPeerAddress");
         return;
     }
@@ -183,7 +181,7 @@ void TCPClient::handleConnectionBindResponse(const stun::Message& response)
 {
     LTrace("ConnectionBind success response");
 
-    auto transaction = static_cast<stun::Transaction*>(response.opaque);
+    auto transaction = std::any_cast<stun::Transaction::Ptr>(response.opaque).get();
     auto req = static_cast<RelayConnectionBinding*>(std::any_cast<void*>(transaction->impl->opaque));
 
     auto& conn = _connections.get(req->peerAddress);
@@ -205,7 +203,7 @@ void TCPClient::handleConnectionBindErrorResponse(const stun::Message& response)
 {
     LTrace("ConnectionBind error response");
 
-    auto transaction = static_cast<stun::Transaction*>(response.opaque);
+    auto transaction = std::any_cast<stun::Transaction::Ptr>(response.opaque).get();
     auto req = static_cast<RelayConnectionBinding*>(std::any_cast<void*>(transaction->impl->opaque));
 
     freeConnection(req->peerAddress);
@@ -245,11 +243,9 @@ bool TCPClient::onRelayConnectionConnect(net::Socket& socket)
     transaction->request().setClass(stun::Message::Request);
     transaction->request().setMethod(stun::Message::ConnectionBind);
 
-    auto connAttr = new stun::ConnectionID;
-    connAttr->setValue(req->connectionID);
-    transaction->request().add(connAttr);
+    transaction->request().add<stun::ConnectionID>().setValue(req->connectionID);
 
-    sendAuthenticatedTransaction(transaction);
+    sendAuthenticatedTransaction(transaction.get());
     return false;
 }
 

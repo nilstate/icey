@@ -294,10 +294,7 @@ void Server::handleBindingRequest(Request& request)
                            stun::Message::Binding);
     response.setTransactionID(request.transactionID());
 
-    // XOR-MAPPED-ADDRESS
-    auto addrAttr = new stun::XorMappedAddress;
-    addrAttr->setAddress(request.remoteAddress);
-    response.add(addrAttr);
+    response.add<stun::XorMappedAddress>().setAddress(request.remoteAddress);
 
     respond(request, response);
 }
@@ -369,36 +366,25 @@ void Server::handleAllocateRequest(Request& request)
 
     // o  An XOR-RELAYED-ADDRESS attribute containing the relayed transport
     //    address.
-    if (options().externalIP.empty())
-        throw std::runtime_error("external IP not configured on TURN server");
 
-    // Try to use the externalIP value for the XorRelayedAddress
-    // attribute to overcome proxy and NAT issues.
+    // Use the externalIP if configured (to overcome NAT), otherwise
+    // fall back to the relay socket's local address.
     std::string relayHost(options().externalIP);
     if (relayHost.empty()) {
         relayHost.assign(allocation->relayedAddress().host());
     }
 
-    auto relayAddrAttr = new stun::XorRelayedAddress;
-    relayAddrAttr->setAddress(
-        net::Address(relayHost, allocation->relayedAddress().port()));
-    response.add(relayAddrAttr);
+    auto& relayAddr = response.add<stun::XorRelayedAddress>();
+    relayAddr.setAddress(net::Address(relayHost, allocation->relayedAddress().port()));
 
-    // o  A LIFETIME attribute containing the current value of the time-to-
-    //    expiry timer.
-    auto resLifetimeAttr = new stun::Lifetime;
-    resLifetimeAttr->setValue(lifetime);
-    response.add(resLifetimeAttr);
+    response.add<stun::Lifetime>().setValue(lifetime);
 
-    // o  An XOR-MAPPED-ADDRESS attribute containing the client's IP address
-    //    and port (from the 5-tuple).
-    auto mappedAddressAttr = new stun::XorMappedAddress;
-    mappedAddressAttr->setAddress(request.remoteAddress);
-    response.add(mappedAddressAttr);
+    auto& mappedAddr = response.add<stun::XorMappedAddress>();
+    mappedAddr.setAddress(request.remoteAddress);
 
     STrace << "Allocate response: "
-           << "XorRelayedAddress=" << relayAddrAttr->address()
-           << ", XorMappedAddress=" << mappedAddressAttr->address()
+           << "XorRelayedAddress=" << relayAddr.address()
+           << ", XorMappedAddress=" << mappedAddr.address()
            << ", MessageIntegrity=" << request.hash;
 
     respond(request, response);
@@ -412,11 +398,8 @@ void Server::handleAllocateRequest(Request& request)
 
 void Server::respond(Request& request, stun::Message& response)
 {
-    // Sign the response message
     if (!request.hash.empty()) {
-        auto integrityAttr = new stun::MessageIntegrity;
-        integrityAttr->setKey(request.hash);
-        response.add(integrityAttr);
+        response.add<stun::MessageIntegrity>().setKey(request.hash);
     }
 
     LTrace("Sending message: ", response, ": ", request.remoteAddress);
@@ -444,30 +427,18 @@ void Server::respondError(Request& request, int errorCode,
     stun::Message errorMsg(stun::Message::ErrorResponse, request.methodType());
     errorMsg.setTransactionID(request.transactionID());
 
-    // SOFTWARE
-    auto softwareAttr = new stun::Software;
-    softwareAttr->copyBytes(_options.software.c_str(),
-                            _options.software.size());
-    errorMsg.add(softwareAttr);
+    errorMsg.add<stun::Software>().copyBytes(
+        _options.software.c_str(), _options.software.size());
 
-    // REALM
-    auto realmAttr = new stun::Realm;
-    realmAttr->copyBytes(_options.realm.c_str(), _options.realm.size());
-    errorMsg.add(realmAttr);
+    errorMsg.add<stun::Realm>().copyBytes(
+        _options.realm.c_str(), _options.realm.size());
 
-    // NONCE
-    auto nonceAttr = new stun::Nonce;
-    std::string noonce = util::randomString(32);
-    nonceAttr->copyBytes(noonce.c_str(), noonce.size());
-    errorMsg.add(nonceAttr);
+    std::string nonce = util::randomString(32);
+    errorMsg.add<stun::Nonce>().copyBytes(nonce.c_str(), nonce.size());
 
-    // ERROR-CODE
-    auto errorCodeAttr = new stun::ErrorCode();
-    errorCodeAttr->setErrorCode(errorCode);
-    errorCodeAttr->setReason(errorDesc);
-    errorMsg.add(errorCodeAttr);
-    if (errorCode != errorCodeAttr->errorCode())
-        LWarn("Error code mismatch in respondError: ", errorCode, " vs ", errorCodeAttr->errorCode());
+    auto& err = errorMsg.add<stun::ErrorCode>();
+    err.setErrorCode(errorCode);
+    err.setReason(errorDesc);
 
     respond(request, errorMsg);
 }
@@ -567,7 +538,7 @@ TCPAllocation* Server::getTCPAllocation(const uint32_t& connectionID)
     std::lock_guard<std::mutex> lock(_mutex);
     for (auto& [tuple, alloc_ptr] : _allocations) {
         auto alloc = dynamic_cast<TCPAllocation*>(alloc_ptr.get());
-        if (alloc && alloc->pairs().exists(connectionID))
+        if (alloc && alloc->pairs().count(connectionID))
             return alloc;
     }
 

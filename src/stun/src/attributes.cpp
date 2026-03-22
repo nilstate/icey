@@ -321,7 +321,7 @@ net::Address AddressAttribute::address() const
 
 std::string intToIPv4(uint32_t ip)
 {
-    // Input should be in host network order
+    // Input in host byte order; high byte = first octet
     char str[20];
     std::snprintf(str, sizeof(str), "%d.%d.%d.%d",
                   (ip >> 24) & 0xff, (ip >> 16) & 0xff,
@@ -346,9 +346,11 @@ void AddressAttribute::read(BitReader& reader)
     reader.getU8(dummy);
     reader.getU8(family);
 
+    // BitReader::getU16/getU32 convert from network to host byte order.
+    // kMagicCookie is a host-order constant, so XOR directly in host order.
     uint16_t port;
     reader.getU16(port);
-    port = ntohs(port) ^ ntohs(kMagicCookie >> 16); // XOR
+    port ^= static_cast<uint16_t>(kMagicCookie >> 16);
 
     if (family == static_cast<uint8_t>(AddressFamily::IPv4)) {
         if (size() != IPv4Size) {
@@ -357,9 +359,9 @@ void AddressAttribute::read(BitReader& reader)
 
         uint32_t ip;
         reader.getU32(ip);
-        ip = ntohl(ip) ^ ntohl(kMagicCookie); // XOR
+        ip ^= kMagicCookie;
 
-        _address = net::Address(intToIPv4(ntohl(ip)), ntohs(port));
+        _address = net::Address(intToIPv4(ip), port);
     } else if (family == static_cast<uint8_t>(AddressFamily::IPv6)) {
         if (size() != IPv6Size) {
             throw std::runtime_error("invalid IPv6 address attribute size");
@@ -408,7 +410,7 @@ void AddressAttribute::read(BitReader& reader)
                       addr[8], addr[9], addr[10], addr[11],
                       addr[12], addr[13], addr[14], addr[15]);
 
-        _address = net::Address(std::string(addrStr), ntohs(port));
+        _address = net::Address(std::string(addrStr), port);
     } else {
         throw std::runtime_error("invalid address family in STUN attribute");
     }
@@ -420,19 +422,21 @@ void AddressAttribute::write(BitWriter& writer) const
     writer.putU8(0);
     writer.putU8(static_cast<uint8_t>(family()));
 
+    // BitWriter::putU16/putU32 convert from host to network byte order.
+    // kMagicCookie is a host-order constant; sockaddr fields are in network order.
     switch (_address.family()) {
         case net::Address::IPv4: {
             auto v4addr = reinterpret_cast<sockaddr_in*>(
                 const_cast<sockaddr*>(_address.addr()));
 
-            // Port
+            // Port: convert from network to host, XOR, then putU16 converts back
             uint16_t port = ntohs(v4addr->sin_port);
-            port ^= (kMagicCookie >> 16); // XOR
+            port ^= static_cast<uint16_t>(kMagicCookie >> 16);
             writer.putU16(port);
 
-            // Address
+            // Address: convert from network to host, XOR, then putU32 converts back
             uint32_t ip = ntohl(v4addr->sin_addr.s_addr);
-            ip ^= kMagicCookie; // XOR
+            ip ^= kMagicCookie;
             writer.putU32(ip);
             break;
         }
@@ -440,9 +444,9 @@ void AddressAttribute::write(BitWriter& writer) const
             auto v6addr = reinterpret_cast<sockaddr_in6*>(
                 const_cast<sockaddr*>(_address.addr()));
 
-            // Port: XOR with high 16 bits of magic cookie
+            // Port: convert from network to host, XOR, then putU16 converts back
             uint16_t port = ntohs(v6addr->sin6_port);
-            port ^= (kMagicCookie >> 16); // XOR
+            port ^= static_cast<uint16_t>(kMagicCookie >> 16);
             writer.putU16(port);
 
             // Address: XOR with magic cookie + transaction ID
@@ -511,12 +515,14 @@ void UInt8Attribute::setBit(int index, bool value)
 void UInt8Attribute::read(BitReader& reader)
 {
     reader.getU8(_bits);
+    consumePadding(reader);
 }
 
 
 void UInt8Attribute::write(BitWriter& writer) const
 {
     writer.putU8(_bits);
+    writePadding(writer);
 }
 
 
