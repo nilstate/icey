@@ -19,19 +19,16 @@ namespace smpl {
 
 Roster::Roster()
 {
-    // LTrace("Create");
 }
 
 
 Roster::~Roster()
 {
-    // LTrace("Destroy");
 }
 
 
 Peer* Roster::getByHost(std::string_view host)
 {
-    std::shared_lock<std::shared_mutex> guard(_mutex);
     for (auto& [id, peer] : _map) {
         if (peer->host() == host)
             return peer.get();
@@ -40,12 +37,9 @@ Peer* Roster::getByHost(std::string_view host)
 }
 
 
-Roster::PeerMap Roster::peers() const
+Roster::Map Roster::peers() const
 {
-    std::shared_lock<std::shared_mutex> guard(_mutex);
-    // Return a deep copy of the map for thread-safe iteration.
-    // Each unique_ptr entry is cloned as a new Peer allocation.
-    PeerMap copy;
+    Map copy;
     for (auto& [id, peer] : _map) {
         copy.emplace(id, std::make_unique<Peer>(*peer));
     }
@@ -55,8 +49,6 @@ Roster::PeerMap Roster::peers() const
 
 void Roster::print(std::ostream& os) const
 {
-    std::shared_lock<std::shared_mutex> guard(_mutex);
-
     os << "Roster[";
     for (auto& [id, peer] : _map) {
         os << "\n\t" << peer.get() << ": " << id;

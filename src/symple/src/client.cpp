@@ -244,7 +244,7 @@ Peer* Client::ourPeer()
 {
     if (_ourID.empty())
         return nullptr;
-    return _roster.get(_ourID, false);
+    return _roster.get(_ourID);
 }
 
 
@@ -440,11 +440,11 @@ void Client::onPresenceData(const json::Value& data, bool whiny)
         std::string id = data["id"].get<std::string>();
         bool online = data["online"].get<bool>();
 
-        auto peer = _roster.get(id, false);
+        auto peer = _roster.get(id);
         if (online) {
             if (!peer) {
                 _roster.add(id, std::make_unique<Peer>(data));
-                peer = _roster.get(id, false);
+                peer = _roster.get(id);
                 LDebug("Peer connected: ", peer->address().toString());
                 PeerConnected.emit(*peer);
             }
@@ -456,7 +456,7 @@ void Client::onPresenceData(const json::Value& data, bool whiny)
             if (peer) {
                 LDebug("Peer disconnected: ", peer->address().toString());
                 PeerDisconnected.emit(*peer);
-                _roster.free(id);
+                _roster.erase(id);
             }
         }
     }

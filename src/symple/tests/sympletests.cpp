@@ -116,15 +116,15 @@ int main(int argc, char** argv)
         (*peer)["online"] = true;
         roster.add("abc", std::move(peer));
 
-        auto* found = roster.get("abc", false);
+        auto* found = roster.get("abc");
         expect(found != nullptr);
         expect(found->user() == "alice");
 
-        auto* notFound = roster.get("nonexistent", false);
+        auto* notFound = roster.get("nonexistent");
         expect(notFound == nullptr);
 
-        roster.free("abc");
-        expect(roster.get("abc", false) == nullptr);
+        roster.erase("abc");
+        expect(roster.get("abc") == nullptr);
     });
 
 
