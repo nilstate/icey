@@ -26,6 +26,7 @@ namespace net {
 //
 
 
+/// Base class for network address implementations
 class Net_API AddressBase
 {
 public:
@@ -51,6 +52,7 @@ private:
 //
 
 
+/// IPv4-specific network address implementation
 class Net_API IPv4AddressBase : public AddressBase
 {
 public:
@@ -320,9 +322,11 @@ std::string Address::toString() const
 
 bool Address::operator<(const Address& addr) const
 {
-    if (family() < addr.family())
-        return true;
-    return (port() < addr.port());
+    if (family() != addr.family())
+        return family() < addr.family();
+    if (host() != addr.host())
+        return host() < addr.host();
+    return port() < addr.port();
 }
 
 
