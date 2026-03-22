@@ -335,18 +335,16 @@ void ServerConnection::onHeaders()
     // Instantiate the responder now that request headers have been parsed
     _responder = _server.createResponder(*this);
 
-    // If an upgraded connection has no responder, the factory rejected it
-    // (e.g. max connections). Close the connection - the shared_ptr drop
-    // is deferred by onConnectionClose to avoid destroying this object
-    // while we're on its call stack.
-    if (!_responder && _upgrade) {
-        close();
-        return;
-    }
-
-    // Upgraded connections don't receive the onHeaders callback
-    if (_responder && !_upgrade)
+    if (_upgrade && !_closed) {
+        // Fire the WebSocket handshake-complete signal now that the
+        // Connection signal has been emitted and the responder created,
+        // so application handlers are attached before the connect event.
+        auto* wsAdapter = dynamic_cast<ws::ConnectionAdapter*>(adapter());
+        if (wsAdapter)
+            wsAdapter->onHandshakeComplete();
+    } else if (_responder && !_upgrade) {
         _responder->onHeaders(_request);
+    }
 }
 
 

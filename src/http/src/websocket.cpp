@@ -17,6 +17,7 @@
 #include "icy/logger.h"
 #include "icy/numeric.h"
 #include "icy/random.h"
+#include <cstring>
 #include <inttypes.h>
 #include <stdexcept>
 
@@ -24,6 +25,31 @@
 namespace icy {
 namespace http {
 namespace ws {
+
+
+namespace {
+
+/// XOR mask/unmask a WebSocket payload using 64-bit word operations.
+/// Uses memcpy for type-punning to avoid strict aliasing violations
+/// and unaligned access UB. The compiler optimizes memcpy of fixed
+/// sizes into single load/store instructions.
+inline void applyMask(uint8_t* data, size_t len, uint32_t mask)
+{
+    uint64_t mask64 = uint64_t(mask) | (uint64_t(mask) << 32);
+    size_t i = 0;
+    for (; i + 8 <= len; i += 8) {
+        uint64_t word;
+        std::memcpy(&word, data + i, 8);
+        word ^= mask64;
+        std::memcpy(data + i, &word, 8);
+    }
+    auto* m = reinterpret_cast<const uint8_t*>(&mask);
+    for (; i < len; i++) {
+        data[i] ^= m[i & 3];
+    }
+}
+
+} // namespace
 
 
 WebSocket::WebSocket(const net::Socket::Ptr& socket)
@@ -75,16 +101,28 @@ WebSocketAdapter::~WebSocketAdapter()
 
 bool WebSocketAdapter::shutdown(uint16_t statusCode, const std::string& statusMessage)
 {
-    char buffer[256];
-    BitWriter writer(buffer, 256);
-    writer.putU16(statusCode);
-    writer.put(statusMessage);
-
     if (!socket) {
         throw std::runtime_error("WebSocketAdapter::shutdown: no socket");
     }
-    return SocketAdapter::send(buffer, writer.position(),
-                               unsigned(ws::FrameFlags::Fin) | unsigned(ws::Opcode::Close)) > 0;
+
+    // Build the Close frame payload: 2-byte status code + reason string.
+    // RFC 6455 Section 5.5: control frame payloads must be <= 125 bytes.
+    size_t reasonLen = std::min(statusMessage.size(), size_t(123));
+    char payload[125];
+    BitWriter payloadWriter(payload, sizeof(payload));
+    payloadWriter.putU16(statusCode);
+    payloadWriter.put(statusMessage.c_str(), reasonLen);
+
+    // Frame the Close payload through writeFrame so masking is applied
+    // correctly for client-side connections.
+    int closeFlags = unsigned(ws::FrameFlags::Fin) | unsigned(ws::Opcode::Close);
+    Buffer frameBuf;
+    frameBuf.reserve(payloadWriter.position() + WebSocketFramer::MAX_HEADER_LENGTH);
+    BitWriter frameWriter(frameBuf);
+    framer.writeFrame(payload, payloadWriter.position(), closeFlags, frameWriter);
+
+    return SocketAdapter::send(frameWriter.begin(), frameWriter.position(),
+                               socket->peerAddress(), 0) > 0;
 }
 
 
@@ -96,7 +134,7 @@ ssize_t WebSocketAdapter::send(const char* data, size_t len, int flags)
 
 ssize_t WebSocketAdapter::send(const char* data, size_t len, const net::Address& peerAddr, int flags)
 {
-    LTrace("Send: ", len, ": ", std::string(data, len));
+    LTrace("Send: ", len, " bytes");
     if (!framer.handshakeComplete()) {
         throw std::runtime_error("WebSocketAdapter::send: handshake not complete");
     }
@@ -105,15 +143,26 @@ ssize_t WebSocketAdapter::send(const char* data, size_t len, const net::Address&
     if (!flags)
         flags = ws::SendFlags::Text;
 
-    // Frame and send the data
-    Buffer buffer;
-    buffer.reserve(len + WebSocketFramer::MAX_HEADER_LENGTH);
-    BitWriter writer(buffer);
-    framer.writeFrame(data, len, flags, writer);
+    // Frame and send the data. Use stack buffer for small frames
+    // to avoid heap allocation on the hot path.
+    static constexpr size_t kStackBufSize = 4096;
+    size_t frameSize = len + WebSocketFramer::MAX_HEADER_LENGTH;
 
-    if (!socket) {
-        throw std::runtime_error("WebSocketAdapter::send: no socket");
+    if (frameSize <= kStackBufSize) {
+        char stackBuf[kStackBufSize];
+        BitWriter writer(stackBuf, kStackBufSize);
+        framer.writeFrame(data, len, flags, writer);
+        if (!socket)
+            throw std::runtime_error("WebSocketAdapter::send: no socket");
+        return SocketAdapter::send(writer.begin(), writer.position(), peerAddr, 0);
     }
+
+    Buffer heapBuf;
+    heapBuf.reserve(frameSize);
+    BitWriter writer(heapBuf);
+    framer.writeFrame(data, len, flags, writer);
+    if (!socket)
+        throw std::runtime_error("WebSocketAdapter::send: no socket");
     return SocketAdapter::send(writer.begin(), writer.position(), peerAddr, 0);
 }
 
@@ -179,14 +228,10 @@ void WebSocketAdapter::handleServerRequest(const MutableBuffer& buffer, const ne
     LTrace("Verifying handshake: ", _request);
 
     // Verify the WebSocket handshake request
-    try {
-        framer.acceptServerRequest(_request, _response);
-        LTrace("Handshake success");
-    } catch (std::exception& exc) {
-        LWarn("Handshake failed: ", exc.what());
-    }
+    framer.acceptServerRequest(_request, _response);
+    LTrace("Handshake success");
 
-    // Send response
+    // Send the 101 Switching Protocols response
     std::ostringstream oss;
     _response.write(oss);
 
@@ -194,6 +239,12 @@ void WebSocketAdapter::handleServerRequest(const MutableBuffer& buffer, const ne
         throw std::runtime_error("WebSocketAdapter::handleServerRequest: no socket");
     }
     (void)SocketAdapter::send(oss.str().c_str(), oss.str().length());
+
+    // Note: onHandshakeComplete() is NOT called here because on the
+    // server side this runs inside onHeaders() before onConnectionReady
+    // or createResponder. The server fires onHandshakeComplete() from
+    // ServerConnection::onHeaders() after the responder is created so
+    // that application handlers are attached before the connect signal.
 }
 
 
@@ -260,10 +311,10 @@ bool WebSocketAdapter::onSocketRecv(net::Socket&, const MutableBuffer& buffer, c
 
                 if (opcode == unsigned(ws::Opcode::Ping)) {
                     LTrace("Received Ping, sending Pong");
+                    // Control frames are <= 125 bytes; use stack buffer
+                    char pongBuf[125 + WebSocketFramer::MAX_HEADER_LENGTH];
+                    BitWriter pongWriter(pongBuf, sizeof(pongBuf));
                     int pongFlags = unsigned(ws::FrameFlags::Fin) | unsigned(ws::Opcode::Pong);
-                    Buffer pongBuf;
-                    pongBuf.reserve(static_cast<size_t>(payloadLength) + WebSocketFramer::MAX_HEADER_LENGTH);
-                    BitWriter pongWriter(pongBuf);
                     framer.writeFrame(payload ? payload : "", static_cast<size_t>(payloadLength), pongFlags, pongWriter);
                     (void)SocketAdapter::send(pongWriter.begin(), pongWriter.position(), peerAddress, 0);
                     continue;
@@ -271,10 +322,9 @@ bool WebSocketAdapter::onSocketRecv(net::Socket&, const MutableBuffer& buffer, c
 
                 if (opcode == unsigned(ws::Opcode::Close)) {
                     LTrace("Received Close frame, echoing close");
+                    char closeBuf[125 + WebSocketFramer::MAX_HEADER_LENGTH];
+                    BitWriter closeWriter(closeBuf, sizeof(closeBuf));
                     int closeFlags = unsigned(ws::FrameFlags::Fin) | unsigned(ws::Opcode::Close);
-                    Buffer closeBuf;
-                    closeBuf.reserve(static_cast<size_t>(payloadLength) + WebSocketFramer::MAX_HEADER_LENGTH);
-                    BitWriter closeWriter(closeBuf);
                     framer.writeFrame(payload ? payload : "", static_cast<size_t>(payloadLength), closeFlags, closeWriter);
                     (void)SocketAdapter::send(closeWriter.begin(), closeWriter.position(), peerAddress, 0);
                     socket->close();
@@ -292,9 +342,13 @@ bool WebSocketAdapter::onSocketRecv(net::Socket&, const MutableBuffer& buffer, c
                     if (!framer._fragmented) {
                         throw std::runtime_error("WebSocket error: Unexpected continuation frame (protocol error 1002)");
                     }
-                    if (payload && payloadLength > 0)
+                    if (payload && payloadLength > 0) {
+                        if (framer._fragmentBuffer.size() + payloadLength > WebSocketFramer::MAX_MESSAGE_SIZE) {
+                            throw std::runtime_error("WebSocket error: Message too large (close 1009)");
+                        }
                         framer._fragmentBuffer.insert(framer._fragmentBuffer.end(),
                             payload, payload + static_cast<size_t>(payloadLength));
+                    }
                     if (isFin) {
                         // Final fragment - emit the complete reassembled message
                         framer._fragmented = false;
@@ -333,9 +387,10 @@ bool WebSocketAdapter::onSocketRecv(net::Socket&, const MutableBuffer& buffer, c
             } catch (std::exception& exc) {
                 // Check if this is an incomplete frame (ran out of data)
                 // rather than a protocol error
-                std::string msg(exc.what());
-                if (msg.find("Insufficient buffer") != std::string::npos ||
-                    msg.find("Incomplete frame") != std::string::npos) {
+                std::string_view msg(exc.what());
+                if (msg.find("Insufficient buffer") != std::string_view::npos ||
+                    msg.find("Incomplete frame") != std::string_view::npos ||
+                    msg.find("index out of range") != std::string_view::npos) {
                     // Buffer the remaining data for the next recv call
                     size_t remaining = total - posBeforeRead;
                     framer._incompleteFrame.assign(
@@ -345,11 +400,13 @@ bool WebSocketAdapter::onSocketRecv(net::Socket&, const MutableBuffer& buffer, c
                 }
 
                 LError("Parser error: ", exc.what());
-                if (msg.find("protocol error 1002") != std::string::npos) {
-                    try {
+                try {
+                    if (msg.find("close 1009") != std::string_view::npos) {
+                        shutdown(uint16_t(ws::CloseStatusCode::PayloadTooBig), "Message Too Large");
+                    } else if (msg.find("protocol error 1002") != std::string_view::npos) {
                         shutdown(uint16_t(ws::CloseStatusCode::ProtocolError), "Protocol Error");
-                    } catch (...) {}
-                }
+                    }
+                } catch (...) {}
                 socket->setError(exc.what());
                 return false;
             }
@@ -370,6 +427,7 @@ bool WebSocketAdapter::onSocketRecv(net::Socket&, const MutableBuffer& buffer, c
         } catch (std::exception& exc) {
             LError("Read error: ", exc.what());
             socket->setError(exc.what());
+            socket->close();
         }
         return false;
     }
@@ -535,13 +593,15 @@ void WebSocketFramer::acceptServerRequest(http::Request& request, http::Response
 
 size_t WebSocketFramer::writeFrame(const char* data, size_t len, int flags, BitWriter& frame)
 {
-    // Allow data frames (Text, Binary) and control frames (Close, Ping, Pong)
+    // Validate opcode: data frames (Text, Binary, Continuation) and control frames
     int opcode = flags & unsigned(ws::Opcode::Bitmask);
-    bool isControlFrame = (opcode == unsigned(ws::Opcode::Close) ||
-                           opcode == unsigned(ws::Opcode::Ping) ||
-                           opcode == unsigned(ws::Opcode::Pong));
-    if (flags != ws::SendFlags::Text && flags != ws::SendFlags::Binary && !isControlFrame) {
-        throw std::runtime_error("WebSocketFramer::writeFrame: invalid flags");
+    if (opcode != unsigned(ws::Opcode::Continuation) &&
+        opcode != unsigned(ws::Opcode::Text) &&
+        opcode != unsigned(ws::Opcode::Binary) &&
+        opcode != unsigned(ws::Opcode::Close) &&
+        opcode != unsigned(ws::Opcode::Ping) &&
+        opcode != unsigned(ws::Opcode::Pong)) {
+        throw std::runtime_error("WebSocketFramer::writeFrame: invalid opcode");
     }
     if (frame.position() != 0) {
         throw std::runtime_error("WebSocketFramer::writeFrame: frame not at position 0");
@@ -566,13 +626,13 @@ size_t WebSocketFramer::writeFrame(const char* data, size_t len, int flags, BitW
     }
 
     if (_maskPayload) {
-        auto mask = _rnd.next();
-        auto m = reinterpret_cast<const char*>(&mask);
-        auto b = reinterpret_cast<const char*>(data);
-        frame.put(m, 4);
-        for (unsigned i = 0; i < len; i++) {
-            frame.putU8(b[i] ^ m[i % 4]);
-        }
+        uint32_t mask = _rnd.next();
+        frame.put(reinterpret_cast<const char*>(&mask), 4);
+
+        // Write payload then XOR mask in-place
+        size_t payloadPos = frame.position();
+        frame.put(data, len);
+        applyMask(reinterpret_cast<uint8_t*>(frame.begin() + payloadPos), len, mask);
     } else {
         frame.put(data, len);
     }
@@ -629,6 +689,17 @@ uint64_t WebSocketFramer::readFrame(BitReader& frame, char*& payload)
         throw std::runtime_error("WebSocket error: Unknown opcode received (protocol error 1002)");
     }
 
+    // RFC 6455 Section 5.5: Control frames MUST have FIN set and payload <= 125 bytes
+    bool isControl = (opcode >= unsigned(ws::Opcode::Close));
+    if (isControl) {
+        if (!(flags & unsigned(ws::FrameFlags::Fin))) {
+            throw std::runtime_error("WebSocket error: Fragmented control frame (protocol error 1002)");
+        }
+        if ((lengthByte & 0x7f) > 125) {
+            throw std::runtime_error("WebSocket error: Control frame payload too large (protocol error 1002)");
+        }
+    }
+
     // RFC 6455 Section 5.1: Server MUST reject unmasked client-to-server frames
     bool hasMask = (lengthByte & FRAME_FLAG_MASK) != 0;
     if (_mode == ws::ServerSide && !hasMask) {
@@ -640,32 +711,23 @@ uint64_t WebSocketFramer::readFrame(BitReader& frame, char*& payload)
     if ((lengthByte & 0x7f) == 127) {
         uint64_t l;
         headerReader.getU64(l);
-        if (l > limit)
-            throw std::runtime_error(
-                util::format("WebSocket error: Insufficient buffer for payload size %" PRIu64, l));
         payloadLength = l;
         payloadOffset += 8;
     } else if ((lengthByte & 0x7f) == 126) {
         uint16_t l;
         headerReader.getU16(l);
-        if (l > limit)
-            throw std::runtime_error(util::format(
-                "WebSocket error: Insufficient buffer for payload size %" PRIu64, l));
         payloadLength = l;
         payloadOffset += 2;
     } else {
-        uint8_t l = lengthByte & 0x7f;
-        if (l > limit)
-            throw std::runtime_error(util::format(
-                "WebSocket error: Insufficient buffer for payload size %" PRIu64, l));
-        payloadLength = l;
+        payloadLength = lengthByte & 0x7f;
     }
     if (lengthByte & FRAME_FLAG_MASK) {
         headerReader.get(mask, 4);
         payloadOffset += 4;
     }
 
-    if (payloadLength > limit)
+    // Check that header + payload fit within the available buffer
+    if (offset + payloadOffset + payloadLength > limit)
         throw std::runtime_error(
             "WebSocket error: Incomplete frame received");
 
@@ -673,12 +735,12 @@ uint64_t WebSocketFramer::readFrame(BitReader& frame, char*& payload)
     payload = reinterpret_cast<char*>(
         const_cast<char*>(frame.begin() + (offset + payloadOffset)));
 
-    // Unmask the payload if required
+    // Unmask the payload in-place using 64-bit words
     if (lengthByte & FRAME_FLAG_MASK) {
-        auto p = reinterpret_cast<char*>(payload);
-        for (uint64_t i = 0; i < payloadLength; i++) {
-            p[i] ^= mask[i % 4];
-        }
+        uint32_t mask32;
+        std::memcpy(&mask32, mask, 4);
+        applyMask(reinterpret_cast<uint8_t*>(payload),
+                  static_cast<size_t>(payloadLength), mask32);
     }
 
     // Update frame length to include payload plus header

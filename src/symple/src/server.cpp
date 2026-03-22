@@ -222,9 +222,10 @@ public:
 
         // Max connections check. peerCount() acquires its own lock;
         // no Symple mutex is held during createResponder.
-        // Do NOT close the connection here - we're inside onHeaders
-        // and closing would destroy the connection while we're on its
-        // call stack. Return nullptr; onHeaders will close it.
+        // Send a 503 error then close. close() is safe to call here:
+        // it sets _closed=true and schedules async uv_close; the actual
+        // destruction is deferred by Server::onConnectionClose via idle
+        // callback with shared_ptr ownership.
         if (_server._opts.maxConnections > 0 &&
             _server.peerCount() >= _server._opts.maxConnections) {
             LWarn("Max connections reached (", _server._opts.maxConnections, "), rejecting");
@@ -236,6 +237,7 @@ public:
             try {
                 conn.send(str.c_str(), str.size(), http::ws::Text);
             } catch (...) {}
+            conn.close();
             return nullptr;
         }
 

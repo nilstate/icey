@@ -269,7 +269,7 @@ void BasicAuthenticator::proxyAuthenticate(http::Request& request) const
 void BasicAuthenticator::parseAuthInfo(std::string_view authInfo)
 {
     std::string res = base64::decode(authInfo);
-    http::extractCredentials(authInfo, _username, _password);
+    http::extractCredentials(std::string_view(res), _username, _password);
 
     /*
     const std::string::size_type p = userInfo.find(':');

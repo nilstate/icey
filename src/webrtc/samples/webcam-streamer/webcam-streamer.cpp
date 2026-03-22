@@ -13,7 +13,7 @@
 // Pipeline:
 //   MediaCapture → VideoEncoder → WebRtcTrackSender → [browser]
 //
-// The browser connects via symple-client-player's CallManager,
+// The browser connects via symple-player's CallManager,
 // which handles the call:init/accept/offer/answer/candidate protocol.
 //
 // Usage:

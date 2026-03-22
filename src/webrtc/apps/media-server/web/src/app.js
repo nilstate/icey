@@ -1,5 +1,5 @@
 import { SympleClient, Symple } from 'symple-client'
-import { CallManager } from 'symple-client-player'
+import { CallManager } from 'symple-player'
 
 // ---------------------------------------------------------------------------
 // DOM

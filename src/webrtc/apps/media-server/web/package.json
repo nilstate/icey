@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "symple-client": "^4.0.0",
-    "symple-client-player": "^4.0.0"
+    "symple-player": "^4.0.0"
   },
   "devDependencies": {
     "vite": "^6.0.0"

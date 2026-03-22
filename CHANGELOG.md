@@ -72,7 +72,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - `USE_SYSTEM_DEPS` CMake option for vcpkg/system package integration (switches FetchContent to find_package for libuv, llhttp, zlib, minizip)
 - Vendored nlohmann/json single header (v3.11.3), eliminating FetchContent download
 - vcpkg port with full dependency manifest and feature flags
-- Symplestreamer sample: camera/file video streaming to symple-client-player via MJPEG over WebSocket
+- Symplestreamer sample: camera/file video streaming to symple-player via MJPEG over WebSocket
 - HTTP benchmark suite and performance section in README
 - `SO_REUSEPORT` support via `Server::setReusePort()` for multicore HTTP serving
 - `NullSharedMutex` and `LocalSignal` for lock-free signal dispatch on single-threaded event loops

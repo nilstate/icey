@@ -185,6 +185,7 @@ bool getDeviceList(Device::Type type, std::vector<av::Device>& devices)
 // Apple Device Watcher
 //
 
+/// Internal implementation for AppleDeviceWatcher
 struct AppleDeviceWatcher::Impl
 {
     AudioObjectPropertyAddress devicesAddr{

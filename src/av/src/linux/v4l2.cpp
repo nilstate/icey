@@ -202,6 +202,7 @@ bool getDeviceList(Device::Type type, std::vector<av::Device>& devices)
 // Linux Device Watcher (inotify-based)
 //
 
+/// Internal implementation for LinuxDeviceWatcher
 struct LinuxDeviceWatcher::Impl
 {
     std::atomic<bool> running{false};

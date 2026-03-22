@@ -74,8 +74,7 @@ ssize_t ClientConnection::send(const char* data, size_t len, int flags)
     connect();
 
     if (_active)
-        // Raw data will be pushed onto the Outgoing packet stream
-        return Connection::send(data, len);
+        return Connection::send(data, len, flags);
     else
         _outgoingBuffer.push_back(std::string(data, len));
     return static_cast<ssize_t>(len);

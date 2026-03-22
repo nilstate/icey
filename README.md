@@ -67,7 +67,7 @@ WebRTC receive path:
         └─── ICE → DTLS → SRTP decrypt → RTP depacketise → raw frames
 
 Signalling (Symple v4):
-  C++ server/client ◀──── WebSocket ────▶ Browser (symple-client-player)
+  C++ server/client ◀──── WebSocket ────▶ Browser (symple-player)
   Auth, presence, rooms, call protocol (init/accept/offer/answer/candidate)
 ```
 
@@ -94,7 +94,7 @@ session.StateChanged += [&](wrtc::PeerSession::State state) {
 };
 ```
 
-See [src/webrtc/samples/webcam-streamer/](src/webrtc/samples/webcam-streamer/) or read [WebRTC in 150 Lines of C++](https://0state.com/code/icey/webrtc-in-150-lines).
+See [src/webrtc/samples/webcam-streamer/](src/webrtc/samples/webcam-streamer/) or read [WebRTC in 150 Lines of C++](https://0state.com/writing/webrtc-in-150-lines-of-cpp).
 
 ### Record a browser's camera server-side
 
@@ -149,7 +149,7 @@ CMake 3.21+ and pkg-config (Linux/macOS) required. Everything else is fetched au
 | nlohmann/json | 3.11.3 |
 | zlib | 1.3.1 |
 
-Optional: FFmpeg 5+/6+/7+ (`-DWITH_FFMPEG=ON`), OpenCV 3.0+ (`-DWITH_OPENCV=ON`), libdatachannel (`-DWITH_LIBDATACHANNEL=ON`).
+Optional: FFmpeg 5+/6+/7+, OpenCV 3.0+, libdatachannel. These are auto-detected; install the libraries and CMake finds them.
 
 ### Build from source
 

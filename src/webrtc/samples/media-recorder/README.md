@@ -12,7 +12,7 @@ Built automatically when `-DBUILD_SAMPLES=ON -DWITH_LIBDATACHANNEL=ON -DWITH_FFM
 
 - FFmpeg
 - Running Symple server
-- A browser peer sending video (e.g. using symple-client-player's WebRTCPlayer)
+- A browser peer sending video (e.g. using symple-player's WebRTCPlayer)
 
 ## Usage
 

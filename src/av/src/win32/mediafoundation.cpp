@@ -33,7 +33,7 @@ namespace icy {
 namespace av {
 
 
-// RAII COM initialiser
+/// RAII initializer for Windows COM runtime
 struct ComInit
 {
     HRESULT hr;
@@ -42,7 +42,7 @@ struct ComInit
     bool ok() const { return SUCCEEDED(hr) || hr == RPC_E_CHANGED_MODE; }
 };
 
-// RAII Media Foundation initialiser
+/// RAII initializer for Microsoft Media Foundation
 struct MFInit
 {
     HRESULT hr;
@@ -323,9 +323,10 @@ bool getDeviceList(Device::Type type, std::vector<av::Device>& devices)
 // Windows Device Watcher
 //
 
+/// Internal implementation for WindowsDeviceWatcher
 struct WindowsDeviceWatcher::Impl
 {
-    // IMMNotificationClient implementation for audio device changes
+    /// Internal COM notification handler for WindowsDeviceWatcher
     class NotificationClient : public IMMNotificationClient
     {
     public:

@@ -20,6 +20,6 @@ Built automatically when `-DBUILD_SAMPLES=ON -DWITH_LIBDATACHANNEL=ON -DWITH_FFM
 ./webcam-streamer -host 127.0.0.1 -port 4500 -user streamer -name "Webcam"
 ```
 
-Connect from a browser using `symple-client-player`'s CallManager. The streamer auto-accepts incoming calls and begins sending H.264 video.
+Connect from a browser using `symple-player`'s CallManager. The streamer auto-accepts incoming calls and begins sending H.264 video.
 
 Set `USE_CAMERA` to `1` in the source to stream from a camera instead of the test file.
