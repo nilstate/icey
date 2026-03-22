@@ -10,9 +10,7 @@
 
 
 #include "icy/diagnosticmanager.h"
-
-#include <memory>
-
+#include "icy/logger.h"
 
 
 namespace icy {
@@ -93,36 +91,8 @@ DiagnosticManager::~DiagnosticManager()
     LTrace("Destroy");
 }
 
-void DiagnosticManager::resetAll()
-{
-    std::unique_lock<std::shared_mutex> guard(_mutex);
-    for (auto& [name, test] : _map) {
-        test->reset();
-    }
-}
 
-
-void DiagnosticManager::checkAll()
-{
-    std::unique_lock<std::shared_mutex> guard(_mutex);
-    for (auto& [name, test] : _map) {
-        test->check();
-    }
-}
-
-
-bool DiagnosticManager::allComplete()
-{
-    std::shared_lock<std::shared_mutex> guard(_mutex);
-    for (auto& [name, test] : _map) {
-        if (!test->complete())
-            return false;
-    }
-    return true;
-}
-
-
-bool DiagnosticManager::addDiagnostic(IDiagnostic* test)
+bool DiagnosticManager::addDiagnostic(std::unique_ptr<IDiagnostic> test)
 {
     if (!test)
         throw std::invalid_argument("DiagnosticManager: test cannot be null");
@@ -130,9 +100,7 @@ bool DiagnosticManager::addDiagnostic(IDiagnostic* test)
         throw std::invalid_argument("DiagnosticManager: test name cannot be empty");
 
     LTrace("Adding Diagnostic: ", test->name);
-    // test->StateChange += sdelegate(this,
-    // &DiagnosticManager::onDiagnosticStateChange);
-    return DiagnosticStore::add(test->name, test);
+    return tryAdd(test->name, std::move(test));
 }
 
 
@@ -142,18 +110,39 @@ bool DiagnosticManager::freeDiagnostic(const std::string& name)
         throw std::invalid_argument("DiagnosticManager: name cannot be empty");
 
     LTrace("Removing Diagnostic: ", name);
-    std::unique_ptr<IDiagnostic>
-        test(DiagnosticStore::remove(name));
-    if (test) {
-        return true;
-    }
-    return false;
+    return erase(name);
 }
 
 
-IDiagnostic* DiagnosticManager::getDiagnostic(const std::string& name)
+IDiagnostic* DiagnosticManager::getDiagnostic(const std::string& name) const
 {
-    return DiagnosticStore::get(name, true);
+    return get(name);
+}
+
+
+void DiagnosticManager::resetAll()
+{
+    for (auto& [name, test] : _map) {
+        test->reset();
+    }
+}
+
+
+void DiagnosticManager::checkAll()
+{
+    for (auto& [name, test] : _map) {
+        test->check();
+    }
+}
+
+
+bool DiagnosticManager::allComplete() const
+{
+    for (auto& [name, test] : _map) {
+        if (!test->complete())
+            return false;
+    }
+    return true;
 }
 
 
@@ -165,7 +154,7 @@ void DiagnosticManager::onDiagnosticStateChange(void* sender,
     STrace << "Diagnostic state change: " << test->name << ": " << state;
 
     if (test->complete() && allComplete())
-        DiagnosticsComplete.emit(/*this*/);
+        DiagnosticsComplete.emit();
 }
 
 

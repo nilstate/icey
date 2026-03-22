@@ -13,9 +13,6 @@
 #include "icy/logger.h"
 
 
-using namespace std;
-
-
 namespace icy {
 
 
@@ -30,32 +27,36 @@ StreamManager::~StreamManager()
 }
 
 
-void StreamManager::closeAll()
+bool StreamManager::addStream(PacketStream* stream, bool whiny)
 {
-    std::unique_lock<std::shared_mutex> guard(_mutex);
-
-    LDebug("Close all streams: ", _map.size());
-    for (auto it = _map.begin(); it != _map.end();) {
-        it->second->StateChange -= slot(this, &StreamManager::onStreamStateChange);
-        it->second->close();
-        it = _map.erase(it); // unique_ptr deletes the stream
-    }
+    return addStream(std::unique_ptr<PacketStream>(stream), whiny);
 }
 
 
-bool StreamManager::addStream(PacketStream* stream, bool whiny)
+bool StreamManager::addStream(std::unique_ptr<PacketStream> stream, bool whiny)
 {
     if (!stream)
         throw std::invalid_argument("StreamManager: stream cannot be null");
     if (stream->name().empty())
         throw std::invalid_argument("StreamManager: stream name cannot be empty");
-    return Manager::add(stream->name(), stream, whiny);
+
+    if (contains(stream->name())) {
+        if (whiny)
+            throw std::runtime_error("StreamManager: stream already exists: " + stream->name());
+        return false;
+    }
+
+    add(stream->name(), std::move(stream));
+    return true;
 }
 
 
-PacketStream* StreamManager::getStream(const std::string& name, bool whiny)
+PacketStream* StreamManager::getStream(const std::string& name, bool whiny) const
 {
-    return Manager::get(name, whiny);
+    auto* stream = get(name);
+    if (!stream && whiny)
+        throw std::runtime_error("StreamManager: stream not found: " + name);
+    return stream;
 }
 
 
@@ -65,7 +66,7 @@ bool StreamManager::closeStream(const std::string& name, bool whiny)
         throw std::invalid_argument("StreamManager: stream name cannot be empty");
 
     LDebug("Close stream: ", name);
-    PacketStream* stream = get(name, whiny);
+    PacketStream* stream = getStream(name, whiny);
     if (stream) {
         stream->close();
         return true;
@@ -74,27 +75,27 @@ bool StreamManager::closeStream(const std::string& name, bool whiny)
 }
 
 
-PacketStream* StreamManager::getDefaultStream()
+void StreamManager::closeAll()
 {
-    std::shared_lock<std::shared_mutex> guard(_mutex);
-
-    // Returns the first stream or nullptr.
-    if (!_map.empty()) {
-        return _map.begin()->second.get();
+    LDebug("Close all streams: ", size());
+    for (auto& [name, stream] : _map) {
+        stream->StateChange -= slot(this, &StreamManager::onStreamStateChange);
+        stream->close();
     }
+    _map.clear();
+}
 
+
+PacketStream* StreamManager::getDefaultStream() const
+{
+    if (!empty())
+        return _map.begin()->second.get();
     return nullptr;
 }
 
 
 void StreamManager::onAdd(const std::string&, PacketStream* stream)
 {
-    // Stream name can't be empty
-    if (stream->name().empty())
-        throw std::invalid_argument("StreamManager: stream name cannot be empty");
-
-    // Receive callbacks after all other listeners
-    // so we can delete the stream when it closes.
     LDebug("stream added: ", stream->name());
     stream->StateChange += slot(this, &StreamManager::onStreamStateChange, -1);
 }
@@ -112,29 +113,17 @@ void StreamManager::onStreamStateChange(void* sender, PacketStreamState& state,
 {
     LDebug("Stream state change: ", state);
 
-    // Cantch stream closed state and free it if necessary
     if (state.equals(PacketStreamState::Closed)) {
         auto stream = reinterpret_cast<PacketStream*>(sender);
         stream->StateChange -= slot(this, &StreamManager::onStreamStateChange);
         LDebug("On stream close: freeing: ", stream->name());
-        bool success = Manager::free(stream->name());
-        if (!success) {
-            LWarn("Cannot remove stream: ", stream->name());
-        }
+        erase(stream->name());
     }
-}
-
-
-const StreamManager::Map& StreamManager::streams() const
-{
-    std::shared_lock<std::shared_mutex> guard(_mutex);
-    return _map;
 }
 
 
 void StreamManager::print(std::ostream& os) const
 {
-    std::shared_lock<std::shared_mutex> guard(_mutex);
     os << "StreamManager[";
     for (const auto& [name, stream] : _map) {
         os << "\n\t" << stream.get() << ": " << name;
