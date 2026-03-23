@@ -40,6 +40,24 @@ struct MockSignaller : SignallingInterface
     }
 };
 
+
+struct ReentrantRejectSignaller : MockSignaller
+{
+    bool rejectOnInit = true;
+
+    void sendControl(const std::string& peerId,
+                     const std::string& type,
+                     const std::string& reason = {}) override
+    {
+        MockSignaller::sendControl(peerId, type, reason);
+
+        if (rejectOnInit && type == "init") {
+            rejectOnInit = false;
+            ControlReceived.emit(peerId, "reject", "busy");
+        }
+    }
+};
+
 } // namespace
 
 
@@ -437,6 +455,26 @@ int main(int argc, char** argv)
         expect(session.state() == PeerSession::State::Connecting);
         expect(session.peerConnection() != nullptr);
         expect(session.dataChannel() != nullptr);
+    });
+
+    describe("peer session: reentrant signaller preserves state order", []() {
+        ReentrantRejectSignaller signaller;
+        PeerSession session(signaller, {});
+        std::vector<PeerSession::State> states;
+        session.StateChanged += [&](PeerSession::State state) {
+            states.push_back(state);
+        };
+
+        session.call("peer");
+
+        expect(states.size() == 3);
+        expect(states[0] == PeerSession::State::Ringing);
+        expect(states[1] == PeerSession::State::Ended);
+        expect(states[2] == PeerSession::State::Idle);
+        expect(session.state() == PeerSession::State::Idle);
+        expect(session.remotePeerId().empty());
+        expect(signaller.controls.size() == 1);
+        expect(signaller.controls[0].type == "init");
     });
 
 

@@ -41,6 +41,7 @@ PeerSession::~PeerSession()
 
 void PeerSession::call(const std::string& peerId)
 {
+    std::string remotePeerId;
     {
         std::lock_guard lock(_mutex);
         if (_state == State::Ended)
@@ -51,15 +52,17 @@ void PeerSession::call(const std::string& peerId)
 
         LInfo("Initiating call to ", peerId);
         _remotePeerId = peerId;
+        remotePeerId = _remotePeerId;
         _state = State::Ringing;
-        _signaller.sendControl(peerId, "init");
     }
     StateChanged.emit(State::Ringing);
+    _signaller.sendControl(remotePeerId, "init");
 }
 
 
 void PeerSession::accept()
 {
+    std::string remotePeerId;
     {
         std::lock_guard lock(_mutex);
         if (_state != State::Incoming)
@@ -67,10 +70,11 @@ void PeerSession::accept()
 
         LInfo("Accepting call from ", _remotePeerId);
         _state = State::Connecting;
-        _signaller.sendControl(_remotePeerId, "accept");
-        createPeerConnection(false);
+        remotePeerId = _remotePeerId;
     }
     StateChanged.emit(State::Connecting);
+    _signaller.sendControl(remotePeerId, "accept");
+    createPeerConnection(false);
 }
 
 
@@ -78,20 +82,22 @@ void PeerSession::reject(const std::string& reason)
 {
     std::shared_ptr<rtc::PeerConnection> pc;
     std::shared_ptr<rtc::DataChannel> dc;
+    std::string remotePeerId;
     {
         std::lock_guard lock(_mutex);
         if (_state != State::Incoming)
             throw std::logic_error("Cannot reject: no incoming call");
 
         LInfo("Rejecting call from ", _remotePeerId, " reason=", reason);
-        _signaller.sendControl(_remotePeerId, "reject", reason);
+        remotePeerId = _remotePeerId;
         doEndCall("rejected", pc, dc);
     }
+    StateChanged.emit(State::Ended);
+    _signaller.sendControl(remotePeerId, "reject", reason);
     if (dc)
         dc->close();
     if (pc)
         pc->close();
-    StateChanged.emit(State::Ended);
     transitionEndedToIdle();
 }
 
@@ -100,21 +106,23 @@ void PeerSession::hangup(const std::string& reason)
 {
     std::shared_ptr<rtc::PeerConnection> pc;
     std::shared_ptr<rtc::DataChannel> dc;
+    std::string remotePeerId;
     {
         std::lock_guard lock(_mutex);
         if (_state == State::Idle || _state == State::Ended)
             return;
 
         LInfo("Hanging up, reason=", reason);
-        if (!_remotePeerId.empty())
-            _signaller.sendControl(_remotePeerId, "hangup", reason);
+        remotePeerId = _remotePeerId;
         doEndCall(reason, pc, dc);
     }
+    StateChanged.emit(State::Ended);
+    if (!remotePeerId.empty())
+        _signaller.sendControl(remotePeerId, "hangup", reason);
     if (dc)
         dc->close();
     if (pc)
         pc->close();
-    StateChanged.emit(State::Ended);
     transitionEndedToIdle();
 }
 
@@ -172,21 +180,28 @@ void PeerSession::onControlReceived(const std::string& peerId,
                                      const std::string& reason)
 {
     if (type == "init") {
+        bool busy = false;
         {
             std::lock_guard lock(_mutex);
             if (_state == State::Ended)
                 _state = State::Idle;
             if (_state != State::Idle) {
-                _signaller.sendControl(peerId, "reject", "busy");
-                return;
+                busy = true;
             }
-            _remotePeerId = peerId;
-            _state = State::Incoming;
+            else {
+                _remotePeerId = peerId;
+                _state = State::Incoming;
+            }
+        }
+        if (busy) {
+            _signaller.sendControl(peerId, "reject", "busy");
+            return;
         }
         StateChanged.emit(State::Incoming);
         IncomingCall.emit(peerId);
     }
     else if (type == "accept") {
+        bool shouldConnect = false;
         {
             std::lock_guard lock(_mutex);
             if (_state != State::Ringing || peerId != _remotePeerId)
@@ -194,9 +209,16 @@ void PeerSession::onControlReceived(const std::string& peerId,
 
             LInfo("Remote accepted call");
             _state = State::Connecting;
+            shouldConnect = true;
+        }
+        if (shouldConnect) {
             createPeerConnection(true);
-            _media.attach(_pc, _config.mediaOpts);
-            _pc->setLocalDescription(rtc::Description::Type::Offer);
+
+            auto pc = peerConnection();
+            if (pc) {
+                _media.attach(pc, _config.mediaOpts);
+                pc->setLocalDescription(rtc::Description::Type::Offer);
+            }
         }
         StateChanged.emit(State::Connecting);
     }
@@ -243,20 +265,26 @@ void PeerSession::onSdpReceived(const std::string& peerId,
                                  const std::string& type,
                                  const std::string& sdp)
 {
-    std::lock_guard lock(_mutex);
-    if (peerId != _remotePeerId || !_pc)
-        return;
+    std::shared_ptr<rtc::PeerConnection> pc;
+    bool attachMedia = false;
+    {
+        std::lock_guard lock(_mutex);
+        if (peerId != _remotePeerId || !_pc)
+            return;
+        pc = _pc;
+        attachMedia = type == "offer" && !_media.attached();
+    }
 
     if (type == "offer") {
         LDebug("Processing remote offer");
-        if (!_media.attached())
-            _media.attach(_pc, _config.mediaOpts);
-        _pc->setRemoteDescription(rtc::Description(sdp, type));
-        _pc->setLocalDescription(rtc::Description::Type::Answer);
+        if (attachMedia)
+            _media.attach(pc, _config.mediaOpts);
+        pc->setRemoteDescription(rtc::Description(sdp, type));
+        pc->setLocalDescription(rtc::Description::Type::Answer);
     }
     else if (type == "answer") {
         LDebug("Processing remote answer");
-        _pc->setRemoteDescription(rtc::Description(sdp, type));
+        pc->setRemoteDescription(rtc::Description(sdp, type));
     }
 }
 
@@ -265,12 +293,16 @@ void PeerSession::onCandidateReceived(const std::string& peerId,
                                        const std::string& candidate,
                                        const std::string& mid)
 {
-    std::lock_guard lock(_mutex);
-    if (peerId != _remotePeerId || !_pc)
-        return;
+    std::shared_ptr<rtc::PeerConnection> pc;
+    {
+        std::lock_guard lock(_mutex);
+        if (peerId != _remotePeerId || !_pc)
+            return;
+        pc = _pc;
+    }
 
     LDebug("Adding remote ICE candidate");
-    _pc->addRemoteCandidate(rtc::Candidate(candidate, mid));
+    pc->addRemoteCandidate(rtc::Candidate(candidate, mid));
 }
 
 
@@ -280,61 +312,77 @@ void PeerSession::onCandidateReceived(const std::string& peerId,
 
 void PeerSession::createPeerConnection(bool createDataChannel)
 {
-    _pc = std::make_shared<rtc::PeerConnection>(_config.rtcConfig);
-    setupPeerConnectionCallbacks();
+    auto pc = std::make_shared<rtc::PeerConnection>(_config.rtcConfig);
+    std::shared_ptr<rtc::DataChannel> dc;
+    setupPeerConnectionCallbacks(pc);
 
     if (createDataChannel && _config.enableDataChannel) {
-        _dc = _pc->createDataChannel(_config.dataChannelLabel);
-        _dc->onOpen([this]() { LDebug("Data channel open"); });
-        _dc->onMessage([this](rtc::message_variant msg) {
+        dc = pc->createDataChannel(_config.dataChannelLabel);
+        dc->onOpen([this]() { LDebug("Data channel open"); });
+        dc->onMessage([this](rtc::message_variant msg) {
             DataReceived.emit(std::move(msg));
         });
     }
 
-    _pc->onDataChannel([this](std::shared_ptr<rtc::DataChannel> dc) {
+    pc->onDataChannel([this, pc](std::shared_ptr<rtc::DataChannel> dc) {
         std::lock_guard lock(_mutex);
-        if (!_dc) {
-            _dc = dc;
-            _dc->onMessage([this](rtc::message_variant msg) {
-                DataReceived.emit(std::move(msg));
-            });
-        }
+        if (_pc != pc || _dc)
+            return;
+
+        _dc = dc;
+        _dc->onMessage([this](rtc::message_variant msg) {
+            DataReceived.emit(std::move(msg));
+        });
     });
+
+    {
+        std::lock_guard lock(_mutex);
+        _pc = std::move(pc);
+        _dc = std::move(dc);
+    }
 }
 
 
-void PeerSession::setupPeerConnectionCallbacks()
+void PeerSession::setupPeerConnectionCallbacks(const std::shared_ptr<rtc::PeerConnection>& pc)
 {
-    _pc->onLocalDescription([this](rtc::Description desc) {
+    pc->onLocalDescription([this, pc](rtc::Description desc) {
         LDebug("Local SDP ready: ", desc.typeString());
         std::string peerId;
         {
             std::lock_guard lock(_mutex);
+            if (_pc != pc)
+                return;
             peerId = _remotePeerId;
         }
-        _signaller.sendSdp(peerId, desc.typeString(), std::string(desc));
+        if (!peerId.empty())
+            _signaller.sendSdp(peerId, desc.typeString(), std::string(desc));
     });
 
-    _pc->onLocalCandidate([this](rtc::Candidate candidate) {
+    pc->onLocalCandidate([this, pc](rtc::Candidate candidate) {
         LDebug("Local ICE candidate");
         std::string peerId;
         {
             std::lock_guard lock(_mutex);
+            if (_pc != pc)
+                return;
             peerId = _remotePeerId;
         }
-        _signaller.sendCandidate(peerId, std::string(candidate), candidate.mid());
+        if (!peerId.empty())
+            _signaller.sendCandidate(peerId, std::string(candidate), candidate.mid());
     });
 
-    _pc->onStateChange([this](rtc::PeerConnection::State rtcState) {
+    pc->onStateChange([this, pc](rtc::PeerConnection::State rtcState) {
         LDebug("PeerConnection state: ", static_cast<int>(rtcState));
 
         State newState = State::Idle;
         bool changed = false;
-        std::shared_ptr<rtc::PeerConnection> pc;
+        std::shared_ptr<rtc::PeerConnection> endedPc;
         std::shared_ptr<rtc::DataChannel> dc;
 
         {
             std::lock_guard lock(_mutex);
+            if (_pc != pc)
+                return;
             switch (rtcState) {
             case rtc::PeerConnection::State::Connected:
                 if (_state == State::Connecting) {
@@ -344,18 +392,18 @@ void PeerSession::setupPeerConnectionCallbacks()
                 }
                 break;
             case rtc::PeerConnection::State::Failed:
-                doEndCall("connection failed", pc, dc);
+                doEndCall("connection failed", endedPc, dc);
                 newState = State::Ended;
                 changed = true;
                 break;
             case rtc::PeerConnection::State::Disconnected:
-                doEndCall("disconnected", pc, dc);
+                doEndCall("disconnected", endedPc, dc);
                 newState = State::Ended;
                 changed = true;
                 break;
             case rtc::PeerConnection::State::Closed:
                 if (_state != State::Idle && _state != State::Ended) {
-                    doEndCall("closed", pc, dc);
+                    doEndCall("closed", endedPc, dc);
                     newState = State::Ended;
                     changed = true;
                 }
@@ -367,8 +415,8 @@ void PeerSession::setupPeerConnectionCallbacks()
 
         if (dc)
             dc->close();
-        if (pc)
-            pc->close();
+        if (endedPc)
+            endedPc->close();
 
         if (changed) {
             StateChanged.emit(newState);

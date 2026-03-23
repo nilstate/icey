@@ -137,7 +137,7 @@ private:
     void onControlReceived(const std::string& peerId, const std::string& type, const std::string& reason);
 
     void createPeerConnection(bool createDataChannel);
-    void setupPeerConnectionCallbacks();
+    void setupPeerConnectionCallbacks(const std::shared_ptr<rtc::PeerConnection>& pc);
     void doEndCall(const std::string& reason,
                    std::shared_ptr<rtc::PeerConnection>& pc,
                    std::shared_ptr<rtc::DataChannel>& dc);
