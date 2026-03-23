@@ -83,6 +83,20 @@ Base_API ssize_t encode_blockend(char* code_out, internal::encodestate* state_in
 } // namespace internal
 
 
+/// Returns a safe temporary buffer size for encoding up to @p inputSize bytes.
+/// Includes padding/newline slack so callers can reuse the same buffer for finalize().
+inline size_t encodedBufferCapacity(size_t inputSize, int lineLength = LINE_LENGTH)
+{
+    const size_t quartets = (inputSize + 2) / 3;
+    size_t chars = quartets * 4;
+    if (lineLength > 0) {
+        const size_t quartetsPerLine = std::max<size_t>(1, static_cast<size_t>(lineLength) / 4);
+        chars += quartets / quartetsPerLine;
+    }
+    return chars + 4;
+}
+
+
 /// Base64 encoder.
 struct Encoder : public basic::Encoder
 {
@@ -101,7 +115,8 @@ struct Encoder : public basic::Encoder
     {
         const int N = _buffersize;
         auto readbuf = std::make_unique<char[]>(N);
-        auto encbuf = std::make_unique<char[]>(2 * N);
+        auto encbuf = std::make_unique<char[]>(
+            encodedBufferCapacity(static_cast<size_t>(N), _state.linelength));
         ssize_t nread;
         ssize_t enclen;
 
@@ -124,7 +139,8 @@ struct Encoder : public basic::Encoder
     /// @param out Output string to which Base64 characters are appended.
     void encode(const std::string& in, std::string& out)
     {
-        auto encbuf = std::make_unique<char[]>(in.length() * 2);
+        auto encbuf = std::make_unique<char[]>(
+            encodedBufferCapacity(in.length(), _state.linelength));
         ssize_t enclen = encode(in.c_str(), in.length(), encbuf.get());
         out.append(encbuf.get(), enclen);
 
@@ -171,15 +187,19 @@ struct Encoder : public basic::Encoder
 template <typename T>
 inline std::string encode(const T& bytes, int lineLength = LINE_LENGTH)
 {
+    if (bytes.empty())
+        return {};
+
     std::string res;
-    res.reserve(bytes.size() * 2);
-    auto encbuf = std::make_unique<char[]>(bytes.size() * 2);
+    res.reserve(encodedBufferCapacity(bytes.size(), lineLength));
+    auto encbuf = std::make_unique<char[]>(
+        encodedBufferCapacity(bytes.size(), lineLength));
 
     internal::encodestate state;
     internal::init_encodestate(&state);
     state.linelength = lineLength;
 
-    ssize_t enclen = internal::encode_block(reinterpret_cast<const char*>(&bytes[0]),
+    ssize_t enclen = internal::encode_block(reinterpret_cast<const char*>(bytes.data()),
                                             bytes.size(), encbuf.get(), &state);
     res.append(encbuf.get(), enclen);
 

@@ -657,6 +657,11 @@ int main(int argc, char** argv)
             expect(encoded.empty());
         }
 
+        {
+            std::vector<std::uint8_t> emptyBytes;
+            expect(base64::encode(emptyBytes).empty());
+        }
+
         // Standard test vectors via stream interface
         {
             std::istringstream in("f");
