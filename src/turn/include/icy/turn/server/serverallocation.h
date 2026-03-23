@@ -13,6 +13,7 @@
 
 #include "icy/turn/fivetuple.h"
 #include "icy/turn/iallocation.h"
+#include "icy/turn/server/permissionpolicy.h"
 
 
 namespace icy {
@@ -84,6 +85,7 @@ protected:
 
     uint32_t _maxLifetime;
     Server& _server;
+    PermissionPolicy _permissionPolicy;
     bool _refreshDeleteRequested = false;
 
 private:

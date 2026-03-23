@@ -14,6 +14,7 @@
 #include "icy/http/connection.h"
 #include "icy/http/util.h"
 #include "icy/logger.h"
+#include <utility>
 #include <stdexcept>
 
 
@@ -78,8 +79,11 @@ void Parser::init()
 }
 
 
-size_t Parser::parse(const char* data, size_t len)
+Parser::ParseResult Parser::parse(const char* data, size_t len)
 {
+    ParseResult result;
+    result.bytesConsumed = len;
+
     // Note: _complete may be true on keep-alive connections between requests.
     // llhttp handles this correctly - on_message_begin fires when new data
     // arrives, which calls reset() and clears _complete.
@@ -90,17 +94,77 @@ size_t Parser::parse(const char* data, size_t len)
         // The parser stopped after the HTTP headers. Return the number
         // of bytes consumed so the caller can forward any trailing data
         // (e.g. the first WebSocket frame coalesced in the same read).
-        size_t consumed = static_cast<size_t>(llhttp_get_error_pos(&_parser) - data);
+        result.bytesConsumed = static_cast<size_t>(llhttp_get_error_pos(&_parser) - data);
         llhttp_resume_after_upgrade(&_parser);
-        return consumed;
     } else if (err != HPE_OK) {
         LWarn("HTTP parse failed: ", llhttp_errno_name(err));
 
         // Handle error. Usually just close the connection.
         onError(err);
+
+        const char* errorPos = llhttp_get_error_pos(&_parser);
+        if (errorPos && errorPos >= data)
+            result.bytesConsumed = static_cast<size_t>(errorPos - data);
     }
 
-    return len;
+    result.messageComplete = _complete;
+    result.upgrade = _upgrade;
+    result.error = _error;
+    _lastResult = result;
+    return result;
+}
+
+
+void Parser::clearBoundMessage()
+{
+    if (_request) {
+        _request->clear();
+        _request->setMethod("");
+        _request->setURI("");
+        _request->setVersion(http::Message::HTTP_1_1);
+    }
+    if (_response) {
+        _response->clear();
+        _response->setVersion(http::Message::HTTP_1_1);
+        _response->setStatus(http::StatusCode::OK);
+        _response->setReason(http::getStatusCodeReason(http::StatusCode::OK));
+    }
+}
+
+
+void Parser::storeHeader(std::string name, std::string value)
+{
+    _scratch.headers.emplace_back(std::move(name), std::move(value));
+    if (_observer) {
+        const auto& header = _scratch.headers.back();
+        _observer->onParserHeader(header.first, header.second);
+    }
+}
+
+
+void Parser::applyScratchToBoundMessage()
+{
+    if (_request) {
+        _request->clear();
+        _request->setVersion(_scratch.version);
+        _request->setMethod(_scratch.method);
+        _request->setURI(std::move(_scratch.uri));
+        for (auto& [name, value] : _scratch.headers)
+            _request->add(std::move(name), std::move(value));
+        return;
+    }
+
+    if (_response) {
+        _response->clear();
+        _response->setVersion(_scratch.version);
+        _response->setStatusAndReason(
+            _scratch.status,
+            _scratch.reason.empty()
+                ? http::getStatusCodeReason(_scratch.status)
+                : _scratch.reason);
+        for (auto& [name, value] : _scratch.headers)
+            _response->add(std::move(name), std::move(value));
+    }
 }
 
 
@@ -117,9 +181,11 @@ void Parser::resetState()
     _complete = false;
     _upgrade = false;
     _error.reset();
+    _lastResult = {};
     _lastHeaderField.clear();
     _lastHeaderValue.clear();
     _wasHeaderValue = false;
+    _scratch.reset();
 }
 
 
@@ -188,16 +254,15 @@ bool Parser::upgrade() const
 
 void Parser::onHeader(std::string name, std::string value)
 {
-    if (_observer)
-        _observer->onParserHeader(name, value);
-    if (message())
-        message()->add(std::move(name), std::move(value));
+    storeHeader(std::move(name), std::move(value));
 }
 
 
 void Parser::onHeadersEnd()
 {
     _upgrade = llhttp_get_upgrade(&_parser) != 0;
+
+    applyScratchToBoundMessage();
 
     if (_observer)
         _observer->onParserHeadersEnd(_upgrade);
@@ -248,18 +313,7 @@ int Parser::on_message_begin(llhttp_t* parser)
         return -1;
     }
 
-    // Clear request/response state for keep-alive (next message on same connection).
-    // Version is set from the wire in on_headers_complete.
-    if (self->_request) {
-        self->_request->clear();
-        self->_request->setMethod("");
-        self->_request->setURI("");
-    }
-    if (self->_response) {
-        self->_response->clear();
-        self->_response->setStatus(http::StatusCode::OK);
-        self->_response->setReason(http::getStatusCodeReason(http::StatusCode::OK));
-    }
+    self->clearBoundMessage();
 
     // Use resetState() instead of reset() - we're inside an llhttp callback,
     // so we must NOT call llhttp_init() which would corrupt the parser.
@@ -275,11 +329,7 @@ int Parser::on_url(llhttp_t* parser, const char* at, size_t len)
         return -1;
     }
 
-    // llhttp may split the URL across callbacks on TCP segment boundaries.
-    // Append directly so fragmented URLs do not rebuild the whole string.
-    if (self->_request) {
-        self->_request->appendURI(std::string_view(at, len));
-    }
+    self->_scratch.uri.append(at, len);
     return 0;
 }
 
@@ -291,10 +341,8 @@ int Parser::on_status(llhttp_t* parser, const char* at, size_t length)
         return -1;
     }
 
-    // Handle response status line
-    if (self->_response)
-        self->_response->setStatus(static_cast<http::StatusCode>(llhttp_get_status_code(&self->_parser)));
-
+    if (at && length)
+        self->_scratch.reason.append(at, length);
     return 0;
 }
 
@@ -351,21 +399,18 @@ int Parser::on_headers_complete(llhttp_t* parser)
         self->onHeader(std::move(self->_lastHeaderField), std::move(self->_lastHeaderValue));
     }
 
-    // Set version from the actual parsed HTTP version
     auto major = llhttp_get_http_major(&self->_parser);
     auto minor = llhttp_get_http_minor(&self->_parser);
-    const auto& ver = (major == 1 && minor == 0)
+    self->_scratch.version = (major == 1 && minor == 0)
         ? http::Message::HTTP_1_0
         : http::Message::HTTP_1_1;
-    if (self->_request)
-        self->_request->setVersion(ver);
-    if (self->_response)
-        self->_response->setVersion(ver);
 
-    // Request HTTP method
     if (self->_request)
-        self->_request->setMethod(llhttp_method_name(
-            static_cast<llhttp_method_t>(llhttp_get_method(&self->_parser))));
+        self->_scratch.method = llhttp_method_name(
+            static_cast<llhttp_method_t>(llhttp_get_method(&self->_parser)));
+    if (self->_response)
+        self->_scratch.status = static_cast<http::StatusCode>(
+            llhttp_get_status_code(&self->_parser));
 
     self->onHeadersEnd();
     return 0;

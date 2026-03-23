@@ -15,6 +15,8 @@
 #include "icy/net/socket.h"
 #include <llhttp.h>
 
+#include <vector>
+
 
 namespace icy {
 namespace http {
@@ -53,6 +55,16 @@ public:
 class HTTP_API Parser
 {
 public:
+    struct ParseResult
+    {
+        size_t bytesConsumed = 0;
+        bool messageComplete = false;
+        bool upgrade = false;
+        Error error;
+
+        [[nodiscard]] bool ok() const { return !error.any(); }
+    };
+
     /// Creates a response parser. The response object is populated as data is parsed.
     /// @param response HTTP response object to populate.
     Parser(http::Response* response);
@@ -77,8 +89,8 @@ public:
     /// persists between calls. On completion or error, the observer is notified.
     /// @param data Pointer to the input data buffer.
     /// @param length Number of bytes in the buffer.
-    /// @return Number of bytes consumed (always equal to `length` unless an error occurred).
-    size_t parse(const char* data, size_t length);
+    /// @return Structured parse result including bytes consumed and terminal state.
+    ParseResult parse(const char* data, size_t length);
 
     /// Reset the internal state (reinitialises llhttp).
     /// Safe to call externally, NOT from inside llhttp callbacks.
@@ -123,7 +135,30 @@ public:
     [[nodiscard]] ParserObserver* observer() const;
 
 protected:
+    struct MessageScratch
+    {
+        std::string version;
+        std::string method;
+        std::string uri;
+        std::string reason;
+        http::StatusCode status = http::StatusCode::OK;
+        std::vector<std::pair<std::string, std::string>> headers;
+
+        void reset()
+        {
+            version = http::Message::HTTP_1_1;
+            method.clear();
+            uri.clear();
+            reason.clear();
+            status = http::StatusCode::OK;
+            headers.clear();
+        }
+    };
+
     void init();
+    void clearBoundMessage();
+    void storeHeader(std::string name, std::string value);
+    void applyScratchToBoundMessage();
 
     /// Callbacks
     void onHeader(std::string name, std::string value);
@@ -160,6 +195,8 @@ protected:
     bool _upgrade;
 
     Error _error;
+    ParseResult _lastResult;
+    MessageScratch _scratch;
 };
 
 

@@ -26,11 +26,12 @@ A Symple deployment has one server and any number of clients. Clients connect ov
 │  Application                                          │
 │                                                       │
 │   smpl::Client                   smpl::Server         │
-│   ├── Roster                     ├── ServerPeer[]     │
-│   ├── PacketSignal               ├── rooms map        │
-│   └── Stateful<ClientState>      └── http::Server     │
+│   ├── Roster                     ├── PeerRegistry     │
+│   ├── PacketSignal               ├── RoomIndex        │
+│   └── Stateful<ClientState>      ├── RoutingPolicy    │
+│         │                        ├── PresenceBuilder  │
+│         └─── http::ClientConnection ─┴── http::Server │
 │         │                               │             │
-│         └─── http::ClientConnection ────┘             │
 │              (WebSocket over HTTP upgrade)             │
 └───────────────────────────────────────────────────────┘
 ```
@@ -39,7 +40,7 @@ A Symple deployment has one server and any number of clients. Clients connect ov
 
 `smpl::Server` wraps an `http::Server`, intercepts WebSocket upgrade requests, and manages all protocol state. Non-WebSocket HTTP requests can be delegated to a custom `http::ServerConnectionFactory` passed at startup, so the same port can serve static files or a REST API alongside the Symple endpoint.
 
-The event loop is a single-threaded libuv loop. There are no locks in the message-handling hot path on either side. `Server` uses a mutex only around its peer and room maps, which are modified from connection callbacks.
+The transport path runs on a single-threaded libuv loop. `Server` still uses a mutex around peer/room registry transitions and unlocks around auth/disconnect signal callbacks, so the design is not literally lock-free. The important boundary is that routing, room membership, and presence shaping are now explicit internal components instead of one fused control surface.
 
 ### Protocol flow
 

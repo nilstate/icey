@@ -23,6 +23,15 @@
 namespace icy {
 namespace turn {
 
+namespace {
+
+bool matchesPermission(const Permission& permission, const Permission::Key& key)
+{
+    return permission.key.matches(key);
+}
+
+} // namespace
+
 
 IAllocation::IAllocation(const FiveTuple& tuple, const std::string& username,
                          std::int64_t lifetime)
@@ -138,9 +147,7 @@ void IAllocation::addPermission(const std::string& ip)
 
     // If the permission is already in the list then refresh it.
     for (auto& perm : _permissions) {
-        if ((key.valid() && perm.key.valid() && perm.key.af == key.af &&
-             perm.key.size == key.size &&
-             std::memcmp(perm.key.bytes.data(), key.bytes.data(), key.size) == 0) ||
+        if ((key.valid() && matchesPermission(perm, key)) ||
             perm.ip == ip) {
             LTrace("Refreshing permission: ", ip);
             perm.refresh();
@@ -223,9 +230,7 @@ bool IAllocation::hasPermission(const std::string& peerIP)
 {
     Permission::Key key = Permission::Key::fromIP(peerIP);
     for (const auto& perm : _permissions) {
-        if ((key.valid() && perm.key.valid() && perm.key.af == key.af &&
-             perm.key.size == key.size &&
-             std::memcmp(perm.key.bytes.data(), key.bytes.data(), key.size) == 0) ||
+        if ((key.valid() && matchesPermission(perm, key)) ||
             perm == peerIP)
             return true;
     }

@@ -108,6 +108,15 @@ enum class ErrorCode
 };
 
 
+enum class CloseState : uint8_t
+{
+    Open,
+    CloseSent,
+    CloseReceived,
+    Closed,
+};
+
+
 class HTTP_API WebSocketException : public std::runtime_error
 {
 public:
@@ -332,11 +341,18 @@ public:
 protected:
     virtual ~WebSocketAdapter();
 
+    bool sendControlFrame(ws::Opcode opcode,
+                          const char* payload,
+                          size_t payloadLen,
+                          const net::Address& peerAddr);
+    void resetFrameState();
+
     friend class WebSocketFramer;
 
     WebSocketFramer framer;
     http::Request& _request;
     http::Response& _response;
+    ws::CloseState _closeState{ws::CloseState::Open};
 };
 
 

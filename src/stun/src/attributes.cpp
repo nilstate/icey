@@ -26,6 +26,39 @@
 namespace icy {
 namespace stun {
 
+namespace {
+
+bool isAddressAttributeSize(uint16_t size)
+{
+    return size == AddressAttribute::IPv4Size || size == AddressAttribute::IPv6Size;
+}
+
+template <typename T>
+std::unique_ptr<Attribute> createFixedAttribute(uint16_t size)
+{
+    return size == T::Size ? std::make_unique<T>() : nullptr;
+}
+
+template <typename T>
+std::unique_ptr<Attribute> createBoundedAttribute(uint16_t size, uint16_t maxSize)
+{
+    return size <= maxSize ? std::make_unique<T>(size) : nullptr;
+}
+
+template <typename T>
+std::unique_ptr<Attribute> createExactSizeAttribute(uint16_t size, uint16_t expectedSize)
+{
+    return size == expectedSize ? std::make_unique<T>(size) : nullptr;
+}
+
+template <typename T>
+std::unique_ptr<Attribute> createVariableAttribute(uint16_t size)
+{
+    return std::make_unique<T>(size);
+}
+
+} // namespace
+
 
 Attribute::Attribute(uint16_t type, uint16_t size)
     : _type(type)
@@ -68,7 +101,7 @@ std::string Attribute::typeString(uint16_t type)
         case Attribute::UnknownAttributes:
             return "UNKNOWN-ATTRIBUTES";
         case Attribute::ReflectedFrom:
-            return "REFLECTED-FORM";
+            return "REFLECTED-FROM";
         // case Attribute::TransportPreferences: return "TRANSPORT-PREFERENCES";
         case Attribute::MagicCookie:
             return "MAGIC-COOKIE";
@@ -93,7 +126,7 @@ std::string Attribute::typeString(uint16_t type)
         case Attribute::RequestedTransport:
             return "REQUESTED-TRANSPORT";
         case Attribute::ReservationToken:
-            return "RESERVED-TOKEN";
+            return "RESERVATION-TOKEN";
         case Attribute::EventPort:
             return "EVEN-PORT";
         case Attribute::DontFragment:
@@ -140,19 +173,18 @@ std::string Attribute::typeString()
 
 void Attribute::consumePadding(BitReader& reader) const
 {
-    int remainder = _size % 4;
-    if (remainder > 0) {
-        reader.skip(4 - remainder);
-    }
+    auto padding = paddingBytes();
+    if (padding > 0)
+        reader.skip(padding);
 }
 
 
 void Attribute::writePadding(BitWriter& writer) const
 {
-    int remainder = _size % 4;
-    if (remainder > 0) {
+    auto padding = paddingBytes();
+    if (padding > 0) {
         char zeroes[4] = {0};
-        writer.put(zeroes, 4 - remainder);
+        writer.put(zeroes, padding);
     }
 }
 
@@ -161,34 +193,54 @@ std::unique_ptr<Attribute> Attribute::create(uint16_t type, uint16_t size)
 {
     switch (type) {
         case Attribute::MappedAddress:
-            if (size != AddressAttribute::IPv4Size &&
-                size != AddressAttribute::IPv6Size)
-                return nullptr;
-            return std::make_unique<stun::MappedAddress>();
-
-        case Attribute::XorMappedAddress:
-            if (size != AddressAttribute::IPv4Size &&
-                size != AddressAttribute::IPv6Size)
-                return nullptr;
-            return std::make_unique<stun::XorMappedAddress>();
-
-        case Attribute::XorRelayedAddress:
-            if (size != AddressAttribute::IPv4Size &&
-                size != AddressAttribute::IPv6Size)
-                return nullptr;
-            return std::make_unique<stun::XorRelayedAddress>();
-
-        case Attribute::XorPeerAddress:
-            if (size != AddressAttribute::IPv4Size &&
-                size != AddressAttribute::IPv6Size)
-                return nullptr;
-            return std::make_unique<stun::XorPeerAddress>();
-
+        case Attribute::ResponseAddress:
+        case Attribute::SourceAddress:
+        case Attribute::ChangedAddress:
+        case Attribute::ReflectedFrom:
         case Attribute::AlternateServer:
-            if (size != AddressAttribute::IPv4Size &&
-                size != AddressAttribute::IPv6Size)
+        case Attribute::DestinationAddress:
+        case Attribute::XorMappedAddress:
+        case Attribute::XorPeerAddress:
+        case Attribute::XorRelayedAddress: {
+            if (!isAddressAttributeSize(size))
                 return nullptr;
-            return std::make_unique<stun::AlternateServer>();
+
+            std::unique_ptr<Attribute> attr;
+            switch (type) {
+                case Attribute::MappedAddress:
+                    attr = std::make_unique<stun::MappedAddress>();
+                    break;
+                case Attribute::ResponseAddress:
+                    attr = std::make_unique<stun::ResponseAddress>();
+                    break;
+                case Attribute::SourceAddress:
+                    attr = std::make_unique<stun::SourceAddress>();
+                    break;
+                case Attribute::ChangedAddress:
+                    attr = std::make_unique<stun::ChangedAddress>();
+                    break;
+                case Attribute::ReflectedFrom:
+                    attr = std::make_unique<stun::ReflectedFrom>();
+                    break;
+                case Attribute::AlternateServer:
+                    attr = std::make_unique<stun::AlternateServer>();
+                    break;
+                case Attribute::DestinationAddress:
+                    attr = std::make_unique<stun::DestinationAddress>();
+                    break;
+                case Attribute::XorMappedAddress:
+                    attr = std::make_unique<stun::XorMappedAddress>();
+                    break;
+                case Attribute::XorPeerAddress:
+                    attr = std::make_unique<stun::XorPeerAddress>();
+                    break;
+                case Attribute::XorRelayedAddress:
+                    attr = std::make_unique<stun::XorRelayedAddress>();
+                    break;
+            }
+            attr->setLength(size);
+            return attr;
+        }
 
         case Attribute::ErrorCode:
             if (size < ErrorCode::MinSize)
@@ -196,95 +248,81 @@ std::unique_ptr<Attribute> Attribute::create(uint16_t type, uint16_t size)
             return std::make_unique<stun::ErrorCode>(size);
 
         case Attribute::UnknownAttributes:
-            return std::make_unique<stun::UnknownAttributes>(size);
+            return size % sizeof(uint16_t) == 0 ?
+                std::make_unique<stun::UnknownAttributes>(size) :
+                nullptr;
 
         case Attribute::Fingerprint:
-            if (size != Fingerprint::Size)
-                return nullptr;
-            return std::make_unique<stun::Fingerprint>();
+            return createFixedAttribute<stun::Fingerprint>(size);
 
         case Attribute::RequestedTransport:
-            if (size != RequestedTransport::Size)
-                return nullptr;
-            return std::make_unique<stun::RequestedTransport>();
+            return createFixedAttribute<stun::RequestedTransport>(size);
+
+        case Attribute::ChangeRequest:
+            return createFixedAttribute<stun::ChangeRequest>(size);
 
         case Attribute::Lifetime:
-            if (size != Lifetime::Size)
-                return nullptr;
-            return std::make_unique<stun::Lifetime>();
+            return createFixedAttribute<stun::Lifetime>(size);
 
         case Attribute::Bandwidth:
-            if (size != Bandwidth::Size)
-                return nullptr;
-            return std::make_unique<stun::Bandwidth>();
+            return createFixedAttribute<stun::Bandwidth>(size);
+
+        case Attribute::Options:
+            return createFixedAttribute<stun::Options>(size);
 
         case Attribute::ChannelNumber:
-            if (size != ChannelNumber::Size)
-                return nullptr;
-            return std::make_unique<stun::ChannelNumber>();
+            return createFixedAttribute<stun::ChannelNumber>(size);
 
         case Attribute::ConnectionID:
-            if (size != ConnectionID::Size)
-                return nullptr;
-            return std::make_unique<stun::ConnectionID>();
+            return createFixedAttribute<stun::ConnectionID>(size);
 
         case Attribute::MessageIntegrity:
-            return (size == 20) ? std::make_unique<stun::MessageIntegrity>() : nullptr;
+            return createFixedAttribute<stun::MessageIntegrity>(size);
 
         case Attribute::Nonce:
-            return (size <= 128) ? std::make_unique<stun::Nonce>(size) : nullptr;
+            return createBoundedAttribute<stun::Nonce>(size, 128);
 
         case Attribute::Realm:
-            return (size <= 128) ? std::make_unique<stun::Realm>(size) : nullptr;
+            return createBoundedAttribute<stun::Realm>(size, 128);
 
         case Attribute::Software:
-            return (size <= 128) ? std::make_unique<stun::Software>(size) : nullptr;
+            return createBoundedAttribute<stun::Software>(size, 128);
 
         case Attribute::ReservationToken:
-            return (size == 8) ? std::make_unique<stun::ReservationToken>() : nullptr;
+            return createExactSizeAttribute<stun::ReservationToken>(size, 8);
 
         case Attribute::MagicCookie:
-            return (size == 4) ? std::make_unique<stun::MagicCookie>() : nullptr;
+            return createExactSizeAttribute<stun::MagicCookie>(size, 4);
 
         case Attribute::Data:
-            return std::make_unique<stun::Data>(size);
+            return createVariableAttribute<stun::Data>(size);
 
         case Attribute::Username:
-            return (size <= 128) ? std::make_unique<stun::Username>(size) : nullptr;
+            return createBoundedAttribute<stun::Username>(size, 128);
 
         case Attribute::Password:
-            return (size <= 128) ? std::make_unique<stun::Password>(size) : nullptr;
+            return createBoundedAttribute<stun::Password>(size, 128);
 
         case Attribute::ICEPriority:
-            if (size != ICEPriority::Size)
-                return nullptr;
-            return std::make_unique<stun::ICEPriority>();
+            return createFixedAttribute<stun::ICEPriority>(size);
 
         case Attribute::ICEControlled:
-            if (size != ICEControlled::Size)
-                return nullptr;
-            return std::make_unique<stun::ICEControlled>();
+            return createFixedAttribute<stun::ICEControlled>(size);
 
         case Attribute::ICEControlling:
-            if (size != ICEControlling::Size)
-                return nullptr;
-            return std::make_unique<stun::ICEControlling>();
+            return createFixedAttribute<stun::ICEControlling>(size);
 
         case Attribute::ICEUseCandidate:
             return (size == 0) ? std::make_unique<stun::ICEUseCandidate>() : nullptr;
 
         case Attribute::DontFragment:
-            if (size != DontFragment::Size)
-                return nullptr;
-            return std::make_unique<stun::DontFragment>();
+            return createFixedAttribute<stun::DontFragment>(size);
 
         case Attribute::EventPort:
-            if (size != EventPort::Size)
-                return nullptr;
-            return std::make_unique<stun::EventPort>();
+            return createFixedAttribute<stun::EventPort>(size);
 
         default:
-            LError("Cannot create attribute for type: ", type);
+            LTrace("Cannot create attribute for type: ", type, " size: ", size);
             break;
     }
 

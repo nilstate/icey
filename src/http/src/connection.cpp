@@ -313,15 +313,15 @@ bool ConnectionAdapter::onSocketRecv(net::Socket& socket, const MutableBuffer& b
 
     // Save connection pointer before parse — replaceAdapter nulls _connection.
     auto* conn = _connection;
-    size_t consumed = _parser.parse(data, total);
+    auto result = _parser.parse(data, total);
 
     // On upgrade, the adapter was swapped inside the parse callback.
     // Forward trailing bytes (e.g. first WS frame) to the new adapter.
-    if (consumed < total && _parser.upgrade() && conn) {
+    if (result.bytesConsumed < total && result.upgrade && conn) {
         auto* newAdapter = conn->adapter();
         if (newAdapter && newAdapter != this) {
             newAdapter->onSocketRecv(socket, MutableBuffer(
-                const_cast<char*>(data + consumed), total - consumed), {});
+                const_cast<char*>(data + result.bytesConsumed), total - result.bytesConsumed), {});
         }
     }
 

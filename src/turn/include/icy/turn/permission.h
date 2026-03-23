@@ -84,7 +84,13 @@ struct Permission
                 return false;
 
             Key other = fromAddress(address);
-            return other.valid() &&
+            return matches(other);
+        }
+
+        [[nodiscard]] bool matches(const Key& other) const
+        {
+            return valid() &&
+                   other.valid() &&
                    other.af == af &&
                    other.size == size &&
                    std::memcmp(bytes.data(), other.bytes.data(), size) == 0;

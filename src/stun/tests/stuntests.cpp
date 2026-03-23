@@ -8,6 +8,7 @@
 #include <cstring>
 #include <map>
 #include <stdexcept>
+#include <typeinfo>
 
 
 using namespace std;
@@ -36,7 +37,7 @@ int main(int argc, char** argv)
         request.write(buf);
 
         stun::Message response;
-        auto nread = response.read(constBuffer(buf));
+        expect(response.read(constBuffer(buf)) > 0);
 
         auto* integrity = response.get<stun::MessageIntegrity>();
         expect(integrity != nullptr);
@@ -310,6 +311,27 @@ int main(int argc, char** argv)
         auto software = stun::Attribute::create(stun::Attribute::Software, 0);
         expect(software != nullptr);
 
+        auto responseAddress = stun::Attribute::create(
+            stun::Attribute::ResponseAddress, stun::AddressAttribute::IPv4Size);
+        expect(responseAddress != nullptr);
+
+        auto sourceAddress = stun::Attribute::create(
+            stun::Attribute::SourceAddress, stun::AddressAttribute::IPv6Size);
+        expect(sourceAddress != nullptr);
+        expect(sourceAddress->size() == stun::AddressAttribute::IPv6Size);
+
+        auto destinationAddress = stun::Attribute::create(
+            stun::Attribute::DestinationAddress, stun::AddressAttribute::IPv4Size);
+        expect(destinationAddress != nullptr);
+
+        auto changeRequest = stun::Attribute::create(
+            stun::Attribute::ChangeRequest, stun::ChangeRequest::Size);
+        expect(changeRequest != nullptr);
+
+        auto options = stun::Attribute::create(
+            stun::Attribute::Options, stun::Options::Size);
+        expect(options != nullptr);
+
         // Unknown type returns nullptr
         auto unknown = stun::Attribute::create(0xFFFF, 4);
         expect(unknown == nullptr);
@@ -317,6 +339,10 @@ int main(int argc, char** argv)
         // Invalid size for known type returns nullptr
         auto badLifetime = stun::Attribute::create(stun::Attribute::Lifetime, 3);
         expect(badLifetime == nullptr);
+
+        auto badUnknownAttrs = stun::Attribute::create(
+            stun::Attribute::UnknownAttributes, 3);
+        expect(badUnknownAttrs == nullptr);
     });
 
 
@@ -835,6 +861,99 @@ int main(int argc, char** argv)
         auto* ma = parsed.get<stun::MappedAddress>();
         expect(ma != nullptr);
         expect(ma->address() == addr);
+    });
+
+
+    // =========================================================================
+    // IPv6 address attributes: size must follow the address family on write/read
+    //
+    describe("mapped address ipv6 round-trip", []() {
+        net::Address addr("2001:db8::42", 3478);
+
+        stun::Message msg(stun::Message::SuccessResponse, stun::Message::Binding);
+        auto& mapped = msg.add<stun::MappedAddress>();
+        mapped.setAddress(addr);
+        expect(mapped.size() == stun::AddressAttribute::IPv6Size);
+
+        Buffer buf;
+        msg.write(buf);
+
+        stun::Message parsed;
+        auto nread = parsed.read(constBuffer(buf));
+        expect(nread > 0);
+
+        auto* parsedAddr = parsed.get<stun::MappedAddress>();
+        expect(parsedAddr != nullptr);
+        expect(parsedAddr->size() == stun::AddressAttribute::IPv6Size);
+        expect(parsedAddr->address() == addr);
+    });
+
+
+    // =========================================================================
+    // Legacy declared attributes must be parseable through Attribute::create()
+    //
+    describe("legacy declared attrs round-trip", []() {
+        net::Address source("2001:db8::2", 3478);
+        net::Address destination("203.0.113.20", 5000);
+
+        stun::Message msg(stun::Message::Request, stun::Message::Binding);
+        msg.add<stun::SourceAddress>().setAddress(source);
+        msg.add<stun::DestinationAddress>().setAddress(destination);
+        msg.add<stun::ChangeRequest>().setValue(0x00000006);
+        msg.add<stun::Options>().setValue(0x12345678);
+
+        Buffer buf;
+        msg.write(buf);
+
+        stun::Message parsed;
+        auto nread = parsed.read(constBuffer(buf));
+        expect(nread > 0);
+
+        auto* parsedSource = parsed.get<stun::SourceAddress>();
+        expect(parsedSource != nullptr);
+        expect(parsedSource->address() == source);
+
+        auto* parsedDestination = parsed.get<stun::DestinationAddress>();
+        expect(parsedDestination != nullptr);
+        expect(parsedDestination->address() == destination);
+
+        auto* parsedChange = parsed.get<stun::ChangeRequest>();
+        expect(parsedChange != nullptr);
+        expect(parsedChange->value() == 0x00000006u);
+
+        auto* parsedOptions = parsed.get<stun::Options>();
+        expect(parsedOptions != nullptr);
+        expect(parsedOptions->value() == 0x12345678u);
+    });
+
+
+    // =========================================================================
+    // Message copies must preserve concrete attribute types
+    //
+    describe("message copy preserves concrete attribute types", []() {
+        net::Address addr("2001:db8::9", 4444);
+
+        stun::Message original(stun::Message::Request, stun::Message::Binding);
+        original.add<stun::Lifetime>().setValue(600);
+        original.add<stun::Username>().copyBytes("alice", 5);
+        original.add<stun::XorMappedAddress>().setAddress(addr);
+
+        stun::Message copy(original);
+
+        auto* lifetime = copy.get(stun::Attribute::Lifetime);
+        expect(lifetime != nullptr);
+        expect(typeid(*lifetime) == typeid(stun::Lifetime));
+        expect(copy.get<stun::Lifetime>()->value() == 600);
+
+        auto* username = copy.get(stun::Attribute::Username);
+        expect(username != nullptr);
+        expect(typeid(*username) == typeid(stun::Username));
+        expect(copy.get<stun::Username>()->asString() == "alice");
+
+        auto* mapped = copy.get(stun::Attribute::XorMappedAddress);
+        expect(mapped != nullptr);
+        expect(typeid(*mapped) == typeid(stun::XorMappedAddress));
+        expect(copy.get<stun::XorMappedAddress>()->address() == addr);
     });
 
 

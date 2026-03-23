@@ -20,46 +20,6 @@
 namespace icy {
 namespace turn {
 
-namespace {
-
-bool isLocalPermissionAddress(const net::Address& address)
-{
-    auto* raw = address.addr();
-    if (!raw)
-        return false;
-
-    if (address.af() == AF_INET) {
-        const auto* ipv4 = reinterpret_cast<const sockaddr_in*>(raw);
-        uint32_t host = ntohl(ipv4->sin_addr.s_addr);
-        if ((host & 0xff000000u) == 0x0a000000u)   // 10.0.0.0/8
-            return true;
-        if ((host & 0xfff00000u) == 0xac100000u)   // 172.16.0.0/12
-            return true;
-        if ((host & 0xffff0000u) == 0xc0a80000u)   // 192.168.0.0/16
-            return true;
-        if ((host & 0xff000000u) == 0x7f000000u)   // 127.0.0.0/8
-            return true;
-        return false;
-    }
-
-    if (address.af() == AF_INET6) {
-        const auto* ipv6 = reinterpret_cast<const sockaddr_in6*>(raw);
-        const auto& bytes = ipv6->sin6_addr.s6_addr;
-
-        static constexpr uint8_t loopback[16] = {
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1
-        };
-        if (std::memcmp(bytes, loopback, sizeof(loopback)) == 0)
-            return true;
-        if (bytes[0] == 0xfe && (bytes[1] & 0xc0) == 0x80) // fe80::/10
-            return true;
-    }
-
-    return false;
-}
-
-} // namespace
-
 
 ServerAllocation::ServerAllocation(Server& server, const FiveTuple& tuple,
                                    const std::string& username,
@@ -67,6 +27,7 @@ ServerAllocation::ServerAllocation(Server& server, const FiveTuple& tuple,
     : IAllocation(tuple, username, lifetime)
     , _maxLifetime(server.options().allocationMaxLifetime / 1000)
     , _server(server)
+    , _permissionPolicy(server.options().enableLocalIPPermissions)
 {
     // Note: the allocation registers itself with the server via
     // Server::addAllocation(), which is called from the concrete
@@ -189,18 +150,13 @@ std::int64_t ServerAllocation::timeRemaining() const
 
 bool ServerAllocation::hasPermission(const std::string& peerIP)
 {
-    if (IAllocation::hasPermission(peerIP))
+    Permission::Key peerKey = Permission::Key::fromIP(peerIP);
+    if (_permissionPolicy.allowsExplicit(_permissions, peerKey))
         return true;
 
-    if (_server.options().enableLocalIPPermissions) {
-        try {
-            net::Address peerAddress(peerIP, 0);
-            if (isLocalPermissionAddress(peerAddress)) {
-                LWarn("Auto-granting permission for local IP: ", peerIP);
-                return true;
-            }
-        } catch (...) {
-        }
+    if (_permissionPolicy.allowsImplicit(peerKey)) {
+        LWarn("Auto-granting permission for local IP: ", peerIP);
+        return true;
     }
 
     return false;
@@ -209,14 +165,13 @@ bool ServerAllocation::hasPermission(const std::string& peerIP)
 
 bool ServerAllocation::hasPermission(const net::Address& peerAddress)
 {
-    if (IAllocation::hasPermission(peerAddress))
+    Permission::Key peerKey = Permission::Key::fromAddress(peerAddress);
+    if (_permissionPolicy.allowsExplicit(_permissions, peerKey))
         return true;
 
-    if (_server.options().enableLocalIPPermissions) {
-        if (isLocalPermissionAddress(peerAddress)) {
-            LWarn("Auto-granting permission for local IP: ", peerAddress);
-            return true;
-        }
+    if (_permissionPolicy.allowsImplicit(peerKey)) {
+        LWarn("Auto-granting permission for local IP: ", peerAddress);
+        return true;
     }
 
     return false;

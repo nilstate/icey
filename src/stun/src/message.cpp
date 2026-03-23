@@ -133,12 +133,8 @@ void Message::add(std::unique_ptr<Attribute> attr)
 uint16_t Message::computeBodySize() const
 {
     uint16_t size = 0;
-    for (const auto& attr : _attrs) {
-        size_t attrLength = attr->size();
-        if (attrLength % 4 != 0)
-            attrLength += (4 - (attrLength % 4));
-        size += static_cast<uint16_t>(attrLength + kAttributeHeaderSize);
-    }
+    for (const auto& attr : _attrs)
+        size += static_cast<uint16_t>(attr->paddedBytes() + kAttributeHeaderSize);
     return size;
 }
 
@@ -227,9 +223,15 @@ ssize_t Message::read(const ConstBuffer& buf)
         if (static_cast<int>(reader.available()) < rest)
             throw std::runtime_error("insufficient data for attributes");
         while (rest > 0) {
+            if (rest < kAttributeHeaderSize)
+                throw std::runtime_error("truncated STUN attribute header");
+
             reader.getU16(attrType);
             reader.getU16(attrLength);
-            padLength = attrLength % 4 == 0 ? 0 : 4 - (attrLength % 4);
+            padLength = Attribute::paddingBytes(attrLength);
+            auto wireLength = static_cast<int>(attrLength + kAttributeHeaderSize + padLength);
+            if (wireLength > rest)
+                throw std::runtime_error("attribute length exceeds remaining message body");
 
             auto attr = Attribute::create(attrType, attrLength);
             if (attr) {
@@ -243,7 +245,7 @@ ssize_t Message::read(const ConstBuffer& buf)
                      ;
             }
 
-            rest -= (attrLength + kAttributeHeaderSize + padLength);
+            rest -= wireLength;
         }
 
         LTrace("Parse success: ", reader.position(), ": ", buf.size());

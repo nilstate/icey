@@ -2,6 +2,7 @@
 #include "icy/turn/fivetuple.h"
 #include "icy/turn/iallocation.h"
 #include "icy/turn/permission.h"
+#include "icy/turn/server/permissionpolicy.h"
 #include "icy/util.h"
 #include "turnclienttest.h"
 #include "tcpinitiator.h"
@@ -238,6 +239,21 @@ int main(int argc, char** argv)
 
         auto notFound = std::find(perms.begin(), perms.end(), std::string("99.99.99.99"));
         expect(notFound == perms.end());
+    });
+
+    describe("permission policy uses binary keys and numeric local checks", []() {
+        turn::PermissionList perms;
+        perms.push_back(turn::Permission(net::Address("10.0.0.1", 3478)));
+
+        turn::PermissionPolicy policy(true);
+        expect(policy.allowsExplicit(perms, turn::Permission::Key::fromAddress(net::Address("10.0.0.1", 5000))));
+        expect(!policy.allowsExplicit(perms, turn::Permission::Key::fromAddress(net::Address("10.0.0.2", 5000))));
+        expect(policy.allowsImplicit(turn::Permission::Key::fromAddress(net::Address("127.0.0.1", 1))));
+        expect(policy.allowsImplicit(turn::Permission::Key::fromAddress(net::Address("172.16.0.1", 1))));
+        expect(!policy.allowsImplicit(turn::Permission::Key::fromAddress(net::Address("172.32.0.1", 1))));
+        expect(policy.allowsImplicit(turn::Permission::Key::fromAddress(net::Address("::1", 1))));
+        expect(policy.allowsImplicit(turn::Permission::Key::fromAddress(net::Address("fe80::1", 1))));
+        expect(!policy.allowsImplicit(turn::Permission::Key::fromAddress(net::Address("2001:db8::1", 1))));
     });
 
 

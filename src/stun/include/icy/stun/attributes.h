@@ -107,6 +107,24 @@ public:
     /// @return The body length of this attribute in bytes (before padding).
     [[nodiscard]] uint16_t size() const;
 
+    /// Returns the 4-byte alignment padding required for a body of @p size bytes.
+    [[nodiscard]] static constexpr uint16_t paddingBytes(uint16_t size)
+    {
+        return size % 4 == 0 ? 0 : static_cast<uint16_t>(4 - (size % 4));
+    }
+
+    /// Returns the body length including 4-byte alignment padding.
+    [[nodiscard]] static constexpr uint16_t paddedBytes(uint16_t size)
+    {
+        return static_cast<uint16_t>(size + paddingBytes(size));
+    }
+
+    /// @return The 4-byte alignment padding required for this attribute body.
+    [[nodiscard]] uint16_t paddingBytes() const { return paddingBytes(_size); }
+
+    /// @return The body length including 4-byte alignment padding.
+    [[nodiscard]] uint16_t paddedBytes() const { return paddedBytes(_size); }
+
     /// Advances the reader past any 4-byte alignment padding that follows
     /// this attribute's body.
     /// @param reader Reader to advance.
@@ -182,7 +200,18 @@ public:
 
     /// Sets the address to encode into this attribute.
     /// @param addr Address to store.
-    virtual void setAddress(const net::Address& addr) { _address = addr; }
+    virtual void setAddress(const net::Address& addr)
+    {
+        _address = addr;
+        switch (addr.family()) {
+            case net::Address::IPv4:
+                setLength(IPv4Size);
+                break;
+            case net::Address::IPv6:
+                setLength(IPv6Size);
+                break;
+        }
+    }
 
     /// @return true if this attribute type uses XOR encoding (RFC 5389).
     [[nodiscard]] bool isXorType() const
@@ -546,6 +575,10 @@ private:
         static constexpr uint16_t TypeID = Type;           \
         Name()                                             \
             : Derives(TypeID) {};                          \
+        std::unique_ptr<Attribute> clone() override        \
+        {                                                  \
+            return std::make_unique<Name>(*this);          \
+        }                                                  \
         virtual ~Name() {};                                \
     };
 
@@ -557,6 +590,10 @@ private:
         static constexpr uint16_t TypeID = Type;            \
         Name(uint16_t size = Length)                        \
             : Derives(TypeID, size) {};                     \
+        std::unique_ptr<Attribute> clone() override         \
+        {                                                   \
+            return std::make_unique<Name>(*this);           \
+        }                                                   \
         virtual ~Name() {};                                 \
     };
 

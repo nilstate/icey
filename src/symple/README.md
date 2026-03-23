@@ -12,7 +12,7 @@ Part of [icey](https://github.com/sourcey/icey). Implements the same protocol as
 - Per-peer rate limiting and max message size enforcement
 - Connection pooling and keep-alive for high throughput
 - WebRTC call signalling via SympleSignaller
-- Single-threaded libuv event loop; no locks in the hot path
+- Single-threaded libuv transport with explicit peer/room indexing and server-side routing policy
 
 ## Server
 

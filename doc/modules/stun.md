@@ -273,7 +273,7 @@ Attribute  (abstract)
 └── ErrorCode          0x0009  (class + number + reason)
 ```
 
-Concrete types are declared with two macros that inject a static `TypeID` constant, enabling the template accessor without any registration table:
+Concrete types are declared with two macros that inject a static `TypeID` constant and a concrete `clone()` override, enabling the template accessor without any registration table and preserving the exact runtime type when `Message` is copied:
 
 ```cpp
 // Fixed-size: body size is always the same
@@ -301,7 +301,7 @@ peer->setAddress(net::Address("203.0.113.42", 5000)); // stored plain; XORed on 
 req.add(peer);
 ```
 
-`AddressAttribute` stores both IPv4 and IPv6; `family()` returns the STUN `AddressFamily` enum. Wire sizes are `AddressAttribute::IPv4Size = 8` and `AddressAttribute::IPv6Size = 20`.
+`AddressAttribute` stores both IPv4 and IPv6; `family()` returns the STUN `AddressFamily` enum. Wire sizes are `AddressAttribute::IPv4Size = 8` and `AddressAttribute::IPv6Size = 20`. `setAddress()` updates the stored wire length automatically, and `Attribute::create()` preserves the parsed body length, so IPv6 address attributes now round-trip correctly instead of defaulting to the IPv4 body size.
 
 #### Integer attributes
 

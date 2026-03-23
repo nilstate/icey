@@ -162,6 +162,10 @@ bool WebSocketAdapter::shutdown(uint16_t statusCode, const std::string& statusMe
     if (!socket) {
         throw std::runtime_error("WebSocketAdapter::shutdown: no socket");
     }
+    if (_closeState == ws::CloseState::Closed)
+        return false;
+    if (_closeState == ws::CloseState::CloseSent)
+        return true;
 
     // Build the Close frame payload: 2-byte status code + reason string.
     // RFC 6455 Section 5.5: control frame payloads must be <= 125 bytes.
@@ -170,17 +174,13 @@ bool WebSocketAdapter::shutdown(uint16_t statusCode, const std::string& statusMe
     BitWriter payloadWriter(payload, sizeof(payload));
     payloadWriter.putU16(statusCode);
     payloadWriter.put(statusMessage.c_str(), reasonLen);
-
-    // Frame the Close payload through writeFrame so masking is applied
-    // correctly for client-side connections.
-    int closeFlags = unsigned(ws::FrameFlags::Fin) | unsigned(ws::Opcode::Close);
-    Buffer frameBuf;
-    frameBuf.reserve(payloadWriter.position() + WebSocketFramer::MAX_HEADER_LENGTH);
-    DynamicBitWriter frameWriter(frameBuf);
-    framer.writeFrame(payload, payloadWriter.position(), closeFlags, frameWriter);
-
-    return SocketAdapter::sendOwned(std::move(frameBuf),
-                                    socket->peerAddress(), 0) > 0;
+    bool sent = sendControlFrame(ws::Opcode::Close,
+                                 payload,
+                                 payloadWriter.position(),
+                                 socket->peerAddress());
+    if (sent)
+        _closeState = ws::CloseState::CloseSent;
+    return sent;
 }
 
 
@@ -255,14 +255,46 @@ void WebSocketAdapter::sendClientRequest()
 }
 
 
+bool WebSocketAdapter::sendControlFrame(ws::Opcode opcode,
+                                        const char* payload,
+                                        size_t payloadLen,
+                                        const net::Address& peerAddr)
+{
+    Buffer frameBuf;
+    frameBuf.reserve(payloadLen + WebSocketFramer::MAX_HEADER_LENGTH);
+    DynamicBitWriter writer(frameBuf);
+    int flags = unsigned(ws::FrameFlags::Fin) | unsigned(opcode);
+    framer.writeFrame(payload ? payload : "", payloadLen, flags, writer);
+    return SocketAdapter::sendOwned(std::move(frameBuf), peerAddr, 0) > 0;
+}
+
+
+void WebSocketAdapter::resetFrameState()
+{
+    _request.clear();
+    _response.clear();
+    framer._headerState = 0;
+    framer._frameFlags = 0;
+    framer._fragmented = false;
+    framer._fragmentOpcode = 0;
+    framer._fragmentBuffer.clear();
+    framer._incompleteFrame.clear();
+    _closeState = ws::CloseState::Closed;
+}
+
+
 void WebSocketAdapter::handleClientResponse(const MutableBuffer& buffer, const net::Address& peerAddr)
 {
     LTrace("Client response: ", buffer.str());
 
     auto data = bufferCast<char*>(buffer);
     http::Parser parser(&_response);
-    size_t nparsed = parser.parse(data, buffer.size());
-    if (nparsed == 0) {
+    auto result = parser.parse(data, buffer.size());
+    if (!result.ok()) {
+        throw std::runtime_error(
+            "WebSocket error: Cannot parse response: " + result.error.message);
+    }
+    if (!result.messageComplete && !result.upgrade) {
         throw std::runtime_error(
             "WebSocket error: Cannot parse response: Incomplete HTTP message");
     }
@@ -275,9 +307,9 @@ void WebSocketAdapter::handleClientResponse(const MutableBuffer& buffer, const n
 
     // If there is remaining data in the packet (packets may be joined)
     // then send it back through the socket recv method.
-    size_t remaining = buffer.size() - nparsed;
+    size_t remaining = buffer.size() - result.bytesConsumed;
     if (remaining) {
-        onSocketRecv(*socket.get(), MutableBuffer(&data[nparsed], remaining), peerAddr);
+        onSocketRecv(*socket.get(), MutableBuffer(&data[result.bytesConsumed], remaining), peerAddr);
     }
 }
 
@@ -294,7 +326,11 @@ void WebSocketAdapter::handleServerRequest(const MutableBuffer& buffer, const ne
     LTrace("Server request: ", buffer.str());
 
     http::Parser parser(&_request);
-    if (!parser.parse(bufferCast<char*>(buffer), buffer.size())) {
+    auto result = parser.parse(bufferCast<char*>(buffer), buffer.size());
+    if (!result.ok()) {
+        throw std::runtime_error("WebSocket error: Cannot parse request: " + result.error.message);
+    }
+    if (!result.upgrade && !result.messageComplete) {
         throw std::runtime_error("WebSocket error: Cannot parse request: Incomplete HTTP message");
     }
 
@@ -313,6 +349,14 @@ void WebSocketAdapter::handleServerRequest(const MutableBuffer& buffer, const ne
         throw std::runtime_error("WebSocketAdapter::handleServerRequest: no socket");
     }
     (void)SocketAdapter::sendOwned(std::move(responseData));
+
+    if (result.bytesConsumed < buffer.size()) {
+        auto* raw = bufferCast<char*>(buffer);
+        onSocketRecv(*socket.get(),
+                     MutableBuffer(raw + result.bytesConsumed,
+                                   buffer.size() - result.bytesConsumed),
+                     peerAddr);
+    }
 
     // Note: onHandshakeComplete() is NOT called here because on the
     // server side this runs inside onHeaders() before onConnectionReady
@@ -337,6 +381,11 @@ bool WebSocketAdapter::onSocketConnect(net::Socket&)
 bool WebSocketAdapter::onSocketRecv(net::Socket&, const MutableBuffer& buffer, const net::Address& peerAddress)
 {
     LTrace("On recv: ", buffer.size());
+
+    if (!socket || socket->closed() || _closeState == ws::CloseState::Closed ||
+        _closeState == ws::CloseState::CloseReceived) {
+        return false;
+    }
 
     if (framer.handshakeComplete()) {
 
@@ -386,23 +435,22 @@ bool WebSocketAdapter::onSocketRecv(net::Socket&, const MutableBuffer& buffer, c
 
                 if (opcode == unsigned(ws::Opcode::Ping)) {
                     LTrace("Received Ping, sending Pong");
-                    Buffer pongBuf;
-                    pongBuf.reserve(static_cast<size_t>(payloadLength) + WebSocketFramer::MAX_HEADER_LENGTH);
-                    DynamicBitWriter pongWriter(pongBuf);
-                    int pongFlags = unsigned(ws::FrameFlags::Fin) | unsigned(ws::Opcode::Pong);
-                    framer.writeFrame(payload ? payload : "", static_cast<size_t>(payloadLength), pongFlags, pongWriter);
-                    (void)SocketAdapter::sendOwned(std::move(pongBuf), peerAddress, 0);
+                    (void)sendControlFrame(ws::Opcode::Pong,
+                                           payload,
+                                           static_cast<size_t>(payloadLength),
+                                           peerAddress);
                     continue;
                 }
 
                 if (opcode == unsigned(ws::Opcode::Close)) {
-                    LTrace("Received Close frame, echoing close");
-                    Buffer closeBuf;
-                    closeBuf.reserve(static_cast<size_t>(payloadLength) + WebSocketFramer::MAX_HEADER_LENGTH);
-                    DynamicBitWriter closeWriter(closeBuf);
-                    int closeFlags = unsigned(ws::FrameFlags::Fin) | unsigned(ws::Opcode::Close);
-                    framer.writeFrame(payload ? payload : "", static_cast<size_t>(payloadLength), closeFlags, closeWriter);
-                    (void)SocketAdapter::sendOwned(std::move(closeBuf), peerAddress, 0);
+                    LTrace("Received Close frame");
+                    if (_closeState == ws::CloseState::Open) {
+                        (void)sendControlFrame(ws::Opcode::Close,
+                                               payload,
+                                               static_cast<size_t>(payloadLength),
+                                               peerAddress);
+                    }
+                    _closeState = ws::CloseState::CloseReceived;
                     socket->close();
                     return false;
                 }
@@ -440,6 +488,10 @@ bool WebSocketAdapter::onSocketRecv(net::Socket&, const MutableBuffer& buffer, c
                             net::SocketEmitter::onSocketRecv(*socket.get(),
                                 mutableBuffer(framer._fragmentBuffer.data(), framer._fragmentBuffer.size()),
                                 peerAddress);
+                            if (!socket || socket->closed() ||
+                                _closeState != ws::CloseState::Open) {
+                                return false;
+                            }
                         }
                         framer._fragmentBuffer.clear();
                         framer._fragmentOpcode = 0;
@@ -509,6 +561,10 @@ bool WebSocketAdapter::onSocketRecv(net::Socket&, const MutableBuffer& buffer, c
                 net::SocketEmitter::onSocketRecv(*socket.get(),
                     mutableBuffer(payload, static_cast<size_t>(payloadLength)),
                     peerAddress);
+                if (!socket || socket->closed() ||
+                    _closeState != ws::CloseState::Open) {
+                    return false;
+                }
             }
         }
     } else {
@@ -532,15 +588,7 @@ bool WebSocketAdapter::onSocketClose(net::Socket&)
 {
     LTrace("On close");
 
-    // Reset state so the connection can be reused
-    _request.clear();
-    _response.clear();
-    framer._headerState = 0;
-    framer._frameFlags = 0;
-    framer._fragmented = false;
-    framer._fragmentOpcode = 0;
-    framer._fragmentBuffer.clear();
-    framer._incompleteFrame.clear();
+    _closeState = ws::CloseState::Closed;
 
     // Emit closed event
     return net::SocketEmitter::onSocketClose(*socket.get());

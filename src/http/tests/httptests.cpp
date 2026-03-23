@@ -867,7 +867,9 @@ int main(int argc, char** argv)
         // Parse back
         http::Request parsed;
         http::Parser parser(&parsed);
-        parser.parse(raw.c_str(), raw.size());
+        auto result = parser.parse(raw.c_str(), raw.size());
+        expect(result.ok());
+        expect(result.messageComplete);
 
         expect(parsed.getMethod() == "GET");
         expect(parsed.getURI() == "/api/users?page=1");
@@ -886,8 +888,15 @@ int main(int argc, char** argv)
             "Host: example.com\r\n"
             "\r\n";
 
-        expect(parser.parse(part1.c_str(), part1.size()) == part1.size());
-        expect(parser.parse(part2.c_str(), part2.size()) == part2.size());
+        auto first = parser.parse(part1.c_str(), part1.size());
+        expect(first.ok());
+        expect(first.bytesConsumed == part1.size());
+        expect(!first.messageComplete);
+
+        auto second = parser.parse(part2.c_str(), part2.size());
+        expect(second.ok());
+        expect(second.bytesConsumed == part2.size());
+        expect(second.messageComplete);
         expect(parsed.getURI() == "/api/users?page=1");
     });
 
@@ -909,7 +918,9 @@ int main(int argc, char** argv)
         // Parse back
         http::Response parsed;
         http::Parser parser(&parsed);
-        parser.parse(raw.c_str(), raw.size());
+        auto result = parser.parse(raw.c_str(), raw.size());
+        expect(result.ok());
+        expect(result.messageComplete);
 
         expect(parsed.getStatus() == http::StatusCode::OK);
         expect(parsed.get("Content-Type") == "text/html");
@@ -2185,10 +2196,12 @@ int main(int argc, char** argv)
 
         http::Request parsed;
         http::Parser parser(&parsed);
-        size_t consumed = parser.parse(coalesced.c_str(), coalesced.size());
+        auto result = parser.parse(coalesced.c_str(), coalesced.size());
 
         // Parser should consume only the HTTP headers, not the trailing WS data
-        expect(consumed == upgradeReq.size());
+        expect(result.ok());
+        expect(result.bytesConsumed == upgradeReq.size());
+        expect(result.upgrade);
         expect(parser.upgrade());
     });
 
@@ -2204,7 +2217,9 @@ int main(int argc, char** argv)
 
         http::Response parsed;
         http::Parser parser(&parsed);
-        parser.parse(raw.c_str(), raw.size());
+        auto result = parser.parse(raw.c_str(), raw.size());
+        expect(result.ok());
+        expect(result.messageComplete);
 
         expect(parsed.getVersion() == "HTTP/1.0");
     });
