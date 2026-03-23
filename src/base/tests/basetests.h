@@ -35,6 +35,7 @@
 #include "icy/timer.h"
 #include "icy/util.h"
 
+#include <cstring>
 #include <sstream>
 
 
@@ -975,6 +976,40 @@ class PacketStreamOverflowTest : public Test
         std::cout << "PacketStreamOverflow: sent=" << totalToSend
                   << " dropped=" << queue->dropped()
                   << " received=" << numReceived << '\n';
+    }
+};
+
+
+class PacketStreamQueueCloneBoundaryTest : public Test
+{
+    std::string received;
+
+    void onPacket(IPacket& packet)
+    {
+        received.assign(packet.data(), packet.size());
+    }
+
+    void run()
+    {
+        PacketStream stream;
+        auto queue = std::make_shared<SyncPacketQueue<>>(uv::defaultLoop(), 16);
+        stream.attach(queue, 0);
+        stream.emitter += slot(this, &PacketStreamQueueCloneBoundaryTest::onPacket);
+
+        stream.start();
+
+        char data[] = {'h', 'e', 'l', 'l', 'o'};
+        stream.write(data, sizeof(data));
+        std::memcpy(data, "xxxxx", sizeof(data));
+
+        uv::runLoop(uv::defaultLoop(), UV_RUN_NOWAIT);
+        icy::sleep(25);
+        uv::runLoop(uv::defaultLoop(), UV_RUN_NOWAIT);
+
+        stream.close();
+
+        expect(queue->retention() == PacketRetention::Cloned);
+        expect(received == "hello");
     }
 };
 

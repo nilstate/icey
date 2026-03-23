@@ -63,6 +63,11 @@ public:
     /// @return True if `dynamic_cast<T*>(packet)` succeeds.
     virtual bool accepts(IPacket* packet) override;
 
+    [[nodiscard]] PacketRetention retention() const override
+    {
+        return PacketRetention::Cloned;
+    }
+
     PacketSignal emitter;
 
 protected:
@@ -164,6 +169,11 @@ public:
     /// @param packet Packet to test.
     /// @return True if `dynamic_cast<T*>(packet)` succeeds.
     bool accepts(IPacket* packet) override;
+
+    [[nodiscard]] PacketRetention retention() const override
+    {
+        return PacketRetention::Cloned;
+    }
 
     PacketSignal emitter;
 

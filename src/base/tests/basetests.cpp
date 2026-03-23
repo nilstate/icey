@@ -1022,6 +1022,7 @@ int main(int argc, char** argv)
     describe("process class", new ProcessTest);
     describe("packet stream file io", new PacketStreamIOTest);
     describe("packet stream overflow", new PacketStreamOverflowTest);
+    describe("packet stream queue clone boundary", new PacketStreamQueueCloneBoundaryTest);
     // describe("multi packet stream", new MultiPacketStreamTest);
 
     test::runAll();

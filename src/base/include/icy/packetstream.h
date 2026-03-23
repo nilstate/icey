@@ -28,6 +28,7 @@ namespace icy {
 
 
 struct PacketStreamState;
+enum class PacketRetention;
 
 
 //
@@ -74,6 +75,12 @@ public:
     /// Returns a reference to the outgoing packet signal.
     PacketSignal& getEmitter();
 
+    /// Returns how this adapter treats incoming packet lifetime.
+    /// Most adapters are synchronous and therefore only borrow the packet for
+    /// the current call chain. Queue-style adapters override this to advertise
+    /// that they clone before deferred use.
+    [[nodiscard]] virtual PacketRetention retention() const;
+
     /// Called by the PacketStream to notify when the internal
     /// Stream state changes.
     /// On receiving the Stopped state, it is the responsibility
@@ -113,10 +120,8 @@ public:
     /// This method performs processing on the given
     /// packet and emits the result.
     ///
-    /// Note: If packet processing is async (the packet is not in
-    /// the current thread scope) then packet data must be copied.
-    /// Copied data can be freed directly aFter the async call to
-    /// emit() the outgoing packet.
+    /// Processors that defer work asynchronously must either clone the packet
+    /// or retain an owned equivalent. See retention().
     virtual void process(IPacket& packet) = 0;
 
     /// This method ensures compatibility with the given
@@ -179,6 +184,16 @@ struct PacketAdapterReference
 
 
 using PacketAdapterVec = std::vector<PacketAdapterReference::Ptr>;
+
+
+/// Describes how an adapter treats incoming packet lifetime beyond the
+/// current synchronous call chain.
+enum class PacketRetention
+{
+    Borrowed,  ///< Packet is only used synchronously during the current emit/process call.
+    Cloned,    ///< Adapter makes its own copy before deferred or asynchronous use.
+    Retained   ///< Adapter retains the original packet object beyond the current call chain.
+};
 
 
 /// Flags which determine how the packet is handled by the PacketStream

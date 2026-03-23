@@ -753,6 +753,12 @@ PacketSignal& PacketStreamAdapter::getEmitter()
 }
 
 
+PacketRetention PacketStreamAdapter::retention() const
+{
+    return PacketRetention::Borrowed;
+}
+
+
 } // namespace icy
 
 
