@@ -38,35 +38,30 @@ public:
         _queue.push_back(data);
     }
 
+    /// Appends an item to the back of the queue by move (thread-safe).
+    /// @param data Item to enqueue.
+    void push(T&& data)
+    {
+        std::lock_guard<std::mutex> guard(_mutex);
+        _queue.push_back(std::move(data));
+    }
+
     /// @return True if the queue contains no items.
     bool empty() const
     {
+        std::lock_guard<std::mutex> guard(_mutex);
         return _queue.empty();
     }
 
-    /// @return Mutable reference to the front item (thread-safe).
-    T& front()
+    /// @return Copy of the front item.
+    T front() const
     {
         std::lock_guard<std::mutex> guard(_mutex);
         return _queue.front();
     }
 
-    /// @return Const reference to the front item (thread-safe).
-    T const& front() const
-    {
-        std::lock_guard<std::mutex> guard(_mutex);
-        return _queue.front();
-    }
-
-    /// @return Mutable reference to the back item (thread-safe).
-    T& back()
-    {
-        std::lock_guard<std::mutex> guard(_mutex);
-        return _queue.back();
-    }
-
-    /// @return Const reference to the back item (thread-safe).
-    T const& back() const
+    /// @return Copy of the back item.
+    T back() const
     {
         std::lock_guard<std::mutex> guard(_mutex);
         return _queue.back();
@@ -89,14 +84,14 @@ public:
     }
 
     /// @return Number of items currently in the queue (thread-safe).
-    size_t size()
+    size_t size() const
     {
         std::lock_guard<std::mutex> guard(_mutex);
         return _queue.size();
     }
 
-    /// @return Mutable reference to the underlying deque (thread-safe).
-    std::deque<T>& queue()
+    /// @return Copy of the underlying deque.
+    std::deque<T> queue() const
     {
         std::lock_guard<std::mutex> guard(_mutex);
         return _queue;
@@ -140,24 +135,32 @@ public:
     /// The queue takes ownership of the item pointer.
     virtual void push(T* item)
     {
-        std::lock_guard<std::mutex> guard(_mutex);
+        std::lock_guard<std::mutex> guard(Queue<T*>::_mutex);
 
-        while (_limit > 0 && static_cast<int>(Queue<T*>::size()) >= _limit) {
-            LWarn("Purging: ", Queue<T*>::size());
-            delete Queue<T*>::front();
-            Queue<T*>::pop();
+        while (_limit > 0 && static_cast<int>(Queue<T*>::_queue.size()) >= _limit) {
+            LWarn("Purging: ", Queue<T*>::_queue.size());
+            delete Queue<T*>::_queue.front();
+            Queue<T*>::_queue.pop_front();
+            ++_dropped;
         }
 
-        Queue<T*>::push(reinterpret_cast<T*>(item));
+        Queue<T*>::_queue.push_back(item);
     }
 
     /// Flush all outgoing items.
     virtual void flush()
     {
-        while (!Queue<T*>::empty()) {
-            auto next = Queue<T*>::front();
+        while (true) {
+            T* next = nullptr;
+            {
+                std::lock_guard<std::mutex> guard(Queue<T*>::_mutex);
+                if (Queue<T*>::_queue.empty())
+                    break;
+                next = Queue<T*>::_queue.front();
+                Queue<T*>::_queue.pop_front();
+            }
+
             dispatch(*next);
-            Queue<T*>::pop();
             delete next;
         }
     }
@@ -165,10 +168,10 @@ public:
     // Clear all queued items.
     void clear()
     {
-        std::lock_guard<std::mutex> guard(_mutex);
-        while (!Queue<T*>::empty()) {
-            delete Queue<T*>::front();
-            Queue<T*>::pop();
+        std::lock_guard<std::mutex> guard(Queue<T*>::_mutex);
+        while (!Queue<T*>::_queue.empty()) {
+            delete Queue<T*>::_queue.front();
+            Queue<T*>::_queue.pop_front();
         }
     }
 
@@ -209,7 +212,7 @@ public:
     /// @return Current dispatch timeout in milliseconds.
     int timeout()
     {
-        std::lock_guard<std::mutex> guard(_mutex);
+        std::lock_guard<std::mutex> guard(Queue<T*>::_mutex);
         return _timeout;
     }
 
@@ -218,10 +221,17 @@ public:
     /// @throws std::logic_error if the queue is non-empty.
     void setTimeout(int milliseconds)
     {
-        std::lock_guard<std::mutex> guard(_mutex);
-        if (!Queue<T*>::empty())
+        std::lock_guard<std::mutex> guard(Queue<T*>::_mutex);
+        if (!Queue<T*>::_queue.empty())
             throw std::logic_error("Cannot change timeout while queue is active");
         _timeout = milliseconds;
+    }
+
+    /// @return Number of items purged because the queue limit was exceeded.
+    size_t dropped() const
+    {
+        std::lock_guard<std::mutex> guard(Queue<T*>::_mutex);
+        return _dropped;
     }
 
 protected:
@@ -233,14 +243,14 @@ protected:
     /// Pops the next waiting item.
     virtual T* popNext()
     {
-        T* next;
+        T* next = nullptr;
         {
-            std::lock_guard<std::mutex> guard(_mutex);
-            if (Queue<T*>::empty())
+            std::lock_guard<std::mutex> guard(Queue<T*>::_mutex);
+            if (Queue<T*>::_queue.empty())
                 return nullptr;
 
-            next = Queue<T*>::front();
-            Queue<T*>::pop();
+            next = Queue<T*>::_queue.front();
+            Queue<T*>::_queue.pop_front();
         }
         return next;
     }
@@ -259,7 +269,7 @@ protected:
 
     int _limit;
     int _timeout;
-    mutable std::mutex _mutex;
+    size_t _dropped = 0;
 };
 
 

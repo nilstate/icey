@@ -874,10 +874,11 @@ class PacketStreamOverflowTest : public Test
         const int queueLimit = 10; // small queue to force overflow/purging
 
         PacketStream stream;
+        auto queue = std::make_shared<SyncPacketQueue<>>(uv::defaultLoop(), queueLimit);
 
         // Attach a SyncPacketQueue with a small capacity so the queue's
         // push() will purge old packets when the limit is reached.
-        stream.attach(new SyncPacketQueue<>(uv::defaultLoop(), queueLimit), 0, true);
+        stream.attach(queue, 0);
         stream.attach(new MockPacketProcessor, 1, true);
         stream.emitter += slot(this, &PacketStreamOverflowTest::onPacket);
 
@@ -904,11 +905,15 @@ class PacketStreamOverflowTest : public Test
 
         // The key assertions:
         // 1. We didn't crash (reaching here proves it)
-        // 2. We received some packets but fewer than sent (due to purging)
+        // 2. The bounded queue purged some packets under load
+        // 3. We received some packets but fewer than sent (due to purging)
+        expect(queue->dropped() > 0);
+        expect(queue->dropped() < static_cast<size_t>(totalToSend));
         expect(numReceived > 0);
         expect(numReceived <= totalToSend);
 
         std::cout << "PacketStreamOverflow: sent=" << totalToSend
+                  << " dropped=" << queue->dropped()
                   << " received=" << numReceived << '\n';
     }
 };
