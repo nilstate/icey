@@ -103,6 +103,7 @@ if(NOT USE_SYSTEM_DEPS)
     GIT_REPOSITORY https://github.com/libuv/libuv.git
     GIT_TAG        v1.50.0
     GIT_SHALLOW    TRUE)
+  set(LIBUV_BUILD_SHARED OFF CACHE BOOL "" FORCE)
   set(LIBUV_BUILD_TESTS OFF CACHE BOOL "" FORCE)
   set(LIBUV_BUILD_BENCH OFF CACHE BOOL "" FORCE)
   FetchContent_MakeAvailable(libuv)

@@ -16,29 +16,29 @@ FetchContent_Declare(icey
 FetchContent_MakeAvailable(icey)
 
 add_executable(myapp src/main.cpp)
-target_link_libraries(myapp PRIVATE icy_base icy_net icy_http)
+target_link_libraries(myapp PRIVATE Icey::base Icey::net Icey::http)
 ```
 
-Each module is a separate CMake target prefixed with `icy_`. Link only what you use; dependencies resolve automatically.
+Each module is a separate imported CMake target under the `Icey::` namespace. Link only what you use; dependencies resolve automatically.
 
 ## Available Targets
 
 | Target | Module | Optional Dependencies |
 | ------ | ------ | --------------------- |
-| `icy_base` | [Base](modules/base.md) | — |
-| `icy_crypto` | [Crypto](modules/crypto.md) | OpenSSL 3.x |
-| `icy_net` | [Net](modules/net.md) | — |
-| `icy_http` | [HTTP](modules/http.md) | — |
-| `icy_json` | [JSON](modules/json.md) | — |
-| `icy_av` | [AV](modules/av.md) | FFmpeg 5+/6+/7+ |
-| `icy_webrtc` | [WebRTC](modules/webrtc.md) | libdatachannel |
-| `icy_symple` | [Symple](modules/symple.md) | — |
-| `icy_stun` | [STUN](modules/stun.md) | — |
-| `icy_turn` | [TURN](modules/turn.md) | — |
-| `icy_archo` | [Archo](modules/archo.md) | — |
-| `icy_pacm` | [Pacm](modules/pacm.md) | — |
-| `icy_pluga` | [Pluga](modules/pluga.md) | — |
-| `icy_sched` | [Sched](modules/sched.md) | — |
+| `Icey::base` | [Base](modules/base.md) | — |
+| `Icey::crypto` | [Crypto](modules/crypto.md) | OpenSSL 3.x |
+| `Icey::net` | [Net](modules/net.md) | — |
+| `Icey::http` | [HTTP](modules/http.md) | — |
+| `Icey::json` | [JSON](modules/json.md) | — |
+| `Icey::av` | [AV](modules/av.md) | FFmpeg 5+/6+/7+ |
+| `Icey::webrtc` | [WebRTC](modules/webrtc.md) | libdatachannel |
+| `Icey::symple` | [Symple](modules/symple.md) | — |
+| `Icey::stun` | [STUN](modules/stun.md) | — |
+| `Icey::turn` | [TURN](modules/turn.md) | — |
+| `Icey::archo` | [Archo](modules/archo.md) | — |
+| `Icey::pacm` | [Pacm](modules/pacm.md) | — |
+| `Icey::pluga` | [Pluga](modules/pluga.md) | — |
+| `Icey::sched` | [Sched](modules/sched.md) | — |
 
 ## Building from Source
 
@@ -56,18 +56,18 @@ Then use `find_package` in your project:
 
 ```cmake
 find_package(Icey REQUIRED)
-target_link_libraries(myapp PRIVATE icy_base icy_net icy_http)
+target_link_libraries(myapp PRIVATE Icey::base Icey::net Icey::http)
 ```
 
 See the [installation guide](installation.md) for platform-specific instructions ([Linux](installation-linux.md), [macOS](installation-osx.md), [Windows](installation-windows.md)).
 
 ## Enabling Optional Modules
 
-Some modules require external libraries. Icey auto-detects dependencies via `find_package`; there are no `WITH_*` flags to set. Install the libraries so CMake can find them and the corresponding modules build automatically.
+Some modules require external libraries. By default Icey auto-detects system dependencies; optional integrations can also be forced on with `WITH_*` flags when configuring Icey itself.
 
-- **`icy_av`** (FFmpeg): install `libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libswresample-dev` (Ubuntu/Debian) or `ffmpeg` (Homebrew). Point CMake at a custom build with `-DFFmpeg_ROOT=/path/to/ffmpeg`.
-- **`icy_webrtc`** (libdatachannel): no installation needed; CMake fetches it automatically via FetchContent when `icy_webrtc` is requested.
-- **`icy_crypto`, `icy_net`, `icy_stun`, `icy_turn`** (OpenSSL): install `libssl-dev` (Ubuntu/Debian) or `openssl` (Homebrew). These modules are disabled if OpenSSL is not found.
+- **`Icey::av`** (FFmpeg): install `libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libswresample-dev` (Ubuntu/Debian) or `ffmpeg` (Homebrew). Point CMake at a custom build with `-DFFmpeg_ROOT=/path/to/ffmpeg`, or configure Icey with `-DWITH_FFMPEG=ON`.
+- **`Icey::webrtc`** (libdatachannel): configure Icey with `-DWITH_FFMPEG=ON -DWITH_LIBDATACHANNEL=ON`. libdatachannel is fetched automatically via FetchContent.
+- **`Icey::crypto`, `Icey::net`, `Icey::stun`, `Icey::turn`** (OpenSSL): install `libssl-dev` (Ubuntu/Debian) or `openssl` (Homebrew). These modules are disabled if OpenSSL is not found, or can be requested with `-DWITH_OPENSSL=ON`.
 
 The user-settable CMake options are: `BUILD_TESTS`, `BUILD_SHARED_LIBS`, `ENABLE_NATIVE_ARCH`, `ENABLE_LTO`, `ASAN`.
 
