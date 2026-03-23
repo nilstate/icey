@@ -835,7 +835,7 @@ auto adapter = std::make_shared<http::MultipartAdapter>("image/jpeg");
 
 Icey's HTTP server is built on the same libuv async I/O and llhttp parser that power Node.js, without the JavaScript runtime, garbage collector, or language bridge. All three servers in the benchmark below share the same underlying async I/O and parsing foundation; the difference is pure runtime overhead.
 
-Benchmarked on a single-core micro VM using [wrk](https://github.com/wg/wrk) (`wrk -t4 -c400 -d30s http://127.0.0.1:1337/`) against the `httpbenchmark` sample:
+Benchmarked on a single-core micro VM using [wrk](https://github.com/wg/wrk) (`wrk -t4 -c400 -d30s http://127.0.0.1:1337/`) against the `httpbench` benchmark:
 
 | Server | Req/sec | Latency | Notes |
 | ------ | ------: | ------: | ----- |
@@ -875,13 +875,13 @@ cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --parallel $(nproc)
 
 # Single-core with keep-alive
-./build/src/http/samples/httpbenchmark/httpbenchmark keepalive
+./build/src/http/bench/httpbench keepalive
 
 # Multicore with SO_REUSEPORT
-./build/src/http/samples/httpbenchmark/httpbenchmark multi
+./build/src/http/bench/httpbench multi
 
 # Raw libuv+llhttp ceiling
-./build/src/http/samples/httpbenchmark/httpbenchmark raw-keepalive
+./build/src/http/bench/httpbench raw-keepalive
 ```
 
 Then in another terminal:
@@ -1028,11 +1028,11 @@ To test locally, run `httpechoserver` first and connect to `ws://localhost:1337`
 
 Usage: `wsclient [url] [message]`
 
-### [httpbenchmark](../../src/http/samples/httpbenchmark/)
+### [httpbench](../../src/http/bench/)
 
 The benchmark used to produce the performance table above. Includes six modes covering single-core, keep-alive, multicore `SO_REUSEPORT`, echo, and a raw libuv+llhttp baseline with zero-copy fixed buffers and no heap allocation per connection (the theoretical ceiling).
 
-Usage: `httpbenchmark [single|keepalive|multi|echo|raw|raw-keepalive]`
+Usage: `httpbench [single|keepalive|multi|echo|raw|raw-keepalive]`
 
 ## Configuration
 

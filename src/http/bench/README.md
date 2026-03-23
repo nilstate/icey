@@ -32,18 +32,21 @@ Benchmarks Icey's HTTP server against Node.js and Go using [wrk](https://github.
 ## Build
 
 ```bash
-cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_SAMPLES=ON -DENABLE_LOGGING=OFF
-cmake --build build --target httpbenchmark -j$(nproc)
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_BENCHMARKS=ON -DENABLE_LOGGING=OFF
+cmake --build build --target httpbench -j$(nproc)
 ```
 
 ## Run
 
 ```bash
 # Automated comparison (runs all variants + wrk)
-./src/http/samples/httpbenchmark/benchmark.sh build/http/samples/httpbenchmark/httpbenchmark
+./src/http/bench/benchmark.sh build/http/bench/httpbench
+
+# Or through CMake
+cmake --build build --target httpbench_compare
 
 # Manual (run server then benchmark separately)
-build/http/samples/httpbenchmark/httpbenchmark keepalive &
+build/http/bench/httpbench keepalive &
 wrk -t4 -c100 -d10s http://localhost:1337/
 ```
 

@@ -1,4 +1,4 @@
-// Go HTTP benchmark server for comparison with LibSourcey.
+// Go HTTP benchmark server for comparison with Icey.
 // Usage: go run go-server.go [minimal|echo]
 package main
 

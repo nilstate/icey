@@ -1,4 +1,4 @@
-// Node.js HTTP benchmark servers for comparison with LibSourcey.
+// Node.js HTTP benchmark servers for comparison with Icey.
 // Usage: node node-server.js [minimal|echo]
 
 const http = require('http');
@@ -9,7 +9,7 @@ const PORT = 1337;
 const mode = process.argv[2] || 'minimal';
 
 if (mode === 'minimal') {
-  // Minimal response benchmark (matches LibSourcey benchmark server)
+  // Minimal response benchmark (matches Icey benchmark server)
   const server = http.createServer((req, res) => {
     res.writeHead(200, {
       'Content-Length': '0',
@@ -23,7 +23,7 @@ if (mode === 'minimal') {
   });
 
 } else if (mode === 'echo') {
-  // Echo server (matches LibSourcey echo server)
+  // Echo server (matches Icey echo server)
   const server = http.createServer((req, res) => {
     req.pipe(res);
   });

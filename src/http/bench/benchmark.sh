@@ -1,21 +1,21 @@
 #!/usr/bin/env bash
 #
-# LibSourcey HTTP Benchmark
+# Icey HTTP Benchmark
 #
 # Prerequisites:
 #   - wrk (https://github.com/wg/wrk)
 #   - node (for Node.js comparison)
-#   - httpbenchmark binary (built with -DBUILD_SAMPLES=ON -DCMAKE_BUILD_TYPE=Release)
+#   - httpbench binary (built with -DBUILD_BENCHMARKS=ON -DCMAKE_BUILD_TYPE=Release)
 #
 # Usage:
-#   ./benchmark.sh [path/to/httpbenchmark]
+#   ./benchmark.sh [path/to/httpbench]
 #
 # The script runs each server variant, benchmarks with wrk, then prints
 # a comparison table.
 
 set -euo pipefail
 
-HTTPBENCH="${1:-./httpbenchmark}"
+HTTPBENCH="${1:-./httpbench}"
 PORT=1337
 URL="http://localhost:${PORT}/"
 WRK_DURATION="10s"
@@ -36,7 +36,7 @@ die() { echo -e "${RED}Error: $*${NC}" >&2; exit 1; }
 
 command -v wrk >/dev/null 2>&1 || die "wrk not found. Install: sudo apt install wrk"
 command -v node >/dev/null 2>&1 || die "node not found."
-[[ -x "$HTTPBENCH" ]] || die "httpbenchmark binary not found at: $HTTPBENCH\nBuild with: cmake --build build --target httpbenchmark"
+[[ -x "$HTTPBENCH" ]] || die "httpbench binary not found at: $HTTPBENCH\nBuild with: cmake --build build --target httpbench"
 HAS_GO=false
 GO_BIN=""
 if command -v go >/dev/null 2>&1; then
@@ -86,7 +86,7 @@ cleanup() { kill_server; $HAS_GO && rm -f "$GO_BIN"; }
 trap cleanup EXIT
 
 echo -e "${BOLD}============================================${NC}"
-echo -e "${BOLD}  LibSourcey HTTP Benchmark${NC}"
+echo -e "${BOLD}  Icey HTTP Benchmark${NC}"
 echo -e "${BOLD}============================================${NC}"
 echo
 echo "System: $(uname -srm)"
@@ -105,18 +105,18 @@ wait_for_port
 run_wrk "Raw libuv+llhttp (baseline)"
 kill_server
 
-# --- LibSourcey single-core ---
+# --- Icey single-core ---
 "$HTTPBENCH" single &
 SERVER_PID=$!
 wait_for_port
-run_wrk "LibSourcey (single-core)"
+run_wrk "Icey (single-core)"
 kill_server
 
-# --- LibSourcey multi-core ---
+# --- Icey multi-core ---
 "$HTTPBENCH" multi &
 SERVER_PID=$!
 wait_for_port
-run_wrk "LibSourcey (multi-core)"
+run_wrk "Icey (multi-core)"
 kill_server
 
 # --- Node.js single ---
@@ -152,11 +152,11 @@ wait_for_port
 run_wrk "Raw libuv+llhttp (keep-alive)"
 kill_server
 
-# --- LibSourcey keep-alive ---
+# --- Icey keep-alive ---
 "$HTTPBENCH" keepalive &
 SERVER_PID=$!
 wait_for_port
-run_wrk "LibSourcey (keep-alive)"
+run_wrk "Icey (keep-alive)"
 kill_server
 
 # --- Node.js keep-alive ---
