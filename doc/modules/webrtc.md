@@ -128,23 +128,27 @@ av::MultiplexPacketEncoder  (FFmpeg mux -> file / stream)
 
 ```text
               call()                 remote accept
-  Idle ──────────────► Ringing ──────────────────► Connecting ──ICE connected──► Active
-    ▲                                                                                |
-    |                IncomingCall                                                    |
-    |     accept() / reject()                    hangup / reject / failure           |
-    +──── Incoming ◄──────────────                       Ended ◄─────────────────────+
+  Idle ──────────────► OutgoingInit ───────────────► Negotiating ──ICE connected──► Active
+    ▲                     ▲                              ▲                             |
+    |                     |                              |                             |
+    |                IncomingCall                    accept()                          |
+    |                     |                              |                             |
+    +──── IncomingInit ◄──┘                hangup / reject / failure                  |
+                                             │                                         |
+                                             └──────────► Ending ─► Ended ────────────┘
 ```
 
 | State | Meaning |
 | ----- | ------- |
 | `Idle` | No active call; ready to place or receive one. |
-| `Ringing` | Outgoing call sent (`call:init`); waiting for remote `accept`. |
-| `Incoming` | Remote initiated a call; waiting for `accept()` or `reject()`. |
-| `Connecting` | Call accepted; WebRTC negotiation in progress (SDP exchange + ICE). |
+| `OutgoingInit` | Outgoing call sent (`call:init`); waiting for remote `accept` or `reject`. |
+| `IncomingInit` | Remote initiated a call; waiting for `accept()` or `reject()`. |
+| `Negotiating` | PeerConnection exists and SDP/ICE negotiation is in progress. |
 | `Active` | ICE connected; media is flowing. Wire up your `PacketStream` here. |
+| `Ending` | Local teardown is in progress; sockets and tracks are being shut down. |
 | `Ended` | Call ended or failed; automatically resets to `Idle`. |
 
-`stateToString(state)` returns a lowercase C string (`"idle"`, `"ringing"`, `"incoming"`, `"connecting"`, `"active"`, `"ended"`) for logging.
+`stateToString(state)` returns a lowercase C string (`"idle"`, `"outgoing-init"`, `"incoming-init"`, `"negotiating"`, `"active"`, `"ending"`, `"ended"`) for logging.
 
 #### PeerSession config
 
@@ -197,11 +201,11 @@ session.StateChanged += [&](wrtc::PeerSession::State state) {
     }
 };
 
-// Sends call:init to the remote peer. Transitions to Ringing.
+// Sends call:init to the remote peer. Transitions to OutgoingInit.
 session.call("remote-peer-id");
 ```
 
-When the remote sends `accept`, `PeerSession` creates the `PeerConnection`, calls `MediaBridge::attach()`, and triggers the SDP offer. ICE candidates flow over the signaller in the background. When ICE connects, `StateChanged` fires with `Active`.
+When the remote sends `accept`, `PeerSession` creates the `PeerConnection`, attaches media immediately, and triggers the SDP offer. ICE candidates flow over the signaller in the background. When ICE connects, `StateChanged` fires with `Active`.
 
 #### Receiving an incoming call
 
@@ -212,7 +216,7 @@ session.IncomingCall += [&](const std::string& peerId) {
 };
 ```
 
-On `accept()`, `PeerSession` creates the `PeerConnection`, sends `call:accept` to the remote, and waits for the remote's SDP offer. When it arrives we send an answer. ICE runs in the background; `Active` fires when connected.
+On `accept()`, `PeerSession` creates the `PeerConnection`, attaches media, sends `call:accept` to the remote, and waits for the remote's SDP offer. When it arrives we send an answer. ICE runs in the background; `Active` fires when connected.
 
 #### Teardown
 

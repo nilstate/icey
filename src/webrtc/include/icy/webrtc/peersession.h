@@ -42,12 +42,13 @@ class WEBRTC_API PeerSession
 public:
     enum class State
     {
-        Idle,        ///< No active call
-        Ringing,     ///< Outgoing call, waiting for accept
-        Incoming,    ///< Incoming call, waiting for user action
-        Connecting,  ///< Accepted, WebRTC negotiation in progress
-        Active,      ///< Media flowing
-        Ended        ///< Call ended (transient; auto-resets to Idle)
+        Idle,          ///< No active call
+        OutgoingInit,  ///< Outgoing call announced, waiting for accept/reject
+        IncomingInit,  ///< Incoming call announced, waiting for accept/reject
+        Negotiating,   ///< PeerConnection exists and SDP/ICE negotiation is in progress
+        Active,        ///< Media or data is flowing
+        Ending,        ///< Local teardown is in progress
+        Ended          ///< Call ended (transient; auto-resets to Idle)
     };
 
     /// Configuration for WebRTC peer session establishment
@@ -68,23 +69,23 @@ public:
     PeerSession& operator=(const PeerSession&) = delete;
 
     /// Initiate an outgoing call to a remote peer.
-    /// Sends a "init" control message and transitions to Ringing.
+    /// Sends a "init" control message and transitions to OutgoingInit.
     /// @param peerId  Remote peer identifier passed to the signaller.
     /// @throws std::logic_error if not currently in the Idle state.
     void call(const std::string& peerId);
 
     /// Accept an incoming call.
-    /// Creates the PeerConnection, sends "accept", and transitions to Connecting.
-    /// @throws std::logic_error if not currently in the Incoming state.
+    /// Creates the PeerConnection, sends "accept", and transitions to Negotiating.
+    /// @throws std::logic_error if not currently in the IncomingInit state.
     void accept();
 
     /// Reject an incoming call.
     /// Sends a "reject" control message and transitions to Ended.
     /// @param reason  Human-readable reason string forwarded to the remote peer.
-    /// @throws std::logic_error if not currently in the Incoming state.
+    /// @throws std::logic_error if not currently in the IncomingInit state.
     void reject(const std::string& reason = "declined");
 
-    /// Terminate the active or ringing call.
+    /// Terminate any non-idle call phase.
     /// Sends a "hangup" control message, closes the PeerConnection, and
     /// transitions to Ended. Safe to call from any non-Idle/Ended state.
     /// @param reason  Human-readable reason string forwarded to the remote peer.
@@ -105,7 +106,7 @@ public:
     /// Parameter: new State value.
     Signal<void(State)> StateChanged;
 
-    /// Emitted when a remote peer initiates a call (state transitions to Incoming).
+    /// Emitted when a remote peer initiates a call (state transitions to IncomingInit).
     /// Parameter: remote peer identifier.
     Signal<void(const std::string&)> IncomingCall;
 
@@ -136,11 +137,12 @@ private:
     void onCandidateReceived(const std::string& peerId, const std::string& candidate, const std::string& mid);
     void onControlReceived(const std::string& peerId, const std::string& type, const std::string& reason);
 
-    void createPeerConnection(bool createDataChannel);
+    std::shared_ptr<rtc::PeerConnection> createPeerConnection(bool createDataChannel);
     void setupPeerConnectionCallbacks(const std::shared_ptr<rtc::PeerConnection>& pc);
-    void doEndCall(const std::string& reason,
-                   std::shared_ptr<rtc::PeerConnection>& pc,
-                   std::shared_ptr<rtc::DataChannel>& dc);
+    void beginEndCall(const std::string& reason,
+                      std::shared_ptr<rtc::PeerConnection>& pc,
+                      std::shared_ptr<rtc::DataChannel>& dc);
+    void finishEndCall();
     void transitionEndedToIdle();
 
     SignallingInterface& _signaller;
@@ -156,7 +158,8 @@ private:
 
 /// Convert a PeerSession::State to a lowercase C string for logging.
 /// @param state  State value to convert.
-/// @return       One of: "idle", "ringing", "incoming", "connecting", "active", "ended".
+/// @return       One of: "idle", "outgoing-init", "incoming-init", "negotiating",
+///               "active", "ending", "ended".
 [[nodiscard]] WEBRTC_API const char* stateToString(PeerSession::State state);
 
 

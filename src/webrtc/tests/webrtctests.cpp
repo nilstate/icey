@@ -440,10 +440,11 @@ int main(int argc, char** argv)
 
     describe("peer session: state strings", []() {
         expect(std::string(stateToString(PeerSession::State::Idle)) == "idle");
-        expect(std::string(stateToString(PeerSession::State::Ringing)) == "ringing");
-        expect(std::string(stateToString(PeerSession::State::Incoming)) == "incoming");
-        expect(std::string(stateToString(PeerSession::State::Connecting)) == "connecting");
+        expect(std::string(stateToString(PeerSession::State::OutgoingInit)) == "outgoing-init");
+        expect(std::string(stateToString(PeerSession::State::IncomingInit)) == "incoming-init");
+        expect(std::string(stateToString(PeerSession::State::Negotiating)) == "negotiating");
         expect(std::string(stateToString(PeerSession::State::Active)) == "active");
+        expect(std::string(stateToString(PeerSession::State::Ending)) == "ending");
         expect(std::string(stateToString(PeerSession::State::Ended)) == "ended");
     });
 
@@ -458,14 +459,15 @@ int main(int argc, char** argv)
         session.call("peer");
         expect(signaller.controls.size() == 1);
         expect(signaller.controls[0].type == "init");
-        expect(session.state() == PeerSession::State::Ringing);
+        expect(session.state() == PeerSession::State::OutgoingInit);
 
         signaller.ControlReceived.emit("peer", "reject", "busy");
 
-        expect(states.size() == 3);
-        expect(states[0] == PeerSession::State::Ringing);
-        expect(states[1] == PeerSession::State::Ended);
-        expect(states[2] == PeerSession::State::Idle);
+        expect(states.size() == 4);
+        expect(states[0] == PeerSession::State::OutgoingInit);
+        expect(states[1] == PeerSession::State::Ending);
+        expect(states[2] == PeerSession::State::Ended);
+        expect(states[3] == PeerSession::State::Idle);
         expect(session.state() == PeerSession::State::Idle);
         expect(session.remotePeerId().empty());
 
@@ -473,9 +475,31 @@ int main(int argc, char** argv)
         expect(signaller.controls.size() == 2);
         expect(signaller.controls[1].peerId == "peer-2");
         expect(signaller.controls[1].type == "init");
-        expect(session.state() == PeerSession::State::Ringing);
+        expect(session.state() == PeerSession::State::OutgoingInit);
 
         session.hangup("retry");
+        expect(session.state() == PeerSession::State::Idle);
+    });
+
+    describe("peer session: local hangup passes through ending", []() {
+        MockSignaller signaller;
+        PeerSession session(signaller, {});
+        std::vector<PeerSession::State> states;
+        session.StateChanged += [&](PeerSession::State state) {
+            states.push_back(state);
+        };
+
+        session.call("peer");
+        session.hangup("cancelled");
+
+        expect(signaller.controls.size() == 2);
+        expect(signaller.controls[0].type == "init");
+        expect(signaller.controls[1].type == "hangup");
+        expect(states.size() == 4);
+        expect(states[0] == PeerSession::State::OutgoingInit);
+        expect(states[1] == PeerSession::State::Ending);
+        expect(states[2] == PeerSession::State::Ended);
+        expect(states[3] == PeerSession::State::Idle);
         expect(session.state() == PeerSession::State::Idle);
     });
 
@@ -487,13 +511,13 @@ int main(int argc, char** argv)
         PeerSession session(signaller, config);
 
         signaller.ControlReceived.emit("peer", "init", "");
-        expect(session.state() == PeerSession::State::Incoming);
+        expect(session.state() == PeerSession::State::IncomingInit);
 
         session.accept();
 
         expect(signaller.controls.size() == 1);
         expect(signaller.controls[0].type == "accept");
-        expect(session.state() == PeerSession::State::Connecting);
+        expect(session.state() == PeerSession::State::Negotiating);
         expect(session.peerConnection() != nullptr);
         expect(session.dataChannel() == nullptr);
     });
@@ -525,7 +549,7 @@ int main(int argc, char** argv)
         session.call("peer");
         signaller.ControlReceived.emit("peer", "accept", "");
 
-        expect(session.state() == PeerSession::State::Connecting);
+        expect(session.state() == PeerSession::State::Negotiating);
         expect(session.peerConnection() != nullptr);
         expect(session.dataChannel() != nullptr);
     });
@@ -540,10 +564,11 @@ int main(int argc, char** argv)
 
         session.call("peer");
 
-        expect(states.size() == 3);
-        expect(states[0] == PeerSession::State::Ringing);
-        expect(states[1] == PeerSession::State::Ended);
-        expect(states[2] == PeerSession::State::Idle);
+        expect(states.size() == 4);
+        expect(states[0] == PeerSession::State::OutgoingInit);
+        expect(states[1] == PeerSession::State::Ending);
+        expect(states[2] == PeerSession::State::Ended);
+        expect(states[3] == PeerSession::State::Idle);
         expect(session.state() == PeerSession::State::Idle);
         expect(session.remotePeerId().empty());
         expect(signaller.controls.size() == 1);

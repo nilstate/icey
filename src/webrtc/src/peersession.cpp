@@ -53,9 +53,9 @@ void PeerSession::call(const std::string& peerId)
         LInfo("Initiating call to ", peerId);
         _remotePeerId = peerId;
         remotePeerId = _remotePeerId;
-        _state = State::Ringing;
+        _state = State::OutgoingInit;
     }
-    StateChanged.emit(State::Ringing);
+    StateChanged.emit(State::OutgoingInit);
     _signaller.sendControl(remotePeerId, "init");
 }
 
@@ -65,15 +65,15 @@ void PeerSession::accept()
     std::string remotePeerId;
     {
         std::lock_guard lock(_mutex);
-        if (_state != State::Incoming)
+        if (_state != State::IncomingInit)
             throw std::logic_error("Cannot accept: no incoming call");
 
         LInfo("Accepting call from ", _remotePeerId);
-        _state = State::Connecting;
+        _state = State::Negotiating;
         remotePeerId = _remotePeerId;
     }
     createPeerConnection(false);
-    StateChanged.emit(State::Connecting);
+    StateChanged.emit(State::Negotiating);
     _signaller.sendControl(remotePeerId, "accept");
 }
 
@@ -85,19 +85,21 @@ void PeerSession::reject(const std::string& reason)
     std::string remotePeerId;
     {
         std::lock_guard lock(_mutex);
-        if (_state != State::Incoming)
+        if (_state != State::IncomingInit)
             throw std::logic_error("Cannot reject: no incoming call");
 
         LInfo("Rejecting call from ", _remotePeerId, " reason=", reason);
         remotePeerId = _remotePeerId;
-        doEndCall("rejected", pc, dc);
+        beginEndCall("rejected", pc, dc);
     }
-    StateChanged.emit(State::Ended);
+    StateChanged.emit(State::Ending);
     _signaller.sendControl(remotePeerId, "reject", reason);
     if (dc)
         dc->close();
     if (pc)
         pc->close();
+    finishEndCall();
+    StateChanged.emit(State::Ended);
     transitionEndedToIdle();
 }
 
@@ -109,20 +111,22 @@ void PeerSession::hangup(const std::string& reason)
     std::string remotePeerId;
     {
         std::lock_guard lock(_mutex);
-        if (_state == State::Idle || _state == State::Ended)
+        if (_state == State::Idle || _state == State::Ended || _state == State::Ending)
             return;
 
         LInfo("Hanging up, reason=", reason);
         remotePeerId = _remotePeerId;
-        doEndCall(reason, pc, dc);
+        beginEndCall(reason, pc, dc);
     }
-    StateChanged.emit(State::Ended);
+    StateChanged.emit(State::Ending);
     if (!remotePeerId.empty())
         _signaller.sendControl(remotePeerId, "hangup", reason);
     if (dc)
         dc->close();
     if (pc)
         pc->close();
+    finishEndCall();
+    StateChanged.emit(State::Ended);
     transitionEndedToIdle();
 }
 
@@ -190,53 +194,52 @@ void PeerSession::onControlReceived(const std::string& peerId,
             }
             else {
                 _remotePeerId = peerId;
-                _state = State::Incoming;
+                _state = State::IncomingInit;
             }
         }
         if (busy) {
             _signaller.sendControl(peerId, "reject", "busy");
             return;
         }
-        StateChanged.emit(State::Incoming);
+        StateChanged.emit(State::IncomingInit);
         IncomingCall.emit(peerId);
     }
     else if (type == "accept") {
         bool shouldConnect = false;
         {
             std::lock_guard lock(_mutex);
-            if (_state != State::Ringing || peerId != _remotePeerId)
+            if (_state != State::OutgoingInit || peerId != _remotePeerId)
                 return;
 
             LInfo("Remote accepted call");
-            _state = State::Connecting;
+            _state = State::Negotiating;
             shouldConnect = true;
         }
         if (shouldConnect) {
-            createPeerConnection(true);
-
-            auto pc = peerConnection();
+            auto pc = createPeerConnection(true);
             if (pc) {
-                _media.attach(pc, _config.mediaOpts);
                 pc->setLocalDescription(rtc::Description::Type::Offer);
             }
         }
-        StateChanged.emit(State::Connecting);
+        StateChanged.emit(State::Negotiating);
     }
     else if (type == "reject") {
         std::shared_ptr<rtc::PeerConnection> pc;
         std::shared_ptr<rtc::DataChannel> dc;
         {
             std::lock_guard lock(_mutex);
-            if (_state != State::Ringing || peerId != _remotePeerId)
+            if (_state != State::OutgoingInit || peerId != _remotePeerId)
                 return;
 
             LInfo("Remote rejected call: ", reason);
-            doEndCall("rejected", pc, dc);
+            beginEndCall("rejected", pc, dc);
         }
+        StateChanged.emit(State::Ending);
         if (dc)
             dc->close();
         if (pc)
             pc->close();
+        finishEndCall();
         StateChanged.emit(State::Ended);
         transitionEndedToIdle();
     }
@@ -249,12 +252,14 @@ void PeerSession::onControlReceived(const std::string& peerId,
                 return;
 
             LInfo("Remote hung up: ", reason);
-            doEndCall(reason, pc, dc);
+            beginEndCall(reason, pc, dc);
         }
+        StateChanged.emit(State::Ending);
         if (dc)
             dc->close();
         if (pc)
             pc->close();
+        finishEndCall();
         StateChanged.emit(State::Ended);
         transitionEndedToIdle();
     }
@@ -266,19 +271,17 @@ void PeerSession::onSdpReceived(const std::string& peerId,
                                  const std::string& sdp)
 {
     std::shared_ptr<rtc::PeerConnection> pc;
-    bool attachMedia = false;
     {
         std::lock_guard lock(_mutex);
         if (peerId != _remotePeerId || !_pc)
             return;
+        if (_state != State::Negotiating && _state != State::Active)
+            return;
         pc = _pc;
-        attachMedia = type == "offer" && !_media.attached();
     }
 
     if (type == "offer") {
         LDebug("Processing remote offer");
-        if (attachMedia)
-            _media.attach(pc, _config.mediaOpts);
         pc->setRemoteDescription(rtc::Description(sdp, type));
         pc->setLocalDescription(rtc::Description::Type::Answer);
     }
@@ -298,6 +301,8 @@ void PeerSession::onCandidateReceived(const std::string& peerId,
         std::lock_guard lock(_mutex);
         if (peerId != _remotePeerId || !_pc)
             return;
+        if (_state != State::Negotiating && _state != State::Active)
+            return;
         pc = _pc;
     }
 
@@ -310,7 +315,7 @@ void PeerSession::onCandidateReceived(const std::string& peerId,
 // Internal
 // ---------------------------------------------------------------------------
 
-void PeerSession::createPeerConnection(bool createDataChannel)
+std::shared_ptr<rtc::PeerConnection> PeerSession::createPeerConnection(bool createDataChannel)
 {
     auto pc = std::make_shared<rtc::PeerConnection>(_config.rtcConfig);
     std::shared_ptr<rtc::DataChannel> dc;
@@ -339,7 +344,13 @@ void PeerSession::createPeerConnection(bool createDataChannel)
         std::lock_guard lock(_mutex);
         _pc = std::move(pc);
         _dc = std::move(dc);
+        pc = _pc;
     }
+
+    if (!_media.attached())
+        _media.attach(pc, _config.mediaOpts);
+
+    return pc;
 }
 
 
@@ -378,6 +389,7 @@ void PeerSession::setupPeerConnectionCallbacks(const std::shared_ptr<rtc::PeerCo
         bool changed = false;
         std::shared_ptr<rtc::PeerConnection> endedPc;
         std::shared_ptr<rtc::DataChannel> dc;
+        bool shouldFinish = false;
 
         {
             std::lock_guard lock(_mutex);
@@ -385,27 +397,30 @@ void PeerSession::setupPeerConnectionCallbacks(const std::shared_ptr<rtc::PeerCo
                 return;
             switch (rtcState) {
             case rtc::PeerConnection::State::Connected:
-                if (_state == State::Connecting) {
+                if (_state == State::Negotiating) {
                     _state = State::Active;
                     newState = State::Active;
                     changed = true;
                 }
                 break;
             case rtc::PeerConnection::State::Failed:
-                doEndCall("connection failed", endedPc, dc);
-                newState = State::Ended;
+                beginEndCall("connection failed", endedPc, dc);
+                newState = State::Ending;
                 changed = true;
+                shouldFinish = true;
                 break;
             case rtc::PeerConnection::State::Disconnected:
-                doEndCall("disconnected", endedPc, dc);
-                newState = State::Ended;
+                beginEndCall("disconnected", endedPc, dc);
+                newState = State::Ending;
                 changed = true;
+                shouldFinish = true;
                 break;
             case rtc::PeerConnection::State::Closed:
-                if (_state != State::Idle && _state != State::Ended) {
-                    doEndCall("closed", endedPc, dc);
-                    newState = State::Ended;
+                if (_state != State::Idle && _state != State::Ended && _state != State::Ending) {
+                    beginEndCall("closed", endedPc, dc);
+                    newState = State::Ending;
                     changed = true;
+                    shouldFinish = true;
                 }
                 break;
             default:
@@ -420,24 +435,36 @@ void PeerSession::setupPeerConnectionCallbacks(const std::shared_ptr<rtc::PeerCo
 
         if (changed) {
             StateChanged.emit(newState);
-            transitionEndedToIdle();
+            if (shouldFinish) {
+                finishEndCall();
+                StateChanged.emit(State::Ended);
+                transitionEndedToIdle();
+            }
         }
     });
 }
 
 
-void PeerSession::doEndCall(const std::string& reason,
-                            std::shared_ptr<rtc::PeerConnection>& pc,
-                            std::shared_ptr<rtc::DataChannel>& dc)
+void PeerSession::beginEndCall(const std::string& reason,
+                               std::shared_ptr<rtc::PeerConnection>& pc,
+                               std::shared_ptr<rtc::DataChannel>& dc)
 {
     LDebug("Ending call: ", reason);
+    _state = State::Ending;
     _media.detach();
 
     dc = std::move(_dc);
     pc = std::move(_pc);
 
     _remotePeerId.clear();
-    _state = State::Ended;
+}
+
+
+void PeerSession::finishEndCall()
+{
+    std::lock_guard lock(_mutex);
+    if (_state == State::Ending)
+        _state = State::Ended;
 }
 
 
@@ -460,12 +487,13 @@ void PeerSession::transitionEndedToIdle()
 const char* stateToString(PeerSession::State state)
 {
     switch (state) {
-    case PeerSession::State::Idle:       return "idle";
-    case PeerSession::State::Ringing:    return "ringing";
-    case PeerSession::State::Incoming:   return "incoming";
-    case PeerSession::State::Connecting: return "connecting";
-    case PeerSession::State::Active:     return "active";
-    case PeerSession::State::Ended:      return "ended";
+    case PeerSession::State::Idle:         return "idle";
+    case PeerSession::State::OutgoingInit: return "outgoing-init";
+    case PeerSession::State::IncomingInit: return "incoming-init";
+    case PeerSession::State::Negotiating:  return "negotiating";
+    case PeerSession::State::Active:       return "active";
+    case PeerSession::State::Ending:       return "ending";
+    case PeerSession::State::Ended:        return "ended";
     }
     return "unknown";
 }
