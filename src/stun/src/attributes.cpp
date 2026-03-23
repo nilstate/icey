@@ -319,16 +319,6 @@ net::Address AddressAttribute::address() const
 }
 
 
-std::string intToIPv4(uint32_t ip)
-{
-    // Input in host byte order; high byte = first octet
-    char str[20];
-    std::snprintf(str, sizeof(str), "%d.%d.%d.%d",
-                  (ip >> 24) & 0xff, (ip >> 16) & 0xff,
-                  (ip >> 8) & 0xff, ip & 0xff);
-    return std::string(str);
-}
-
 
 void AddressAttribute::read(BitReader& reader)
 {
@@ -348,9 +338,12 @@ void AddressAttribute::read(BitReader& reader)
 
     // BitReader::getU16/getU32 convert from network to host byte order.
     // kMagicCookie is a host-order constant, so XOR directly in host order.
+    bool xor_ = isXorType();
+
     uint16_t port;
     reader.getU16(port);
-    port ^= static_cast<uint16_t>(kMagicCookie >> 16);
+    if (xor_)
+        port ^= static_cast<uint16_t>(kMagicCookie >> 16);
 
     if (family == static_cast<uint8_t>(AddressFamily::IPv4)) {
         if (size() != IPv4Size) {
@@ -359,58 +352,44 @@ void AddressAttribute::read(BitReader& reader)
 
         uint32_t ip;
         reader.getU32(ip);
-        ip ^= kMagicCookie;
+        if (xor_)
+            ip ^= kMagicCookie;
 
-        _address = net::Address(intToIPv4(ip), port);
+        struct sockaddr_in sa{};
+        sa.sin_family = AF_INET;
+        sa.sin_port = htons(port);
+        sa.sin_addr.s_addr = htonl(ip);
+        _address = net::Address(reinterpret_cast<struct sockaddr*>(&sa), sizeof(sa));
     } else if (family == static_cast<uint8_t>(AddressFamily::IPv6)) {
         if (size() != IPv6Size) {
             throw std::runtime_error("invalid IPv6 address attribute size");
         }
 
-        // RFC 5389 Section 15.2: For IPv6, X-Address is computed by taking
-        // the mapped IP address in host byte order, XOR'ing it with the
-        // concatenation of the magic cookie (32 bits) and the transaction
-        // ID (96 bits), and converting the result to network byte order.
-
-        // Read the 16 raw bytes of the IPv6 address from the wire
-        uint8_t xored[16];
+        uint8_t raw[16];
         for (int i = 0; i < 16; i++) {
             uint8_t b;
             reader.getU8(b);
-            xored[i] = b;
+            raw[i] = b;
         }
 
-        // Build the 16-byte XOR mask: magic cookie (4 bytes) + transaction ID (12 bytes)
-        // We need to get the transaction ID from the message header which
-        // starts at offset 8 in the reader's buffer (after type + length + cookie).
-        // The reader.begin() points to the start of the STUN message.
-        const uint8_t* msgBegin = reinterpret_cast<const uint8_t*>(reader.begin());
-        uint8_t xorMask[16];
-        // First 4 bytes: magic cookie in network byte order
-        xorMask[0] = static_cast<uint8_t>((kMagicCookie >> 24) & 0xff);
-        xorMask[1] = static_cast<uint8_t>((kMagicCookie >> 16) & 0xff);
-        xorMask[2] = static_cast<uint8_t>((kMagicCookie >> 8) & 0xff);
-        xorMask[3] = static_cast<uint8_t>(kMagicCookie & 0xff);
-        // Next 12 bytes: transaction ID from offset 8 in the message
-        std::memcpy(xorMask + 4, msgBegin + kTransactionIdOffset, kTransactionIdLength);
+        if (xor_) {
+            const uint8_t* msgBegin = reinterpret_cast<const uint8_t*>(reader.begin());
+            uint8_t xorMask[16];
+            xorMask[0] = static_cast<uint8_t>((kMagicCookie >> 24) & 0xff);
+            xorMask[1] = static_cast<uint8_t>((kMagicCookie >> 16) & 0xff);
+            xorMask[2] = static_cast<uint8_t>((kMagicCookie >> 8) & 0xff);
+            xorMask[3] = static_cast<uint8_t>(kMagicCookie & 0xff);
+            std::memcpy(xorMask + 4, msgBegin + kTransactionIdOffset, kTransactionIdLength);
 
-        // XOR the address bytes with the mask
-        uint8_t addr[16];
-        for (int i = 0; i < 16; i++) {
-            addr[i] = xored[i] ^ xorMask[i];
+            for (int i = 0; i < 16; i++)
+                raw[i] ^= xorMask[i];
         }
 
-        // Build IPv6 address string from the decoded bytes
-        char addrStr[64];
-        std::snprintf(addrStr, sizeof(addrStr),
-                      "%02x%02x:%02x%02x:%02x%02x:%02x%02x:"
-                      "%02x%02x:%02x%02x:%02x%02x:%02x%02x",
-                      addr[0], addr[1], addr[2], addr[3],
-                      addr[4], addr[5], addr[6], addr[7],
-                      addr[8], addr[9], addr[10], addr[11],
-                      addr[12], addr[13], addr[14], addr[15]);
-
-        _address = net::Address(std::string(addrStr), port);
+        struct sockaddr_in6 sa6{};
+        sa6.sin6_family = AF_INET6;
+        sa6.sin6_port = htons(port);
+        std::memcpy(&sa6.sin6_addr, raw, 16);
+        _address = net::Address(reinterpret_cast<struct sockaddr*>(&sa6), sizeof(sa6));
     } else {
         throw std::runtime_error("invalid address family in STUN attribute");
     }
@@ -422,21 +401,21 @@ void AddressAttribute::write(BitWriter& writer) const
     writer.putU8(0);
     writer.putU8(static_cast<uint8_t>(family()));
 
-    // BitWriter::putU16/putU32 convert from host to network byte order.
-    // kMagicCookie is a host-order constant; sockaddr fields are in network order.
+    bool xor_ = isXorType();
+
     switch (_address.family()) {
         case net::Address::IPv4: {
             auto v4addr = reinterpret_cast<sockaddr_in*>(
                 const_cast<sockaddr*>(_address.addr()));
 
-            // Port: convert from network to host, XOR, then putU16 converts back
             uint16_t port = ntohs(v4addr->sin_port);
-            port ^= static_cast<uint16_t>(kMagicCookie >> 16);
+            if (xor_)
+                port ^= static_cast<uint16_t>(kMagicCookie >> 16);
             writer.putU16(port);
 
-            // Address: convert from network to host, XOR, then putU32 converts back
             uint32_t ip = ntohl(v4addr->sin_addr.s_addr);
-            ip ^= kMagicCookie;
+            if (xor_)
+                ip ^= kMagicCookie;
             writer.putU32(ip);
             break;
         }
@@ -444,28 +423,28 @@ void AddressAttribute::write(BitWriter& writer) const
             auto v6addr = reinterpret_cast<sockaddr_in6*>(
                 const_cast<sockaddr*>(_address.addr()));
 
-            // Port: convert from network to host, XOR, then putU16 converts back
             uint16_t port = ntohs(v6addr->sin6_port);
-            port ^= static_cast<uint16_t>(kMagicCookie >> 16);
+            if (xor_)
+                port ^= static_cast<uint16_t>(kMagicCookie >> 16);
             writer.putU16(port);
 
-            // Address: XOR with magic cookie + transaction ID
-            // Build the XOR mask from the message header already written
-            const uint8_t* msgBegin = reinterpret_cast<const uint8_t*>(writer.begin());
-            uint8_t xorMask[16];
-            xorMask[0] = static_cast<uint8_t>((kMagicCookie >> 24) & 0xff);
-            xorMask[1] = static_cast<uint8_t>((kMagicCookie >> 16) & 0xff);
-            xorMask[2] = static_cast<uint8_t>((kMagicCookie >> 8) & 0xff);
-            xorMask[3] = static_cast<uint8_t>(kMagicCookie & 0xff);
-            std::memcpy(xorMask + 4, msgBegin + kTransactionIdOffset, kTransactionIdLength);
-
-            // Get raw IPv6 address bytes in network order
             const uint8_t* addrBytes = reinterpret_cast<const uint8_t*>(
                 &v6addr->sin6_addr);
 
-            // XOR each byte and write
-            for (int i = 0; i < 16; i++) {
-                writer.putU8(addrBytes[i] ^ xorMask[i]);
+            if (xor_) {
+                const uint8_t* msgBegin = reinterpret_cast<const uint8_t*>(writer.begin());
+                uint8_t xorMask[16];
+                xorMask[0] = static_cast<uint8_t>((kMagicCookie >> 24) & 0xff);
+                xorMask[1] = static_cast<uint8_t>((kMagicCookie >> 16) & 0xff);
+                xorMask[2] = static_cast<uint8_t>((kMagicCookie >> 8) & 0xff);
+                xorMask[3] = static_cast<uint8_t>(kMagicCookie & 0xff);
+                std::memcpy(xorMask + 4, msgBegin + kTransactionIdOffset, kTransactionIdLength);
+
+                for (int i = 0; i < 16; i++)
+                    writer.putU8(addrBytes[i] ^ xorMask[i]);
+            } else {
+                for (int i = 0; i < 16; i++)
+                    writer.putU8(addrBytes[i]);
             }
             break;
         }
@@ -790,7 +769,7 @@ void MessageIntegrity::read(BitReader& reader)
 
     // Ensure the STUN message size reflects the message up to and
     // including the MessageIntegrity attribute.
-    hmacWriter.updateU32(static_cast<uint32_t>(sizeBeforeMessageIntegrity) + MessageIntegrity::Size, 2);
+    hmacWriter.updateU16(static_cast<uint16_t>(sizeBeforeMessageIntegrity + MessageIntegrity::Size), 2);
     _input.assign(hmacWriter.begin(), hmacWriter.position());
 
     _hmac.assign(reader.current(), MessageIntegrity::Size);
@@ -829,7 +808,7 @@ void MessageIntegrity::write(BitWriter& writer) const
         // the end of the MESSAGE-INTEGRITY attribute prior to calculating the
         // HMAC.  Such adjustment is necessary when attributes, such as
         // FINGERPRINT, appear after MESSAGE-INTEGRITY.
-        hmacWriter.updateU32(static_cast<uint32_t>(sizeBeforeMessageIntegrity) + MessageIntegrity::Size, 2);
+        hmacWriter.updateU16(static_cast<uint16_t>(sizeBeforeMessageIntegrity + MessageIntegrity::Size), 2);
 
         std::string input(hmacWriter.begin(), hmacWriter.position());
         if (input.size() != static_cast<size_t>(sizeBeforeMessageIntegrity))
@@ -979,7 +958,7 @@ void UInt16ListAttribute::addType(uint16_t value)
 
 void UInt16ListAttribute::read(BitReader& reader)
 {
-    for (size_t i = 0; i < size() / 2; i++) {
+    for (size_t i = 0; i < Attribute::size() / 2; i++) {
         uint16_t attr;
         reader.getU16(attr);
         _attrTypes.push_back(attr);

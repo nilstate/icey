@@ -792,6 +792,87 @@ int main(int argc, char** argv)
     });
 
 
+    // =========================================================================
+    // UNKNOWN-ATTRIBUTES parse: wire bytes should populate the list
+    //
+    describe("unknown attributes parse", []() {
+        stun::Message msg(stun::Message::ErrorResponse, stun::Message::Binding);
+
+        // Add two unknown attribute type codes
+        auto& ua = msg.add<stun::UnknownAttributes>();
+        ua.addType(0x0017);
+        ua.addType(0x8028);
+
+        Buffer buf;
+        msg.write(buf);
+
+        stun::Message parsed;
+        parsed.read(constBuffer(buf));
+
+        auto* parsedUA = parsed.get<stun::UnknownAttributes>();
+        expect(parsedUA != nullptr);
+        expect(parsedUA->size() == 2);
+        expect(parsedUA->getType(0) == 0x0017);
+        expect(parsedUA->getType(1) == 0x8028);
+    });
+
+
+    // =========================================================================
+    // Plain (non-XOR) address attributes: MAPPED-ADDRESS round-trip
+    //
+    describe("plain mapped address ipv4", []() {
+        net::Address addr("203.0.113.42", 3478);
+
+        stun::Message msg(stun::Message::SuccessResponse, stun::Message::Binding);
+        msg.add<stun::MappedAddress>().setAddress(addr);
+
+        Buffer buf;
+        msg.write(buf);
+
+        stun::Message parsed;
+        parsed.read(constBuffer(buf));
+
+        auto* ma = parsed.get<stun::MappedAddress>();
+        expect(ma != nullptr);
+        expect(ma->address() == addr);
+    });
+
+
+    // =========================================================================
+    // XOR vs plain address: verify XOR-MAPPED != MAPPED on the wire
+    //
+    describe("xor vs plain address wire encoding differs", []() {
+        net::Address addr("198.51.100.1", 9999);
+
+        stun::Message xorMsg(stun::Message::SuccessResponse, stun::Message::Binding);
+        xorMsg.add<stun::XorMappedAddress>().setAddress(addr);
+        Buffer xorBuf;
+        xorMsg.write(xorBuf);
+
+        stun::Message plainMsg(stun::Message::SuccessResponse, stun::Message::Binding);
+        plainMsg.add<stun::MappedAddress>().setAddress(addr);
+        Buffer plainBuf;
+        plainMsg.write(plainBuf);
+
+        // Same address but wire bytes must differ (XOR obfuscation)
+        expect(xorBuf.size() == plainBuf.size());
+        bool differ = false;
+        for (size_t i = 0; i < xorBuf.size(); i++) {
+            if (xorBuf[i] != plainBuf[i]) { differ = true; break; }
+        }
+        expect(differ);
+
+        // Both must parse back to the same address
+        stun::Message parsedXor;
+        parsedXor.read(constBuffer(xorBuf));
+        stun::Message parsedPlain;
+        parsedPlain.read(constBuffer(plainBuf));
+
+        expect(parsedXor.get<stun::XorMappedAddress>()->address() == addr);
+        expect(parsedPlain.get<stun::MappedAddress>()->address() == addr);
+    });
+
+
     test::runAll();
     return test::finalize();
 }

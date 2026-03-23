@@ -184,6 +184,13 @@ public:
     /// @param addr Address to store.
     virtual void setAddress(const net::Address& addr) { _address = addr; }
 
+    /// @return true if this attribute type uses XOR encoding (RFC 5389).
+    [[nodiscard]] bool isXorType() const
+    {
+        auto t = type();
+        return t == 0x0020 || t == 0x0012 || t == 0x0016; // XorMapped, XorPeer, XorRelayed
+    }
+
 private:
     net::Address _address;
 };
