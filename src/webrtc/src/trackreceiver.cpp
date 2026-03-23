@@ -8,6 +8,7 @@
 
 
 #include "icy/webrtc/trackreceiver.h"
+#include "icy/webrtc/codecnegotiator.h"
 #include "icy/logger.h"
 
 
@@ -25,8 +26,14 @@ void WebRtcTrackReceiver::bind(std::shared_ptr<rtc::Track> track)
 {
     auto desc = track->description();
     bool isVideo = (desc.type() == "video");
+    auto sdp = std::string(desc.generateSdp("\r\n", ""));
+    uint32_t clockRate = isVideo ? 90000u : 48000u;
+    if (auto spec = CodecNegotiator::detectCodec(
+            sdp, isVideo ? CodecMediaType::Video : CodecMediaType::Audio)) {
+        clockRate = spec->clockRate;
+    }
 
-    track->onFrame([this, isVideo](rtc::binary frame, rtc::FrameInfo info) {
+    track->onFrame([this, isVideo, clockRate](rtc::binary frame, rtc::FrameInfo info) {
         // Convert RTP timestamp to microseconds.
         // Use timestampSeconds if the depacketizer provides it (v0.24+),
         // otherwise convert from the raw RTP timestamp.
@@ -36,7 +43,6 @@ void WebRtcTrackReceiver::bind(std::shared_ptr<rtc::Track> track)
                 info.timestampSeconds->count() * 1000000.0);
         }
         else {
-            uint32_t clockRate = isVideo ? 90000 : 48000;
             timeUs = static_cast<int64_t>(info.timestamp) * 1000000 / clockRate;
         }
 

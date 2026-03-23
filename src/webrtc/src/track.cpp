@@ -113,10 +113,10 @@ makeVideoPacketizer(const CodecSpec& spec,
     switch (spec.id) {
     case CodecId::H264:
         return std::make_shared<rtc::H264RtpPacketizer>(
-            rtc::NalUnit::Separator::LongStartSequence, rtpConfig);
+            rtc::NalUnit::Separator::StartSequence, rtpConfig);
     case CodecId::H265:
         return std::make_shared<rtc::H265RtpPacketizer>(
-            rtc::NalUnit::Separator::LongStartSequence, rtpConfig);
+            rtc::NalUnit::Separator::StartSequence, rtpConfig);
     default:
         return std::make_shared<rtc::RtpPacketizer>(rtpConfig);
     }
@@ -162,6 +162,43 @@ makeAudioDepacketizer(const CodecSpec& spec)
     }
 }
 
+
+std::shared_ptr<rtc::MediaHandler>
+makeVideoHandlerChain(const CodecSpec& spec,
+                      const std::shared_ptr<rtc::RtpPacketizationConfig>& rtpConfig,
+                      unsigned nackBuffer,
+                      std::function<void()> onPli,
+                      std::function<void(unsigned int)> onRemb)
+{
+    auto depacketizer = makeVideoDepacketizer(spec);
+    auto packetizer = makeVideoPacketizer(spec, rtpConfig);
+    depacketizer->addToChain(packetizer);
+
+    packetizer->addToChain(std::make_shared<rtc::RtcpSrReporter>(rtpConfig));
+    packetizer->addToChain(std::make_shared<rtc::RtcpNackResponder>(nackBuffer));
+
+    if (onPli)
+        packetizer->addToChain(std::make_shared<rtc::PliHandler>(std::move(onPli)));
+    if (onRemb)
+        packetizer->addToChain(std::make_shared<rtc::RembHandler>(std::move(onRemb)));
+
+    packetizer->addToChain(std::make_shared<rtc::RtcpReceivingSession>());
+    return depacketizer;
+}
+
+
+std::shared_ptr<rtc::MediaHandler>
+makeAudioHandlerChain(const CodecSpec& spec,
+                      const std::shared_ptr<rtc::RtpPacketizationConfig>& rtpConfig)
+{
+    auto depacketizer = makeAudioDepacketizer(spec);
+    auto packetizer = makeAudioPacketizer(spec, rtpConfig);
+    depacketizer->addToChain(packetizer);
+    packetizer->addToChain(std::make_shared<rtc::RtcpSrReporter>(rtpConfig));
+    packetizer->addToChain(std::make_shared<rtc::RtcpReceivingSession>());
+    return depacketizer;
+}
+
 } // namespace
 
 
@@ -200,19 +237,11 @@ TrackHandle createVideoTrack(
     auto rtpConfig = std::make_shared<rtc::RtpPacketizationConfig>(
         ssrc, cn, spec.payloadType, spec.clockRate);
 
-    // Build media handler chain:
-    //   Packetizer → SrReporter → NackResponder [→ PliHandler] [→ RembHandler]
-    auto packetizer = makeVideoPacketizer(spec, rtpConfig);
-
-    packetizer->addToChain(std::make_shared<rtc::RtcpSrReporter>(rtpConfig));
-    packetizer->addToChain(std::make_shared<rtc::RtcpNackResponder>(nackBuffer));
-
-    if (onPli)
-        packetizer->addToChain(std::make_shared<rtc::PliHandler>(std::move(onPli)));
-    if (onRemb)
-        packetizer->addToChain(std::make_shared<rtc::RembHandler>(std::move(onRemb)));
-
-    track->setMediaHandler(packetizer);
+    // Bidirectional media handler chain:
+    //   incoming:  RtcpReceivingSession → RTCP handlers → Depacketizer
+    //   outgoing:  Packetizer → RTCP sender/feedback handlers
+    track->setMediaHandler(makeVideoHandlerChain(
+        spec, rtpConfig, nackBuffer, std::move(onPli), std::move(onRemb)));
 
     LInfo("Video track created: ", spec.rtpName, " SSRC=", ssrc, " PT=", spec.payloadType);
     return {track, rtpConfig};
@@ -240,11 +269,7 @@ TrackHandle createAudioTrack(
     auto rtpConfig = std::make_shared<rtc::RtpPacketizationConfig>(
         ssrc, cn, spec.payloadType, spec.clockRate);
 
-    // Audio packetizer: Opus uses its dedicated packetizer;
-    // PCMU/PCMA and others use the generic RTP packetizer.
-    auto packetizer = makeAudioPacketizer(spec, rtpConfig);
-    packetizer->addToChain(std::make_shared<rtc::RtcpSrReporter>(rtpConfig));
-    track->setMediaHandler(packetizer);
+    track->setMediaHandler(makeAudioHandlerChain(spec, rtpConfig));
 
     LInfo("Audio track created: ", spec.rtpName, " SSRC=", ssrc, " PT=", spec.payloadType);
     return {track, rtpConfig};

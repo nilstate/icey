@@ -37,25 +37,36 @@ void MediaBridge::attach(std::shared_ptr<rtc::PeerConnection> pc,
     _pc = std::move(pc);
     std::string cname = opts.cname.empty() ? "icey" : opts.cname;
 
-    // Create video track if codec encoder is specified.
-    if (!opts.videoCodec.encoder.empty()) {
+    const bool wantVideo = opts.videoCodec.enabled &&
+        (!opts.videoCodec.encoder.empty() || opts.videoCodec.name != "Unknown");
+    const bool wantAudio = opts.audioCodec.enabled &&
+        (!opts.audioCodec.encoder.empty() || opts.audioCodec.name != "Unknown");
+
+    // Create video track if an explicit codec is specified.
+    if (wantVideo) {
         _videoHandle = createVideoTrack(
             _pc, opts.videoCodec, opts.videoSsrc, cname, opts.nackBufferSize,
             [this]() { KeyframeRequested.emit(); },
             [this](unsigned int bps) { BitrateEstimate.emit(bps); });
         _videoSender.bind(_videoHandle);
+        _videoReceiver.bind(_videoHandle.track);
     }
 
-    // Create audio track if codec encoder is specified.
-    if (!opts.audioCodec.encoder.empty()) {
+    // Create audio track if an explicit codec is specified.
+    if (wantAudio) {
         _audioHandle = createAudioTrack(
             _pc, opts.audioCodec, opts.audioSsrc, cname);
         _audioSender.bind(_audioHandle);
+        _audioReceiver.bind(_audioHandle.track);
     }
 
-    // Handle incoming remote tracks.
+    // Fallback for peers that negotiate additional tracks we did not predeclare.
     _pc->onTrack([this](std::shared_ptr<rtc::Track> track) {
         auto desc = track->description();
+        if ((desc.type() == "video" && _videoHandle.track) ||
+            (desc.type() == "audio" && _audioHandle.track)) {
+            return;
+        }
         if (!setupReceiveTrack(track)) {
             LWarn("Ignoring remote ", desc.type(), " track with unsupported codec");
             return;

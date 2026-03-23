@@ -15,9 +15,29 @@
 
 #include "icy/logger.h"
 
+extern "C" {
+#include <libavutil/avutil.h>
+}
+
 
 namespace icy {
 namespace av {
+
+
+namespace {
+
+int64_t microsecondsToEncoderPts(const AudioEncoder& encoder, int64_t timeUs)
+{
+    if (timeUs == AV_NOPTS_VALUE)
+        return AV_NOPTS_VALUE;
+
+    const auto timeBase = encoder.stream ? encoder.stream->time_base
+                                         : encoder.ctx ? encoder.ctx->time_base
+                                                       : AVRational{1, AV_TIME_BASE};
+    return av_rescale_q(timeUs, AVRational{1, AV_TIME_BASE}, timeBase);
+}
+
+} // namespace
 
 
 AudioPacketEncoder::AudioPacketEncoder(AVFormatContext* format)
@@ -42,10 +62,12 @@ void AudioPacketEncoder::process(IPacket& packet)
 
     auto* planar = dynamic_cast<PlanarAudioPacket*>(ap);
     if (planar) {
-        encode(planar->buffer, static_cast<int>(planar->numSamples), planar->time);
+        encode(planar->buffer, static_cast<int>(planar->numSamples),
+               microsecondsToEncoderPts(*this, planar->time));
     } else {
         encode(reinterpret_cast<uint8_t*>(ap->data()),
-               static_cast<int>(ap->numSamples), ap->time);
+               static_cast<int>(ap->numSamples),
+               microsecondsToEncoderPts(*this, ap->time));
     }
 }
 

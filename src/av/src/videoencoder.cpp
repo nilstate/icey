@@ -178,14 +178,14 @@ bool VideoEncoder::encode(uint8_t* data, int size, int64_t pts)
 
 void emitPacket(VideoEncoder* enc, AVPacket* opacket)
 {
-    if (enc->stream) {
-        // Set the encoder time in microseconds
-        enc->time = opacket->pts > 0 ? static_cast<int64_t>(
-                                           opacket->pts * av_q2d(enc->stream->time_base) * AV_TIME_BASE)
-                                     : 0;
+    const auto timeBase = enc->stream ? enc->stream->time_base : enc->ctx->time_base;
 
-        enc->seconds = opacket->pts * av_q2d(enc->stream->time_base);
-    }
+    // Standalone packet encoders do not have an AVStream, but their packets
+    // still need stable microsecond timestamps for downstream WebRTC/media use.
+    enc->time = opacket->pts > 0
+        ? av_rescale_q(opacket->pts, timeBase, AVRational{1, AV_TIME_BASE})
+        : 0;
+    enc->seconds = opacket->pts * av_q2d(timeBase);
 
     // Set the encoder pts in stream time base
     enc->pts = opacket->pts;

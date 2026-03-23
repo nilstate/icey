@@ -18,14 +18,22 @@
 #include "icy/webrtc/tracksender.h"
 
 #include "icy/av/codec.h"
+#include "icy/av/ffmpeg.h"
 #include "icy/av/format.h"
 #include "icy/av/packet.h"
+#include "icy/av/videopacketencoder.h"
 #include "icy/base.h"
 #include "icy/logger.h"
 #include "icy/test.h"
 
 #include <rtc/rtc.hpp>
 
+#include <atomic>
+#include <condition_variable>
+#include <deque>
+#include <functional>
+#include <mutex>
+#include <thread>
 #include <string>
 #include <vector>
 

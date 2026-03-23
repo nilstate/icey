@@ -19,6 +19,7 @@ int main(int argc, char** argv)
     describe("audio resampler", new AudioResamplerTest);
     describe("audio fifo buffer", new AudioBufferTest);
     describe("video encoder", new VideoEncoderTest);
+    describe("video packet encoder timestamps", new VideoPacketEncoderTimestampTest);
     describe("video decoder", new VideoDecoderTest);
     describe("audio decoder", new AudioDecoderTest);
     describe("h264 video file transcoder", new VideoFileTranscoderTest);

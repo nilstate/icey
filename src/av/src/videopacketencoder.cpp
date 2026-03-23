@@ -15,9 +15,29 @@
 
 #include "icy/logger.h"
 
+extern "C" {
+#include <libavutil/avutil.h>
+}
+
 
 namespace icy {
 namespace av {
+
+
+namespace {
+
+int64_t microsecondsToEncoderPts(const VideoEncoder& encoder, int64_t timeUs)
+{
+    if (timeUs == AV_NOPTS_VALUE)
+        return AV_NOPTS_VALUE;
+
+    const auto timeBase = encoder.stream ? encoder.stream->time_base
+                                         : encoder.ctx ? encoder.ctx->time_base
+                                                       : AVRational{1, AV_TIME_BASE};
+    return av_rescale_q(timeUs, AVRational{1, AV_TIME_BASE}, timeBase);
+}
+
+} // namespace
 
 
 VideoPacketEncoder::VideoPacketEncoder(AVFormatContext* format)
@@ -42,10 +62,12 @@ void VideoPacketEncoder::process(IPacket& packet)
 
     auto* planar = dynamic_cast<PlanarVideoPacket*>(vp);
     if (planar) {
-        encode(planar->buffer, planar->linesize, planar->time);
+        encode(planar->buffer, planar->linesize,
+               microsecondsToEncoderPts(*this, planar->time));
     } else {
         encode(reinterpret_cast<uint8_t*>(vp->data()),
-               static_cast<int>(vp->size()), vp->time);
+               static_cast<int>(vp->size()),
+               microsecondsToEncoderPts(*this, vp->time));
     }
 }
 

@@ -72,12 +72,12 @@ public:
     /// Configuration options for the WebRTC media bridge
     struct Options
     {
-        /// Video codec for the send track. Leave encoder empty to skip
-        /// creating a video track.
+        /// Video codec for the send track. Leave both name and encoder empty
+        /// to skip creating a video track.
         av::VideoCodec videoCodec;
 
-        /// Audio codec for the send track. Leave encoder empty to skip
-        /// creating an audio track.
+        /// Audio codec for the send track. Leave both name and encoder empty
+        /// to skip creating an audio track.
         av::AudioCodec audioCodec;
 
         uint32_t videoSsrc = 0;   ///< 0 = auto-generate
@@ -135,10 +135,10 @@ public:
     //
 
     /// Remote peer requests a keyframe. Connect to encoder to force IDR.
-    Signal<void()> KeyframeRequested;
+    ThreadSignal<void()> KeyframeRequested;
 
     /// Remote peer reports estimated bandwidth (bits/sec).
-    Signal<void(unsigned int)> BitrateEstimate;
+    ThreadSignal<void(unsigned int)> BitrateEstimate;
 
     //
     // Accessors
@@ -150,10 +150,10 @@ public:
     /// The underlying libdatachannel audio track, or nullptr if none was created.
     [[nodiscard]] std::shared_ptr<rtc::Track> audioTrack() const;
 
-    /// True if a video track was created (i.e. videoCodec.encoder was non-empty at attach()).
+    /// True if a video track was created at attach().
     [[nodiscard]] bool hasVideo() const;
 
-    /// True if an audio track was created (i.e. audioCodec.encoder was non-empty at attach()).
+    /// True if an audio track was created at attach().
     [[nodiscard]] bool hasAudio() const;
 
     /// True if attach() has been called and a PeerConnection is held.

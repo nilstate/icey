@@ -21,6 +21,7 @@
 #include <rtc/rtc.hpp>
 
 #include <memory>
+#include <atomic>
 #include <mutex>
 #include <string>
 
@@ -104,15 +105,15 @@ public:
 
     /// Emitted whenever the session state changes.
     /// Parameter: new State value.
-    Signal<void(State)> StateChanged;
+    ThreadSignal<void(State)> StateChanged;
 
     /// Emitted when a remote peer initiates a call (state transitions to IncomingInit).
     /// Parameter: remote peer identifier.
-    Signal<void(const std::string&)> IncomingCall;
+    ThreadSignal<void(const std::string&)> IncomingCall;
 
     /// Emitted when a message arrives on the data channel.
     /// Parameter: rtc::message_variant (string or binary).
-    Signal<void(rtc::message_variant)> DataReceived;
+    ThreadSignal<void(rtc::message_variant)> DataReceived;
 
     /// Current session state. Thread-safe.
     [[nodiscard]] State state() const;
@@ -133,6 +134,11 @@ public:
     [[nodiscard]] std::shared_ptr<rtc::DataChannel> dataChannel();
 
 private:
+    struct CallbackGuard
+    {
+        std::atomic<bool> alive{true};
+    };
+
     void onSdpReceived(const std::string& peerId, const std::string& type, const std::string& sdp);
     void onCandidateReceived(const std::string& peerId, const std::string& candidate, const std::string& mid);
     void onControlReceived(const std::string& peerId, const std::string& type, const std::string& reason);
@@ -152,6 +158,7 @@ private:
     std::string _remotePeerId;
     std::shared_ptr<rtc::PeerConnection> _pc;
     std::shared_ptr<rtc::DataChannel> _dc;
+    std::shared_ptr<CallbackGuard> _callbackGuard = std::make_shared<CallbackGuard>();
     mutable std::mutex _mutex;
 };
 

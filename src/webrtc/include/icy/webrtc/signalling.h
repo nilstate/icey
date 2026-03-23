@@ -74,15 +74,15 @@ public:
 
     /// Fires when an SDP offer or answer arrives from a remote peer.
     /// Parameters: peerId, type ("offer"/"answer"), sdp.
-    Signal<void(const std::string&, const std::string&, const std::string&)> SdpReceived;
+    ThreadSignal<void(const std::string&, const std::string&, const std::string&)> SdpReceived;
 
     /// Fires when an ICE candidate arrives from a remote peer.
     /// Parameters: peerId, candidate, mid.
-    Signal<void(const std::string&, const std::string&, const std::string&)> CandidateReceived;
+    ThreadSignal<void(const std::string&, const std::string&, const std::string&)> CandidateReceived;
 
     /// Fires when a control message arrives from a remote peer.
     /// Parameters: peerId, type ("init"/"accept"/"reject"/"hangup"), reason.
-    Signal<void(const std::string&, const std::string&, const std::string&)> ControlReceived;
+    ThreadSignal<void(const std::string&, const std::string&, const std::string&)> ControlReceived;
 };
 
 

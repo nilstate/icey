@@ -29,6 +29,8 @@ PeerSession::PeerSession(SignallingInterface& signaller, const Config& config)
 
 PeerSession::~PeerSession()
 {
+    _callbackGuard->alive.store(false, std::memory_order_release);
+
     _signaller.SdpReceived.detach(this);
     _signaller.CandidateReceived.detach(this);
     _signaller.ControlReceived.detach(this);
@@ -283,7 +285,10 @@ void PeerSession::onSdpReceived(const std::string& peerId,
     if (type == "offer") {
         LDebug("Processing remote offer");
         pc->setRemoteDescription(rtc::Description(sdp, type));
-        pc->setLocalDescription(rtc::Description::Type::Answer);
+        if (auto* rtcConfig = pc->config();
+            rtcConfig && rtcConfig->disableAutoNegotiation) {
+            pc->setLocalDescription(rtc::Description::Type::Answer);
+        }
     }
     else if (type == "answer") {
         LDebug("Processing remote answer");
@@ -319,23 +324,35 @@ std::shared_ptr<rtc::PeerConnection> PeerSession::createPeerConnection(bool crea
 {
     auto pc = std::make_shared<rtc::PeerConnection>(_config.rtcConfig);
     std::shared_ptr<rtc::DataChannel> dc;
+    auto callbackGuard = _callbackGuard;
     setupPeerConnectionCallbacks(pc);
 
     if (createDataChannel && _config.enableDataChannel) {
         dc = pc->createDataChannel(_config.dataChannelLabel);
-        dc->onOpen([this]() { LDebug("Data channel open"); });
-        dc->onMessage([this](rtc::message_variant msg) {
+        dc->onOpen([callbackGuard]() {
+            if (!callbackGuard->alive.load(std::memory_order_acquire))
+                return;
+            LDebug("Data channel open");
+        });
+        dc->onMessage([this, callbackGuard](rtc::message_variant msg) {
+            if (!callbackGuard->alive.load(std::memory_order_acquire))
+                return;
             DataReceived.emit(std::move(msg));
         });
     }
 
-    pc->onDataChannel([this, pc](std::shared_ptr<rtc::DataChannel> dc) {
+    pc->onDataChannel([this, pc, callbackGuard](std::shared_ptr<rtc::DataChannel> dc) {
+        if (!callbackGuard->alive.load(std::memory_order_acquire))
+            return;
+
         std::lock_guard lock(_mutex);
         if (_pc != pc || _dc)
             return;
 
         _dc = dc;
-        _dc->onMessage([this](rtc::message_variant msg) {
+        _dc->onMessage([this, callbackGuard](rtc::message_variant msg) {
+            if (!callbackGuard->alive.load(std::memory_order_acquire))
+                return;
             DataReceived.emit(std::move(msg));
         });
     });
@@ -356,7 +373,12 @@ std::shared_ptr<rtc::PeerConnection> PeerSession::createPeerConnection(bool crea
 
 void PeerSession::setupPeerConnectionCallbacks(const std::shared_ptr<rtc::PeerConnection>& pc)
 {
-    pc->onLocalDescription([this, pc](rtc::Description desc) {
+    auto callbackGuard = _callbackGuard;
+
+    pc->onLocalDescription([this, pc, callbackGuard](rtc::Description desc) {
+        if (!callbackGuard->alive.load(std::memory_order_acquire))
+            return;
+
         LDebug("Local SDP ready: ", desc.typeString());
         std::string peerId;
         {
@@ -369,7 +391,10 @@ void PeerSession::setupPeerConnectionCallbacks(const std::shared_ptr<rtc::PeerCo
             _signaller.sendSdp(peerId, desc.typeString(), std::string(desc));
     });
 
-    pc->onLocalCandidate([this, pc](rtc::Candidate candidate) {
+    pc->onLocalCandidate([this, pc, callbackGuard](rtc::Candidate candidate) {
+        if (!callbackGuard->alive.load(std::memory_order_acquire))
+            return;
+
         LDebug("Local ICE candidate");
         std::string peerId;
         {
@@ -382,7 +407,10 @@ void PeerSession::setupPeerConnectionCallbacks(const std::shared_ptr<rtc::PeerCo
             _signaller.sendCandidate(peerId, std::string(candidate), candidate.mid());
     });
 
-    pc->onStateChange([this, pc](rtc::PeerConnection::State rtcState) {
+    pc->onStateChange([this, pc, callbackGuard](rtc::PeerConnection::State rtcState) {
+        if (!callbackGuard->alive.load(std::memory_order_acquire))
+            return;
+
         LDebug("PeerConnection state: ", static_cast<int>(rtcState));
 
         State newState = State::Idle;

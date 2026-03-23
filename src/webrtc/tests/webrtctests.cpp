@@ -66,7 +66,17 @@ struct LoopbackSignaller : SignallingInterface
 {
     explicit LoopbackSignaller(std::string id)
         : selfId(std::move(id))
+        , worker([this](std::stop_token stopToken) { run(stopToken); })
     {
+    }
+
+    ~LoopbackSignaller() override
+    {
+        {
+            std::lock_guard lock(queueMutex);
+            stopping = true;
+        }
+        queueCv.notify_all();
     }
 
     void connect(LoopbackSignaller& other)
@@ -81,7 +91,9 @@ struct LoopbackSignaller : SignallingInterface
     {
         if (!peer || peer->selfId != peerId)
             throw std::logic_error("LoopbackSignaller SDP peer mismatch");
-        peer->SdpReceived.emit(selfId, type, sdp);
+        peer->enqueue([peer = selfId, type, sdp, target = peer] {
+            target->SdpReceived.emit(peer, type, sdp);
+        });
     }
 
     void sendCandidate(const std::string& peerId,
@@ -90,7 +102,9 @@ struct LoopbackSignaller : SignallingInterface
     {
         if (!peer || peer->selfId != peerId)
             throw std::logic_error("LoopbackSignaller candidate peer mismatch");
-        peer->CandidateReceived.emit(selfId, candidate, mid);
+        peer->enqueue([peer = selfId, candidate, mid, target = peer] {
+            target->CandidateReceived.emit(peer, candidate, mid);
+        });
     }
 
     void sendControl(const std::string& peerId,
@@ -99,14 +113,73 @@ struct LoopbackSignaller : SignallingInterface
     {
         if (!peer || peer->selfId != peerId)
             throw std::logic_error("LoopbackSignaller control peer mismatch");
-        peer->ControlReceived.emit(selfId, type, reason);
+        peer->enqueue([peer = selfId, type, reason, target = peer] {
+            target->ControlReceived.emit(peer, type, reason);
+        });
+    }
+
+    void enqueue(std::function<void()> fn)
+    {
+        {
+            std::lock_guard lock(queueMutex);
+            queue.emplace_back(std::move(fn));
+        }
+        queueCv.notify_one();
+    }
+
+    void run(std::stop_token stopToken)
+    {
+        std::unique_lock lock(queueMutex);
+        for (;;) {
+            queueCv.wait(lock, [this, &stopToken] {
+                return stopping || stopToken.stop_requested() || !queue.empty();
+            });
+
+            if ((stopping || stopToken.stop_requested()) && queue.empty())
+                break;
+
+            auto fn = std::move(queue.front());
+            queue.pop_front();
+            lock.unlock();
+            fn();
+            lock.lock();
+        }
     }
 
     std::string selfId;
     LoopbackSignaller* peer = nullptr;
+    std::mutex queueMutex;
+    std::condition_variable queueCv;
+    std::deque<std::function<void()>> queue;
+    std::jthread worker;
+    bool stopping = false;
 };
 
 } // namespace
+
+#ifdef HAVE_FFMPEG
+namespace {
+
+void fillLoopbackVideoFrame(AVFrame* frame, int index)
+{
+    for (int y = 0; y < frame->height; y++) {
+        for (int x = 0; x < frame->width; x++) {
+            frame->data[0][y * frame->linesize[0] + x] =
+                static_cast<uint8_t>((x * 2 + y + index * 11) % 256);
+        }
+    }
+    for (int y = 0; y < frame->height / 2; y++) {
+        for (int x = 0; x < frame->width / 2; x++) {
+            frame->data[1][y * frame->linesize[1] + x] =
+                static_cast<uint8_t>((64 + y + index * 3) % 256);
+            frame->data[2][y * frame->linesize[2] + x] =
+                static_cast<uint8_t>((192 + x + index * 5) % 256);
+        }
+    }
+}
+
+} // namespace
+#endif
 
 
 int main(int argc, char** argv)
@@ -431,6 +504,25 @@ int main(int argc, char** argv)
         pc->close();
     });
 
+    describe("media bridge: explicit RTP codec names create tracks", []() {
+        rtc::Configuration config;
+        auto pc = std::make_shared<rtc::PeerConnection>(config);
+
+        MediaBridge bridge;
+        MediaBridge::Options opts;
+        opts.videoCodec = av::VideoCodec("H264", 640, 480, 30);
+        opts.audioCodec = av::AudioCodec("PCMA", 1, 8000);
+
+        bridge.attach(pc, opts);
+        expect(bridge.hasVideo());
+        expect(bridge.hasAudio());
+        expect(bridge.videoTrack() != nullptr);
+        expect(bridge.audioTrack() != nullptr);
+
+        bridge.detach();
+        pc->close();
+    });
+
     describe("media bridge: double attach throws", []() {
         rtc::Configuration config;
         auto pc = std::make_shared<rtc::PeerConnection>(config);
@@ -664,6 +756,88 @@ int main(int argc, char** argv)
                    bob.state() == PeerSession::State::Idle;
         }, 3000));
     });
+
+#ifdef HAVE_FFMPEG
+    describe("peer session: loopback video path encodes and roundtrips media", []() {
+        LoopbackSignaller aliceSig("alice");
+        LoopbackSignaller bobSig("bob");
+        aliceSig.connect(bobSig);
+
+        PeerSession::Config config;
+        config.enableDataChannel = false;
+        config.mediaOpts.videoCodec = av::VideoCodec("H264", "libx264", 160, 120, 30);
+        config.mediaOpts.videoCodec.pixelFmt = "yuv420p";
+        config.mediaOpts.videoCodec.options["preset"] = "ultrafast";
+        config.mediaOpts.videoCodec.options["tune"] = "zerolatency";
+        config.mediaOpts.videoCodec.options["profile"] = "baseline";
+
+        PeerSession alice(aliceSig, config);
+        PeerSession bob(bobSig, config);
+
+        bob.IncomingCall += [&](const std::string& peerId) {
+            expect(peerId == "alice");
+            bob.accept();
+        };
+
+        std::atomic<int> receivedPackets{0};
+        std::atomic<int64_t> lastReceivedTime{0};
+        std::atomic<size_t> lastReceivedSize{0};
+
+        bob.media().videoReceiver().emitter += [&](IPacket& packet) {
+            auto* video = dynamic_cast<av::VideoPacket*>(&packet);
+            if (!video)
+                return;
+
+            receivedPackets.fetch_add(1);
+            lastReceivedTime.store(video->time);
+            lastReceivedSize.store(video->size());
+        };
+
+        alice.call("bob");
+
+        expect(icy::test::waitFor([&] {
+            return alice.state() == PeerSession::State::Active &&
+                   bob.state() == PeerSession::State::Active;
+        }, 8000));
+
+        av::VideoPacketEncoder encoder;
+        encoder.iparams.width = 160;
+        encoder.iparams.height = 120;
+        encoder.iparams.pixelFmt = "yuv420p";
+        encoder.oparams = config.mediaOpts.videoCodec;
+        encoder.emitter += [&](IPacket& packet) {
+            alice.media().videoSender().process(packet);
+        };
+        encoder.create();
+        encoder.open();
+
+        for (int i = 0; i < 24 && receivedPackets.load() == 0; ++i) {
+            av::AVFrameHolder frame(av::createVideoFrame(AV_PIX_FMT_YUV420P, 160, 120));
+            expect(static_cast<bool>(frame));
+            fillLoopbackVideoFrame(frame.get(), i);
+
+            av::PlanarVideoPacket packet(frame->data, frame->linesize,
+                                         "yuv420p", 160, 120,
+                                         static_cast<int64_t>(i) * 33333);
+            encoder.process(packet);
+            std::this_thread::sleep_for(std::chrono::milliseconds(20));
+        }
+
+        encoder.flush();
+        encoder.close();
+
+        expect(icy::test::waitFor([&] {
+            return receivedPackets.load() > 0;
+        }, 5000));
+        expect(lastReceivedSize.load() > 0);
+
+        alice.hangup("done");
+        expect(icy::test::waitFor([&] {
+            return alice.state() == PeerSession::State::Idle &&
+                   bob.state() == PeerSession::State::Idle;
+        }, 3000));
+    });
+#endif
 
 
     // =========================================================================

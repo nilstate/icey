@@ -13,6 +13,7 @@
 #include "icy/av/audiodecoder.h"
 #include "icy/av/audioencoder.h"
 #include "icy/av/audioresampler.h"
+#include "icy/av/audiopacketencoder.h"
 #include "icy/av/devicemanager.h"
 #include "icy/av/format.h"
 #include "icy/av/formatregistry.h"
@@ -23,6 +24,7 @@
 #include "icy/av/videocapture.h"
 #include "icy/av/videodecoder.h"
 #include "icy/av/videoencoder.h"
+#include "icy/av/videopacketencoder.h"
 #include "icy/base.h"
 #include "icy/filesystem.h"
 #include "icy/logger.h"
@@ -177,13 +179,19 @@ class VideoFileTranscoderTest : public Test
 {
     void run()
     {
+        auto inputFile = sampleDataDir("test.mp4");
+        if (!fs::exists(inputFile)) {
+            std::cout << "Cannot open " << inputFile << ", skipping..." << '\n';
+            return;
+        }
+
         av::EncoderOptions options;
         options.ofile = "transcoderoutput.mp4";
         options.oformat = MP4_H264_AAC_REALTIME_FORMAT;
 
         // Create a media capture to read and decode the input file
         auto capture(std::make_shared<av::MediaCapture>());
-        capture->openFile(sampleDataDir("test.mp4"));
+        capture->openFile(inputFile);
         capture->getEncoderFormat(options.iformat);
         // options.iformat.audio.enabled = false;
         // options.iformat.video.enabled = false;
@@ -1993,6 +2001,87 @@ class VideoEncoderTest : public Test
         expect(packet.size() > 0);
         expect(packet.width > 0);
         expect(packet.height > 0);
+    }
+};
+
+
+// =============================================================================
+// Standalone VideoPacketEncoder Timestamp Test
+//
+// Verifies the packet encoder converts packet microsecond timestamps to the
+// codec time base internally and emits microsecond timestamps again on output.
+//
+class VideoPacketEncoderTimestampTest : public Test
+{
+    std::vector<int64_t> encodedTimes;
+
+    static void fillTestFrame(AVFrame* frame, int index)
+    {
+        for (int y = 0; y < frame->height; y++) {
+            for (int x = 0; x < frame->width; x++) {
+                frame->data[0][y * frame->linesize[0] + x] =
+                    static_cast<uint8_t>((x + y + index * 7) % 256);
+            }
+        }
+        for (int y = 0; y < frame->height / 2; y++) {
+            for (int x = 0; x < frame->width / 2; x++) {
+                frame->data[1][y * frame->linesize[1] + x] =
+                    static_cast<uint8_t>((96 + y + index * 3) % 256);
+                frame->data[2][y * frame->linesize[2] + x] =
+                    static_cast<uint8_t>((160 + x + index * 5) % 256);
+            }
+        }
+    }
+
+    void run()
+    {
+        av::VideoPacketEncoder encoder;
+
+        encoder.iparams.width = 160;
+        encoder.iparams.height = 120;
+        encoder.iparams.pixelFmt = "yuv420p";
+
+        encoder.oparams.encoder = "libx264";
+        encoder.oparams.pixelFmt = "yuv420p";
+        encoder.oparams.width = 160;
+        encoder.oparams.height = 120;
+        encoder.oparams.fps = 30;
+        encoder.oparams.bitRate = 300000;
+        encoder.oparams.enabled = true;
+        encoder.oparams.options["preset"] = "ultrafast";
+        encoder.oparams.options["tune"] = "zerolatency";
+        encoder.oparams.options["profile"] = "baseline";
+
+        encoder.emitter += packetSlot(this, &VideoPacketEncoderTimestampTest::onVideoEncoded);
+        encoder.create();
+        encoder.open();
+
+        for (int i = 0; i < 8; ++i) {
+            av::AVFrameHolder frame{av::createVideoFrame(AV_PIX_FMT_YUV420P, 160, 120)};
+            expect(static_cast<bool>(frame));
+            fillTestFrame(frame.get(), i);
+
+            av::PlanarVideoPacket packet(frame->data, frame->linesize,
+                                         "yuv420p", 160, 120,
+                                         static_cast<int64_t>(i) * 33333);
+            encoder.process(packet);
+        }
+
+        encoder.flush();
+        encoder.close();
+
+        expect(!encodedTimes.empty());
+        expect(encodedTimes.front() == 0);
+        expect(encodedTimes.back() > 0);
+        expect(encodedTimes.back() < 500000);
+        for (size_t i = 1; i < encodedTimes.size(); ++i)
+            expect(encodedTimes[i] >= encodedTimes[i - 1]);
+    }
+
+    void onVideoEncoded(av::VideoPacket& packet)
+    {
+        encodedTimes.push_back(packet.time);
+        expect(packet.size() > 0);
     }
 };
 
