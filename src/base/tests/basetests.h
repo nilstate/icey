@@ -580,6 +580,80 @@ class PacketStreamRestartTest : public Test
     }
 };
 
+class PacketStreamActiveModifyGuardTest : public Test
+{
+    void run()
+    {
+        PacketStream stream;
+        MockPacketSource source;
+        MockPacketSource extraSource;
+        MockPacketProcessor processor;
+        MockPacketProcessor extraProcessor;
+
+        stream.attachSource(&source, false, false);
+        stream.attach(&processor, 1, false);
+        stream.start();
+
+        bool attachSourceThrew = false;
+        bool attachProcessorThrew = false;
+        bool detachSourceThrew = false;
+        bool detachProcessorThrew = false;
+
+        try { stream.attachSource(&extraSource, false, false); } catch (const std::runtime_error&) { attachSourceThrew = true; }
+        try { stream.attach(&extraProcessor, 2, false); } catch (const std::runtime_error&) { attachProcessorThrew = true; }
+        try { stream.detachSource(&source); } catch (const std::runtime_error&) { detachSourceThrew = true; }
+        try { stream.detach(&processor); } catch (const std::runtime_error&) { detachProcessorThrew = true; }
+
+        stream.close();
+
+        expect(attachSourceThrew);
+        expect(attachProcessorThrew);
+        expect(detachSourceThrew);
+        expect(detachProcessorThrew);
+    }
+};
+
+class PacketStreamDetachCleanupTest : public Test
+{
+    int numPackets = 0;
+
+    void onPacketStreamOutput(IPacket&)
+    {
+        numPackets++;
+    }
+
+    void run()
+    {
+        PacketStream stream;
+        MockPacketSource source;
+        MockPacketProcessor processor;
+
+        stream.attachSource(&source, false, false);
+        stream.attach(&processor, 1, false);
+        stream.emitter += slot(this, &PacketStreamDetachCleanupTest::onPacketStreamOutput);
+
+        stream.start();
+        source.send("a", 1);
+        expect(numPackets == 1);
+        expect(processor.processed == 1);
+
+        stream.stop();
+        expect(stream.detachSource(&source));
+        expect(stream.detach(&processor));
+        expect(stream.numSources() == 0);
+        expect(stream.numProcessors() == 0);
+        expect(source.emitter.nslots() == 0);
+        expect(processor.emitter.nslots() == 0);
+
+        stream.start();
+        source.send("b", 1);
+        expect(numPackets == 1);
+        expect(processor.processed == 1);
+
+        stream.close();
+    }
+};
+
 class PacketStreamMultiSourcePassthroughTest : public Test
 {
     std::atomic<int> received{0};
