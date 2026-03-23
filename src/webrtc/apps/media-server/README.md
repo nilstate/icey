@@ -30,7 +30,7 @@ Open `http://localhost:4500` in a browser.
 
 - **stream** (default): server pushes file/camera to browser via WebRTC (H.264 + Opus)
 - **record**: browser sends H.264 video to the server, which decodes it and writes MP4 files to disk
-- **relay**: not implemented; incoming calls are rejected with an explicit reason
+- **relay**: the first active caller becomes the live source; later callers receive that source via server-side encoded relay fanout
 
 ## Features
 
@@ -38,6 +38,7 @@ Open `http://localhost:4500` in a browser.
 - **Embedded TURN**: RFC 5766 relay on port 3478 — works through symmetric NATs
 - **Adaptive bitrate**: REMB feedback adjusts encoder bitrate in real-time
 - **Per-session isolation**: each peer gets its own capture/encoder pipeline in stream mode and its own recorder pipeline in record mode
+- **Server-side relay**: relay mode forwards one active browser source to all connected viewers without decoding/re-encoding
 - **Server-side recording**: record mode writes timestamped MP4 files under `--record-dir`
 - **Zero latency**: `ultrafast` preset + `zerolatency` tune for real-time H.264
 
@@ -70,7 +71,7 @@ Vite dev server runs on port 5173 and proxies `/ws` and `/api` to the C++ server
 Browser ─── WSS /ws ──── Symple v4 (signalling, presence, rooms)
         ─── GET /   ──── Static files (Vite build output)
         ─── GET /api ─── REST status
-        ─── WebRTC  ──── Media (stream: H.264 + Opus out, record: H.264 in)
+        ─── WebRTC  ──── Media (stream: H.264 + Opus out, record: H.264 in, relay: one browser in -> many browsers out)
         ─── TURN    ──── NAT traversal (embedded, port 3478)
 ```
 

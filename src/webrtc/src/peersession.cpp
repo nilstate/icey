@@ -282,6 +282,7 @@ void PeerSession::onSdpReceived(const std::string& peerId,
         pc = _pc;
     }
 
+    std::vector<PendingCandidate> pendingCandidates;
     if (type == "offer") {
         LDebug("Processing remote offer");
         pc->setRemoteDescription(rtc::Description(sdp, type));
@@ -294,6 +295,19 @@ void PeerSession::onSdpReceived(const std::string& peerId,
         LDebug("Processing remote answer");
         pc->setRemoteDescription(rtc::Description(sdp, type));
     }
+
+    {
+        std::lock_guard lock(_mutex);
+        if (_pc != pc)
+            return;
+        _remoteDescriptionSet = true;
+        pendingCandidates.swap(_pendingRemoteCandidates);
+    }
+
+    for (const auto& pending : pendingCandidates) {
+        LDebug("Adding deferred remote ICE candidate");
+        pc->addRemoteCandidate(rtc::Candidate(pending.candidate, pending.mid));
+    }
 }
 
 
@@ -302,6 +316,7 @@ void PeerSession::onCandidateReceived(const std::string& peerId,
                                        const std::string& mid)
 {
     std::shared_ptr<rtc::PeerConnection> pc;
+    bool defer = false;
     {
         std::lock_guard lock(_mutex);
         if (peerId != _remotePeerId || !_pc)
@@ -309,6 +324,15 @@ void PeerSession::onCandidateReceived(const std::string& peerId,
         if (_state != State::Negotiating && _state != State::Active)
             return;
         pc = _pc;
+        if (!_remoteDescriptionSet) {
+            _pendingRemoteCandidates.push_back({candidate, mid});
+            defer = true;
+        }
+    }
+
+    if (defer) {
+        LDebug("Queueing remote ICE candidate until remote description is set");
+        return;
     }
 
     LDebug("Adding remote ICE candidate");
@@ -361,6 +385,8 @@ std::shared_ptr<rtc::PeerConnection> PeerSession::createPeerConnection(bool crea
         std::lock_guard lock(_mutex);
         _pc = std::move(pc);
         _dc = std::move(dc);
+        _remoteDescriptionSet = false;
+        _pendingRemoteCandidates.clear();
         pc = _pc;
     }
 
@@ -483,6 +509,8 @@ void PeerSession::beginEndCall(const std::string& reason,
 
     dc = std::move(_dc);
     pc = std::move(_pc);
+    _remoteDescriptionSet = false;
+    _pendingRemoteCandidates.clear();
 
     _remotePeerId.clear();
 }

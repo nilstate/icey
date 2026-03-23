@@ -145,6 +145,16 @@ public:
     [[nodiscard]] static std::optional<CodecSpec>
     specFromFfmpeg(const std::string& ffmpegName);
 
+    /// Resolve the canonical codec spec from an explicit video codec config.
+    /// Prefers the FFmpeg encoder when present, otherwise falls back to RTP name.
+    [[nodiscard]] static std::optional<CodecSpec>
+    specFromVideoCodec(const av::VideoCodec& codec);
+
+    /// Resolve the canonical codec spec from an explicit audio codec config.
+    /// Prefers the FFmpeg encoder when present, otherwise falls back to RTP name.
+    [[nodiscard]] static std::optional<CodecSpec>
+    specFromAudioCodec(const av::AudioCodec& codec);
+
     /// Detect the first known codec present in an SDP snippet for the given
     /// media type.
     [[nodiscard]] static std::optional<CodecSpec>

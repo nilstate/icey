@@ -25,45 +25,31 @@ namespace {
 
 CodecSpec videoCodecSpec(const av::VideoCodec& codec)
 {
-    if (!codec.encoder.empty()) {
-        if (auto spec = CodecNegotiator::specFromFfmpeg(codec.encoder);
-            spec && spec->mediaType == CodecMediaType::Video) {
-            return *spec;
-        }
+    if (auto spec = CodecNegotiator::specFromVideoCodec(codec);
+        spec && spec->mediaType == CodecMediaType::Video) {
+        return *spec;
+    }
+
+    if (!codec.specified())
+        throw std::invalid_argument("Video track requires an explicit codec");
+    if (!codec.encoder.empty())
         throw std::invalid_argument("Unsupported video encoder: " + codec.encoder);
-    }
-
-    if (!codec.name.empty()) {
-        if (auto spec = CodecNegotiator::specFromRtp(codec.name);
-            spec && spec->mediaType == CodecMediaType::Video) {
-            return *spec;
-        }
-        throw std::invalid_argument("Unsupported video codec: " + codec.name);
-    }
-
-    throw std::invalid_argument("Video track requires an explicit codec");
+    throw std::invalid_argument("Unsupported video codec: " + codec.name);
 }
 
 
 CodecSpec audioCodecSpec(const av::AudioCodec& codec)
 {
-    if (!codec.encoder.empty()) {
-        if (auto spec = CodecNegotiator::specFromFfmpeg(codec.encoder);
-            spec && spec->mediaType == CodecMediaType::Audio) {
-            return *spec;
-        }
+    if (auto spec = CodecNegotiator::specFromAudioCodec(codec);
+        spec && spec->mediaType == CodecMediaType::Audio) {
+        return *spec;
+    }
+
+    if (!codec.specified())
+        throw std::invalid_argument("Audio track requires an explicit codec");
+    if (!codec.encoder.empty())
         throw std::invalid_argument("Unsupported audio encoder: " + codec.encoder);
-    }
-
-    if (!codec.name.empty()) {
-        if (auto spec = CodecNegotiator::specFromRtp(codec.name);
-            spec && spec->mediaType == CodecMediaType::Audio) {
-            return *spec;
-        }
-        throw std::invalid_argument("Unsupported audio codec: " + codec.name);
-    }
-
-    throw std::invalid_argument("Audio track requires an explicit codec");
+    throw std::invalid_argument("Unsupported audio codec: " + codec.name);
 }
 
 

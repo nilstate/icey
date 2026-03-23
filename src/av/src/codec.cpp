@@ -98,6 +98,18 @@ std::string Codec::toString() const
 }
 
 
+bool Codec::specified() const
+{
+    if (!enabled)
+        return false;
+
+    if (!encoder.empty())
+        return true;
+
+    return !name.empty() && name != "Unknown";
+}
+
+
 void Codec::print(std::ostream& ost)
 {
     ost << "Codec["

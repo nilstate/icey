@@ -20,6 +20,9 @@
 // Pipeline (record mode):
 //   WebRtcTrackReceiver → VideoDecoder → MultiplexPacketEncoder → MP4
 //
+// Pipeline (relay mode):
+//   [browser source] → WebRtcTrackReceiver → relay controller → WebRtcTrackSender → [browser viewers]
+//
 // Usage:
 //   media-server --source video.mp4 --web-root web/dist
 //
@@ -50,6 +53,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 
 using namespace icy;
@@ -569,18 +573,52 @@ private:
 
 
 // ---------------------------------------------------------------------------
+// Relay mode helper
+// ---------------------------------------------------------------------------
+
+class MediaSession;
+
+class RelayController
+{
+public:
+    void registerSession(const std::shared_ptr<MediaSession>& session);
+    void unregisterSession(const std::string& peerId);
+    void onSessionActive(const std::string& peerId);
+    void onSessionEnded(const std::string& peerId);
+    void onViewerKeyframeRequested(const std::string& peerId);
+    void onViewerBitrateEstimate(const std::string& peerId, unsigned int bps);
+    void relayVideo(const std::string& peerId, av::VideoPacket& packet);
+    void relayAudio(const std::string& peerId, av::AudioPacket& packet);
+    void clear();
+
+private:
+    std::shared_ptr<MediaSession> currentSourceLocked();
+    std::shared_ptr<MediaSession> electSourceLocked();
+    std::vector<std::shared_ptr<MediaSession>> relayTargetsLocked(const std::string& sourcePeerId);
+    unsigned int minViewerBitrateLocked() const;
+
+    std::mutex _mutex;
+    std::unordered_map<std::string, std::weak_ptr<MediaSession>> _sessions;
+    std::unordered_map<std::string, unsigned int> _viewerBitrates;
+    std::string _sourcePeerId;
+};
+
+
+// ---------------------------------------------------------------------------
 // Media session (per-peer)
 // ---------------------------------------------------------------------------
 
-class MediaSession
+class MediaSession : public std::enable_shared_from_this<MediaSession>
 {
 public:
     MediaSession(const std::string& peerId,
                  wrtc::SignallingInterface& signaller,
-                 const Config& config)
+                 const Config& config,
+                 RelayController* relay)
         : _peerId(peerId)
         , _stream("media-" + peerId)
         , _config(config)
+        , _relay(relay)
     {
         av::VideoCodec videoCodec = makeVideoCodec(config);
         av::AudioCodec audioCodec = makeAudioCodec(config);
@@ -607,6 +645,12 @@ public:
             // send us H.264 even though we do not publish media back.
             pc.mediaOpts.videoCodec = videoCodec;
         }
+        else if (config.mode == Config::Mode::Relay) {
+            // Relay mode receives browser media on the incoming tracks and
+            // republishes the active source on the server's own outbound tracks.
+            pc.mediaOpts.videoCodec = videoCodec;
+            pc.mediaOpts.audioCodec = audioCodec;
+        }
 
         pc.enableDataChannel = true;
         pc.dataChannelLabel = "control";
@@ -616,11 +660,6 @@ public:
             _recorder = std::make_unique<VideoRecorder>(_peerId, _config.recordDir);
 
         _session->IncomingCall += [this](const std::string& peer) {
-            if (_config.mode == Config::Mode::Relay) {
-                LWarn("Relay mode is not implemented, rejecting call from ", peer);
-                _session->reject("relay mode not implemented");
-                return;
-            }
             LInfo("Auto-accepting call from ", peer);
             _session->accept();
         };
@@ -630,8 +669,14 @@ public:
             if (state == wrtc::PeerSession::State::Active) {
                 startStreaming();
                 startRecording();
+                startRelay();
+                if (_relay)
+                    _relay->onSessionActive(_peerId);
             }
             else if (state == wrtc::PeerSession::State::Ended) {
+                if (_relay)
+                    _relay->onSessionEnded(_peerId);
+                stopRelay();
                 stopStreaming();
                 stopRecording();
             }
@@ -645,12 +690,20 @@ public:
         // Adaptive bitrate: wire RTCP feedback to encoder
         _session->media().KeyframeRequested += [this]() {
             LDebug("PLI from ", _peerId, ": keyframe requested");
+            if (_config.mode == Config::Mode::Relay && _relay) {
+                _relay->onViewerKeyframeRequested(_peerId);
+                return;
+            }
             // Force IDR on next encode by closing and recreating
             // the encoder. In a production system you'd set a flag
             // on the encoder to force the next frame to be a keyframe.
         };
 
         _session->media().BitrateEstimate += [this](unsigned int bps) {
+            if (_config.mode == Config::Mode::Relay && _relay) {
+                _relay->onViewerBitrateEstimate(_peerId, bps);
+                return;
+            }
             std::lock_guard lock(_mutex);
             LDebug("REMB from ", _peerId, ": ", bps / 1000, " kbps");
             if (_videoEncoder && _videoEncoder->ctx) {
@@ -662,12 +715,38 @@ public:
 
     ~MediaSession()
     {
+        stopRelay();
         stopRecording();
         stopStreaming();
         _stream.close();
     }
 
     wrtc::PeerSession& session() { return *_session; }
+    const std::string& peerId() const { return _peerId; }
+    bool active() const
+    {
+        return _session && _session->state() == wrtc::PeerSession::State::Active;
+    }
+    void relayVideo(av::VideoPacket& packet)
+    {
+        if (_session && _session->media().hasVideo())
+            _session->media().videoSender().process(packet);
+    }
+    void relayAudio(av::AudioPacket& packet)
+    {
+        if (_session && _session->media().hasAudio())
+            _session->media().audioSender().process(packet);
+    }
+    void requestRelayKeyframe()
+    {
+        if (_session && _session->media().hasVideo())
+            _session->media().requestKeyframe();
+    }
+    void requestRelayBitrate(unsigned int bps)
+    {
+        if (_session && _session->media().hasVideo())
+            _session->media().requestBitrate(bps);
+    }
 
 private:
     static av::VideoCodec makeVideoCodec(const Config& config)
@@ -762,19 +841,300 @@ private:
             _recorder->stop();
     }
 
+    void startRelay()
+    {
+        if (_config.mode != Config::Mode::Relay || _relayAttached || !_session)
+            return;
+
+        _session->media().videoReceiver().emitter +=
+            packetSlot(this, &MediaSession::onRelayedVideo);
+        _session->media().audioReceiver().emitter +=
+            packetSlot(this, &MediaSession::onRelayedAudio);
+        _relayAttached = true;
+    }
+
+    void stopRelay()
+    {
+        if (!_relayAttached || !_session)
+            return;
+
+        _session->media().videoReceiver().emitter -= this;
+        _session->media().audioReceiver().emitter -= this;
+        _relayAttached = false;
+    }
+
+    void onRelayedVideo(av::VideoPacket& packet)
+    {
+        if (_relay)
+            _relay->relayVideo(_peerId, packet);
+    }
+
+    void onRelayedAudio(av::AudioPacket& packet)
+    {
+        if (_relay)
+            _relay->relayAudio(_peerId, packet);
+    }
+
     std::string _peerId;
     PacketStream _stream;
     const Config& _config;
+    RelayController* _relay = nullptr;
     std::shared_ptr<av::MediaCapture> _capture;
     std::shared_ptr<av::VideoPacketEncoder> _videoEncoder;
     std::shared_ptr<av::AudioPacketEncoder> _audioEncoder;
     wrtc::WebRtcTrackSender* _videoSender = nullptr;
     wrtc::WebRtcTrackSender* _audioSender = nullptr;
     bool _streamReady = false;
+    bool _relayAttached = false;
     std::unique_ptr<VideoRecorder> _recorder;
     std::unique_ptr<wrtc::PeerSession> _session;
     mutable std::mutex _mutex;
 };
+
+
+void RelayController::registerSession(const std::shared_ptr<MediaSession>& session)
+{
+    std::lock_guard lock(_mutex);
+    _sessions[session->peerId()] = session;
+}
+
+
+void RelayController::unregisterSession(const std::string& peerId)
+{
+    std::shared_ptr<MediaSession> source;
+    unsigned int minBitrate = 0;
+    {
+        std::lock_guard lock(_mutex);
+        _sessions.erase(peerId);
+        _viewerBitrates.erase(peerId);
+        if (_sourcePeerId == peerId) {
+            source = electSourceLocked();
+            minBitrate = minViewerBitrateLocked();
+        }
+        else {
+            source = currentSourceLocked();
+            minBitrate = minViewerBitrateLocked();
+        }
+    }
+
+    if (source) {
+        source->requestRelayKeyframe();
+        if (minBitrate > 0)
+            source->requestRelayBitrate(minBitrate);
+    }
+}
+
+
+void RelayController::onSessionActive(const std::string& peerId)
+{
+    std::shared_ptr<MediaSession> source;
+    bool requestKeyframe = false;
+    {
+        std::lock_guard lock(_mutex);
+        source = currentSourceLocked();
+        if (!source) {
+            auto it = _sessions.find(peerId);
+            if (it != _sessions.end())
+                source = it->second.lock();
+            if (source && source->active()) {
+                _sourcePeerId = peerId;
+                _viewerBitrates.erase(peerId);
+                requestKeyframe = relayTargetsLocked(peerId).size() > 0;
+                LInfo("Relay source set to ", peerId);
+            }
+        }
+        else if (_sourcePeerId != peerId) {
+            requestKeyframe = true;
+            LInfo("Relay viewer joined: ", peerId, " source=", _sourcePeerId);
+        }
+    }
+
+    if (requestKeyframe && source)
+        source->requestRelayKeyframe();
+}
+
+
+void RelayController::onSessionEnded(const std::string& peerId)
+{
+    std::shared_ptr<MediaSession> source;
+    unsigned int minBitrate = 0;
+    {
+        std::lock_guard lock(_mutex);
+        _viewerBitrates.erase(peerId);
+        if (_sourcePeerId == peerId) {
+            _sourcePeerId.clear();
+            source = electSourceLocked();
+        }
+        else {
+            source = currentSourceLocked();
+        }
+        minBitrate = minViewerBitrateLocked();
+    }
+
+    if (source) {
+        source->requestRelayKeyframe();
+        if (minBitrate > 0)
+            source->requestRelayBitrate(minBitrate);
+    }
+}
+
+
+void RelayController::onViewerKeyframeRequested(const std::string& peerId)
+{
+    std::shared_ptr<MediaSession> source;
+    {
+        std::lock_guard lock(_mutex);
+        if (_sourcePeerId.empty() || _sourcePeerId == peerId)
+            return;
+        source = currentSourceLocked();
+    }
+
+    if (source)
+        source->requestRelayKeyframe();
+}
+
+
+void RelayController::onViewerBitrateEstimate(const std::string& peerId, unsigned int bps)
+{
+    std::shared_ptr<MediaSession> source;
+    unsigned int minBitrate = 0;
+    {
+        std::lock_guard lock(_mutex);
+        if (_sourcePeerId.empty() || _sourcePeerId == peerId)
+            return;
+        _viewerBitrates[peerId] = bps;
+        source = currentSourceLocked();
+        minBitrate = minViewerBitrateLocked();
+    }
+
+    if (source && minBitrate > 0)
+        source->requestRelayBitrate(minBitrate);
+}
+
+
+void RelayController::relayVideo(const std::string& peerId, av::VideoPacket& packet)
+{
+    std::vector<std::shared_ptr<MediaSession>> targets;
+    {
+        std::lock_guard lock(_mutex);
+        targets = relayTargetsLocked(peerId);
+    }
+
+    for (auto& target : targets)
+        target->relayVideo(packet);
+}
+
+
+void RelayController::relayAudio(const std::string& peerId, av::AudioPacket& packet)
+{
+    std::vector<std::shared_ptr<MediaSession>> targets;
+    {
+        std::lock_guard lock(_mutex);
+        targets = relayTargetsLocked(peerId);
+    }
+
+    for (auto& target : targets)
+        target->relayAudio(packet);
+}
+
+
+void RelayController::clear()
+{
+    std::lock_guard lock(_mutex);
+    _sessions.clear();
+    _viewerBitrates.clear();
+    _sourcePeerId.clear();
+}
+
+
+std::shared_ptr<MediaSession> RelayController::currentSourceLocked()
+{
+    if (_sourcePeerId.empty())
+        return nullptr;
+
+    auto it = _sessions.find(_sourcePeerId);
+    if (it == _sessions.end()) {
+        _sourcePeerId.clear();
+        return nullptr;
+    }
+
+    auto session = it->second.lock();
+    if (!session || !session->active()) {
+        if (!session)
+            _sessions.erase(it);
+        _sourcePeerId.clear();
+        return nullptr;
+    }
+
+    return session;
+}
+
+
+std::shared_ptr<MediaSession> RelayController::electSourceLocked()
+{
+    std::shared_ptr<MediaSession> candidate;
+    std::string candidateId;
+
+    for (auto it = _sessions.begin(); it != _sessions.end();) {
+        auto session = it->second.lock();
+        if (!session) {
+            _viewerBitrates.erase(it->first);
+            it = _sessions.erase(it);
+            continue;
+        }
+        if (session->active() && (candidateId.empty() || it->first < candidateId)) {
+            candidate = session;
+            candidateId = it->first;
+        }
+        ++it;
+    }
+
+    _sourcePeerId = candidateId;
+    if (!candidateId.empty()) {
+        _viewerBitrates.erase(candidateId);
+        LInfo("Relay source promoted to ", candidateId);
+    }
+    return candidate;
+}
+
+
+std::vector<std::shared_ptr<MediaSession>>
+RelayController::relayTargetsLocked(const std::string& sourcePeerId)
+{
+    std::vector<std::shared_ptr<MediaSession>> targets;
+    auto source = currentSourceLocked();
+    if (!source || _sourcePeerId != sourcePeerId)
+        return targets;
+
+    targets.reserve(_sessions.size());
+    for (auto it = _sessions.begin(); it != _sessions.end();) {
+        auto session = it->second.lock();
+        if (!session) {
+            _viewerBitrates.erase(it->first);
+            it = _sessions.erase(it);
+            continue;
+        }
+        if (it->first != sourcePeerId && session->active())
+            targets.push_back(std::move(session));
+        ++it;
+    }
+    return targets;
+}
+
+
+unsigned int RelayController::minViewerBitrateLocked() const
+{
+    unsigned int minBitrate = 0;
+    for (const auto& [peerId, bitrate] : _viewerBitrates) {
+        if (peerId == _sourcePeerId)
+            continue;
+        if (bitrate == 0)
+            continue;
+        if (minBitrate == 0 || bitrate < minBitrate)
+            minBitrate = bitrate;
+    }
+    return minBitrate;
+}
 
 
 // ---------------------------------------------------------------------------
@@ -884,6 +1244,7 @@ public:
 
         _symple.PeerDisconnected += [this](smpl::ServerPeer& peer) {
             LInfo("Peer disconnected: ", peer.id());
+            _relay.unregisterSession(peer.id());
             _sessions.erase(peer.id());
         };
 
@@ -898,10 +1259,10 @@ public:
 
         // When a call:init arrives, create a session for that peer
         smpl::Peer vpeer;
-        vpeer["id"] = _serverPeerId;
-        vpeer["user"] = "media-server";
-        vpeer["name"] = "Media Server";
-        vpeer["type"] = "media-server";
+        vpeer.setID(_serverPeerId);
+        vpeer.setUser("media-server");
+        vpeer.setName("Media Server");
+        vpeer.setType("media-server");
         vpeer["online"] = true;
 
         _symple.addVirtualPeer(vpeer, {"public"},
@@ -928,12 +1289,14 @@ public:
         if (_config.mode == Config::Mode::Record)
             std::cout << "Recordings: " << _config.recordDir << '\n';
         if (_config.mode == Config::Mode::Relay)
-            std::cout << "Relay mode is not implemented yet; incoming calls will be rejected\n";
+            std::cout << "Relay mode: first active caller becomes the live source; "
+                         "other callers receive that feed\n";
     }
 
     void shutdown()
     {
         _sessions.clear();
+        _relay.clear();
         _symple.removeVirtualPeer(_serverPeerId);
         _signaller.reset();
         _symple.shutdown();
@@ -950,8 +1313,9 @@ private:
         }
 
         LInfo("Creating session for ", peerId);
-        auto session = std::make_unique<MediaSession>(
-            peerId, *_signaller, _config);
+        auto session = std::make_shared<MediaSession>(
+            peerId, *_signaller, _config, &_relay);
+        _relay.registerSession(session);
         _sessions[peerId] = std::move(session);
     }
 
@@ -961,7 +1325,8 @@ private:
     std::unique_ptr<EmbeddedTurn> _turn;
     std::string _serverPeerId;
     std::string _serverAddress;
-    std::unordered_map<std::string, std::unique_ptr<MediaSession>> _sessions;
+    RelayController _relay;
+    std::unordered_map<std::string, std::shared_ptr<MediaSession>> _sessions;
 };
 
 

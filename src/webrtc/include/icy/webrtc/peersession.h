@@ -24,6 +24,7 @@
 #include <atomic>
 #include <mutex>
 #include <string>
+#include <vector>
 
 
 namespace icy {
@@ -139,6 +140,12 @@ private:
         std::atomic<bool> alive{true};
     };
 
+    struct PendingCandidate
+    {
+        std::string candidate;
+        std::string mid;
+    };
+
     void onSdpReceived(const std::string& peerId, const std::string& type, const std::string& sdp);
     void onCandidateReceived(const std::string& peerId, const std::string& candidate, const std::string& mid);
     void onControlReceived(const std::string& peerId, const std::string& type, const std::string& reason);
@@ -159,6 +166,8 @@ private:
     std::shared_ptr<rtc::PeerConnection> _pc;
     std::shared_ptr<rtc::DataChannel> _dc;
     std::shared_ptr<CallbackGuard> _callbackGuard = std::make_shared<CallbackGuard>();
+    bool _remoteDescriptionSet = false;
+    std::vector<PendingCandidate> _pendingRemoteCandidates;
     mutable std::mutex _mutex;
 };
 

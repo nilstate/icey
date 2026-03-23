@@ -286,6 +286,32 @@ CodecNegotiator::specFromFfmpeg(const std::string& ffmpegName)
 
 
 std::optional<CodecSpec>
+CodecNegotiator::specFromVideoCodec(const av::VideoCodec& codec)
+{
+    if (!codec.specified())
+        return std::nullopt;
+
+    if (!codec.encoder.empty())
+        return specFromFfmpeg(codec.encoder);
+
+    return specFromRtp(codec.name);
+}
+
+
+std::optional<CodecSpec>
+CodecNegotiator::specFromAudioCodec(const av::AudioCodec& codec)
+{
+    if (!codec.specified())
+        return std::nullopt;
+
+    if (!codec.encoder.empty())
+        return specFromFfmpeg(codec.encoder);
+
+    return specFromRtp(codec.name);
+}
+
+
+std::optional<CodecSpec>
 CodecNegotiator::detectCodec(std::string_view sdp, CodecMediaType mediaType)
 {
     if (mediaType == CodecMediaType::Video)

@@ -37,10 +37,8 @@ void MediaBridge::attach(std::shared_ptr<rtc::PeerConnection> pc,
     _pc = std::move(pc);
     std::string cname = opts.cname.empty() ? "icey" : opts.cname;
 
-    const bool wantVideo = opts.videoCodec.enabled &&
-        (!opts.videoCodec.encoder.empty() || opts.videoCodec.name != "Unknown");
-    const bool wantAudio = opts.audioCodec.enabled &&
-        (!opts.audioCodec.encoder.empty() || opts.audioCodec.name != "Unknown");
+    const bool wantVideo = opts.videoCodec.specified();
+    const bool wantAudio = opts.audioCodec.specified();
 
     // Create video track if an explicit codec is specified.
     if (wantVideo) {

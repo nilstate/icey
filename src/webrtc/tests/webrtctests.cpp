@@ -18,6 +18,57 @@ using namespace icy::test;
 
 namespace {
 
+struct LoopbackBus
+{
+    LoopbackBus()
+        : worker([this](std::stop_token stopToken) { run(stopToken); })
+    {
+    }
+
+    ~LoopbackBus()
+    {
+        {
+            std::lock_guard lock(mutex);
+            stopping = true;
+        }
+        cv.notify_all();
+    }
+
+    void post(std::function<void()> fn)
+    {
+        {
+            std::lock_guard lock(mutex);
+            queue.emplace_back(std::move(fn));
+        }
+        cv.notify_one();
+    }
+
+    void run(std::stop_token stopToken)
+    {
+        std::unique_lock lock(mutex);
+        for (;;) {
+            cv.wait(lock, [this, &stopToken] {
+                return stopping || stopToken.stop_requested() || !queue.empty();
+            });
+
+            if ((stopping || stopToken.stop_requested()) && queue.empty())
+                return;
+
+            auto next = std::move(queue.front());
+            queue.pop_front();
+            lock.unlock();
+            next();
+            lock.lock();
+        }
+    }
+
+    std::mutex mutex;
+    std::condition_variable cv;
+    std::deque<std::function<void()>> queue;
+    std::jthread worker;
+    bool stopping = false;
+};
+
 struct MockSignaller : SignallingInterface
 {
     struct ControlMessage
@@ -66,23 +117,15 @@ struct LoopbackSignaller : SignallingInterface
 {
     explicit LoopbackSignaller(std::string id)
         : selfId(std::move(id))
-        , worker([this](std::stop_token stopToken) { run(stopToken); })
+        , bus(std::make_shared<LoopbackBus>())
     {
-    }
-
-    ~LoopbackSignaller() override
-    {
-        {
-            std::lock_guard lock(queueMutex);
-            stopping = true;
-        }
-        queueCv.notify_all();
     }
 
     void connect(LoopbackSignaller& other)
     {
         peer = &other;
         other.peer = this;
+        other.bus = bus;
     }
 
     void sendSdp(const std::string& peerId,
@@ -91,8 +134,8 @@ struct LoopbackSignaller : SignallingInterface
     {
         if (!peer || peer->selfId != peerId)
             throw std::logic_error("LoopbackSignaller SDP peer mismatch");
-        peer->enqueue([peer = selfId, type, sdp, target = peer] {
-            target->SdpReceived.emit(peer, type, sdp);
+        bus->post([target = peer, peerId = selfId, type, sdp] {
+            target->SdpReceived.emit(peerId, type, sdp);
         });
     }
 
@@ -102,8 +145,8 @@ struct LoopbackSignaller : SignallingInterface
     {
         if (!peer || peer->selfId != peerId)
             throw std::logic_error("LoopbackSignaller candidate peer mismatch");
-        peer->enqueue([peer = selfId, candidate, mid, target = peer] {
-            target->CandidateReceived.emit(peer, candidate, mid);
+        bus->post([target = peer, peerId = selfId, candidate, mid] {
+            target->CandidateReceived.emit(peerId, candidate, mid);
         });
     }
 
@@ -113,46 +156,14 @@ struct LoopbackSignaller : SignallingInterface
     {
         if (!peer || peer->selfId != peerId)
             throw std::logic_error("LoopbackSignaller control peer mismatch");
-        peer->enqueue([peer = selfId, type, reason, target = peer] {
-            target->ControlReceived.emit(peer, type, reason);
+        bus->post([target = peer, peerId = selfId, type, reason] {
+            target->ControlReceived.emit(peerId, type, reason);
         });
-    }
-
-    void enqueue(std::function<void()> fn)
-    {
-        {
-            std::lock_guard lock(queueMutex);
-            queue.emplace_back(std::move(fn));
-        }
-        queueCv.notify_one();
-    }
-
-    void run(std::stop_token stopToken)
-    {
-        std::unique_lock lock(queueMutex);
-        for (;;) {
-            queueCv.wait(lock, [this, &stopToken] {
-                return stopping || stopToken.stop_requested() || !queue.empty();
-            });
-
-            if ((stopping || stopToken.stop_requested()) && queue.empty())
-                break;
-
-            auto fn = std::move(queue.front());
-            queue.pop_front();
-            lock.unlock();
-            fn();
-            lock.lock();
-        }
     }
 
     std::string selfId;
     LoopbackSignaller* peer = nullptr;
-    std::mutex queueMutex;
-    std::condition_variable queueCv;
-    std::deque<std::function<void()>> queue;
-    std::jthread worker;
-    bool stopping = false;
+    std::shared_ptr<LoopbackBus> bus;
 };
 
 } // namespace
@@ -249,6 +260,24 @@ int main(int argc, char** argv)
         expect(pcmu->mediaType == CodecMediaType::Audio);
         expect(pcmu->clockRate == 8000);
         expect(pcmu->payloadType == 0);
+    });
+
+    describe("codec negotiator: explicit codec config resolves cleanly", []() {
+        av::VideoCodec video("H264", "libx264", 640, 480, 30);
+        expect(video.specified());
+        auto videoSpec = CodecNegotiator::specFromVideoCodec(video);
+        expect(videoSpec.has_value());
+        expect(videoSpec->id == CodecId::H264);
+
+        av::AudioCodec audio("PCMA", 2, 8000);
+        expect(audio.specified());
+        auto audioSpec = CodecNegotiator::specFromAudioCodec(audio);
+        expect(audioSpec.has_value());
+        expect(audioSpec->id == CodecId::PCMA);
+
+        av::VideoCodec unset;
+        expect(!unset.specified());
+        expect(!CodecNegotiator::specFromVideoCodec(unset).has_value());
     });
 
     describe("codec negotiator: detect codec from sdp", []() {
@@ -835,6 +864,102 @@ int main(int argc, char** argv)
         expect(icy::test::waitFor([&] {
             return alice.state() == PeerSession::State::Idle &&
                    bob.state() == PeerSession::State::Idle;
+        }, 3000));
+    });
+
+    describe("peer session: encoded relay path forwards media between sessions", []() {
+        LoopbackSignaller publisherSig("publisher");
+        LoopbackSignaller ingressSig("relay-ingress");
+        publisherSig.connect(ingressSig);
+
+        LoopbackSignaller viewerSig("viewer");
+        LoopbackSignaller egressSig("relay-egress");
+        viewerSig.connect(egressSig);
+
+        PeerSession::Config config;
+        config.enableDataChannel = false;
+        config.mediaOpts.videoCodec = av::VideoCodec("H264", "libx264", 160, 120, 30);
+        config.mediaOpts.videoCodec.pixelFmt = "yuv420p";
+        config.mediaOpts.videoCodec.options["preset"] = "ultrafast";
+        config.mediaOpts.videoCodec.options["tune"] = "zerolatency";
+        config.mediaOpts.videoCodec.options["profile"] = "baseline";
+
+        PeerSession publisher(publisherSig, config);
+        PeerSession relayIngress(ingressSig, config);
+        PeerSession relayEgress(egressSig, config);
+        PeerSession viewer(viewerSig, config);
+
+        relayIngress.IncomingCall += [&](const std::string& peerId) {
+            expect(peerId == "publisher");
+            relayIngress.accept();
+        };
+        relayEgress.IncomingCall += [&](const std::string& peerId) {
+            expect(peerId == "viewer");
+            relayEgress.accept();
+        };
+
+        relayIngress.media().videoReceiver().emitter += [&](IPacket& packet) {
+            relayEgress.media().videoSender().process(packet);
+        };
+
+        std::atomic<int> receivedPackets{0};
+        std::atomic<size_t> lastReceivedSize{0};
+        viewer.media().videoReceiver().emitter += [&](IPacket& packet) {
+            auto* video = dynamic_cast<av::VideoPacket*>(&packet);
+            if (!video)
+                return;
+            receivedPackets.fetch_add(1);
+            lastReceivedSize.store(video->size());
+        };
+
+        publisher.call("relay-ingress");
+        viewer.call("relay-egress");
+
+        expect(icy::test::waitFor([&] {
+            return publisher.state() == PeerSession::State::Active &&
+                   relayIngress.state() == PeerSession::State::Active &&
+                   relayEgress.state() == PeerSession::State::Active &&
+                   viewer.state() == PeerSession::State::Active;
+        }, 8000));
+
+        av::VideoPacketEncoder encoder;
+        encoder.iparams.width = 160;
+        encoder.iparams.height = 120;
+        encoder.iparams.pixelFmt = "yuv420p";
+        encoder.oparams = config.mediaOpts.videoCodec;
+        encoder.emitter += [&](IPacket& packet) {
+            publisher.media().videoSender().process(packet);
+        };
+        encoder.create();
+        encoder.open();
+
+        for (int i = 0; i < 24 && receivedPackets.load() == 0; ++i) {
+            av::AVFrameHolder frame(av::createVideoFrame(AV_PIX_FMT_YUV420P, 160, 120));
+            expect(static_cast<bool>(frame));
+            fillLoopbackVideoFrame(frame.get(), i);
+
+            av::PlanarVideoPacket packet(frame->data, frame->linesize,
+                                         "yuv420p", 160, 120,
+                                         static_cast<int64_t>(i) * 33333);
+            encoder.process(packet);
+            std::this_thread::sleep_for(std::chrono::milliseconds(20));
+        }
+
+        encoder.flush();
+        encoder.close();
+
+        expect(icy::test::waitFor([&] {
+            return receivedPackets.load() > 0;
+        }, 5000));
+        expect(lastReceivedSize.load() > 0);
+
+        publisher.hangup("done");
+        viewer.hangup("done");
+        expect(icy::test::waitFor([&] {
+            return publisher.state() == PeerSession::State::Idle &&
+                   relayIngress.state() == PeerSession::State::Idle &&
+                   relayEgress.state() == PeerSession::State::Idle &&
+                   viewer.state() == PeerSession::State::Idle;
         }, 3000));
     });
 #endif

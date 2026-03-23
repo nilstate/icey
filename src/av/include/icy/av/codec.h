@@ -76,6 +76,10 @@ struct AV_API Codec
     /// @return A string in the form "Codec[name:encoder:sampleRate:enabled]".
     virtual std::string toString() const;
 
+    /// Returns true when this codec explicitly names either an RTP/media codec
+    /// or an FFmpeg encoder and is enabled for use.
+    [[nodiscard]] bool specified() const;
+
     /// Print a multi-line human-readable description to the given stream.
     /// @param ost  The output stream to write to.
     virtual void print(std::ostream& ost);
