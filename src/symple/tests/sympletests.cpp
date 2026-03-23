@@ -86,6 +86,22 @@ int main(int argc, char** argv)
         expect(addr.toString() == "bob|x1");
     });
 
+    icy_test::describe("peer: copy preserves explicit fields", []() {
+        icy::smpl::Peer peer;
+        peer.setID("media-server");
+        peer.setUser("media-server");
+        peer.setName("Media Server");
+        peer.setType("media-server");
+        peer["online"] = true;
+
+        icy::smpl::Peer copy(peer);
+        expect(copy.id() == "media-server");
+        expect(copy.user() == "media-server");
+        expect(copy.name() == "Media Server");
+        expect(copy.type() == "media-server");
+        expect(copy.value("online", false));
+    });
+
 
     // =========================================================================
     // Message
@@ -146,6 +162,30 @@ int main(int argc, char** argv)
         icy::smpl::Server server;
         server.start({.host = SERVER_HOST, .port = SERVER_PORT});
         expect(server.peerCount() == 0);
+        server.shutdown();
+    });
+
+    icy_test::describe("server: virtual peer registration", []() {
+        icy::smpl::Server server;
+        server.start({.host = SERVER_HOST, .port = SERVER_PORT + 20});
+
+        icy::smpl::Peer peer;
+        peer.setID("media-server");
+        peer.setUser("media-server");
+        peer.setName("Media Server");
+        peer.setType("media-server");
+        peer["online"] = true;
+
+        bool delivered = false;
+        server.addVirtualPeer(peer, {"public"}, [&](const icy::json::Value&) {
+            delivered = true;
+        });
+
+        expect(server.peerCount() == 1);
+        server.removeVirtualPeer("media-server");
+        expect(server.peerCount() == 0);
+        expect(!delivered);
+
         server.shutdown();
     });
 

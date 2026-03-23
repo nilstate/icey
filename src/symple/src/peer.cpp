@@ -24,9 +24,8 @@ Peer::Peer()
 
 
 Peer::Peer(const Peer& r)
-    : json::Value(r)
+    : json::Value(static_cast<const json::Value&>(r))
 {
-    (*this)["type"] = "Peer";
 }
 
 
@@ -42,7 +41,8 @@ Peer& Peer::operator=(const Peer& r)
 Peer::Peer(const json::Value& r)
     : json::Value(r)
 {
-    (*this)["type"] = "Peer";
+    if (!contains("type") || !(*this)["type"].is_string())
+        (*this)["type"] = "Peer";
 }
 
 
