@@ -61,6 +61,51 @@ struct ReentrantRejectSignaller : MockSignaller
     }
 };
 
+
+struct LoopbackSignaller : SignallingInterface
+{
+    explicit LoopbackSignaller(std::string id)
+        : selfId(std::move(id))
+    {
+    }
+
+    void connect(LoopbackSignaller& other)
+    {
+        peer = &other;
+        other.peer = this;
+    }
+
+    void sendSdp(const std::string& peerId,
+                 const std::string& type,
+                 const std::string& sdp) override
+    {
+        if (!peer || peer->selfId != peerId)
+            throw std::logic_error("LoopbackSignaller SDP peer mismatch");
+        peer->SdpReceived.emit(selfId, type, sdp);
+    }
+
+    void sendCandidate(const std::string& peerId,
+                       const std::string& candidate,
+                       const std::string& mid) override
+    {
+        if (!peer || peer->selfId != peerId)
+            throw std::logic_error("LoopbackSignaller candidate peer mismatch");
+        peer->CandidateReceived.emit(selfId, candidate, mid);
+    }
+
+    void sendControl(const std::string& peerId,
+                     const std::string& type,
+                     const std::string& reason = {}) override
+    {
+        if (!peer || peer->selfId != peerId)
+            throw std::logic_error("LoopbackSignaller control peer mismatch");
+        peer->ControlReceived.emit(selfId, type, reason);
+    }
+
+    std::string selfId;
+    LoopbackSignaller* peer = nullptr;
+};
+
 } // namespace
 
 
@@ -573,6 +618,51 @@ int main(int argc, char** argv)
         expect(session.remotePeerId().empty());
         expect(signaller.controls.size() == 1);
         expect(signaller.controls[0].type == "init");
+    });
+
+    describe("peer session: loopback peers reach active and pass data", []() {
+        LoopbackSignaller aliceSig("alice");
+        LoopbackSignaller bobSig("bob");
+        aliceSig.connect(bobSig);
+
+        PeerSession::Config config;
+        config.enableDataChannel = true;
+        config.dataChannelLabel = "control";
+
+        PeerSession alice(aliceSig, config);
+        PeerSession bob(bobSig, config);
+        std::string received;
+
+        bob.IncomingCall += [&](const std::string& peerId) {
+            expect(peerId == "alice");
+            bob.accept();
+        };
+        bob.DataReceived += [&](rtc::message_variant msg) {
+            if (auto* text = std::get_if<std::string>(&msg))
+                received = *text;
+        };
+
+        alice.call("bob");
+
+        expect(icy::test::waitFor([&] {
+            return alice.state() == PeerSession::State::Active &&
+                   bob.state() == PeerSession::State::Active;
+        }, 8000));
+
+        expect(icy::test::waitFor([&] {
+            auto aliceDc = alice.dataChannel();
+            auto bobDc = bob.dataChannel();
+            return aliceDc && bobDc && aliceDc->isOpen() && bobDc->isOpen();
+        }, 8000));
+
+        alice.sendData("hello");
+        expect(icy::test::waitFor([&] { return received == "hello"; }, 3000));
+
+        alice.hangup("done");
+        expect(icy::test::waitFor([&] {
+            return alice.state() == PeerSession::State::Idle &&
+                   bob.state() == PeerSession::State::Idle;
+        }, 3000));
     });
 
 
