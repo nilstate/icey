@@ -917,6 +917,67 @@ int main(int argc, char** argv)
     });
 
 
+    // =========================================================================
+    // Signal: local detach during emit skips later slot
+    //
+    describe("signal detach during emit skips later slot", []() {
+        Signal<void(int)> sig;
+        int firstCalls = 0;
+        int secondCalls = 0;
+
+        auto secondId = sig.attach([&](int) {
+            ++secondCalls;
+        });
+
+        auto firstId = sig.attach([&](int) {
+            ++firstCalls;
+            sig.detach(secondId);
+        }, nullptr, -1, 10);
+        expect(firstId > secondId);
+
+        sig.emit(0);
+        expect(firstCalls == 1);
+        expect(secondCalls == 0);
+        expect(sig.nslots() == 1);
+
+        sig.emit(1);
+        expect(firstCalls == 2);
+        expect(secondCalls == 0);
+    });
+
+
+    // =========================================================================
+    // Signal: nested thread-safe emit keeps detached slot dead until sweep
+    //
+    describe("thread signal nested detach keeps slot dead", []() {
+        ThreadSignal<void(int)> sig;
+        int firstCalls = 0;
+        int secondCalls = 0;
+
+        auto secondId = sig.attach([&](int) {
+            ++secondCalls;
+        });
+
+        auto firstId = sig.attach([&](int depth) {
+            ++firstCalls;
+            if (depth == 0) {
+                sig.detach(secondId);
+                sig.emit(1);
+            }
+        }, nullptr, -1, 10);
+        expect(firstId > secondId);
+
+        sig.emit(0);
+        expect(firstCalls == 2);
+        expect(secondCalls == 0);
+        expect(sig.nslots() == 1);
+
+        sig.emit(2);
+        expect(firstCalls == 3);
+        expect(secondCalls == 0);
+    });
+
+
     // Define class based tests
     describe("signal", new SignalTest);
     describe("ipc", new IpcTest);

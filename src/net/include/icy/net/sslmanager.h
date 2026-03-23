@@ -48,15 +48,15 @@ public:
 
     /// Fired whenever a certificate verification error is detected by the
     /// server during a handshake.
-    Signal<void(VerificationErrorDetails&)> ServerVerificationError;
+    ThreadSignal<void(VerificationErrorDetails&)> ServerVerificationError;
 
     /// Fired whenever a certificate verification error is detected by the
     /// client during a handshake.
-    Signal<void(VerificationErrorDetails&)> ClientVerificationError;
+    ThreadSignal<void(VerificationErrorDetails&)> ClientVerificationError;
 
     /// Fired when a encrypted certificate is loaded. Not setting the password
     /// in the event parameter will result in a failure to load the certificate.
-    Signal<void(std::string&)> PrivateKeyPassphraseRequired;
+    ThreadSignal<void(std::string&)> PrivateKeyPassphraseRequired;
 
     /// Shuts down the SSLManager and releases the default Context
     /// objects. After a call to shutdown(), the SSLManager can no

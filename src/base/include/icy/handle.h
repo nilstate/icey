@@ -15,6 +15,7 @@
 #include "icy/base.h"
 #include "icy/error.h"
 #include "icy/loop.h"
+#include "icy/memory.h"
 
 #include "uv.h"
 
@@ -29,6 +30,9 @@ namespace uv {
 
 template <typename T>
 class Base_API Handle;
+
+template <typename T>
+struct Context;
 
 
 template <typename T>
@@ -67,7 +71,7 @@ inline void clearHandleCloseCleanup(T* handle)
 
 /// Shared `libuv` handle context.
 template <typename T>
-struct Context
+struct Context : public RefCounted<Context<T>>
 {
     Handle<T>* handle = nullptr;
     HandleStorage<T>* storage = new HandleStorage<T>;
@@ -114,7 +118,7 @@ public:
     ///              process-wide default loop.
     Handle(uv::Loop* loop = uv::defaultLoop())
         : _loop(loop)
-        , _context(std::make_unique<Context<T>>(this))
+        , _context(makeIntrusive<Context<T>>(this))
     {
     }
 
@@ -194,10 +198,11 @@ public:
     {
         bool trigger = false;
         if (_context) {
-            _context->deleted = true;
+            auto context = std::move(_context);
+            context->deleted = true;
+            context.reset();
             trigger = true;
         }
-        _context.reset();
         if (trigger)
             onClose();
     }
@@ -323,7 +328,7 @@ public:
     {
         if (_context)
             close();
-        _context = std::make_unique<Context<T>>(this);
+        _context = makeIntrusive<Context<T>>(this);
     }
 
     /// Return the raw libuv handle pointer cast to @p Handle.
@@ -355,10 +360,10 @@ public:
     /// Primarily for use by subclasses and libuv callbacks that need to access
     /// the underlying libuv handle memory.
     ///
-    /// @return  Pointer to the `Context`, or `nullptr` if closed.
-    Context<T>* context() const
+    /// @return  A retained reference to the `Context`, or an empty reference if closed.
+    IntrusivePtr<Context<T>> context() const
     {
-        return _context.get();
+        return _context;
     }
 
     template <typename U>
@@ -415,7 +420,7 @@ protected:
     Handle& operator=(Handle&&) = delete;
 
     uv::Loop* _loop;
-    std::unique_ptr<Context<T>> _context;
+    IntrusivePtr<Context<T>> _context;
     std::thread::id _tid = std::this_thread::get_id();
     Error _error;
 };

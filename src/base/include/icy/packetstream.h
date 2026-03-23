@@ -464,12 +464,12 @@ public:
     /// If stream output is synchronized then the Error signal will be
     /// sent from the synchronization context, otherwise it will be sent from
     /// the async processor context. See synchronizeOutput()
-    Signal<void(PacketStream&, const std::exception_ptr&)> Error;
+    ThreadSignal<void(PacketStream&, const std::exception_ptr&)> Error;
 
     /// Signals that the PacketStream is in Close state.
     /// This signal is sent immediately via the close() method,
     /// and as such will be sent from the calling thread context.
-    Signal<void(PacketStream&)> Close;
+    ThreadSignal<void(PacketStream&)> Close;
 
     /// Returns a combined list of all stream sources and processors.
     PacketAdapterVec adapters() const;

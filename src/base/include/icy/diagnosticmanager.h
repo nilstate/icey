@@ -92,7 +92,7 @@ public:
 
     /// Signals when a new text item is added
     /// to the summary.
-    Signal<void(const std::string&)> SummaryUpdated;
+    ThreadSignal<void(const std::string&)> SummaryUpdated;
 
     /// The StateChange signal will dispatch
     /// diagnostic test results to delegates.

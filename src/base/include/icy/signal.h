@@ -27,7 +27,7 @@ namespace icy {
 
 /// No-op mutex for single-threaded signal usage.
 /// When all signal operations occur on a single libuv event loop thread,
-/// the shared_mutex is unnecessary overhead. Use LocalSignal alias instead.
+/// the shared_mutex is unnecessary overhead.
 struct NullSharedMutex
 {
     void lock() {}
@@ -129,7 +129,10 @@ struct Slot;
 /// will cause any callbacks connected to the signal to be called,
 /// passing the integer `42` as the only argument.
 ///
-template <typename RT, typename MutexT = std::shared_mutex>
+/// `Signal<...>` is the single-threaded fast-path implementation and is intended
+/// for the common libuv event-loop case. Use `ThreadSignal<...>` when a signal
+/// may be emitted, attached, or detached from multiple threads.
+template <typename RT, typename MutexT = NullSharedMutex>
 class Signal;
 /// Thread-safe signal and slot implementation for callback-based event dispatch
 template <typename RT, typename... Args, typename MutexT>
@@ -138,6 +141,7 @@ class Signal<RT(Args...), MutexT>
 public:
     using Function = std::function<RT(Args...)>;
     using SlotPtr = std::shared_ptr<internal::Slot<RT, Args...>>;
+    using Slot = internal::Slot<RT, Args...>;
 
     /// Connects a `lambda` or `std::function` to the signal.
     ///
@@ -162,8 +166,12 @@ public:
     /// @throws std::logic_error if `slot->id` is set explicitly and already in use.
     [[nodiscard]] int attach(SlotPtr slot) const
     {
-        detach(slot); // clear duplicates
         std::unique_lock<MutexT> guard(_mutex);
+        killMatchingLocked(
+            [&](const Slot& other) {
+                return *other.delegate == *slot->delegate;
+            },
+            true);
         if (slot->id == -1) {
             slot->id = ++_lastId;
         } else {
@@ -176,6 +184,7 @@ public:
                 _lastId = slot->id;
         }
         _slots.push_back(slot);
+        ++_liveCount;
         //_slots.sort(Slot::ComparePrioroty);
         std::sort(_slots.begin(), _slots.end(),
                   [](SlotPtr const& l, SlotPtr const& r) { return l->priority > r->priority; });
@@ -191,16 +200,11 @@ public:
     bool detach(int id) const
     {
         std::unique_lock<MutexT> guard(_mutex);
-        for (auto it = _slots.begin(); it != _slots.end();) {
-            auto& slot = *it;
-            if (slot->alive() && slot->id == id) {
-                slot->kill();
-                _slots.erase(it);
-                return true;
-            } else
-                ++it;
-        }
-        return false;
+        return killMatchingLocked(
+                   [&](const Slot& slot) {
+                       return slot.id == id;
+                   },
+                   false) != 0;
     }
 
     /// Detaches all slots associated with the given instance pointer.
@@ -213,17 +217,11 @@ public:
     bool detach(const void* instance) const
     {
         std::unique_lock<MutexT> guard(_mutex);
-        bool removed = false;
-        for (auto it = _slots.begin(); it != _slots.end();) {
-            auto& slot = *it;
-            if (slot->alive() && slot->instance == instance) {
-                slot->kill();
-                it = _slots.erase(it);
-                removed = true;
-            } else
-                ++it;
-        }
-        return removed;
+        return killMatchingLocked(
+                   [&](const Slot& slot) {
+                       return slot.instance == instance;
+                   },
+                   true) != 0;
     }
 
     /// Detaches the slot whose delegate compares equal to `other->delegate`.
@@ -236,16 +234,11 @@ public:
     bool detach(SlotPtr other) const
     {
         std::unique_lock<MutexT> guard(_mutex);
-        for (auto it = _slots.begin(); it != _slots.end();) {
-            auto& slot = *it;
-            if (slot->alive() && (*slot->delegate == *other->delegate)) {
-                slot->kill();
-                _slots.erase(it);
-                return true;
-            } else
-                ++it;
-        }
-        return false;
+        return killMatchingLocked(
+                   [&](const Slot& slot) {
+                       return *slot.delegate == *other->delegate;
+                   },
+                   false) != 0;
     }
 
     /// Detaches and destroys all currently attached slots.
@@ -254,10 +247,17 @@ public:
     void detachAll() const
     {
         std::unique_lock<MutexT> guard(_mutex);
-        while (!_slots.empty()) {
-            _slots.back()->kill();
-            _slots.pop_back();
+        if (_liveCount == 0)
+            return;
+        for (auto const& slot : _slots) {
+            if (slot->alive())
+                slot->kill();
         }
+        _liveCount = 0;
+        if (emitDepthLocked() == 0)
+            _slots.clear();
+        else
+            requestSweepLocked();
     }
 
     /// Emits the signal, invoking all live attached slots in priority order.
@@ -268,63 +268,71 @@ public:
     ///
     /// For `Signal<void(...)>`: calls every live slot unconditionally.
     ///
-    /// When `MutexT` is `NullSharedMutex` the slot list is traversed directly
-    /// (lock-free fast path). Otherwise a snapshot copy is taken under a shared
-    /// lock before iteration, allowing slots to be added or removed mid-emission.
+    /// Emission snapshots raw slot pointers under a shared lock, then invokes
+    /// delegates without holding the lock. Dead slots are swept after the
+    /// outermost emission returns, allowing attach/detach inside callbacks
+    /// without copying `shared_ptr`s on the hot path.
     ///
     /// @param args  Arguments forwarded to each connected slot.
     /// @return For `bool` return type: `true` if any slot handled the event, `false` otherwise.
     ///         For `void` return type: nothing.
     virtual RT emit(Args... args)
     {
-        if constexpr (std::is_same_v<MutexT, NullSharedMutex>) {
-            // Lock-free fast path: iterate slots directly (single-threaded)
-            if constexpr (std::is_same_v<RT, bool>) {
-                for (auto const& slot : _slots) {
-                    if (slot->alive()) {
-                        if ((*slot->delegate)(std::forward<Args>(args)...))
-                            return true;
-                    }
-                }
-                return false;
-            } else {
-                for (auto const& slot : _slots) {
-                    if (slot->alive()) {
-                        (*slot->delegate)(std::forward<Args>(args)...);
-                    }
+        constexpr size_t inlineCapacity = 8;
+        Slot* inlineSlots[inlineCapacity];
+        std::unique_ptr<Slot*[]> heapSlots;
+        Slot** snapshot = inlineSlots;
+        size_t count = 0;
+
+        {
+            std::shared_lock<MutexT> guard(_mutex);
+            beginEmitLocked();
+            auto capacity = _slots.size();
+            if (capacity > inlineCapacity) {
+                heapSlots = std::make_unique<Slot*[]>(capacity);
+                snapshot = heapSlots.get();
+            }
+            for (auto const& slot : _slots) {
+                if (slot->alive())
+                    snapshot[count++] = slot.get();
+            }
+        }
+
+        if constexpr (std::is_same_v<RT, bool>) {
+            for (size_t i = 0; i < count; ++i) {
+                if (snapshot[i]->alive() &&
+                    (*snapshot[i]->delegate)(std::forward<Args>(args)...)) {
+                    finishEmit();
+                    return true;
                 }
             }
+            finishEmit();
+            return false;
         } else {
-            // Thread-safe path: copy slots under lock
-            if constexpr (std::is_same_v<RT, bool>) {
-                for (auto const& slot : slots()) {
-                    if (slot->alive()) {
-                        if ((*slot->delegate)(std::forward<Args>(args)...))
-                            return true;
-                    }
-                }
-                return false;
-            } else {
-                for (auto const& slot : slots()) {
-                    if (slot->alive()) {
-                        (*slot->delegate)(std::forward<Args>(args)...);
-                    }
-                }
+            for (size_t i = 0; i < count; ++i) {
+                if (snapshot[i]->alive())
+                    (*snapshot[i]->delegate)(std::forward<Args>(args)...);
             }
+            finishEmit();
         }
     }
 
     /// Returns a snapshot copy of the current slot list.
     ///
     /// The copy is taken under a shared lock, so it is safe to call concurrently
-    /// with attach/detach operations. Dead slots may be included if they were
-    /// killed concurrently; callers should check `slot->alive()` if needed.
+    /// with attach/detach operations. Only currently live slots are returned.
     ///
     /// @return A vector of `SlotPtr` representing all currently registered slots.
     std::vector<SlotPtr> slots() const
     {
         std::shared_lock<MutexT> guard(_mutex);
-        return _slots;
+        std::vector<SlotPtr> snapshot;
+        snapshot.reserve(_liveCount);
+        for (auto const& slot : _slots) {
+            if (slot->alive())
+                snapshot.push_back(slot);
+        }
+        return snapshot;
     }
 
     /// Returns the number of slots currently registered with this signal.
@@ -336,7 +344,7 @@ public:
     [[nodiscard]] size_t nslots() const
     {
         std::shared_lock<MutexT> guard(_mutex);
-        return _slots.size();
+        return _liveCount;
     }
 
     /// Attaches a function; equivalent to `attach(func)`. @return Assigned slot ID.
@@ -355,7 +363,8 @@ public:
     /// Copy constructor; copies the slot list and last-assigned ID from `r`.
     /// @param r  The signal to copy from.
     Signal(const Signal& r)
-        : _slots(r._slots)
+        : _slots(r.slots())
+        , _liveCount(_slots.size())
         , _lastId(r._lastId)
     {
     }
@@ -366,24 +375,140 @@ public:
     Signal& operator=(const Signal& r)
     {
         if (&r != this) {
-            _slots = r._slots;
+            _slots = r.slots();
+            _liveCount = _slots.size();
             _lastId = r._lastId;
+            resetEmitState();
         }
         return *this;
     }
 
 private:
+    static constexpr bool threadSafe = !std::is_same_v<MutexT, NullSharedMutex>;
+    using EmitDepth = std::conditional_t<threadSafe, std::atomic_size_t, size_t>;
+    using SweepFlag = std::conditional_t<threadSafe, std::atomic<bool>, bool>;
+
+    template <typename Matcher>
+    size_t killMatchingLocked(Matcher&& matcher, bool removeAll) const
+    {
+        const bool canErase = emitDepthLocked() == 0;
+        size_t killed = 0;
+
+        for (auto it = _slots.begin(); it != _slots.end();) {
+            auto& slot = *it;
+            if (slot->alive() && matcher(*slot)) {
+                slot->kill();
+                ++killed;
+                if (canErase) {
+                    it = _slots.erase(it);
+                } else {
+                    requestSweepLocked();
+                    ++it;
+                }
+                if (!removeAll)
+                    break;
+            } else {
+                ++it;
+            }
+        }
+
+        _liveCount -= killed;
+        return killed;
+    }
+
+    size_t emitDepthLocked() const
+    {
+        if constexpr (threadSafe)
+            return _emitDepth.load(std::memory_order_acquire);
+        else
+            return _emitDepth;
+    }
+
+    void beginEmitLocked() const
+    {
+        if constexpr (threadSafe)
+            _emitDepth.fetch_add(1, std::memory_order_acq_rel);
+        else
+            ++_emitDepth;
+    }
+
+    bool endEmitLocked() const
+    {
+        if constexpr (threadSafe)
+            return _emitDepth.fetch_sub(1, std::memory_order_acq_rel) == 1;
+        else
+            return --_emitDepth == 0;
+    }
+
+    void requestSweepLocked() const
+    {
+        if constexpr (threadSafe)
+            _needsSweep.store(true, std::memory_order_release);
+        else
+            _needsSweep = true;
+    }
+
+    bool consumeSweepRequest() const
+    {
+        if constexpr (threadSafe)
+            return _needsSweep.exchange(false, std::memory_order_acq_rel);
+        else {
+            bool pending = _needsSweep;
+            _needsSweep = false;
+            return pending;
+        }
+    }
+
+    void sweepLocked() const
+    {
+        _slots.erase(
+            std::remove_if(
+                _slots.begin(),
+                _slots.end(),
+                [](const SlotPtr& slot) {
+                    return !slot->alive();
+                }),
+            _slots.end());
+    }
+
+    void finishEmit()
+    {
+        if (!endEmitLocked())
+            return;
+        if (!consumeSweepRequest())
+            return;
+
+        std::unique_lock<MutexT> guard(_mutex);
+        sweepLocked();
+    }
+
+    void resetEmitState()
+    {
+        if constexpr (threadSafe) {
+            _emitDepth.store(0, std::memory_order_release);
+            _needsSweep.store(false, std::memory_order_release);
+        } else {
+            _emitDepth = 0;
+            _needsSweep = false;
+        }
+    }
+
     mutable MutexT _mutex;
     mutable std::vector<SlotPtr> _slots;
+    mutable size_t _liveCount = 0;
     mutable int _lastId = 0;
+    mutable EmitDepth _emitDepth{};
+    mutable SweepFlag _needsSweep{};
 };
 
 
 using NullSignal = Signal<void()>;
 
-/// Lock-free signal for use within a single libuv event loop thread.
-/// All net/http signals operate on a single loop thread, so the
-/// shared_mutex provides no safety benefit and adds overhead.
+/// Cross-thread signal variant.
+template <typename RT>
+using ThreadSignal = Signal<RT, std::shared_mutex>;
+
+/// Compatibility alias for the single-threaded fast path.
 template <typename RT>
 using LocalSignal = Signal<RT, NullSharedMutex>;
 
@@ -458,9 +583,9 @@ namespace internal {
 /// Internal storage for a single signal connection.
 ///
 /// Owns the callable delegate, tracks the associated instance pointer for
-/// bulk-detach operations, holds the slot ID and priority, and uses an
-/// `atomic_flag` as a lock-free liveness bit so that slots can be marked
-/// dead from one thread while another thread is mid-emission.
+/// bulk-detach operations, and carries the slot ID and priority metadata.
+/// Liveness is one-way: once a slot is killed it remains dead until removed
+/// by a sweep.
 template <typename RT, typename... Args>
 struct Slot
 {
@@ -478,9 +603,7 @@ struct Slot
     int priority;
 
     /// Liveness flag. Set on construction; cleared by `kill()`.
-    /// `alive()` reads and re-sets the flag atomically, making it safe to
-    /// test from the emission thread while `kill()` is called concurrently.
-    std::atomic_flag flag = ATOMIC_FLAG_INIT;
+    std::atomic<bool> live{true};
 
     /// Constructs a slot, taking ownership of `delegate` and marking it alive.
     ///
@@ -494,7 +617,6 @@ struct Slot
         , id(id)
         , priority(priority)
     {
-        flag.test_and_set();
     }
 
     ~Slot() = default;
@@ -503,16 +625,13 @@ struct Slot
     /// Safe to call concurrently with `alive()`.
     void kill()
     {
-        flag.clear();
+        live.store(false, std::memory_order_release);
     }
 
     /// Returns `true` if the slot is still live, `false` if `kill()` has been called.
-    ///
-    /// Implemented as an atomic test-and-set so it can be polled during emission
-    /// without a separate mutex.
     bool alive()
     {
-        return flag.test_and_set();
+        return live.load(std::memory_order_acquire);
     }
 
     /// NonCopyable and NonMovable
