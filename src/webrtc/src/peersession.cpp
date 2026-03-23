@@ -72,9 +72,9 @@ void PeerSession::accept()
         _state = State::Connecting;
         remotePeerId = _remotePeerId;
     }
+    createPeerConnection(false);
     StateChanged.emit(State::Connecting);
     _signaller.sendControl(remotePeerId, "accept");
-    createPeerConnection(false);
 }
 
 

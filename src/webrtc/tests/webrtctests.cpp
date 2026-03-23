@@ -28,6 +28,7 @@ struct MockSignaller : SignallingInterface
     };
 
     std::vector<ControlMessage> controls;
+    std::function<void(const std::string&, const std::string&, const std::string&)> onSendControl;
 
     void sendSdp(const std::string&, const std::string&, const std::string&) override {}
     void sendCandidate(const std::string&, const std::string&, const std::string&) override {}
@@ -37,6 +38,8 @@ struct MockSignaller : SignallingInterface
                      const std::string& reason = {}) override
     {
         controls.push_back({peerId, type, reason});
+        if (onSendControl)
+            onSendControl(peerId, type, reason);
     }
 };
 
@@ -440,6 +443,23 @@ int main(int argc, char** argv)
         expect(session.state() == PeerSession::State::Connecting);
         expect(session.peerConnection() != nullptr);
         expect(session.dataChannel() == nullptr);
+    });
+
+    describe("peer session: accept creates peer connection before signalling", []() {
+        MockSignaller signaller;
+        PeerSession session(signaller, {});
+        bool pcWasReadyDuringAccept = false;
+
+        signaller.onSendControl = [&](const std::string&, const std::string& type, const std::string&) {
+            if (type == "accept")
+                pcWasReadyDuringAccept = session.peerConnection() != nullptr;
+        };
+
+        signaller.ControlReceived.emit("peer", "init", "");
+        session.accept();
+
+        expect(pcWasReadyDuringAccept);
+        expect(session.peerConnection() != nullptr);
     });
 
     describe("peer session: caller owns local data channel", []() {
