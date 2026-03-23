@@ -359,8 +359,24 @@ void SSLContext::setALPNProtocols(const std::vector<std::string>& protocols)
         wire.insert(wire.end(), proto.begin(), proto.end());
     }
 
+    // Client-side: advertise protocols
     if (SSL_CTX_set_alpn_protos(_sslContext, wire.data(), static_cast<unsigned int>(wire.size())) != 0)
         throw std::runtime_error("SSL Error: Cannot set ALPN protocols");
+
+    // Server-side: install selection callback using SSL_select_next_proto
+    _alpnWire = std::move(wire);
+    SSL_CTX_set_alpn_select_cb(_sslContext,
+        [](SSL*, const unsigned char** out, unsigned char* outlen,
+           const unsigned char* in, unsigned int inlen, void* arg) -> int {
+            auto* self = static_cast<SSLContext*>(arg);
+            if (SSL_select_next_proto(
+                    const_cast<unsigned char**>(out), outlen,
+                    self->_alpnWire.data(),
+                    static_cast<unsigned int>(self->_alpnWire.size()),
+                    in, inlen) == OPENSSL_NPN_NEGOTIATED)
+                return SSL_TLSEXT_ERR_OK;
+            return SSL_TLSEXT_ERR_NOACK;
+        }, this);
 }
 
 
