@@ -13,6 +13,7 @@
 
 
 #include "icy/base.h"
+#include "icy/buffer.h"
 #include "icy/handle.h"
 #include "icy/net/address.h"
 #include "icy/net/net.h"
@@ -89,6 +90,10 @@ public:
         throw std::logic_error("Socket::shutdown not implemented by protocol");
         return false;
     };
+
+    /// Sends an owned payload buffer to the connected peer.
+    [[nodiscard]] virtual ssize_t sendOwned(Buffer&& buffer, int flags = 0) = 0;
+    [[nodiscard]] virtual ssize_t sendOwned(Buffer&& buffer, const Address& peerAddress, int flags = 0) = 0;
 
     /// Closes the underlying socket.
     virtual void close() = 0;

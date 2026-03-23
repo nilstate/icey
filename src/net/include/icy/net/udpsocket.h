@@ -65,6 +65,7 @@ public:
     /// @param flags Reserved; currently unused.
     /// @return Number of bytes accepted for sending, or -1 on error.
     [[nodiscard]] virtual ssize_t send(const char* data, size_t len, int flags = 0) override;
+    [[nodiscard]] virtual ssize_t sendOwned(Buffer&& buffer, int flags = 0) override;
 
     /// Sends @p len bytes to @p peerAddress.
     /// Returns -1 if the socket is uninitialized or the address is not authorized.
@@ -75,6 +76,8 @@ public:
     /// @return Number of bytes accepted for sending, or -1 on error.
     [[nodiscard]] virtual ssize_t send(const char* data, size_t len,
                                        const net::Address& peerAddress, int flags = 0) override;
+    [[nodiscard]] virtual ssize_t sendOwned(Buffer&& buffer,
+                                            const net::Address& peerAddress, int flags = 0) override;
 
     /// Enables or disables UDP broadcast.
     /// @param flag true to enable broadcast.

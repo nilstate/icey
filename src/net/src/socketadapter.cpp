@@ -53,38 +53,37 @@ ssize_t SocketAdapter::send(const char* data, size_t len, const Address& peerAdd
 }
 
 
+ssize_t SocketAdapter::sendOwned(Buffer&& buffer, int flags)
+{
+    if (!_sender)
+        return -1;
+    return _sender->sendOwned(std::move(buffer), flags);
+}
+
+
+ssize_t SocketAdapter::sendOwned(Buffer&& buffer, const Address& peerAddress, int flags)
+{
+    if (!_sender)
+        return -1;
+    return _sender->sendOwned(std::move(buffer), peerAddress, flags);
+}
+
+
 ssize_t SocketAdapter::sendPacket(const IPacket& packet, int flags)
 {
-    // Try to cast as RawPacket so we can send without copying any data.
-    auto raw = dynamic_cast<const RawPacket*>(&packet);
-    if (raw)
-        return send(reinterpret_cast<const char*>(raw->data()), raw->size(), flags);
-
-    // Dynamically generated packets need to be written to a
-    // temp buffer for sending.
-    else {
-        Buffer buf;
-        packet.write(buf);
-        return send(buf.data(), buf.size(), flags);
-    }
+    Buffer buf;
+    buf.reserve(packet.size());
+    packet.write(buf);
+    return sendOwned(std::move(buf), flags);
 }
 
 
 ssize_t SocketAdapter::sendPacket(const IPacket& packet, const Address& peerAddress, int flags)
 {
-    // Try to cast as RawPacket so we can send without copying any data.
-    auto raw = dynamic_cast<const RawPacket*>(&packet);
-    if (raw)
-        return send(reinterpret_cast<const char*>(raw->data()), raw->size(), peerAddress, flags);
-
-    // Dynamically generated packets need to be written to a
-    // temp buffer for sending.
-    else {
-        Buffer buf;
-        buf.reserve(1024);
-        packet.write(buf);
-        return send(buf.data(), buf.size(), peerAddress, flags);
-    }
+    Buffer buf;
+    buf.reserve(packet.size());
+    packet.write(buf);
+    return sendOwned(std::move(buf), peerAddress, flags);
 }
 
 

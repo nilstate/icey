@@ -40,7 +40,9 @@ public:
         LDebug("On recv: ", peerAddress, ": ", buffer.size());
 
         // Echo back to client
-        server->send(bufferCast<const char*>(buffer), buffer.size(), peerAddress);
+        server->sendOwned(Buffer(bufferCast<const char*>(buffer),
+                                 bufferCast<const char*>(buffer) + buffer.size()),
+                          peerAddress);
         return false;
     }
 

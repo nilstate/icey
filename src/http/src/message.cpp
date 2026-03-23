@@ -174,6 +174,24 @@ void Message::write(std::string& str) const
 }
 
 
+void Message::write(Buffer& buf) const
+{
+    size_t total = 0;
+    for (const auto& [name, value] : *this) {
+        total += name.size() + 2 + value.size() + 2;
+    }
+    buf.reserve(buf.size() + total);
+    for (const auto& [name, value] : *this) {
+        buf.insert(buf.end(), name.begin(), name.end());
+        buf.push_back(':');
+        buf.push_back(' ');
+        buf.insert(buf.end(), value.begin(), value.end());
+        buf.push_back('\r');
+        buf.push_back('\n');
+    }
+}
+
+
 } // namespace http
 } // namespace icy
 

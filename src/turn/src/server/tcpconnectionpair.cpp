@@ -136,7 +136,7 @@ bool TCPConnectionPair::makeDataConnection()
     // Send early data from peer to client
     if (earlyPeerData.size()) {
         LTrace("Flushing early media: ", earlyPeerData.size());
-        client->send(earlyPeerData.data(), earlyPeerData.size());
+        client->sendOwned(std::move(earlyPeerData));
         earlyPeerData.clear();
     }
 
@@ -158,7 +158,7 @@ bool TCPConnectionPair::onPeerDataReceived(net::Socket&,
         if (allocation.deleted())
             return false;
 
-        client->send(buf, len);
+        client->sendOwned(Buffer(buf, buf + len));
     }
 
     // Buffer early media

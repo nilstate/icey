@@ -32,6 +32,15 @@ class Base_API Stream : public uv::Handle<T>
 public:
     using Handle = uv::Handle<T>;
 
+protected:
+    struct OwnedWriteReq
+    {
+        uv_write_t req{};
+        Buffer buffer;
+    };
+
+public:
+
     /// Construct the stream bound to @p loop with a 64 KiB read buffer.
     ///
     /// @param loop  Event loop to associate this stream with.
@@ -46,6 +55,8 @@ public:
     {
         close();
         for (auto* req : _writeReqFree)
+            delete req;
+        for (auto* req : _ownedWriteReqFree)
             delete req;
     }
 
@@ -93,21 +104,13 @@ public:
     ///              if the stream is not in a writable state.
     bool write(const char* data, size_t len)
     {
-        if (!Handle::active() || !_started)
+        if (!canQueueWrite(len))
             return false;
-
-        // Backpressure: reject writes if libuv's write queue is too large.
-        // This prevents unbounded memory growth on slow connections.
-        size_t queueSize = stream()->write_queue_size;
-        if (queueSize > _highWaterMark) {
-            LWarn("Write queue full (", queueSize, " bytes), dropping write of ", len, " bytes");
-            return false;
-        }
 
         // Reuse write requests from freelist to avoid heap alloc per write
         uv_write_t* req = allocWriteReq();
         auto buf = uv_buf_init(const_cast<char*>(data), static_cast<unsigned int>(len));
-        return Handle::invoke(&uv_write, req, stream(), &buf, 1, [](uv_write_t* req, int) {
+        int err = uv_write(req, stream(), &buf, 1, [](uv_write_t* req, int) {
             // Return to freelist via the stream pointer stored in handle->data.
             // data is null if the C++ object was destroyed (Context::~Context
             // clears it before calling uv_close). In that case just free the req.
@@ -117,6 +120,45 @@ public:
             else
                 delete req;
         });
+        if (err) {
+            freeWriteReq(req);
+            Handle::setUVError(err, "UV Error");
+            return false;
+        }
+        return true;
+    }
+
+    /// Write an owned payload buffer to the stream.
+    ///
+    /// The buffer is moved into the queued write request and retained until the
+    /// libuv completion callback fires. Use this path whenever the caller does
+    /// not naturally own storage beyond the current stack frame.
+    ///
+    /// @param buffer  Payload buffer moved into the async write request.
+    /// @return        `true` if the write was queued; `false` on backpressure or
+    ///                if the stream is not in a writable state.
+    bool writeOwned(Buffer&& buffer)
+    {
+        if (!canQueueWrite(buffer.size()))
+            return false;
+
+        auto* req = allocOwnedWriteReq();
+        req->buffer = std::move(buffer);
+        auto uvBuffer = uv_buf_init(req->buffer.data(), static_cast<unsigned int>(req->buffer.size()));
+        int err = uv_write(&req->req, stream(), &uvBuffer, 1, [](uv_write_t* req, int) {
+            auto* ownedReq = reinterpret_cast<OwnedWriteReq*>(req);
+            auto* self = reinterpret_cast<Stream*>(req->handle->data);
+            if (self)
+                self->freeOwnedWriteReq(ownedReq);
+            else
+                delete ownedReq;
+        });
+        if (err) {
+            freeOwnedWriteReq(req);
+            Handle::setUVError(err, "UV Error");
+            return false;
+        }
+        return true;
     }
 
     /// Set the high water mark for the write queue (default 16MB).
@@ -135,16 +177,23 @@ public:
     /// @return      `true` if the write was queued; `false` on error.
     bool write(const char* data, size_t len, uv_stream_t* send)
     {
-        if (!Handle::active() || !_started)
+        if (!canQueueWrite(len))
             return false;
 
         if (stream()->type != UV_NAMED_PIPE || !this->template get<uv_pipe_t>()->ipc)
             throw std::logic_error("write2 is only valid for IPC pipes");
 
         auto buf = uv_buf_init(const_cast<char*>(data), static_cast<unsigned int>(len));
-        return Handle::invoke(&uv_write2, new uv_write_t, stream(), &buf, 1, send, [](uv_write_t* req, int) {
+        auto* req = new uv_write_t;
+        int err = uv_write2(req, stream(), &buf, 1, send, [](uv_write_t* req, int) {
             delete req;
         });
+        if (err) {
+            delete req;
+            Handle::setUVError(err, "UV Error");
+            return false;
+        }
+        return true;
     }
 
     /// Return the underlying `uv_stream_t` pointer cast from the native handle.
@@ -288,11 +337,45 @@ protected:
         }
     }
 
+    OwnedWriteReq* allocOwnedWriteReq()
+    {
+        if (!_ownedWriteReqFree.empty()) {
+            auto* req = _ownedWriteReqFree.back();
+            _ownedWriteReqFree.pop_back();
+            return req;
+        }
+        return new OwnedWriteReq;
+    }
+
+    void freeOwnedWriteReq(OwnedWriteReq* req)
+    {
+        req->buffer.clear();
+        if (_ownedWriteReqFree.size() < 8) {
+            _ownedWriteReqFree.push_back(req);
+        } else {
+            delete req;
+        }
+    }
+
 protected:
+    bool canQueueWrite(size_t len)
+    {
+        if (!Handle::active() || !_started)
+            return false;
+
+        size_t queueSize = stream()->write_queue_size;
+        if (queueSize >= _highWaterMark || len > (_highWaterMark - queueSize)) {
+            LWarn("Write queue full (", queueSize, " bytes), dropping write of ", len, " bytes");
+            return false;
+        }
+        return true;
+    }
+
     Buffer _buffer;
     bool _started{false};
     size_t _highWaterMark{16 * 1024 * 1024}; ///< 16MB default write queue limit
     std::vector<uv_write_t*> _writeReqFree;  ///< Freelist for write requests
+    std::vector<OwnedWriteReq*> _ownedWriteReqFree; ///< Freelist for owned write requests
 };
 
 

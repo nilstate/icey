@@ -67,7 +67,7 @@ public:
     void onSendTimer()
     {
         std::string payload(createLatencyCheck(30000));
-        socket.send(payload.c_str(), payload.length());
+        (void)socket.sendOwned(Buffer(payload.begin(), payload.end()));
     }
 
     bool onSocketConnect(net::Socket&)
@@ -85,7 +85,7 @@ public:
         LDebug(id, ": On recv: ", peerAddr, ": ", buffer.size());
 
         // Echo back to client
-        socket.send(payload.c_str(), payload.size(), relayedAddr); // peerAddr
+        (void)socket.sendOwned(Buffer(payload.begin(), payload.end()), relayedAddr); // peerAddr
         return false;
     }
 
@@ -105,5 +105,3 @@ public:
 
 
 } //  namespace icy
-
-

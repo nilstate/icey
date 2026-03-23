@@ -13,6 +13,7 @@
 
 
 #include "icy/base.h"
+#include "icy/buffer.h"
 #include "icy/net/address.h"
 #include "icy/net/dns.h"
 #include "icy/net/net.h"
@@ -51,6 +52,13 @@ public:
     /// connected peer address.
     [[nodiscard]] virtual ssize_t send(const char* data, size_t len, int flags = 0);
     [[nodiscard]] virtual ssize_t send(const char* data, size_t len, const Address& peerAddress, int flags = 0);
+
+    /// Sends an owned payload buffer to the connected peer.
+    ///
+    /// The buffer is moved through the adapter chain and retained by the
+    /// transport layer until async write completion.
+    [[nodiscard]] virtual ssize_t sendOwned(Buffer&& buffer, int flags = 0);
+    [[nodiscard]] virtual ssize_t sendOwned(Buffer&& buffer, const Address& peerAddress, int flags = 0);
 
     /// Sends the given packet to the connected peer.
     /// Returns the number of bytes sent or -1 on error.

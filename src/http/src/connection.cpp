@@ -47,6 +47,16 @@ ssize_t Connection::send(const char* data, size_t len, int flags)
 }
 
 
+ssize_t Connection::sendOwned(Buffer&& buffer, int flags)
+{
+    if (_closed)
+        return -1;
+
+    markActive();
+    return _adapter->sendOwned(std::move(buffer), flags);
+}
+
+
 ssize_t Connection::sendHeader()
 {
     if (!_shouldSendHeader)
@@ -56,15 +66,11 @@ ssize_t Connection::sendHeader()
         throw std::runtime_error("Connection::sendHeader: no outgoing header");
     }
 
-    _headerBuf.clear();
-    _headerBuf.reserve(512);
-    outgoingHeader()->write(_headerBuf);
     markActive();
-
-    // Send headers directly to the Socket,
-    // bypassing the ConnectionAdapter.
-    // _headerBuf is a member so it stays alive until the write completes.
-    return _socket->send(_headerBuf.c_str(), _headerBuf.length());
+    Buffer buffer;
+    buffer.reserve(512);
+    outgoingHeader()->write(buffer);
+    return _socket->sendOwned(std::move(buffer));
 }
 
 
@@ -264,6 +270,19 @@ ssize_t ConnectionAdapter::send(const char* data, size_t len, int flags)
 
     // Send body / chunk
     return SocketAdapter::send(data, len, flags);
+}
+
+
+ssize_t ConnectionAdapter::sendOwned(Buffer&& buffer, int flags)
+{
+    if (_connection &&
+        _connection->shouldSendHeader()) {
+        ssize_t res = _connection->sendHeader();
+        if (buffer.empty())
+            return res;
+    }
+
+    return SocketAdapter::sendOwned(std::move(buffer), flags);
 }
 
 

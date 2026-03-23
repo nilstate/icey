@@ -140,6 +140,9 @@ public:
     /// Writes the HTTP request to the given output string.
     virtual void write(std::string& str) const;
 
+    /// Writes the HTTP request directly into a byte buffer.
+    virtual void write(Buffer& buf) const;
+
     friend std::ostream& operator<<(std::ostream& stream, const Request& req)
     {
         req.write(stream);

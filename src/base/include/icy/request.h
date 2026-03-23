@@ -119,6 +119,32 @@ inline T& createRequest(std::function<void(const typename T::Event&)> callback)
 }
 
 
+/// Allocate a heap-owned `Request` of type @p T whose callback retains
+/// additional state until completion.
+///
+/// This is the standard way to bind request completion to handle lifetime or
+/// other retained context without hand-rolling per-call capture logic.
+///
+/// @tparam T         A specialization of `Request`.
+/// @tparam Retained  Retained object type copied or moved into the callback.
+/// @tparam Callback  Callable invoked as `callback(retained, event)`.
+/// @param retained   Extra state to keep alive until the request completes.
+/// @param callback   Completion handler receiving the retained state and event.
+/// @return           Reference to the newly allocated request.
+template <typename T, typename Retained, typename Callback>
+inline T& createRetainedRequest(Retained&& retained, Callback&& callback)
+{
+    using RetainedType = std::decay_t<Retained>;
+    using CallbackType = std::decay_t<Callback>;
+    return createRequest<T>(
+        [retained = RetainedType(std::forward<Retained>(retained)),
+         callback = CallbackType(std::forward<Callback>(callback))](
+            const typename T::Event& event) mutable {
+            callback(retained, event);
+        });
+}
+
+
 /// Asynchronous connection request for TCP sockets and named pipes.
 struct ConnectReq : public uv::Request<uv_connect_t>
 {

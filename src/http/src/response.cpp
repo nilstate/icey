@@ -210,6 +210,48 @@ void Response::write(std::string& str) const
 }
 
 
+void Response::write(Buffer& buf) const
+{
+    const StatusLine* sl = (_version == Message::HTTP_1_1) ? getStatusLine(_status) : nullptr;
+
+    size_t total = 0;
+    if (sl) {
+        total = sl->len;
+    } else {
+        const char* code = getStatusCodeString(_status);
+        total = _version.size() + 1 + (code ? std::strlen(code) : 3) + 1 + _reason.size() + 2;
+    }
+    for (const auto& [name, value] : *this) {
+        total += name.size() + 2 + value.size() + 2;
+    }
+    total += 2;
+
+    buf.reserve(buf.size() + total);
+
+    if (sl) {
+        buf.insert(buf.end(), sl->data, sl->data + sl->len);
+    } else {
+        buf.insert(buf.end(), _version.begin(), _version.end());
+        buf.push_back(' ');
+        const char* code = getStatusCodeString(_status);
+        if (code) {
+            buf.insert(buf.end(), code, code + std::strlen(code));
+        } else {
+            char codeBuf[12];
+            auto n = std::snprintf(codeBuf, sizeof(codeBuf), "%d", static_cast<int>(_status));
+            buf.insert(buf.end(), codeBuf, codeBuf + n);
+        }
+        buf.push_back(' ');
+        buf.insert(buf.end(), _reason.begin(), _reason.end());
+        buf.push_back('\r');
+        buf.push_back('\n');
+    }
+    http::Message::write(buf);
+    buf.push_back('\r');
+    buf.push_back('\n');
+}
+
+
 bool Response::success() const
 {
     return getStatus() < StatusCode::BadRequest; // < 400

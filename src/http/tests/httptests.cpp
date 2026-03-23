@@ -57,7 +57,8 @@ static std::unique_ptr<http::Server> makeEchoServer(uint16_t port)
     server->start();
     server->Connection += [](http::ServerConnection::Ptr conn) {
         conn->Payload += [](http::ServerConnection& conn, const MutableBuffer& buffer) {
-            conn.send(bufferCast<const char*>(buffer), buffer.size());
+            conn.sendOwned(Buffer(bufferCast<const char*>(buffer),
+                                  bufferCast<const char*>(buffer) + buffer.size()));
         };
     };
     return server;
@@ -513,6 +514,109 @@ int main(int argc, char** argv)
         expect(!conn->error().any());
 
         server->shutdown();
+    });
+
+    describe("http server state: keep-alive returns to receiving headers and idles out", []() {
+        auto server = std::make_unique<http::Server>(net::Address("127.0.0.1", TEST_HTTP_PORT + 21));
+        server->setKeepAliveTimeout(1);
+
+        http::ServerConnection::Ptr serverConn;
+        server->Connection += [&](http::ServerConnection::Ptr conn) {
+            serverConn = conn;
+            conn->response().setContentLength(0);
+            conn->response().setKeepAlive(true);
+            conn->sendHeader();
+        };
+        server->start();
+
+        auto conn = http::Client::instance().createConnection(
+            "http://127.0.0.1:" + std::to_string(TEST_HTTP_PORT + 21) + "/");
+
+        bool complete = false;
+        bool closed = false;
+        conn->Complete += [&](const http::Response&) { complete = true; };
+        conn->Close += [&](http::Connection&) { closed = true; };
+        conn->request().setKeepAlive(true);
+        conn->send();
+
+        expect(test::waitFor([&] { return complete && serverConn != nullptr; }, 5000));
+        expect(serverConn->state() == http::ServerConnectionState::ReceivingHeaders);
+
+        expect(test::waitFor([&] { return closed && serverConn->closed(); }, 5000));
+        expect(serverConn->state() == http::ServerConnectionState::Closed);
+
+        server->shutdown();
+    });
+
+    describe("http server state: streaming bypasses idle timeout", []() {
+        auto server = std::make_unique<http::Server>(net::Address("127.0.0.1", TEST_HTTP_PORT + 22));
+        server->setKeepAliveTimeout(1);
+
+        http::ServerConnection::Ptr serverConn;
+        server->Connection += [&](http::ServerConnection::Ptr conn) {
+            serverConn = conn;
+            conn->beginStreaming();
+            conn->response().setChunkedTransferEncoding(true);
+            conn->response().setContentType("text/event-stream");
+            conn->response().setKeepAlive(true);
+            conn->sendHeader();
+        };
+        server->start();
+
+        auto conn = http::Client::instance().createConnection(
+            "http://127.0.0.1:" + std::to_string(TEST_HTTP_PORT + 22) + "/stream");
+
+        bool headers = false;
+        bool closed = false;
+        conn->Headers += [&](http::Response&) { headers = true; };
+        conn->Close += [&](http::Connection&) { closed = true; };
+        conn->request().setKeepAlive(true);
+        conn->send();
+
+        expect(test::waitFor([&] { return headers && serverConn != nullptr; }, 5000));
+        expect(serverConn->state() == http::ServerConnectionState::Streaming);
+
+        test::waitFor([] { return false; }, 2500);
+
+        expect(!closed);
+        expect(!serverConn->closed());
+        expect(serverConn->state() == http::ServerConnectionState::Streaming);
+
+        conn->close();
+        expect(test::waitFor([&] { return closed || serverConn->closed(); }, 5000));
+
+        server->shutdown();
+    });
+
+    describe("http server state: websocket upgrade bypasses idle timeout", []() {
+        auto server = makeEchoServer(TEST_HTTP_PORT + 23);
+        server->setKeepAliveTimeout(1);
+
+        http::ServerConnection::Ptr serverConn;
+        server->Connection += [&](http::ServerConnection::Ptr conn) {
+            serverConn = conn;
+        };
+
+        auto conn = http::Client::instance().createConnection(
+            "ws://127.0.0.1:" + std::to_string(TEST_HTTP_PORT + 23) + "/websocket");
+
+        bool connected = false;
+        bool closed = false;
+        conn->Connect += [&]() { connected = true; };
+        conn->Close += [&](http::Connection&) { closed = true; };
+        conn->send("PING", 4);
+
+        expect(test::waitFor([&] { return connected && serverConn != nullptr; }, 5000));
+        expect(serverConn->state() == http::ServerConnectionState::Upgraded);
+
+        test::waitFor([] { return false; }, 2500);
+
+        expect(!closed);
+        expect(!serverConn->closed());
+        expect(serverConn->state() == http::ServerConnectionState::Upgraded);
+
+        server->shutdown();
+        expect(test::waitFor([&] { return closed; }, 5000));
     });
 
 
@@ -1399,8 +1503,9 @@ int main(int argc, char** argv)
         bool threw = false;
         try {
             serverFramer.readFrame(reader, payload);
-        } catch (const std::runtime_error& e) {
+        } catch (const http::ws::WebSocketException& e) {
             threw = true;
+            expect(e.code() == http::ws::ErrorCode::InvalidRsvBits);
             expect(std::string_view(e.what()).find("RSV bits") != std::string_view::npos);
         }
         expect(threw);
@@ -1423,8 +1528,9 @@ int main(int argc, char** argv)
         bool threw = false;
         try {
             serverFramer.readFrame(reader, payload);
-        } catch (const std::runtime_error& e) {
+        } catch (const http::ws::WebSocketException& e) {
             threw = true;
+            expect(e.code() == http::ws::ErrorCode::InvalidOpcode);
             expect(std::string_view(e.what()).find("Reserved opcode") != std::string_view::npos);
         }
         expect(threw);
@@ -1447,8 +1553,9 @@ int main(int argc, char** argv)
         bool threw = false;
         try {
             serverFramer.readFrame(reader, payload);
-        } catch (const std::runtime_error& e) {
+        } catch (const http::ws::WebSocketException& e) {
             threw = true;
+            expect(e.code() == http::ws::ErrorCode::InvalidOpcode);
             expect(std::string_view(e.what()).find("Unknown opcode") != std::string_view::npos);
         }
         expect(threw);
@@ -1471,8 +1578,9 @@ int main(int argc, char** argv)
         bool threw = false;
         try {
             serverFramer.readFrame(reader, payload);
-        } catch (const std::runtime_error& e) {
+        } catch (const http::ws::WebSocketException& e) {
             threw = true;
+            expect(e.code() == http::ws::ErrorCode::ProtocolViolation);
             expect(std::string_view(e.what()).find("Fragmented control frame") != std::string_view::npos);
         }
         expect(threw);
@@ -1499,8 +1607,9 @@ int main(int argc, char** argv)
         bool threw = false;
         try {
             serverFramer.readFrame(reader, payload);
-        } catch (const std::runtime_error& e) {
+        } catch (const http::ws::WebSocketException& e) {
             threw = true;
+            expect(e.code() == http::ws::ErrorCode::ProtocolViolation);
             expect(std::string_view(e.what()).find("Control frame payload too large") != std::string_view::npos);
         }
         expect(threw);
@@ -1525,8 +1634,9 @@ int main(int argc, char** argv)
         bool threw = false;
         try {
             serverFramer.readFrame(reader, payload);
-        } catch (const std::exception&) {
+        } catch (const http::ws::WebSocketException& e) {
             threw = true;
+            expect(e.code() == http::ws::ErrorCode::IncompleteFrame);
         }
         expect(threw);
     });
@@ -1870,9 +1980,9 @@ int main(int argc, char** argv)
             int flags = unsigned(http::ws::Opcode::Text); // no FIN bit
             Buffer frameBuf;
             frameBuf.reserve(64);
-            BitWriter writer(frameBuf);
+            DynamicBitWriter writer(frameBuf);
             fragFramer.writeFrame("Hello", 5, flags, writer);
-            conn->socket()->send(writer.begin(), writer.position());
+            conn->socket()->sendOwned(std::move(frameBuf));
         }
 
         // Frame 2: Continuation, FIN=1 (final fragment)
@@ -1880,9 +1990,9 @@ int main(int argc, char** argv)
             int flags = unsigned(http::ws::FrameFlags::Fin) | unsigned(http::ws::Opcode::Continuation);
             Buffer frameBuf;
             frameBuf.reserve(64);
-            BitWriter writer(frameBuf);
+            DynamicBitWriter writer(frameBuf);
             fragFramer.writeFrame("World", 5, flags, writer);
-            conn->socket()->send(writer.begin(), writer.position());
+            conn->socket()->sendOwned(std::move(frameBuf));
         }
 
         expect(test::waitFor([&] { return gotReply; }, 5000));
@@ -1923,18 +2033,18 @@ int main(int argc, char** argv)
             int flags = unsigned(http::ws::Opcode::Binary);
             char data[] = {0x01, 0x02, 0x03};
             Buffer buf; buf.reserve(64);
-            BitWriter w(buf);
+            DynamicBitWriter w(buf);
             fragFramer.writeFrame(data, 3, flags, w);
-            conn->socket()->send(w.begin(), w.position());
+            conn->socket()->sendOwned(std::move(buf));
         }
 
         // Interleaved Ping (RFC 6455 allows control frames during fragmentation)
         {
             int flags = unsigned(http::ws::FrameFlags::Fin) | unsigned(http::ws::Opcode::Ping);
             Buffer buf; buf.reserve(64);
-            BitWriter w(buf);
+            DynamicBitWriter w(buf);
             fragFramer.writeFrame("hi", 2, flags, w);
-            conn->socket()->send(w.begin(), w.position());
+            conn->socket()->sendOwned(std::move(buf));
         }
 
         // Fragment 2: Continuation, FIN=1
@@ -1942,9 +2052,9 @@ int main(int argc, char** argv)
             int flags = unsigned(http::ws::FrameFlags::Fin) | unsigned(http::ws::Opcode::Continuation);
             char data[] = {0x04, 0x05, 0x06};
             Buffer buf; buf.reserve(64);
-            BitWriter w(buf);
+            DynamicBitWriter w(buf);
             fragFramer.writeFrame(data, 3, flags, w);
-            conn->socket()->send(w.begin(), w.position());
+            conn->socket()->sendOwned(std::move(buf));
         }
 
         expect(test::waitFor([&] { return gotReply; }, 5000));
@@ -1977,11 +2087,11 @@ int main(int argc, char** argv)
         int closeFlags = unsigned(http::ws::FrameFlags::Fin) | unsigned(http::ws::Opcode::Close);
         Buffer frameBuf;
         frameBuf.reserve(64);
-        BitWriter fw(frameBuf);
+        DynamicBitWriter fw(frameBuf);
         clientFramer.writeFrame(closePayload, pw.position(), closeFlags, fw);
 
         // Verify the frame is valid by parsing it with a server framer
-        BitReader reader(mutableBuffer(frameBuf.data(), fw.position()));
+        BitReader reader(mutableBuffer(frameBuf));
         char* readPayload = nullptr;
         uint64_t readLen = serverFramer.readFrame(reader, readPayload);
 
@@ -2035,20 +2145,20 @@ int main(int argc, char** argv)
 
         Buffer frameBuf;
         frameBuf.reserve(64);
-        BitWriter writer(frameBuf);
+        DynamicBitWriter writer(frameBuf);
         splitFramer.writeFrame("split-test-data", 15, http::ws::SendFlags::Text, writer);
 
-        size_t totalLen = writer.position();
+        size_t totalLen = frameBuf.size();
         size_t splitPoint = totalLen / 2; // split in the middle
 
         // Send first half
-        conn->socket()->send(writer.begin(), splitPoint);
+        conn->socket()->sendOwned(Buffer(frameBuf.begin(), frameBuf.begin() + splitPoint));
 
         // Small delay to ensure the first half is processed before the second
         test::waitFor([] { return false; }, 50);
 
         // Send second half
-        conn->socket()->send(writer.begin() + splitPoint, totalLen - splitPoint);
+        conn->socket()->sendOwned(Buffer(frameBuf.begin() + splitPoint, frameBuf.end()));
 
         expect(test::waitFor([&] { return gotReply; }, 5000));
         expect(received == "split-test-data");

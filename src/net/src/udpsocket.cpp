@@ -22,6 +22,16 @@ using namespace std;
 namespace icy {
 namespace net {
 
+namespace {
+
+struct OwnedUDPSendReq
+{
+    uv_udp_send_t req{};
+    Buffer buffer;
+};
+
+} // namespace
+
 
 UDPSocket::UDPSocket(uv::Loop* loop)
     : uv::Handle<uv_udp_t>(loop)
@@ -85,14 +95,13 @@ void UDPSocket::connect(const std::string& host, uint16_t port)
     } else {
         init();
 
-        net::dns::resolve(host, port, [ptr = context()](int err, const net::Address& addr) {
-            if (!ptr->deleted) {
-                auto handle = reinterpret_cast<UDPSocket*>(ptr->handle);
+        net::dns::resolve(host, port, uv::withHandleContext(*this,
+            [](UDPSocket& handle, int err, const net::Address& addr) {
                 if (err)
-                    handle->setUVError(err, "DNS failed to resolve");
+                    handle.setUVError(err, "DNS failed to resolve");
                 else
-                    handle->connect(addr);
-            } }, loop());
+                    handle.connect(addr);
+            }), loop());
     }
 }
 
@@ -127,6 +136,14 @@ ssize_t UDPSocket::send(const char* data, size_t len, int flags)
 }
 
 
+ssize_t UDPSocket::sendOwned(Buffer&& buffer, int flags)
+{
+    if (!_peer.valid())
+        return -1;
+    return sendOwned(std::move(buffer), _peer, flags);
+}
+
+
 ssize_t UDPSocket::send(const char* data, size_t len, const Address& peerAddress, int /* flags */)
 {
     // LTrace("Send:", len, ":", peerAddress);
@@ -145,14 +162,50 @@ ssize_t UDPSocket::send(const char* data, size_t len, const Address& peerAddress
     }
 
     auto buf = uv_buf_init(const_cast<char*>(data), static_cast<unsigned int>(len));
-    auto req = std::make_unique<uv_udp_send_t>();
-    if (invoke(&uv_udp_send, req.release(), get(), &buf, 1, peerAddress.addr(),
-               [](uv_udp_send_t* req, int) {
-                   std::unique_ptr<uv_udp_send_t> guard(req);
-               })) {
-        return len;
+    auto* req = new uv_udp_send_t;
+    int err = uv_udp_send(req, get(), &buf, 1, peerAddress.addr(),
+                          [](uv_udp_send_t* req, int) {
+                              delete req;
+                          });
+    if (!err) {
+        return static_cast<ssize_t>(len);
     }
+    delete req;
+    setUVError(err, "UV Error");
     return error().err;
+}
+
+
+ssize_t UDPSocket::sendOwned(Buffer&& buffer, const Address& peerAddress, int /* flags */)
+{
+    if (!initialized())
+        return -1;
+
+    if (_peer.valid() && _peer != peerAddress) {
+        LError("Peer not authorized:", peerAddress);
+        return -1;
+    }
+
+    if (!peerAddress.valid()) {
+        LError("Peer not valid:", peerAddress);
+        return -1;
+    }
+
+    auto* req = new OwnedUDPSendReq;
+    req->buffer = std::move(buffer);
+    auto len = req->buffer.size();
+    auto uvBuffer = uv_buf_init(req->buffer.data(), static_cast<unsigned int>(req->buffer.size()));
+    int err = uv_udp_send(&req->req, get(), &uvBuffer, 1, peerAddress.addr(),
+                          [](uv_udp_send_t* req, int) {
+                              delete reinterpret_cast<OwnedUDPSendReq*>(req);
+                          });
+    if (err) {
+        delete req;
+        setUVError(err, "UV Error");
+        return error().err;
+    }
+
+    return static_cast<ssize_t>(len);
 }
 
 

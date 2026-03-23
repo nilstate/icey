@@ -83,6 +83,30 @@ int main(int argc, char** argv)
                   << '\n';
     });
 
+    describe("retained request keeps state alive until completion", []() {
+        bool invoked = false;
+        auto state = std::make_shared<int>(42);
+        std::weak_ptr<int> weak = state;
+
+        auto& req = uv::createRetainedRequest<uv::ConnectReq>(
+            state,
+            [&](const std::shared_ptr<int>& retained, const uv::BasicEvent& event) {
+                expect(event.status == 0);
+                expect(*retained == 42);
+                invoked = true;
+                state.reset();
+                expect(!weak.expired());
+            });
+
+        state.reset();
+        expect(!weak.expired());
+
+        uv::ConnectReq::defaultCallback(&req.req, 0);
+
+        expect(invoked);
+        expect(weak.expired());
+    });
+
 
     // =========================================================================
     // Buffer

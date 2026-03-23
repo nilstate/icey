@@ -75,8 +75,12 @@ ssize_t ClientConnection::send(const char* data, size_t len, int flags)
 
     if (_active)
         return Connection::send(data, len, flags);
-    else
-        _outgoingBuffer.push_back(std::string(data, len));
+    else {
+        PendingWrite pending;
+        pending.data.insert(pending.data.end(), data, data + len);
+        pending.flags = flags;
+        _outgoingBuffer.push_back(std::move(pending));
+    }
     return static_cast<ssize_t>(len);
 }
 
@@ -126,8 +130,8 @@ bool ClientConnection::onSocketConnect(net::Socket& socket)
 
     // Flush queued packets
     if (!_outgoingBuffer.empty()) {
-        for (const auto& packet : _outgoingBuffer) {
-            send(packet.c_str(), packet.length());
+        for (auto& packet : _outgoingBuffer) {
+            sendOwned(std::move(packet.data), packet.flags);
         }
         _outgoingBuffer.clear();
     } else {

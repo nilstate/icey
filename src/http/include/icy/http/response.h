@@ -136,6 +136,9 @@ public:
     /// Writes the HTTP response headers to the given output string.
     virtual void write(std::string& str) const;
 
+    /// Writes the HTTP response headers directly into a byte buffer.
+    virtual void write(Buffer& buf) const;
+
     /// Returns true if the HTTP response code was successful (< 400).
     [[nodiscard]] virtual bool success() const;
 

@@ -25,6 +25,7 @@
 #include "icy/platform.h"
 #include "icy/process.h"
 #include "icy/random.h"
+#include "icy/request.h"
 #include "icy/sharedlibrary.h"
 #include "icy/signal.h"
 #include "icy/stateful.h"

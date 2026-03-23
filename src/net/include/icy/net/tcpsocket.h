@@ -65,6 +65,7 @@ public:
     /// @param flags Reserved; currently unused.
     /// @return Number of bytes sent, or -1 on error.
     [[nodiscard]] virtual ssize_t send(const char* data, size_t len, int flags = 0) override;
+    [[nodiscard]] virtual ssize_t sendOwned(Buffer&& buffer, int flags = 0) override;
 
     /// Writes @p len bytes; @p peerAddress is ignored for TCP (connected stream).
     /// @param data        Pointer to the data to send.
@@ -73,6 +74,7 @@ public:
     /// @param flags       Reserved; currently unused.
     /// @return Number of bytes sent, or -1 on error.
     [[nodiscard]] virtual ssize_t send(const char* data, size_t len, const net::Address& peerAddress, int flags = 0) override;
+    [[nodiscard]] virtual ssize_t sendOwned(Buffer&& buffer, const net::Address& peerAddress, int flags = 0) override;
 
     /// Binds the socket to @p address.
     /// Resets and reinitializes the handle if the address family changes.

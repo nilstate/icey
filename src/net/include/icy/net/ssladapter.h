@@ -12,6 +12,7 @@
 #pragma once
 
 
+#include "icy/buffer.h"
 #include "icy/crypto/crypto.h"
 #include "icy/handle.h"
 #include "icy/net/address.h"
@@ -92,6 +93,9 @@ public:
     /// @param data Pointer to the plaintext bytes.
     /// @param len  Number of bytes to queue.
     void addOutgoingData(const char* data, size_t len);
+
+    /// Moves plaintext data into the pending write buffer when possible.
+    void addOutgoingData(Buffer&& data);
 
 protected:
     void handleError(int rc);

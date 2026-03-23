@@ -123,11 +123,17 @@ protected:
     bool onSocketConnect(net::Socket& socket);
 
 protected:
+    struct PendingWrite
+    {
+        Buffer data;
+        int flags = 0;
+    };
+
     URL _url;
     bool _connect;
     bool _active;
     bool _complete;
-    std::vector<std::string> _outgoingBuffer;
+    std::vector<PendingWrite> _outgoingBuffer;
     std::unique_ptr<std::ostream> _readStream;
 };
 

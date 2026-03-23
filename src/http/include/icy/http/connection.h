@@ -55,7 +55,15 @@ public:
     virtual void onClose() = 0;
 
     /// Send raw data to the peer.
+    ///
+    /// This is the zero-copy fast path. The caller retains ownership of the
+    /// payload until the underlying async write completes.
     virtual ssize_t send(const char* data, size_t len, int flags = 0) override;
+
+    /// Send an owned payload buffer to the peer.
+    ///
+    /// Use this when the payload does not naturally outlive the current scope.
+    virtual ssize_t sendOwned(Buffer&& buffer, int flags = 0) override;
 
     /// Send the outdoing HTTP header.
     virtual ssize_t sendHeader();
@@ -67,6 +75,14 @@ public:
     /// Marks the connection as active.
     /// Server connections override this to refresh the idle timer.
     virtual void markActive() {}
+
+    /// Explicitly enter long-lived streaming mode.
+    /// Base connections ignore this; server connections use it to disable
+    /// keep-alive idle reaping while a response stream is active.
+    virtual void beginStreaming() {}
+
+    /// Exit long-lived streaming mode.
+    virtual void endStreaming() {}
 
     /// Return true if the connection is closed.
     [[nodiscard]] bool closed() const;
@@ -126,7 +142,6 @@ protected:
     Request _request;
     Response _response;
     icy::Error _error;
-    std::string _headerBuf;
     bool _closed;
     bool _shouldSendHeader;
 
@@ -158,6 +173,7 @@ public:
     /// @param flags Send flags (unused for HTTP, used for WebSocket frame type).
     /// @return Number of bytes sent, or -1 on error.
     virtual ssize_t send(const char* data, size_t len, int flags = 0);
+    virtual ssize_t sendOwned(Buffer&& buffer, int flags = 0);
 
     /// Remove the given receiver.
     ///

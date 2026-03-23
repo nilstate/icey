@@ -22,6 +22,8 @@
 #include <memory>
 #include <stdexcept>
 #include <thread>
+#include <type_traits>
+#include <utility>
 
 
 namespace icy {
@@ -82,6 +84,16 @@ struct Context : public RefCounted<Context<T>>
     Context(Handle<T>* h)
         : handle(h)
     {
+    }
+
+    template <typename Owner>
+    Owner* owner() const
+    {
+        static_assert(std::is_base_of_v<Handle<T>, Owner>,
+            "Owner must derive from uv::Handle<T>");
+        if (deleted || !handle)
+            return nullptr;
+        return static_cast<Owner*>(handle);
     }
 
     ~Context()
@@ -424,6 +436,24 @@ protected:
     std::thread::id _tid = std::this_thread::get_id();
     Error _error;
 };
+
+
+template <typename Owner, typename Callback>
+inline auto withHandleContext(Owner& owner, Callback&& callback)
+{
+    using OwnerType = std::remove_reference_t<Owner>;
+    using CallbackType = std::decay_t<Callback>;
+    auto context = owner.context();
+    return [context = std::move(context),
+            callback = CallbackType(std::forward<Callback>(callback))](
+               auto&&... args) mutable {
+        if (context) {
+            if (auto* live = context->template owner<OwnerType>()) {
+                callback(*live, std::forward<decltype(args)>(args)...);
+            }
+        }
+    };
+}
 
 
 } // namespace uv

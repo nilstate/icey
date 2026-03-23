@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "icy/buffer.h"
 #include "icy/collection.h"
 #include "icy/http/http.h"
 
@@ -102,6 +103,9 @@ public:
 
     /// Writes the message header to the given output string.
     virtual void write(std::string& str) const;
+
+    /// Writes the message header directly into a byte buffer.
+    virtual void write(Buffer& buf) const;
 
     static const std::string HTTP_1_0;
     static const std::string HTTP_1_1;

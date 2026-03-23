@@ -16,6 +16,7 @@
 
 #include <algorithm>
 #include <memory>
+#include <string_view>
 
 
 namespace icy {
@@ -182,8 +183,8 @@ void Server::onConnectionClose(ServerConnection& conn)
         auto ptr = std::move(it->second);
         _connections.erase(it);
 
-        // Return to pool if reusable (not upgraded, no error)
-        if (!conn.upgraded() && !conn.error().any() && _pool.release(ptr)) {
+        // Return to pool if reusable and error-free.
+        if (conn.reusableForPool() && !conn.error().any() && _pool.release(ptr)) {
             // Pooled for reuse — nothing else to do.
         } else if (ptr) {
             // Defer destruction: this callback may be firing from
@@ -222,7 +223,7 @@ void Server::onTimer()
     if (_keepAliveTimeout > 0) {
         std::vector<ServerConnection*> idle;
         for (auto& [ptr, conn] : _connections) {
-            if (!conn->upgraded() && conn->idleSeconds() > _keepAliveTimeout)
+            if (conn->idleTimeoutEnabled() && conn->idleSeconds() > _keepAliveTimeout)
                 idle.push_back(ptr);
         }
         for (auto* ptr : idle) {
@@ -248,9 +249,9 @@ net::Address& Server::address()
 ServerConnection::ServerConnection(Server& server, net::TCPSocket::Ptr socket)
     : Connection(socket)
     , _server(server)
-    , _upgrade(false)
 {
     replaceAdapter(std::make_unique<ConnectionAdapter>(this, HTTP_REQUEST));
+    touch();
 }
 
 
@@ -266,6 +267,29 @@ Server& ServerConnection::server()
 }
 
 
+bool ServerConnection::idleTimeoutEnabled() const
+{
+    switch (_state) {
+        case ServerConnectionState::ReceivingHeaders:
+        case ServerConnectionState::ReceivingBody:
+        case ServerConnectionState::DispatchingOrSending:
+            return true;
+        case ServerConnectionState::Streaming:
+        case ServerConnectionState::Upgraded:
+        case ServerConnectionState::Closing:
+        case ServerConnectionState::Closed:
+            return false;
+    }
+    return false;
+}
+
+
+bool ServerConnection::reusableForPool() const
+{
+    return _mode == ServerConnectionMode::Http;
+}
+
+
 void ServerConnection::reset(net::TCPSocket::Ptr socket)
 {
     // Detach from old socket
@@ -278,7 +302,8 @@ void ServerConnection::reset(net::TCPSocket::Ptr socket)
     _closed = false;
     _shouldSendHeader = true;
     _error.reset();
-    _upgrade = false;
+    _mode = ServerConnectionMode::Http;
+    _state = ServerConnectionState::ReceivingHeaders;
 
     // Clear request/response (keeps string/vector capacity)
     _request.clear();
@@ -290,9 +315,6 @@ void ServerConnection::reset(net::TCPSocket::Ptr socket)
     _response.setReason(getStatusCodeReason(StatusCode::OK));
     _response.setVersion(Message::HTTP_1_1);
 
-    // Clear header buffer (keeps capacity)
-    _headerBuf.clear();
-
     // Swap socket
     _socket = std::move(socket);
 
@@ -301,14 +323,102 @@ void ServerConnection::reset(net::TCPSocket::Ptr socket)
     adapter->reset(_socket.get(), &_request);
     _socket->addReceiver(_adapter);
     _adapter->addReceiver(this);
+    touch();
+}
+
+
+void ServerConnection::beginStreaming()
+{
+    if (_closed || upgraded())
+        return;
+    setState(ServerConnectionState::Streaming);
+}
+
+
+void ServerConnection::endStreaming()
+{
+    endStreaming(ServerConnectionState::DispatchingOrSending);
+}
+
+
+void ServerConnection::endStreaming(ServerConnectionState nextState)
+{
+    if (_state != ServerConnectionState::Streaming || _closed || upgraded())
+        return;
+    setState(nextState);
+}
+
+
+ssize_t ServerConnection::sendHeader()
+{
+    if (_closed)
+        return -1;
+
+    if (!upgraded()) {
+        if (_state == ServerConnectionState::ReceivingHeaders ||
+            _state == ServerConnectionState::ReceivingBody) {
+            setState(ServerConnectionState::DispatchingOrSending);
+        }
+        if (responseLooksStreaming())
+            beginStreaming();
+    }
+
+    return Connection::sendHeader();
+}
+
+
+void ServerConnection::close()
+{
+    if (_closed)
+        return;
+
+    setState(ServerConnectionState::Closing);
+    Connection::close();
+}
+
+
+void ServerConnection::setState(ServerConnectionState state)
+{
+    _state = state;
+}
+
+
+bool ServerConnection::requestHasBody() const
+{
+    return _request.isChunkedTransferEncoding() ||
+           (_request.hasContentLength() && _request.getContentLength() > 0);
+}
+
+
+bool ServerConnection::responseLooksStreaming() const
+{
+    if (_response.isChunkedTransferEncoding())
+        return true;
+
+    std::string_view contentType(_response.getContentType());
+    constexpr std::string_view sse = "text/event-stream";
+    constexpr std::string_view multipart = "multipart/x-mixed-replace";
+    if (contentType.size() >= sse.size() &&
+        util::icompare(contentType.substr(0, sse.size()), sse) == 0) {
+        return true;
+    }
+    if (contentType.size() >= multipart.size() &&
+        util::icompare(contentType.substr(0, multipart.size()), multipart) == 0) {
+        return true;
+    }
+    return false;
 }
 
 
 void ServerConnection::onHeaders()
 {
     // Upgrade the connection if required
-    _upgrade = dynamic_cast<ConnectionAdapter*>(adapter())->parser().upgrade();
-    if (_upgrade && util::icompare(request().get("Upgrade", ""), "websocket") == 0) {
+    bool isUpgrade = dynamic_cast<ConnectionAdapter*>(adapter())->parser().upgrade() &&
+                     util::icompare(request().get("Upgrade", ""), "websocket") == 0;
+    if (isUpgrade) {
+        _mode = ServerConnectionMode::Upgraded;
+        setState(ServerConnectionState::Upgraded);
+
         // Note: To upgrade the connection we need to replace the
         // underlying SocketAdapter instance. Since we are currently
         // inside the default ConnectionAdapter's HTTP parser callback
@@ -328,6 +438,10 @@ void ServerConnection::onHeaders()
         request().clear();
 
         wsAdapterRaw->onSocketRecv(*socket().get(), mutableBuffer(buffer), socket()->peerAddress());
+    } else {
+        _mode = ServerConnectionMode::Http;
+        setState(requestHasBody() ? ServerConnectionState::ReceivingBody
+                                  : ServerConnectionState::DispatchingOrSending);
     }
 
     // Notify the server the connection is ready for data flow
@@ -336,14 +450,14 @@ void ServerConnection::onHeaders()
     // Instantiate the responder now that request headers have been parsed
     _responder = _server.createResponder(*this);
 
-    if (_upgrade && !_closed) {
+    if (isUpgrade && !_closed) {
         // Fire the WebSocket handshake-complete signal now that the
         // Connection signal has been emitted and the responder created,
         // so application handlers are attached before the connect event.
         auto* wsAdapter = dynamic_cast<ws::ConnectionAdapter*>(adapter());
         if (wsAdapter)
             wsAdapter->onHandshakeComplete();
-    } else if (_responder && !_upgrade) {
+    } else if (_responder) {
         _responder->onHeaders(_request);
     }
 }
@@ -354,6 +468,11 @@ void ServerConnection::onPayload(const MutableBuffer& buffer)
     // The connection may have been closed inside a previous callback.
     if (_closed) {
         return;
+    }
+
+    if (_state == ServerConnectionState::ReceivingHeaders ||
+        _state == ServerConnectionState::DispatchingOrSending) {
+        setState(ServerConnectionState::ReceivingBody);
     }
 
     // Send payload to the responder or signal
@@ -373,22 +492,31 @@ void ServerConnection::onComplete()
 
     // The HTTP request is complete.
     markActive();
+    if (!upgraded() && !streaming())
+        setState(ServerConnectionState::DispatchingOrSending);
+
     if (_responder)
         _responder->onRequest(_request, _response);
 
     // For keep-alive connections, reset state for the next request.
     // The parser's on_message_begin callback clears Request/Response headers.
-    if (!_closed && !_upgrade && _request.getKeepAlive()) {
+    if (_closed || upgraded() || streaming()) {
+        return;
+    }
+
+    if (_request.getKeepAlive()) {
         _responder.reset();
         _response = Response();
         _shouldSendHeader = true;
-        _headerBuf.clear();
+        setState(ServerConnectionState::ReceivingHeaders);
     }
 }
 
 
 void ServerConnection::onClose()
 {
+    setState(ServerConnectionState::Closed);
+
     if (_responder)
         _responder->onClose();
 

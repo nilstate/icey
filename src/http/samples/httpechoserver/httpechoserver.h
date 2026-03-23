@@ -20,7 +20,8 @@ void raiseEchoServer()
 
     srv.Connection += [](http::ServerConnection::Ptr conn) {
         conn->Payload += [](http::ServerConnection& conn, const MutableBuffer& buffer) {
-            conn.send(bufferCast<const char*>(buffer), buffer.size());
+            conn.sendOwned(Buffer(bufferCast<const char*>(buffer),
+                                  bufferCast<const char*>(buffer) + buffer.size()));
             conn.close();
         };
     };
@@ -38,7 +39,8 @@ void raiseHTTPSEchoServer()
 
     srv.Connection += [](http::ServerConnection::Ptr conn) {
         conn->Payload += [](http::ServerConnection& conn, const MutableBuffer& buffer) {
-            conn.send(bufferCast<const char*>(buffer), buffer.size());
+            conn.sendOwned(Buffer(bufferCast<const char*>(buffer),
+                                  bufferCast<const char*>(buffer) + buffer.size()));
             conn.close();
         };
     };
@@ -58,7 +60,8 @@ void raiseMulticoreEchoServer()
 
     srv.Connection += [&](http::ServerConnection::Ptr conn) {
         conn->Payload += [](http::ServerConnection& conn, const MutableBuffer& buffer) {
-            conn.send(bufferCast<const char*>(buffer), buffer.size());
+            conn.sendOwned(Buffer(bufferCast<const char*>(buffer),
+                                  bufferCast<const char*>(buffer) + buffer.size()));
             conn.close();
         };
     };

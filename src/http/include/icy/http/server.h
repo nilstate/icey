@@ -33,6 +33,25 @@ class HTTP_API Server;
 class HTTP_API ServerResponder;
 
 
+enum class ServerConnectionState : uint8_t
+{
+    ReceivingHeaders,
+    ReceivingBody,
+    DispatchingOrSending,
+    Streaming,
+    Upgraded,
+    Closing,
+    Closed,
+};
+
+
+enum class ServerConnectionMode : uint8_t
+{
+    Http,
+    Upgraded,
+};
+
+
 /// HTTP server connection.
 class HTTP_API ServerConnection : public Connection
 {
@@ -48,8 +67,23 @@ public:
     /// Returns the owning Server instance.
     [[nodiscard]] Server& server();
 
+    /// Returns the current server-side connection state.
+    [[nodiscard]] ServerConnectionState state() const { return _state; }
+
+    /// Returns the current transport mode.
+    [[nodiscard]] ServerConnectionMode mode() const { return _mode; }
+
     /// Returns true if the connection has been upgraded (e.g. to WebSocket).
-    [[nodiscard]] bool upgraded() const { return _upgrade; }
+    [[nodiscard]] bool upgraded() const { return _mode == ServerConnectionMode::Upgraded; }
+
+    /// Returns true if the connection is in long-lived streaming mode.
+    [[nodiscard]] bool streaming() const { return _state == ServerConnectionState::Streaming; }
+
+    /// Returns true if the server idle timer is allowed to reap this connection.
+    [[nodiscard]] bool idleTimeoutEnabled() const;
+
+    /// Returns true if the closed connection can be returned to the reuse pool.
+    [[nodiscard]] bool reusableForPool() const;
 
     /// Refresh the idle timer.
     void markActive() override { touch(); }
@@ -64,6 +98,20 @@ public:
     /// Return seconds since last activity.
     [[nodiscard]] double idleSeconds() const { return std::difftime(std::time(nullptr), _lastActivity); }
 
+    /// Explicitly mark the response as long-lived streaming.
+    /// Streaming connections are excluded from the keep-alive idle reaper.
+    void beginStreaming() override;
+
+    /// Exit streaming mode and return to the given HTTP state.
+    void endStreaming() override;
+    void endStreaming(ServerConnectionState nextState);
+
+    /// Send the outgoing HTTP header.
+    ssize_t sendHeader() override;
+
+    /// Close the connection with an explicit terminal state transition.
+    void close() override;
+
     LocalSignal<void(ServerConnection&, const MutableBuffer&)> Payload; ///< Signals when raw data is received
     LocalSignal<void(ServerConnection&)> Close;                         ///< Signals when the connection is closed
 
@@ -76,11 +124,16 @@ protected:
     http::Message* incomingHeader() override;
     http::Message* outgoingHeader() override;
 
+    void setState(ServerConnectionState state);
+    [[nodiscard]] bool requestHasBody() const;
+    [[nodiscard]] bool responseLooksStreaming() const;
+
 protected:
     Server& _server;
     std::unique_ptr<ServerResponder> _responder;
     std::time_t _lastActivity{0};
-    bool _upgrade;
+    ServerConnectionState _state{ServerConnectionState::ReceivingHeaders};
+    ServerConnectionMode _mode{ServerConnectionMode::Http};
 };
 
 

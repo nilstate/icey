@@ -60,15 +60,13 @@ void TCPSocket::connect(const net::Address& peerAddress)
     // LTrace("Connecting to", peerAddress);
     init();
 
-    uv::createRequest<uv::ConnectReq>([ptr = context()](const uv::BasicEvent& event) {
-        if (!ptr->deleted) {
-            auto handle = reinterpret_cast<TCPSocket*>(ptr->handle);
+    uv::createRequest<uv::ConnectReq>(uv::withHandleContext(*this,
+        [](TCPSocket& handle, const uv::BasicEvent& event) {
             if (event.status)
-                handle->setUVError(event.status, "TCP connection failed");
+                handle.setUVError(event.status, "TCP connection failed");
             else
-                handle->onConnect();
-        }
-    }).connect(get(), peerAddress.addr());
+                handle.onConnect();
+        })).connect(get(), peerAddress.addr());
 
     // auto wrap = new ConnectReq();
     // wrap->callback = [ptr = context()](const uv::BasicEvent& event) {
@@ -118,14 +116,13 @@ void TCPSocket::connect(const std::string& host, uint16_t port)
     } else {
         init();
 
-        net::dns::resolve(host, port, [ptr = context()](int err, const net::Address& addr) {
-            if (!ptr->deleted) {
-                auto handle = reinterpret_cast<TCPSocket*>(ptr->handle);
+        net::dns::resolve(host, port, uv::withHandleContext(*this,
+            [](TCPSocket& handle, int err, const net::Address& addr) {
                 if (err)
-                    handle->setUVError(err, "DNS failed to resolve");
+                    handle.setUVError(err, "DNS failed to resolve");
                 else
-                    handle->connect(addr);
-            } }, loop());
+                    handle.connect(addr);
+            }), loop());
     }
 }
 
@@ -237,6 +234,12 @@ ssize_t TCPSocket::send(const char* data, size_t len, int flags)
 }
 
 
+ssize_t TCPSocket::sendOwned(Buffer&& buffer, int flags)
+{
+    return sendOwned(std::move(buffer), peerAddress(), flags);
+}
+
+
 ssize_t TCPSocket::send(const char* data, size_t len, const net::Address& /* peerAddress */, int /* flags */)
 {
     // LTrace("Send:", len, ":", std::string(data, len));
@@ -246,6 +249,23 @@ ssize_t TCPSocket::send(const char* data, size_t len, const net::Address& /* pee
     }
 
     if (!Stream::write(data, len)) {
+        LWarn("TCP send error");
+        return -1;
+    }
+
+    return static_cast<ssize_t>(len);
+}
+
+
+ssize_t TCPSocket::sendOwned(Buffer&& buffer, const net::Address& /* peerAddress */, int /* flags */)
+{
+    if (!initialized()) {
+        LWarn("TCP send on uninitialized socket");
+        return -1;
+    }
+
+    auto len = buffer.size();
+    if (!Stream::writeOwned(std::move(buffer))) {
         LWarn("TCP send error");
         return -1;
     }

@@ -21,6 +21,9 @@
 #include "icy/net/tcpsocket.h"
 #include "icy/random.h"
 
+#include <stdexcept>
+#include <string>
+
 
 namespace icy {
 namespace http {
@@ -100,7 +103,28 @@ enum class ErrorCode
     IncompleteFrame = 11,            ///< Incomplete frame received.
     InvalidRsvBits = 12,             ///< RSV bits set without extension negotiation.
     InvalidOpcode = 13,              ///< Unknown or reserved opcode received.
-    UnmaskedClientFrame = 14         ///< Client-to-server frame not masked (RFC 6455 violation).
+    UnmaskedClientFrame = 14,        ///< Client-to-server frame not masked (RFC 6455 violation).
+    ProtocolViolation = 15           ///< General RFC 6455 protocol violation.
+};
+
+
+class HTTP_API WebSocketException : public std::runtime_error
+{
+public:
+    WebSocketException(ErrorCode code, std::string message, uint16_t closeStatus = 0)
+        : std::runtime_error(std::move(message))
+        , _code(code)
+        , _closeStatus(closeStatus)
+    {
+    }
+
+    [[nodiscard]] ErrorCode code() const { return _code; }
+    [[nodiscard]] bool hasCloseStatus() const { return _closeStatus != 0; }
+    [[nodiscard]] uint16_t closeStatus() const { return _closeStatus; }
+
+private:
+    ErrorCode _code;
+    uint16_t _closeStatus;
 };
 
 
@@ -256,6 +280,8 @@ public:
     /// @param flags ws::SendFlags::Text or ws::SendFlags::Binary.
     /// @return Number of bytes sent, or -1 on error.
     virtual ssize_t send(const char* data, size_t len, const net::Address& peerAddr, int flags = 0) override; // flags = ws::Text || ws::Binary
+    virtual ssize_t sendOwned(Buffer&& buffer, int flags = 0) override;
+    virtual ssize_t sendOwned(Buffer&& buffer, const net::Address& peerAddr, int flags = 0) override;
 
     /// Sends a WebSocket CLOSE frame with the given status code and message,
     /// then closes the underlying socket.

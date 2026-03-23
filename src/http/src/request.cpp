@@ -216,6 +216,26 @@ void Request::write(std::string& str) const
 }
 
 
+void Request::write(Buffer& buf) const
+{
+    if (_uri.empty()) {
+        throw std::runtime_error("Request::write: empty URI");
+    }
+
+    buf.reserve(buf.size() + _method.size() + 1 + _uri.size() + 1 + _version.size() + 2);
+    buf.insert(buf.end(), _method.begin(), _method.end());
+    buf.push_back(' ');
+    buf.insert(buf.end(), _uri.begin(), _uri.end());
+    buf.push_back(' ');
+    buf.insert(buf.end(), _version.begin(), _version.end());
+    buf.push_back('\r');
+    buf.push_back('\n');
+    http::Message::write(buf);
+    buf.push_back('\r');
+    buf.push_back('\n');
+}
+
+
 void Request::getCredentials(const std::string& header, std::string& scheme,
                              std::string& authInfo) const
 {

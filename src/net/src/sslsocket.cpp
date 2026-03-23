@@ -107,6 +107,12 @@ ssize_t SSLSocket::send(const char* data, size_t len, int flags)
 }
 
 
+ssize_t SSLSocket::sendOwned(Buffer&& buffer, int flags)
+{
+    return sendOwned(std::move(buffer), peerAddress(), flags);
+}
+
+
 void SSLSocket::bind(const net::Address& address, unsigned flags)
 {
     if (!_sslContext->isForServerUse())
@@ -141,6 +147,23 @@ ssize_t SSLSocket::send(const char* data, size_t len, const net::Address& /* pee
     _sslAdapter.addOutgoingData(data, len);
     _sslAdapter.flush();
     return len;
+}
+
+
+ssize_t SSLSocket::sendOwned(Buffer&& buffer, const net::Address& /* peerAddress */, int /* flags */)
+{
+    if (!active()) {
+        LWarn("Send error");
+        return -1;
+    }
+
+    if (!_sslAdapter._ssl)
+        throw std::logic_error("SSLSocket: SSL not initialized");
+
+    auto len = buffer.size();
+    _sslAdapter.addOutgoingData(std::move(buffer));
+    _sslAdapter.flush();
+    return static_cast<ssize_t>(len);
 }
 
 

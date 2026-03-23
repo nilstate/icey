@@ -175,6 +175,17 @@ void SSLAdapter::addOutgoingData(const char* data, size_t len)
 }
 
 
+void SSLAdapter::addOutgoingData(Buffer&& data)
+{
+    if (_bufferOut.empty()) {
+        _bufferOut = std::move(data);
+        return;
+    }
+
+    _bufferOut.insert(_bufferOut.end(), data.begin(), data.end());
+}
+
+
 void SSLAdapter::handshake()
 {
     int r = SSL_do_handshake(_ssl);
@@ -226,10 +237,11 @@ void SSLAdapter::flushWriteBIO()
 {
     size_t npending = BIO_ctrl_pending(_writeBIO);
     if (npending > 0) {
-        std::vector<char> buffer(npending);
+        Buffer buffer(npending);
         int nread = BIO_read(_writeBIO, buffer.data(), npending);
         if (nread > 0) {
-            _socket->write(buffer.data(), nread);
+            buffer.resize(static_cast<size_t>(nread));
+            (void)_socket->TCPSocket::sendOwned(std::move(buffer), net::Address(), 0);
         }
     }
 }

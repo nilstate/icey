@@ -73,7 +73,8 @@ public:
         LDebug(id, ": On recv: ", peerAddress, ": ", buffer.size());
 
         // Echo data back to client
-        socket.send(bufferCast<const char*>(buffer), buffer.size());
+        (void)socket.sendOwned(Buffer(bufferCast<const char*>(buffer),
+                                      bufferCast<const char*>(buffer) + buffer.size()));
         return false;
     }
 
@@ -93,5 +94,3 @@ public:
 
 
 } //  namespace icy
-
-

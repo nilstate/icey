@@ -219,6 +219,85 @@ int main(int argc, char** argv)
         expect(test.passed);
     });
 
+    describe("tcp socket sendOwned test", []() {
+        net::TCPEchoServer srv;
+        srv.start("127.0.0.1", 1340);
+        srv.server->unref();
+
+        std::string expected(64 * 1024, '\0');
+        for (size_t i = 0; i < expected.size(); ++i)
+            expected[i] = static_cast<char>(i & 0xFF);
+
+        std::string received;
+        bool gotReply = false;
+
+        net::SocketEmitter socket(std::make_shared<net::TCPSocket>());
+        socket.Connect += [&](net::Socket& sock) -> bool {
+            Buffer payload(expected.begin(), expected.end());
+            expect(sock.sendOwned(std::move(payload)) == static_cast<ssize_t>(expected.size()));
+
+            std::vector<Buffer> churn;
+            churn.reserve(32);
+            for (size_t i = 0; i < 32; ++i)
+                churn.emplace_back(4096, static_cast<char>(i));
+            return false;
+        };
+        socket.Recv += [&](net::Socket& sock, const MutableBuffer& buffer, const net::Address&) -> bool {
+            received.append(bufferCast<const char*>(buffer), buffer.size());
+            if (received.size() >= expected.size()) {
+                gotReply = true;
+                sock.close();
+            }
+            return false;
+        };
+
+        socket->connect("127.0.0.1", 1340);
+        uv::runLoop();
+
+        expect(gotReply);
+        expect(received == expected);
+    });
+
+    describe("udp socket sendOwned test", []() {
+        net::UDPEchoServer srv;
+        srv.start("127.0.0.1", 1341);
+        srv.server->unref();
+
+        std::string expected(1200, '\0');
+        for (size_t i = 0; i < expected.size(); ++i)
+            expected[i] = static_cast<char>((i * 17) & 0xFF);
+
+        std::string received;
+        bool gotReply = false;
+
+        net::SocketEmitter socket(std::make_shared<net::UDPSocket>());
+        auto* udp = socket.as<net::UDPSocket>();
+        expect(udp != nullptr);
+        udp->bind(net::Address("0.0.0.0", 0));
+
+        socket.Connect += [&](net::Socket& sock) -> bool {
+            Buffer payload(expected.begin(), expected.end());
+            expect(sock.sendOwned(std::move(payload)) == static_cast<ssize_t>(expected.size()));
+
+            std::vector<Buffer> churn;
+            churn.reserve(32);
+            for (size_t i = 0; i < 32; ++i)
+                churn.emplace_back(2048, static_cast<char>(i));
+            return false;
+        };
+        socket.Recv += [&](net::Socket& sock, const MutableBuffer& buffer, const net::Address&) -> bool {
+            received.assign(bufferCast<const char*>(buffer), buffer.size());
+            gotReply = (received == expected);
+            sock.close();
+            return false;
+        };
+
+        socket->connect("127.0.0.1", 1341);
+        uv::runLoop();
+
+        expect(gotReply);
+    });
+
     // =========================================================================
     // DNS Resolver Test
     //

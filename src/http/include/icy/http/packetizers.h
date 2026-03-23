@@ -72,6 +72,7 @@ public:
     {
         // Flush connection headers if the connection is set.
         if (connection) {
+            connection->beginStreaming();
             connection->shouldSendHeader(true);
             connection->response().setChunkedTransferEncoding(true);
             connection->response().set("Cache-Control", "no-store, no-cache, max-age=0, must-revalidate");
@@ -197,6 +198,7 @@ public:
     {
         // Flush connection headers if the connection is set.
         if (connection) {
+            connection->beginStreaming();
             connection->shouldSendHeader(true);
             connection->response().set("Content-Type", "multipart/x-mixed-replace; boundary=end");
             connection->response().set("Cache-Control", "no-store, no-cache, max-age=0, must-revalidate");

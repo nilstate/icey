@@ -91,6 +91,7 @@ public:
     /// @param flags Reserved; currently unused.
     /// @return Number of plaintext bytes accepted, or -1 on error.
     [[nodiscard]] virtual ssize_t send(const char* data, size_t len, int flags = 0) override;
+    [[nodiscard]] virtual ssize_t sendOwned(Buffer&& buffer, int flags = 0) override;
 
     /// Encrypts and sends @p len bytes, ignoring @p peerAddress (TCP is connected).
     /// @param data        Pointer to the plaintext payload.
@@ -100,6 +101,8 @@ public:
     /// @return Number of plaintext bytes accepted, or -1 on error.
     [[nodiscard]] virtual ssize_t send(const char* data, size_t len,
                                        const net::Address& peerAddress, int flags = 0) override;
+    [[nodiscard]] virtual ssize_t sendOwned(Buffer&& buffer,
+                                            const net::Address& peerAddress, int flags = 0) override;
 
     /// Set the expected peer hostname for certificate verification and SNI.
     /// Must be called before connect() to enable hostname verification.
