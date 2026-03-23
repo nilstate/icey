@@ -12,6 +12,7 @@
   "media": {
     "mode": "stream",
     "source": "",
+    "recordDir": "./recordings",
     "loop": true,
     "video": {
       "codec": "libx264",

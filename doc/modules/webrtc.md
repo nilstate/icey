@@ -721,7 +721,7 @@ session->DataReceived += [this](rtc::message_variant msg) {
 
 A complete self-hosted media server in a single binary: Symple signalling server, HTTP static file server, and per-peer WebRTC sessions all in one process. No Node.js, no cloud services; two TCP ports and one binary.
 
-The server registers as a virtual peer in its own Symple network. Browsers discover it via presence, call it, and receive video. Each connecting browser gets its own `MediaSession` (and its own `PeerSession` + `PacketStream`), but they all share a single `av::MediaCapture` instance; no per-viewer decoding overhead.
+The server registers as a virtual peer in its own Symple network. Browsers discover it via presence, call it, and either receive server-originated media (`stream` mode) or send media up to the server for recording (`record` mode). Each connecting browser gets its own `MediaSession` and its own media pipeline; stream mode isolates capture + encoder state per peer, and record mode isolates decoder + mux state per peer.
 
 **Key design**: `ServerSignaller` implements `SignallingInterface` by routing messages through the embedded Symple server's virtual peer API. This is the reference implementation for server-side custom signalling; it shows exactly what the three `send*` methods need to do and when to fire the three signals.
 
@@ -750,7 +750,7 @@ public:
 };
 ```
 
-Per-peer session lifecycle: a `call:init` creates a new `MediaSession`; a `PeerDisconnected` event on the Symple server erases it. The `MediaSession` destructor stops the `PacketStream`, which stops sending and releases the reference to the shared `MediaCapture`.
+Per-peer session lifecycle: a `call:init` creates a new `MediaSession`; a `PeerDisconnected` event on the Symple server erases it. The `MediaSession` destructor stops the active stream/record pipeline and closes its `PacketStream` cleanly before tearing down the `PeerSession`.
 
 ```cpp
 // One MediaSession per connected browser.
@@ -762,7 +762,7 @@ _signaller->ControlReceived += [this](const std::string& peerId,
                                       const std::string&) {
     if (type == "init")
         _sessions[peerId] = std::make_unique<MediaSession>(
-            peerId, *_signaller, _config, _capture);
+            peerId, *_signaller, _config);
 };
 
 // On disconnect: remove session (destructor stops stream).
@@ -771,7 +771,7 @@ _symple.PeerDisconnected += [this](smpl::ServerPeer& peer) {
 };
 ```
 
-Configuration is loaded from `config.json` with CLI overrides. The `--mode` flag selects `stream` (file to browsers), `record` (browsers to file), or `relay` (passthrough). The `--source` flag sets the input file. `--web-root` points at the built web UI directory.
+Configuration is loaded from `config.json` with CLI overrides. The `--mode` flag selects `stream` (file to browsers), `record` (browser video to MP4), or `relay` (currently rejected explicitly as unimplemented). The `--source` flag sets the input file for stream mode. `--record-dir` selects the output directory for record mode. `--web-root` points at the built web UI directory.
 
 ```bash
 media-server --source video.mp4 --web-root web/dist --port 4500

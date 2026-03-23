@@ -17,6 +17,9 @@
 //   MediaCapture → VideoPacketEncoder → WebRtcTrackSender → [browser]
 //                → AudioPacketEncoder → WebRtcTrackSender → [browser]
 //
+// Pipeline (record mode):
+//   WebRtcTrackReceiver → VideoDecoder → MultiplexPacketEncoder → MP4
+//
 // Usage:
 //   media-server --source video.mp4 --web-root web/dist
 //
@@ -26,15 +29,22 @@
 
 #include "icy/application.h"
 #include "icy/av/audiopacketencoder.h"
+#include "icy/av/ffmpeg.h"
 #include "icy/av/mediacapture.h"
+#include "icy/av/multiplexpacketencoder.h"
 #include "icy/av/videopacketencoder.h"
+#include "icy/av/videodecoder.h"
+#include "icy/filesystem.h"
 #include "icy/json/json.h"
 #include "icy/logger.h"
+#include "icy/packetsignal.h"
 #include "icy/packetstream.h"
 #include "icy/symple/server.h"
 #include "icy/turn/server/server.h"
 #include "icy/webrtc/peersession.h"
 
+#include <chrono>
+#include <cctype>
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -58,6 +68,7 @@ struct Config
     enum class Mode { Stream, Record, Relay };
     Mode mode = Mode::Stream;
     std::string source;
+    std::string recordDir = "./recordings";
     bool loop = true;
 
     std::string videoCodec = "libx264";
@@ -105,6 +116,7 @@ Config loadConfig(const std::string& path)
         auto& m = j["media"];
         c.mode = Config::parseMode(m.value("mode", "stream"));
         c.source = m.value("source", c.source);
+        c.recordDir = m.value("recordDir", c.recordDir);
         c.loop = m.value("loop", c.loop);
         if (m.contains("video")) {
             auto& v = m["video"];
@@ -133,6 +145,33 @@ Config loadConfig(const std::string& path)
         c.webRoot = j["webRoot"].get<std::string>();
 
     return c;
+}
+
+
+std::string sanitizePathComponent(std::string_view input)
+{
+    std::string result;
+    result.reserve(input.size());
+    for (unsigned char ch : input) {
+        if (std::isalnum(ch) || ch == '-' || ch == '_')
+            result.push_back(static_cast<char>(ch));
+        else
+            result.push_back('_');
+    }
+    if (result.empty())
+        result = "peer";
+    return result;
+}
+
+
+std::string makeRecordingPath(const std::string& recordDir,
+                              std::string_view peerId)
+{
+    const auto stamp = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count();
+    return fs::makePath(
+        recordDir,
+        sanitizePathComponent(peerId) + "-" + std::to_string(stamp) + ".mp4");
 }
 
 
@@ -369,6 +408,167 @@ private:
 
 
 // ---------------------------------------------------------------------------
+// Record mode helper
+// ---------------------------------------------------------------------------
+
+class VideoRecorder
+{
+public:
+    VideoRecorder(std::string peerId, std::string recordDir)
+        : _peerId(std::move(peerId))
+        , _recordDir(std::move(recordDir))
+    {
+    }
+
+    void start(wrtc::MediaBridge& media)
+    {
+        if (_recording)
+            return;
+
+        ensureDecoder();
+
+        _bridge = &media;
+        _outputFile = makeRecordingPath(_recordDir, _peerId);
+
+        _bridge->videoReceiver().emitter +=
+            packetSlot(this, &VideoRecorder::onEncodedVideo);
+        _decoder->emitter += packetSlot(this, &VideoRecorder::onDecodedVideo);
+        _recording = true;
+
+        std::cout << "Recording " << _peerId << " to " << _outputFile << '\n';
+    }
+
+    void stop()
+    {
+        if (!_recording && !_bridge && !_decoder && !_mux)
+            return;
+
+        if (_bridge) {
+            _bridge->videoReceiver().emitter -= this;
+            _bridge = nullptr;
+        }
+        if (_decoder)
+            _decoder->emitter -= this;
+
+        const bool wroteFile = static_cast<bool>(_mux);
+        const std::string outputFile = _outputFile;
+
+        _mux.reset();
+        _decoder.reset();
+        _decodeFormat.reset();
+        _decodeStream = nullptr;
+        _outputFile.clear();
+        _recording = false;
+        _waitingForKeyframe = true;
+        _loggedWaitingForKeyframe = false;
+
+        if (wroteFile)
+            std::cout << "Recording saved to " << outputFile << '\n';
+        else if (!outputFile.empty())
+            std::cout << "Call ended before any decodable video frame was recorded for "
+                      << _peerId << '\n';
+    }
+
+private:
+    void ensureDecoder()
+    {
+        if (_decoder)
+            return;
+
+        _decodeFormat.reset(avformat_alloc_context());
+        if (!_decodeFormat)
+            throw std::runtime_error("Cannot allocate decoder format context");
+
+        _decodeStream = avformat_new_stream(_decodeFormat.get(), nullptr);
+        if (!_decodeStream)
+            throw std::runtime_error("Cannot allocate decoder stream");
+
+        _decodeStream->time_base = AVRational{1, 90000};
+        _decodeStream->codecpar->codec_type = AVMEDIA_TYPE_VIDEO;
+        _decodeStream->codecpar->codec_id = AV_CODEC_ID_H264;
+
+        _decoder = std::make_unique<av::VideoDecoder>(_decodeStream);
+        _decoder->create();
+        _decoder->open();
+    }
+
+    void ensureMux(const av::PlanarVideoPacket& packet)
+    {
+        if (_mux)
+            return;
+
+        av::EncoderOptions options;
+        options.ofile = _outputFile;
+        options.iformat = av::Format("WebRTC Input", "rawvideo",
+            av::VideoCodec("decoded", packet.width, packet.height, 30.0,
+                           0, 0, packet.pixelFmt));
+        options.oformat = av::Format("MP4", "mp4",
+            av::VideoCodec("H264", "libx264", packet.width, packet.height, 30.0));
+
+        _mux = std::make_unique<av::MultiplexPacketEncoder>(options);
+        _mux->init();
+    }
+
+    void onEncodedVideo(av::VideoPacket& packet)
+    {
+        if (!_decoder || !_decodeStream)
+            return;
+
+        av::AVPacketHolder ffpacket(av_packet_alloc());
+        if (!ffpacket)
+            throw std::runtime_error("Cannot allocate FFmpeg packet");
+
+        ffpacket->data = reinterpret_cast<uint8_t*>(packet.data());
+        ffpacket->size = static_cast<int>(packet.size());
+        ffpacket->stream_index = _decodeStream->index;
+
+        if (packet.time > 0) {
+            ffpacket->pts = av_rescale_q(packet.time, AVRational{1, AV_TIME_BASE},
+                                         _decodeStream->time_base);
+            ffpacket->dts = ffpacket->pts;
+        }
+        else {
+            ffpacket->pts = AV_NOPTS_VALUE;
+            ffpacket->dts = AV_NOPTS_VALUE;
+        }
+
+        try {
+            bool decoded = _decoder->decode(*ffpacket);
+            if (decoded) {
+                _waitingForKeyframe = false;
+                _loggedWaitingForKeyframe = false;
+            }
+        }
+        catch (const std::exception&) {
+            if (_waitingForKeyframe && !_loggedWaitingForKeyframe) {
+                std::cout << "Waiting for a decodable H.264 keyframe from "
+                          << _peerId << "..." << '\n';
+                _loggedWaitingForKeyframe = true;
+            }
+        }
+    }
+
+    void onDecodedVideo(av::PlanarVideoPacket& packet)
+    {
+        ensureMux(packet);
+        _mux->encode(packet);
+    }
+
+    std::string _peerId;
+    std::string _recordDir;
+    std::string _outputFile;
+    wrtc::MediaBridge* _bridge = nullptr;
+    av::AVFormatContextHolder _decodeFormat;
+    AVStream* _decodeStream = nullptr;
+    std::unique_ptr<av::VideoDecoder> _decoder;
+    std::unique_ptr<av::MultiplexPacketEncoder> _mux;
+    bool _recording = false;
+    bool _waitingForKeyframe = true;
+    bool _loggedWaitingForKeyframe = false;
+};
+
+
+// ---------------------------------------------------------------------------
 // Media session (per-peer)
 // ---------------------------------------------------------------------------
 
@@ -402,23 +602,39 @@ public:
             pc.mediaOpts.videoCodec = videoCodec;
             pc.mediaOpts.audioCodec = audioCodec;
         }
+        else if (config.mode == Config::Mode::Record) {
+            // Create a recvonly-capable video m-line so browser peers can
+            // send us H.264 even though we do not publish media back.
+            pc.mediaOpts.videoCodec = videoCodec;
+        }
 
         pc.enableDataChannel = true;
         pc.dataChannelLabel = "control";
 
         _session = std::make_unique<wrtc::PeerSession>(signaller, pc);
+        if (_config.mode == Config::Mode::Record)
+            _recorder = std::make_unique<VideoRecorder>(_peerId, _config.recordDir);
 
         _session->IncomingCall += [this](const std::string& peer) {
+            if (_config.mode == Config::Mode::Relay) {
+                LWarn("Relay mode is not implemented, rejecting call from ", peer);
+                _session->reject("relay mode not implemented");
+                return;
+            }
             LInfo("Auto-accepting call from ", peer);
             _session->accept();
         };
 
         _session->StateChanged += [this](wrtc::PeerSession::State state) {
             LInfo("Session ", _peerId, ": ", wrtc::stateToString(state));
-            if (state == wrtc::PeerSession::State::Active)
+            if (state == wrtc::PeerSession::State::Active) {
                 startStreaming();
-            else if (state == wrtc::PeerSession::State::Ended)
+                startRecording();
+            }
+            else if (state == wrtc::PeerSession::State::Ended) {
                 stopStreaming();
+                stopRecording();
+            }
         };
 
         _session->DataReceived += [this](rtc::message_variant msg) {
@@ -446,7 +662,9 @@ public:
 
     ~MediaSession()
     {
+        stopRecording();
         stopStreaming();
+        _stream.close();
     }
 
     wrtc::PeerSession& session() { return *_session; }
@@ -483,31 +701,39 @@ private:
             return;
         }
 
-        // Each session gets its own capture so peers can join
-        // independently without sharing decoder state.
-        _capture = std::make_shared<av::MediaCapture>();
-        _capture->openFile(_config.source);
-        _capture->setLoopInput(_config.loop);
-        _capture->setLimitFramerate(true);
-
-        _stream.attachSource(_capture.get(), false, true);
-
-        // Video encoder pipeline
-        if (_session->media().hasVideo()) {
-            _videoEncoder = std::make_shared<av::VideoPacketEncoder>();
-            _capture->getEncoderVideoCodec(_videoEncoder->iparams);
-            _videoEncoder->oparams = makeVideoCodec(_config);
-            _stream.attach(_videoEncoder, 1, true);
-            _stream.attach(&_session->media().videoSender(), 5, false);
+        if (!_capture) {
+            // Each session gets its own capture so peers can join
+            // independently without sharing decoder state.
+            _capture = std::make_shared<av::MediaCapture>();
+            _capture->openFile(_config.source);
+            _capture->setLoopInput(_config.loop);
+            _capture->setLimitFramerate(true);
         }
 
-        // Audio encoder pipeline
-        if (_session->media().hasAudio()) {
-            _audioEncoder = std::make_shared<av::AudioPacketEncoder>();
-            _capture->getEncoderAudioCodec(_audioEncoder->iparams);
-            _audioEncoder->oparams = makeAudioCodec(_config);
-            _stream.attach(_audioEncoder, 2, true);
-            _stream.attach(&_session->media().audioSender(), 6, false);
+        if (!_streamReady) {
+            _stream.attachSource(_capture.get(), false, true);
+
+            // Video encoder pipeline
+            if (_session->media().hasVideo()) {
+                _videoEncoder = std::make_shared<av::VideoPacketEncoder>();
+                _capture->getEncoderVideoCodec(_videoEncoder->iparams);
+                _videoEncoder->oparams = makeVideoCodec(_config);
+                _videoSender = &_session->media().videoSender();
+                _stream.attach(_videoEncoder, 1, true);
+                _stream.attach(_videoSender, 5, false);
+            }
+
+            // Audio encoder pipeline
+            if (_session->media().hasAudio()) {
+                _audioEncoder = std::make_shared<av::AudioPacketEncoder>();
+                _capture->getEncoderAudioCodec(_audioEncoder->iparams);
+                _audioEncoder->oparams = makeAudioCodec(_config);
+                _audioSender = &_session->media().audioSender();
+                _stream.attach(_audioEncoder, 2, true);
+                _stream.attach(_audioSender, 6, false);
+            }
+
+            _streamReady = true;
         }
 
         _stream.start();
@@ -517,13 +743,23 @@ private:
 
     void stopStreaming()
     {
-        _stream.stop();
-        if (_capture) {
+        if (_capture)
             _capture->stop();
-            _capture.reset();
-        }
-        _videoEncoder.reset();
-        _audioEncoder.reset();
+        _stream.stop();
+    }
+
+    void startRecording()
+    {
+        if (_config.mode != Config::Mode::Record || !_recorder || !_session)
+            return;
+
+        _recorder->start(_session->media());
+    }
+
+    void stopRecording()
+    {
+        if (_recorder)
+            _recorder->stop();
     }
 
     std::string _peerId;
@@ -532,6 +768,10 @@ private:
     std::shared_ptr<av::MediaCapture> _capture;
     std::shared_ptr<av::VideoPacketEncoder> _videoEncoder;
     std::shared_ptr<av::AudioPacketEncoder> _audioEncoder;
+    wrtc::WebRtcTrackSender* _videoSender = nullptr;
+    wrtc::WebRtcTrackSender* _audioSender = nullptr;
+    bool _streamReady = false;
+    std::unique_ptr<VideoRecorder> _recorder;
     std::unique_ptr<wrtc::PeerSession> _session;
     mutable std::mutex _mutex;
 };
@@ -610,6 +850,9 @@ public:
         else if (_config.mode == Config::Mode::Stream && _config.source.empty()) {
             std::cerr << "Warning: no --source specified, server will not stream media\n";
         }
+        else if (_config.mode == Config::Mode::Record) {
+            fs::mkdirr(_config.recordDir);
+        }
 
         // Start embedded TURN server
         if (_config.enableTurn) {
@@ -680,8 +923,12 @@ public:
         std::cout << "Media server listening on "
                   << _config.host << ":" << _config.port << '\n';
         std::cout << "Web UI: http://localhost:" << _config.port << "/\n";
-        if (!_config.source.empty())
+        if (_config.mode == Config::Mode::Stream && !_config.source.empty())
             std::cout << "Source: " << _config.source << '\n';
+        if (_config.mode == Config::Mode::Record)
+            std::cout << "Recordings: " << _config.recordDir << '\n';
+        if (_config.mode == Config::Mode::Relay)
+            std::cout << "Relay mode is not implemented yet; incoming calls will be rejected\n";
     }
 
     void shutdown()
@@ -753,6 +1000,9 @@ int main(int argc, char** argv)
         }
         else if (arg == "--source" && !val.empty()) {
             config.source = val; ++i;
+        }
+        else if (arg == "--record-dir" && !val.empty()) {
+            config.recordDir = val; ++i;
         }
         else if (arg == "--web-root" && !val.empty()) {
             config.webRoot = val; ++i;
