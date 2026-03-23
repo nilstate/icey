@@ -153,8 +153,15 @@ bool ServerAllocation::hasPermission(const std::string& peerIP)
         return true;
 
     if (_server.options().enableLocalIPPermissions) {
+        auto isRfc1918_172 = [](const std::string& ip) {
+            if (ip.find("172.") != 0) return false;
+            auto dot = ip.find('.', 4);
+            if (dot == std::string::npos) return false;
+            int octet2 = std::atoi(ip.c_str() + 4);
+            return octet2 >= 16 && octet2 <= 31;
+        };
         if (peerIP.find("192.168.") == 0 || peerIP.find("10.") == 0 ||
-            peerIP.find("172.") == 0 || peerIP.find("127.") == 0 ||
+            isRfc1918_172(peerIP) || peerIP.find("127.") == 0 ||
             peerIP == "::1" || peerIP.find("fe80:") == 0) {
             LWarn("Auto-granting permission for local IP: ", peerIP);
             return true;

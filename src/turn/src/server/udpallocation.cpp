@@ -122,16 +122,9 @@ bool UDPAllocation::onPeerDataReceived(net::Socket&,
     stun::Message message(stun::Message::Indication,
                           stun::Message::DataIndication);
 
-    // Try to use the externalIP value for the XorPeerAddress
-    // attribute to overcome proxy and NAT issues.
-    std::string peerHost(server().options().externalIP);
-    if (peerHost.empty()) {
-        peerHost.assign(peerAddress.host());
-        LWarn("External IP not set, using peer address directly: ", peerHost);
-    }
-
-    message.add<stun::XorPeerAddress>().setAddress(
-        net::Address(peerHost, peerAddress.port()));
+    // XOR-PEER-ADDRESS must contain the actual peer transport address
+    // so the client knows which peer sent this data.
+    message.add<stun::XorPeerAddress>().setAddress(peerAddress);
     message.add<stun::Data>().copyBytes(
         bufferCast<const char*>(buffer), buffer.size());
 
