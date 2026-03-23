@@ -55,9 +55,11 @@ void MediaBridge::attach(std::shared_ptr<rtc::PeerConnection> pc,
 
     // Handle incoming remote tracks.
     _pc->onTrack([this](std::shared_ptr<rtc::Track> track) {
-        setupReceiveTrack(track);
-
         auto desc = track->description();
+        if (!setupReceiveTrack(track)) {
+            LWarn("Ignoring remote ", desc.type(), " track with unsupported codec");
+            return;
+        }
         if (desc.type() == "video") {
             _videoReceiver.bind(track);
         }

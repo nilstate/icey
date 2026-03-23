@@ -59,7 +59,7 @@ Application
   |           +-- WebRtcTrackReceiver  Layer 2: PacketStreamAdapter (receive side)
   |           +-- createVideoTrack()   Layer 1: track + handler chain factory
   |           +-- createAudioTrack()   Layer 1: track + handler chain factory
-  |           +-- setupReceiveTrack()  Layer 1: depacketizer installation
+  |           +-- setupReceiveTrack()  Layer 1: strict depacketizer installation
   |
   +-- AV module (FFmpeg capture / encode / decode / mux)
   +-- TURN module (relay for symmetric NATs)

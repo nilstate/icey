@@ -42,7 +42,9 @@ auto audio = wrtc::createAudioTrack(pc,
 
 // Set up receive-side depacketizer on a remote track
 pc->onTrack([](std::shared_ptr<rtc::Track> track) {
-    wrtc::setupReceiveTrack(track);  // auto-selects H264/H265/VP8/Opus/PCMU depacketizer
+    if (!wrtc::setupReceiveTrack(track))
+        return;
+    // bind a WebRtcTrackReceiver here
 });
 ```
 
@@ -74,8 +76,8 @@ sendStream.start();
 // Receive: WebRTC -> your decode / record callback
 wrtc::WebRtcTrackReceiver videoReceiver;
 pc->onTrack([&](std::shared_ptr<rtc::Track> track) {
-    wrtc::setupReceiveTrack(track);
-    videoReceiver.bind(track);
+    if (wrtc::setupReceiveTrack(track))
+        videoReceiver.bind(track);
 });
 
 videoReceiver.emitter += packetSlot(&recorder, &Recorder::onEncodedVideo);

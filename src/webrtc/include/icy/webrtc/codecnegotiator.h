@@ -19,11 +19,49 @@
 #include <cstdint>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 
 namespace icy {
 namespace wrtc {
+
+
+enum class CodecMediaType
+{
+    Video,
+    Audio
+};
+
+
+enum class CodecId
+{
+    Unknown,
+    H264,
+    H265,
+    VP8,
+    VP9,
+    AV1,
+    Opus,
+    PCMU,
+    PCMA,
+    G722,
+    AAC
+};
+
+
+struct WEBRTC_API CodecSpec
+{
+    CodecId id = CodecId::Unknown;
+    CodecMediaType mediaType = CodecMediaType::Video;
+    std::string rtpName;
+    std::string ffmpegName;
+    uint32_t clockRate = 0;
+    int payloadType = 0;
+    std::string fmtp;
+
+    [[nodiscard]] bool valid() const { return id != CodecId::Unknown; }
+};
 
 
 /// Result of codec negotiation between a remote SDP offer
@@ -98,6 +136,19 @@ public:
     /// Get the default RTP payload type for a codec.
     /// Returns 0 for dynamic payload types (caller should assign).
     [[nodiscard]] static int defaultPayloadType(const std::string& rtpName);
+
+    /// Return the canonical codec spec for an RTP name, if known.
+    [[nodiscard]] static std::optional<CodecSpec>
+    specFromRtp(const std::string& rtpName);
+
+    /// Return the canonical codec spec for an FFmpeg encoder name, if known.
+    [[nodiscard]] static std::optional<CodecSpec>
+    specFromFfmpeg(const std::string& ffmpegName);
+
+    /// Detect the first known codec present in an SDP snippet for the given
+    /// media type.
+    [[nodiscard]] static std::optional<CodecSpec>
+    detectCodec(std::string_view sdp, CodecMediaType mediaType);
 };
 
 

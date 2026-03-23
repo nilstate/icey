@@ -46,9 +46,8 @@ struct WEBRTC_API TrackHandle
 ///   VP8/VP9/other → generic RtpPacketizer
 ///
 /// @param pc           PeerConnection to add the track to.
-/// @param codec        Video codec. The encoder name determines the RTP
-///                     codec (e.g. "libx264" → H264). If encoder is empty,
-///                     defaults to H264.
+/// @param codec        Video codec. Must name a supported RTP codec or FFmpeg
+///                     encoder (e.g. "H264" or "libx264").
 /// @param ssrc         RTP SSRC. 0 = auto-generate.
 /// @param cname        RTCP CNAME. Empty = "icey".
 /// @param nackBuffer   Max packets stored for NACK retransmission.
@@ -59,7 +58,7 @@ struct WEBRTC_API TrackHandle
 /// @return             TrackHandle with the track and its RTP config.
 [[nodiscard]] WEBRTC_API TrackHandle createVideoTrack(
     std::shared_ptr<rtc::PeerConnection> pc,
-    const av::VideoCodec& codec = {},
+    const av::VideoCodec& codec,
     uint32_t ssrc = 0,
     const std::string& cname = {},
     unsigned nackBuffer = 512,
@@ -76,15 +75,14 @@ struct WEBRTC_API TrackHandle
 ///   opus → 48kHz, PCMU/PCMA → 8kHz, etc.
 ///
 /// @param pc           PeerConnection to add the track to.
-/// @param codec        Audio codec. The encoder name determines the RTP
-///                     codec (e.g. "libopus" → opus). If encoder is empty,
-///                     defaults to Opus.
+/// @param codec        Audio codec. Must name a supported RTP codec or FFmpeg
+///                     encoder (e.g. "opus" or "libopus").
 /// @param ssrc         RTP SSRC. 0 = auto-generate.
 /// @param cname        RTCP CNAME. Empty = "icey".
 /// @return             TrackHandle with the track and its RTP config.
 [[nodiscard]] WEBRTC_API TrackHandle createAudioTrack(
     std::shared_ptr<rtc::PeerConnection> pc,
-    const av::AudioCodec& codec = {},
+    const av::AudioCodec& codec,
     uint32_t ssrc = 0,
     const std::string& cname = {});
 
@@ -101,7 +99,8 @@ struct WEBRTC_API TrackHandle
 /// WebRtcTrackReceiver.
 ///
 /// @param track        The remote track from onTrack callback.
-WEBRTC_API void setupReceiveTrack(std::shared_ptr<rtc::Track> track);
+/// @return             True when a supported depacketizer was installed.
+[[nodiscard]] WEBRTC_API bool setupReceiveTrack(std::shared_ptr<rtc::Track> track);
 
 
 /// Generate a random SSRC.

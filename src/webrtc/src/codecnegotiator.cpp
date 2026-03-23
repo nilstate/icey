@@ -30,6 +30,8 @@ namespace {
 
 struct CodecMapping
 {
+    CodecId id;
+    CodecMediaType mediaType;
     const char* rtpName;
     const char* ffmpegEncoder;
     uint32_t clockRate;
@@ -42,25 +44,25 @@ struct CodecMapping
 // Video: H264 preferred for browser compatibility.
 // Audio: Opus preferred for quality at low bitrate.
 constexpr std::array<CodecMapping, 10> kVideoCodecs = {{
-    {"H264",  "libx264",     90000, 96,  "profile-level-id=42e01f;packetization-mode=1"},
-    {"H264",  "h264_nvenc",  90000, 96,  "profile-level-id=42e01f;packetization-mode=1"},
-    {"H264",  "h264_vaapi",  90000, 96,  "profile-level-id=42e01f;packetization-mode=1"},
-    {"VP8",   "libvpx",      90000, 97,  nullptr},
-    {"VP9",   "libvpx-vp9",  90000, 98,  nullptr},
-    {"AV1",   "libaom-av1",  90000, 99,  nullptr},
-    {"AV1",   "libsvtav1",   90000, 99,  nullptr},
-    {"AV1",   "av1_nvenc",   90000, 99,  nullptr},
-    {"H265",  "libx265",     90000, 100, nullptr},
-    {"H265",  "hevc_nvenc",  90000, 100, nullptr},
+    {CodecId::H264, CodecMediaType::Video, "H264",  "libx264",     90000, 96,  "profile-level-id=42e01f;packetization-mode=1"},
+    {CodecId::H264, CodecMediaType::Video, "H264",  "h264_nvenc",  90000, 96,  "profile-level-id=42e01f;packetization-mode=1"},
+    {CodecId::H264, CodecMediaType::Video, "H264",  "h264_vaapi",  90000, 96,  "profile-level-id=42e01f;packetization-mode=1"},
+    {CodecId::VP8,  CodecMediaType::Video, "VP8",   "libvpx",      90000, 97,  nullptr},
+    {CodecId::VP9,  CodecMediaType::Video, "VP9",   "libvpx-vp9",  90000, 98,  nullptr},
+    {CodecId::AV1,  CodecMediaType::Video, "AV1",   "libaom-av1",  90000, 99,  nullptr},
+    {CodecId::AV1,  CodecMediaType::Video, "AV1",   "libsvtav1",   90000, 99,  nullptr},
+    {CodecId::AV1,  CodecMediaType::Video, "AV1",   "av1_nvenc",   90000, 99,  nullptr},
+    {CodecId::H265, CodecMediaType::Video, "H265",  "libx265",     90000, 100, nullptr},
+    {CodecId::H265, CodecMediaType::Video, "H265",  "hevc_nvenc",  90000, 100, nullptr},
 }};
 
 
 constexpr std::array<CodecMapping, 5> kAudioCodecs = {{
-    {"opus",  "libopus",     48000, 111, "minptime=10;useinbandfec=1"},
-    {"PCMU",  "pcm_mulaw",   8000,  0,   nullptr},
-    {"PCMA",  "pcm_alaw",    8000,  8,   nullptr},
-    {"G722",  "g722",        8000,  9,   nullptr},
-    {"AAC",   "aac",         48000, 0,   nullptr},
+    {CodecId::Opus, CodecMediaType::Audio, "opus",  "libopus",     48000, 111, "minptime=10;useinbandfec=1"},
+    {CodecId::PCMU, CodecMediaType::Audio, "PCMU",  "pcm_mulaw",   8000,  0,   nullptr},
+    {CodecId::PCMA, CodecMediaType::Audio, "PCMA",  "pcm_alaw",    8000,  8,   nullptr},
+    {CodecId::G722, CodecMediaType::Audio, "G722",  "g722",        8000,  9,   nullptr},
+    {CodecId::AAC,  CodecMediaType::Audio, "AAC",   "aac",         48000, 0,   nullptr},
 }};
 
 
@@ -73,6 +75,27 @@ bool iequals(const std::string& a, const std::string& b)
 }
 
 
+bool icontains(std::string_view haystack, std::string_view needle)
+{
+    if (needle.empty() || haystack.size() < needle.size())
+        return false;
+
+    for (size_t i = 0; i <= haystack.size() - needle.size(); ++i) {
+        bool match = true;
+        for (size_t j = 0; j < needle.size(); ++j) {
+            if (std::tolower(static_cast<unsigned char>(haystack[i + j])) !=
+                std::tolower(static_cast<unsigned char>(needle[j]))) {
+                match = false;
+                break;
+            }
+        }
+        if (match)
+            return true;
+    }
+    return false;
+}
+
+
 /// Check if FFmpeg has an encoder by name.
 bool ffmpegHasEncoder(const std::string& name)
 {
@@ -82,6 +105,57 @@ bool ffmpegHasEncoder(const std::string& name)
 #else
     return false;
 #endif
+}
+
+
+CodecSpec makeSpec(const CodecMapping& entry)
+{
+    CodecSpec spec;
+    spec.id = entry.id;
+    spec.mediaType = entry.mediaType;
+    spec.rtpName = entry.rtpName;
+    spec.ffmpegName = entry.ffmpegEncoder;
+    spec.clockRate = entry.clockRate;
+    spec.payloadType = entry.defaultPT;
+    if (entry.fmtp)
+        spec.fmtp = entry.fmtp;
+    return spec;
+}
+
+
+template <size_t N>
+std::optional<CodecSpec>
+findByRtp(const std::string& rtpName, const std::array<CodecMapping, N>& table)
+{
+    for (const auto& entry : table) {
+        if (iequals(rtpName, entry.rtpName))
+            return makeSpec(entry);
+    }
+    return std::nullopt;
+}
+
+
+template <size_t N>
+std::optional<CodecSpec>
+findByFfmpeg(const std::string& ffmpegName, const std::array<CodecMapping, N>& table)
+{
+    for (const auto& entry : table) {
+        if (ffmpegName == entry.ffmpegEncoder)
+            return makeSpec(entry);
+    }
+    return std::nullopt;
+}
+
+
+template <size_t N>
+std::optional<CodecSpec>
+detectInSdp(std::string_view sdp, const std::array<CodecMapping, N>& table)
+{
+    for (const auto& entry : table) {
+        if (icontains(sdp, entry.rtpName))
+            return makeSpec(entry);
+    }
+    return std::nullopt;
 }
 
 
@@ -148,8 +222,6 @@ bool CodecNegotiator::hasEncoder(const std::string& name)
 
 std::string CodecNegotiator::rtpToFfmpeg(const std::string& rtpName)
 {
-    // Return the first (highest-preference) encoder for this RTP name
-    // that FFmpeg actually has.
     for (const auto& entry : kVideoCodecs) {
         if (iequals(rtpName, entry.rtpName) &&
             ffmpegHasEncoder(entry.ffmpegEncoder))
@@ -158,16 +230,6 @@ std::string CodecNegotiator::rtpToFfmpeg(const std::string& rtpName)
     for (const auto& entry : kAudioCodecs) {
         if (iequals(rtpName, entry.rtpName) &&
             ffmpegHasEncoder(entry.ffmpegEncoder))
-            return entry.ffmpegEncoder;
-    }
-
-    // Fallback: return first mapping even if encoder isn't available
-    for (const auto& entry : kVideoCodecs) {
-        if (iequals(rtpName, entry.rtpName))
-            return entry.ffmpegEncoder;
-    }
-    for (const auto& entry : kAudioCodecs) {
-        if (iequals(rtpName, entry.rtpName))
             return entry.ffmpegEncoder;
     }
 
@@ -191,29 +253,44 @@ std::string CodecNegotiator::ffmpegToRtp(const std::string& ffmpegName)
 
 uint32_t CodecNegotiator::clockRate(const std::string& rtpName)
 {
-    for (const auto& entry : kVideoCodecs) {
-        if (iequals(rtpName, entry.rtpName))
-            return entry.clockRate;
-    }
-    for (const auto& entry : kAudioCodecs) {
-        if (iequals(rtpName, entry.rtpName))
-            return entry.clockRate;
-    }
+    if (auto spec = specFromRtp(rtpName))
+        return spec->clockRate;
     return 0;
 }
 
 
 int CodecNegotiator::defaultPayloadType(const std::string& rtpName)
 {
-    for (const auto& entry : kVideoCodecs) {
-        if (iequals(rtpName, entry.rtpName))
-            return entry.defaultPT;
-    }
-    for (const auto& entry : kAudioCodecs) {
-        if (iequals(rtpName, entry.rtpName))
-            return entry.defaultPT;
-    }
+    if (auto spec = specFromRtp(rtpName))
+        return spec->payloadType;
     return 0;
+}
+
+
+std::optional<CodecSpec>
+CodecNegotiator::specFromRtp(const std::string& rtpName)
+{
+    if (auto spec = findByRtp(rtpName, kVideoCodecs))
+        return spec;
+    return findByRtp(rtpName, kAudioCodecs);
+}
+
+
+std::optional<CodecSpec>
+CodecNegotiator::specFromFfmpeg(const std::string& ffmpegName)
+{
+    if (auto spec = findByFfmpeg(ffmpegName, kVideoCodecs))
+        return spec;
+    return findByFfmpeg(ffmpegName, kAudioCodecs);
+}
+
+
+std::optional<CodecSpec>
+CodecNegotiator::detectCodec(std::string_view sdp, CodecMediaType mediaType)
+{
+    if (mediaType == CodecMediaType::Video)
+        return detectInSdp(sdp, kVideoCodecs);
+    return detectInSdp(sdp, kAudioCodecs);
 }
 
 

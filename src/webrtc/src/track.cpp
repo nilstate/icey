@@ -14,10 +14,155 @@
 #include <rtc/rtc.hpp>
 
 #include <random>
+#include <stdexcept>
 
 
 namespace icy {
 namespace wrtc {
+
+
+namespace {
+
+CodecSpec videoCodecSpec(const av::VideoCodec& codec)
+{
+    if (!codec.encoder.empty()) {
+        if (auto spec = CodecNegotiator::specFromFfmpeg(codec.encoder);
+            spec && spec->mediaType == CodecMediaType::Video) {
+            return *spec;
+        }
+        throw std::invalid_argument("Unsupported video encoder: " + codec.encoder);
+    }
+
+    if (!codec.name.empty()) {
+        if (auto spec = CodecNegotiator::specFromRtp(codec.name);
+            spec && spec->mediaType == CodecMediaType::Video) {
+            return *spec;
+        }
+        throw std::invalid_argument("Unsupported video codec: " + codec.name);
+    }
+
+    throw std::invalid_argument("Video track requires an explicit codec");
+}
+
+
+CodecSpec audioCodecSpec(const av::AudioCodec& codec)
+{
+    if (!codec.encoder.empty()) {
+        if (auto spec = CodecNegotiator::specFromFfmpeg(codec.encoder);
+            spec && spec->mediaType == CodecMediaType::Audio) {
+            return *spec;
+        }
+        throw std::invalid_argument("Unsupported audio encoder: " + codec.encoder);
+    }
+
+    if (!codec.name.empty()) {
+        if (auto spec = CodecNegotiator::specFromRtp(codec.name);
+            spec && spec->mediaType == CodecMediaType::Audio) {
+            return *spec;
+        }
+        throw std::invalid_argument("Unsupported audio codec: " + codec.name);
+    }
+
+    throw std::invalid_argument("Audio track requires an explicit codec");
+}
+
+
+void addVideoCodec(rtc::Description::Video& media, const CodecSpec& spec)
+{
+    switch (spec.id) {
+    case CodecId::H264:
+        media.addH264Codec(spec.payloadType);
+        break;
+    case CodecId::VP8:
+        media.addVP8Codec(spec.payloadType);
+        break;
+    case CodecId::VP9:
+        media.addVP9Codec(spec.payloadType);
+        break;
+    case CodecId::H265:
+        media.addH265Codec(spec.payloadType);
+        break;
+    default:
+        throw std::invalid_argument("Unsupported WebRTC video send codec: " + spec.rtpName);
+    }
+}
+
+
+void addAudioCodec(rtc::Description::Audio& media, const CodecSpec& spec)
+{
+    switch (spec.id) {
+    case CodecId::Opus:
+        media.addOpusCodec(spec.payloadType);
+        break;
+    case CodecId::PCMU:
+        media.addPCMUCodec(spec.payloadType);
+        break;
+    case CodecId::PCMA:
+        media.addPCMACodec(spec.payloadType);
+        break;
+    default:
+        throw std::invalid_argument("Unsupported WebRTC audio send codec: " + spec.rtpName);
+    }
+}
+
+
+std::shared_ptr<rtc::MediaHandler>
+makeVideoPacketizer(const CodecSpec& spec,
+                    const std::shared_ptr<rtc::RtpPacketizationConfig>& rtpConfig)
+{
+    switch (spec.id) {
+    case CodecId::H264:
+        return std::make_shared<rtc::H264RtpPacketizer>(
+            rtc::NalUnit::Separator::LongStartSequence, rtpConfig);
+    case CodecId::H265:
+        return std::make_shared<rtc::H265RtpPacketizer>(
+            rtc::NalUnit::Separator::LongStartSequence, rtpConfig);
+    default:
+        return std::make_shared<rtc::RtpPacketizer>(rtpConfig);
+    }
+}
+
+
+std::shared_ptr<rtc::MediaHandler>
+makeAudioPacketizer(const CodecSpec& spec,
+                    const std::shared_ptr<rtc::RtpPacketizationConfig>& rtpConfig)
+{
+    if (spec.id == CodecId::Opus)
+        return std::make_shared<rtc::OpusRtpPacketizer>(rtpConfig);
+    return std::make_shared<rtc::RtpPacketizer>(rtpConfig);
+}
+
+
+std::shared_ptr<rtc::MediaHandler>
+makeVideoDepacketizer(const CodecSpec& spec)
+{
+    switch (spec.id) {
+    case CodecId::H264:
+        return std::make_shared<rtc::H264RtpDepacketizer>();
+    case CodecId::H265:
+        return std::make_shared<rtc::H265RtpDepacketizer>();
+    default:
+        return std::make_shared<rtc::RtpDepacketizer>(spec.clockRate ? spec.clockRate : 90000);
+    }
+}
+
+
+std::shared_ptr<rtc::MediaHandler>
+makeAudioDepacketizer(const CodecSpec& spec)
+{
+    switch (spec.id) {
+    case CodecId::PCMU:
+        return std::make_shared<rtc::PCMURtpDepacketizer>();
+    case CodecId::PCMA:
+        return std::make_shared<rtc::PCMARtpDepacketizer>();
+    case CodecId::Opus:
+        return std::make_shared<rtc::OpusRtpDepacketizer>();
+    default:
+        return std::make_shared<rtc::RtpDepacketizer>(spec.clockRate ? spec.clockRate : 48000);
+    }
+}
+
+} // namespace
 
 
 uint32_t generateSsrc()
@@ -37,34 +182,15 @@ TrackHandle createVideoTrack(
     std::function<void()> onPli,
     std::function<void(unsigned int)> onRemb)
 {
-    // Determine RTP codec name from FFmpeg encoder name.
-    std::string rtpName = "H264";
-    if (!codec.encoder.empty()) {
-        auto rtp = CodecNegotiator::ffmpegToRtp(codec.encoder);
-        if (!rtp.empty())
-            rtpName = rtp;
-    }
+    auto spec = videoCodecSpec(codec);
 
     if (ssrc == 0)
         ssrc = generateSsrc();
     std::string cn = cname.empty() ? "icey" : cname;
-    int pt = CodecNegotiator::defaultPayloadType(rtpName);
-    uint32_t clock = CodecNegotiator::clockRate(rtpName);
 
     // Build SDP media description.
     rtc::Description::Video media("video", rtc::Description::Direction::SendRecv);
-
-    if (rtpName == "H264")
-        media.addH264Codec(pt);
-    else if (rtpName == "VP8")
-        media.addVP8Codec(pt);
-    else if (rtpName == "VP9")
-        media.addVP9Codec(pt);
-    else if (rtpName == "H265")
-        media.addH265Codec(pt);
-    else
-        media.addH264Codec(pt);
-
+    addVideoCodec(media, spec);
     media.addSSRC(ssrc, cn);
 
     // Add track to PeerConnection.
@@ -72,22 +198,11 @@ TrackHandle createVideoTrack(
 
     // Build RTP config.
     auto rtpConfig = std::make_shared<rtc::RtpPacketizationConfig>(
-        ssrc, cn, pt, clock);
+        ssrc, cn, spec.payloadType, spec.clockRate);
 
     // Build media handler chain:
     //   Packetizer → SrReporter → NackResponder [→ PliHandler] [→ RembHandler]
-    std::shared_ptr<rtc::MediaHandler> packetizer;
-    if (rtpName == "H264") {
-        packetizer = std::make_shared<rtc::H264RtpPacketizer>(
-            rtc::NalUnit::Separator::LongStartSequence, rtpConfig);
-    }
-    else if (rtpName == "H265") {
-        packetizer = std::make_shared<rtc::H265RtpPacketizer>(
-            rtc::NalUnit::Separator::LongStartSequence, rtpConfig);
-    }
-    else {
-        packetizer = std::make_shared<rtc::RtpPacketizer>(rtpConfig);
-    }
+    auto packetizer = makeVideoPacketizer(spec, rtpConfig);
 
     packetizer->addToChain(std::make_shared<rtc::RtcpSrReporter>(rtpConfig));
     packetizer->addToChain(std::make_shared<rtc::RtcpNackResponder>(nackBuffer));
@@ -99,7 +214,7 @@ TrackHandle createVideoTrack(
 
     track->setMediaHandler(packetizer);
 
-    LInfo("Video track created: ", rtpName, " SSRC=", ssrc, " PT=", pt);
+    LInfo("Video track created: ", spec.rtpName, " SSRC=", ssrc, " PT=", spec.payloadType);
     return {track, rtpConfig};
 }
 
@@ -110,97 +225,71 @@ TrackHandle createAudioTrack(
     uint32_t ssrc,
     const std::string& cname)
 {
-    std::string rtpName = "opus";
-    if (!codec.encoder.empty()) {
-        auto rtp = CodecNegotiator::ffmpegToRtp(codec.encoder);
-        if (!rtp.empty())
-            rtpName = rtp;
-    }
+    auto spec = audioCodecSpec(codec);
 
     if (ssrc == 0)
         ssrc = generateSsrc();
     std::string cn = cname.empty() ? "icey" : cname;
-    int pt = CodecNegotiator::defaultPayloadType(rtpName);
-    uint32_t clock = CodecNegotiator::clockRate(rtpName);
 
     rtc::Description::Audio media("audio", rtc::Description::Direction::SendRecv);
-
-    if (rtpName == "opus")
-        media.addOpusCodec(pt);
-    else if (rtpName == "PCMU")
-        media.addPCMUCodec(pt);
-    else if (rtpName == "PCMA")
-        media.addPCMACodec(pt);
-    else
-        media.addOpusCodec(pt);
-
+    addAudioCodec(media, spec);
     media.addSSRC(ssrc, cn);
 
     auto track = pc->addTrack(media);
 
     auto rtpConfig = std::make_shared<rtc::RtpPacketizationConfig>(
-        ssrc, cn, pt, clock);
+        ssrc, cn, spec.payloadType, spec.clockRate);
 
     // Audio packetizer: Opus uses its dedicated packetizer;
     // PCMU/PCMA and others use the generic RTP packetizer.
-    std::shared_ptr<rtc::MediaHandler> packetizer;
-    if (rtpName == "opus")
-        packetizer = std::make_shared<rtc::OpusRtpPacketizer>(rtpConfig);
-    else
-        packetizer = std::make_shared<rtc::RtpPacketizer>(rtpConfig);
+    auto packetizer = makeAudioPacketizer(spec, rtpConfig);
     packetizer->addToChain(std::make_shared<rtc::RtcpSrReporter>(rtpConfig));
     track->setMediaHandler(packetizer);
 
-    LInfo("Audio track created: ", rtpName, " SSRC=", ssrc, " PT=", pt);
+    LInfo("Audio track created: ", spec.rtpName, " SSRC=", ssrc, " PT=", spec.payloadType);
     return {track, rtpConfig};
 }
 
 
-void setupReceiveTrack(std::shared_ptr<rtc::Track> track)
+bool setupReceiveTrack(std::shared_ptr<rtc::Track> track)
 {
     auto desc = track->description();
     auto sdp = std::string(desc.generateSdp("\r\n", ""));
 
     if (desc.type() == "video") {
-        std::shared_ptr<rtc::MediaHandler> depacketizer;
-
-        if (sdp.find("H264") != std::string::npos ||
-            sdp.find("h264") != std::string::npos) {
-            depacketizer = std::make_shared<rtc::H264RtpDepacketizer>();
+        auto spec = CodecNegotiator::detectCodec(sdp, CodecMediaType::Video);
+        if (!spec) {
+            LWarn("Unsupported remote video codec in SDP");
+            return false;
         }
-        else if (sdp.find("H265") != std::string::npos ||
-                 sdp.find("h265") != std::string::npos) {
-            depacketizer = std::make_shared<rtc::H265RtpDepacketizer>();
-        }
-        else {
-            depacketizer = std::make_shared<rtc::RtpDepacketizer>(90000);
-        }
+        auto depacketizer = makeVideoDepacketizer(*spec);
 
         auto session = std::make_shared<rtc::RtcpReceivingSession>();
         track->setMediaHandler(depacketizer);
         track->chainMediaHandler(session);
 
         LDebug("Receive video track set up: ", sdp.substr(0, 40));
+        return true;
     }
-    else if (desc.type() == "audio") {
-        std::shared_ptr<rtc::MediaHandler> depacketizer;
 
-        if (sdp.find("PCMU") != std::string::npos) {
-            depacketizer = std::make_shared<rtc::PCMURtpDepacketizer>();
+    if (desc.type() == "audio") {
+        auto spec = CodecNegotiator::detectCodec(sdp, CodecMediaType::Audio);
+        if (!spec) {
+            LWarn("Unsupported remote audio codec in SDP");
+            return false;
         }
-        else if (sdp.find("PCMA") != std::string::npos) {
-            depacketizer = std::make_shared<rtc::PCMARtpDepacketizer>();
-        }
-        else {
-            depacketizer = std::make_shared<rtc::OpusRtpDepacketizer>();
-        }
+        auto depacketizer = makeAudioDepacketizer(*spec);
 
         auto session = std::make_shared<rtc::RtcpReceivingSession>();
         track->setMediaHandler(depacketizer);
         track->chainMediaHandler(session);
 
         LDebug("Receive audio track set up");
+        return true;
     }
+
+    LWarn("Unsupported remote track type: ", desc.type());
+    return false;
 }
 
 

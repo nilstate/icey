@@ -36,8 +36,8 @@ namespace wrtc {
 ///
 /// Usage:
 ///   pc->onTrack([&](shared_ptr<rtc::Track> track) {
-///       setupReceiveTrack(track);
-///       videoReceiver.bind(track);
+///       if (setupReceiveTrack(track))
+///           videoReceiver.bind(track);
 ///   });
 ///
 ///   videoReceiver.emitter += packetSlot(&recorder, &Recorder::onEncodedVideo);
@@ -54,7 +54,8 @@ public:
     /// Construct an unbound receiver. Call bind() to attach a remote track.
     WebRtcTrackReceiver();
 
-    /// Bind to a remote track. Must be called after setupReceiveTrack().
+    /// Bind to a remote track. Must be called after setupReceiveTrack()
+    /// returned true.
     /// Installs an onFrame callback that converts each depacketized frame to
     /// a VideoPacket or AudioPacket and emits it on the PacketStream.
     /// The track type (video/audio) is detected from the SDP description.

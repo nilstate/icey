@@ -117,6 +117,36 @@ int main(int argc, char** argv)
         expect(CodecNegotiator::clockRate("unknown") == 0);
     });
 
+    describe("codec negotiator: codec specs", []() {
+        auto h264 = CodecNegotiator::specFromRtp("H264");
+        expect(h264.has_value());
+        expect(h264->id == CodecId::H264);
+        expect(h264->mediaType == CodecMediaType::Video);
+        expect(h264->clockRate == 90000);
+        expect(h264->payloadType == 96);
+
+        auto pcmu = CodecNegotiator::specFromFfmpeg("pcm_mulaw");
+        expect(pcmu.has_value());
+        expect(pcmu->id == CodecId::PCMU);
+        expect(pcmu->mediaType == CodecMediaType::Audio);
+        expect(pcmu->clockRate == 8000);
+        expect(pcmu->payloadType == 0);
+    });
+
+    describe("codec negotiator: detect codec from sdp", []() {
+        auto audio = CodecNegotiator::detectCodec(
+            "m=audio 9 UDP/TLS/RTP/SAVPF 0\r\na=rtpmap:0 PCMU/8000\r\n",
+            CodecMediaType::Audio);
+        expect(audio.has_value());
+        expect(audio->id == CodecId::PCMU);
+
+        auto video = CodecNegotiator::detectCodec(
+            "m=video 9 UDP/TLS/RTP/SAVPF 96\r\na=rtpmap:96 H264/90000\r\n",
+            CodecMediaType::Video);
+        expect(video.has_value());
+        expect(video->id == CodecId::H264);
+    });
+
     describe("codec negotiator: to av types", []() {
         NegotiatedCodec nc;
         nc.rtpName = "H264";
@@ -170,18 +200,41 @@ int main(int argc, char** argv)
         pc->close();
     });
 
-    describe("track: default codec creates H264 + opus", []() {
+    describe("track: create pcmu audio track", []() {
         rtc::Configuration config;
         auto pc = std::make_shared<rtc::PeerConnection>(config);
 
-        auto vh = createVideoTrack(pc);
-        auto ah = createAudioTrack(pc);
-        expect(vh.track != nullptr);
+        auto ah = createAudioTrack(pc, av::AudioCodec("PCMU", "pcm_mulaw", 1, 8000));
         expect(ah.track != nullptr);
-        // Default video is H264 (90kHz, PT 96)
-        expect(vh.rtpConfig->clockRate == 90000);
-        // Default audio is Opus (48kHz, PT 111)
-        expect(ah.rtpConfig->clockRate == 48000);
+        expect(ah.rtpConfig != nullptr);
+        expect(ah.rtpConfig->clockRate == 8000);
+        expect(ah.rtpConfig->payloadType == 0);
+
+        pc->close();
+    });
+
+    describe("track: create tracks from RTP names", []() {
+        rtc::Configuration config;
+        auto pc = std::make_shared<rtc::PeerConnection>(config);
+
+        auto vh = createVideoTrack(pc, av::VideoCodec("H264", 640, 480, 30));
+        auto ah = createAudioTrack(pc, av::AudioCodec("PCMA", 1, 8000));
+        expect(vh.rtpConfig->payloadType == 96);
+        expect(ah.rtpConfig->payloadType == 8);
+
+        pc->close();
+    });
+
+    describe("track: explicit codec is required", []() {
+        rtc::Configuration config;
+        auto pc = std::make_shared<rtc::PeerConnection>(config);
+
+        bool videoThrew = false;
+        bool audioThrew = false;
+        try { [[maybe_unused]] auto vh = createVideoTrack(pc, av::VideoCodec{}); } catch (const std::invalid_argument&) { videoThrew = true; }
+        try { [[maybe_unused]] auto ah = createAudioTrack(pc, av::AudioCodec{}); } catch (const std::invalid_argument&) { audioThrew = true; }
+        expect(videoThrew);
+        expect(audioThrew);
 
         pc->close();
     });
@@ -191,7 +244,7 @@ int main(int argc, char** argv)
         auto pc = std::make_shared<rtc::PeerConnection>(config);
 
         bool pliFired = false;
-        auto vh = createVideoTrack(pc, {}, 0, {}, 512,
+        auto vh = createVideoTrack(pc, av::VideoCodec("H264", "libx264", 640, 480, 30), 0, {}, 512,
             [&]() { pliFired = true; });
 
         expect(vh.track != nullptr);
@@ -224,7 +277,7 @@ int main(int argc, char** argv)
     describe("track sender: bound construction", []() {
         rtc::Configuration config;
         auto pc = std::make_shared<rtc::PeerConnection>(config);
-        auto vh = createVideoTrack(pc);
+        auto vh = createVideoTrack(pc, av::VideoCodec("H264", "libx264", 640, 480, 30));
 
         WebRtcTrackSender sender(vh);
         expect(sender.bound());
@@ -251,7 +304,7 @@ int main(int argc, char** argv)
     describe("track sender: audio track detection", []() {
         rtc::Configuration config;
         auto pc = std::make_shared<rtc::PeerConnection>(config);
-        auto ah = createAudioTrack(pc);
+        auto ah = createAudioTrack(pc, av::AudioCodec("opus", "libopus", 2, 48000));
 
         WebRtcTrackSender sender(ah);
         expect(sender.bound());
