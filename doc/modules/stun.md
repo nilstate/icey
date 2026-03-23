@@ -15,10 +15,10 @@ The module covers four concerns:
 - **Message integrity**: HMAC-SHA1 computation on write and verification on read, using the long-term credential key `MD5(username:realm:password)`.
 - **Transaction layer**: request/response matching by transaction ID, with configurable timeout and retry count.
 
-Link against `icy_stun`:
+Link against `Icey::stun`:
 
 ```cmake
-target_link_libraries(myapp PRIVATE icy_stun)
+target_link_libraries(myapp PRIVATE Icey::stun)
 ```
 
 Headers:

@@ -21,7 +21,7 @@ The module covers the full path from hardware device to network or file:
 
 **Build requirement:** FFmpeg 5, 6, or 7. The `av` module builds automatically when FFmpeg is found by CMake. Camera and microphone capture requires the optional `avdevice` library; it is enabled automatically when `avdevice` is present (`HAVE_FFMPEG_AVDEVICE` is set). All headers guard themselves with `#ifdef HAVE_FFMPEG` so the rest of Icey builds cleanly without FFmpeg.
 
-**Link target:** `icy_av`
+**Link target:** `Icey::av`
 
 ---
 
@@ -973,7 +973,7 @@ Link a downstream project:
 ```cmake
 # After cmake --install build
 find_package(Icey REQUIRED)
-target_link_libraries(myapp PRIVATE icy_av)
+target_link_libraries(myapp PRIVATE Icey::av)
 
 # Or via FetchContent
 include(FetchContent)
@@ -981,7 +981,7 @@ FetchContent_Declare(icey
     GIT_REPOSITORY https://github.com/sourcey/icey.git
     GIT_TAG v2.1.0)
 FetchContent_MakeAvailable(icey)
-target_link_libraries(myapp PRIVATE icy_av)
+target_link_libraries(myapp PRIVATE Icey::av)
 ```
 
 ### FFmpeg version compatibility

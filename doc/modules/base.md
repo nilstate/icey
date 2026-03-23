@@ -8,10 +8,10 @@
 
 The `base` module is the substrate every other Icey module builds on. It provides the libuv event loop wrappers, the signal/slot system that wires components together, the `PacketStream` pipeline that moves data through the library, handle and stream abstractions for I/O, a structured logging system, a generic state machine, binary I/O primitives, and a broad set of system utilities covering threads, the filesystem, process management, timers, and collections.
 
-All public types live in the `icy` namespace. libuv-specific types (loops, handles) are in `icy::uv`. Filesystem utilities are in `icy::fs`. Base64 codec is in `icy::base64`. The module ships as the `icy_base` CMake target, which is a dependency of every other module in the library.
+All public types live in the `icy` namespace. libuv-specific types (loops, handles) are in `icy::uv`. Filesystem utilities are in `icy::fs`. Base64 codec is in `icy::base64`. The module ships as the `Icey::base` CMake target, which is a dependency of every other module in the library.
 
 ```cmake
-target_link_libraries(myapp PRIVATE icy_base)
+target_link_libraries(myapp PRIVATE Icey::base)
 ```
 
 The key headers are pulled in transitively through each other, but the top-level entry points are:
@@ -1121,7 +1121,7 @@ The `base` module has no required external dependencies beyond libuv, which CMak
 | `ICY_WIN` | Detected automatically; enables Windows-specific code paths in filesystem, process, and socket handling. |
 | `ICY_UNICODE` | Enables `fs::transcode()` on Windows for wide-to-narrow path conversion. |
 
-To link `icy_base` from a parent CMake project using FetchContent:
+To link `Icey::base` from a parent CMake project using FetchContent:
 
 ```cmake
 include(FetchContent)
@@ -1130,14 +1130,14 @@ FetchContent_Declare(icey
   GIT_TAG v2.1.0
 )
 FetchContent_MakeAvailable(icey)
-target_link_libraries(myapp PRIVATE icy_base)
+target_link_libraries(myapp PRIVATE Icey::base)
 ```
 
 After installing with `cmake --install build`:
 
 ```cmake
 find_package(Icey REQUIRED)
-target_link_libraries(myapp PRIVATE icy_base)
+target_link_libraries(myapp PRIVATE Icey::base)
 ```
 
 ## See Also

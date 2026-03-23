@@ -16,10 +16,10 @@ The module provides both sides of the protocol:
 
 Every TURN message is a STUN message. Read [stun.md](stun.md) first if you are unfamiliar with `stun::Message`, attribute types, or the HMAC-SHA1 integrity mechanism; this document assumes that knowledge.
 
-Link against `icy_turn` (which pulls in `icy_stun` automatically):
+Link against `Icey::turn` (which pulls in `Icey::stun` automatically):
 
 ```cmake
-target_link_libraries(myapp PRIVATE icy_turn)
+target_link_libraries(myapp PRIVATE Icey::turn)
 ```
 
 ## Architecture

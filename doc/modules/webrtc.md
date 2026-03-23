@@ -4,12 +4,12 @@
 
 **[Source →](../../src/webrtc/)**
 
-**CMake target**: `icy_webrtc`
-**Dependencies**: `icy_base`, `icy_net`, `icy_crypto`, `icy_av`, `icy_symple`, libdatachannel (auto-fetched), OpenSSL 3.x, FFmpeg 5+
+**CMake target**: `Icey::webrtc`
+**Dependencies**: `Icey::base`, `Icey::net`, `Icey::crypto`, `Icey::av`, `Icey::symple`, libdatachannel (auto-fetched), OpenSSL 3.x, FFmpeg 5+
 **Licence**: LGPL-2.1+
 
 ```cmake
-target_link_libraries(myapp PRIVATE icy_webrtc)
+target_link_libraries(myapp PRIVATE Icey::webrtc)
 ```
 
 ---
@@ -827,10 +827,10 @@ FetchContent_Declare(icey
 )
 FetchContent_MakeAvailable(icey)
 
-target_link_libraries(myapp PRIVATE icy_webrtc)
+target_link_libraries(myapp PRIVATE Icey::webrtc)
 ```
 
-`icy_webrtc` transitively pulls in `icy_base`, `icy_net`, `icy_crypto`, `icy_av`, `icy_symple`, and libdatachannel. You do not need to list them separately.
+`Icey::webrtc` transitively pulls in `Icey::base`, `Icey::net`, `Icey::crypto`, `Icey::av`, `Icey::symple`, and libdatachannel. You do not need to list them separately.
 
 ### Codec flags
 

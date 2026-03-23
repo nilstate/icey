@@ -12,7 +12,7 @@ We use Symple in two roles: as the signalling layer for WebRTC calls, and as a g
 
 **Headers:** `icy/symple/`
 **Namespace:** `icy::smpl`
-**CMake target:** `icy_symple`
+**CMake target:** `Icey::symple`
 **License:** LGPL-2.1+
 
 ---
@@ -778,7 +778,7 @@ The test suite covers 18 scenarios: address parsing, peer construction, message 
 Link the module in your own CMake project:
 
 ```cmake
-target_link_libraries(myapp PRIVATE icy_symple)
+target_link_libraries(myapp PRIVATE Icey::symple)
 ```
 
 ## See Also

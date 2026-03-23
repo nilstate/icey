@@ -170,7 +170,7 @@ FetchContent_Declare(icey
   GIT_TAG v2.1.0
 )
 FetchContent_MakeAvailable(icey)
-target_link_libraries(myapp PRIVATE icy_base icy_net icy_http)
+target_link_libraries(myapp PRIVATE Icey::base Icey::net Icey::http)
 ```
 
 ### find_package
@@ -179,7 +179,7 @@ After installing (`cmake --install build`):
 
 ```cmake
 find_package(Icey REQUIRED)
-target_link_libraries(myapp PRIVATE icy_base icy_net icy_http)
+target_link_libraries(myapp PRIVATE Icey::base Icey::net Icey::http)
 ```
 
 ## Code Examples

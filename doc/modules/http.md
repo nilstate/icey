@@ -6,7 +6,7 @@
 
 ## Overview
 
-The `icy_http` module delivers a full HTTP/1.1 stack built on two proven foundations: [libuv](https://libuv.org) for async I/O and [llhttp](https://github.com/nodejs/llhttp) for parsing (the same parser used in Node.js). Everything is non-blocking and event-driven. A single-threaded server handles thousands of concurrent connections without spawning one thread per request. For multicore machines, `SO_REUSEPORT` lets you run one server instance per CPU core with kernel-level load balancing, no user-space distributor needed.
+The `Icey::http` module delivers a full HTTP/1.1 stack built on two proven foundations: [libuv](https://libuv.org) for async I/O and [llhttp](https://github.com/nodejs/llhttp) for parsing (the same parser used in Node.js). Everything is non-blocking and event-driven. A single-threaded server handles thousands of concurrent connections without spawning one thread per request. For multicore machines, `SO_REUSEPORT` lets you run one server instance per CPU core with kernel-level load balancing, no user-space distributor needed.
 
 The module covers:
 
@@ -1038,10 +1038,10 @@ Usage: `httpbenchmark [single|keepalive|multi|echo|raw|raw-keepalive]`
 
 ### CMake integration
 
-Link against `icy_base`, `icy_net`, and `icy_http`:
+Link against `Icey::base`, `Icey::net`, and `Icey::http`:
 
 ```cmake
-target_link_libraries(myapp PRIVATE icy_base icy_net icy_http)
+target_link_libraries(myapp PRIVATE Icey::base Icey::net Icey::http)
 ```
 
 With FetchContent:
@@ -1053,14 +1053,14 @@ FetchContent_Declare(icey
   GIT_TAG v2.1.0
 )
 FetchContent_MakeAvailable(icey)
-target_link_libraries(myapp PRIVATE icy_base icy_net icy_http)
+target_link_libraries(myapp PRIVATE Icey::base Icey::net Icey::http)
 ```
 
 After installing (`cmake --install build`):
 
 ```cmake
 find_package(Icey REQUIRED)
-target_link_libraries(myapp PRIVATE icy_base icy_net icy_http)
+target_link_libraries(myapp PRIVATE Icey::base Icey::net Icey::http)
 ```
 
 ### Compiler requirements
