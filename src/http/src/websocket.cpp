@@ -19,6 +19,7 @@
 #include "icy/random.h"
 #include <cstring>
 #include <inttypes.h>
+#include <limits>
 #include <stdexcept>
 #include <string_view>
 
@@ -69,6 +70,24 @@ inline void applyMask(uint8_t* data, size_t len, uint32_t mask)
     for (; i < len; i++) {
         data[i] ^= m[i & 3];
     }
+}
+
+void reserveExponential(Buffer& buffer, size_t required, size_t floorCapacity = 0)
+{
+    if (required <= buffer.capacity())
+        return;
+
+    size_t newCapacity = buffer.capacity();
+    if (newCapacity == 0)
+        newCapacity = floorCapacity > 0 ? floorCapacity : required;
+    while (newCapacity < required) {
+        if (newCapacity > (std::numeric_limits<size_t>::max() / 2)) {
+            newCapacity = required;
+            break;
+        }
+        newCapacity *= 2;
+    }
+    buffer.reserve(newCapacity);
 }
 
 [[noreturn]] void throwWsError(ws::ErrorCode code, std::string message, uint16_t closeStatus = 0)
@@ -327,6 +346,7 @@ bool WebSocketAdapter::onSocketRecv(net::Socket&, const MutableBuffer& buffer, c
         const char* data;
         size_t dataLen;
         if (!framer._incompleteFrame.empty()) {
+            workBuf.reserve(framer._incompleteFrame.size() + buffer.size());
             workBuf.insert(workBuf.end(),
                            framer._incompleteFrame.begin(), framer._incompleteFrame.end());
             workBuf.insert(workBuf.end(),
@@ -406,6 +426,10 @@ bool WebSocketAdapter::onSocketRecv(net::Socket&, const MutableBuffer& buffer, c
                                 "WebSocket error: Message too large (close 1009)",
                                 uint16_t(ws::CloseStatusCode::PayloadTooBig));
                         }
+                        reserveExponential(
+                            framer._fragmentBuffer,
+                            framer._fragmentBuffer.size() + static_cast<size_t>(payloadLength),
+                            4096);
                         framer._fragmentBuffer.insert(framer._fragmentBuffer.end(),
                             payload, payload + static_cast<size_t>(payloadLength));
                     }
@@ -434,9 +458,16 @@ bool WebSocketAdapter::onSocketRecv(net::Socket&, const MutableBuffer& buffer, c
                     framer._fragmented = true;
                     framer._fragmentOpcode = opcode;
                     framer._fragmentBuffer.clear();
-                    if (payload && payloadLength > 0)
+                    if (payload && payloadLength > 0) {
+                        reserveExponential(
+                            framer._fragmentBuffer,
+                            static_cast<size_t>(payloadLength),
+                            std::min<size_t>(
+                                std::max<size_t>(static_cast<size_t>(payloadLength) * 2, 4096),
+                                WebSocketFramer::MAX_MESSAGE_SIZE));
                         framer._fragmentBuffer.insert(framer._fragmentBuffer.end(),
                             payload, payload + static_cast<size_t>(payloadLength));
+                    }
                     continue;
                 }
 
@@ -449,7 +480,10 @@ bool WebSocketAdapter::onSocketRecv(net::Socket&, const MutableBuffer& buffer, c
             } catch (const ws::WebSocketException& exc) {
                 if (exc.code() == ws::ErrorCode::IncompleteFrame) {
                     size_t remaining = total - posBeforeRead;
-                    framer._incompleteFrame.assign(
+                    framer._incompleteFrame.clear();
+                    framer._incompleteFrame.reserve(remaining);
+                    framer._incompleteFrame.insert(
+                        framer._incompleteFrame.end(),
                         data + posBeforeRead, data + posBeforeRead + remaining);
                     LTrace("Buffering incomplete frame: ", remaining, " bytes");
                     return false;

@@ -62,7 +62,7 @@ void TCPAllocation::onPeerAccept(const net::TCPSocket::Ptr& socket)
 {
     LTrace("Peer connection accepted: ", socket->peerAddress());
 
-    if (!hasPermission(socket->peerAddress().host())) {
+    if (!hasPermission(socket->peerAddress())) {
         LTrace("No permission for peer: ", socket->peerAddress());
         return;
     }

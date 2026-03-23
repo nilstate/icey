@@ -87,7 +87,7 @@ void TCPClient::sendData(const char* data, size_t size, const net::Address& peer
     LTrace("Send data to ", peerAddress);
 
     // Ensure permissions exist for the peer.
-    if (!hasPermission(peerAddress.host()))
+    if (!hasPermission(peerAddress))
         throw std::runtime_error("No permission exists for peer: " + peerAddress.host());
 
     auto& conn = _connections.get(peerAddress);

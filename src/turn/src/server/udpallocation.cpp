@@ -83,7 +83,7 @@ void UDPAllocation::handleSendIndication(Request& request)
     }
 
     net::Address peerAddress = peerAttr->address();
-    if (!hasPermission(peerAddress.host())) {
+    if (!hasPermission(peerAddress)) {
         SError << "Send Indication error: No permission for: "
                << peerAddress.host();
         // silently discard...
@@ -108,7 +108,7 @@ bool UDPAllocation::onPeerDataReceived(net::Socket&,
 {
     LTrace("Received UDP Datagram from ", peerAddress);
 
-    if (!hasPermission(peerAddress.host())) {
+    if (!hasPermission(peerAddress)) {
         LTrace("No Permission: ", peerAddress.host());
         return false;
     }

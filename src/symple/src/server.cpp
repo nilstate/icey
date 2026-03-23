@@ -54,6 +54,31 @@ json::Value makePresenceData(const Peer& peer,
 }
 
 
+void rewritePresenceData(json::Value& data,
+                         const Peer& peer,
+                         const std::string& id,
+                         bool online)
+{
+    if (!data.is_object())
+        data = json::Value::object();
+    else {
+        static constexpr std::string_view reserved[] = {
+            "id", "user", "online", "name", "type"
+        };
+        for (auto key : reserved)
+            data.erase(std::string(key));
+    }
+
+    data["id"] = id;
+    data["user"] = peer.user();
+    data["online"] = online;
+    if (!peer.name().empty())
+        data["name"] = peer.name();
+    if (!peer.type().empty())
+        data["type"] = peer.type();
+}
+
+
 bool sharesAnyRoom(const std::unordered_set<std::string>& a,
                    const std::unordered_set<std::string>& b)
 {
@@ -80,8 +105,14 @@ ServerPeer::ServerPeer(http::ServerConnection& conn)
 void ServerPeer::send(const json::Value& msg)
 {
     auto str = msg.dump();
+    sendSerialized(str.c_str(), str.size());
+}
+
+
+void ServerPeer::sendSerialized(const char* data, size_t len)
+{
     try {
-        _conn.send(str.c_str(), str.size(), http::ws::Text);
+        _conn.send(data, len, http::ws::Text);
     }
     catch (const std::exception& e) {
         LWarn("ServerPeer send failed: ", e.what());
@@ -199,7 +230,7 @@ public:
                 }
                 else if (type == "message" || type == "presence" ||
                     type == "command" || type == "event") {
-                    _server.onMessage(*peer, msg);
+                    _server.onMessage(*peer, std::move(msg));
                 }
                 else if (type == "join") {
                     _server.onJoin(*peer, msg.value("room", ""));
@@ -494,23 +525,19 @@ void Server::onAuth(ServerPeer& tempPeer, const json::Value& msg)
 }
 
 
-void Server::onMessage(ServerPeer& sender, const json::Value& msg)
+void Server::onMessage(ServerPeer& sender, json::Value msg)
 {
     // Caller holds _mutex.
 
     // Enforce that the from field matches the authenticated peer.
     std::string expectedFrom = sender.peer().user() + "|" + sender.id();
-    json::Value routable = msg;
-    routable["from"] = expectedFrom;
+    msg["from"] = expectedFrom;
 
-    if (routable.value("type", "") == "presence") {
-        const json::Value* extra = nullptr;
-        if (routable.contains("data") && routable["data"].is_object())
-            extra = &routable["data"];
-        routable["data"] = makePresenceData(sender.peer(), sender.id(), true, extra);
+    if (msg.value("type", "") == "presence") {
+        rewritePresenceData(msg["data"], sender.peer(), sender.id(), true);
     }
 
-    route(sender, routable);
+    route(sender, msg);
 }
 
 
@@ -674,7 +701,7 @@ void Server::route(ServerPeer& sender, const json::Value& msg)
                     continue;
                 }
                 try {
-                    targetIt->second->connection().send(str.c_str(), str.size(), http::ws::Text);
+                    targetIt->second->sendSerialized(str.c_str(), str.size());
                 } catch (const std::exception& e) {
                     LWarn("sendToUser real peer failed: ", peerId, ": ", e.what());
                 }
@@ -733,8 +760,7 @@ void Server::broadcastRooms(const std::unordered_set<std::string>& rooms,
         auto peerIt = _peers.find(peerId);
         if (peerIt != _peers.end()) {
             try {
-                peerIt->second->connection().send(
-                    str.c_str(), str.size(), http::ws::Text);
+                peerIt->second->sendSerialized(str.c_str(), str.size());
             } catch (const std::exception& e) {
                 LWarn("Broadcast failed to ", peerId, ": ", e.what());
             }
@@ -836,8 +862,7 @@ bool Server::sendToUser(const std::string& user, const json::Value& msg)
         auto peerIt = _peers.find(peerId);
         if (peerIt != _peers.end()) {
             try {
-                peerIt->second->connection().send(
-                    str.c_str(), str.size(), http::ws::Text);
+                peerIt->second->sendSerialized(str.c_str(), str.size());
                 sent = true;
             }
             catch (...) {}

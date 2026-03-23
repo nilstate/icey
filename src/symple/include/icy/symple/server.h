@@ -51,6 +51,10 @@ public:
     /// @param msg JSON value to send.
     void send(const json::Value& msg);
 
+    /// Sends a pre-serialized JSON payload over the WebSocket connection.
+    /// Use this on fanout paths that already serialized once.
+    void sendSerialized(const char* data, size_t len);
+
     /// Adds this peer to the named room (local tracking only).
     /// @param room Room name to join.
     void join(const std::string& room);
@@ -237,7 +241,7 @@ private:
     class Factory;
 
     void onAuth(ServerPeer& peer, const json::Value& msg);
-    void onMessage(ServerPeer& peer, const json::Value& msg);
+    void onMessage(ServerPeer& peer, json::Value msg);
     void onJoin(ServerPeer& peer, const std::string& room);
     void onLeave(ServerPeer& peer, const std::string& room);
     void onDisconnect(ServerPeer& peer);

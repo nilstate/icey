@@ -151,6 +151,10 @@ public:
     };
 
 public:
+    using IAllocation::addPermission;
+    using IAllocation::hasPermission;
+    using IAllocation::removePermission;
+
     /// @param observer Observer to receive lifecycle and data callbacks.
     /// @param options  Configuration for this client instance.
     /// @param socket   Underlying transport socket (TCP or UDP).

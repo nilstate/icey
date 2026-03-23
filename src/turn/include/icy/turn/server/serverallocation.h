@@ -67,6 +67,7 @@ public:
 
     /// Checks permission, auto-granting local IPs if enabled in server options.
     [[nodiscard]] bool hasPermission(const std::string& peerIP) override;
+    [[nodiscard]] bool hasPermission(const net::Address& peerAddress) override;
 
     /// @return Reference to the owning TURN server.
     virtual Server& server();

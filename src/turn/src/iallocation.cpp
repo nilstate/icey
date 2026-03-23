@@ -134,9 +134,14 @@ PermissionList IAllocation::permissions() const
 
 void IAllocation::addPermission(const std::string& ip)
 {
+    Permission::Key key = Permission::Key::fromIP(ip);
+
     // If the permission is already in the list then refresh it.
     for (auto& perm : _permissions) {
-        if (perm.ip == ip) {
+        if ((key.valid() && perm.key.valid() && perm.key.af == key.af &&
+             perm.key.size == key.size &&
+             std::memcmp(perm.key.bytes.data(), key.bytes.data(), key.size) == 0) ||
+            perm.ip == ip) {
             LTrace("Refreshing permission: ", ip);
             perm.refresh();
             return;
@@ -146,6 +151,21 @@ void IAllocation::addPermission(const std::string& ip)
     // Otherwise create it...
     LTrace("Create permission: ", ip);
     _permissions.push_back(Permission(ip));
+}
+
+
+void IAllocation::addPermission(const net::Address& address)
+{
+    for (auto& perm : _permissions) {
+        if (perm.matches(address)) {
+            LTrace("Refreshing permission: ", address.host());
+            perm.refresh();
+            return;
+        }
+    }
+
+    LTrace("Create permission: ", address.host());
+    _permissions.push_back(Permission(address));
 }
 
 
@@ -161,6 +181,18 @@ void IAllocation::removePermission(const std::string& ip)
 {
     for (auto it = _permissions.begin(); it != _permissions.end();) {
         if (it->ip == ip) {
+            it = _permissions.erase(it);
+            return;
+        } else
+            ++it;
+    }
+}
+
+
+void IAllocation::removePermission(const net::Address& address)
+{
+    for (auto it = _permissions.begin(); it != _permissions.end();) {
+        if (it->matches(address)) {
             it = _permissions.erase(it);
             return;
         } else
@@ -189,12 +221,28 @@ void IAllocation::removeExpiredPermissions()
 
 bool IAllocation::hasPermission(const std::string& peerIP)
 {
+    Permission::Key key = Permission::Key::fromIP(peerIP);
     for (const auto& perm : _permissions) {
-        if (perm == peerIP)
+        if ((key.valid() && perm.key.valid() && perm.key.af == key.af &&
+             perm.key.size == key.size &&
+             std::memcmp(perm.key.bytes.data(), key.bytes.data(), key.size) == 0) ||
+            perm == peerIP)
             return true;
     }
 
     LTrace("No permission for: ", peerIP);
+    return false;
+}
+
+
+bool IAllocation::hasPermission(const net::Address& peerAddress)
+{
+    for (const auto& perm : _permissions) {
+        if (perm.matches(peerAddress))
+            return true;
+    }
+
+    LTrace("No permission for: ", peerAddress);
     return false;
 }
 

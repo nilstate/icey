@@ -310,6 +310,52 @@ int main(int argc, char** argv)
         expect(!alloc.hasPermission("10.0.0.1"));
     });
 
+    describe("allocation permissions ignore port on address hot path", []() {
+        struct TestAlloc : public turn::IAllocation {
+            TestAlloc() : IAllocation(turn::FiveTuple(), "test", 600) {}
+            net::Address relayedAddress() const override { return net::Address("0.0.0.0", 0); }
+        };
+
+        TestAlloc alloc;
+        alloc.addPermission(net::Address("10.0.0.1", 3478));
+        expect(alloc.hasPermission(net::Address("10.0.0.1", 5000)));
+        expect(!alloc.hasPermission(net::Address("10.0.0.2", 5000)));
+    });
+
+    describe("server allocation local permission checks are numeric", []() {
+        struct TestObserver : public turn::ServerObserver {
+            void onServerAllocationCreated(turn::Server*, turn::IAllocation*) override {}
+            void onServerAllocationRemoved(turn::Server*, turn::IAllocation*) override {}
+            turn::AuthenticationState authenticateRequest(turn::Server*, turn::Request&) override
+            {
+                return turn::AuthenticationState::Authorized;
+            }
+        };
+
+        struct TestServerAlloc : public turn::ServerAllocation {
+            TestServerAlloc(turn::Server& server)
+                : ServerAllocation(server, turn::FiveTuple(), "test", 600)
+            {
+            }
+
+            net::Address relayedAddress() const override { return net::Address("0.0.0.0", 0); }
+        };
+
+        turn::ServerOptions so;
+        so.enableLocalIPPermissions = true;
+        TestObserver observer;
+        turn::Server server(observer, so);
+        TestServerAlloc alloc(server);
+
+        expect(alloc.hasPermission(net::Address("10.1.2.3", 5000)));
+        expect(alloc.hasPermission(net::Address("172.16.0.1", 5000)));
+        expect(alloc.hasPermission(net::Address("172.31.255.255", 5000)));
+        expect(!alloc.hasPermission(net::Address("172.32.0.1", 5000)));
+        expect(alloc.hasPermission(net::Address("192.168.1.1", 5000)));
+        expect(alloc.hasPermission(net::Address("127.0.0.1", 5000)));
+        expect(!alloc.hasPermission(net::Address("8.8.8.8", 5000)));
+    });
+
     describe("allocation permission refresh", []() {
         struct TestAlloc : public turn::IAllocation {
             TestAlloc() : IAllocation(turn::FiveTuple(), "test", 600) {}

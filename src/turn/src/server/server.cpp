@@ -192,12 +192,51 @@ void Server::releaseTCPSocket(const net::Socket& socket)
         if (it->impl.get() == &socket) {
             it->Recv -= slot(this, &Server::onSocketRecv);
             it->Close -= slot(this, &Server::onTCPSocketClosed);
-
-            _tcpSockets.erase(it);
+            _pendingReleasedTCPSockets.insert(&socket);
+            scheduleDeferredTCPSocketRelease();
             return;
         }
     }
     LWarn("releaseTCPSocket: socket not found in list");
+}
+
+
+void Server::scheduleDeferredTCPSocketRelease()
+{
+    if (_tcpSocketReleaseScheduled || _pendingReleasedTCPSockets.empty())
+        return;
+
+    _tcpSocketReleaseScheduled = true;
+    auto* idle = new uv_idle_t;
+    uv_idle_init(_timer.handle().loop(), idle);
+    idle->data = this;
+    uv_idle_start(idle, [](uv_idle_t* handle) {
+        auto* self = static_cast<Server*>(handle->data);
+        uv_idle_stop(handle);
+        self->drainReleasedTCPSockets();
+        uv_close(reinterpret_cast<uv_handle_t*>(handle), [](uv_handle_t* h) {
+            delete reinterpret_cast<uv_idle_t*>(h);
+        });
+    });
+}
+
+
+void Server::drainReleasedTCPSockets()
+{
+    if (_pendingReleasedTCPSockets.empty()) {
+        _tcpSocketReleaseScheduled = false;
+        return;
+    }
+
+    for (auto it = _tcpSockets.begin(); it != _tcpSockets.end();) {
+        if (_pendingReleasedTCPSockets.count(it->impl.get()) > 0)
+            it = _tcpSockets.erase(it);
+        else
+            ++it;
+    }
+
+    _pendingReleasedTCPSockets.clear();
+    _tcpSocketReleaseScheduled = false;
 }
 
 

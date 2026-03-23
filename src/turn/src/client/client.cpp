@@ -600,7 +600,7 @@ void Client::sendData(const char* data, size_t size, const net::Address& peerAdd
     request.add<stun::Data>().copyBytes(data, size);
 
     // Ensure permissions exist for the peer.
-    if (!hasPermission(peerAddress.host())) {
+    if (!hasPermission(peerAddress)) {
         throw std::runtime_error("No permission exists for peer IP: " + peerAddress.host());
     }
 

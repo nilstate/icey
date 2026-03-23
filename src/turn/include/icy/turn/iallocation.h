@@ -146,6 +146,10 @@ public:
     /// @param ip IPv4 address string to permit.
     virtual void addPermission(const std::string& ip);
 
+    /// Adds a permission for @p address, or refreshes the existing one.
+    /// The port is ignored; TURN permissions are IP-only.
+    virtual void addPermission(const net::Address& address);
+
     /// Adds (or refreshes) permissions for multiple IPs.
     /// @param ips List of IPv4 address strings.
     virtual void addPermissions(const IPList& ips);
@@ -153,6 +157,10 @@ public:
     /// Removes the permission for @p ip if present.
     /// @param ip IPv4 address string to remove.
     virtual void removePermission(const std::string& ip);
+
+    /// Removes the permission for @p address if present.
+    /// The port is ignored; TURN permissions are IP-only.
+    virtual void removePermission(const net::Address& address);
 
     /// Removes all permissions from the list.
     virtual void removeAllPermissions();
@@ -165,6 +173,10 @@ public:
     /// @param peerIP IPv4 address string to check.
     /// @return true if a valid (non-expired) permission exists.
     [[nodiscard]] virtual bool hasPermission(const std::string& peerIP);
+
+    /// Checks whether a permission exists for @p peerAddress.
+    /// The port is ignored; TURN permissions are IP-only.
+    [[nodiscard]] virtual bool hasPermission(const net::Address& peerAddress);
 
     virtual void print(std::ostream& os) const
     {

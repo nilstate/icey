@@ -26,6 +26,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <unordered_set>
 
 
 namespace icy {
@@ -240,6 +241,10 @@ public:
     /// Periodic maintenance callback; expires and removes stale allocations.
     void onTimer();
 
+    /// Defers accepted TCP socket removal until after the active callback stack unwinds.
+    void scheduleDeferredTCPSocketRelease();
+    void drainReleasedTCPSockets();
+
 private:
     mutable std::mutex _mutex;
     ServerObserver& _observer;
@@ -247,6 +252,8 @@ private:
     net::SocketEmitter _udpSocket; // net::UDPSocket
     net::SocketEmitter _tcpSocket; // net::TCPSocket
     std::vector<net::SocketEmitter> _tcpSockets;
+    std::unordered_set<const net::Socket*> _pendingReleasedTCPSockets;
+    bool _tcpSocketReleaseScheduled{false};
     ServerAllocationMap _allocations;
     Timer _timer;
 };
