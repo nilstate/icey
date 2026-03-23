@@ -20,6 +20,7 @@
 #include <cstring>
 #include <inttypes.h>
 #include <stdexcept>
+#include <string_view>
 
 
 namespace icy {
@@ -28,6 +29,27 @@ namespace ws {
 
 
 namespace {
+
+bool headerContainsToken(std::string_view header, std::string_view token)
+{
+    for (size_t pos = 0; pos < header.size(); ) {
+        size_t end = header.find(',', pos);
+        if (end == std::string_view::npos)
+            end = header.size();
+
+        std::string_view part(header.data() + pos, end - pos);
+        while (!part.empty() && (part.front() == ' ' || part.front() == '\t'))
+            part.remove_prefix(1);
+        while (!part.empty() && (part.back() == ' ' || part.back() == '\t'))
+            part.remove_suffix(1);
+
+        if (util::icompare(part, token) == 0)
+            return true;
+
+        pos = end + 1;
+    }
+    return false;
+}
 
 /// XOR mask/unmask a WebSocket payload using 64-bit word operations.
 /// Uses memcpy for type-punning to avoid strict aliasing violations
@@ -143,20 +165,9 @@ ssize_t WebSocketAdapter::send(const char* data, size_t len, const net::Address&
     if (!flags)
         flags = ws::SendFlags::Text;
 
-    // Frame and send the data. Use stack buffer for small frames
-    // to avoid heap allocation on the hot path.
-    static constexpr size_t kStackBufSize = 4096;
+    // Frame and send the data. Must use heap buffer because libuv
+    // write is async — the buffer must outlive this stack frame.
     size_t frameSize = len + WebSocketFramer::MAX_HEADER_LENGTH;
-
-    if (frameSize <= kStackBufSize) {
-        char stackBuf[kStackBufSize];
-        BitWriter writer(stackBuf, kStackBufSize);
-        framer.writeFrame(data, len, flags, writer);
-        if (!socket)
-            throw std::runtime_error("WebSocketAdapter::send: no socket");
-        return SocketAdapter::send(writer.begin(), writer.position(), peerAddr, 0);
-    }
-
     Buffer heapBuf;
     heapBuf.reserve(frameSize);
     BitWriter writer(heapBuf);
@@ -567,8 +578,7 @@ void WebSocketFramer::acceptServerRequest(http::Request& request, http::Response
         throw std::runtime_error("WebSocketFramer: not in server mode");
     }
 
-    if ((util::icompare(request.get("Connection", ""), "upgrade") == 0 ||
-         util::icompare(request.get("Connection", ""), "keep-alive, Upgrade") == 0) &&
+    if (headerContainsToken(request.get("Connection", ""), "Upgrade") &&
         util::icompare(request.get("Upgrade", ""), "websocket") == 0) {
         std::string version = request.get("Sec-WebSocket-Version", "");
         if (version.empty())
@@ -664,9 +674,6 @@ uint64_t WebSocketFramer::readFrame(BitReader& frame, char*& payload)
         frame.get(header + 2, MAX_HEADER_LENGTH - 2);
     }
 
-    // Reserved fields
-    frame.skip(2);
-
     // Parse frame header
     uint8_t flags;
     char mask[4];
@@ -759,8 +766,7 @@ void WebSocketFramer::completeClientHandshake(http::Response& response)
         throw std::runtime_error("WebSocketFramer: invalid header state for handshake completion");
     }
 
-    std::string connection = response.get("Connection", "");
-    if (util::icompare(connection, "Upgrade") != 0)
+    if (!headerContainsToken(response.get("Connection", ""), "Upgrade"))
         throw std::runtime_error("WebSocket error: No \"Connection: Upgrade\" header in handshake response");
     std::string upgrade = response.get("Upgrade", "");
     if (util::icompare(upgrade, "websocket") != 0)

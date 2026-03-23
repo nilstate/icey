@@ -161,7 +161,7 @@ void Server::onClientSocketAccept(const net::TCPSocket::Ptr& socket)
     } else {
         conn = _factory->createConnection(*this, socket);
     }
-    conn->touch();
+    conn->markActive();
     conn->Close += slot(this, &Server::onConnectionClose);
     _connections.emplace(conn.get(), conn);
 }
@@ -183,14 +183,15 @@ void Server::onConnectionClose(ServerConnection& conn)
         _connections.erase(it);
 
         // Return to pool if reusable (not upgraded, no error)
-        if (!conn.upgraded() && !conn.error().any()) {
-            _pool.release(std::move(ptr));
-        } else {
+        if (!conn.upgraded() && !conn.error().any() && _pool.release(ptr)) {
+            // Pooled for reuse — nothing else to do.
+        } else if (ptr) {
             // Defer destruction: this callback may be firing from
             // inside the connection's own method chain (e.g. onHeaders
             // -> createResponder -> rejected -> close -> onClose -> here).
             // Releasing the shared_ptr now would destroy the connection
-            // while we're still on its call stack.
+            // while we're still on its call stack. This also covers
+            // the case where the pool is full and rejected the connection.
             auto* deferred = new ServerConnection::Ptr(std::move(ptr));
             auto* idle = new uv_idle_t;
             uv_idle_init(_loop, idle);
@@ -221,7 +222,7 @@ void Server::onTimer()
     if (_keepAliveTimeout > 0) {
         std::vector<ServerConnection*> idle;
         for (auto& [ptr, conn] : _connections) {
-            if (conn->idleSeconds() > _keepAliveTimeout)
+            if (!conn->upgraded() && conn->idleSeconds() > _keepAliveTimeout)
                 idle.push_back(ptr);
         }
         for (auto* ptr : idle) {
@@ -371,8 +372,7 @@ void ServerConnection::onComplete()
     }
 
     // The HTTP request is complete.
-    // The request handler can give a response.
-    touch();
+    markActive();
     if (_responder)
         _responder->onRequest(_request, _response);
 
@@ -380,6 +380,7 @@ void ServerConnection::onComplete()
     // The parser's on_message_begin callback clears Request/Response headers.
     if (!_closed && !_upgrade && _request.getKeepAlive()) {
         _responder.reset();
+        _response = Response();
         _shouldSendHeader = true;
         _headerBuf.clear();
     }

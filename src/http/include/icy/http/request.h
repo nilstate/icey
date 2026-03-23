@@ -67,7 +67,11 @@ public:
     [[nodiscard]] const std::string& getMethod() const;
 
     /// Sets the request URI.
-    void setURI(const std::string& uri);
+    void setURI(std::string uri);
+
+    /// Appends a fragment to the request URI.
+    /// Used by the parser when llhttp splits the URL across callbacks.
+    void appendURI(std::string_view uri);
 
     /// Returns the request URI.
     [[nodiscard]] const std::string& getURI() const;

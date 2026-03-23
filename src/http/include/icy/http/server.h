@@ -51,11 +51,14 @@ public:
     /// Returns true if the connection has been upgraded (e.g. to WebSocket).
     [[nodiscard]] bool upgraded() const { return _upgrade; }
 
+    /// Refresh the idle timer.
+    void markActive() override { touch(); }
+
     /// Reset this connection for reuse with a new socket.
     /// Called by the connection pool to avoid allocating a new ServerConnection.
     void reset(net::TCPSocket::Ptr socket);
 
-    /// Update the last activity timestamp (called on request completion).
+    /// Update the last activity timestamp.
     void touch() { _lastActivity = std::time(nullptr); }
 
     /// Return seconds since last activity.
@@ -222,7 +225,7 @@ public:
     /// Returns a connection to the pool after use.
     /// @param conn The connection to return.
     /// @return true if accepted into the pool; false if the pool is full.
-    bool release(ServerConnection::Ptr conn)
+    bool release(ServerConnection::Ptr& conn)
     {
         if (_pool.size() >= _maxSize) return false;
         _pool.push_back(std::move(conn));
@@ -308,6 +311,9 @@ public:
     /// Connections idle longer than this are closed by the timer.
     /// Set to 0 to disable idle timeout.
     void setKeepAliveTimeout(int seconds) { _keepAliveTimeout = seconds; }
+
+    /// Return the number of active connections (all states).
+    [[nodiscard]] size_t connectionCount() const { return _connections.size(); }
 
     /// Return the server bind address.
     [[nodiscard]] net::Address& address();

@@ -42,6 +42,7 @@ ssize_t Connection::send(const char* data, size_t len, int flags)
     if (_closed)
         return -1;
 
+    markActive();
     return _adapter->send(data, len, flags);
 }
 
@@ -58,6 +59,7 @@ ssize_t Connection::sendHeader()
     _headerBuf.clear();
     _headerBuf.reserve(512);
     outgoingHeader()->write(_headerBuf);
+    markActive();
 
     // Send headers directly to the Socket,
     // bypassing the ConnectionAdapter.
@@ -127,6 +129,7 @@ bool Connection::onSocketConnect(net::Socket& socket)
 bool Connection::onSocketRecv(net::Socket& socket, const MutableBuffer& buffer, const net::Address& peerAddress)
 {
     // Handle payload data
+    markActive();
     onPayload(buffer);
     return false;
 }
@@ -283,7 +286,26 @@ bool ConnectionAdapter::onSocketRecv(net::Socket& socket, const MutableBuffer& b
         return false;
     }
 
-    _parser.parse(bufferCast<const char*>(buf), buf.size());
+    auto* data = bufferCast<const char*>(buf);
+    size_t total = buf.size();
+
+    if (_connection)
+        _connection->markActive();
+
+    // Save connection pointer before parse — replaceAdapter nulls _connection.
+    auto* conn = _connection;
+    size_t consumed = _parser.parse(data, total);
+
+    // On upgrade, the adapter was swapped inside the parse callback.
+    // Forward trailing bytes (e.g. first WS frame) to the new adapter.
+    if (consumed < total && _parser.upgrade() && conn) {
+        auto* newAdapter = conn->adapter();
+        if (newAdapter && newAdapter != this) {
+            newAdapter->onSocketRecv(socket, MutableBuffer(
+                const_cast<char*>(data + consumed), total - consumed), {});
+        }
+    }
+
     return false;
 }
 

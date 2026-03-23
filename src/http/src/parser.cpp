@@ -87,9 +87,12 @@ size_t Parser::parse(const char* data, size_t len)
     llhttp_errno_t err = llhttp_execute(&_parser, data, len);
 
     if (err == HPE_PAUSED_UPGRADE) {
-        // The parser has only parsed the HTTP headers, there
-        // may still be unread data from the request body in the buffer.
+        // The parser stopped after the HTTP headers. Return the number
+        // of bytes consumed so the caller can forward any trailing data
+        // (e.g. the first WebSocket frame coalesced in the same read).
+        size_t consumed = static_cast<size_t>(llhttp_get_error_pos(&_parser) - data);
         llhttp_resume_after_upgrade(&_parser);
+        return consumed;
     } else if (err != HPE_OK) {
         LWarn("HTTP parse failed: ", llhttp_errno_name(err));
 
@@ -182,12 +185,6 @@ bool Parser::upgrade() const
 // Callbacks
 
 
-void Parser::onURL(const std::string& value)
-{
-    if (_request)
-        _request->setURI(value);
-}
-
 
 void Parser::onHeader(std::string name, std::string value)
 {
@@ -251,18 +248,17 @@ int Parser::on_message_begin(llhttp_t* parser)
         return -1;
     }
 
-    // Clear request/response state for keep-alive (next message on same connection)
+    // Clear request/response state for keep-alive (next message on same connection).
+    // Version is set from the wire in on_headers_complete.
     if (self->_request) {
         self->_request->clear();
         self->_request->setMethod("");
         self->_request->setURI("");
-        self->_request->setVersion(http::Message::HTTP_1_1);
     }
     if (self->_response) {
         self->_response->clear();
         self->_response->setStatus(http::StatusCode::OK);
         self->_response->setReason(http::getStatusCodeReason(http::StatusCode::OK));
-        self->_response->setVersion(http::Message::HTTP_1_1);
     }
 
     // Use resetState() instead of reset() - we're inside an llhttp callback,
@@ -279,12 +275,11 @@ int Parser::on_url(llhttp_t* parser, const char* at, size_t len)
         return -1;
     }
 
-    // Use a thread-local to avoid per-callback allocation.
-    // llhttp may deliver the URL across multiple on_url calls,
-    // but in practice it arrives in one piece for typical requests.
-    thread_local std::string url;
-    url.assign(at, len);
-    self->onURL(url);
+    // llhttp may split the URL across callbacks on TCP segment boundaries.
+    // Append directly so fragmented URLs do not rebuild the whole string.
+    if (self->_request) {
+        self->_request->appendURI(std::string_view(at, len));
+    }
     return 0;
 }
 
@@ -355,6 +350,17 @@ int Parser::on_headers_complete(llhttp_t* parser)
     if (!self->_lastHeaderField.empty()) {
         self->onHeader(std::move(self->_lastHeaderField), std::move(self->_lastHeaderValue));
     }
+
+    // Set version from the actual parsed HTTP version
+    auto major = llhttp_get_http_major(&self->_parser);
+    auto minor = llhttp_get_http_minor(&self->_parser);
+    const auto& ver = (major == 1 && minor == 0)
+        ? http::Message::HTTP_1_0
+        : http::Message::HTTP_1_1;
+    if (self->_request)
+        self->_request->setVersion(ver);
+    if (self->_response)
+        self->_response->setVersion(ver);
 
     // Request HTTP method
     if (self->_request)

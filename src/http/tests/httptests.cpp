@@ -4,6 +4,8 @@
 #include "icy/http/request.h"
 #include "icy/http/response.h"
 #include "icy/buffer.h"
+#include "icy/base64.h"
+#include "icy/crypto/hash.h"
 
 #include <cstring>
 
@@ -59,6 +61,13 @@ static std::unique_ptr<http::Server> makeEchoServer(uint16_t port)
         };
     };
     return server;
+}
+
+static std::string computeWebSocketAccept(const std::string& key)
+{
+    icy::crypto::Hash hash("sha1");
+    hash.update(key + icy::http::ws::ProtocolGuid);
+    return icy::base64::encode(hash.digest());
 }
 
 
@@ -423,6 +432,21 @@ int main(int argc, char** argv)
         server->shutdown();
     });
 
+    describe("websocket handshake: tokenized connection header", []() {
+        http::Request request;
+        http::Response response(http::StatusCode::SwitchingProtocols);
+        http::ws::WebSocketFramer framer(http::ws::ClientSide);
+
+        framer.createClientHandshakeRequest(request);
+
+        response.set("Connection", "keep-alive, Upgrade");
+        response.set("Upgrade", "websocket");
+        response.set("Sec-WebSocket-Accept",
+                     computeWebSocketAccept(request.get("Sec-WebSocket-Key")));
+
+        expect(framer.checkClientHandshakeResponse(response));
+    });
+
     describe("standalone client connection", []() {
         auto server = makeHttpServer(TEST_HTTP_PORT + 6, "standalone-ok");
 
@@ -746,6 +770,21 @@ int main(int argc, char** argv)
         expect(parsed.getHost() == "example.com:8080" || parsed.getHost() == "example.com");
         expect(parsed.get("User-Agent") == "Icey/2.0");
         expect(parsed.get("Accept") == "application/json");
+    });
+
+    describe("http request split uri parsing", []() {
+        http::Request parsed;
+        http::Parser parser(&parsed);
+
+        std::string part1 = "GET /api/us";
+        std::string part2 =
+            "ers?page=1 HTTP/1.1\r\n"
+            "Host: example.com\r\n"
+            "\r\n";
+
+        expect(parser.parse(part1.c_str(), part1.size()) == part1.size());
+        expect(parser.parse(part2.c_str(), part2.size()) == part2.size());
+        expect(parsed.getURI() == "/api/users?page=1");
     });
 
     describe("http response round-trip", []() {
@@ -2015,6 +2054,49 @@ int main(int argc, char** argv)
         expect(received == "split-test-data");
 
         server->shutdown();
+    });
+
+
+    // =========================================================================
+    // Parser returns consumed bytes on upgrade (not full length)
+    //
+    describe("parser upgrade returns consumed bytes", []() {
+        // Simulate an HTTP upgrade request followed by trailing WebSocket data
+        std::string upgradeReq =
+            "GET /ws HTTP/1.1\r\n"
+            "Host: localhost\r\n"
+            "Upgrade: websocket\r\n"
+            "Connection: Upgrade\r\n"
+            "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
+            "Sec-WebSocket-Version: 13\r\n"
+            "\r\n";
+        std::string trailing = "\x81\x05Hello"; // a WS frame
+        std::string coalesced = upgradeReq + trailing;
+
+        http::Request parsed;
+        http::Parser parser(&parsed);
+        size_t consumed = parser.parse(coalesced.c_str(), coalesced.size());
+
+        // Parser should consume only the HTTP headers, not the trailing WS data
+        expect(consumed == upgradeReq.size());
+        expect(parser.upgrade());
+    });
+
+
+    // =========================================================================
+    // HTTP version parsed from wire (not hardcoded 1.1)
+    //
+    describe("http version from wire", []() {
+        std::string raw =
+            "HTTP/1.0 200 OK\r\n"
+            "Content-Length: 0\r\n"
+            "\r\n";
+
+        http::Response parsed;
+        http::Parser parser(&parsed);
+        parser.parse(raw.c_str(), raw.size());
+
+        expect(parsed.getVersion() == "HTTP/1.0");
     });
 
 

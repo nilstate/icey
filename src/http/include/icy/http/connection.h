@@ -64,6 +64,10 @@ public:
     /// deferred deletion.
     virtual void close();
 
+    /// Marks the connection as active.
+    /// Server connections override this to refresh the idle timer.
+    virtual void markActive() {}
+
     /// Return true if the connection is closed.
     [[nodiscard]] bool closed() const;
 

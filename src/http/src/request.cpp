@@ -14,6 +14,7 @@
 
 #include <stdexcept>
 #include <string_view>
+#include <utility>
 
 
 namespace icy {
@@ -72,9 +73,15 @@ void Request::setMethod(const std::string& method)
 }
 
 
-void Request::setURI(const std::string& uri)
+void Request::setURI(std::string uri)
 {
-    _uri = uri;
+    _uri = std::move(uri);
+}
+
+
+void Request::appendURI(std::string_view uri)
+{
+    _uri.append(uri.data(), uri.size());
 }
 
 

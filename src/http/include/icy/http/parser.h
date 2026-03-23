@@ -126,7 +126,6 @@ protected:
     void init();
 
     /// Callbacks
-    void onURL(const std::string& value);
     void onHeader(std::string name, std::string value);
     void onHeadersEnd();
     void onBody(const char* buf, size_t len);
