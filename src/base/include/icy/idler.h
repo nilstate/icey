@@ -85,18 +85,28 @@ public:
 
         // Use a Callback instance since we can't pass the capture lambda
         // to the libuv callback without compiler trickery.
-        _handle.get()->data = new Callback(_context,
-                                           std::forward<Function>(func),
-                                           std::forward<Args>(args)...);
+        auto* cb = new Callback(_context,
+                                std::forward<Function>(func),
+                                std::forward<Args>(args)...);
+        _handle.get()->data = cb;
+        _handle.setCloseCleanup(cb);
         _handle.invoke(&uv_idle_start, _handle.get(),
                        [](uv_idle_t* req) {
-                           auto wrap = reinterpret_cast<Callback*>(req->data);
-                           if (!wrap->ctx->cancelled) {
+                           auto* wrap = reinterpret_cast<Callback*>(req->data);
+                           if (!wrap)
+                               return;
+
+                           if (!wrap->ctx->cancelled)
                                wrap->invoke();
-                           } else {
+
+                           if (wrap->ctx->cancelled) {
                                wrap->ctx->running = false;
                                uv_idle_stop(req);
-                               delete wrap;
+                               if (!uv_is_closing(reinterpret_cast<uv_handle_t*>(req))) {
+                                   req->data = nullptr;
+                                   uv::clearHandleCloseCleanup(req);
+                                   delete wrap;
+                               }
                            }
                        });
         _handle.throwLastError("Cannot start idler");

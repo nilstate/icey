@@ -76,7 +76,7 @@ void BitReader::seek(size_t val)
 
 void BitReader::skip(size_t val)
 {
-    if (val > _limit)
+    if (_position + val > _limit)
         throw std::out_of_range("index out of range");
 
     _position += val;
@@ -585,7 +585,7 @@ bool BitWriter::update(const std::string& val, size_t pos)
 
 bool BitWriter::update(const char* val, size_t len, size_t pos)
 {
-    if ((pos + len) > available())
+    if ((pos + len) > _limit)
         return false;
 
     memcpy(_bytes + pos, val, len);
@@ -637,10 +637,10 @@ void DynamicBitWriter::put(const char* val, size_t len)
 
 bool DynamicBitWriter::update(const char* val, size_t len, size_t pos)
 {
-    if ((pos + len) > available())
+    if ((_offset + pos + len) > _buffer.size())
         return false;
 
-    _buffer.insert(_buffer.begin() + _offset + pos, val, val + len);
+    std::memcpy(_buffer.data() + _offset + pos, val, len);
     return true;
 }
 

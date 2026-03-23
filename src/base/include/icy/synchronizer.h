@@ -98,17 +98,26 @@ public:
         // to the libuv callback without compiler trickery.
         if (!_handle.get())
             throw std::logic_error("Synchronizer handle is null");
-        _handle.get()->data = new Callback(_context,
-                                           std::forward<Function>(func),
-                                           std::forward<Args>(args)...);
+        auto* cb = new Callback(_context,
+                                std::forward<Function>(func),
+                                std::forward<Args>(args)...);
+        _handle.get()->data = cb;
+        _handle.setCloseCleanup(cb);
         _handle.init(&uv_async_init, [](uv_async_t* req) {
-            auto wrap = reinterpret_cast<Callback*>(req->data);
-            if (!wrap->ctx->cancelled) {
+            auto* wrap = reinterpret_cast<Callback*>(req->data);
+            if (!wrap)
+                return;
+
+            if (!wrap->ctx->cancelled)
                 wrap->invoke();
-            } else {
-                req->data = nullptr;
+
+            if (wrap->ctx->cancelled) {
                 wrap->ctx->running = false;
-                delete wrap;
+                if (!uv_is_closing(reinterpret_cast<uv_handle_t*>(req))) {
+                    req->data = nullptr;
+                    uv::clearHandleCloseCleanup(req);
+                    delete wrap;
+                }
             }
         });
         _handle.throwLastError("Cannot initialize async");

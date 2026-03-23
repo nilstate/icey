@@ -31,12 +31,47 @@ template <typename T>
 class Base_API Handle;
 
 
+template <typename T>
+struct HandleStorage
+{
+    T handle{};
+    void* closeData = nullptr;
+    void (*closeCleanup)(void*) = nullptr;
+};
+
+
+template <typename T>
+inline HandleStorage<T>* handleStorage(T* handle)
+{
+    return reinterpret_cast<HandleStorage<T>*>(handle);
+}
+
+
+template <typename T>
+inline void setHandleCloseCleanup(T* handle, void* data, void (*cleanup)(void*))
+{
+    auto* storage = handleStorage(handle);
+    storage->closeData = data;
+    storage->closeCleanup = cleanup;
+}
+
+
+template <typename T>
+inline void clearHandleCloseCleanup(T* handle)
+{
+    auto* storage = handleStorage(handle);
+    storage->closeData = nullptr;
+    storage->closeCleanup = nullptr;
+}
+
+
 /// Shared `libuv` handle context.
 template <typename T>
 struct Context
 {
     Handle<T>* handle = nullptr;
-    T* ptr = new T;
+    HandleStorage<T>* storage = new HandleStorage<T>;
+    T* ptr = &storage->handle;
     bool initialized = false;
     bool deleted = false;
 
@@ -48,21 +83,18 @@ struct Context
     ~Context()
     {
         if (initialized) {
-            // Clear the data pointer before closing. Pending libuv
-            // callbacks (write completions during uv__stream_destroy)
-            // check handle->data to reach the C++ object. Since the
-            // C++ object is being destroyed, data must be null to
-            // prevent use-after-free.
-            reinterpret_cast<uv_handle_t*>(ptr)->data = nullptr;
-
-            // uv_close is async. The close callback fires on the next
-            // event loop iteration and frees the uv handle memory.
-            // We cast back to T* to match the allocation size (new T).
-            uv_close(reinterpret_cast<uv_handle_t*>(ptr), [](uv_handle_t* handle) {
-                delete reinterpret_cast<T*>(handle);
+            auto* uvHandle = reinterpret_cast<uv_handle_t*>(ptr);
+            uvHandle->data = nullptr;
+            uv_close(uvHandle, [](uv_handle_t* handle) {
+                auto* storage = reinterpret_cast<HandleStorage<T>*>(handle);
+                if (storage->closeCleanup && storage->closeData)
+                    storage->closeCleanup(storage->closeData);
+                delete storage;
             });
         } else {
-            delete ptr;
+            if (storage->closeCleanup && storage->closeData)
+                storage->closeCleanup(storage->closeData);
+            delete storage;
         }
     }
 };
@@ -156,9 +188,8 @@ public:
 
     /// Close and destroy the handle.
     ///
-    /// Marks the context as deleted, releases the `Context` (which schedules the
-    /// async `uv_close`), and fires `onClose()`. Safe to call more than once;
-    /// subsequent calls are no-ops.
+    /// Releases the `Context` (which schedules the async `uv_close`) and then
+    /// fires `onClose()`. Safe to call more than once; subsequent calls are no-ops.
     virtual void close()
     {
         bool trigger = false;
@@ -321,13 +352,29 @@ public:
 
     /// Return the raw `Context` that owns the libuv handle memory.
     ///
-    /// Primarily for use by subclasses and libuv callbacks that need to check
-    /// the `deleted` flag after the C++ object may have been destroyed.
+    /// Primarily for use by subclasses and libuv callbacks that need to access
+    /// the underlying libuv handle memory.
     ///
     /// @return  Pointer to the `Context`, or `nullptr` if closed.
     Context<T>* context() const
     {
         return _context.get();
+    }
+
+    template <typename U>
+    void setCloseCleanup(U* data)
+    {
+        if (!_context)
+            throw std::logic_error("Handle not initialized");
+        uv::setHandleCloseCleanup(get(), data, [](void* ptr) {
+            delete static_cast<U*>(ptr);
+        });
+    }
+
+    void clearCloseCleanup()
+    {
+        if (_context)
+            uv::clearHandleCloseCleanup(get());
     }
 
     /// Throw `std::logic_error` if called from any thread other than the

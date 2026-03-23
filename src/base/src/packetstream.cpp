@@ -483,6 +483,7 @@ bool PacketStream::detachSource(PacketSignal& source)
     for (auto it = _sources.begin(); it != _sources.end(); ++it) {
         if (&(*it)->ptr->getEmitter() == &source) {
             (*it)->ptr->getEmitter() -= slot(this, &PacketStream::process);
+            _sources.erase(it);
             return true;
         }
     }
