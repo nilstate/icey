@@ -1,8 +1,10 @@
 # Media Recorder
 
-Receives video from a browser peer via WebRTC and records to file. Demonstrates the receive path: `WebRtcTrackReceiver → decode → record`.
+Receives video from a browser peer via WebRTC and demonstrates the receive path. Currently logs received frame sizes and timestamps to prove the path works.
 
-Pipeline: `[browser] → WebRtcTrackReceiver → VideoDecoder → MultiplexEncoder → file`
+Pipeline (current): `[browser] → WebRtcTrackReceiver → log output`
+
+> **Note:** The decode and mux stages (VideoDecoder, MultiplexEncoder) are not yet wired in. The sample receives raw encoded packets and logs them. Writing to a proper container file requires inserting a decoder and MultiplexEncoder into the pipeline.
 
 ## Build
 
@@ -20,4 +22,4 @@ Built automatically when `-DBUILD_SAMPLES=ON -DWITH_LIBDATACHANNEL=ON -DWITH_FFM
 ./media-recorder -output recording.mp4 -host 127.0.0.1 -port 4500 -user recorder
 ```
 
-Connect from a browser and send video. The recorder logs received frame sizes and timestamps. In a production setup, insert a VideoDecoder and MultiplexEncoder into the pipeline to write a proper container file.
+Connect from a browser and send video. The recorder logs received frame sizes and timestamps.

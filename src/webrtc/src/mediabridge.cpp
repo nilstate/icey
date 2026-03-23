@@ -77,6 +77,11 @@ void MediaBridge::detach()
     if (_audioSender)
         _audioSender->unbind();
 
+    // Clear callbacks before releasing the PeerConnection to prevent
+    // dangling `this` captures if the caller keeps the PC alive.
+    if (_pc)
+        _pc->onTrack(nullptr);
+
     _videoSender.reset();
     _audioSender.reset();
     _videoHandle = {};

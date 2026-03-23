@@ -141,8 +141,13 @@ TrackHandle createAudioTrack(
     auto rtpConfig = std::make_shared<rtc::RtpPacketizationConfig>(
         ssrc, cn, pt, clock);
 
-    // Audio: simple packetizer → SR reporter chain.
-    auto packetizer = std::make_shared<rtc::OpusRtpPacketizer>(rtpConfig);
+    // Audio packetizer: Opus uses its dedicated packetizer;
+    // PCMU/PCMA and others use the generic RTP packetizer.
+    std::shared_ptr<rtc::MediaHandler> packetizer;
+    if (rtpName == "opus")
+        packetizer = std::make_shared<rtc::OpusRtpPacketizer>(rtpConfig);
+    else
+        packetizer = std::make_shared<rtc::RtpPacketizer>(rtpConfig);
     packetizer->addToChain(std::make_shared<rtc::RtcpSrReporter>(rtpConfig));
     track->setMediaHandler(packetizer);
 

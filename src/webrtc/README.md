@@ -188,7 +188,3 @@ include/icy/webrtc/
   mediabridge.h       Layer 3: multi-track convenience wrapper
   peersession.h       Layer 3: Symple call protocol
 ```
-
-## Documentation
-
-**[Full documentation →](../../doc/webrtc.md)**

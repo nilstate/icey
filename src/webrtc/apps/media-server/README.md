@@ -29,8 +29,8 @@ Open `http://localhost:4500` in a browser.
 ## Modes
 
 - **stream** (default): server pushes file/camera to browser via WebRTC
-- **record**: browser sends camera to server, server writes to disk
-- **relay**: SFU; server forwards tracks between peers
+- **record**: planned — browser sends camera to server, server writes to disk (not yet implemented)
+- **relay**: planned — SFU; server forwards tracks between peers (not yet implemented)
 
 ## CLI options
 

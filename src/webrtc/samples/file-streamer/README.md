@@ -2,7 +2,9 @@
 
 Streams a media file (MP4, MKV, etc.) to a browser peer via WebRTC. Loops continuously. Includes a data channel for control messages (seek, pause).
 
-Pipeline: `MediaCapture (file) → VideoEncoder → WebRtcTrackSender → [browser]`
+Pipeline: `MediaCapture (file) → WebRtcTrackSender → [browser]`
+
+> **Note:** The encode stage (VideoEncoder) is not yet wired in. Currently, decoded frames from MediaCapture feed directly to the RTP sender. A VideoEncoder processor needs to be inserted to produce the H.264 NAL units the packetizer expects.
 
 ## Build
 
@@ -11,7 +13,7 @@ Built automatically when `-DBUILD_SAMPLES=ON -DWITH_LIBDATACHANNEL=ON -DWITH_FFM
 ## Requirements
 
 - Media file (defaults to test.mp4)
-- FFmpeg with libx264 encoder
+- FFmpeg
 - Running Symple server
 
 ## Usage

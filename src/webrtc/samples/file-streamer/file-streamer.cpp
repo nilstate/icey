@@ -119,6 +119,9 @@ private:
         if (!session || !session->media().hasVideo())
             return;
 
+        // TODO: insert a VideoEncoder processor between capture and
+        // sender. Currently decoded frames go directly to the RTP
+        // packetizer, which expects encoded H.264 NAL units.
         stream.attachSource(capture.get(), false, true);
         stream.attach(&session->media().videoSender(), 5, false);
         stream.start();

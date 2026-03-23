@@ -477,14 +477,6 @@ public:
         _signaller = std::make_unique<ServerSignaller>(_symple, _serverAddress);
 
         // When a call:init arrives, create a session for that peer
-        _signaller->ControlReceived += [this](const std::string& peerId,
-                                               const std::string& type,
-                                               const std::string& reason) {
-            if (type == "init") {
-                createSession(peerId);
-            }
-        };
-
         smpl::Peer vpeer;
         vpeer["id"] = _serverPeerId;
         vpeer["user"] = "media-server";
@@ -494,6 +486,17 @@ public:
 
         _symple.addVirtualPeer(vpeer, {"public"},
             [this](const json::Value& msg) {
+                // Create session before forwarding call:init so that
+                // PeerSession is subscribed when ControlReceived fires.
+                auto it = msg.find("subtype");
+                if (it != msg.end() && it->get<std::string>() == "call:init") {
+                    auto from = msg.value("from", "");
+                    auto sep = from.find('|');
+                    auto peerId = (sep != std::string::npos)
+                        ? from.substr(sep + 1) : from;
+                    if (!peerId.empty())
+                        createSession(peerId);
+                }
                 _signaller->onMessage(msg);
             });
 
