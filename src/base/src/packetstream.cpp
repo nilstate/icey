@@ -22,6 +22,7 @@ PacketStream::PacketStream(const std::string& name)
     : _name(name)
     , _autoStart(false)
     , _closeOnError(true)
+    , _wired(false)
 {
 }
 
@@ -55,14 +56,36 @@ void PacketStream::start()
         return;
     }
 
-    // Setup the delegate chain
-    setup();
+    if (stateEquals(PacketStreamState::Paused)) {
+        resume();
+        return;
+    }
+
+    if (stateEquals(PacketStreamState::Closed) ||
+        stateEquals(PacketStreamState::Error)) {
+        throw std::logic_error("PacketStream: cannot start in current state");
+    }
+
+    if (!stateEquals(PacketStreamState::None) &&
+        !stateEquals(PacketStreamState::Locked) &&
+        !stateEquals(PacketStreamState::Stopped)) {
+        throw std::logic_error("PacketStream: cannot start in current state");
+    }
+
+    // Setup the delegate chain once per active run.
+    if (!_wired) {
+        setup();
+        _wired = true;
+    }
 
     // Set state to Active
     setState(this, PacketStreamState::Active);
 
     // Lock the processor mutex to synchronize multi source streams
     std::lock_guard<std::mutex> guard(_procMutex);
+
+    // Synchronize the Active state before sources can emit.
+    synchronizeStates();
 
     // Start synchronized sources
     startSources();
@@ -89,6 +112,13 @@ void PacketStream::stop()
 
     // Stop synchronized sources
     stopSources();
+
+    if (_wired) {
+        teardown();
+        _wired = false;
+    }
+
+    synchronizeStates();
 }
 
 
@@ -148,7 +178,10 @@ void PacketStream::close()
         std::lock_guard<std::mutex> guard(_procMutex);
 
         // Teardown the adapter delegate chain
-        teardown();
+        if (_wired) {
+            teardown();
+            _wired = false;
+        }
 
         // Synchronize any pending states
         // This should be safe since the adapters won't be receiving

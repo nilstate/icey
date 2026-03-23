@@ -605,6 +605,7 @@ protected:
     std::exception_ptr _error;
     bool _autoStart;
     bool _closeOnError;
+    bool _wired;
 };
 
 

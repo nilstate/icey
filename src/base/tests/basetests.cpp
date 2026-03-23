@@ -1011,6 +1011,8 @@ int main(int argc, char** argv)
     describe("timer one-shot", new TimerOneShotTest);
     describe("logger filtering", new LoggerFilterTest);
     describe("packet stream", new PacketStreamTest);
+    describe("packet stream signal detach", new PacketStreamSignalDetachTest);
+    describe("packet stream restart", new PacketStreamRestartTest);
     describe("process class", new ProcessTest);
     describe("packet stream file io", new PacketStreamIOTest);
     describe("packet stream overflow", new PacketStreamOverflowTest);

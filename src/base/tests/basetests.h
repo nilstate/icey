@@ -416,6 +416,7 @@ struct MockThreadedPacketSource : public PacketSource
 struct MockPacketProcessor : public PacketProcessor
 {
     PacketSignal emitter;
+    int processed = 0;
 
     MockPacketProcessor()
         : PacketProcessor(emitter)
@@ -424,7 +425,24 @@ struct MockPacketProcessor : public PacketProcessor
 
     void process(IPacket& packet)
     {
+        processed++;
         // std::cout << "Process: " << packet.className() << std::endl;
+        emitter.emit(packet);
+    }
+};
+
+struct MockPacketSource : public PacketSource
+{
+    PacketSignal emitter;
+
+    MockPacketSource()
+        : PacketSource(emitter)
+    {
+    }
+
+    void send(const char* data = "x", size_t len = 1)
+    {
+        RawPacket packet(data, len);
         emitter.emit(packet);
     }
 };
@@ -465,6 +483,71 @@ class PacketStreamTest : public Test
         stream.close();
 
         expect(numPackets > 0);
+    }
+};
+
+class PacketStreamSignalDetachTest : public Test
+{
+    void run()
+    {
+        PacketSignal source;
+        PacketStream stream;
+
+        stream.attachSource(source);
+        expect(stream.numSources() == 1);
+
+        expect(stream.detachSource(source));
+        expect(stream.numSources() == 0);
+        expect(!stream.detachSource(source));
+    }
+};
+
+class PacketStreamRestartTest : public Test
+{
+    int numPackets = 0;
+
+    void onPacketStreamOutput(IPacket&)
+    {
+        numPackets++;
+    }
+
+    void run()
+    {
+        PacketStream stream;
+        MockPacketSource source;
+        MockPacketProcessor processor;
+
+        stream.attachSource(&source, false, false);
+        stream.attach(&processor, 1, false);
+        stream.emitter += slot(this, &PacketStreamRestartTest::onPacketStreamOutput);
+
+        stream.start();
+        expect(source.emitter.nslots() == 1);
+        expect(processor.emitter.nslots() == 1);
+
+        source.send("a", 1);
+        expect(numPackets == 1);
+        expect(processor.processed == 1);
+
+        stream.stop();
+        expect(source.emitter.nslots() == 0);
+        expect(processor.emitter.nslots() == 0);
+
+        source.send("b", 1);
+        expect(numPackets == 1);
+        expect(processor.processed == 1);
+
+        stream.start();
+        expect(source.emitter.nslots() == 1);
+        expect(processor.emitter.nslots() == 1);
+
+        source.send("c", 1);
+        expect(numPackets == 2);
+        expect(processor.processed == 2);
+
+        stream.close();
+        expect(source.emitter.nslots() == 0);
+        expect(processor.emitter.nslots() == 0);
     }
 };
 
