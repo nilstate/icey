@@ -28,13 +28,21 @@ Open `http://localhost:4500` in a browser.
 
 ## Modes
 
-- **stream** (default): server pushes file/camera to browser via WebRTC
+- **stream** (default): server pushes file/camera to browser via WebRTC (H.264 + Opus)
 - **record**: planned — browser sends camera to server, server writes to disk (not yet implemented)
 - **relay**: planned — SFU; server forwards tracks between peers (not yet implemented)
 
+## Features
+
+- **Video + Audio**: H.264 Constrained Baseline (browser-safe) + Opus at 48kHz
+- **Embedded TURN**: RFC 5766 relay on port 3478 — works through symmetric NATs
+- **Adaptive bitrate**: REMB feedback adjusts encoder bitrate in real-time
+- **Per-session isolation**: each peer gets its own capture + encoder pipeline
+- **Zero latency**: `ultrafast` preset + `zerolatency` tune for real-time H.264
+
 ## CLI options
 
-```
+```text
 media-server [options]
   -c, --config <path>     Config file (default: ./config.json)
   --port <port>           HTTP/WS port (default: 4500)
@@ -43,7 +51,6 @@ media-server [options]
   --source <path>         Media source file or device
   --web-root <path>       Path to web UI dist/ directory
   --no-turn               Disable embedded TURN server
-  --no-tls                Disable TLS
 ```
 
 ## Web UI development
@@ -57,11 +64,11 @@ Vite dev server runs on port 5173 and proxies `/ws` and `/api` to the C++ server
 
 ## Architecture
 
-```
+```text
 Browser ─── WSS /ws ──── Symple v4 (signalling, presence, rooms)
         ─── GET /   ──── Static files (Vite build output)
         ─── GET /api ─── REST status
-        ─── WebRTC  ──── Media (H.264/VP8 + Opus via libdatachannel)
+        ─── WebRTC  ──── Media (H.264 + Opus via libdatachannel)
         ─── TURN    ──── NAT traversal (embedded, port 3478)
 ```
 
@@ -69,13 +76,14 @@ Browser ─── WSS /ws ──── Symple v4 (signalling, presence, rooms)
 
 All existing icey modules:
 
-```
+```text
 media-server
 ├── webrtc (libdatachannel, track, mediabridge)
 ├── symple (server, protocol)
-├── av (MediaCapture, VideoEncoder, MultiplexEncoder)
+├── turn (server, allocations)
+├── av (MediaCapture, VideoPacketEncoder, AudioPacketEncoder)
 ├── http (Server, WebSocket)
-├── turn (Server, allocations)
+├── stun (STUN message parsing)
 ├── net, crypto, json, base
 ```
 

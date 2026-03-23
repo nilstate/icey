@@ -11,7 +11,7 @@
 // and streams to a browser peer via WebRTC.
 //
 // Pipeline:
-//   MediaCapture → VideoEncoder → WebRtcTrackSender → [browser]
+//   MediaCapture → VideoPacketEncoder → WebRtcTrackSender → [browser]
 //
 // The browser connects via symple-player's CallManager,
 // which handles the call:init/accept/offer/answer/candidate protocol.
@@ -29,7 +29,7 @@
 #include "icy/application.h"
 #include "icy/av/devicemanager.h"
 #include "icy/av/mediacapture.h"
-#include "icy/av/videoencoder.h"
+#include "icy/av/videopacketencoder.h"
 #include "icy/logger.h"
 #include "icy/packetstream.h"
 #include "icy/symple/client.h"
@@ -53,6 +53,7 @@ public:
     std::unique_ptr<wrtc::SympleSignaller> signaller;
     std::unique_ptr<wrtc::PeerSession> session;
     std::shared_ptr<av::MediaCapture> capture;
+    std::shared_ptr<av::VideoPacketEncoder> encoder;
     PacketStream stream;
     av::Device::VideoCapability videoCap;
 
@@ -107,6 +108,7 @@ public:
         if (session)
             session->hangup("shutdown");
         session.reset();
+        encoder.reset();
         capture.reset();
         client.close();
     }
@@ -114,10 +116,16 @@ public:
 private:
     void createSession()
     {
+        // Configure the video codec for WebRTC browser playback.
+        av::VideoCodec videoCodec("H264", "libx264",
+            videoCap.width, videoCap.height, videoCap.maxFps);
+        videoCodec.options["preset"] = "ultrafast";
+        videoCodec.options["tune"] = "zerolatency";
+        videoCodec.options["profile"] = "baseline";
+
         wrtc::PeerSession::Config config;
         config.rtcConfig.iceServers.emplace_back("stun:stun.l.google.com:19302");
-        config.mediaOpts.videoCodec = av::VideoCodec(
-            "H264", "libx264", videoCap.width, videoCap.height, videoCap.maxFps);
+        config.mediaOpts.videoCodec = videoCodec;
         // Audio left empty - video only.
         config.enableDataChannel = false;
 
@@ -156,17 +164,22 @@ private:
         if (!session || !session->media().hasVideo())
             return;
 
+        // Create encoder: decoded frames → H.264 NAL units
+        encoder = std::make_shared<av::VideoPacketEncoder>();
+
+        // Input params: the decoded format from the capture source
+        capture->getEncoderVideoCodec(encoder->iparams);
+
+        // Output params: H.264 for WebRTC with browser-safe settings
+        encoder->oparams = av::VideoCodec("H264", "libx264",
+            videoCap.width, videoCap.height, videoCap.maxFps);
+        encoder->oparams.options["preset"] = "ultrafast";
+        encoder->oparams.options["tune"] = "zerolatency";
+        encoder->oparams.options["profile"] = "baseline";
+
         // Pipeline: capture → encoder → WebRTC sender
         stream.attachSource(capture.get(), false, true);
-
-        // The encoder takes decoded frames from capture and outputs
-        // encoded H.264 NAL units as VideoPacket.
-        // Note: in a real application you'd configure the encoder
-        // properly. This is a minimal example.
-        // For now we rely on the media bridge's track sender
-        // to accept VideoPacket from the capture's decoder output.
-        // In practice, you'd insert a VideoEncoder processor here.
-
+        stream.attach(encoder, 1, true);
         stream.attach(&session->media().videoSender(), 5, false);
         stream.start();
 

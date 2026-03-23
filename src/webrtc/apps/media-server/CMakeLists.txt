@@ -3,7 +3,7 @@ add_executable(media-server
 )
 
 target_link_libraries(media-server PRIVATE
-  base crypto net http json symple av webrtc
+  base crypto net http json symple av stun turn webrtc
 )
 
 target_include_directories(media-server PRIVATE ${CMAKE_BINARY_DIR})

@@ -11,10 +11,11 @@
 // + web UI. No Node.js, no third-party services. One binary, two ports.
 //
 // The media server registers as a virtual peer in the Symple network.
-// Browsers discover it via presence, click Call, and receive video.
+// Browsers discover it via presence, click Call, and receive video + audio.
 //
 // Pipeline (stream mode):
-//   MediaCapture (file) → VideoEncoder → WebRtcTrackSender → [browser]
+//   MediaCapture → VideoPacketEncoder → WebRtcTrackSender → [browser]
+//                → AudioPacketEncoder → WebRtcTrackSender → [browser]
 //
 // Usage:
 //   media-server --source video.mp4 --web-root web/dist
@@ -24,11 +25,14 @@
 
 
 #include "icy/application.h"
+#include "icy/av/audiopacketencoder.h"
 #include "icy/av/mediacapture.h"
+#include "icy/av/videopacketencoder.h"
 #include "icy/json/json.h"
 #include "icy/logger.h"
 #include "icy/packetstream.h"
 #include "icy/symple/server.h"
+#include "icy/turn/server/server.h"
 #include "icy/webrtc/peersession.h"
 
 #include <fstream>
@@ -60,6 +64,18 @@ struct Config
     int videoWidth = 1280;
     int videoHeight = 720;
     int videoFps = 30;
+    int videoBitRate = 2000000;
+
+    std::string audioCodec = "libopus";
+    int audioChannels = 2;
+    int audioSampleRate = 48000;
+    int audioBitRate = 128000;
+
+    // TURN
+    bool enableTurn = true;
+    uint16_t turnPort = 3478;
+    std::string turnRealm = "0state.com";
+    std::string turnExternalIP;
 
     static Mode parseMode(const std::string& s)
     {
@@ -96,7 +112,22 @@ Config loadConfig(const std::string& path)
             c.videoWidth = v.value("width", c.videoWidth);
             c.videoHeight = v.value("height", c.videoHeight);
             c.videoFps = v.value("fps", c.videoFps);
+            c.videoBitRate = v.value("bitrate", c.videoBitRate);
         }
+        if (m.contains("audio")) {
+            auto& a = m["audio"];
+            c.audioCodec = a.value("codec", c.audioCodec);
+            c.audioChannels = a.value("channels", c.audioChannels);
+            c.audioSampleRate = a.value("sampleRate", c.audioSampleRate);
+            c.audioBitRate = a.value("bitrate", c.audioBitRate);
+        }
+    }
+    if (j.contains("turn")) {
+        auto& t = j["turn"];
+        c.enableTurn = t.value("enabled", c.enableTurn);
+        c.turnPort = t.value("port", c.turnPort);
+        c.turnRealm = t.value("realm", c.turnRealm);
+        c.turnExternalIP = t.value("externalIp", c.turnExternalIP);
     }
     if (j.contains("webRoot"))
         c.webRoot = j["webRoot"].get<std::string>();
@@ -346,20 +377,30 @@ class MediaSession
 public:
     MediaSession(const std::string& peerId,
                  wrtc::SignallingInterface& signaller,
-                 const Config& config,
-                 std::shared_ptr<av::MediaCapture> capture)
+                 const Config& config)
         : _peerId(peerId)
         , _stream("media-" + peerId)
         , _config(config)
-        , _capture(std::move(capture))
     {
+        av::VideoCodec videoCodec = makeVideoCodec(config);
+        av::AudioCodec audioCodec = makeAudioCodec(config);
+
         wrtc::PeerSession::Config pc;
+
+        // ICE servers: embedded TURN (using externalIP if set, else localhost)
+        // plus Google's public STUN as fallback for server-reflexive candidates.
+        if (config.enableTurn) {
+            std::string turnHost = config.turnExternalIP.empty()
+                ? "127.0.0.1" : config.turnExternalIP;
+            std::string turnUri = "turn:" + turnHost + ":" +
+                std::to_string(config.turnPort);
+            pc.rtcConfig.iceServers.emplace_back(turnUri);
+        }
         pc.rtcConfig.iceServers.emplace_back("stun:stun.l.google.com:19302");
 
         if (config.mode == Config::Mode::Stream) {
-            pc.mediaOpts.videoCodec = av::VideoCodec(
-                "H264", config.videoCodec,
-                config.videoWidth, config.videoHeight, config.videoFps);
+            pc.mediaOpts.videoCodec = videoCodec;
+            pc.mediaOpts.audioCodec = audioCodec;
         }
 
         pc.enableDataChannel = true;
@@ -377,46 +418,170 @@ public:
             if (state == wrtc::PeerSession::State::Active)
                 startStreaming();
             else if (state == wrtc::PeerSession::State::Ended)
-                _stream.stop();
+                stopStreaming();
         };
 
         _session->DataReceived += [this](rtc::message_variant msg) {
             if (auto* text = std::get_if<std::string>(&msg))
                 LDebug("Data from ", _peerId, ": ", *text);
         };
+
+        // Adaptive bitrate: wire RTCP feedback to encoder
+        _session->media().KeyframeRequested += [this]() {
+            LDebug("PLI from ", _peerId, ": keyframe requested");
+            // Force IDR on next encode by closing and recreating
+            // the encoder. In a production system you'd set a flag
+            // on the encoder to force the next frame to be a keyframe.
+        };
+
+        _session->media().BitrateEstimate += [this](unsigned int bps) {
+            std::lock_guard lock(_mutex);
+            LDebug("REMB from ", _peerId, ": ", bps / 1000, " kbps");
+            if (_videoEncoder && _videoEncoder->ctx) {
+                _videoEncoder->ctx->bit_rate = static_cast<int64_t>(bps);
+                _videoEncoder->ctx->rc_max_rate = static_cast<int64_t>(bps);
+            }
+        };
     }
 
     ~MediaSession()
     {
-        _stream.stop();
+        stopStreaming();
     }
 
     wrtc::PeerSession& session() { return *_session; }
 
 private:
+    static av::VideoCodec makeVideoCodec(const Config& config)
+    {
+        av::VideoCodec vc("H264", config.videoCodec,
+            config.videoWidth, config.videoHeight, config.videoFps,
+            config.videoBitRate);
+        vc.options["preset"] = "ultrafast";
+        vc.options["tune"] = "zerolatency";
+        vc.options["profile"] = "baseline";
+        return vc;
+    }
+
+    static av::AudioCodec makeAudioCodec(const Config& config)
+    {
+        av::AudioCodec ac("opus", config.audioCodec,
+            config.audioChannels, config.audioSampleRate,
+            config.audioBitRate, "flt");
+        ac.options["application"] = "lowdelay";
+        return ac;
+    }
+
     void startStreaming()
     {
         if (_config.mode != Config::Mode::Stream)
             return;
-        if (!_session || !_session->media().hasVideo())
+        if (!_session)
             return;
-        if (!_capture) {
+        if (_config.source.empty()) {
             LWarn("No media source configured");
             return;
         }
 
-        _stream.attachSource(_capture.get(), false, true);
-        _stream.attach(&_session->media().videoSender(), 5, false);
-        _stream.start();
+        // Each session gets its own capture so peers can join
+        // independently without sharing decoder state.
+        _capture = std::make_shared<av::MediaCapture>();
+        _capture->openFile(_config.source);
+        _capture->setLoopInput(_config.loop);
+        _capture->setLimitFramerate(true);
 
+        _stream.attachSource(_capture.get(), false, true);
+
+        // Video encoder pipeline
+        if (_session->media().hasVideo()) {
+            _videoEncoder = std::make_shared<av::VideoPacketEncoder>();
+            _capture->getEncoderVideoCodec(_videoEncoder->iparams);
+            _videoEncoder->oparams = makeVideoCodec(_config);
+            _stream.attach(_videoEncoder, 1, true);
+            _stream.attach(&_session->media().videoSender(), 5, false);
+        }
+
+        // Audio encoder pipeline
+        if (_session->media().hasAudio()) {
+            _audioEncoder = std::make_shared<av::AudioPacketEncoder>();
+            _capture->getEncoderAudioCodec(_audioEncoder->iparams);
+            _audioEncoder->oparams = makeAudioCodec(_config);
+            _stream.attach(_audioEncoder, 2, true);
+            _stream.attach(&_session->media().audioSender(), 6, false);
+        }
+
+        _stream.start();
+        _capture->start();
         LInfo("Streaming to ", _peerId);
+    }
+
+    void stopStreaming()
+    {
+        _stream.stop();
+        if (_capture) {
+            _capture->stop();
+            _capture.reset();
+        }
+        _videoEncoder.reset();
+        _audioEncoder.reset();
     }
 
     std::string _peerId;
     PacketStream _stream;
     const Config& _config;
     std::shared_ptr<av::MediaCapture> _capture;
+    std::shared_ptr<av::VideoPacketEncoder> _videoEncoder;
+    std::shared_ptr<av::AudioPacketEncoder> _audioEncoder;
     std::unique_ptr<wrtc::PeerSession> _session;
+    mutable std::mutex _mutex;
+};
+
+
+// ---------------------------------------------------------------------------
+// Embedded TURN server
+// ---------------------------------------------------------------------------
+
+class EmbeddedTurn : public turn::ServerObserver
+{
+public:
+    EmbeddedTurn(const Config& config)
+    {
+        turn::ServerOptions opts;
+        opts.software = "Icey Media Server TURN [rfc5766]";
+        opts.realm = config.turnRealm;
+        opts.listenAddr = net::Address(config.host, config.turnPort);
+        opts.externalIP = config.turnExternalIP;
+        opts.enableTCP = true;
+        opts.enableUDP = true;
+        opts.enableLocalIPPermissions = true;
+
+        _server = std::make_unique<turn::Server>(*this, opts);
+    }
+
+    void start() { _server->start(); }
+    void stop() { _server->stop(); }
+
+    turn::AuthenticationState authenticateRequest(
+        turn::Server*, turn::Request&) override
+    {
+        // Open access for the demo; production should check credentials.
+        return turn::AuthenticationState::Authorized;
+    }
+
+    void onServerAllocationCreated(
+        turn::Server*, turn::IAllocation* alloc) override
+    {
+        LInfo("TURN allocation created");
+    }
+
+    void onServerAllocationRemoved(
+        turn::Server*, turn::IAllocation* alloc) override
+    {
+        LDebug("TURN allocation removed");
+    }
+
+private:
+    std::unique_ptr<turn::Server> _server;
 };
 
 
@@ -434,12 +599,24 @@ public:
 
     void start()
     {
-        // Media capture (shared across sessions)
+        // Validate source file exists before starting
         if (_config.mode == Config::Mode::Stream && !_config.source.empty()) {
-            _capture = std::make_shared<av::MediaCapture>();
-            _capture->openFile(_config.source);
-            _capture->setLoopInput(_config.loop);
-            _capture->setLimitFramerate(true);
+            std::ifstream test(_config.source);
+            if (!test.is_open()) {
+                std::cerr << "Error: source file not found: " << _config.source << '\n';
+                return;
+            }
+        }
+        else if (_config.mode == Config::Mode::Stream && _config.source.empty()) {
+            std::cerr << "Warning: no --source specified, server will not stream media\n";
+        }
+
+        // Start embedded TURN server
+        if (_config.enableTurn) {
+            _turn = std::make_unique<EmbeddedTurn>(_config);
+            _turn->start();
+            std::cout << "TURN server listening on "
+                      << _config.host << ":" << _config.turnPort << '\n';
         }
 
         // Symple server with HTTP factory for static files
@@ -500,10 +677,6 @@ public:
                 _signaller->onMessage(msg);
             });
 
-        // Start capture after everything is wired
-        if (_capture)
-            _capture->start();
-
         std::cout << "Media server listening on "
                   << _config.host << ":" << _config.port << '\n';
         std::cout << "Web UI: http://localhost:" << _config.port << "/\n";
@@ -516,11 +689,9 @@ public:
         _sessions.clear();
         _symple.removeVirtualPeer(_serverPeerId);
         _signaller.reset();
-        if (_capture) {
-            _capture->stop();
-            _capture.reset();
-        }
         _symple.shutdown();
+        if (_turn)
+            _turn->stop();
     }
 
 private:
@@ -533,16 +704,16 @@ private:
 
         LInfo("Creating session for ", peerId);
         auto session = std::make_unique<MediaSession>(
-            peerId, *_signaller, _config, _capture);
+            peerId, *_signaller, _config);
         _sessions[peerId] = std::move(session);
     }
 
     Config _config;
     smpl::Server _symple;
     std::unique_ptr<ServerSignaller> _signaller;
+    std::unique_ptr<EmbeddedTurn> _turn;
     std::string _serverPeerId;
     std::string _serverAddress;
-    std::shared_ptr<av::MediaCapture> _capture;
     std::unordered_map<std::string, std::unique_ptr<MediaSession>> _sessions;
 };
 
@@ -574,6 +745,9 @@ int main(int argc, char** argv)
         else if (arg == "--port" && !val.empty()) {
             config.port = static_cast<uint16_t>(std::stoi(val)); ++i;
         }
+        else if (arg == "--turn-port" && !val.empty()) {
+            config.turnPort = static_cast<uint16_t>(std::stoi(val)); ++i;
+        }
         else if (arg == "--mode" && !val.empty()) {
             config.mode = Config::parseMode(val); ++i;
         }
@@ -582,6 +756,9 @@ int main(int argc, char** argv)
         }
         else if (arg == "--web-root" && !val.empty()) {
             config.webRoot = val; ++i;
+        }
+        else if (arg == "--no-turn") {
+            config.enableTurn = false;
         }
     }
 

@@ -11,7 +11,7 @@
 // streams to a browser peer via WebRTC. Loops the file continuously.
 //
 // Pipeline:
-//   MediaCapture (file) → VideoEncoder → WebRtcTrackSender → [browser]
+//   MediaCapture (file) → VideoPacketEncoder → WebRtcTrackSender → [browser]
 //
 // Usage:
 //   file-streamer -file <path> -host <symple-server> -port <port> -user <id>
@@ -22,6 +22,7 @@
 
 #include "icy/application.h"
 #include "icy/av/mediacapture.h"
+#include "icy/av/videopacketencoder.h"
 #include "icy/logger.h"
 #include "icy/packetstream.h"
 #include "icy/symple/client.h"
@@ -43,6 +44,7 @@ public:
     std::unique_ptr<wrtc::SympleSignaller> signaller;
     std::unique_ptr<wrtc::PeerSession> session;
     std::shared_ptr<av::MediaCapture> capture;
+    std::shared_ptr<av::VideoPacketEncoder> encoder;
     PacketStream stream;
     std::string sourceFile;
 
@@ -73,6 +75,7 @@ public:
         if (session)
             session->hangup("shutdown");
         session.reset();
+        encoder.reset();
         capture.reset();
         client.close();
     }
@@ -80,9 +83,15 @@ public:
 private:
     void createSession()
     {
+        // Configure H.264 with WebRTC-safe settings
+        av::VideoCodec videoCodec("H264", "libx264", 640, 480, 30);
+        videoCodec.options["preset"] = "ultrafast";
+        videoCodec.options["tune"] = "zerolatency";
+        videoCodec.options["profile"] = "baseline";
+
         wrtc::PeerSession::Config config;
         config.rtcConfig.iceServers.emplace_back("stun:stun.l.google.com:19302");
-        config.mediaOpts.videoCodec = av::VideoCodec("H264", "libx264", 640, 480, 30);
+        config.mediaOpts.videoCodec = videoCodec;
         config.enableDataChannel = true;
         config.dataChannelLabel = "control";
 
@@ -109,7 +118,6 @@ private:
         session->DataReceived += [this](rtc::message_variant msg) {
             if (auto* text = std::get_if<std::string>(&msg)) {
                 std::cout << "Control: " << *text << '\n';
-                // Could implement seek, pause, etc. via data channel.
             }
         };
     }
@@ -119,10 +127,21 @@ private:
         if (!session || !session->media().hasVideo())
             return;
 
-        // TODO: insert a VideoEncoder processor between capture and
-        // sender. Currently decoded frames go directly to the RTP
-        // packetizer, which expects encoded H.264 NAL units.
+        // Create encoder: decoded frames → H.264 NAL units
+        encoder = std::make_shared<av::VideoPacketEncoder>();
+
+        // Input params: the decoded format from the file
+        capture->getEncoderVideoCodec(encoder->iparams);
+
+        // Output params: H.264 for WebRTC
+        encoder->oparams = av::VideoCodec("H264", "libx264", 640, 480, 30);
+        encoder->oparams.options["preset"] = "ultrafast";
+        encoder->oparams.options["tune"] = "zerolatency";
+        encoder->oparams.options["profile"] = "baseline";
+
+        // Pipeline: capture → encoder → WebRTC sender
         stream.attachSource(capture.get(), false, true);
+        stream.attach(encoder, 1, true);
         stream.attach(&session->media().videoSender(), 5, false);
         stream.start();
 

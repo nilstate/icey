@@ -29,7 +29,6 @@
 #include "icy/symple/client.h"
 #include "icy/webrtc/peersession.h"
 #include "symplesignaller.h"
-#include "icy/webrtc/peersession.h"
 
 #include <iostream>
 #include <memory>

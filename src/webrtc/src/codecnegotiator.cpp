@@ -34,6 +34,7 @@ struct CodecMapping
     const char* ffmpegEncoder;
     uint32_t clockRate;
     int defaultPT;  // 0 = dynamic (caller assigns)
+    const char* fmtp;  // SDP format parameters (nullable)
 };
 
 
@@ -41,25 +42,25 @@ struct CodecMapping
 // Video: H264 preferred for browser compatibility.
 // Audio: Opus preferred for quality at low bitrate.
 constexpr std::array<CodecMapping, 10> kVideoCodecs = {{
-    {"H264",  "libx264",     90000, 96},
-    {"H264",  "h264_nvenc",  90000, 96},
-    {"H264",  "h264_vaapi",  90000, 96},
-    {"VP8",   "libvpx",      90000, 97},
-    {"VP9",   "libvpx-vp9",  90000, 98},
-    {"AV1",   "libaom-av1",  90000, 99},
-    {"AV1",   "libsvtav1",   90000, 99},
-    {"AV1",   "av1_nvenc",   90000, 99},
-    {"H265",  "libx265",     90000, 100},
-    {"H265",  "hevc_nvenc",  90000, 100},
+    {"H264",  "libx264",     90000, 96,  "profile-level-id=42e01f;packetization-mode=1"},
+    {"H264",  "h264_nvenc",  90000, 96,  "profile-level-id=42e01f;packetization-mode=1"},
+    {"H264",  "h264_vaapi",  90000, 96,  "profile-level-id=42e01f;packetization-mode=1"},
+    {"VP8",   "libvpx",      90000, 97,  nullptr},
+    {"VP9",   "libvpx-vp9",  90000, 98,  nullptr},
+    {"AV1",   "libaom-av1",  90000, 99,  nullptr},
+    {"AV1",   "libsvtav1",   90000, 99,  nullptr},
+    {"AV1",   "av1_nvenc",   90000, 99,  nullptr},
+    {"H265",  "libx265",     90000, 100, nullptr},
+    {"H265",  "hevc_nvenc",  90000, 100, nullptr},
 }};
 
 
 constexpr std::array<CodecMapping, 5> kAudioCodecs = {{
-    {"opus",  "libopus",     48000, 111},
-    {"PCMU",  "pcm_mulaw",   8000,  0},
-    {"PCMA",  "pcm_alaw",    8000,  8},
-    {"G722",  "g722",        8000,  9},
-    {"AAC",   "aac",         48000, 0},
+    {"opus",  "libopus",     48000, 111, "minptime=10;useinbandfec=1"},
+    {"PCMU",  "pcm_mulaw",   8000,  0,   nullptr},
+    {"PCMA",  "pcm_alaw",    8000,  8,   nullptr},
+    {"G722",  "g722",        8000,  9,   nullptr},
+    {"AAC",   "aac",         48000, 0,   nullptr},
 }};
 
 
@@ -101,6 +102,8 @@ negotiate(const std::vector<std::string>& offered,
                 result.ffmpegName = entry.ffmpegEncoder;
                 result.payloadType = entry.defaultPT;
                 result.clockRate = entry.clockRate;
+                if (entry.fmtp)
+                    result.fmtp = entry.fmtp;
                 LDebug("Negotiated codec: ", entry.rtpName,
                        " -> ", entry.ffmpegEncoder);
                 return result;
@@ -228,6 +231,52 @@ av::AudioCodec NegotiatedCodec::toAudioCodec(int channels, int sampleRate) const
 {
     int rate = sampleRate > 0 ? sampleRate : static_cast<int>(clockRate);
     return av::AudioCodec(rtpName, ffmpegName, channels, rate);
+}
+
+
+av::VideoCodec NegotiatedCodec::toWebRtcVideoCodec(int width, int height, double fps) const
+{
+    auto codec = toVideoCodec(width, height, fps);
+
+    if (rtpName == "H264") {
+        codec.options["preset"] = "ultrafast";
+        codec.options["tune"] = "zerolatency";
+        codec.options["profile"] = "baseline";
+    }
+    else if (rtpName == "VP8") {
+        codec.options["deadline"] = "realtime";
+        codec.options["cpu-used"] = "8";
+    }
+    else if (rtpName == "VP9") {
+        codec.options["deadline"] = "realtime";
+        codec.options["cpu-used"] = "8";
+        codec.options["row-mt"] = "1";
+    }
+    else if (rtpName == "AV1") {
+        codec.options["preset"] = "12";
+        codec.options["usage"] = "realtime";
+    }
+    else if (rtpName == "H265") {
+        codec.options["preset"] = "ultrafast";
+        codec.options["tune"] = "zerolatency";
+    }
+
+    return codec;
+}
+
+
+av::AudioCodec NegotiatedCodec::toWebRtcAudioCodec(int channels) const
+{
+    // Opus requires 48000 Hz; other codecs use their native clock rate.
+    int rate = (rtpName == "opus") ? 48000 : static_cast<int>(clockRate);
+    auto codec = av::AudioCodec(rtpName, ffmpegName, channels, rate);
+
+    if (rtpName == "opus") {
+        codec.sampleFmt = "flt";
+        codec.options["application"] = "lowdelay";
+    }
+
+    return codec;
 }
 
 

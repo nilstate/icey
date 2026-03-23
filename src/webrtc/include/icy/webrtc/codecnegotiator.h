@@ -41,10 +41,21 @@ struct WEBRTC_API NegotiatedCodec
     [[nodiscard]] av::VideoCodec toVideoCodec(int width = 0, int height = 0,
                                                double fps = 0.0) const;
 
+    /// Create an av::VideoCodec configured for WebRTC browser playback.
+    /// Sets low-latency options: ultrafast preset, zerolatency tune,
+    /// constrained baseline profile for H.264, and appropriate defaults
+    /// for VP8/VP9/AV1.
+    [[nodiscard]] av::VideoCodec toWebRtcVideoCodec(int width = 0, int height = 0,
+                                                     double fps = 0.0) const;
+
     /// Create an av::AudioCodec from this negotiation result.
     /// Channels default to 2, sampleRate to the RTP clock rate.
     [[nodiscard]] av::AudioCodec toAudioCodec(int channels = 2,
                                                int sampleRate = 0) const;
+
+    /// Create an av::AudioCodec configured for WebRTC browser playback.
+    /// Forces 48000 Hz for Opus, sets appropriate options.
+    [[nodiscard]] av::AudioCodec toWebRtcAudioCodec(int channels = 2) const;
 };
 
 

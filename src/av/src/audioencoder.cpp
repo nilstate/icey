@@ -121,6 +121,13 @@ void AudioEncoder::create()
         ctx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
     }
 
+    // Apply user-specified encoder options.
+    for (const auto& [key, value] : oparams.options) {
+        int ret = av_opt_set(ctx->priv_data, key.c_str(), value.c_str(), 0);
+        if (ret < 0)
+            LWarn("Ignoring unknown audio encoder option: ", key, "=", value);
+    }
+
     // Open the encoder for the audio stream to use it later.
     if ((err = avcodec_open2(ctx, codec, nullptr)) < 0) {
         throw std::runtime_error("Cannot open the audio codec: " + averror(err));

@@ -4,6 +4,7 @@
     "port": 4500
   },
   "turn": {
+    "enabled": true,
     "port": 3478,
     "realm": "0state.com",
     "externalIp": ""
@@ -18,6 +19,12 @@
       "height": 720,
       "fps": 30,
       "bitrate": 2000000
+    },
+    "audio": {
+      "codec": "libopus",
+      "channels": 2,
+      "sampleRate": 48000,
+      "bitrate": 128000
     }
   },
   "webRoot": "./web/dist"

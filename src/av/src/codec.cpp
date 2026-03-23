@@ -203,7 +203,7 @@ VideoCodec::VideoCodec()
 
 
 VideoCodec::VideoCodec(int width, int height, double fps,
-                       const std::string& pixelFmt, int sampleRate, int bitRate)
+                       const std::string& pixelFmt, int bitRate, int sampleRate)
     : Codec("Unknown", sampleRate, bitRate, true)
     , width(width)
     , height(height)
@@ -214,7 +214,7 @@ VideoCodec::VideoCodec(int width, int height, double fps,
 
 
 VideoCodec::VideoCodec(const std::string& name, int width, int height,
-                       double fps, int sampleRate, int bitRate,
+                       double fps, int bitRate, int sampleRate,
                        const std::string& pixelFmt)
     : Codec(name, sampleRate, bitRate, true)
     , width(width)
@@ -226,8 +226,8 @@ VideoCodec::VideoCodec(const std::string& name, int width, int height,
 
 
 VideoCodec::VideoCodec(const std::string& name, const std::string& encoder,
-                       int width, int height, double fps, int sampleRate,
-                       int bitRate, const std::string& pixelFmt)
+                       int width, int height, double fps, int bitRate,
+                       int sampleRate, const std::string& pixelFmt)
     : Codec(name, encoder, sampleRate, bitRate, true)
     , width(width)
     , height(height)

@@ -17,6 +17,7 @@
 
 #include <iostream>
 #include <list>
+#include <map>
 #include <string>
 
 
@@ -37,6 +38,11 @@ struct AV_API Codec
     int quality;         ///< Optional quality value, variable range depending on codec.
     int compliance;      ///< FFmpeg strict_std_compliance level (default: FF_COMPLIANCE_EXPERIMENTAL).
     bool enabled;        ///< Weather or not the codec is available for use.
+
+    /// Arbitrary encoder options passed to FFmpeg via av_opt_set().
+    /// Keys are FFmpeg option names (e.g. "preset", "tune", "profile").
+    /// Applied after codec-specific defaults, so they override everything.
+    std::map<std::string, std::string> options;
 
     //
     // Ctors/Dtors
@@ -203,7 +209,7 @@ struct AV_API VideoCodec : public Codec
     VideoCodec(const std::string& name, const std::string& encoder,
                int width = 0, int height = 0, double fps = 0.0,
                int bitRate = 0,
-               int sampleRatee = 0,
+               int sampleRate = 0,
                const std::string& pixelFmt = DEFAULT_VIDEO_PIXEL_FMT);
     VideoCodec(const VideoCodec& r);
     VideoCodec& operator=(const VideoCodec&) = default;

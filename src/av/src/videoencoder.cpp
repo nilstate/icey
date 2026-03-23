@@ -82,9 +82,11 @@ void VideoEncoder::create()
     }
 
     // Set some defaults for codecs of note.
+    // These can be overridden by oparams.options below.
     switch (ctx->codec_id) {
         case AV_CODEC_ID_H264:
-            av_opt_set(ctx->priv_data, "preset", "slow", 0);
+            if (oparams.options.find("preset") == oparams.options.end())
+                av_opt_set(ctx->priv_data, "preset", "medium", 0);
             break;
         case AV_CODEC_ID_MJPEG:
         case AV_CODEC_ID_LJPEG:
@@ -96,6 +98,13 @@ void VideoEncoder::create()
             break;
         default:
             break;
+    }
+
+    // Apply user-specified encoder options.
+    for (const auto& [key, value] : oparams.options) {
+        int ret = av_opt_set(ctx->priv_data, key.c_str(), value.c_str(), 0);
+        if (ret < 0)
+            LWarn("Ignoring unknown video encoder option: ", key, "=", value);
     }
 
     // Some formats want stream headers to be separate

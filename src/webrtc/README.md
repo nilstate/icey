@@ -24,8 +24,11 @@ Factory functions that create libdatachannel tracks with the correct RTP packeti
 auto pc = std::make_shared<rtc::PeerConnection>(config);
 
 // Create a video track with H.264 packetizer + NACK + PLI + REMB
-auto video = wrtc::createVideoTrack(pc,
-    av::VideoCodec("H264", "libx264", 1280, 720, 30),
+av::VideoCodec codec("H264", "libx264", 1280, 720, 30);
+codec.options["preset"] = "ultrafast";
+codec.options["tune"] = "zerolatency";
+codec.options["profile"] = "baseline";  // required for browser compatibility
+auto video = wrtc::createVideoTrack(pc, codec,
     0,        // SSRC (0 = auto)
     {},       // CNAME
     512,      // NACK buffer
@@ -50,8 +53,16 @@ Per-track PacketStream integration. One sender or receiver per track.
 ```cpp
 #include "icy/webrtc/tracksender.h"
 #include "icy/webrtc/trackreceiver.h"
+#include "icy/av/videopacketencoder.h"
 
 // Send: capture -> encode -> WebRTC
+auto encoder = std::make_shared<av::VideoPacketEncoder>();
+capture->getEncoderVideoCodec(encoder->iparams);
+encoder->oparams = av::VideoCodec("H264", "libx264", 1280, 720, 30);
+encoder->oparams.options["preset"] = "ultrafast";
+encoder->oparams.options["tune"] = "zerolatency";
+encoder->oparams.options["profile"] = "baseline";
+
 wrtc::WebRtcTrackSender videoSender(video);
 
 PacketStream sendStream;
@@ -133,7 +144,11 @@ Maps between RTP codec names and FFmpeg encoder names, queries FFmpeg at runtime
 // Negotiate best codec from remote SDP offer
 auto codec = wrtc::CodecNegotiator::negotiateVideo({"H264", "VP8", "VP9"});
 if (codec) {
-    auto vc = codec->toVideoCodec(1280, 720, 30);  // -> av::VideoCodec
+    // General purpose (file encoding, etc.)
+    auto vc = codec->toVideoCodec(1280, 720, 30);
+
+    // WebRTC browser playback (low-latency, browser-safe profile)
+    auto wrtcVc = codec->toWebRtcVideoCodec(1280, 720, 30);
 }
 
 // Direct mapping
