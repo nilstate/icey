@@ -223,7 +223,7 @@ void MediaCapture::run()
                 // Set the PTS offset when looping
                 if (_looping) {
                     if (ipacket->pts == 0 && _audio->pts > 0)
-                        videoPtsOffset = _audio->pts;
+                        audioPtsOffset = _audio->pts;
                     ipacket->pts += audioPtsOffset;
                 }
 
