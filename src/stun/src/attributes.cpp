@@ -18,6 +18,7 @@
 #include "icy/stun/attributes.h"
 #include "icy/stun/message.h"
 
+#include <algorithm>
 #include <cstdio>
 #include <cstring>
 #include <stdexcept>
@@ -800,8 +801,9 @@ void MessageIntegrity::read(BitReader& reader)
 
     // Get the message prior to the current attribute and fill the
     // attribute with dummy content.
-    Buffer hmacBuf(sizeBeforeMessageIntegrity);
-    BitWriter hmacWriter(hmacBuf);
+    Buffer hmacBuf;
+    hmacBuf.reserve(std::max(sizeBeforeMessageIntegrity, 256));
+    BitWriter hmacWriter(hmacBuf.data(), hmacBuf.capacity());
 
     hmacWriter.put(reader.begin(), reader.position() - kAttributeHeaderSize);
 
@@ -831,8 +833,9 @@ void MessageIntegrity::write(BitWriter& writer) const
 
         // Get the message prior to the current attribute and
         // fill the attribute with dummy content.
-        Buffer hmacBuf(sizeBeforeMessageIntegrity);
-        BitWriter hmacWriter(hmacBuf);
+        Buffer hmacBuf;
+        hmacBuf.reserve(std::max(sizeBeforeMessageIntegrity, 256));
+        BitWriter hmacWriter(hmacBuf.data(), hmacBuf.capacity());
         hmacWriter.put(writer.begin(), sizeBeforeMessageIntegrity);
 
         // The length MUST then

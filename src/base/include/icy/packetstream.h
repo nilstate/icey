@@ -78,7 +78,9 @@ public:
     /// Returns how this adapter treats incoming packet lifetime.
     /// Most adapters are synchronous and therefore only borrow the packet for
     /// the current call chain. Queue-style adapters override this to advertise
-    /// that they clone before deferred use.
+    /// that they clone before deferred use. Callers may treat the first adapter
+    /// reporting Cloned or Retained as the explicit ownership boundary in the
+    /// stream graph.
     [[nodiscard]] virtual PacketRetention retention() const;
 
     /// Called by the PacketStream to notify when the internal
@@ -188,6 +190,11 @@ using PacketAdapterVec = std::vector<PacketAdapterReference::Ptr>;
 
 /// Describes how an adapter treats incoming packet lifetime beyond the
 /// current synchronous call chain.
+///
+/// Borrowed adapters must finish using the packet before emit()/process()
+/// returns. Cloned and Retained adapters are explicit ownership boundaries:
+/// callers may mutate or free borrowed input only after such a boundary, or
+/// after the whole synchronous write/emit call has returned.
 enum class PacketRetention
 {
     Borrowed,  ///< Packet is only used synchronously during the current emit/process call.
@@ -346,12 +353,15 @@ public:
     virtual bool locked() const;
 
     /// Write a mutable buffer into the stream without copying.
-    /// The caller must keep the buffer alive until processing completes.
+    /// The caller must keep the buffer alive until processing crosses a
+    /// Cloned/Retained boundary or, if the graph is fully synchronous,
+    /// until write() returns.
     /// @param data Pointer to the raw data buffer.
     /// @param len  Number of bytes to process.
     virtual void write(char* data, size_t len);
 
-    /// Write a read-only buffer into the stream; data is copied internally.
+    /// Write a read-only buffer into the stream; data is copied immediately
+    /// into an owning RawPacket before any adapter sees it.
     /// @param data Pointer to the raw data buffer.
     /// @param len  Number of bytes to process.
     virtual void write(const char* data, size_t len);
@@ -367,6 +377,9 @@ public:
     virtual void attachSource(PacketSignal& source);
 
     /// Attach a PacketStreamAdapter as a source.
+    /// Source adapters default to Borrowed retention unless overridden; they
+    /// must not retain inbound packet storage asynchronously without reporting
+    /// Cloned or Retained.
     /// @param source    The adapter to attach; must not be null.
     /// @param owned     If true the stream takes ownership and deletes the pointer on teardown.
     /// @param syncState If true and @p source implements basic::Startable, its
@@ -408,6 +421,9 @@ public:
     /// Processors are executed in ascending order of their @p order value.
     /// Pass order = -1 to append at the end of the current processor list.
     /// Valid range is -1 to 101; values outside this range throw std::invalid_argument.
+    /// Borrowed processors must finish with the packet before process() returns.
+    /// Queue/processors that defer work must report Cloned or Retained via
+    /// retention() so upstream code has an explicit ownership boundary.
     /// @param proc  The processor to attach; must not be null.
     /// @param order Position in the processing chain (lower runs first).
     /// @param owned If true the stream takes ownership and deletes the pointer on teardown.

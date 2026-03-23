@@ -54,6 +54,7 @@ public:
     virtual ~SyncPacketQueue() {}
 
     /// Clones the incoming packet and pushes it onto the queue for synchronized dispatch.
+    /// This queue is therefore an explicit PacketStream ownership boundary.
     /// Drops the packet with a warning if the queue has been cancelled.
     /// @param packet Incoming packet to enqueue.
     virtual void process(IPacket& packet) override;
@@ -161,6 +162,7 @@ public:
     virtual void close();
 
     /// Clones the incoming packet and pushes it onto the async queue.
+    /// This queue is therefore an explicit PacketStream ownership boundary.
     /// Drops the packet with a warning if the queue has been cancelled.
     /// @param packet Incoming packet to enqueue.
     void process(IPacket& packet) override;

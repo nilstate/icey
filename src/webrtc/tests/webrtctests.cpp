@@ -9,6 +9,8 @@
 
 #include "webrtctests.h"
 
+#include <cmath>
+
 
 using namespace std;
 using namespace icy;
@@ -187,6 +189,72 @@ void fillLoopbackVideoFrame(AVFrame* frame, int index)
                 static_cast<uint8_t>((192 + x + index * 5) % 256);
         }
     }
+}
+
+void configureLoopbackAudioCodec(PeerSession::Config& config)
+{
+    config.mediaOpts.audioCodec = av::AudioCodec("opus", "libopus", 2, 48000);
+    config.mediaOpts.audioCodec.options["application"] = "lowdelay";
+}
+
+std::vector<float> makeLoopbackAudioSamples(int channels,
+                                            int samplesPerChannel,
+                                            int sampleRate,
+                                            int sampleOffset)
+{
+    std::vector<float> samples(static_cast<size_t>(channels) *
+                               static_cast<size_t>(samplesPerChannel));
+    constexpr double pi = 3.14159265358979323846;
+    constexpr double frequency = 440.0;
+    constexpr double amplitude = 0.35;
+
+    for (int sample = 0; sample < samplesPerChannel; ++sample) {
+        double t = static_cast<double>(sampleOffset + sample) /
+                   static_cast<double>(sampleRate);
+        float value = static_cast<float>(
+            std::sin(2.0 * pi * frequency * t) * amplitude);
+        for (int channel = 0; channel < channels; ++channel)
+            samples[static_cast<size_t>(sample) * channels + channel] = value;
+    }
+
+    return samples;
+}
+
+template <typename Sink>
+void sendLoopbackAudioFrames(const av::AudioCodec& codec,
+                             int frameCount,
+                             int64_t startTimeUs,
+                             Sink&& sink)
+{
+    av::AudioPacketEncoder encoder;
+    encoder.iparams.channels = codec.channels;
+    encoder.iparams.sampleRate = codec.sampleRate;
+    encoder.iparams.sampleFmt = "flt";
+    encoder.oparams = codec;
+    encoder.emitter += [&](IPacket& packet) {
+        sink(packet);
+    };
+    encoder.create();
+    encoder.open();
+
+    constexpr int samplesPerFrame = 960; // 20 ms @ 48 kHz
+    for (int frameIndex = 0; frameIndex < frameCount; ++frameIndex) {
+        auto samples = makeLoopbackAudioSamples(
+            codec.channels,
+            samplesPerFrame,
+            codec.sampleRate,
+            frameIndex * samplesPerFrame);
+        av::AudioPacket packet(
+            reinterpret_cast<uint8_t*>(samples.data()),
+            samples.size() * sizeof(float),
+            samplesPerFrame,
+            startTimeUs + static_cast<int64_t>(frameIndex) * 20000);
+        encoder.process(packet);
+        std::this_thread::sleep_for(std::chrono::milliseconds(5));
+    }
+
+    encoder.flush();
+    encoder.close();
 }
 
 } // namespace
@@ -787,6 +855,65 @@ int main(int argc, char** argv)
     });
 
 #ifdef HAVE_FFMPEG
+    describe("peer session: loopback audio path encodes and roundtrips media", []() {
+        LoopbackSignaller aliceSig("alice");
+        LoopbackSignaller bobSig("bob");
+        aliceSig.connect(bobSig);
+
+        PeerSession::Config config;
+        config.enableDataChannel = false;
+        configureLoopbackAudioCodec(config);
+
+        PeerSession alice(aliceSig, config);
+        PeerSession bob(bobSig, config);
+
+        bob.IncomingCall += [&](const std::string& peerId) {
+            expect(peerId == "alice");
+            bob.accept();
+        };
+
+        std::atomic<int> receivedPackets{0};
+        std::atomic<int64_t> lastReceivedTime{0};
+        std::atomic<size_t> lastReceivedSize{0};
+
+        bob.media().audioReceiver().emitter += [&](IPacket& packet) {
+            auto* audio = dynamic_cast<av::AudioPacket*>(&packet);
+            if (!audio)
+                return;
+
+            receivedPackets.fetch_add(1);
+            lastReceivedTime.store(audio->time);
+            lastReceivedSize.store(audio->size());
+        };
+
+        alice.call("bob");
+
+        expect(icy::test::waitFor([&] {
+            return alice.state() == PeerSession::State::Active &&
+                   bob.state() == PeerSession::State::Active;
+        }, 8000));
+
+        sendLoopbackAudioFrames(
+            config.mediaOpts.audioCodec,
+            32,
+            0,
+            [&](IPacket& packet) {
+                alice.media().audioSender().process(packet);
+            });
+
+        expect(icy::test::waitFor([&] {
+            return receivedPackets.load() > 0;
+        }, 5000));
+        expect(lastReceivedTime.load() >= 0);
+        expect(lastReceivedSize.load() > 0);
+
+        alice.hangup("done");
+        expect(icy::test::waitFor([&] {
+            return alice.state() == PeerSession::State::Idle &&
+                   bob.state() == PeerSession::State::Idle;
+        }, 3000));
+    });
+
     describe("peer session: loopback video path encodes and roundtrips media", []() {
         LoopbackSignaller aliceSig("alice");
         LoopbackSignaller bobSig("bob");
@@ -958,6 +1085,195 @@ int main(int argc, char** argv)
         expect(icy::test::waitFor([&] {
             return publisher.state() == PeerSession::State::Idle &&
                    relayIngress.state() == PeerSession::State::Idle &&
+                   relayEgress.state() == PeerSession::State::Idle &&
+                   viewer.state() == PeerSession::State::Idle;
+        }, 3000));
+    });
+
+    describe("peer session: encoded audio relay path forwards media between sessions", []() {
+        LoopbackSignaller publisherSig("publisher");
+        LoopbackSignaller ingressSig("relay-ingress");
+        publisherSig.connect(ingressSig);
+
+        LoopbackSignaller viewerSig("viewer");
+        LoopbackSignaller egressSig("relay-egress");
+        viewerSig.connect(egressSig);
+
+        PeerSession::Config config;
+        config.enableDataChannel = false;
+        configureLoopbackAudioCodec(config);
+
+        PeerSession publisher(publisherSig, config);
+        PeerSession relayIngress(ingressSig, config);
+        PeerSession relayEgress(egressSig, config);
+        PeerSession viewer(viewerSig, config);
+
+        relayIngress.IncomingCall += [&](const std::string& peerId) {
+            expect(peerId == "publisher");
+            relayIngress.accept();
+        };
+        relayEgress.IncomingCall += [&](const std::string& peerId) {
+            expect(peerId == "viewer");
+            relayEgress.accept();
+        };
+
+        relayIngress.media().audioReceiver().emitter += [&](IPacket& packet) {
+            relayEgress.media().audioSender().process(packet);
+        };
+
+        std::atomic<int> receivedPackets{0};
+        std::atomic<int64_t> lastReceivedTime{0};
+        std::atomic<size_t> lastReceivedSize{0};
+        viewer.media().audioReceiver().emitter += [&](IPacket& packet) {
+            auto* audio = dynamic_cast<av::AudioPacket*>(&packet);
+            if (!audio)
+                return;
+            receivedPackets.fetch_add(1);
+            lastReceivedTime.store(audio->time);
+            lastReceivedSize.store(audio->size());
+        };
+
+        publisher.call("relay-ingress");
+        viewer.call("relay-egress");
+
+        expect(icy::test::waitFor([&] {
+            return publisher.state() == PeerSession::State::Active &&
+                   relayIngress.state() == PeerSession::State::Active &&
+                   relayEgress.state() == PeerSession::State::Active &&
+                   viewer.state() == PeerSession::State::Active;
+        }, 8000));
+
+        sendLoopbackAudioFrames(
+            config.mediaOpts.audioCodec,
+            32,
+            0,
+            [&](IPacket& packet) {
+                publisher.media().audioSender().process(packet);
+            });
+
+        expect(icy::test::waitFor([&] {
+            return receivedPackets.load() > 0;
+        }, 5000));
+        expect(lastReceivedTime.load() >= 0);
+        expect(lastReceivedSize.load() > 0);
+
+        publisher.hangup("done");
+        viewer.hangup("done");
+        expect(icy::test::waitFor([&] {
+            return publisher.state() == PeerSession::State::Idle &&
+                   relayIngress.state() == PeerSession::State::Idle &&
+                   relayEgress.state() == PeerSession::State::Idle &&
+                   viewer.state() == PeerSession::State::Idle;
+        }, 3000));
+    });
+
+    describe("peer session: relay handoff forwards media from the next active source", []() {
+        LoopbackSignaller publisherASig("publisher-a");
+        LoopbackSignaller ingressASig("relay-ingress-a");
+        publisherASig.connect(ingressASig);
+
+        LoopbackSignaller publisherBSig("publisher-b");
+        LoopbackSignaller ingressBSig("relay-ingress-b");
+        publisherBSig.connect(ingressBSig);
+
+        LoopbackSignaller viewerSig("viewer");
+        LoopbackSignaller egressSig("relay-egress");
+        viewerSig.connect(egressSig);
+
+        PeerSession::Config config;
+        config.enableDataChannel = false;
+        configureLoopbackAudioCodec(config);
+
+        PeerSession publisherA(publisherASig, config);
+        PeerSession relayIngressA(ingressASig, config);
+        PeerSession publisherB(publisherBSig, config);
+        PeerSession relayIngressB(ingressBSig, config);
+        PeerSession relayEgress(egressSig, config);
+        PeerSession viewer(viewerSig, config);
+
+        relayIngressA.IncomingCall += [&](const std::string& peerId) {
+            expect(peerId == "publisher-a");
+            relayIngressA.accept();
+        };
+        relayIngressB.IncomingCall += [&](const std::string& peerId) {
+            expect(peerId == "publisher-b");
+            relayIngressB.accept();
+        };
+        relayEgress.IncomingCall += [&](const std::string& peerId) {
+            expect(peerId == "viewer");
+            relayEgress.accept();
+        };
+
+        std::atomic<int> activeSource{1};
+        relayIngressA.media().audioReceiver().emitter += [&](IPacket& packet) {
+            if (activeSource.load(std::memory_order_relaxed) == 1)
+                relayEgress.media().audioSender().process(packet);
+        };
+        relayIngressB.media().audioReceiver().emitter += [&](IPacket& packet) {
+            if (activeSource.load(std::memory_order_relaxed) == 2)
+                relayEgress.media().audioSender().process(packet);
+        };
+
+        std::atomic<int> receivedPackets{0};
+        std::atomic<int64_t> lastReceivedTime{0};
+        viewer.media().audioReceiver().emitter += [&](IPacket& packet) {
+            auto* audio = dynamic_cast<av::AudioPacket*>(&packet);
+            if (!audio)
+                return;
+            receivedPackets.fetch_add(1);
+            lastReceivedTime.store(audio->time);
+        };
+
+        publisherA.call("relay-ingress-a");
+        publisherB.call("relay-ingress-b");
+        viewer.call("relay-egress");
+
+        expect(icy::test::waitFor([&] {
+            return publisherA.state() == PeerSession::State::Active &&
+                   relayIngressA.state() == PeerSession::State::Active &&
+                   publisherB.state() == PeerSession::State::Active &&
+                   relayIngressB.state() == PeerSession::State::Active &&
+                   relayEgress.state() == PeerSession::State::Active &&
+                   viewer.state() == PeerSession::State::Active;
+        }, 10000));
+
+        sendLoopbackAudioFrames(
+            config.mediaOpts.audioCodec,
+            16,
+            0,
+            [&](IPacket& packet) {
+                publisherA.media().audioSender().process(packet);
+            });
+
+        expect(icy::test::waitFor([&] {
+            return receivedPackets.load() > 0;
+        }, 5000));
+        expect(lastReceivedTime.load() < 10000000);
+
+        publisherA.hangup("handoff");
+        expect(icy::test::waitFor([&] {
+            return publisherA.state() == PeerSession::State::Idle &&
+                   relayIngressA.state() == PeerSession::State::Idle;
+        }, 3000));
+
+        activeSource.store(2, std::memory_order_relaxed);
+        sendLoopbackAudioFrames(
+            config.mediaOpts.audioCodec,
+            24,
+            10000000,
+            [&](IPacket& packet) {
+                publisherB.media().audioSender().process(packet);
+            });
+
+        expect(icy::test::waitFor([&] {
+            return lastReceivedTime.load() >= 10000000;
+        }, 5000));
+
+        publisherB.hangup("done");
+        viewer.hangup("done");
+        expect(icy::test::waitFor([&] {
+            return publisherB.state() == PeerSession::State::Idle &&
+                   relayIngressB.state() == PeerSession::State::Idle &&
                    relayEgress.state() == PeerSession::State::Idle &&
                    viewer.state() == PeerSession::State::Idle;
         }, 3000));

@@ -18,6 +18,7 @@
 #include "icy/webrtc/tracksender.h"
 
 #include "icy/av/codec.h"
+#include "icy/av/audiopacketencoder.h"
 #include "icy/av/ffmpeg.h"
 #include "icy/av/format.h"
 #include "icy/av/packet.h"

@@ -1088,6 +1088,58 @@ class PacketStreamQueueCloneBoundaryTest : public Test
 };
 
 
+class PacketStreamAsyncQueueCloneBoundaryTest : public Test
+{
+    std::string received;
+
+    void onPacket(IPacket& packet)
+    {
+        received.assign(packet.data(), packet.size());
+    }
+
+    void run()
+    {
+        PacketStream stream;
+        auto queue = std::make_shared<AsyncPacketQueue<>>(16);
+        stream.attach(queue, 0);
+        stream.emitter += slot(this, &PacketStreamAsyncQueueCloneBoundaryTest::onPacket);
+
+        stream.start();
+
+        char data[] = {'w', 'o', 'r', 'l', 'd'};
+        stream.write(data, sizeof(data));
+        std::memcpy(data, "xxxxx", sizeof(data));
+
+        expect(icy::test::waitFor([&] {
+            return received == "world";
+        }, 2000));
+
+        stream.close();
+
+        expect(queue->retention() == PacketRetention::Cloned);
+        expect(received == "world");
+    }
+};
+
+
+class PacketStreamRetentionContractTest : public Test
+{
+    void run()
+    {
+        PacketSignal signal;
+        PacketStreamAdapter adapter(signal);
+        SyncPacketQueue<> syncQueue(uv::defaultLoop(), 4);
+        AsyncPacketQueue<> asyncQueue(4);
+
+        expect(adapter.retention() == PacketRetention::Borrowed);
+        expect(syncQueue.retention() == PacketRetention::Cloned);
+        expect(asyncQueue.retention() == PacketRetention::Cloned);
+
+        asyncQueue.close();
+    }
+};
+
+
 } // namespace icy
 
 
