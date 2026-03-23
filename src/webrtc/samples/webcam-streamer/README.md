@@ -2,7 +2,7 @@
 
 Streams video from a camera (or test file) to a browser peer via WebRTC. Encodes to H.264 and sends through the PacketStream pipeline.
 
-Pipeline: `MediaCapture → VideoEncoder → WebRtcTrackSender → [browser]`
+Pipeline: `MediaCapture → VideoPacketEncoder → WebRtcTrackSender → [browser]`
 
 ## Build
 

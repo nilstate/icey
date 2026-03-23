@@ -16,6 +16,33 @@ using namespace icy::wrtc;
 using namespace icy::test;
 
 
+namespace {
+
+struct MockSignaller : SignallingInterface
+{
+    struct ControlMessage
+    {
+        std::string peerId;
+        std::string type;
+        std::string reason;
+    };
+
+    std::vector<ControlMessage> controls;
+
+    void sendSdp(const std::string&, const std::string&, const std::string&) override {}
+    void sendCandidate(const std::string&, const std::string&, const std::string&) override {}
+
+    void sendControl(const std::string& peerId,
+                     const std::string& type,
+                     const std::string& reason = {}) override
+    {
+        controls.push_back({peerId, type, reason});
+    }
+};
+
+} // namespace
+
+
 int main(int argc, char** argv)
 {
     Logger::instance().add(std::make_unique<ConsoleChannel>("debug", Level::Debug));
@@ -257,7 +284,7 @@ int main(int argc, char** argv)
 
         // audioSender() should throw
         bool threw = false;
-        try { bridge.audioSender(); } catch (const std::logic_error&) { threw = true; }
+        try { [[maybe_unused]] auto& sender = bridge.audioSender(); } catch (const std::logic_error&) { threw = true; }
         expect(threw);
 
         bridge.detach();
@@ -314,6 +341,72 @@ int main(int argc, char** argv)
         expect(std::string(stateToString(PeerSession::State::Connecting)) == "connecting");
         expect(std::string(stateToString(PeerSession::State::Active)) == "active");
         expect(std::string(stateToString(PeerSession::State::Ended)) == "ended");
+    });
+
+    describe("peer session: remote reject returns to idle", []() {
+        MockSignaller signaller;
+        PeerSession session(signaller, {});
+        std::vector<PeerSession::State> states;
+        session.StateChanged += [&](PeerSession::State state) {
+            states.push_back(state);
+        };
+
+        session.call("peer");
+        expect(signaller.controls.size() == 1);
+        expect(signaller.controls[0].type == "init");
+        expect(session.state() == PeerSession::State::Ringing);
+
+        signaller.ControlReceived.emit("peer", "reject", "busy");
+
+        expect(states.size() == 3);
+        expect(states[0] == PeerSession::State::Ringing);
+        expect(states[1] == PeerSession::State::Ended);
+        expect(states[2] == PeerSession::State::Idle);
+        expect(session.state() == PeerSession::State::Idle);
+        expect(session.remotePeerId().empty());
+
+        session.call("peer-2");
+        expect(signaller.controls.size() == 2);
+        expect(signaller.controls[1].peerId == "peer-2");
+        expect(signaller.controls[1].type == "init");
+        expect(session.state() == PeerSession::State::Ringing);
+
+        session.hangup("retry");
+        expect(session.state() == PeerSession::State::Idle);
+    });
+
+    describe("peer session: accept waits for remote data channel", []() {
+        MockSignaller signaller;
+        PeerSession::Config config;
+        config.enableDataChannel = true;
+        config.dataChannelLabel = "control";
+        PeerSession session(signaller, config);
+
+        signaller.ControlReceived.emit("peer", "init", "");
+        expect(session.state() == PeerSession::State::Incoming);
+
+        session.accept();
+
+        expect(signaller.controls.size() == 1);
+        expect(signaller.controls[0].type == "accept");
+        expect(session.state() == PeerSession::State::Connecting);
+        expect(session.peerConnection() != nullptr);
+        expect(session.dataChannel() == nullptr);
+    });
+
+    describe("peer session: caller owns local data channel", []() {
+        MockSignaller signaller;
+        PeerSession::Config config;
+        config.enableDataChannel = true;
+        config.dataChannelLabel = "control";
+        PeerSession session(signaller, config);
+
+        session.call("peer");
+        signaller.ControlReceived.emit("peer", "accept", "");
+
+        expect(session.state() == PeerSession::State::Connecting);
+        expect(session.peerConnection() != nullptr);
+        expect(session.dataChannel() != nullptr);
     });
 
 

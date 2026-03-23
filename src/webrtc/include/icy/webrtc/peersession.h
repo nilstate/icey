@@ -47,7 +47,7 @@ public:
         Incoming,    ///< Incoming call, waiting for user action
         Connecting,  ///< Accepted, WebRTC negotiation in progress
         Active,      ///< Media flowing
-        Ended        ///< Call ended (auto-resets to Idle)
+        Ended        ///< Call ended (transient; auto-resets to Idle)
     };
 
     /// Configuration for WebRTC peer session establishment
@@ -136,9 +136,12 @@ private:
     void onCandidateReceived(const std::string& peerId, const std::string& candidate, const std::string& mid);
     void onControlReceived(const std::string& peerId, const std::string& type, const std::string& reason);
 
-    void createPeerConnection();
+    void createPeerConnection(bool createDataChannel);
     void setupPeerConnectionCallbacks();
-    void doEndCall(const std::string& reason);
+    void doEndCall(const std::string& reason,
+                   std::shared_ptr<rtc::PeerConnection>& pc,
+                   std::shared_ptr<rtc::DataChannel>& dc);
+    void transitionEndedToIdle();
 
     SignallingInterface& _signaller;
     Config _config;
