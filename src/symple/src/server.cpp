@@ -480,8 +480,12 @@ public:
         // Max connections check. Count all active sockets (including
         // unauthenticated ones in the auth timeout window), not just
         // authenticated peers, to prevent connection-flood bypass.
+        // The current accepted socket is already present in the HTTP
+        // server's live connection map by the time we create a responder,
+        // so allow `maxConnections` total by rejecting only once the count
+        // exceeds the limit.
         if (_server._opts.maxConnections > 0 &&
-            _server._http->connectionCount() >= static_cast<size_t>(_server._opts.maxConnections)) {
+            _server._http->connectionCount() > static_cast<size_t>(_server._opts.maxConnections)) {
             LWarn("Max connections reached (", _server._opts.maxConnections, "), rejecting");
             json::Value err;
             err["type"] = "error";
