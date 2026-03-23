@@ -56,11 +56,11 @@ namespace wrtc {
 ///
 /// Example - receive from browser and record:
 ///
-///   PacketStream stream;
-///   stream.attachSource(&bridge.videoReceiver(), false, true);
-///   stream.attach(decoder, 1, true);
-///   stream.attach(fileEncoder, 5, true);
-///   stream.start();
+///   bridge.videoReceiver().emitter +=
+///       packetSlot(&recorder, &Recorder::onEncodedVideo);
+///
+/// The receiver emits owning encoded packets. Feed those into a decoder or
+/// recorder callback; see `samples/media-recorder` for a complete example.
 class WEBRTC_API MediaBridge
 {
 public:

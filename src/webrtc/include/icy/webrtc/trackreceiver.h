@@ -40,17 +40,14 @@ namespace wrtc {
 ///       videoReceiver.bind(track);
 ///   });
 ///
-///   PacketStream stream;
-///   stream.attachSource(&videoReceiver, false, true);
-///   stream.attach(decoder, 1, true);
-///   stream.start();
+///   videoReceiver.emitter += packetSlot(&recorder, &Recorder::onEncodedVideo);
 ///
 /// Emits owning packets - the frame data is copied, so downstream
 /// processors can safely queue packets asynchronously.
 ///
 /// Emits VideoPacket for video tracks, AudioPacket for audio tracks.
-/// Downstream processors (VideoDecoder, AudioDecoder) can
-/// dynamic_cast to the correct type.
+/// Use those packets to drive a decoder, recorder, or custom pipeline.
+/// See `samples/media-recorder` for a complete receive -> decode -> file example.
 class WEBRTC_API WebRtcTrackReceiver : public PacketStreamAdapter
 {
 public:

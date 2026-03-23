@@ -182,7 +182,8 @@ public:
             accept.setTo(msg.from());
 
             // Tell the player where to connect for the MJPEG stream
-            accept.setData("url", "ws://localhost:" + std::to_string(StreamPort));
+            const std::string streamUrl = "ws://localhost:" + std::to_string(StreamPort);
+            accept.setData("url", std::string_view(streamUrl));
             accept.setData("engine", "MJPEGWebSocket");
 
             client.send(accept);
@@ -205,10 +206,10 @@ public:
         }
     }
 
-    void onStateChange(void*, sockio::ClientState& state, const sockio::ClientState&)
+    void onStateChange(void*, smpl::ClientState& state, const smpl::ClientState&)
     {
         std::cout << "Client state: " << state.toString() << '\n';
-        if (state.id() == sockio::ClientState::Online) {
+        if (state.id() == smpl::ClientState::Online) {
             std::cout << "Online as " << client.ourID() << '\n';
             client.joinRoom("public");
         }

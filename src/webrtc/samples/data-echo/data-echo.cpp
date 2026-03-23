@@ -106,10 +106,10 @@ private:
             std::cerr << "Authentication failed" << '\n';
     }
 
-    void onStateChange(void*, sockio::ClientState& state, const sockio::ClientState&)
+    void onStateChange(void*, smpl::ClientState& state, const smpl::ClientState&)
     {
         std::cout << "Client: " << state.toString() << '\n';
-        if (state.id() == sockio::ClientState::Online) {
+        if (state.id() == smpl::ClientState::Online) {
             std::cout << "Online as " << client.ourID() << '\n';
             client.joinRoom("public");
             createSession();

@@ -648,30 +648,13 @@ class WebcamStreamer
 
 ### [media-recorder](../../src/webrtc/samples/media-recorder/)
 
-Receives video from a browser via WebRTC and records it server-side. Demonstrates the full receive path: `WebRtcTrackReceiver` as the stream source, followed by `av::VideoDecoder` and `av::MultiplexPacketEncoder` to write any FFmpeg-supported container format. Useful for building server-side recording for telehealth, video depositions, or proctoring without cloud vendor lock-in.
+Receives H.264 video from a browser via WebRTC and records it server-side. Demonstrates the real receive path used in Icey today: `WebRtcTrackReceiver` emits encoded frames, a small callback bridge wraps them in FFmpeg `AVPacket`s for `av::VideoDecoder`, and the decoded frames feed `av::MultiplexPacketEncoder` to write MP4 output. Useful for building server-side recording for telehealth, video depositions, or proctoring without cloud vendor lock-in.
 
 The sample configures a video codec in the SDP to signal receive capability to the browser. The `PeerSession` creates an offer/answer that includes a video `m=` section; the browser then sends video to us.
 
 **Pipeline**: browser → `wrtc::WebRtcTrackReceiver` → `av::VideoDecoder` → `av::MultiplexPacketEncoder` → file
 
-```cpp
-#include "icy/av/multiplexpacketencoder.h"
-#include "icy/packetstream.h"
-#include "icy/webrtc/peersession.h"
-#include "symplesignaller.h"
-
-void startRecording(wrtc::PeerSession& session, const std::string& outputFile)
-{
-    auto decoder = std::make_shared<av::VideoDecoder>();
-    auto mux = std::make_shared<av::MultiplexPacketEncoder>(outputFile);
-
-    PacketStream stream;
-    stream.attachSource(&session.media().videoReceiver(), false, true);
-    stream.attach(decoder, 1, true);
-    stream.attach(mux, 5, true);
-    stream.start();
-}
-```
+The muxer is created lazily on the first decoded frame so width, height, and pixel format are taken from the actual stream rather than guessed up front.
 
 ### [file-streamer](../../src/webrtc/samples/file-streamer/)
 

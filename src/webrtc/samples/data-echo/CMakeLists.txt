@@ -1,6 +1,3 @@
-add_executable(data-echo
-  data-echo.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../symplesignaller.cpp
-)
+icy_add_sample(data-echo DEPENDS base crypto net http json symple webrtc)
+target_sources(data-echo PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../symplesignaller.cpp)
 target_include_directories(data-echo PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
-target_link_libraries(data-echo PRIVATE base crypto net http json symple webrtc)

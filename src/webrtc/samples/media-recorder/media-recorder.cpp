@@ -7,8 +7,8 @@
 //
 // Media Recorder
 //
-// Receives video from a browser peer via WebRTC and records it
-// to a file using FFmpeg's MultiplexEncoder.
+// Receives H.264 video from a browser peer via WebRTC, decodes it,
+// and records it to an MP4 file using FFmpeg's MultiplexEncoder.
 //
 // Pipeline:
 //   [browser] → WebRtcTrackReceiver → VideoDecoder → MultiplexEncoder → file
@@ -23,9 +23,11 @@
 
 
 #include "icy/application.h"
+#include "icy/av/ffmpeg.h"
 #include "icy/av/multiplexpacketencoder.h"
+#include "icy/av/videodecoder.h"
 #include "icy/logger.h"
-#include "icy/packetstream.h"
+#include "icy/packetsignal.h"
 #include "icy/symple/client.h"
 #include "icy/webrtc/peersession.h"
 #include "symplesignaller.h"
@@ -33,6 +35,10 @@
 #include <iostream>
 #include <memory>
 #include <string>
+
+extern "C" {
+#include <libavutil/avutil.h>
+}
 
 
 using namespace icy;
@@ -44,12 +50,10 @@ public:
     smpl::Client client;
     std::unique_ptr<wrtc::SympleSignaller> signaller;
     std::unique_ptr<wrtc::PeerSession> session;
-    PacketStream stream;
     std::string outputFile;
 
     MediaRecorder(const smpl::Client::Options& opts, const std::string& output)
         : client(opts)
-        , stream("recorder")
         , outputFile(output)
     {
     }
@@ -65,7 +69,7 @@ public:
 
     void shutdown()
     {
-        stream.stop();
+        stopRecording();
         if (session)
             session->hangup("shutdown");
         session.reset();
@@ -97,40 +101,131 @@ private:
                 startRecording();
             }
             else if (state == wrtc::PeerSession::State::Ended) {
-                stream.stop();
-                std::cout << "Recording saved to " << outputFile << '\n';
+                stopRecording();
             }
         };
     }
 
     void startRecording()
     {
-        if (!session)
+        if (!session || _recording)
             return;
 
-        // Receive pipeline: WebRTC → raw packets → file
-        // The receiver emits VideoPacket with raw encoded data.
-        // For a proper recording pipeline, you'd decode then re-encode
-        // into the target container format. For this demo, we write
-        // the raw received packets to show the receive path works.
-        stream.attachSource(&session->media().videoReceiver(), false, true);
-
-        // In a full implementation, insert a decoder and mux encoder here:
-        //   stream.attach(decoder, 1, true);
-        //   stream.attach(muxEncoder, 5, true);
-
-        stream.emitter += packetSlot(this, &MediaRecorder::onPacket);
-        stream.start();
-
+        ensureDecoder();
+        session->media().videoReceiver().emitter +=
+            packetSlot(this, &MediaRecorder::onEncodedVideo);
+        _decoder->emitter += packetSlot(this, &MediaRecorder::onDecodedVideo);
+        _recording = true;
         std::cout << "Recording to " << outputFile << '\n';
     }
 
-    void onPacket(av::MediaPacket& packet)
+    void stopRecording()
     {
-        // In a real recorder, the MultiplexEncoder would handle this.
-        // Here we just log received frame sizes to prove the receive path.
-        std::cout << "Received frame: " << packet.size()
-                  << " bytes, time=" << packet.time << "us" << '\n';
+        if (!_recording && !_decoder && !_mux)
+            return;
+
+        if (session)
+            session->media().videoReceiver().emitter -= this;
+        if (_decoder)
+            _decoder->emitter -= this;
+
+        bool wroteFile = static_cast<bool>(_mux);
+
+        _mux.reset();
+        _decoder.reset();
+        _decodeFormat.reset();
+        _decodeStream = nullptr;
+        _recording = false;
+        _waitingForKeyframe = true;
+        _loggedWaitingForKeyframe = false;
+
+        if (wroteFile)
+            std::cout << "Recording saved to " << outputFile << '\n';
+        else
+            std::cout << "Call ended before any decodable video frame was recorded\n";
+    }
+
+    void ensureDecoder()
+    {
+        if (_decoder)
+            return;
+
+        _decodeFormat.reset(avformat_alloc_context());
+        if (!_decodeFormat)
+            throw std::runtime_error("Cannot allocate decoder format context");
+
+        _decodeStream = avformat_new_stream(_decodeFormat.get(), nullptr);
+        if (!_decodeStream)
+            throw std::runtime_error("Cannot allocate decoder stream");
+
+        _decodeStream->time_base = AVRational{1, 90000};
+        _decodeStream->codecpar->codec_type = AVMEDIA_TYPE_VIDEO;
+        _decodeStream->codecpar->codec_id = AV_CODEC_ID_H264;
+
+        _decoder = std::make_unique<av::VideoDecoder>(_decodeStream);
+        _decoder->create();
+        _decoder->open();
+    }
+
+    void ensureMux(const av::PlanarVideoPacket& packet)
+    {
+        if (_mux)
+            return;
+
+        av::EncoderOptions options;
+        options.ofile = outputFile;
+        options.iformat = av::Format("WebRTC Input", "rawvideo",
+            av::VideoCodec("decoded", packet.width, packet.height, 30.0,
+                           0, 0, packet.pixelFmt));
+        options.oformat = av::Format("MP4", "mp4",
+            av::VideoCodec("H264", "libx264", packet.width, packet.height, 30.0));
+
+        _mux = std::make_unique<av::MultiplexPacketEncoder>(options);
+        _mux->init();
+    }
+
+    void onEncodedVideo(av::VideoPacket& packet)
+    {
+        if (!_decoder || !_decodeStream)
+            return;
+
+        av::AVPacketHolder ffpacket(av_packet_alloc());
+        if (!ffpacket)
+            throw std::runtime_error("Cannot allocate FFmpeg packet");
+
+        ffpacket->data = reinterpret_cast<uint8_t*>(packet.data());
+        ffpacket->size = static_cast<int>(packet.size());
+        ffpacket->stream_index = _decodeStream->index;
+
+        if (packet.time > 0) {
+            ffpacket->pts = av_rescale_q(packet.time, AVRational{1, AV_TIME_BASE},
+                                         _decodeStream->time_base);
+            ffpacket->dts = ffpacket->pts;
+        }
+        else {
+            ffpacket->pts = AV_NOPTS_VALUE;
+            ffpacket->dts = AV_NOPTS_VALUE;
+        }
+
+        try {
+            bool decoded = _decoder->decode(*ffpacket);
+            if (decoded) {
+                _waitingForKeyframe = false;
+                _loggedWaitingForKeyframe = false;
+            }
+        }
+        catch (const std::exception&) {
+            if (_waitingForKeyframe && !_loggedWaitingForKeyframe) {
+                std::cout << "Waiting for a decodable H.264 keyframe..." << '\n';
+                _loggedWaitingForKeyframe = true;
+            }
+        }
+    }
+
+    void onDecodedVideo(av::PlanarVideoPacket& packet)
+    {
+        ensureMux(packet);
+        _mux->encode(packet);
     }
 
     void onAnnounce(const int& status)
@@ -139,9 +234,9 @@ private:
             std::cerr << "Auth failed: " << status << '\n';
     }
 
-    void onStateChange(void*, sockio::ClientState& state, const sockio::ClientState&)
+    void onStateChange(void*, smpl::ClientState& state, const smpl::ClientState&)
     {
-        if (state.id() == sockio::ClientState::Online) {
+        if (state.id() == smpl::ClientState::Online) {
             std::cout << "Online as " << client.ourID() << '\n';
             client.joinRoom("public");
             createSession();
@@ -153,6 +248,14 @@ private:
         peer["agent"] = "Icey";
         peer["type"] = "recorder";
     }
+
+    av::AVFormatContextHolder _decodeFormat;
+    AVStream* _decodeStream = nullptr;
+    std::unique_ptr<av::VideoDecoder> _decoder;
+    std::unique_ptr<av::MultiplexPacketEncoder> _mux;
+    bool _recording = false;
+    bool _waitingForKeyframe = true;
+    bool _loggedWaitingForKeyframe = false;
 };
 
 

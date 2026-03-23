@@ -71,22 +71,19 @@ sendStream.attach(encoder, 1, true);
 sendStream.attach(&videoSender, 5, false);
 sendStream.start();
 
-// Receive: WebRTC -> decode -> record
+// Receive: WebRTC -> your decode / record callback
 wrtc::WebRtcTrackReceiver videoReceiver;
 pc->onTrack([&](std::shared_ptr<rtc::Track> track) {
     wrtc::setupReceiveTrack(track);
     videoReceiver.bind(track);
 });
 
-PacketStream recvStream;
-recvStream.attachSource(&videoReceiver, false, true);
-recvStream.attach(decoder, 1, true);
-recvStream.start();
+videoReceiver.emitter += packetSlot(&recorder, &Recorder::onEncodedVideo);
 ```
 
 `WebRtcTrackSender` converts FFmpeg microsecond timestamps to RTP clock rates, handles send errors gracefully, and only passes packets downstream on successful send (safe to chain a recorder after it).
 
-`WebRtcTrackReceiver` emits owning `VideoPacket`/`AudioPacket` instances that downstream processors can safely queue asynchronously.
+`WebRtcTrackReceiver` emits owning encoded `VideoPacket`/`AudioPacket` instances that downstream processors can safely queue asynchronously. For a complete receive -> decode -> MP4 example, see `samples/media-recorder`.
 
 ### Layer 3: Convenience (`mediabridge.h`, `peersession.h`)
 

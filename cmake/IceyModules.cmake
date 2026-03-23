@@ -126,10 +126,9 @@ function(icy_add_module name)
   # Include directories with generator expressions for build vs install
   target_include_directories(${name}
     PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
       $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-    PRIVATE
-      ${CMAKE_BINARY_DIR}  # for icey.h config header
   )
 
   # Link module dependencies (propagate transitively)

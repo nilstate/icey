@@ -9,7 +9,7 @@
 //
 // Interactive console client for the Symple real-time messaging protocol.
 // Demonstrates client connection, message routing, presence, and room
-// management over Socket.IO.
+// management over native WebSocket.
 //
 // Requires a running Symple server (https://github.com/nicedoc/symple-server).
 //
@@ -29,6 +29,7 @@
 
 #include <iostream>
 #include <stdexcept>
+#include <string_view>
 
 
 using namespace icy;
@@ -45,9 +46,11 @@ public:
     icy::smpl::Client client;
     icy::ipc::SyncQueue<> ipc;  // thread-safe bridge: console thread -> event loop
     bool showHelp;
+    bool shuttingDown;
 
     SympleApplication()
         : showHelp(false)
+        , shuttingDown(false)
     {
     }
 
@@ -107,10 +110,13 @@ public:
 
     void shutdown()
     {
+        if (shuttingDown)
+            return;
+        shuttingDown = true;
+
         ipc.close();
         client.close();
         Application::stop();
-        Application::finalize();
     }
 
     void start()
@@ -155,10 +161,9 @@ public:
                         std::getline(std::cin, data);
 
                         auto message = new icy::smpl::Message();
-                        message->setData(data);
+                        message->setData("text", std::string_view(data));
 
                         std::cout << "Sending message: " << data << '\n';
-                        // app->client.send(message, true);
 
                         // Push to IPC queue so the send happens on the event loop thread
                         app->ipc.push(new icy::ipc::Action(
@@ -191,13 +196,16 @@ public:
                     // List contacts
                     else if (o == 'C') {
                         std::cout << "Listing contacts:" << '\n';
-                        app->client.roster().print(std::cout);
-                        std::cout << '\n';
+                        app->ipc.push(new icy::ipc::Action(
+                            [app](const icy::ipc::Action& a) { app->onSyncCommand(a); },
+                            nullptr, "contacts"));
                     }
                 }
 
                 std::cout << "Quiting" << '\n';
-                app->shutdown();
+                app->ipc.push(new icy::ipc::Action(
+                    [app](const icy::ipc::Action& a) { app->onSyncCommand(a); },
+                    nullptr, "quit"));
             },
                                 this);
 
@@ -206,6 +214,7 @@ public:
                 static_cast<SympleApplication*>(opaque)->shutdown();
             },
                             this);
+            Application::finalize();
         } catch (std::exception& exc) {
             std::cerr << "Symple runtime error: " << exc.what() << '\n';
         }
@@ -216,13 +225,7 @@ public:
     {
         auto message = static_cast<icy::smpl::Message*>(action.arg);
 
-        // Send without transaction
-        // client.send(*message);
-
-        // Send with transaction so we get delivery confirmation via onAckState
-        auto transaction = client.createTransaction(*message);
-        transaction->StateChange += slot(this, &SympleApplication::onAckState);
-        transaction->send();
+        client.send(*message);
 
         delete message;
     }
@@ -235,23 +238,14 @@ public:
             client.joinRoom(*arg);
         } else if (action.data == "leave") {
             client.leaveRoom(*arg);
+        } else if (action.data == "contacts") {
+            client.roster().print(std::cout);
+            std::cout << '\n';
+        } else if (action.data == "quit") {
+            shutdown();
         }
-    }
 
-    void onAckState(void* sender, icy::TransactionState& state, const icy::TransactionState&)
-    {
-        LDebug("####### On announce response: ", state);
-
-        // auto transaction = static_cast<icy::sockio::Transaction*>(sender);
-        switch (state.id()) {
-            case icy::TransactionState::Success:
-                // Handle transaction success
-                break;
-
-            case icy::TransactionState::Failed:
-                // Handle transaction failure
-                break;
-        }
+        delete arg;
     }
 
     void onRecvMessage(icy::smpl::Message& message)
@@ -279,27 +273,28 @@ public:
     {
         LDebug("####### On announce: ", status);
         if (status != 200)
-            throw std::runtime_error("Announce failed with status: " + std::to_string(status));
+            std::cerr << "Announce failed with status: " << status << '\n';
     }
 
-    void onClientStateChange(void*, icy::sockio::ClientState& state, const icy::sockio::ClientState& oldState)
+    void onClientStateChange(void*, icy::smpl::ClientState& state, const icy::smpl::ClientState& oldState)
     {
-        SDebug << "Client state changed: " << state << ": "
-               << client.ws().socket->address();
+        SDebug << "Client state changed: " << oldState << " -> " << state;
 
         switch (state.id()) {
-            case icy::sockio::ClientState::Connecting:
+            case icy::smpl::ClientState::Connecting:
                 break;
-            case icy::sockio::ClientState::Connected:
+            case icy::smpl::ClientState::Authenticating:
                 break;
-            case icy::sockio::ClientState::Online:
-                std::cout << "Client online" << '\n';
+            case icy::smpl::ClientState::Online:
+                std::cout << "Client online as " << client.ourID() << '\n';
 
                 // Join the public room
                 client.joinRoom("public");
                 break;
-            case icy::sockio::ClientState::Error:
+            case icy::smpl::ClientState::Error:
                 std::cout << "Client disconnected" << '\n';
+                break;
+            case icy::smpl::ClientState::Closed:
                 break;
         }
     }
