@@ -23,9 +23,42 @@ Lightweight WebRTC media stack via libdatachannel. See `src/webrtc/README.md`
 - New `src/webrtc/` module: MediaBridge, PeerSession, CodecNegotiator
 - libdatachannel via FetchContent (libjuice ICE, libsrtp SRTP, usrsctp data channels)
 - FFmpeg encode/decode <> libdatachannel RTP Track bridge
+- VideoEncoder PacketProcessor for the capture → RTP pipeline
 - Symple signalling for SDP/candidate exchange
 - icey TURN server as self-hosted relay infrastructure
 - Samples: webcam-streamer, file-streamer, media-recorder, data-echo
+
+#### Media encode adapter (BLOCKER — WebRTC streams not playable without this)
+
+The WebRTC samples wire `MediaCapture` (decoded raw frames) directly to `WebRtcTrackSender` (expects encoded codec frames). No video or audio plays in the browser.
+
+The av module already has `VideoEncoder` and `AudioEncoder` (FFmpeg `AVCodecContext` wrappers). The webrtc module already has `WebRtcTrackSender` (a `PacketProcessor` that calls `rtc::Track::sendFrame()`). `MediaBridge` already documents the correct pipeline in its header (mediabridge.h:53):
+
+```text
+capture → encoder → bridge.videoSender()
+```
+
+What's missing is a `PacketProcessor` adapter in `src/av/` that bridges the decoded `MediaPacket` from capture to the existing `VideoEncoder`/`AudioEncoder::encode(AVFrame*)` and emits the encoded `MediaPacket` back into the `PacketStream`. This is the same pattern as `MultiplexPacketEncoder` but without the muxer — encode only, no file I/O.
+
+**`StreamEncoder`** — single `PacketProcessor` class in `src/av/`:
+
+- Wraps an `av::VideoEncoder` and/or `av::AudioEncoder` (the existing classes).
+- `process(IPacket&)`: casts to `VideoPacket`/`AudioPacket`, feeds `AVFrame` to the corresponding encoder's `encode(AVFrame*)`, emits the encoded packet downstream.
+- Configured via `av::VideoCodec` / `av::AudioCodec` (same structs `MediaBridge::Options` already uses).
+- Exposes `forceKeyframe()` for `MediaBridge::KeyframeRequested` signal.
+- Exposes `setBitrate(unsigned bps)` for `MediaBridge::BitrateEstimate` signal.
+- No new FFmpeg wrapping — delegates entirely to existing `VideoEncoder`/`AudioEncoder`.
+
+**Sample wiring** (all three WebRTC samples):
+
+```text
+PacketStream stream;
+stream.attachSource(capture);
+stream.attach(&streamEncoder, 1, true);     // encode raw → compressed
+stream.attach(&bridge.videoSender(), 5, false);  // compressed → RTP
+```
+
+No changes to `MediaBridge`, `WebRtcTrackSender`, or libdatachannel.
 
 ### 2.2 - Networking
 
