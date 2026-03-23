@@ -286,24 +286,21 @@ std::string PacketStream::name() const
 
 void PacketStream::synchronizeStates()
 {
-    // Process queued internal states first
-    while (!_states.empty()) {
-        PacketStreamState state;
-        {
-            std::lock_guard<std::mutex> guard(_mutex);
-            state.set(_states.front().id());
-            _states.pop_front();
-        }
+    std::deque<PacketStreamState> pending;
+    {
+        std::lock_guard<std::mutex> guard(_mutex);
+        if (_states.empty())
+            return;
+        pending.swap(_states);
+    }
 
+    // Send the queued stream states to packet adapters from the processor
+    // context so adapters do not need to treat state changes as cross-thread.
+    auto adapters = this->adapters();
+    for (const auto& state : pending) {
         LTrace("Set queued state: ", state);
-
-        // Send the stream state to packet adapters.
-        // This is done inside the processor thread context so
-        // packet adapters do not need to consider thread safety.
-        auto adapters = this->adapters();
-        for (auto& ref : adapters) {
+        for (auto& ref : adapters)
             reinterpret_cast<PacketStreamAdapter*>(ref->ptr)->onStreamStateChange(state);
-        }
     }
 }
 
@@ -320,49 +317,46 @@ void PacketStream::process(IPacket& packet)
         if (_autoStart && stateEquals(PacketStreamState::None))
             start();
 
-        // Process the packet if the stream is active
         PacketProcessor* firstProc = nullptr;
-        if (stateEquals(PacketStreamState::Active) &&
-            !packet.flags.has(static_cast<unsigned>(PacketFlags::NoModify))) {
-            {
-                std::lock_guard<std::mutex> guard(_mutex);
-                firstProc = !_processors.empty() ? reinterpret_cast<PacketProcessor*>(_processors[0]->ptr) : nullptr;
-            }
-            if (firstProc) {
+        bool synchronizeProcessing = false;
+        const bool noModify =
+            packet.flags.has(static_cast<unsigned>(PacketFlags::NoModify));
+        {
+            std::lock_guard<std::mutex> guard(_mutex);
+            firstProc = !_processors.empty()
+                ? reinterpret_cast<PacketProcessor*>(_processors[0]->ptr)
+                : nullptr;
 
-                // Lock the processor mutex to synchronize multi source streams
-                std::lock_guard<std::mutex> guard(_procMutex);
-
-                // Sync queued states
-                synchronizeStates();
-
-                // Send the packet to the first processor in the chain
-                if (stateEquals(PacketStreamState::Active)) {
-                    // STrace << "Starting process chain: "
-                    //     << firstProc << ": " << packet.className() << endl;
-                    // assert(stateEquals(PacketStreamState::Active));
-                    if (firstProc->accepts(&packet))
-                        firstProc->process(packet);
-                    else
-                        firstProc->emit(packet);
-
-                    // STrace << "After process chain: "
-                    //     << firstProc << ": " << packet.className() << endl;
-                    // If all went well the packet was processed and emitted...
-                }
-
-                // Proxy packets which are rejected by the first processor
-                else {
-                    SWarn << "Source packet rejected: " << firstProc
-                          << ": " << packet.className();
-                    firstProc = nullptr;
-                }
-            }
+            // Direct passthrough is only safe without the processor mutex when
+            // there is a single source and no queued state changes. Multi-source
+            // passthrough would otherwise emit concurrently into the non-thread-
+            // safe PacketSignal hot path.
+            synchronizeProcessing =
+                firstProc != nullptr || _sources.size() > 1 || !_states.empty();
         }
+
+        bool handled = false;
+        auto processCurrentPacket = [&]() {
+            synchronizeStates();
+
+            if (stateEquals(PacketStreamState::Active) && !noModify && firstProc) {
+                if (firstProc->accepts(&packet))
+                    firstProc->process(packet);
+                else
+                    firstProc->emit(packet);
+                handled = true;
+            }
+        };
+
+        if (synchronizeProcessing) {
+            std::lock_guard<std::mutex> guard(_procMutex);
+            processCurrentPacket();
+        } else
+            processCurrentPacket();
 
         // Otherwise just proxy and emit the packet.
         // Note: synchronizeOutput is not applied here (packets bypass sync queue).
-        if (!firstProc) {
+        if (!handled) {
             STrace << "Proxying packet: " << state() << ": "
                    << packet.className();
             emit(packet);

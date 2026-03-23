@@ -1018,6 +1018,7 @@ int main(int argc, char** argv)
     describe("packet stream", new PacketStreamTest);
     describe("packet stream signal detach", new PacketStreamSignalDetachTest);
     describe("packet stream restart", new PacketStreamRestartTest);
+    describe("packet stream multi-source passthrough", new PacketStreamMultiSourcePassthroughTest);
     describe("process class", new ProcessTest);
     describe("packet stream file io", new PacketStreamIOTest);
     describe("packet stream overflow", new PacketStreamOverflowTest);

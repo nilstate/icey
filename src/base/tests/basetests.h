@@ -447,6 +447,34 @@ struct MockPacketSource : public PacketSource
     }
 };
 
+struct MockBurstPacketSource : public PacketSource
+{
+    Thread runner;
+    PacketSignal emitter;
+    int packets;
+
+    explicit MockBurstPacketSource(int packets = 1000)
+        : PacketSource(emitter)
+        , packets(packets)
+    {
+    }
+
+    void start()
+    {
+        runner.start([this]() {
+            for (int i = 0; i < packets; ++i) {
+                RawPacket packet("x", 1);
+                emitter.emit(packet);
+            }
+        });
+    }
+
+    void join()
+    {
+        runner.join();
+    }
+};
+
 class PacketStreamTest : public Test
 {
     int numPackets;
@@ -548,6 +576,38 @@ class PacketStreamRestartTest : public Test
         stream.close();
         expect(source.emitter.nslots() == 0);
         expect(processor.emitter.nslots() == 0);
+    }
+};
+
+class PacketStreamMultiSourcePassthroughTest : public Test
+{
+    std::atomic<int> received{0};
+
+    void onPacketStreamOutput(IPacket&)
+    {
+        ++received;
+    }
+
+    void run()
+    {
+        PacketStream stream;
+        auto sourceA = std::make_shared<MockBurstPacketSource>(1000);
+        auto sourceB = std::make_shared<MockBurstPacketSource>(1000);
+
+        stream.attachSource(sourceA, false);
+        stream.attachSource(sourceB, false);
+        stream.emitter += slot(this, &PacketStreamMultiSourcePassthroughTest::onPacketStreamOutput);
+
+        stream.start();
+
+        sourceA->start();
+        sourceB->start();
+        sourceA->join();
+        sourceB->join();
+
+        expect(received == 2000);
+
+        stream.close();
     }
 };
 
