@@ -20,6 +20,7 @@ set(Icey_BUILD_MODULES "" CACHE INTERNAL "Modules built")
 set(Icey_BUILD_TESTS "" CACHE INTERNAL "Tests built")
 set(Icey_BUILD_SAMPLES "" CACHE INTERNAL "Samples built")
 set(Icey_BUILD_FUZZERS "" CACHE INTERNAL "Fuzz targets built")
+set(Icey_BUILD_BENCHMARKS "" CACHE INTERNAL "Benchmark targets built")
 
 # ----------------------------------------------------------------------------
 # Helper: filter platform-specific sources
@@ -203,6 +204,11 @@ function(icy_add_module name)
   if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/fuzz AND BUILD_FUZZERS)
     add_subdirectory(fuzz)
   endif()
+
+  # Build benchmark targets if requested
+  if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/bench AND BUILD_BENCHMARKS)
+    add_subdirectory(bench)
+  endif()
 endfunction()
 
 # ----------------------------------------------------------------------------
@@ -365,6 +371,43 @@ function(icy_add_fuzzer name)
   endif()
 
   set(Icey_BUILD_FUZZERS ${Icey_BUILD_FUZZERS} ${name} CACHE INTERNAL "")
+endfunction()
+
+# ----------------------------------------------------------------------------
+# icy_add_benchmark(<name> DEPENDS <module1> <module2> ...)
+# ----------------------------------------------------------------------------
+function(icy_add_benchmark name)
+  cmake_parse_arguments(BENCH "" "" "DEPENDS" ${ARGN})
+
+  if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${name}.cpp")
+    set(_srcs "${CMAKE_CURRENT_SOURCE_DIR}/${name}.cpp")
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${name}.h")
+      set(_hdrs "${CMAKE_CURRENT_SOURCE_DIR}/${name}.h")
+    else()
+      set(_hdrs "")
+    endif()
+  else()
+    file(GLOB _srcs "*.cpp")
+    file(GLOB _hdrs "*.h*")
+  endif()
+
+  source_group("Src" FILES ${_srcs})
+  source_group("Include" FILES ${_hdrs})
+
+  add_executable(${name} ${_srcs} ${_hdrs})
+
+  if(BENCH_DEPENDS)
+    target_link_libraries(${name} PRIVATE ${BENCH_DEPENDS})
+  endif()
+
+  target_include_directories(${name} PRIVATE ${CMAKE_BINARY_DIR})
+  target_compile_definitions(${name} PRIVATE ICY_DATA_DIR="${Icey_SOURCE_DIR}/data")
+
+  if(ENABLE_SOLUTION_FOLDERS)
+    set_target_properties(${name} PROPERTIES FOLDER "benchmarks")
+  endif()
+
+  set(Icey_BUILD_BENCHMARKS ${Icey_BUILD_BENCHMARKS} ${name} CACHE INTERNAL "")
 endfunction()
 
 # ----------------------------------------------------------------------------

@@ -36,6 +36,7 @@ option(BUILD_APPLICATIONS         "Build Icey applications"             ON)
 option(BUILD_TESTS                "Build module tests"                        OFF)
 option(BUILD_SAMPLES              "Build module samples"                      OFF)
 option(BUILD_FUZZERS              "Build module fuzz targets"                 OFF)
+option(BUILD_BENCHMARKS          "Build module benchmark targets"            OFF)
 option(BUILD_ALPHA                "Build alpha development modules"           OFF)
 option(ENABLE_SOLUTION_FOLDERS    "IDE solution folders"                      ON)
 option(ENABLE_LOGGING             "Enable internal debug logging"             ON)
@@ -330,14 +331,39 @@ install(FILES ${CMAKE_BINARY_DIR}/icey.pc
 # ----------------------------------------------------------------------------
 # Install export set and config package
 # ----------------------------------------------------------------------------
+export(EXPORT IceyTargets
+  FILE ${CMAKE_BINARY_DIR}/IceyTargets.cmake
+  NAMESPACE Icey::
+)
+
+if(NOT USE_SYSTEM_DEPS)
+  set(_icey_vendored_targets)
+  foreach(_target uv_a llhttp_static)
+    if(TARGET ${_target})
+      list(APPEND _icey_vendored_targets ${_target})
+    endif()
+  endforeach()
+  if(_icey_vendored_targets)
+    export(TARGETS ${_icey_vendored_targets}
+      FILE ${CMAKE_BINARY_DIR}/IceyVendoredTargets.cmake
+    )
+  endif()
+endif()
+
 install(EXPORT IceyTargets
   NAMESPACE Icey::
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Icey
   COMPONENT dev)
 
 configure_package_config_file(
-  ${Icey_DIR}/cmake/IceyConfig.cmake.in
+  ${Icey_DIR}/cmake/IceyBuildConfig.cmake.in
   ${CMAKE_BINARY_DIR}/IceyConfig.cmake
+  INSTALL_DESTINATION ${CMAKE_BINARY_DIR}
+  INSTALL_PREFIX ${CMAKE_BINARY_DIR})
+
+configure_package_config_file(
+  ${Icey_DIR}/cmake/IceyConfig.cmake.in
+  ${CMAKE_BINARY_DIR}/IceyInstallConfig.cmake
   INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Icey)
 
 write_basic_package_version_file(
@@ -346,7 +372,10 @@ write_basic_package_version_file(
   COMPATIBILITY SameMajorVersion)
 
 install(FILES
-  ${CMAKE_BINARY_DIR}/IceyConfig.cmake
   ${CMAKE_BINARY_DIR}/IceyConfigVersion.cmake
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Icey
+  COMPONENT dev)
+install(FILES ${CMAKE_BINARY_DIR}/IceyInstallConfig.cmake
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Icey
+  RENAME IceyConfig.cmake
   COMPONENT dev)
