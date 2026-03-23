@@ -329,6 +329,36 @@ int main(int argc, char** argv)
         pc->close();
     });
 
+    describe("media bridge: sender reference survives detach and reattach", []() {
+        rtc::Configuration config;
+        auto pc1 = std::make_shared<rtc::PeerConnection>(config);
+        auto pc2 = std::make_shared<rtc::PeerConnection>(config);
+
+        MediaBridge bridge;
+        MediaBridge::Options opts;
+        opts.videoCodec = av::VideoCodec("H264", "libx264", 640, 480, 30);
+
+        bridge.attach(pc1, opts);
+        auto* sender = &bridge.videoSender();
+        expect(sender->bound());
+
+        bridge.detach();
+        expect(!bridge.attached());
+        expect(!sender->bound());
+
+        bool threw = false;
+        try { [[maybe_unused]] auto& rebound = bridge.videoSender(); } catch (const std::logic_error&) { threw = true; }
+        expect(threw);
+
+        bridge.attach(pc2, opts);
+        expect(&bridge.videoSender() == sender);
+        expect(sender->bound());
+
+        bridge.detach();
+        pc1->close();
+        pc2->close();
+    });
+
 
     // =========================================================================
     // Layer 3: PeerSession

@@ -43,6 +43,11 @@ namespace wrtc {
 /// createAudioTrack(), WebRtcTrackSender, and WebRtcTrackReceiver
 /// directly instead of this class.
 ///
+/// The sender and receiver adapter objects are stable for the lifetime of the
+/// MediaBridge. attach() and detach() rebind or unbind the underlying WebRTC
+/// tracks without invalidating references previously obtained from
+/// videoSender(), audioSender(), videoReceiver(), or audioReceiver().
+///
 /// Example - send camera to browser:
 ///
 ///   MediaBridge bridge;
@@ -157,9 +162,10 @@ public:
 private:
     std::shared_ptr<rtc::PeerConnection> _pc;
 
-    // Send side (one per track, optional)
-    std::unique_ptr<WebRtcTrackSender> _videoSender;
-    std::unique_ptr<WebRtcTrackSender> _audioSender;
+    // Send side. The adapter objects stay alive for the whole MediaBridge
+    // lifetime so PacketStream attachments do not dangle across attach/detach.
+    WebRtcTrackSender _videoSender;
+    WebRtcTrackSender _audioSender;
     TrackHandle _videoHandle;
     TrackHandle _audioHandle;
 

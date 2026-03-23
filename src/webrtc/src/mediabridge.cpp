@@ -43,14 +43,14 @@ void MediaBridge::attach(std::shared_ptr<rtc::PeerConnection> pc,
             _pc, opts.videoCodec, opts.videoSsrc, cname, opts.nackBufferSize,
             [this]() { KeyframeRequested.emit(); },
             [this](unsigned int bps) { BitrateEstimate.emit(bps); });
-        _videoSender = std::make_unique<WebRtcTrackSender>(_videoHandle);
+        _videoSender.bind(_videoHandle);
     }
 
     // Create audio track if codec encoder is specified.
     if (!opts.audioCodec.encoder.empty()) {
         _audioHandle = createAudioTrack(
             _pc, opts.audioCodec, opts.audioSsrc, cname);
-        _audioSender = std::make_unique<WebRtcTrackSender>(_audioHandle);
+        _audioSender.bind(_audioHandle);
     }
 
     // Handle incoming remote tracks.
@@ -72,18 +72,14 @@ void MediaBridge::detach()
 {
     std::lock_guard lock(_mutex);
 
-    if (_videoSender)
-        _videoSender->unbind();
-    if (_audioSender)
-        _audioSender->unbind();
+    _videoSender.unbind();
+    _audioSender.unbind();
 
     // Clear callbacks before releasing the PeerConnection to prevent
     // dangling `this` captures if the caller keeps the PC alive.
     if (_pc)
         _pc->onTrack(nullptr);
 
-    _videoSender.reset();
-    _audioSender.reset();
     _videoHandle = {};
     _audioHandle = {};
     _pc.reset();
@@ -108,17 +104,17 @@ void MediaBridge::requestBitrate(unsigned int bitrate)
 
 WebRtcTrackSender& MediaBridge::videoSender()
 {
-    if (!_videoSender)
+    if (!_videoHandle.track)
         throw std::logic_error("No video track created");
-    return *_videoSender;
+    return _videoSender;
 }
 
 
 WebRtcTrackSender& MediaBridge::audioSender()
 {
-    if (!_audioSender)
+    if (!_audioHandle.track)
         throw std::logic_error("No audio track created");
-    return *_audioSender;
+    return _audioSender;
 }
 
 
@@ -143,14 +139,14 @@ std::shared_ptr<rtc::Track> MediaBridge::audioTrack() const
 bool MediaBridge::hasVideo() const
 {
     std::lock_guard lock(_mutex);
-    return _videoSender != nullptr;
+    return _videoHandle.track != nullptr;
 }
 
 
 bool MediaBridge::hasAudio() const
 {
     std::lock_guard lock(_mutex);
-    return _audioSender != nullptr;
+    return _audioHandle.track != nullptr;
 }
 
 

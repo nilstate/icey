@@ -87,7 +87,7 @@ videoReceiver.emitter += packetSlot(&recorder, &Recorder::onEncodedVideo);
 
 ### Layer 3: Convenience (`mediabridge.h`, `peersession.h`)
 
-`MediaBridge` creates tracks and adapters for the common case. Video-only, audio-only, or both.
+`MediaBridge` creates tracks and adapters for the common case. Video-only, audio-only, or both. The sender and receiver adapter objects stay stable across attach/detach, so a `PacketStream` can keep a `videoSender()` or `audioSender()` attachment alive across repeated calls while the underlying WebRTC tracks are rebound internally.
 
 ```cpp
 #include "icy/webrtc/mediabridge.h"

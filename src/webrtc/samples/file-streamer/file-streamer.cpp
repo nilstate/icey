@@ -47,6 +47,8 @@ public:
     std::shared_ptr<av::VideoPacketEncoder> encoder;
     PacketStream stream;
     std::string sourceFile;
+    wrtc::WebRtcTrackSender* videoSender = nullptr;
+    bool pipelineReady = false;
 
     FileStreamer(const smpl::Client::Options& opts, const std::string& file)
         : client(opts)
@@ -71,7 +73,8 @@ public:
 
     void shutdown()
     {
-        stream.stop();
+        stopStreaming();
+        stream.close();
         if (session)
             session->hangup("shutdown");
         session.reset();
@@ -110,7 +113,7 @@ private:
                 startStreaming();
             }
             else if (state == wrtc::PeerSession::State::Ended) {
-                stream.stop();
+                stopStreaming();
             }
         };
 
@@ -127,26 +130,38 @@ private:
         if (!session || !session->media().hasVideo())
             return;
 
-        // Create encoder: decoded frames → H.264 NAL units
-        encoder = std::make_shared<av::VideoPacketEncoder>();
+        if (!pipelineReady) {
+            encoder = std::make_shared<av::VideoPacketEncoder>();
 
-        // Input params: the decoded format from the file
-        capture->getEncoderVideoCodec(encoder->iparams);
+            // Input params: the decoded format from the file
+            capture->getEncoderVideoCodec(encoder->iparams);
 
-        // Output params: H.264 for WebRTC
-        encoder->oparams = av::VideoCodec("H264", "libx264", 640, 480, 30);
-        encoder->oparams.options["preset"] = "ultrafast";
-        encoder->oparams.options["tune"] = "zerolatency";
-        encoder->oparams.options["profile"] = "baseline";
+            // Output params: H.264 for WebRTC
+            encoder->oparams = av::VideoCodec("H264", "libx264", 640, 480, 30);
+            encoder->oparams.options["preset"] = "ultrafast";
+            encoder->oparams.options["tune"] = "zerolatency";
+            encoder->oparams.options["profile"] = "baseline";
 
-        // Pipeline: capture → encoder → WebRTC sender
-        stream.attachSource(capture.get(), false, true);
-        stream.attach(encoder, 1, true);
-        stream.attach(&session->media().videoSender(), 5, false);
+            videoSender = &session->media().videoSender();
+
+            // Pipeline: capture → encoder → WebRTC sender
+            stream.attachSource(capture.get(), false, true);
+            stream.attach(encoder, 1, true);
+            stream.attach(videoSender, 5, false);
+            pipelineReady = true;
+        }
+
         stream.start();
 
         capture->start();
         std::cout << "Streaming " << sourceFile << '\n';
+    }
+
+    void stopStreaming()
+    {
+        if (capture)
+            capture->stop();
+        stream.stop();
     }
 
     void onAnnounce(const int& status)
