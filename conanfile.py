@@ -7,7 +7,7 @@ import os
 
 class IceyConan(ConanFile):
     name = "icey"
-    version = "2.1.0"
+    version = "2.3.0"
     license = "LGPL-2.1-or-later"
     url = "https://github.com/sourcey/icey"
     homepage = "https://0state.com/code/icey"

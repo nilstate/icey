@@ -4,6 +4,51 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+## [2.3.0] - 2026-03-23
+
+### Added
+
+- Dedicated protocol fuzz targets under `BUILD_FUZZERS` for the HTTP parser, WebSocket frame parser, STUN message parser, and TURN indication/request parsing
+- Build-tree and install-tree consumer validation for the exported CMake package surface
+- Dedicated benchmark targets under `BUILD_BENCHMARKS`: `signalbench`, `httpbench`, and the `httpbench_compare` wrk/Node.js/Go comparison harness
+- WebRTC loopback/media regression coverage for:
+  - data-channel roundtrip
+  - encoded H.264 roundtrip
+  - encoded Opus roundtrip
+  - relay audio fanout
+  - relay source handoff
+- `media-server` `record` and `relay` modes are now real shipped behaviors rather than placeholder sample code
+
+### Changed
+
+- HTTP benchmark assets moved out of `src/http/samples/httpbenchmark/` into `src/http/bench/`, and `src/http/samples/` now contains samples only
+- `PacketStream` queue retention and ownership semantics are now explicit at queue boundaries, with deterministic overload/drop accounting and synchronized multi-source passthrough
+- `PeerSession` now uses explicit call phases and stricter signaling ordering, and WebRTC track setup requires explicit codec selection instead of fallback codec guessing
+- The canonical WebRTC send path used by the samples and `media-server` is now encode -> RTP packetize -> sender, with stable sender bindings across call lifecycles
+
+### Fixed
+
+- Core async lifetime handling in `base` / `net` / `http`, including retained handle/request context, state-driven HTTP server lifecycle, and typed WebSocket parse errors
+- STUN/TURN protocol correctness and relay hot paths:
+  - correct STUN length/integrity patching
+  - correct plain vs XOR address handling
+  - IPv6 address attribute wire sizing
+  - binary/numeric TURN permission checks and local-IP policy
+- Symple routing/state correctness:
+  - presence canonicalization
+  - room-based authz checks
+  - reconnect room restoration
+  - virtual-peer copy semantics
+- `media-server` relay/signaling behavior:
+  - remote ICE candidates queue until remote SDP is installed
+  - relay source promotion/handoff works correctly
+  - stable media sender lifetime across attach/detach
+- Package consumer discovery:
+  - exported targets work correctly from both the build tree and install tree
+  - `find_package(Icey REQUIRED COMPONENTS ...)` correctly marks built components as found
+
 ## [2.2.0] - 2026-03-19
 
 ### Added

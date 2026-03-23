@@ -979,7 +979,7 @@ target_link_libraries(myapp PRIVATE Icey::av)
 include(FetchContent)
 FetchContent_Declare(icey
     GIT_REPOSITORY https://github.com/sourcey/icey.git
-    GIT_TAG v2.1.0)
+    GIT_TAG v2.3.0)
 FetchContent_MakeAvailable(icey)
 target_link_libraries(myapp PRIVATE Icey::av)
 ```
