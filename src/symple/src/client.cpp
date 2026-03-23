@@ -11,6 +11,7 @@
 
 #include "icy/symple/client.h"
 #include "icy/logger.h"
+#include "icy/util.h"
 
 #include <algorithm>
 #include <stdexcept>
@@ -25,6 +26,9 @@ Client::Client()
     , _loop(uv::defaultLoop())
     , _reconnectTimer(uv::defaultLoop())
 {
+    _reconnectTimer.Timeout += [this]() {
+        doConnect();
+    };
 }
 
 
@@ -33,6 +37,9 @@ Client::Client(const Options& options, uv::Loop* loop)
     , _loop(loop)
     , _reconnectTimer(loop)
 {
+    _reconnectTimer.Timeout += [this]() {
+        doConnect();
+    };
 }
 
 
@@ -82,6 +89,11 @@ void Client::doConnect()
             json::Value data;
             data["peerType"] = _options.type;
             auth["data"] = data;
+        }
+        if (!_desiredRooms.empty()) {
+            auth["rooms"] = json::Value::array();
+            for (const auto& room : _desiredRooms)
+                auth["rooms"].push_back(room);
         }
         sendJson(auth);
     };
@@ -145,7 +157,8 @@ int Client::send(Message& m)
 
     m.setFrom(peer->address());
 
-    if (m.to().id == m.from().id && !m.to().id.empty())
+    auto toId = m.toId();
+    if (!toId.empty() && toId == m.fromId())
         throw std::runtime_error("Sender and recipient cannot match");
 
     if (!m.valid())
@@ -157,16 +170,38 @@ int Client::send(Message& m)
 
 int Client::send(const std::string& data)
 {
-    Message m;
-    if (!m.read(data))
-        throw std::runtime_error("Cannot send malformed message");
-    return send(m);
+    if (!isOnline())
+        throw std::runtime_error("Cannot send message while offline");
+
+    auto peer = ourPeer();
+    if (!peer)
+        throw std::runtime_error("No active peer session");
+
+    auto msg = json::Value::parse(data);
+    if (!msg.is_object())
+        throw std::runtime_error("Cannot send non-object protocol message");
+
+    if (!msg.contains("id"))
+        msg["id"] = util::randomString(16);
+    if (!msg.contains("type"))
+        msg["type"] = "message";
+
+    msg["from"] = peer->address().toString();
+
+    auto toIt = msg.find("to");
+    if (toIt != msg.end() && toIt->is_string()) {
+        Address to(toIt->get<std::string>());
+        if (!to.id.empty() && to.id == peer->id())
+            throw std::runtime_error("Sender and recipient cannot match");
+    }
+
+    return sendJson(msg);
 }
 
 
 int Client::respond(Message& m)
 {
-    m.setTo(m.from());
+    m.setTo(m.value("from", ""));
     return send(m);
 }
 
@@ -206,25 +241,34 @@ int Client::sendPresence(const Address& to, bool probe)
 
 int Client::joinRoom(const std::string& room)
 {
-    LDebug("Join room: ", room);
-    _rooms.push_back(room);
+    if (room.empty())
+        return -1;
 
-    json::Value msg;
-    msg["type"] = "join";
-    msg["room"] = room;
-    return sendJson(msg);
+    LDebug("Join room: ", room);
+    _desiredRooms.insert(room);
+    _pendingLeaves.erase(room);
+    syncDesiredRooms();
+    return 0;
 }
 
 
 int Client::leaveRoom(const std::string& room)
 {
-    LDebug("Leave room: ", room);
-    _rooms.erase(std::remove(_rooms.begin(), _rooms.end(), room), _rooms.end());
+    if (room.empty())
+        return -1;
 
-    json::Value msg;
-    msg["type"] = "leave";
-    msg["room"] = room;
-    return sendJson(msg);
+    LDebug("Leave room: ", room);
+    _desiredRooms.erase(room);
+
+    if (isOnline() && _currentRooms.count(room) && !_pendingLeaves.count(room)) {
+        json::Value msg;
+        msg["type"] = "leave";
+        msg["room"] = room;
+        if (sendJson(msg) >= 0)
+            _pendingLeaves.insert(room);
+    }
+
+    return 0;
 }
 
 
@@ -250,7 +294,9 @@ Peer* Client::ourPeer()
 
 StringVec Client::rooms() const
 {
-    return _rooms;
+    StringVec rooms(_currentRooms.begin(), _currentRooms.end());
+    std::sort(rooms.begin(), rooms.end());
+    return rooms;
 }
 
 
@@ -314,8 +360,31 @@ void Client::onSocketRecv(const std::string& data)
             return;
         }
 
-        if (type == "join:ok" || type == "leave:ok")
+        if (type == "join:ok") {
+            auto room = msg.value("room", "");
+            if (!room.empty()) {
+                _pendingJoins.erase(room);
+                _currentRooms.insert(room);
+                if (!_desiredRooms.count(room) && !_pendingLeaves.count(room)) {
+                    json::Value leave;
+                    leave["type"] = "leave";
+                    leave["room"] = room;
+                    if (sendJson(leave) >= 0)
+                        _pendingLeaves.insert(room);
+                }
+            }
             return;
+        }
+        if (type == "leave:ok") {
+            auto room = msg.value("room", "");
+            if (!room.empty()) {
+                _pendingLeaves.erase(room);
+                _currentRooms.erase(room);
+                if (_desiredRooms.count(room) && !_pendingJoins.count(room))
+                    syncDesiredRooms();
+            }
+            return;
+        }
 
         onServerMessage(msg);
     }
@@ -375,6 +444,16 @@ void Client::onWelcome(const json::Value& msg)
 
     onPresenceData(peerData, true);
 
+    _currentRooms.clear();
+    _pendingJoins.clear();
+    _pendingLeaves.clear();
+    if (msg.contains("rooms") && msg["rooms"].is_array()) {
+        for (const auto& room : msg["rooms"]) {
+            if (room.is_string() && !room.get<std::string>().empty())
+                _currentRooms.insert(room.get<std::string>());
+        }
+    }
+
     Announce.emit(_announceStatus);
 
     _wasOnline = true;
@@ -382,7 +461,7 @@ void Client::onWelcome(const json::Value& msg)
     setState(this, ClientState::Online);
 
     LInfo("Online as ", _options.user, "|", _ourID);
-
+    syncDesiredRooms();
     sendPresence(true);
 }
 
@@ -485,9 +564,6 @@ void Client::startReconnect()
     LInfo("Reconnecting (attempt ", _reconnectCount, ")...");
 
     _reconnectTimer.setTimeout(_options.reconnectDelay);
-    _reconnectTimer.Timeout += [this]() {
-        doConnect();
-    };
     _reconnectTimer.start();
 }
 
@@ -499,10 +575,30 @@ void Client::startReconnect()
 void Client::reset()
 {
     _roster.clear();
-    _rooms.clear();
+    _currentRooms.clear();
+    _pendingJoins.clear();
+    _pendingLeaves.clear();
     _announceStatus = 0;
     _ourID.clear();
     _wasOnline = false;
+}
+
+
+void Client::syncDesiredRooms()
+{
+    if (!_ws || !isOnline())
+        return;
+
+    for (const auto& room : _desiredRooms) {
+        if (_currentRooms.count(room) || _pendingJoins.count(room))
+            continue;
+
+        json::Value msg;
+        msg["type"] = "join";
+        msg["room"] = room;
+        if (sendJson(msg) >= 0)
+            _pendingJoins.insert(room);
+    }
 }
 
 

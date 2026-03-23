@@ -1,12 +1,12 @@
 # Symple Console
 
-Interactive console client for the Symple real-time messaging protocol. Connects to a Symple server over Socket.IO and provides a command-line interface for sending messages, joining/leaving rooms, and listing online contacts.
+Interactive console client for the Symple real-time messaging protocol. Connects to a Symple server over WebSocket and provides a command-line interface for sending messages, joining/leaving rooms, and listing online contacts.
 
 User input is read on a separate thread and dispatched to the libuv event loop via an IPC sync queue, keeping the networking thread non-blocking.
 
 ## Build
 
-Built automatically when `-DBUILD_SAMPLES=ON` is passed to CMake. Requires the `symple` and `socketio` modules.
+Built automatically when `-DBUILD_SAMPLES=ON` is passed to CMake. Requires the `symple` module.
 
 ## Usage
 

@@ -26,6 +26,7 @@
 #include "icy/timer.h"
 
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 
@@ -191,6 +192,7 @@ private:
     void onServerMessage(const json::Value& msg);
     void startReconnect();
     void reset();
+    void syncDesiredRooms();
 
     int sendJson(const json::Value& msg);
     std::string buildUrl() const;
@@ -200,7 +202,10 @@ private:
     http::ClientConnection::Ptr _ws;
     Roster _roster;
     std::string _ourID;
-    StringVec _rooms;
+    std::unordered_set<std::string> _currentRooms;  ///< Authoritative rooms from welcome / acks.
+    std::unordered_set<std::string> _desiredRooms;  ///< Rooms the client wants persisted across reconnects.
+    std::unordered_set<std::string> _pendingJoins;  ///< Join requests sent but not yet acknowledged.
+    std::unordered_set<std::string> _pendingLeaves; ///< Leave requests sent but not yet acknowledged.
     int _announceStatus = 0;
     Timer _reconnectTimer;
     int _reconnectCount = 0;

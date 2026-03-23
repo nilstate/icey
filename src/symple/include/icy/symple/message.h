@@ -71,6 +71,18 @@ public:
     /// Returns the sender address parsed from the `from` field.
     [[nodiscard]] Address from() const;
 
+    /// Returns the user component of the `to` address without constructing an Address.
+    [[nodiscard]] std::string toUser() const;
+
+    /// Returns the id component of the `to` address without constructing an Address.
+    [[nodiscard]] std::string toId() const;
+
+    /// Returns the user component of the `from` address without constructing an Address.
+    [[nodiscard]] std::string fromUser() const;
+
+    /// Returns the id component of the `from` address without constructing an Address.
+    [[nodiscard]] std::string fromId() const;
+
     /// Returns the HTTP status code, or -1 if not set.
     [[nodiscard]] int status() const;
 

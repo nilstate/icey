@@ -175,6 +175,11 @@ public:
     void broadcast(const std::string& room, const json::Value& msg,
                    const std::string& excludeId = {});
 
+    /// Broadcast to multiple rooms with per-recipient dedup.
+    void broadcastRooms(const std::unordered_set<std::string>& rooms,
+                        const json::Value& msg,
+                        const std::string& excludeId = {});
+
     /// Send a message to a specific peer by session ID.
     bool sendTo(const std::string& peerId, const json::Value& msg);
 

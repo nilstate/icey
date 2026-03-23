@@ -7,11 +7,22 @@
 #include "icy/symple/presence.h"
 #include "icy/symple/roster.h"
 
+#include <algorithm>
 #include <stdexcept>
 
 
 using namespace icy;
 namespace icy_test = icy::test;
+
+namespace {
+
+bool clientHasRoom(const smpl::Client& client, const std::string& room)
+{
+    auto rooms = client.rooms();
+    return std::find(rooms.begin(), rooms.end(), room) != rooms.end();
+}
+
+}
 
 
 int main(int argc, char** argv)
@@ -205,6 +216,10 @@ int main(int argc, char** argv)
 
         bob.connect();
         expect(test::waitFor([&] { return bob.gotOnline; }));
+        expect(test::waitFor([&] { return clientHasRoom(alice.client, "test") && clientHasRoom(bob.client, "test"); }));
+
+        alice.client.sendPresence(false);
+        bob.client.sendPresence(false);
         expect(test::waitFor([&] { return alice.gotRemotePresence && bob.gotRemotePresence; }));
         expect(server.peerCount() == 2);
 
@@ -235,6 +250,7 @@ int main(int argc, char** argv)
         sender.connect();
         receiver.connect();
         expect(test::waitFor([&] { return sender.gotOnline && receiver.gotOnline; }));
+        expect(test::waitFor([&] { return clientHasRoom(sender.client, "test") && clientHasRoom(receiver.client, "test"); }));
 
         smpl::Message msg;
         msg.setTo(smpl::Address("receiver"));
@@ -311,6 +327,10 @@ int main(int argc, char** argv)
 
         bob.connect();
         expect(test::waitFor([&] { return bob.gotOnline; }));
+        expect(test::waitFor([&] { return clientHasRoom(alice.client, "test") && clientHasRoom(bob.client, "test"); }));
+
+        alice.client.sendPresence(false);
+        bob.client.sendPresence(false);
         expect(test::waitFor([&] { return alice.gotRemotePresence; }));
 
         // Bob disconnects; alice should see offline presence
@@ -487,6 +507,329 @@ int main(int argc, char** argv)
         expect(test::waitFor([&] { return closed; }, 2000));
 
         client.close();
+    });
+
+
+    // =========================================================================
+    // Presence data sanitization: server overrides identity fields
+    //
+    icy_test::describe("hardening: presence data sanitized", []() {
+        smpl::Server server;
+        smpl::Server::Options sopts;
+        sopts.host = SERVER_HOST;
+        sopts.port = SERVER_PORT + 10;
+        server.start(sopts);
+
+        smpl::Client::Options optsA;
+        optsA.host = SERVER_HOST;
+        optsA.port = SERVER_PORT + 10;
+        optsA.user = "alice";
+        optsA.reconnection = false;
+        TestClient alice(optsA);
+
+        smpl::Client::Options optsB;
+        optsB.host = SERVER_HOST;
+        optsB.port = SERVER_PORT + 10;
+        optsB.user = "bob";
+        optsB.reconnection = false;
+        TestClient bob(optsB);
+
+        alice.connect();
+        expect(test::waitFor([&] { return alice.gotOnline; }));
+
+        bob.connect();
+        expect(test::waitFor([&] { return bob.gotOnline; }));
+        alice.client.joinRoom("shared");
+        bob.client.joinRoom("shared");
+        expect(test::waitFor([&] { return clientHasRoom(alice.client, "shared"); }));
+        expect(test::waitFor([&] { return clientHasRoom(bob.client, "shared"); }));
+
+        alice.client.sendPresence(false);
+        bob.client.sendPresence(false);
+        expect(test::waitFor([&] { return alice.gotRemotePresence && bob.gotRemotePresence; }));
+
+        json::Value forged;
+        forged["type"] = "presence";
+        forged["to"] = json::Value::array();
+        forged["to"].push_back("shared");
+        forged["data"] = json::Value::object();
+        forged["data"]["id"] = "FORGED_ID";
+        forged["data"]["user"] = "FORGED_USER";
+        forged["data"]["online"] = false;
+        forged["data"]["agent"] = "presence-sanitized";
+        alice.client.send(forged.dump());
+
+        expect(test::waitFor([&] {
+            auto* peer = bob.client.roster().get(alice.client.ourID());
+            return peer != nullptr && peer->value("agent", "") == "presence-sanitized";
+        }));
+
+        auto* alicePeer = bob.client.roster().get(alice.client.ourID());
+        expect(alicePeer != nullptr);
+        expect(alicePeer->user() == "alice");
+        expect(alicePeer->value("agent", "") == "presence-sanitized");
+        expect((*alicePeer)["online"].get<bool>());
+        expect(bob.client.roster().get("FORGED_ID") == nullptr);
+
+        alice.client.close();
+        bob.client.close();
+        server.shutdown();
+    });
+
+
+    // =========================================================================
+    // Direct messages require a shared room for both bare-user and user|id forms
+    //
+    icy_test::describe("hardening: direct message requires shared room", []() {
+        smpl::Server server;
+        smpl::Server::Options sopts;
+        sopts.host = SERVER_HOST;
+        sopts.port = SERVER_PORT + 11;
+        server.start(sopts);
+
+        smpl::Client::Options optsA;
+        optsA.host = SERVER_HOST;
+        optsA.port = SERVER_PORT + 11;
+        optsA.user = "alice";
+        optsA.reconnection = false;
+        smpl::Client alice(optsA);
+
+        smpl::Client::Options optsB;
+        optsB.host = SERVER_HOST;
+        optsB.port = SERVER_PORT + 11;
+        optsB.user = "bob";
+        optsB.reconnection = false;
+        smpl::Client bob(optsB);
+
+        bool aliceOnline = false;
+        bool bobOnline = false;
+        struct MessageCounter
+        {
+            int count = 0;
+            void onMessage(smpl::Message& msg)
+            {
+                if (msg.contains("data") &&
+                    msg["data"].is_object() &&
+                    msg["data"].contains("text")) {
+                    ++count;
+                }
+            }
+        } counter;
+
+        alice.StateChange += [&](void*, smpl::ClientState& state, const smpl::ClientState&) {
+            if (state.id() == smpl::ClientState::Online)
+                aliceOnline = true;
+        };
+        bob.StateChange += [&](void*, smpl::ClientState& state, const smpl::ClientState&) {
+            if (state.id() == smpl::ClientState::Online)
+                bobOnline = true;
+        };
+        bob += packetSlot(&counter, &MessageCounter::onMessage);
+
+        alice.connect();
+        bob.connect();
+        expect(test::waitFor([&] { return aliceOnline && bobOnline; }));
+
+        smpl::Message byUser;
+        byUser.setTo(smpl::Address("bob"));
+        byUser["data"]["text"] = "blocked-user";
+        alice.send(byUser);
+
+        smpl::Message bySession;
+        bySession.setTo(smpl::Address("bob|" + bob.ourID()));
+        bySession["data"]["text"] = "blocked-session";
+        alice.send(bySession);
+
+        icy::sleep(300);
+        expect(counter.count == 0);
+
+        alice.close();
+        bob.close();
+        server.shutdown();
+    });
+
+
+    // =========================================================================
+    // Reconnect room-state: welcome.rooms is authoritative, desired rooms rejoin
+    //
+    icy_test::describe("hardening: reconnect room state is authoritative", []() {
+        std::string assignedRoom = "alpha";
+
+        smpl::Server server;
+        smpl::Server::Options sopts;
+        sopts.host = SERVER_HOST;
+        sopts.port = SERVER_PORT + 12;
+        server.start(sopts);
+        server.Authenticate += [&](smpl::ServerPeer&, const json::Value&, bool& allowed, std::vector<std::string>& rooms) {
+            allowed = true;
+            rooms.push_back(assignedRoom);
+        };
+
+        smpl::Client::Options opts;
+        opts.host = SERVER_HOST;
+        opts.port = SERVER_PORT + 12;
+        opts.user = "alice";
+        opts.reconnection = false;
+        smpl::Client client(opts);
+
+        int onlineTransitions = 0;
+        client.StateChange += [&](void*, smpl::ClientState& state, const smpl::ClientState&) {
+            if (state.id() == smpl::ClientState::Online)
+                ++onlineTransitions;
+        };
+
+        auto hasRoom = [&](const std::string& room) {
+            auto rooms = client.rooms();
+            return std::find(rooms.begin(), rooms.end(), room) != rooms.end();
+        };
+
+        client.connect();
+        expect(test::waitFor([&] { return onlineTransitions == 1; }));
+
+        client.joinRoom("desired");
+        expect(test::waitFor([&] { return hasRoom("alpha") && hasRoom("desired") && hasRoom("alice"); }));
+
+        client.close();
+        icy::sleep(200);
+
+        assignedRoom = "beta";
+        client.connect();
+        expect(test::waitFor([&] { return onlineTransitions == 2; }));
+        expect(test::waitFor([&] { return hasRoom("beta") && hasRoom("desired") && hasRoom("alice"); }));
+        expect(!hasRoom("alpha"));
+
+        client.close();
+        server.shutdown();
+    });
+
+
+    // =========================================================================
+    // Multi-room fanout should dedupe recipients
+    //
+    icy_test::describe("hardening: room broadcast dedupes recipients", []() {
+        smpl::Server server;
+        smpl::Server::Options sopts;
+        sopts.host = SERVER_HOST;
+        sopts.port = SERVER_PORT + 13;
+        sopts.dynamicRooms = true;
+        server.start(sopts);
+
+        smpl::Client::Options optsA;
+        optsA.host = SERVER_HOST;
+        optsA.port = SERVER_PORT + 13;
+        optsA.user = "alice";
+        optsA.reconnection = false;
+        TestClient alice(optsA);
+
+        smpl::Client::Options optsB;
+        optsB.host = SERVER_HOST;
+        optsB.port = SERVER_PORT + 13;
+        optsB.user = "bob";
+        optsB.reconnection = false;
+        TestClient bob(optsB);
+
+        struct MessageCounter
+        {
+            int count = 0;
+            void onMessage(smpl::Message& msg)
+            {
+                if (msg.contains("data") &&
+                    msg["data"].is_object() &&
+                    msg["data"].value("text", "") == "DEDUP")
+                    ++count;
+            }
+        } counter;
+
+        bob.client += packetSlot(&counter, &MessageCounter::onMessage);
+
+        alice.connect();
+        bob.connect();
+        expect(test::waitFor([&] { return alice.gotOnline && bob.gotOnline; }));
+
+        alice.client.joinRoom("one");
+        alice.client.joinRoom("two");
+        bob.client.joinRoom("one");
+        bob.client.joinRoom("two");
+        expect(test::waitFor([&] {
+            auto rooms = alice.client.rooms();
+            return std::find(rooms.begin(), rooms.end(), "one") != rooms.end() &&
+                   std::find(rooms.begin(), rooms.end(), "two") != rooms.end();
+        }));
+        expect(test::waitFor([&] {
+            auto rooms = bob.client.rooms();
+            return std::find(rooms.begin(), rooms.end(), "one") != rooms.end() &&
+                   std::find(rooms.begin(), rooms.end(), "two") != rooms.end();
+        }));
+
+        json::Value msg;
+        msg["type"] = "message";
+        msg["to"] = json::Value::array();
+        msg["to"].push_back("one");
+        msg["to"].push_back("two");
+        msg["data"] = json::Value::object();
+        msg["data"]["text"] = "DEDUP";
+        alice.client.send(msg.dump());
+
+        expect(test::waitFor([&] { return counter.count == 1; }));
+
+        alice.client.close();
+        bob.client.close();
+        server.shutdown();
+    });
+
+
+    // =========================================================================
+    // Room broadcast authorization: can't broadcast to rooms you're not in
+    //
+    icy_test::describe("hardening: room broadcast requires membership", []() {
+        smpl::Server server;
+        smpl::Server::Options sopts;
+        sopts.host = SERVER_HOST;
+        sopts.port = SERVER_PORT + 14;
+        sopts.dynamicRooms = true;
+        server.start(sopts);
+
+        smpl::Client::Options optsA;
+        optsA.host = SERVER_HOST;
+        optsA.port = SERVER_PORT + 14;
+        optsA.user = "alice";
+        optsA.reconnection = false;
+        TestClient alice(optsA);
+
+        smpl::Client::Options optsB;
+        optsB.host = SERVER_HOST;
+        optsB.port = SERVER_PORT + 14;
+        optsB.user = "bob";
+        optsB.reconnection = false;
+        TestClient bob(optsB);
+
+        alice.connect();
+        expect(test::waitFor([&] { return alice.gotOnline; }));
+
+        bob.connect();
+        expect(test::waitFor([&] { return bob.gotOnline; }));
+
+        // Bob joins a private room
+        bob.client.joinRoom("private");
+        expect(test::waitFor([&] { return clientHasRoom(bob.client, "private"); }));
+
+        // Alice tries to broadcast to "private" room she's not in
+        json::Value msg;
+        msg["type"] = "message";
+        msg["to"] = json::Value::array();
+        msg["to"].push_back("private");
+        msg["data"] = json::Value::object();
+        msg["data"]["text"] = "SNEAKY";
+        alice.client.send(msg.dump());
+
+        icy::sleep(500);
+
+        // Bob should NOT have received the message
+        expect(bob.receivedMessage != "SNEAKY");
+
+        alice.client.close();
+        bob.client.close();
+        server.shutdown();
     });
 
 

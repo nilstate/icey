@@ -19,6 +19,20 @@
 namespace icy {
 namespace smpl {
 
+namespace {
+
+/// Extract the user or id component from an address string without allocating an Address.
+/// Component 0 = user (before '|'), component 1 = id (after '|').
+std::string addressComponent(const std::string& addr, int component)
+{
+    auto pos = addr.find('|');
+    if (component == 0)
+        return pos == std::string::npos ? addr : addr.substr(0, pos);
+    return pos == std::string::npos ? std::string() : addr.substr(pos + 1);
+}
+
+} // namespace
+
 
 Message::Message()
     : json::Value(json::Value::object())
@@ -150,6 +164,30 @@ Address Message::to() const
 Address Message::from() const
 {
     return Address(value("from", ""));
+}
+
+
+std::string Message::toUser() const
+{
+    return addressComponent(value("to", ""), 0);
+}
+
+
+std::string Message::toId() const
+{
+    return addressComponent(value("to", ""), 1);
+}
+
+
+std::string Message::fromUser() const
+{
+    return addressComponent(value("from", ""), 0);
+}
+
+
+std::string Message::fromId() const
+{
+    return addressComponent(value("from", ""), 1);
 }
 
 

@@ -12,9 +12,59 @@
 #include "icy/net/tcpsocket.h"
 #include "icy/util.h"
 
+#include <string_view>
+
 
 namespace icy {
 namespace smpl {
+
+namespace {
+
+bool isReservedPresenceField(std::string_view key)
+{
+    return key == "id" ||
+           key == "user" ||
+           key == "online" ||
+           key == "name" ||
+           key == "type";
+}
+
+
+json::Value makePresenceData(const Peer& peer,
+                             const std::string& id,
+                             bool online,
+                             const json::Value* extra = nullptr)
+{
+    json::Value data = json::Value::object();
+    if (extra && extra->is_object()) {
+        for (const auto& [key, value] : extra->items()) {
+            if (!isReservedPresenceField(key))
+                data[key] = value;
+        }
+    }
+
+    data["id"] = id;
+    data["user"] = peer.user();
+    data["online"] = online;
+    if (!peer.name().empty())
+        data["name"] = peer.name();
+    if (!peer.type().empty())
+        data["type"] = peer.type();
+    return data;
+}
+
+
+bool sharesAnyRoom(const std::unordered_set<std::string>& a,
+                   const std::unordered_set<std::string>& b)
+{
+    for (const auto& room : a) {
+        if (b.count(room))
+            return true;
+    }
+    return false;
+}
+
+} // namespace
 
 
 // ---------------------------------------------------------------------------
@@ -220,14 +270,11 @@ public:
             return nullptr;
         }
 
-        // Max connections check. peerCount() acquires its own lock;
-        // no Symple mutex is held during createResponder.
-        // Send a 503 error then close. close() is safe to call here:
-        // it sets _closed=true and schedules async uv_close; the actual
-        // destruction is deferred by Server::onConnectionClose via idle
-        // callback with shared_ptr ownership.
+        // Max connections check. Count all active sockets (including
+        // unauthenticated ones in the auth timeout window), not just
+        // authenticated peers, to prevent connection-flood bypass.
         if (_server._opts.maxConnections > 0 &&
-            _server.peerCount() >= _server._opts.maxConnections) {
+            _server._http->connectionCount() >= static_cast<size_t>(_server._opts.maxConnections)) {
             LWarn("Max connections reached (", _server._opts.maxConnections, "), rejecting");
             json::Value err;
             err["type"] = "error";
@@ -361,6 +408,8 @@ void Server::onAuth(ServerPeer& tempPeer, const json::Value& msg)
     // Copy extra data
     if (msg.contains("data") && msg["data"].is_object()) {
         for (auto& [k, v] : msg["data"].items()) {
+            if (isReservedPresenceField(k))
+                continue;
             p[k] = v;
         }
     }
@@ -432,12 +481,11 @@ void Server::onAuth(ServerPeer& tempPeer, const json::Value& msg)
 
     LInfo("Peer authenticated: ", user, "|", id);
 
-    // Broadcast online presence
     json::Value presence;
     presence["type"] = "presence";
     presence["from"] = user + "|" + id;
-    presence["data"] = static_cast<const json::Value&>(p);
-    broadcast(user, presence, id);
+    presence["data"] = makePresenceData(p, id, true, &p);
+    broadcastRooms(registeredPeer->rooms(), presence, id);
 
     // Notify server hooks (release lock for signal emission)
     _mutex.unlock();
@@ -451,10 +499,16 @@ void Server::onMessage(ServerPeer& sender, const json::Value& msg)
     // Caller holds _mutex.
 
     // Enforce that the from field matches the authenticated peer.
-    // This prevents spoofing.
     std::string expectedFrom = sender.peer().user() + "|" + sender.id();
     json::Value routable = msg;
     routable["from"] = expectedFrom;
+
+    if (routable.value("type", "") == "presence") {
+        const json::Value* extra = nullptr;
+        if (routable.contains("data") && routable["data"].is_object())
+            extra = &routable["data"];
+        routable["data"] = makePresenceData(sender.peer(), sender.id(), true, extra);
+    }
 
     route(sender, routable);
 }
@@ -490,6 +544,14 @@ void Server::onLeave(ServerPeer& peer, const std::string& room)
     if (room.empty())
         return;
 
+    if (!_opts.dynamicRooms) {
+        json::Value err;
+        err["type"] = "error";
+        err["message"] = "Dynamic rooms disabled";
+        peer.send(err);
+        return;
+    }
+
     peer.leave(room);
     removeFromRoom(room, peer.id());
 
@@ -515,12 +577,8 @@ void Server::onDisconnect(ServerPeer& peer)
     json::Value presence;
     presence["type"] = "presence";
     presence["from"] = user + "|" + id;
-    presence["data"] = static_cast<const json::Value&>(peer.peer());
-    presence["data"]["online"] = false;
-
-    for (const auto& room : peer.rooms()) {
-        broadcast(room, presence, id);
-    }
+    presence["data"] = makePresenceData(peer.peer(), id, false, &peer.peer());
+    broadcastRooms(peer.rooms(), presence, id);
 
     // Clean up
     removeFromAllRooms(id);
@@ -550,10 +608,8 @@ void Server::route(ServerPeer& sender, const json::Value& msg)
     // Caller holds _mutex.
 
     if (!msg.contains("to")) {
-        // No recipient: broadcast to all sender's rooms (excluding sender)
-        for (const auto& room : sender.rooms()) {
-            broadcast(room, msg, sender.id());
-        }
+        // No recipient: broadcast to all sender's rooms, deduped.
+        broadcastRooms(sender.rooms(), msg, sender.id());
         return;
     }
 
@@ -599,14 +655,98 @@ void Server::route(ServerPeer& sender, const json::Value& msg)
             return;
         }
 
-        // User name only: send to user's room
-        std::string user = addr.substr(0, addr.size());
-        sendToUser(user, msg);
+        // User name only: send to that user's sessions if at least one
+        // room is shared with the sender.
+        std::string user = addr;
+        auto it = _rooms.find(user);
+        if (it == _rooms.end())
+            return;
+
+        auto str = msg.dump();
+        for (const auto& peerId : it->second) {
+            if (peerId == sender.id())
+                continue;
+
+            auto targetIt = _peers.find(peerId);
+            if (targetIt != _peers.end()) {
+                if (!sharesRoom(sender, *targetIt->second)) {
+                    LDebug("Blocked direct message from ", sender.id(), " to ", peerId, " (no shared room)");
+                    continue;
+                }
+                try {
+                    targetIt->second->connection().send(str.c_str(), str.size(), http::ws::Text);
+                } catch (const std::exception& e) {
+                    LWarn("sendToUser real peer failed: ", peerId, ": ", e.what());
+                }
+                continue;
+            }
+
+            auto vit = _virtualPeers.find(peerId);
+            if (vit != _virtualPeers.end()) {
+                if (!sharesAnyRoom(sender.rooms(), vit->second.rooms)) {
+                    LDebug("Blocked direct message from ", sender.id(), " to virtual peer ", peerId, " (no shared room)");
+                    continue;
+                }
+                try {
+                    vit->second.handler(msg);
+                } catch (const std::exception& e) {
+                    LWarn("sendToUser virtual peer failed: ", peerId, ": ", e.what());
+                }
+            }
+        }
     }
     else if (to.is_array()) {
+        std::unordered_set<std::string> rooms;
         for (const auto& room : to) {
-            if (room.is_string())
-                broadcast(room.get<std::string>(), msg, sender.id());
+            if (room.is_string()) {
+                auto roomName = room.get<std::string>();
+                if (sender.rooms().count(roomName))
+                    rooms.insert(roomName);
+                else
+                    LDebug("Blocked broadcast from ", sender.id(), " to room ", roomName, " (not a member)");
+            }
+        }
+        broadcastRooms(rooms, msg, sender.id());
+    }
+}
+
+
+void Server::broadcastRooms(const std::unordered_set<std::string>& rooms,
+                             const json::Value& msg,
+                             const std::string& excludeId)
+{
+    // Collect unique recipient IDs across all target rooms.
+    std::unordered_set<std::string> recipients;
+    for (const auto& room : rooms) {
+        auto it = _rooms.find(room);
+        if (it == _rooms.end())
+            continue;
+        for (const auto& peerId : it->second) {
+            if (peerId != excludeId)
+                recipients.insert(peerId);
+        }
+    }
+
+    // Single serialization, single send per recipient.
+    auto str = msg.dump();
+    for (const auto& peerId : recipients) {
+        auto peerIt = _peers.find(peerId);
+        if (peerIt != _peers.end()) {
+            try {
+                peerIt->second->connection().send(
+                    str.c_str(), str.size(), http::ws::Text);
+            } catch (const std::exception& e) {
+                LWarn("Broadcast failed to ", peerId, ": ", e.what());
+            }
+            continue;
+        }
+        auto vit = _virtualPeers.find(peerId);
+        if (vit != _virtualPeers.end()) {
+            try {
+                vit->second.handler(msg);
+            } catch (const std::exception& e) {
+                LWarn("Broadcast to virtual peer failed: ", peerId, ": ", e.what());
+            }
         }
     }
 }
@@ -809,10 +949,8 @@ void Server::addVirtualPeer(const Peer& peer,
     json::Value presence;
     presence["type"] = "presence";
     presence["from"] = user + "|" + id;
-    presence["data"] = static_cast<const json::Value&>(peer);
-    for (const auto& room : _virtualPeers[id].rooms) {
-        broadcast(room, presence, id);
-    }
+    presence["data"] = makePresenceData(peer, id, true, &peer);
+    broadcastRooms(_virtualPeers[id].rooms, presence, id);
 
     LInfo("Virtual peer registered: ", user, "|", id);
 }
@@ -832,11 +970,8 @@ void Server::removeVirtualPeer(const std::string& peerId)
     json::Value presence;
     presence["type"] = "presence";
     presence["from"] = user + "|" + peerId;
-    presence["data"] = static_cast<const json::Value&>(it->second.peer);
-    presence["data"]["online"] = false;
-    for (const auto& room : it->second.rooms) {
-        broadcast(room, presence, peerId);
-    }
+    presence["data"] = makePresenceData(it->second.peer, peerId, false, &it->second.peer);
+    broadcastRooms(it->second.rooms, presence, peerId);
 
     removeFromAllRooms(peerId);
     _virtualPeers.erase(it);

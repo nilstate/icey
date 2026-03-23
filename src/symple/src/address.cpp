@@ -84,15 +84,19 @@ std::string Address::toString() const
 }
 
 
-bool Address::operator==(const Address& r)
+bool Address::operator==(const Address& r) const
 {
     return user == r.user && id == r.id;
 }
 
 
-bool Address::operator==(std::string& r)
+bool Address::operator==(const std::string& r) const
 {
-    return toString() == r;
+    auto pos = r.find('|');
+    if (pos == std::string::npos)
+        return id.empty() && user == r;
+    return std::string_view(r).substr(0, pos) == user &&
+           std::string_view(r).substr(pos + 1) == id;
 }
 
 

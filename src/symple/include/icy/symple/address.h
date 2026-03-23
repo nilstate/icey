@@ -62,11 +62,11 @@ public:
 
     /// Compares two addresses for equality (both user and id must match).
     /// @param r Address to compare against.
-    bool operator==(const Address& r);
+    bool operator==(const Address& r) const;
 
-    /// Compares this address's string representation against a string.
+    /// Compares this address against a string in `user|id` format without allocating.
     /// @param r String to compare against.
-    bool operator==(std::string& r);
+    bool operator==(const std::string& r) const;
 
     friend std::ostream& operator<<(std::ostream& os, const Address& addr)
     {
