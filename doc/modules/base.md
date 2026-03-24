@@ -1159,3 +1159,9 @@ target_link_libraries(myapp PRIVATE Icey::base)
 - [Symple](symple.md) — Real-time messaging; uses the signal/slot system throughout for event dispatch.
 - [Sched](sched.md) — Task scheduler; builds on `Thread` and `Runner` for deferred and periodic job execution.
 - [Pluga](pluga.md) — Plugin system; uses `SharedLibrary` for runtime shared-library loading.
+
+## Best Next Reads
+
+- [Runtime Contracts](../concepts/runtime-contracts.md) for the loop, signal, and shutdown rules that sit underneath `base`
+- [PacketStream](../concepts/packetstream.md) for the pipeline and ownership model built on top of `Signal` and `IPacket`
+- [Net](net.md) if you want to see those contracts applied directly to sockets and transport buffers

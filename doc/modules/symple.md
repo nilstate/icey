@@ -778,3 +778,9 @@ target_link_libraries(myapp PRIVATE Icey::symple)
 - [WebRTC](webrtc.md) — `PeerSession`, `SympleSignaller`, and media pipeline
 - [HTTP](http.md) — WebSocket transport, `http::Server`, and `http::ClientConnection`
 - [Protocol spec](../../src/symple/PROTOCOL.md) — full wire protocol specification
+
+## Best Next Reads
+
+- [`sympleconsole`](../../src/symple/samples/sympleconsole/README.md) for the quickest way to exercise rooms, presence, and direct messages locally
+- [WebRTC](webrtc.md) if you are using Symple as the signalling transport for browser calls
+- [Media Server Stack](../recipes/media-server-stack.md) if you want to see Symple as part of a full self-hosted service

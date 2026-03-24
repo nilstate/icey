@@ -23,6 +23,21 @@ Options:
 - `-type` - user type (optional)
 - `-help` - print help
 
+## Quick Local Flow
+
+1. start a Symple server
+2. run one console as `alice`
+3. run another as `bob`
+4. join the same room from both clients
+5. send direct and room messages from the interactive prompt
+
+That is enough to prove:
+
+- auth and presence
+- room joins and leaves
+- direct messaging
+- room fanout
+
 Interactive commands once connected:
 - `M` - compose and send a message
 - `J` - join a room
@@ -31,3 +46,8 @@ Interactive commands once connected:
 - `Q` - quit
 
 Set `USE_SSL` to `1` in the source to use SSL/TLS transport.
+
+## See Also
+
+- [Symple guide](../../../../doc/modules/symple.md)
+- [WebRTC guide](../../../../doc/modules/webrtc.md) if you are using Symple for call signalling

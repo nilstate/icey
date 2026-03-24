@@ -23,3 +23,16 @@ Built automatically when `-DBUILD_SAMPLES=ON` is passed to CMake and the `webrtc
 ```
 
 Connect from a browser and send video. The recorder writes `recording.mp4` once the first decodable H.264 keyframe arrives.
+
+## Operational Notes
+
+- The sample is receive-only, but it still configures the codec it expects to receive. Codec setup is strict now.
+- The MP4 mux is opened lazily on the first decodable frame so the file shape comes from the actual stream.
+- If the caller joins mid-GOP, the recorder will wait for the first usable keyframe instead of producing a broken file.
+- If you are not getting output, debug in this order: signalling, call activation, encoded packets arriving, decodable keyframe arriving.
+
+## See Also
+
+- [Browser To Recorder recipe](../../../../doc/recipes/webrtc-browser-to-recorder.md)
+- [WebRTC guide](../../../../doc/modules/webrtc.md)
+- [PacketStream concept](../../../../doc/concepts/packetstream.md)

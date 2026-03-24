@@ -1,5 +1,9 @@
 # Getting Started
 
+This page is the shortest path from zero to a working Icey program.
+
+If you need every build knob, install prefix, or platform package detail, use the [installation guide](installation.md). If you are still figuring out which subsystem you need, start with the [module map](modules.md).
+
 ## Quick Start
 
 The fastest way to use Icey is CMake FetchContent. No manual cloning, no system installation; CMake downloads and builds only the modules you need.
@@ -42,7 +46,7 @@ Each module is a separate imported CMake target under the `Icey::` namespace. Li
 
 ## Building from Source
 
-If you prefer to build and install Icey on your system:
+If you want a local build without installing system-wide:
 
 ```bash
 git clone https://github.com/sourcey/icey.git
@@ -59,17 +63,21 @@ find_package(Icey REQUIRED)
 target_link_libraries(myapp PRIVATE Icey::base Icey::net Icey::http)
 ```
 
-See the [installation guide](installation.md) for platform-specific instructions ([Linux](installation-linux.md), [macOS](installation-osx.md), [Windows](installation-windows.md)).
+See the [installation guide](installation.md) for the full build/install path and platform-specific instructions:
+
+- [Linux](installation-linux.md)
+- [macOS](installation-osx.md)
+- [Windows](installation-windows.md)
 
 ## Enabling Optional Modules
 
-Some modules require external libraries. Icey auto-detects system dependencies at configure time and builds the matching modules when they are available.
+Icey auto-detects optional system dependencies and builds the matching modules when they are available.
 
 - **`Icey::av`** (FFmpeg): install `libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libswresample-dev` (Ubuntu/Debian) or `ffmpeg` (Homebrew). Point CMake at a custom build with `-DFFmpeg_ROOT=/path/to/ffmpeg`. The `av` module builds when FFmpeg is found.
 - **`Icey::webrtc`** (libdatachannel): requires the `av` prerequisites above plus libdatachannel. libdatachannel is fetched automatically via FetchContent when the `webrtc` module is enabled and its prerequisites are present.
 - **`Icey::crypto`, `Icey::net`, `Icey::stun`, `Icey::turn`** (OpenSSL): install `libssl-dev` (Ubuntu/Debian) or `openssl` (Homebrew). These modules build when OpenSSL is found.
 
-The user-settable CMake options are: `BUILD_TESTS`, `BUILD_SHARED_LIBS`, `ENABLE_NATIVE_ARCH`, `ENABLE_LTO`, `ASAN`.
+For the full build matrix and all user-settable options, use [installation.md](installation.md).
 
 ## Your First Program
 
@@ -96,6 +104,11 @@ int main() {
 
 ## Next Steps
 
-- Browse the [module guides](modules.md) for architecture, usage, and code examples
-- Explore the samples in each module's `samples/` directory
-- Read the [contributing guide](contributing.md) if you want to send a PR
+- Read the [module map](modules.md) if you want the dependency picture first.
+- Go straight to a guide if you know the subsystem:
+  - [Base](modules/base.md)
+  - [HTTP](modules/http.md)
+  - [WebRTC](modules/webrtc.md)
+  - [TURN](modules/turn.md)
+- Explore the samples and apps in each module's `src/*/samples` or `src/*/apps` directories.
+- Read the [contributing guide](contributing.md) if you want to work on Icey itself.

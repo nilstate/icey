@@ -13,6 +13,7 @@ Built automatically when `-DBUILD_SAMPLES=ON` is passed to CMake and the `webrtc
 - Camera (or set `USE_CAMERA` to `0` for test file)
 - FFmpeg with libx264 encoder
 - Running Symple server
+- A browser client that can place a Symple-backed WebRTC call
 
 ## Usage
 
@@ -23,3 +24,16 @@ Built automatically when `-DBUILD_SAMPLES=ON` is passed to CMake and the `webrtc
 Connect from a browser using `symple-player`'s CallManager. The streamer auto-accepts incoming calls and begins sending H.264 video.
 
 Set `USE_CAMERA` to `1` in the source to stream from a camera instead of the test file.
+
+## Operational Notes
+
+- The sample joins the `public` room after coming online.
+- It builds the media pipeline once and starts capture only when `PeerSession` reaches `Active`.
+- If you are debugging signalling, check that the browser can see the streamer's presence before you touch the media path.
+- If you are debugging media, switch to the test file first so camera negotiation is not part of the problem.
+
+## See Also
+
+- [Webcam To Browser recipe](../../../../doc/recipes/webrtc-webcam-to-browser.md)
+- [WebRTC guide](../../../../doc/modules/webrtc.md)
+- [PacketStream concept](../../../../doc/concepts/packetstream.md)

@@ -15,9 +15,9 @@ stream.attach(&session->media().videoSender(), 5);
 stream.start();
 ```
 
-Icey is the connective tissue: a modular C++20 toolkit that unifies FFmpeg, libuv, OpenSSL, and libdatachannel into a single composable pipeline. Capture, encode, transport, signalling, and relay. Core third-party code is pulled in by CMake; system TLS and media dependencies are auto-detected. Builds in minutes.
+Icey is the connective tissue: a modular C++20 toolkit that pulls FFmpeg, libuv, OpenSSL, llhttp, libdatachannel, Symple, STUN, and TURN into one runtime model. Capture, encode, transport, signalling, and relay. Core third-party code is pulled in by CMake; system TLS and media dependencies are auto-detected. Builds in minutes.
 
-**[Documentation](doc/SUMMARY.md)** | **[Changelog](CHANGELOG.md)** | **[Contributing](doc/contributing.md)** | **[LGPL-2.1+](LICENSE.md)**
+**[Documentation](doc/index.md)** | **[Changelog](CHANGELOG.md)** | **[Contributing](doc/contributing.md)** | **[LGPL-2.1+](LICENSE.md)**
 
 ## Why Icey
 
@@ -128,6 +128,18 @@ See [src/turn/samples/turnserver/](src/turn/samples/turnserver/).
 Icey delivers **75% of raw libuv throughput** while providing a complete HTTP stack (connection management, header construction, WebSocket upgrade, streaming responses). It outperforms Go's `net/http` by 34% and Node.js by 59%. All three share the same foundation (libuv for async IO, llhttp for HTTP parsing); the difference is pure runtime overhead.
 
 See [src/http/bench/](src/http/bench/) for methodology.
+
+## Docs Start Here
+
+If you just want the right page:
+
+- Build and link your first program: [doc/getting-started.md](doc/getting-started.md)
+- Full build and install options: [doc/installation.md](doc/installation.md)
+- Module map and dependency picture: [doc/modules.md](doc/modules.md)
+- HTTP and WebSocket: [doc/modules/http.md](doc/modules/http.md)
+- TURN relay: [doc/modules/turn.md](doc/modules/turn.md)
+- WebRTC media flows: [doc/modules/webrtc.md](doc/modules/webrtc.md)
+- Full docs landing page: [doc/index.md](doc/index.md)
 
 ## Quick Start
 

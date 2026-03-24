@@ -1,5 +1,9 @@
 # Installation
 
+This is the full build and install page.
+
+If you just want the fastest path to a first build, use [getting-started.md](getting-started.md). This page is for the complete picture: requirements, optional dependencies, build flags, install, and downstream consumption.
+
 Icey uses CMake to build from source. The codebase is cross-platform and requires a C++20 compiler.
 
 Platform-specific guides:
@@ -19,13 +23,19 @@ Platform-specific guides:
 
 ## Optional Dependencies
 
-These are auto-detected by CMake. If found on your system, the corresponding modules build automatically.
+These are auto-detected by CMake. If they are present, the matching modules build automatically.
 
 | Dependency | Enables | Install |
 | ---------- | ------- | ------- |
 | FFmpeg 5+/6+/7+ | `av` module (capture, encode, decode) | `apt install libavcodec-dev libavformat-dev libswscale-dev libavdevice-dev` |
 | OpenCV 3.0+ | OpenCV integration in `av` | `apt install libopencv-dev` |
 | libdatachannel | `webrtc` module | fetched via CMake FetchContent |
+
+If you need platform-specific package commands, use the platform pages:
+
+- [Linux](installation-linux.md)
+- [macOS](installation-osx.md)
+- [Windows](installation-windows.md)
 
 ## Build
 
@@ -42,6 +52,8 @@ ctest --test-dir build --output-on-failure
 ```bash
 cmake --install build --prefix /usr/local
 ```
+
+That gives you exported `Icey::...` targets for `find_package`.
 
 ## CMake Options
 
@@ -96,6 +108,8 @@ target_link_libraries(myapp PRIVATE Icey::base Icey::net Icey::http)
 find_package(Icey REQUIRED)
 target_link_libraries(myapp PRIVATE Icey::base Icey::net Icey::http)
 ```
+
+If you only need a first success, the shorter version of both flows is already in [getting-started.md](getting-started.md).
 
 ## Docker
 

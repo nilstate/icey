@@ -815,3 +815,9 @@ OpenSSL 3.x is required. OpenSSL 1.x is not supported. On Linux, install `libssl
 - [Crypto](crypto.md) — X.509 certificates, RSA keys; used by `SSLContext` and `SSLManager`
 - [STUN](stun.md) — NAT traversal; uses `Transaction<StunMessage>` over UDP
 - [TURN](turn.md) — relay server; builds on `net` TCP and UDP sockets
+
+## Best Next Reads
+
+- [Runtime Contracts](../concepts/runtime-contracts.md) for the borrowed buffer and `send()` vs `sendOwned()` rules
+- [HTTP](http.md) for the first higher-level protocol layer built directly on top of these sockets
+- [HTTP Server](../recipes/http-server.md) if you want a concrete service path instead of the raw transport layer

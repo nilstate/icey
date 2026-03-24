@@ -30,6 +30,14 @@ The `media-server` target is built when the `webrtc` prerequisites are available
 - **record**: browser sends H.264 video to the server, which decodes it and writes MP4 files to disk
 - **relay**: the first active caller becomes the live source; later callers receive that source via server-side encoded relay fanout
 
+## Mode Behavior
+
+| Mode | Browser sends | Server sends | Notes |
+| --- | --- | --- | --- |
+| `stream` | call control | H.264 + Opus | source comes from the local file or device configured with `--source` |
+| `record` | H.264 video | call control | output goes to timestamped MP4 files under `--record-dir` |
+| `relay` | one active source call | encoded media to viewers | first active caller becomes source; later callers become viewers |
+
 ## Features
 
 - **Video + Audio**: H.264 Constrained Baseline (browser-safe) + Opus at 48kHz
@@ -54,6 +62,17 @@ media-server [options]
   --no-turn               Disable embedded TURN server
 ```
 
+## Browser Counterpart
+
+The intended counterpart is the bundled web UI. It handles:
+
+- Symple presence and discovery
+- call placement
+- SDP and ICE transport
+- playback or source publishing depending on mode
+
+If the browser cannot even see the server peer, you have a signalling problem, not a media problem.
+
 ## Web UI development
 
 ```bash
@@ -62,6 +81,17 @@ npm run dev
 ```
 
 Vite dev server runs on port 5173 and proxies `/ws` and `/api` to the C++ server on port 4500. Run both in parallel for hot-reload development.
+
+## Bring-Up Order
+
+If you are bringing the full stack up from scratch, do it in this order:
+
+1. `stream` mode with a local source file and `--no-turn`
+2. `record` mode
+3. `relay` mode
+4. TURN-enabled external/NAT testing
+
+That keeps signalling, send path, receive path, relay, and public addressing problems separated instead of mixing them together on day one.
 
 ## Architecture
 
@@ -89,3 +119,9 @@ media-server
 ```
 
 Frontend: `symple-client` + `symple-player` (npm, bundled with Vite).
+
+## See Also
+
+- [Media Server Stack recipe](../../../../doc/recipes/media-server-stack.md)
+- [WebRTC guide](../../../../doc/modules/webrtc.md)
+- [TURN guide](../../../../doc/modules/turn.md)

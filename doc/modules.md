@@ -2,6 +2,23 @@
 
 Icey is organised into 14 modules. Each module builds as a separate library and declares its dependencies via CMake. Enable only what you need; dependencies resolve automatically.
 
+This page is the map. If you want the quickest path to a task, use the table below and then jump into the module guide that actually owns the work.
+
+## Common Starting Points
+
+| Goal | Start here |
+| ---- | ---------- |
+| Runtime contracts, loop affinity, ownership rules | [concepts/runtime-contracts.md](concepts/runtime-contracts.md) |
+| Packet pipelines, queue boundaries, media graphs | [concepts/packetstream.md](concepts/packetstream.md) |
+| HTTP server or WebSocket service | [recipes/http-server.md](recipes/http-server.md) |
+| Browser media send path | [recipes/webrtc-webcam-to-browser.md](recipes/webrtc-webcam-to-browser.md) |
+| Browser media receive and recording | [recipes/webrtc-browser-to-recorder.md](recipes/webrtc-browser-to-recorder.md) |
+| Full self-hosted media stack | [recipes/media-server-stack.md](recipes/media-server-stack.md) |
+| Signalling, presence, and rooms | [modules/symple.md](modules/symple.md) |
+| TURN relay and NAT traversal | [recipes/turn-server.md](recipes/turn-server.md) |
+| Low-level STUN message work | [modules/stun.md](modules/stun.md) |
+| Capture, encode, decode, muxing | [modules/av.md](modules/av.md) |
+
 ## Dependency Diagram
 
 ```text
@@ -69,3 +86,13 @@ Icey is organised into 14 modules. Each module builds as a separate library and 
 | **[pacm](modules/pacm.md)** | Package manager for plugin distribution | base, net, json, http, archo, crypto |
 | **[pluga](modules/pluga.md)** | Plugin system for shared library loading | base |
 | **[sched](modules/sched.md)** | Task scheduler for deferred and periodic jobs | base, json |
+
+## Read This With The Sidebar
+
+This page answers:
+
+- what each module is for
+- how the dependency graph is shaped
+- where to start if you know the job but not the subsystem
+
+The module guides answer the rest: architecture, contracts, usage, examples, and links into samples or apps. The concepts and workflow pages exist so you do not have to reverse-engineer that path from the module list every time.

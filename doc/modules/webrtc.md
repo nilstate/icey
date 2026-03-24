@@ -864,3 +864,11 @@ Icey includes a production-grade RFC 5766 TURN server in the `turn` module. See 
 - [Symple](symple.md) — real-time messaging, presence, and rooms; `smpl::Client`, `smpl::Server`
 - [TURN](turn.md) — self-hosted TURN relay server for symmetric NAT traversal
 - [WebRTC in 150 Lines of C++](https://0state.com/writing/webrtc-in-150-lines-of-cpp) — end-to-end walkthrough of the webcam-streamer sample
+
+## Best Next Reads
+
+- [WebRTC Session Flow](../concepts/webrtc-session-flow.md) for the split between signalling, session state, and media attachment
+- [Webcam To Browser](../recipes/webrtc-webcam-to-browser.md) for the clean send path
+- [Browser To Recorder](../recipes/webrtc-browser-to-recorder.md) for the clean receive path
+- [Media Server Stack](../recipes/media-server-stack.md) for the full deployed shape
+- [PacketStream](../concepts/packetstream.md) for the media graph that ties capture, encode, receive, and mux together

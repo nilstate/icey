@@ -1099,3 +1099,11 @@ uv_run(uv::defaultLoop(), UV_RUN_DEFAULT);
 - [Base](base.md) — `PacketStream`, `Signal`, `LocalSignal`, `uv::Loop`, `Timer`, `Thread`
 - [Symple](symple.md) — WebSocket-based real-time messaging and WebRTC call signalling
 - [AV](av.md) — FFmpeg capture, encode, and `PacketStream` sources for streaming over HTTP
+
+## Best Next Reads
+
+- [HTTP Lifecycle](../concepts/http-lifecycle.md) for the connection, keep-alive, streaming, and upgrade flow
+- [HTTP Server](../recipes/http-server.md) for the shortest path to a real service
+- [WebSocket Client And Server](../recipes/websocket-client-server.md) for the upgrade and frame path specifically
+- [`httpechoserver`](../../src/http/samples/httpechoserver/README.md) for runnable server code
+- [`httpbench`](../../src/http/bench/README.md) if you care about throughput rather than API surface
