@@ -501,7 +501,7 @@ ServerObserver& Server::observer()
 }
 
 
-ServerOptions& Server::options()
+const ServerOptions& Server::options() const
 {
     return _options;
 }
@@ -589,4 +589,4 @@ TCPAllocation* Server::getTCPAllocation(const uint32_t& connectionID)
 } // namespace icy
 
 
-/// @\}
+/// @}

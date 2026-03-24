@@ -209,8 +209,8 @@ public:
     /// @return Reference to the observer provided at construction.
     ServerObserver& observer();
 
-    /// @return Reference to the mutable options struct.
-    ServerOptions& options();
+    /// @return Reference to the immutable options struct.
+    [[nodiscard]] const ServerOptions& options() const;
 
     /// @return Reference to the UDP server socket.
     net::UDPSocket& udpSocket();
@@ -263,4 +263,4 @@ private:
 } // namespace icy
 
 
-/// @\}
+/// @}

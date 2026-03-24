@@ -285,8 +285,8 @@ public:
     /// @return Reference to the observer provided at construction.
     ClientObserver& observer();
 
-    /// @return Reference to the mutable options struct.
-    Options& options();
+    /// @return Reference to the immutable options struct.
+    [[nodiscard]] const Options& options() const;
 
 protected:
     /// Sets the error field and transitions the client to the Failed state.
@@ -343,4 +343,4 @@ protected:
 } // namespace icy
 
 
-/// @\}
+/// @}

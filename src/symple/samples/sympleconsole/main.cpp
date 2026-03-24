@@ -79,6 +79,7 @@ public:
 
     void parseOptions(int argc, char* argv[])
     {
+        auto options = client.options();
         OptionParser optparse(argc, argv, "-");
         for (auto& kv : optparse.args) {
             const std::string& key = kv.first;
@@ -88,17 +89,17 @@ public:
             if (key == "help") {
                 showHelp = true;
             } else if (key == "host") {
-                client.options().host = value;
+                options.host = value;
             } else if (key == "port") {
-                client.options().port = icy::util::strtoi<uint16_t>(value);
+                options.port = icy::util::strtoi<uint16_t>(value);
             } else if (key == "token") {
-                client.options().token = value;
+                options.token = value;
             } else if (key == "user") {
-                client.options().user = value;
+                options.user = value;
             } else if (key == "name") {
-                client.options().name = value;
+                options.name = value;
             } else if (key == "type") {
-                client.options().type = value;
+                options.type = value;
             } else if (key == "logfile") {
                 auto log = dynamic_cast<icy::FileChannel*>(icy::Logger::instance().get("Symple"));
                 log->setPath(value);
@@ -106,6 +107,8 @@ public:
                 LWarn("Unknown option: ", key, "=", value);
             }
         }
+
+        client.setOptions(std::move(options));
     }
 
     void shutdown()
@@ -335,3 +338,5 @@ int main(int argc, char** argv)
     icy::Logger::destroy();
     return 0;
 }
+
+/// @}

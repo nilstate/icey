@@ -306,9 +306,17 @@ Roster& Client::roster()
 }
 
 
-Client::Options& Client::options()
+const Client::Options& Client::options() const
 {
     return _options;
+}
+
+
+void Client::setOptions(Options options)
+{
+    if (!stateEquals(ClientState::Closed) || _ws || _reconnectTimer.running())
+        throw std::logic_error("Cannot change Symple client options while active");
+    _options = std::move(options);
 }
 
 
@@ -624,4 +632,4 @@ std::string Client::buildUrl() const
 } // namespace icy
 
 
-/// @\}
+/// @}

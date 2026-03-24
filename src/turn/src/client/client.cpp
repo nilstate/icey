@@ -744,7 +744,7 @@ bool Client::closed() const
 }
 
 
-Client::Options& Client::options()
+const Client::Options& Client::options() const
 {
     return _options;
 }
@@ -766,4 +766,4 @@ net::Address Client::relayedAddress() const
 } // namespace icy
 
 
-/// @\}
+/// @}

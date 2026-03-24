@@ -154,8 +154,13 @@ public:
     /// Return the roster of online peers.
     [[nodiscard]] Roster& roster();
 
-    /// Return client options.
-    [[nodiscard]] Options& options();
+    /// Return the current client options.
+    [[nodiscard]] const Options& options() const;
+
+    /// Replace the client options while the client is closed.
+    /// This is the only supported way to reconfigure a default-constructed client.
+    /// @throws std::logic_error if the client is currently connecting, online, or reconnecting.
+    void setOptions(Options options);
 
     /// Set an error and transition to Error state.
     void setError(const std::string& error);
@@ -218,4 +223,4 @@ private:
 } // namespace icy
 
 
-/// @\}
+/// @}
