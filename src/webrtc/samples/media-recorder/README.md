@@ -8,7 +8,7 @@ The recorder lazy-initializes the MP4 muxer on the first decoded frame so the ou
 
 ## Build
 
-Built automatically when `-DBUILD_SAMPLES=ON -DWITH_LIBDATACHANNEL=ON -DWITH_FFMPEG=ON` is passed to CMake.
+Built automatically when `-DBUILD_SAMPLES=ON` is passed to CMake and the `webrtc` module prerequisites are available.
 
 ## Requirements
 

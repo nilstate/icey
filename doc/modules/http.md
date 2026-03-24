@@ -871,17 +871,17 @@ setenv("UV_THREADPOOL_SIZE",
 
 ```bash
 # Build in release mode with logging disabled
-cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_LOGGING=OFF -DBUILD_BENCHMARKS=ON
 cmake --build build --parallel $(nproc)
 
 # Single-core with keep-alive
-./build/src/http/bench/httpbench keepalive
+./build/http/bench/httpbench keepalive
 
 # Multicore with SO_REUSEPORT
-./build/src/http/bench/httpbench multi
+./build/http/bench/httpbench multi
 
 # Raw libuv+llhttp ceiling
-./build/src/http/bench/httpbench raw-keepalive
+./build/http/bench/httpbench raw-keepalive
 ```
 
 Then in another terminal:

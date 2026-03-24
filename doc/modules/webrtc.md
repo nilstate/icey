@@ -662,11 +662,11 @@ The muxer is created lazily on the first decoded frame so width, height, and pix
 
 ### [file-streamer](../../src/webrtc/samples/file-streamer/)
 
-Reads any FFmpeg-supported media file, loops it at real-time rate, and streams to a browser. Adds a data channel for control commands (seek, pause) from the browser side. Demonstrates mixing media streaming and data channel messaging in the same session.
+Reads any FFmpeg-supported media file, loops it at real-time rate, and streams to a browser. Also opens a data channel so the sample can receive simple control messages alongside the media stream. Demonstrates mixing media streaming and data channel messaging in the same session.
 
 `capture->setLoopInput(true)` and `setLimitFramerate(true)` together make the file demuxer loop continuously at the file's native frame rate rather than running as fast as FFmpeg allows.
 
-**Pipeline**: `av::MediaCapture` (file, looping) → `wrtc::WebRtcTrackSender` → browser
+**Pipeline**: `av::MediaCapture` (file, looping) → `av::VideoPacketEncoder` → `wrtc::WebRtcTrackSender` → browser
 
 ```cpp
 #include "icy/av/mediacapture.h"
@@ -674,14 +674,14 @@ Reads any FFmpeg-supported media file, loops it at real-time rate, and streams t
 #include "icy/webrtc/peersession.h"
 #include "symplesignaller.h"
 
-// Configure with a data channel for control commands.
+// Configure with a data channel for control messages.
 config.enableDataChannel = true;
 config.dataChannelLabel = "control";
 
 session->DataReceived += [this](rtc::message_variant msg) {
     if (auto* text = std::get_if<std::string>(&msg)) {
         std::cout << "Control: " << *text << '\n';
-        // Parse JSON commands: seek, pause, rate, etc.
+        // Interpret application-specific control messages here.
     }
 };
 

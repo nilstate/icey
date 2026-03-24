@@ -8,11 +8,7 @@ No Node.js runtime, no third-party services. One binary, two ports (HTTP/WS + TU
 
 ```bash
 # Build the C++ server
-cmake -B build \
-    -DWITH_OPENSSL=ON \
-    -DWITH_FFMPEG=ON \
-    -DWITH_LIBDATACHANNEL=ON \
-    -DBUILD_APPLICATIONS=ON
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_APPLICATIONS=ON
 cmake --build build --target media-server
 
 # Build the web UI
@@ -25,6 +21,8 @@ npm run build
 ```
 
 Open `http://localhost:4500` in a browser.
+
+The `media-server` target is built when the `webrtc` prerequisites are available: OpenSSL and FFmpeg must be installed or discoverable by CMake, and libdatachannel is fetched automatically.
 
 ## Modes
 

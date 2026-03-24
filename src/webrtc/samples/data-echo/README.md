@@ -6,7 +6,7 @@ Use this to verify the full WebRTC signalling and transport stack: Symple call p
 
 ## Build
 
-Built automatically when `-DBUILD_SAMPLES=ON -DWITH_LIBDATACHANNEL=ON` is passed to CMake.
+Built automatically when `-DBUILD_SAMPLES=ON` is passed to CMake and the `webrtc` module prerequisites are available.
 
 ## Requirements
 

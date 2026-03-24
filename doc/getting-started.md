@@ -63,11 +63,11 @@ See the [installation guide](installation.md) for platform-specific instructions
 
 ## Enabling Optional Modules
 
-Some modules require external libraries. By default Icey auto-detects system dependencies; optional integrations can also be forced on with `WITH_*` flags when configuring Icey itself.
+Some modules require external libraries. Icey auto-detects system dependencies at configure time and builds the matching modules when they are available.
 
-- **`Icey::av`** (FFmpeg): install `libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libswresample-dev` (Ubuntu/Debian) or `ffmpeg` (Homebrew). Point CMake at a custom build with `-DFFmpeg_ROOT=/path/to/ffmpeg`, or configure Icey with `-DWITH_FFMPEG=ON`.
-- **`Icey::webrtc`** (libdatachannel): configure Icey with `-DWITH_FFMPEG=ON -DWITH_LIBDATACHANNEL=ON`. libdatachannel is fetched automatically via FetchContent.
-- **`Icey::crypto`, `Icey::net`, `Icey::stun`, `Icey::turn`** (OpenSSL): install `libssl-dev` (Ubuntu/Debian) or `openssl` (Homebrew). These modules are disabled if OpenSSL is not found, or can be requested with `-DWITH_OPENSSL=ON`.
+- **`Icey::av`** (FFmpeg): install `libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libswresample-dev` (Ubuntu/Debian) or `ffmpeg` (Homebrew). Point CMake at a custom build with `-DFFmpeg_ROOT=/path/to/ffmpeg`. The `av` module builds when FFmpeg is found.
+- **`Icey::webrtc`** (libdatachannel): requires the `av` prerequisites above plus libdatachannel. libdatachannel is fetched automatically via FetchContent when the `webrtc` module is enabled and its prerequisites are present.
+- **`Icey::crypto`, `Icey::net`, `Icey::stun`, `Icey::turn`** (OpenSSL): install `libssl-dev` (Ubuntu/Debian) or `openssl` (Homebrew). These modules build when OpenSSL is found.
 
 The user-settable CMake options are: `BUILD_TESTS`, `BUILD_SHARED_LIBS`, `ENABLE_NATIVE_ARCH`, `ENABLE_LTO`, `ASAN`.
 

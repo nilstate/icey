@@ -15,7 +15,7 @@ stream.attach(&session->media().videoSender(), 5);
 stream.start();
 ```
 
-Icey is the connective tissue: a modular C++20 toolkit that unifies FFmpeg, libuv, OpenSSL, and libdatachannel into a single composable pipeline. Capture, encode, transport, signalling, and relay. All dependencies managed via CMake FetchContent. Builds in minutes.
+Icey is the connective tissue: a modular C++20 toolkit that unifies FFmpeg, libuv, OpenSSL, and libdatachannel into a single composable pipeline. Capture, encode, transport, signalling, and relay. Core third-party code is pulled in by CMake; system TLS and media dependencies are auto-detected. Builds in minutes.
 
 **[Documentation](doc/SUMMARY.md)** | **[Changelog](CHANGELOG.md)** | **[Contributing](doc/contributing.md)** | **[LGPL-2.1+](LICENSE.md)**
 
@@ -104,7 +104,7 @@ See [src/webrtc/samples/media-recorder/](src/webrtc/samples/media-recorder/).
 
 ### Stream any video file to a browser
 
-Feed an MP4 in, get a real-time WebRTC stream out. Data channel for seek commands. Build your own streaming service.
+Feed an MP4 in, get a real-time WebRTC stream out. Includes a simple data channel for control messages alongside the media stream.
 
 See [src/webrtc/samples/file-streamer/](src/webrtc/samples/file-streamer/).
 
@@ -139,17 +139,16 @@ See [src/http/bench/](src/http/bench/) for methodology.
 | macOS | AppleClang 15+ (Xcode 15+) |
 | Windows | MSVC 2022 (Visual Studio 17+) |
 
-CMake 3.21+ and pkg-config (Linux/macOS) required. Everything else is fetched automatically:
+CMake 3.21+ and pkg-config (Linux/macOS) required. Icey fetches its core bundled third-party code automatically:
 
 | Dependency | Version |
 |------------|---------|
 | libuv | 1.50 |
 | llhttp | 9.2.1 |
-| OpenSSL | 3.x |
 | nlohmann/json | 3.11.3 |
 | zlib | 1.3.1 |
 
-Optional: FFmpeg 5+/6+/7+, OpenCV 3.0+, libdatachannel. These are auto-detected; install the libraries and CMake finds them.
+System dependencies such as OpenSSL 3.x, FFmpeg 5+/6+/7+, and OpenCV 3.0+ are auto-detected when present. `libdatachannel` is fetched automatically when building the `webrtc` module.
 
 ### Build from source
 

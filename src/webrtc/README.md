@@ -114,9 +114,19 @@ bridge.BitrateEstimate += slot(&encoder, &Encoder::setBitrate);
 `PeerSession` adds Symple call signalling. Speaks the same protocol as `symple-player`'s CallManager in the browser.
 
 ```cpp
+#include "icy/symple/client.h"
 #include "icy/webrtc/peersession.h"
+#include "icy/webrtc/symplesignaller.h"
 
-wrtc::PeerSession session(sympleClient, {
+smpl::Client::Options opts;
+opts.host = "localhost";
+opts.port = 4500;
+opts.user = "streamer";
+
+smpl::Client sympleClient(opts);
+wrtc::SympleSignaller signaller(sympleClient);
+
+wrtc::PeerSession session(signaller, {
     .rtcConfig = { .iceServers = { "turn:your-server.com:3478" } },
     .mediaOpts = {
         .videoCodec = av::VideoCodec("H264", "libx264", 1280, 720, 30),
@@ -128,6 +138,7 @@ session.IncomingCall += [&](const std::string& peerId) {
     session.accept();  // or session.reject()
 };
 
+sympleClient.connect();
 session.call("remote-peer-id");
 ```
 
@@ -159,15 +170,11 @@ wrtc::CodecNegotiator::clockRate("H264");       // 90000
 ## Building
 
 ```bash
-cmake -B build \
-    -DWITH_OPENSSL=ON \
-    -DWITH_FFMPEG=ON \
-    -DWITH_LIBDATACHANNEL=ON \
-    -DBUILD_TESTS=ON
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON
 cmake --build build
 ```
 
-libdatachannel is fetched automatically via CMake FetchContent (v0.24.1). It brings libjuice (ICE), usrsctp (data channels), and libsrtp (SRTP) as bundled submodules. OpenSSL is shared with Icey.
+`Icey::webrtc` is built when its prerequisites are available: OpenSSL and FFmpeg are discovered from the system (or via `OPENSSL_ROOT_DIR` / `FFmpeg_ROOT`), while libdatachannel is fetched automatically via CMake FetchContent. libdatachannel brings libjuice (ICE), usrsctp (data channels), and libsrtp (SRTP) as bundled submodules.
 
 ## How it fits together
 

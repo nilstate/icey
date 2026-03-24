@@ -534,7 +534,6 @@ opts.port = 4500;
 opts.user = "streamer";
 
 smpl::Client symple(opts);
-symple.connect();
 
 // SympleSignaller subscribes to symple's PacketSignal internally
 wrtc::SympleSignaller signaller(symple);
@@ -544,35 +543,27 @@ rtcConfig.rtcConfig.iceServers.emplace_back("stun:stun.l.google.com:19302");
 wrtc::PeerSession session(signaller, rtcConfig);
 
 // Incoming call flow
-signaller.ControlReceived += [&](const std::string& peerId,
-                                  const std::string& type,
-                                  const std::string& reason) {
-    if (type == "init") {
-        // Callee accepts and waits for the offer
-        signaller.sendControl(peerId, "accept");
-    }
-    else if (type == "hangup") {
-        session.close();
-    }
+session.IncomingCall += [&](const std::string& peerId) {
+    session.accept();
 };
-
-// Outgoing call flow
-// 1. Send init to remote peer
-signaller.sendControl(remotePeerId, "init");
-
-// 2. On receiving "accept" from ControlReceived, create the offer
-session.createOffer(remotePeerId);
 
 // Session active: wire up the media pipeline
 session.StateChanged += [&](wrtc::PeerSession::State state) {
     if (state == wrtc::PeerSession::State::Active)
         startMediaPipeline(session);
+    else if (state == wrtc::PeerSession::State::Ended)
+        stopMediaPipeline();
 };
+
+symple.connect();
+
+// Outgoing call flow (once the client is online)
+session.call(remotePeerId);
 
 uv::runLoop();
 ```
 
-SDP and ICE candidates are exchanged automatically by `SympleSignaller`; your application code only handles control events (`init`, `accept`, `reject`, `hangup`). See the [webrtc module guide](webrtc.md) for `PeerSession`, `SignallingInterface`, and the full media pipeline.
+`PeerSession` owns the `call:init` / `accept` / offer / answer / candidate flow; `SympleSignaller` just transports those messages over Symple. If you bypass `PeerSession` and work directly against `SignallingInterface`, then you are responsible for handling `ControlReceived` and calling `sendControl()`, `sendSdp()`, and `sendCandidate()` yourself. See the [webrtc module guide](webrtc.md) for `PeerSession`, `SignallingInterface`, and the full media pipeline.
 
 ---
 
