@@ -1,7 +1,8 @@
 #include "icy/http/parser.h"
 #include "icy/http/request.h"
 #include "icy/http/response.h"
-#include "icy/time.h"
+
+#include "benchutil.h"
 
 #include <cstdint>
 #include <cstdlib>
@@ -12,7 +13,7 @@ using namespace icy;
 
 namespace {
 
-void benchParse()
+void benchParse(bench::Reporter& reporter)
 {
     static const std::string requestWire =
         "POST /api/v1/items?limit=10 HTTP/1.1\r\n"
@@ -25,31 +26,35 @@ void benchParse()
         "\r\n"
         "{\"name\":\"icey\",\"count\":42}";
 
-    constexpr uint64_t iterations = 250000;
+    constexpr uint64_t iterations = 100000;
     uint64_t bytes = 0;
     uint64_t checksum = 0;
 
-    const uint64_t start = time::hrtime();
-    for (uint64_t index = 0; index < iterations; ++index) {
-        http::Request request;
-        http::Parser parser(&request);
-        auto result = parser.parse(requestWire.data(), requestWire.size());
-        if (!result.ok() || !result.messageComplete) {
-            std::cerr << "httpparsebench: parse failed\n";
-            std::exit(1);
+    const auto measurement = bench::measure(reporter.options(), iterations, [&] {
+        bytes = 0;
+        checksum = 0;
+        for (uint64_t index = 0; index < iterations; ++index) {
+            http::Request request;
+            http::Parser parser(&request);
+            auto result = parser.parse(requestWire.data(), requestWire.size());
+            if (!result.ok() || !result.messageComplete) {
+                std::cerr << "httpparsebench: parse failed\n";
+                std::exit(1);
+            }
+            bytes += result.bytesConsumed;
+            checksum += request.getMethod().size() + request.size();
         }
-        bytes += result.bytesConsumed;
-        checksum += request.getMethod().size() + request.size();
-    }
-    const uint64_t end = time::hrtime();
+    });
 
-    std::cout << "http request parse: "
-              << ((end - start) * 1.0 / iterations) << "ns per parse"
-              << " (bytes=" << bytes / iterations
-              << ", checksum=" << checksum << ")\n";
+    reporter.add({
+        .name = "http request parse",
+        .measurement = measurement,
+        .metrics = {bench::metric("bytes", bytes / iterations),
+                    bench::metric("checksum", checksum)},
+    });
 }
 
-void benchWrite()
+void benchWrite(bench::Reporter& reporter)
 {
     http::Response response(http::StatusCode::OK);
     response.setContentType("application/json");
@@ -61,27 +66,31 @@ void benchWrite()
     Buffer buffer;
     buffer.reserve(512);
 
-    constexpr uint64_t iterations = 500000;
+    constexpr uint64_t iterations = 200000;
     uint64_t bytes = 0;
 
-    const uint64_t start = time::hrtime();
-    for (uint64_t index = 0; index < iterations; ++index) {
-        buffer.clear();
-        response.write(buffer);
-        bytes += buffer.size();
-    }
-    const uint64_t end = time::hrtime();
+    const auto measurement = bench::measure(reporter.options(), iterations, [&] {
+        bytes = 0;
+        for (uint64_t index = 0; index < iterations; ++index) {
+            buffer.clear();
+            response.write(buffer);
+            bytes += buffer.size();
+        }
+    });
 
-    std::cout << "http response write: "
-              << ((end - start) * 1.0 / iterations) << "ns per write"
-              << " (bytes=" << bytes / iterations << ")\n";
+    reporter.add({
+        .name = "http response write",
+        .measurement = measurement,
+        .metrics = {bench::metric("bytes", bytes / iterations)},
+    });
 }
 
 } // namespace
 
-int main()
+int main(int argc, char** argv)
 {
-    benchParse();
-    benchWrite();
-    return 0;
+    bench::Reporter reporter(argc, argv);
+    benchParse(reporter);
+    benchWrite(reporter);
+    return reporter.finish();
 }

@@ -1,6 +1,7 @@
 #include "icy/net/address.h"
 #include "icy/stun/message.h"
-#include "icy/time.h"
+
+#include "benchutil.h"
 
 #include <cstdint>
 #include <cstdlib>
@@ -27,62 +28,70 @@ stun::Message makeMessage()
     return message;
 }
 
-void benchWrite()
+void benchWrite(bench::Reporter& reporter)
 {
     const stun::Message message = makeMessage();
     Buffer buffer;
     buffer.reserve(512);
 
-    constexpr uint64_t iterations = 250000;
+    constexpr uint64_t iterations = 50000;
     uint64_t bytes = 0;
 
-    const uint64_t start = time::hrtime();
-    for (uint64_t index = 0; index < iterations; ++index) {
-        buffer.clear();
-        message.write(buffer);
-        bytes += buffer.size();
-    }
-    const uint64_t end = time::hrtime();
+    const auto measurement = bench::measure(reporter.options(), iterations, [&] {
+        bytes = 0;
+        for (uint64_t index = 0; index < iterations; ++index) {
+            buffer.clear();
+            message.write(buffer);
+            bytes += buffer.size();
+        }
+    });
 
-    std::cout << "stun encode: "
-              << ((end - start) * 1.0 / iterations) << "ns per message"
-              << " (bytes=" << bytes / iterations << ")\n";
+    reporter.add({
+        .name = "stun encode",
+        .measurement = measurement,
+        .metrics = {bench::metric("bytes", bytes / iterations)},
+    });
 }
 
-void benchRead()
+void benchRead(bench::Reporter& reporter)
 {
     const stun::Message message = makeMessage();
     Buffer wire;
     message.write(wire);
 
-    constexpr uint64_t iterations = 250000;
+    constexpr uint64_t iterations = 25000;
     uint64_t bytes = 0;
     uint64_t checksum = 0;
 
-    const uint64_t start = time::hrtime();
-    for (uint64_t index = 0; index < iterations; ++index) {
-        stun::Message parsed;
-        const ssize_t consumed = parsed.read(constBuffer(wire));
-        if (consumed <= 0) {
-            std::cerr << "stunbench: parse failed\n";
-            std::exit(1);
+    const auto measurement = bench::measure(reporter.options(), iterations, [&] {
+        bytes = 0;
+        checksum = 0;
+        for (uint64_t index = 0; index < iterations; ++index) {
+            stun::Message parsed;
+            const ssize_t consumed = parsed.read(constBuffer(wire));
+            if (consumed <= 0) {
+                std::cerr << "stunbench: parse failed\n";
+                std::exit(1);
+            }
+            bytes += static_cast<uint64_t>(consumed);
+            checksum += parsed.size();
         }
-        bytes += static_cast<uint64_t>(consumed);
-        checksum += parsed.size();
-    }
-    const uint64_t end = time::hrtime();
+    });
 
-    std::cout << "stun decode: "
-              << ((end - start) * 1.0 / iterations) << "ns per message"
-              << " (bytes=" << bytes / iterations
-              << ", checksum=" << checksum << ")\n";
+    reporter.add({
+        .name = "stun decode",
+        .measurement = measurement,
+        .metrics = {bench::metric("bytes", bytes / iterations),
+                    bench::metric("checksum", checksum)},
+    });
 }
 
 } // namespace
 
-int main()
+int main(int argc, char** argv)
 {
-    benchWrite();
-    benchRead();
-    return 0;
+    bench::Reporter reporter(argc, argv);
+    benchWrite(reporter);
+    benchRead(reporter);
+    return reporter.finish();
 }

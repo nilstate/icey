@@ -1,6 +1,8 @@
 #include "icy/signal.h"
 #include "icy/time.h"
 
+#include "benchutil.h"
+
 #include <cstdint>
 #include <iostream>
 
@@ -21,7 +23,7 @@ void incrementFree(uint64_t& value)
 }
 
 template <typename Attach>
-void runBenchmark(const char* name, Attach&& attach)
+void runBenchmark(bench::Reporter& reporter, const char* name, Attach&& attach)
 {
     Signal<void(uint64_t&)> signal;
     Counter counter;
@@ -29,31 +31,37 @@ void runBenchmark(const char* name, Attach&& attach)
 
     constexpr uint64_t iterations = 999999;
     uint64_t value = 0;
-    const uint64_t start = time::hrtime();
-    for (uint64_t index = 0; index < iterations; ++index)
-        signal.emit(value);
-    const uint64_t end = time::hrtime();
+    const auto measurement = bench::measure(reporter.options(), iterations, [&] {
+        value = 0;
+        for (uint64_t index = 0; index < iterations; ++index)
+            signal.emit(value);
+    });
 
-    std::cout << name << ": "
-              << ((end - start) * 1.0 / iterations) << "ns per emission"
-              << " (sz=" << sizeof(signal) << ")\n";
+    reporter.add({
+        .name = name,
+        .measurement = measurement,
+        .metrics = {bench::metric("size", static_cast<uint64_t>(sizeof(signal))),
+                    bench::metric("value", value)},
+    });
 }
 
 } // namespace
 
-int main()
+int main(int argc, char** argv)
 {
-    runBenchmark("signal class member", [](auto& signal, auto& counter) {
+    bench::Reporter reporter(argc, argv);
+
+    runBenchmark(reporter, "signal class member", [](auto& signal, auto& counter) {
         signal += slot(&counter, &Counter::increment);
     });
-    runBenchmark("signal const class member", [](auto& signal, auto& counter) {
+    runBenchmark(reporter, "signal const class member", [](auto& signal, auto& counter) {
         signal += slot(&counter, &Counter::incrementConst);
     });
-    runBenchmark("signal static member", [](auto& signal, auto&) {
+    runBenchmark(reporter, "signal static member", [](auto& signal, auto&) {
         signal += slot(&Counter::incrementStatic);
     });
-    runBenchmark("signal free function", [](auto& signal, auto&) {
+    runBenchmark(reporter, "signal free function", [](auto& signal, auto&) {
         signal += incrementFree;
     });
-    return 0;
+    return reporter.finish();
 }

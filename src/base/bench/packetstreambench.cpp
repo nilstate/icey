@@ -1,10 +1,10 @@
 #include "icy/packet.h"
 #include "icy/packetstream.h"
-#include "icy/time.h"
+
+#include "benchutil.h"
 
 #include <array>
 #include <cstdint>
-#include <iostream>
 
 using namespace icy;
 
@@ -41,7 +41,7 @@ struct PassthroughProcessor : PacketProcessor
 };
 
 template <typename Configure>
-void runBenchmark(const char* name, Configure&& configure)
+void runBenchmark(bench::Reporter& reporter, const char* name, Configure&& configure)
 {
     PacketStream stream(name);
     BenchSource source;
@@ -55,31 +55,37 @@ void runBenchmark(const char* name, Configure&& configure)
     std::array<char, 256> payload{};
     RawPacket packet(payload.data(), payload.size());
 
-    constexpr uint64_t iterations = 1000000;
-    const uint64_t start = time::hrtime();
-    for (uint64_t index = 0; index < iterations; ++index)
-        source.push(packet);
-    const uint64_t end = time::hrtime();
+    constexpr uint64_t iterations = 100000;
+    const auto measurement = bench::measure(reporter.options(), iterations, [&] {
+        packets = 0;
+        for (uint64_t index = 0; index < iterations; ++index)
+            source.push(packet);
+    });
 
-    std::cout << name << ": "
-              << ((end - start) * 1.0 / iterations) << "ns per packet"
-              << " (packets=" << packets << ")\n";
+    reporter.add({
+        .name = name,
+        .measurement = measurement,
+        .metrics = {bench::metric("packets", packets),
+                    bench::metric("payload_bytes", static_cast<uint64_t>(payload.size()))},
+    });
 
     stream.close();
 }
 
 } // namespace
 
-int main()
+int main(int argc, char** argv)
 {
-    runBenchmark("packetstream passthrough", [](PacketStream&) {});
-    runBenchmark("packetstream single processor", [](PacketStream& stream) {
+    bench::Reporter reporter(argc, argv);
+
+    runBenchmark(reporter, "packetstream passthrough", [](PacketStream&) {});
+    runBenchmark(reporter, "packetstream single processor", [](PacketStream& stream) {
         stream.attach(new PassthroughProcessor, 1, true);
     });
-    runBenchmark("packetstream triple processor", [](PacketStream& stream) {
+    runBenchmark(reporter, "packetstream triple processor", [](PacketStream& stream) {
         stream.attach(new PassthroughProcessor, 1, true);
         stream.attach(new PassthroughProcessor, 2, true);
         stream.attach(new PassthroughProcessor, 3, true);
     });
-    return 0;
+    return reporter.finish();
 }

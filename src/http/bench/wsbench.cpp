@@ -1,6 +1,7 @@
 #include "icy/buffer.h"
 #include "icy/http/websocket.h"
-#include "icy/time.h"
+
+#include "benchutil.h"
 
 #include <array>
 #include <cstdint>
@@ -25,7 +26,7 @@ void completeHandshake(http::ws::WebSocketFramer& clientFramer,
     }
 }
 
-void benchWrite()
+void benchWrite(bench::Reporter& reporter)
 {
     http::ws::WebSocketFramer framer(http::ws::ClientSide);
     http::ws::WebSocketFramer serverFramer(http::ws::ServerSide);
@@ -34,25 +35,28 @@ void benchWrite()
     Buffer frame;
     frame.reserve(payload.size() + 32);
 
-    constexpr uint64_t iterations = 250000;
+    constexpr uint64_t iterations = 100000;
     uint64_t bytes = 0;
 
-    const uint64_t start = time::hrtime();
-    for (uint64_t index = 0; index < iterations; ++index) {
-        frame.clear();
-        DynamicBitWriter writer(frame);
-        framer.writeFrame(payload.data(), payload.size(),
-                          http::ws::SendFlags::Binary, writer);
-        bytes += frame.size();
-    }
-    const uint64_t end = time::hrtime();
+    const auto measurement = bench::measure(reporter.options(), iterations, [&] {
+        bytes = 0;
+        for (uint64_t index = 0; index < iterations; ++index) {
+            frame.clear();
+            DynamicBitWriter writer(frame);
+            framer.writeFrame(payload.data(), payload.size(),
+                              http::ws::SendFlags::Binary, writer);
+            bytes += frame.size();
+        }
+    });
 
-    std::cout << "websocket frame write: "
-              << ((end - start) * 1.0 / iterations) << "ns per frame"
-              << " (bytes=" << bytes / iterations << ")\n";
+    reporter.add({
+        .name = "websocket frame write",
+        .measurement = measurement,
+        .metrics = {bench::metric("bytes", bytes / iterations)},
+    });
 }
 
-void benchRead()
+void benchRead(bench::Reporter& reporter)
 {
     http::ws::WebSocketFramer writerFramer(http::ws::ClientSide);
     http::ws::WebSocketFramer readerFramer(http::ws::ServerSide);
@@ -67,31 +71,36 @@ void benchRead()
                                 http::ws::SendFlags::Binary, writer);
     }
 
-    constexpr uint64_t iterations = 250000;
+    constexpr uint64_t iterations = 100000;
     uint64_t bytes = 0;
     uint64_t checksum = 0;
 
-    const uint64_t start = time::hrtime();
-    for (uint64_t index = 0; index < iterations; ++index) {
-        BitReader reader(frame);
-        char* decoded = nullptr;
-        const uint64_t payloadLen = readerFramer.readFrame(reader, decoded);
-        bytes += payloadLen;
-        checksum += static_cast<unsigned char>(decoded[0]);
-    }
-    const uint64_t end = time::hrtime();
+    const auto measurement = bench::measure(reporter.options(), iterations, [&] {
+        bytes = 0;
+        checksum = 0;
+        for (uint64_t index = 0; index < iterations; ++index) {
+            BitReader reader(frame);
+            char* decoded = nullptr;
+            const uint64_t payloadLen = readerFramer.readFrame(reader, decoded);
+            bytes += payloadLen;
+            checksum += static_cast<unsigned char>(decoded[0]);
+        }
+    });
 
-    std::cout << "websocket frame read: "
-              << ((end - start) * 1.0 / iterations) << "ns per frame"
-              << " (bytes=" << bytes / iterations
-              << ", checksum=" << checksum << ")\n";
+    reporter.add({
+        .name = "websocket frame read",
+        .measurement = measurement,
+        .metrics = {bench::metric("bytes", bytes / iterations),
+                    bench::metric("checksum", checksum)},
+    });
 }
 
 } // namespace
 
-int main()
+int main(int argc, char** argv)
 {
-    benchWrite();
-    benchRead();
-    return 0;
+    bench::Reporter reporter(argc, argv);
+    benchWrite(reporter);
+    benchRead(reporter);
+    return reporter.finish();
 }

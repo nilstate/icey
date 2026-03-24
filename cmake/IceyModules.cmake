@@ -21,6 +21,7 @@ set(Icey_BUILD_TESTS "" CACHE INTERNAL "Tests built")
 set(Icey_BUILD_SAMPLES "" CACHE INTERNAL "Samples built")
 set(Icey_BUILD_FUZZERS "" CACHE INTERNAL "Fuzz targets built")
 set(Icey_BUILD_BENCHMARKS "" CACHE INTERNAL "Benchmark targets built")
+set(Icey_REPORT_BENCHMARKS "" CACHE INTERNAL "Machine-readable benchmark targets built")
 
 # ----------------------------------------------------------------------------
 # Helper: filter platform-specific sources
@@ -400,7 +401,10 @@ function(icy_add_benchmark name)
     target_link_libraries(${name} PRIVATE ${BENCH_DEPENDS})
   endif()
 
-  target_include_directories(${name} PRIVATE ${CMAKE_BINARY_DIR})
+  target_include_directories(${name} PRIVATE
+    ${CMAKE_BINARY_DIR}
+    ${CMAKE_SOURCE_DIR}/bench
+  )
   target_compile_definitions(${name} PRIVATE ICY_DATA_DIR="${Icey_SOURCE_DIR}/data")
 
   if(ENABLE_SOLUTION_FOLDERS)
@@ -408,6 +412,7 @@ function(icy_add_benchmark name)
   endif()
 
   set(Icey_BUILD_BENCHMARKS ${Icey_BUILD_BENCHMARKS} ${name} CACHE INTERNAL "")
+  set(Icey_REPORT_BENCHMARKS ${Icey_REPORT_BENCHMARKS} ${name} CACHE INTERNAL "")
 endfunction()
 
 # ----------------------------------------------------------------------------

@@ -41,6 +41,28 @@ if(BUILD_TESTS)
   add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND})
 endif()
 
+if(BUILD_BENCHMARKS)
+  find_package(Python3 COMPONENTS Interpreter QUIET)
+  if(Python3_Interpreter_FOUND AND Icey_REPORT_BENCHMARKS)
+    set(_icey_bench_targets "")
+    foreach(_bench ${Icey_REPORT_BENCHMARKS})
+      list(APPEND _icey_bench_targets "$<TARGET_FILE:${_bench}>")
+    endforeach()
+
+    add_custom_target(benchreport
+      COMMAND "${Python3_EXECUTABLE}"
+              "${CMAKE_CURRENT_SOURCE_DIR}/bench/run_benchmarks.py"
+              --output "${CMAKE_BINARY_DIR}/bench/benchmarks.json"
+              --samples 3
+              --warmups 1
+              ${_icey_bench_targets}
+      DEPENDS ${Icey_REPORT_BENCHMARKS}
+      USES_TERMINAL
+      COMMENT "Running Icey microbenchmarks and writing bench/benchmarks.json"
+    )
+  endif()
+endif()
+
 # Doxygen documentation target
 find_package(Doxygen QUIET)
 if(DOXYGEN_FOUND)
