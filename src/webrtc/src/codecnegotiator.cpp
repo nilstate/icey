@@ -19,6 +19,7 @@ extern "C" {
 #include <algorithm>
 #include <array>
 #include <cctype>
+#include <stdexcept>
 
 
 namespace icy {
@@ -120,6 +121,18 @@ CodecSpec makeSpec(const CodecMapping& entry)
     if (entry.fmtp)
         spec.fmtp = entry.fmtp;
     return spec;
+}
+
+
+NegotiatedCodec makeNegotiated(const CodecSpec& spec)
+{
+    NegotiatedCodec negotiated;
+    negotiated.rtpName = spec.rtpName;
+    negotiated.ffmpegName = spec.ffmpegName;
+    negotiated.payloadType = spec.payloadType;
+    negotiated.clockRate = spec.clockRate;
+    negotiated.fmtp = spec.fmtp;
+    return negotiated;
 }
 
 
@@ -308,6 +321,73 @@ CodecNegotiator::specFromAudioCodec(const av::AudioCodec& codec)
         return specFromFfmpeg(codec.encoder);
 
     return specFromRtp(codec.name);
+}
+
+
+CodecSpec CodecNegotiator::requireVideoSpec(const av::VideoCodec& codec)
+{
+    if (auto spec = specFromVideoCodec(codec);
+        spec && spec->mediaType == CodecMediaType::Video) {
+        return *spec;
+    }
+
+    if (!codec.specified())
+        throw std::invalid_argument("Video track requires an explicit codec");
+    if (!codec.encoder.empty())
+        throw std::invalid_argument("Unsupported video encoder: " + codec.encoder);
+    throw std::invalid_argument("Unsupported video codec: " + codec.name);
+}
+
+
+CodecSpec CodecNegotiator::requireAudioSpec(const av::AudioCodec& codec)
+{
+    if (auto spec = specFromAudioCodec(codec);
+        spec && spec->mediaType == CodecMediaType::Audio) {
+        return *spec;
+    }
+
+    if (!codec.specified())
+        throw std::invalid_argument("Audio track requires an explicit codec");
+    if (!codec.encoder.empty())
+        throw std::invalid_argument("Unsupported audio encoder: " + codec.encoder);
+    throw std::invalid_argument("Unsupported audio codec: " + codec.name);
+}
+
+
+av::VideoCodec CodecNegotiator::resolveWebRtcVideoCodec(const av::VideoCodec& codec)
+{
+    auto spec = requireVideoSpec(codec);
+    auto resolved = makeNegotiated(spec).toWebRtcVideoCodec(
+        codec.width, codec.height, codec.fps);
+    resolved.sampleRate =
+        codec.sampleRate > 0 ? codec.sampleRate : static_cast<int>(spec.clockRate);
+    resolved.bitRate = codec.bitRate;
+    resolved.quality = codec.quality;
+    resolved.compliance = codec.compliance;
+    resolved.enabled = codec.enabled;
+    resolved.pixelFmt = codec.pixelFmt;
+    for (const auto& [key, value] : codec.options)
+        resolved.options[key] = value;
+    return resolved;
+}
+
+
+av::AudioCodec CodecNegotiator::resolveWebRtcAudioCodec(const av::AudioCodec& codec)
+{
+    auto spec = requireAudioSpec(codec);
+    auto resolved = makeNegotiated(spec).toWebRtcAudioCodec(
+        codec.channels > 0 ? codec.channels : DEFAULT_AUDIO_CHANNELS);
+    if (spec.id != CodecId::Opus && codec.sampleRate > 0)
+        resolved.sampleRate = codec.sampleRate;
+    resolved.bitRate = codec.bitRate;
+    resolved.quality = codec.quality;
+    resolved.compliance = codec.compliance;
+    resolved.enabled = codec.enabled;
+    if (!codec.sampleFmt.empty())
+        resolved.sampleFmt = codec.sampleFmt;
+    for (const auto& [key, value] : codec.options)
+        resolved.options[key] = value;
+    return resolved;
 }
 
 

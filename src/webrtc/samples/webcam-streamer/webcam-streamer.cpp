@@ -33,6 +33,7 @@
 #include "icy/logger.h"
 #include "icy/packetstream.h"
 #include "icy/symple/client.h"
+#include "icy/webrtc/codecnegotiator.h"
 #include "icy/webrtc/peersession.h"
 #include "symplesignaller.h"
 
@@ -120,11 +121,9 @@ private:
     void createSession()
     {
         // Configure the video codec for WebRTC browser playback.
-        av::VideoCodec videoCodec("H264", "libx264",
-            videoCap.width, videoCap.height, videoCap.maxFps);
-        videoCodec.options["preset"] = "ultrafast";
-        videoCodec.options["tune"] = "zerolatency";
-        videoCodec.options["profile"] = "baseline";
+        av::VideoCodec videoCodec = wrtc::CodecNegotiator::resolveWebRtcVideoCodec(
+            av::VideoCodec("H264", "libx264",
+                videoCap.width, videoCap.height, videoCap.maxFps));
 
         wrtc::PeerSession::Config config;
         config.rtcConfig.iceServers.emplace_back("stun:stun.l.google.com:19302");
@@ -174,11 +173,9 @@ private:
             capture->getEncoderVideoCodec(encoder->iparams);
 
             // Output params: H.264 for WebRTC with browser-safe settings
-            encoder->oparams = av::VideoCodec("H264", "libx264",
-                videoCap.width, videoCap.height, videoCap.maxFps);
-            encoder->oparams.options["preset"] = "ultrafast";
-            encoder->oparams.options["tune"] = "zerolatency";
-            encoder->oparams.options["profile"] = "baseline";
+            encoder->oparams = wrtc::CodecNegotiator::resolveWebRtcVideoCodec(
+                av::VideoCodec("H264", "libx264",
+                    videoCap.width, videoCap.height, videoCap.maxFps));
 
             videoSender = &session->media().videoSender();
 

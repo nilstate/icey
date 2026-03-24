@@ -155,6 +155,20 @@ public:
     [[nodiscard]] static std::optional<CodecSpec>
     specFromAudioCodec(const av::AudioCodec& codec);
 
+    /// Resolve a strict canonical video codec spec or throw.
+    [[nodiscard]] static CodecSpec requireVideoSpec(const av::VideoCodec& codec);
+
+    /// Resolve a strict canonical audio codec spec or throw.
+    [[nodiscard]] static CodecSpec requireAudioSpec(const av::AudioCodec& codec);
+
+    /// Resolve a browser-safe WebRTC video codec config from an explicit codec.
+    [[nodiscard]] static av::VideoCodec
+    resolveWebRtcVideoCodec(const av::VideoCodec& codec);
+
+    /// Resolve a browser-safe WebRTC audio codec config from an explicit codec.
+    [[nodiscard]] static av::AudioCodec
+    resolveWebRtcAudioCodec(const av::AudioCodec& codec);
+
     /// Detect the first known codec present in an SDP snippet for the given
     /// media type.
     [[nodiscard]] static std::optional<CodecSpec>

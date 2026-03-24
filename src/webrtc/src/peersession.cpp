@@ -21,6 +21,11 @@ PeerSession::PeerSession(SignallingInterface& signaller, const Config& config)
     : _signaller(signaller)
     , _config(config)
 {
+    // PeerSession owns SDP exchange explicitly through SignallingInterface.
+    // Auto-negotiation races against the init/accept/offer protocol and can
+    // emit stray local offers on the incoming path.
+    _config.rtcConfig.disableAutoNegotiation = true;
+
     _signaller.SdpReceived += slot(this, &PeerSession::onSdpReceived);
     _signaller.CandidateReceived += slot(this, &PeerSession::onCandidateReceived);
     _signaller.ControlReceived += slot(this, &PeerSession::onControlReceived);
@@ -286,10 +291,7 @@ void PeerSession::onSdpReceived(const std::string& peerId,
     if (type == "offer") {
         LDebug("Processing remote offer");
         pc->setRemoteDescription(rtc::Description(sdp, type));
-        if (auto* rtcConfig = pc->config();
-            rtcConfig && rtcConfig->disableAutoNegotiation) {
-            pc->setLocalDescription(rtc::Description::Type::Answer);
-        }
+        pc->setLocalDescription(rtc::Description::Type::Answer);
     }
     else if (type == "answer") {
         LDebug("Processing remote answer");

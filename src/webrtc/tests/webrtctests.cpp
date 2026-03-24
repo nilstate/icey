@@ -80,10 +80,26 @@ struct MockSignaller : SignallingInterface
         std::string reason;
     };
 
-    std::vector<ControlMessage> controls;
-    std::function<void(const std::string&, const std::string&, const std::string&)> onSendControl;
+    struct SdpMessage
+    {
+        std::string peerId;
+        std::string type;
+        std::string sdp;
+    };
 
-    void sendSdp(const std::string&, const std::string&, const std::string&) override {}
+    std::vector<ControlMessage> controls;
+    std::vector<SdpMessage> sdps;
+    std::function<void(const std::string&, const std::string&, const std::string&)> onSendControl;
+    std::function<void(const std::string&, const std::string&, const std::string&)> onSendSdp;
+
+    void sendSdp(const std::string& peerId,
+                 const std::string& type,
+                 const std::string& sdp) override
+    {
+        sdps.push_back({peerId, type, sdp});
+        if (onSendSdp)
+            onSendSdp(peerId, type, sdp);
+    }
     void sendCandidate(const std::string&, const std::string&, const std::string&) override {}
 
     void sendControl(const std::string& peerId,
@@ -173,6 +189,57 @@ struct LoopbackSignaller : SignallingInterface
 #ifdef HAVE_FFMPEG
 namespace {
 
+const std::string& chromeBrowserOffer()
+{
+    static const std::string offer =
+        "v=0\r\n"
+        "o=- 4611739175949513388 2 IN IP4 127.0.0.1\r\n"
+        "s=-\r\n"
+        "t=0 0\r\n"
+        "a=group:BUNDLE 0 1\r\n"
+        "a=msid-semantic: WMS *\r\n"
+        "m=audio 9 UDP/TLS/RTP/SAVPF 111 0 8\r\n"
+        "c=IN IP4 0.0.0.0\r\n"
+        "a=rtcp:9 IN IP4 0.0.0.0\r\n"
+        "a=ice-ufrag:abcd\r\n"
+        "a=ice-pwd:abcdefghijklmnopqrstuv\r\n"
+        "a=ice-options:trickle\r\n"
+        "a=fingerprint:sha-256 11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00\r\n"
+        "a=setup:actpass\r\n"
+        "a=mid:0\r\n"
+        "a=sendrecv\r\n"
+        "a=rtcp-mux\r\n"
+        "a=rtcp-rsize\r\n"
+        "a=rtpmap:111 opus/48000/2\r\n"
+        "a=fmtp:111 minptime=10;useinbandfec=1\r\n"
+        "a=rtpmap:0 PCMU/8000\r\n"
+        "a=rtpmap:8 PCMA/8000\r\n"
+        "m=video 9 UDP/TLS/RTP/SAVPF 102 97\r\n"
+        "c=IN IP4 0.0.0.0\r\n"
+        "a=rtcp:9 IN IP4 0.0.0.0\r\n"
+        "a=ice-ufrag:abcd\r\n"
+        "a=ice-pwd:abcdefghijklmnopqrstuv\r\n"
+        "a=ice-options:trickle\r\n"
+        "a=fingerprint:sha-256 11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00\r\n"
+        "a=setup:actpass\r\n"
+        "a=mid:1\r\n"
+        "a=sendrecv\r\n"
+        "a=rtcp-mux\r\n"
+        "a=rtcp-rsize\r\n"
+        "a=rtpmap:102 H264/90000\r\n"
+        "a=fmtp:102 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f\r\n"
+        "a=rtcp-fb:102 nack\r\n"
+        "a=rtcp-fb:102 nack pli\r\n";
+    return offer;
+}
+
+const std::string& chromeBrowserCandidate()
+{
+    static const std::string candidate =
+        "candidate:842163049 1 udp 1677729535 203.0.113.1 54400 typ srflx raddr 0.0.0.0 rport 0 generation 0 ufrag abcd";
+    return candidate;
+}
+
 void fillLoopbackVideoFrame(AVFrame* frame, int index)
 {
     for (int y = 0; y < frame->height; y++) {
@@ -193,8 +260,19 @@ void fillLoopbackVideoFrame(AVFrame* frame, int index)
 
 void configureLoopbackAudioCodec(PeerSession::Config& config)
 {
-    config.mediaOpts.audioCodec = av::AudioCodec("opus", "libopus", 2, 48000);
-    config.mediaOpts.audioCodec.options["application"] = "lowdelay";
+    config.mediaOpts.audioCodec = CodecNegotiator::resolveWebRtcAudioCodec(
+        av::AudioCodec("opus", "libopus", 2, 48000));
+}
+
+void configureLoopbackVideoCodec(PeerSession::Config& config,
+                                 int width,
+                                 int height,
+                                 double fps)
+{
+    auto codec = CodecNegotiator::resolveWebRtcVideoCodec(
+        av::VideoCodec("H264", "libx264", width, height, fps));
+    codec.pixelFmt = "yuv420p";
+    config.mediaOpts.videoCodec = std::move(codec);
 }
 
 std::vector<float> makeLoopbackAudioSamples(int channels,
@@ -348,6 +426,43 @@ int main(int argc, char** argv)
         expect(!CodecNegotiator::specFromVideoCodec(unset).has_value());
     });
 
+    describe("codec negotiator: strict codec requirements", []() {
+        auto videoSpec = CodecNegotiator::requireVideoSpec(
+            av::VideoCodec("H264", "libx264", 640, 480, 30));
+        expect(videoSpec.id == CodecId::H264);
+
+        auto audioSpec = CodecNegotiator::requireAudioSpec(
+            av::AudioCodec("opus", "libopus", 2, 48000));
+        expect(audioSpec.id == CodecId::Opus);
+
+        bool videoThrew = false;
+        bool audioThrew = false;
+        try { [[maybe_unused]] auto spec = CodecNegotiator::requireVideoSpec(av::VideoCodec{}); } catch (const std::invalid_argument&) { videoThrew = true; }
+        try { [[maybe_unused]] auto spec = CodecNegotiator::requireAudioSpec(av::AudioCodec{}); } catch (const std::invalid_argument&) { audioThrew = true; }
+        expect(videoThrew);
+        expect(audioThrew);
+    });
+
+    describe("codec negotiator: resolve browser-safe codecs", []() {
+        auto video = CodecNegotiator::resolveWebRtcVideoCodec(
+            av::VideoCodec("H264", "libx264", 1280, 720, 30, 500000));
+        expect(video.name == "H264");
+        expect(video.encoder == "libx264");
+        expect(video.options["preset"] == "ultrafast");
+        expect(video.options["tune"] == "zerolatency");
+        expect(video.options["profile"] == "baseline");
+        expect(video.bitRate == 500000);
+
+        auto audio = CodecNegotiator::resolveWebRtcAudioCodec(
+            av::AudioCodec("opus", "libopus", 2, 48000, 64000, "flt"));
+        expect(audio.name == "opus");
+        expect(audio.encoder == "libopus");
+        expect(audio.sampleRate == 48000);
+        expect(audio.sampleFmt == "flt");
+        expect(audio.options["application"] == "lowdelay");
+        expect(audio.bitRate == 64000);
+    });
+
     describe("codec negotiator: detect codec from sdp", []() {
         auto audio = CodecNegotiator::detectCodec(
             "m=audio 9 UDP/TLS/RTP/SAVPF 0\r\na=rtpmap:0 PCMU/8000\r\n",
@@ -360,6 +475,45 @@ int main(int argc, char** argv)
             CodecMediaType::Video);
         expect(video.has_value());
         expect(video->id == CodecId::H264);
+    });
+
+    describe("codec negotiator: detect browser offer codecs", []() {
+        static const std::string chromeOffer =
+            "v=0\r\n"
+            "o=- 4611739175949513388 2 IN IP4 127.0.0.1\r\n"
+            "s=-\r\n"
+            "t=0 0\r\n"
+            "m=audio 9 UDP/TLS/RTP/SAVPF 111 0 8\r\n"
+            "a=rtpmap:111 opus/48000/2\r\n"
+            "a=fmtp:111 minptime=10;useinbandfec=1\r\n"
+            "m=video 9 UDP/TLS/RTP/SAVPF 102 97\r\n"
+            "a=rtpmap:102 H264/90000\r\n"
+            "a=fmtp:102 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f\r\n";
+
+        static const std::string firefoxOffer =
+            "v=0\r\n"
+            "o=mozilla...THIS_IS_SDPARTA-99.0 1234567890 0 IN IP4 0.0.0.0\r\n"
+            "s=-\r\n"
+            "t=0 0\r\n"
+            "m=audio 9 UDP/TLS/RTP/SAVPF 109 0 8\r\n"
+            "a=rtpmap:109 opus/48000/2\r\n"
+            "m=video 9 UDP/TLS/RTP/SAVPF 126 120\r\n"
+            "a=rtpmap:126 H264/90000\r\n"
+            "a=fmtp:126 profile-level-id=42e01f;packetization-mode=1\r\n";
+
+        auto chromeAudio = CodecNegotiator::detectCodec(chromeOffer, CodecMediaType::Audio);
+        auto chromeVideo = CodecNegotiator::detectCodec(chromeOffer, CodecMediaType::Video);
+        auto firefoxAudio = CodecNegotiator::detectCodec(firefoxOffer, CodecMediaType::Audio);
+        auto firefoxVideo = CodecNegotiator::detectCodec(firefoxOffer, CodecMediaType::Video);
+
+        expect(chromeAudio.has_value());
+        expect(chromeAudio->id == CodecId::Opus);
+        expect(chromeVideo.has_value());
+        expect(chromeVideo->id == CodecId::H264);
+        expect(firefoxAudio.has_value());
+        expect(firefoxAudio->id == CodecId::Opus);
+        expect(firefoxVideo.has_value());
+        expect(firefoxVideo->id == CodecId::H264);
     });
 
     describe("codec negotiator: to av types", []() {
@@ -788,6 +942,37 @@ int main(int argc, char** argv)
         expect(session.dataChannel() != nullptr);
     });
 
+    describe("peer session: browser offer queues early candidate and yields answer", []() {
+        MockSignaller signaller;
+        PeerSession::Config config;
+        config.enableDataChannel = false;
+        configureLoopbackAudioCodec(config);
+        configureLoopbackVideoCodec(config, 640, 360, 30);
+        PeerSession session(signaller, config);
+
+        signaller.ControlReceived.emit("browser", "init", "");
+        expect(session.state() == PeerSession::State::IncomingInit);
+
+        session.accept();
+        expect(session.state() == PeerSession::State::Negotiating);
+
+        signaller.CandidateReceived.emit("browser", chromeBrowserCandidate(), "0");
+        signaller.SdpReceived.emit("browser", "offer", chromeBrowserOffer());
+
+        expect(icy::test::waitFor([&] {
+            return !signaller.sdps.empty();
+        }, 2000));
+        expect(signaller.sdps.size() == 1);
+        expect(signaller.sdps.back().peerId == "browser");
+        expect(signaller.sdps.back().type == "answer");
+        expect(!signaller.sdps.back().sdp.empty());
+
+        session.hangup("done");
+        expect(icy::test::waitFor([&] {
+            return session.state() == PeerSession::State::Idle;
+        }, 3000));
+    });
+
     describe("peer session: reentrant signaller preserves state order", []() {
         ReentrantRejectSignaller signaller;
         PeerSession session(signaller, {});
@@ -921,11 +1106,7 @@ int main(int argc, char** argv)
 
         PeerSession::Config config;
         config.enableDataChannel = false;
-        config.mediaOpts.videoCodec = av::VideoCodec("H264", "libx264", 160, 120, 30);
-        config.mediaOpts.videoCodec.pixelFmt = "yuv420p";
-        config.mediaOpts.videoCodec.options["preset"] = "ultrafast";
-        config.mediaOpts.videoCodec.options["tune"] = "zerolatency";
-        config.mediaOpts.videoCodec.options["profile"] = "baseline";
+        configureLoopbackVideoCodec(config, 160, 120, 30);
 
         PeerSession alice(aliceSig, config);
         PeerSession bob(bobSig, config);
@@ -1005,11 +1186,7 @@ int main(int argc, char** argv)
 
         PeerSession::Config config;
         config.enableDataChannel = false;
-        config.mediaOpts.videoCodec = av::VideoCodec("H264", "libx264", 160, 120, 30);
-        config.mediaOpts.videoCodec.pixelFmt = "yuv420p";
-        config.mediaOpts.videoCodec.options["preset"] = "ultrafast";
-        config.mediaOpts.videoCodec.options["tune"] = "zerolatency";
-        config.mediaOpts.videoCodec.options["profile"] = "baseline";
+        configureLoopbackVideoCodec(config, 160, 120, 30);
 
         PeerSession publisher(publisherSig, config);
         PeerSession relayIngress(ingressSig, config);

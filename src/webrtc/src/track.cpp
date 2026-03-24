@@ -22,37 +22,6 @@ namespace wrtc {
 
 
 namespace {
-
-CodecSpec videoCodecSpec(const av::VideoCodec& codec)
-{
-    if (auto spec = CodecNegotiator::specFromVideoCodec(codec);
-        spec && spec->mediaType == CodecMediaType::Video) {
-        return *spec;
-    }
-
-    if (!codec.specified())
-        throw std::invalid_argument("Video track requires an explicit codec");
-    if (!codec.encoder.empty())
-        throw std::invalid_argument("Unsupported video encoder: " + codec.encoder);
-    throw std::invalid_argument("Unsupported video codec: " + codec.name);
-}
-
-
-CodecSpec audioCodecSpec(const av::AudioCodec& codec)
-{
-    if (auto spec = CodecNegotiator::specFromAudioCodec(codec);
-        spec && spec->mediaType == CodecMediaType::Audio) {
-        return *spec;
-    }
-
-    if (!codec.specified())
-        throw std::invalid_argument("Audio track requires an explicit codec");
-    if (!codec.encoder.empty())
-        throw std::invalid_argument("Unsupported audio encoder: " + codec.encoder);
-    throw std::invalid_argument("Unsupported audio codec: " + codec.name);
-}
-
-
 void addVideoCodec(rtc::Description::Video& media, const CodecSpec& spec)
 {
     switch (spec.id) {
@@ -205,7 +174,7 @@ TrackHandle createVideoTrack(
     std::function<void()> onPli,
     std::function<void(unsigned int)> onRemb)
 {
-    auto spec = videoCodecSpec(codec);
+    auto spec = CodecNegotiator::requireVideoSpec(codec);
 
     if (ssrc == 0)
         ssrc = generateSsrc();
@@ -240,7 +209,7 @@ TrackHandle createAudioTrack(
     uint32_t ssrc,
     const std::string& cname)
 {
-    auto spec = audioCodecSpec(codec);
+    auto spec = CodecNegotiator::requireAudioSpec(codec);
 
     if (ssrc == 0)
         ssrc = generateSsrc();

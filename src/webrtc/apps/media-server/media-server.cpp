@@ -44,6 +44,7 @@
 #include "icy/packetstream.h"
 #include "icy/symple/server.h"
 #include "icy/turn/server/server.h"
+#include "icy/webrtc/codecnegotiator.h"
 #include "icy/webrtc/peersession.h"
 
 #include <chrono>
@@ -751,22 +752,18 @@ public:
 private:
     static av::VideoCodec makeVideoCodec(const Config& config)
     {
-        av::VideoCodec vc("H264", config.videoCodec,
-            config.videoWidth, config.videoHeight, config.videoFps,
-            config.videoBitRate);
-        vc.options["preset"] = "ultrafast";
-        vc.options["tune"] = "zerolatency";
-        vc.options["profile"] = "baseline";
-        return vc;
+        return wrtc::CodecNegotiator::resolveWebRtcVideoCodec(
+            av::VideoCodec("H264", config.videoCodec,
+                config.videoWidth, config.videoHeight, config.videoFps,
+                config.videoBitRate));
     }
 
     static av::AudioCodec makeAudioCodec(const Config& config)
     {
-        av::AudioCodec ac("opus", config.audioCodec,
-            config.audioChannels, config.audioSampleRate,
-            config.audioBitRate, "flt");
-        ac.options["application"] = "lowdelay";
-        return ac;
+        return wrtc::CodecNegotiator::resolveWebRtcAudioCodec(
+            av::AudioCodec("opus", config.audioCodec,
+                config.audioChannels, config.audioSampleRate,
+                config.audioBitRate, "flt"));
     }
 
     void startStreaming()
