@@ -96,4 +96,4 @@ void Random::getSeed(char* seed, unsigned length)
 } // namespace icy
 
 
-/// @\}
+/// @}

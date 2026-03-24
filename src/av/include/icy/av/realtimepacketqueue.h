@@ -103,4 +103,4 @@ protected:
 } // namespace icy
 
 
-/// @\}
+/// @}

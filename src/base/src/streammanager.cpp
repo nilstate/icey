@@ -133,3 +133,5 @@ void StreamManager::print(std::ostream& os) const
 
 
 } // namespace icy
+
+/// @}

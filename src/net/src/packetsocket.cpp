@@ -69,4 +69,4 @@ bool PacketSocketEmitter::onPacket(IPacket& pkt)
 } // namespace icy
 
 
-/// @\}
+/// @}

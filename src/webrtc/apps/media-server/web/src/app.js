@@ -1,5 +1,5 @@
 import { SympleClient, Symple } from 'symple-client'
-import { CallManager } from 'symple-player'
+import { CallManager } from 'symple-client-player'
 
 // ---------------------------------------------------------------------------
 // DOM
@@ -55,16 +55,21 @@ function connect () {
     }
   })
 
-  client.on('announce', (status) => {
-    if (status === 200 || status?.status === 200) {
-      setOnline(true)
-      $connInfo.textContent = `${url}  |  ${user}`
-    } else {
-      console.error('Auth failed:', status)
-    }
+  client.on('connect', () => {
+    setOnline(true)
+    $connInfo.textContent = `${url}  |  ${user}`
+    updatePeerList()
   })
 
   client.on('presence', (p) => {
+    updatePeerList()
+  })
+
+  client.on('addPeer', () => {
+    updatePeerList()
+  })
+
+  client.on('removePeer', () => {
     updatePeerList()
   })
 
@@ -118,6 +123,10 @@ function connect () {
 
   calls.on('error', (err) => {
     console.error('Call error:', err)
+  })
+
+  client.on('error', (err) => {
+    console.error('Client error:', err)
   })
 
   client.connect()

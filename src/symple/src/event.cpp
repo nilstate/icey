@@ -83,4 +83,4 @@ void Event::setTime(time_t time)
 } // namespace icy
 
 
-/// @\}
+/// @}

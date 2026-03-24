@@ -203,4 +203,4 @@ void ServerAllocation::print(std::ostream& os) const
 } // namespace icy
 
 
-/// @\}
+/// @}

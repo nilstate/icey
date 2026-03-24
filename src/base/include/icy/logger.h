@@ -612,4 +612,4 @@ inline std::string _methodName(std::string_view fsig)
 } // namespace icy
 
 
-/// @\}
+/// @}

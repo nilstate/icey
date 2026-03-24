@@ -397,7 +397,7 @@ The three message categories:
 
 #### Using SympleSignaller
 
-`SympleSignaller` wraps a `smpl::Client` and speaks the `call:*` message protocol defined in `symple-player`'s `CallManager.js`. It is wire-compatible with any browser running `symple-client`.
+`SympleSignaller` wraps a `smpl::Client` and speaks the `call:*` message protocol defined in `symple-client-player`'s `CallManager.js`. It is wire-compatible with any browser running `symple-client`.
 
 ```cpp
 #include "symplesignaller.h"  // Note: this header is in samples/, not the library include path

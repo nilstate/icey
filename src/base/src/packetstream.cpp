@@ -762,4 +762,4 @@ PacketRetention PacketStreamAdapter::retention() const
 } // namespace icy
 
 
-/// @\}
+/// @}

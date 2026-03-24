@@ -440,4 +440,4 @@ void Cipher::generateKey(std::string_view password, std::string_view salt,
 } // namespace icy
 
 
-/// @\}
+/// @}

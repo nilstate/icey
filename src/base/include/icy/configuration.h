@@ -287,4 +287,4 @@ private:
 } // namespace icy
 
 
-/// @\}
+/// @}

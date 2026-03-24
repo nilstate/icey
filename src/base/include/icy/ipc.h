@@ -169,4 +169,4 @@ using ActionSyncQueue = ipc::SyncQueue<ipc::Action>;
 } // namespace icy
 
 
-/// @\}
+/// @}

@@ -106,4 +106,4 @@ private:
 } // namespace icy
 
 
-/// @\}
+/// @}

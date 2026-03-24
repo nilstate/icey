@@ -340,4 +340,4 @@ bool Message::hasData(std::string_view name)
 } // namespace icy
 
 
-/// @\}
+/// @}

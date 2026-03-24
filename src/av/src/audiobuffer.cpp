@@ -140,4 +140,4 @@ int AudioBuffer::available() const
 #endif
 
 
-/// @\}
+/// @}

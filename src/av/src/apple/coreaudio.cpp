@@ -263,4 +263,4 @@ void AppleDeviceWatcher::stop()
 } // namespace icy
 
 
-/// @\}
+/// @}

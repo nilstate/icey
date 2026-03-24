@@ -348,3 +348,5 @@ protected:
 
 } // namespace av
 } // namespace icy
+
+/// @}

@@ -106,4 +106,4 @@ void AudioCapture::openAudio(const std::string& device, int channels, int sample
 #endif
 
 
-/// @\}
+/// @}

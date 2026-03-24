@@ -197,4 +197,4 @@ VerificationErrorDetails::~VerificationErrorDetails() noexcept
 } // namespace icy
 
 
-/// @\}
+/// @}

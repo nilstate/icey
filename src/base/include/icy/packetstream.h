@@ -645,3 +645,5 @@ using PacketStreamPtrVec = std::vector<PacketStream::Ptr>;
 
 
 } // namespace icy
+
+/// @}

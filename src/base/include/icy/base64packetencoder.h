@@ -51,3 +51,5 @@ public:
 
 
 } // namespace icy
+
+/// @}

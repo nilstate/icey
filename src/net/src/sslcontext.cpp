@@ -395,4 +395,4 @@ void SSLContext::enableSNI(SSL* ssl, const std::string& hostname)
 } // namespace icy
 
 
-/// @\}
+/// @}

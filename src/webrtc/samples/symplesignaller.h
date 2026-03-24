@@ -24,7 +24,7 @@ namespace wrtc {
 /// SignallingInterface implementation using the Symple protocol.
 ///
 /// Speaks the call:init/accept/reject/offer/answer/candidate/hangup
-/// protocol defined in symple-player's call-manager.js.
+/// protocol defined in symple-client-player's call-manager.js.
 /// Compatible with any browser running symple-client + CallManager.
 ///
 /// Usage:
@@ -70,4 +70,4 @@ private:
 } // namespace icy
 
 
-/// @\}
+/// @}

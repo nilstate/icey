@@ -108,4 +108,4 @@ using AVPacketHolder = std::unique_ptr<
 } // namespace icy
 
 
-/// @\}
+/// @}

@@ -44,4 +44,4 @@ bool getDeviceList(Device::Type type, std::vector<av::Device>& devices)
 } // namespace icy
 
 
-/// @\}
+/// @}

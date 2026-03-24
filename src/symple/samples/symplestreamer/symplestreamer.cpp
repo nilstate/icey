@@ -10,7 +10,7 @@
 // Streams camera or file video to the Symple client player via MJPEG
 // over WebSocket. Connects to a Symple server for peer discovery and
 // call signalling, then serves an MJPEG WebSocket stream that the
-// symple-player can consume directly.
+// symple-client-player can consume directly.
 //
 // The signalling flow follows the Symple call protocol:
 //   1. Streamer connects to Symple server and announces presence
@@ -274,3 +274,5 @@ int main(int argc, char** argv)
     Logger::destroy();
     return 0;
 }
+
+/// @}

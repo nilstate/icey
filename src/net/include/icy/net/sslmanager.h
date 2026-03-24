@@ -213,4 +213,4 @@ inline bool VerificationErrorDetails::getIgnoreError() const
 } // namespace icy
 
 
-/// @\}
+/// @}

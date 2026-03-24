@@ -156,4 +156,4 @@ inline std::string checksum(const std::string& algorithm,
 } // namespace icy
 
 
-/// @\}
+/// @}

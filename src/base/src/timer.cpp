@@ -213,4 +213,4 @@ uv::Handle<uv_timer_t>& Timer::handle()
 } // namespace icy
 
 
-/// @\}
+/// @}

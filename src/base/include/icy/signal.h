@@ -540,15 +540,7 @@ slot(Class* instance, RT (Class::*method)(Args...), int id = -1, int priority = 
 }
 
 /// Creates a slot that binds a `const` class member function to an instance.
-///
-/// @tparam Class     The class that owns the member function.
-/// @tparam RT        Return type of the member function.
-/// @tparam Args      Parameter types of the member function.
-/// @param instance   Pointer to the object on which `method` will be called.
-/// @param method     Pointer to the const member function to bind.
-/// @param id         Explicit slot ID to assign; pass `-1` to auto-assign.
-/// @param priority   Higher values are called first; pass `-1` for default ordering.
-/// @return A `SlotPtr` ready to attach to a compatible `Signal`.
+/// Uses the same slot ID and priority rules as the non-const overload above.
 template <class Class, class RT, typename... Args>
 std::shared_ptr<internal::Slot<RT, Args...>>
 slot(Class* instance, RT (Class::*method)(Args...) const, int id = -1, int priority = -1)
@@ -645,4 +637,4 @@ struct Slot
 } // namespace icy
 
 
-/// @\}
+/// @}

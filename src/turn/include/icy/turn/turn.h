@@ -8,6 +8,7 @@
 /// @defgroup turn TURN module (rfc5766)
 ///
 /// The `turn` module contains TURN (rfc5766) client and server implementations.
+/// @{
 
 #pragma once
 
@@ -24,4 +25,4 @@
 #endif
 
 
-/// @\}
+/// @}

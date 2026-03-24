@@ -97,4 +97,4 @@ protected:
 } // namespace icy
 
 
-/// @\}
+/// @}

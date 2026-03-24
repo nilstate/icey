@@ -258,4 +258,4 @@ inline uint64_t networkToHost64(uint64_t n)
 } // namespace icy
 
 
-/// @\}
+/// @}

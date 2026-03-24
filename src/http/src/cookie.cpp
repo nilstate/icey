@@ -254,4 +254,4 @@ std::string Cookie::unescape(std::string_view str)
 } // namespace icy
 
 
-/// @\}
+/// @}

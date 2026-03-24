@@ -228,4 +228,4 @@ void DailyTrigger::update()
 } // namespace icy
 
 
-/// @\}
+/// @}

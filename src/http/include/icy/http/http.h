@@ -25,3 +25,5 @@
 #else
 #define HTTP_API // nothing
 #endif
+
+/// @}

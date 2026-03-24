@@ -124,4 +124,4 @@ int setServerSocketRecvBufSize(uv::Handle<T>& handle, int size)
 } // namespace icy
 
 
-/// @\}
+/// @}

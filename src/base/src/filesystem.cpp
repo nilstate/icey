@@ -218,4 +218,4 @@ bool savefile(std::string_view path, const char* data, size_t size,
 } // namespace icy
 
 
-/// @\}
+/// @}

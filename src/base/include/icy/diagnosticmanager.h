@@ -175,4 +175,4 @@ public:
 } // namespace icy
 
 
-/// @\}
+/// @}

@@ -123,4 +123,4 @@ void MultiplexPacketEncoder::onStreamStateChange(const PacketStreamState& state)
 #endif
 
 
-/// @\}
+/// @}

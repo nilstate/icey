@@ -188,4 +188,4 @@ struct DailyTrigger : public Trigger
 } // namespace icy
 
 
-/// @\}
+/// @}

@@ -108,4 +108,4 @@ void uninitializeEngine()
 } // namespace icy
 
 
-/// @\}
+/// @}

@@ -380,4 +380,4 @@ uv::Loop* UDPSocket::loop() const
 } // namespace icy
 
 
-/// @\}
+/// @}

@@ -1809,4 +1809,4 @@ void Stopwatch::restart()
 } // namespace icy
 
 
-/// @\}
+/// @}

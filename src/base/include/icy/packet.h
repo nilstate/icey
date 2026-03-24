@@ -297,3 +297,5 @@ inline RawPacket rawPacket(const char* data = nullptr, size_t size = 0,
 
 
 } // namespace icy
+
+/// @}

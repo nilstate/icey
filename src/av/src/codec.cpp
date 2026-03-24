@@ -288,4 +288,4 @@ void VideoCodec::print(std::ostream& ost)
 } // namespace icy
 
 
-/// @\}
+/// @}

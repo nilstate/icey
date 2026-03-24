@@ -77,4 +77,4 @@ struct VideoEncoder : public VideoContext
 #endif
 
 
-/// @\}
+/// @}

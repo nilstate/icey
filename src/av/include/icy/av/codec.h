@@ -271,3 +271,5 @@ inline float intervalToFpsFloat(int64_t interval)
 
 } // namespace av
 } // namespace icy
+
+/// @}

@@ -53,7 +53,6 @@ struct AudioEncoder : public AudioContext
     /// @param samples    The input samples to encode.
     /// @param numSamples The number of input samples per channel.
     /// @param pts        The input samples presentation timestamp.
-    /// @param opacket    The output packet data will be encoded to.
     [[nodiscard]] bool encode(uint8_t* samples, const int numSamples, const int64_t pts) override;
 
     /// Encode planar audio samples.
@@ -61,7 +60,6 @@ struct AudioEncoder : public AudioContext
     /// @param samples    The input samples to encode.
     /// @param numSamples The number of input samples per channel.
     /// @param pts        The input samples presentation timestamp.
-    /// @param opacket    The output packet data will be encoded to.
     [[nodiscard]] bool encode(uint8_t* samples[4], const int numSamples, const int64_t pts) override;
 
     /// Encode a single AVFrame (typically from a decoder or resampler).
@@ -85,4 +83,4 @@ struct AudioEncoder : public AudioContext
 #endif
 
 
-/// @\}
+/// @}

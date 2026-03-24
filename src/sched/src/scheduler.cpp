@@ -216,4 +216,4 @@ TaskFactory& Scheduler::factory()
 } // namespace icy
 
 
-/// @\}
+/// @}

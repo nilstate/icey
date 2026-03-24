@@ -114,4 +114,4 @@ void VideoCapture::openVideo(const std::string& device, int width, int height,
 #endif
 
 
-/// @\}
+/// @}

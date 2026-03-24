@@ -550,4 +550,4 @@ DeviceManager::negotiateAudioCapture(std::string_view deviceName, int sampleRate
 } // namespace icy
 
 
-/// @\}
+/// @}

@@ -328,4 +328,4 @@ int TCPClient::transportProtocol()
 } // namespace icy
 
 
-/// @\}
+/// @}

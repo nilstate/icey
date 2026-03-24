@@ -61,4 +61,4 @@ void Transaction::onResponse()
 } // namespace icy
 
 
-/// @\}
+/// @}

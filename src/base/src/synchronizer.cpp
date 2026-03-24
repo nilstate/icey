@@ -86,4 +86,4 @@ uv::Handle<uv_async_t>& Synchronizer::handle()
 } // namespace icy
 
 
-/// @\}
+/// @}

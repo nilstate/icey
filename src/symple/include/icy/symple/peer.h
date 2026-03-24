@@ -111,4 +111,4 @@ public:
 } // namespace icy
 
 
-/// @\}
+/// @}

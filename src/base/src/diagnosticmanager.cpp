@@ -159,3 +159,5 @@ void DiagnosticManager::onDiagnosticStateChange(void* sender,
 
 
 } // namespace icy
+
+/// @}

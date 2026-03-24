@@ -196,4 +196,4 @@ AVSampleFormat selectSampleFormat(const AVCodec* codec, av::AudioCodec& params)
 #endif
 
 
-/// @\}
+/// @}

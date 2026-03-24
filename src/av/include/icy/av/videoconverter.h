@@ -67,4 +67,4 @@ struct VideoConverter
 #endif
 
 
-/// @\}
+/// @}

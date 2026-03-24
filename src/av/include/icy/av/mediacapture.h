@@ -144,4 +144,4 @@ protected:
 #endif
 
 
-/// @\}
+/// @}

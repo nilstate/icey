@@ -96,4 +96,4 @@ Base_API uint64_t hrtime();
 } // namespace icy
 
 
-/// @\}
+/// @}

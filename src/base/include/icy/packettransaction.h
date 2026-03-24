@@ -283,4 +283,4 @@ inline T PacketTransaction<T>::response() const
 } // namespace icy
 
 
-/// @\}
+/// @}

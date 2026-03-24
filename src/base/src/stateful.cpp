@@ -75,4 +75,4 @@ std::string State::toString() const
 } // namespace icy
 
 
-/// @\}
+/// @}

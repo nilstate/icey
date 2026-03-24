@@ -59,4 +59,4 @@ enum class AddressFamily : uint8_t
 } // namespace icy
 
 
-/// @\}
+/// @}

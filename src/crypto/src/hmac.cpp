@@ -47,4 +47,4 @@ std::string computeHMAC(std::string_view input, std::string_view key)
 } // namespace icy
 
 
-/// @\}
+/// @}

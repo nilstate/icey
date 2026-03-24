@@ -46,7 +46,7 @@ public:
     /// Flushes any buffered state and writes final output to outbuf.
     /// @param outbuf Destination buffer for any remaining output.
     /// @return Number of bytes written, or 0 if nothing to flush.
-    virtual ssize_t finalize(char* /* outbuf */) { return 0; }
+    virtual ssize_t finalize(char* outbuf) { (void)outbuf; return 0; }
 };
 
 
@@ -67,7 +67,7 @@ public:
     /// Flushes any buffered state and writes final output to outbuf.
     /// @param outbuf Destination buffer for any remaining output.
     /// @return Number of bytes written, or 0 if nothing to flush.
-    virtual ssize_t finalize(char* /* outbuf */) { return 0; }
+    virtual ssize_t finalize(char* outbuf) { (void)outbuf; return 0; }
 };
 
 
@@ -132,4 +132,4 @@ public:
 } // namespace icy
 
 
-/// @\}
+/// @}

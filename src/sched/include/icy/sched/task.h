@@ -125,4 +125,4 @@ using TaskList = std::vector<sched::Task*>;
 } // namespace icy
 
 
-/// @\}
+/// @}

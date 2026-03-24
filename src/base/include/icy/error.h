@@ -123,4 +123,4 @@ inline void throwError(std::string_view message, int err = UV_UNKNOWN)
 } // namespace icy
 
 
-/// @\}
+/// @}

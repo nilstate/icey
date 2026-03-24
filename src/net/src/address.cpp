@@ -389,4 +389,4 @@ uint16_t Address::resolveService(const std::string& service)
 } // namespace icy
 
 
-/// @\}
+/// @}

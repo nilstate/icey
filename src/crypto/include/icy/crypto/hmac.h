@@ -37,4 +37,4 @@ namespace crypto {
 } // namespace icy
 
 
-/// @\}
+/// @}

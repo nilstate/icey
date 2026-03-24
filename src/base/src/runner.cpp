@@ -93,4 +93,4 @@ bool Runner::waitForExit(int timeout)
 } // namespace icy
 
 
-/// @\}
+/// @}

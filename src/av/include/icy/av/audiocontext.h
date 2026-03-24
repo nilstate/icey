@@ -140,4 +140,4 @@ bool formatIsPlanar(AVSampleFormat format);
 #endif
 
 
-/// @\}
+/// @}

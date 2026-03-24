@@ -49,4 +49,4 @@ protected:
 } // namespace icy
 
 
-/// @\}
+/// @}

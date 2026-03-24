@@ -46,7 +46,7 @@ public:
 
     /// Called for each chunk of incoming body data after headers are complete.
     /// @param buffer Buffer containing the received data chunk.
-    virtual void onPayload(const MutableBuffer&) = 0;
+    virtual void onPayload(const MutableBuffer& buffer) = 0;
 
     /// Called when the incoming HTTP message is fully received.
     virtual void onComplete() = 0;

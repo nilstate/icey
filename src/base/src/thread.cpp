@@ -70,4 +70,4 @@ bool Thread::async() const
 } // namespace icy
 
 
-/// @\}
+/// @}

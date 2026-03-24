@@ -56,4 +56,4 @@ protected:
 } // namespace icy
 
 
-/// @\}
+/// @}

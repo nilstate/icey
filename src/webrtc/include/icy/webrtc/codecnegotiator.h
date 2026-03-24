@@ -180,4 +180,4 @@ public:
 } // namespace icy
 
 
-/// @\}
+/// @}

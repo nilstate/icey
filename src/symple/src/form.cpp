@@ -417,4 +417,4 @@ void FormField::addValue(bool value)
 } // namespace icy
 
 
-/// @\}
+/// @}

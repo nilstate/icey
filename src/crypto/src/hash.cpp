@@ -98,4 +98,4 @@ const std::string& Hash::algorithm() const
 } // namespace icy
 
 
-/// @\}
+/// @}

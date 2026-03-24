@@ -80,4 +80,4 @@ protected:
 } // namespace icy
 
 
-/// @\}
+/// @}

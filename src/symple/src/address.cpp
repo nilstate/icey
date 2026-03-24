@@ -104,4 +104,4 @@ bool Address::operator==(const std::string& r) const
 } // namespace icy
 
 
-/// @\}
+/// @}

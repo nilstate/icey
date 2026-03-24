@@ -2238,4 +2238,4 @@ class AudioDecoderTest : public Test
 } // namespace icy
 
 
-/// @\}
+/// @}

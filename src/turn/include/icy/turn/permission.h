@@ -141,4 +141,4 @@ using PermissionList = std::vector<Permission>;
 } // namespace icy
 
 
-/// @\}
+/// @}

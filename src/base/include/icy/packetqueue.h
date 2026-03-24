@@ -261,4 +261,4 @@ AsyncPacketQueue<T>::onStreamStateChange(const PacketStreamState& state)
 } // namespace icy
 
 
-/// @\}
+/// @}

@@ -159,17 +159,21 @@ public:
 
     /// Called when the incoming request headers have been parsed.
     /// @param request The parsed HTTP request with headers populated.
-    virtual void onHeaders(Request& /* request */) {}
+    virtual void onHeaders(Request& request) { (void)request; }
 
     /// Called for each chunk of incoming request body data.
     /// @param body Buffer containing a chunk of the request body.
-    virtual void onPayload(const MutableBuffer& /* body */) {}
+    virtual void onPayload(const MutableBuffer& body) { (void)body; }
 
     /// Called when the complete HTTP request has been received.
     /// Derived classes should write their response here.
     /// @param request The fully received HTTP request.
     /// @param response The HTTP response to populate and send.
-    virtual void onRequest(Request& /* request */, Response& /* response */) {}
+    virtual void onRequest(Request& request, Response& response)
+    {
+        (void)request;
+        (void)response;
+    }
 
     /// Called when the connection is closed.
     virtual void onClose() {};

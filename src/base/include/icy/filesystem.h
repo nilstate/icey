@@ -137,4 +137,4 @@ Base_API bool savefile(std::string_view path, const char* data,
 } // namespace icy
 
 
-/// @\}
+/// @}

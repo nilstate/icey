@@ -65,3 +65,5 @@ private:
 
 } // namespace av
 } // namespace icy
+
+/// @}

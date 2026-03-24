@@ -138,4 +138,4 @@ PlanarAudioPacket::~PlanarAudioPacket() noexcept
 #endif
 
 
-/// @\}
+/// @}

@@ -122,4 +122,4 @@ bool SocketEmitter::onSocketClose(Socket& socket)
 } // namespace icy
 
 
-/// @\}
+/// @}

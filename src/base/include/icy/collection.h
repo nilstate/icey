@@ -278,4 +278,4 @@ using StringVec = std::vector<std::string>;
 } // namespace icy
 
 
-/// @\}
+/// @}

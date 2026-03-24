@@ -196,4 +196,4 @@ void Message::write(Buffer& buf) const
 } // namespace icy
 
 
-/// @\}
+/// @}

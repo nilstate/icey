@@ -143,4 +143,4 @@ void NVCollection::clear()
 } // namespace icy
 
 
-/// @\}
+/// @}

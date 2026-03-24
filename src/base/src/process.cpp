@@ -180,4 +180,4 @@ int Process::pid() const
 } // namespace icy
 
 
-/// @\}
+/// @}

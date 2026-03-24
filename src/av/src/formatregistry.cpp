@@ -161,4 +161,4 @@ Format& FormatRegistry::defaultLocked()
 } // namespace icy
 
 
-/// @\}
+/// @}

@@ -696,6 +696,11 @@ void Server::onAuth(ServerPeer& tempPeer,
         welcome["rooms"].push_back(room);
     registeredPeer->send(welcome);
 
+    // Seed the client with the peers already visible in its rooms.
+    // Virtual peers do not answer presence probes, so discovery needs
+    // to be deterministic when a session comes online.
+    sendPresenceSnapshot(*registeredPeer, registeredPeer->rooms(), id);
+
     LInfo("Peer authenticated: ", user, "|", id);
 
     json::Value presence;
@@ -753,6 +758,8 @@ void Server::onJoin(ServerPeer& peer, const std::string& room)
     ok["type"] = "join:ok";
     ok["room"] = room;
     peer.send(ok);
+
+    sendPresenceSnapshot(peer, std::unordered_set<std::string>{room}, peer.id());
 
     LDebug("Peer ", peer.id(), " joined room: ", room);
 }
@@ -1100,6 +1107,33 @@ bool Server::deliverSerialized(const std::string& peerId,
     }
 
     return false;
+}
+
+
+void Server::sendPresenceSnapshot(ServerPeer& recipient,
+                                  const std::unordered_set<std::string>& rooms,
+                                  std::string_view excludeId)
+{
+    auto recipients = _roomIndex.collectRecipients(rooms, excludeId);
+
+    for (const auto& peerId : recipients) {
+        json::Value presence;
+        presence["type"] = "presence";
+
+        if (auto* peer = _peerRegistry.find(peerId)) {
+            presence["from"] = peer->peer().user() + "|" + peer->id();
+            presence["data"] = PresenceBuilder::make(peer->peer(), peer->id(), true, &peer->peer());
+            recipient.send(presence);
+            continue;
+        }
+
+        if (auto* virtualPeer = _peerRegistry.findVirtual(peerId)) {
+            presence["from"] = virtualPeer->peer.user() + "|" + virtualPeer->peer.id();
+            presence["data"] = PresenceBuilder::make(
+                virtualPeer->peer, virtualPeer->peer.id(), true, &virtualPeer->peer);
+            recipient.send(presence);
+        }
+    }
 }
 
 

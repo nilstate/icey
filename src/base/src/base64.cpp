@@ -225,4 +225,4 @@ ssize_t decode_block(const char* code_in, const size_t length_in, char* plaintex
 } // namespace icy
 
 
-/// @\}
+/// @}

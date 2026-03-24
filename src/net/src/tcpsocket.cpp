@@ -424,4 +424,4 @@ void TCPSocket::onClose()
 } // namespace icy
 
 
-/// @\}
+/// @}

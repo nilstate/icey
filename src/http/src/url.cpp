@@ -383,4 +383,4 @@ std::string URL::decode(std::string_view str)
 } // namespace icy
 
 
-/// @\}
+/// @}

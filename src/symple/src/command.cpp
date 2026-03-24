@@ -101,4 +101,4 @@ bool Command::matches(std::string_view xnode) const
 } // namespace icy
 
 
-/// @\}
+/// @}

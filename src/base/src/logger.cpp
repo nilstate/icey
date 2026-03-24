@@ -550,4 +550,4 @@ void RotatingFileChannel::rotate()
 } // namespace icy
 
 
-/// @\}
+/// @}

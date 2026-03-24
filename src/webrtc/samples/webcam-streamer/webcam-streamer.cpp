@@ -13,7 +13,7 @@
 // Pipeline:
 //   MediaCapture → VideoPacketEncoder → WebRtcTrackSender → [browser]
 //
-// The browser connects via symple-player's CallManager,
+// The browser connects via symple-client-player's CallManager,
 // which handles the call:init/accept/offer/answer/candidate protocol.
 //
 // Usage:
@@ -256,3 +256,5 @@ int main(int argc, char** argv)
     Logger::destroy();
     return 0;
 }
+
+/// @}

@@ -145,4 +145,4 @@ void Peer::setHost(std::string_view host)
 } // namespace icy
 
 
-/// @\}
+/// @}

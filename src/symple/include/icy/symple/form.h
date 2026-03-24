@@ -303,4 +303,4 @@ public:
 } // namespace icy
 
 
-/// @\}
+/// @}

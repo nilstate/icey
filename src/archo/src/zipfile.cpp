@@ -259,4 +259,4 @@ std::string ZipFile::currentFileName()
 } // namespace icy
 
 
-/// @\}
+/// @}

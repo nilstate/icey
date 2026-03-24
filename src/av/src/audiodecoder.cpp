@@ -176,4 +176,4 @@ void AudioDecoder::flush()
 #endif
 
 
-/// @\}
+/// @}

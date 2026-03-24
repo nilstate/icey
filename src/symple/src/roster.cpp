@@ -61,4 +61,4 @@ void Roster::print(std::ostream& os) const
 } // namespace icy
 
 
-/// @\}
+/// @}

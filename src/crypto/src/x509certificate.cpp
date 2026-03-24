@@ -326,4 +326,4 @@ X509* X509Certificate::certificate()
 } // namespace icy
 
 
-/// @\}
+/// @}

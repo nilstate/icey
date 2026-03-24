@@ -91,4 +91,4 @@ using IPList = std::vector<std::string>;
 } // namespace icy
 
 
-/// @\}
+/// @}

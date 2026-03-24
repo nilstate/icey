@@ -476,4 +476,4 @@ void MultiplexEncoder::onAudioEncoded(av::AudioPacket& packet)
 #endif
 
 
-/// @\}
+/// @}

@@ -648,4 +648,4 @@ bool DynamicBitWriter::update(const char* val, size_t len, size_t pos)
 } // namespace icy
 
 
-/// @\}
+/// @}

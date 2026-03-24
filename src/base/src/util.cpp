@@ -367,4 +367,4 @@ std::streamsize copyToString(std::istream& istr, std::string& str,
 } // namespace icy
 
 
-/// @\}
+/// @}

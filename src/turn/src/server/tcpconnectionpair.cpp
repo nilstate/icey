@@ -260,4 +260,4 @@ bool TCPConnectionPair::expired() const
 } // namespace icy
 
 
-/// @\}
+/// @}

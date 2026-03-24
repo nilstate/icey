@@ -289,4 +289,4 @@ TaskRunner& TaskRunner::getDefault()
 } // namespace icy
 
 
-/// @\}
+/// @}

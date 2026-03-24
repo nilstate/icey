@@ -34,4 +34,4 @@ UDPClient::~UDPClient()
 } // namespace icy
 
 
-/// @\}
+/// @}

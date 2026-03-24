@@ -13,7 +13,7 @@
 //
 // This is the simplest WebRTC sample - no media, no FFmpeg.
 // Uses SympleSignaller for signalling (compatible with
-// symple-player's CallManager in the browser).
+// symple-client-player's CallManager in the browser).
 //
 // Usage:
 //   data-echo -host <symple-server> -port <port> -user <id> -name <name>
@@ -157,3 +157,5 @@ int main(int argc, char** argv)
     Logger::destroy();
     return 0;
 }
+
+/// @}

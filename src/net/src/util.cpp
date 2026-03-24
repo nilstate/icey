@@ -20,4 +20,4 @@ namespace util {
 } // namespace icy
 
 
-/// @\}
+/// @}

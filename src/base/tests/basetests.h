@@ -1143,4 +1143,4 @@ class PacketStreamRetentionContractTest : public Test
 } // namespace icy
 
 
-/// @\}
+/// @}

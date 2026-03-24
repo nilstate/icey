@@ -52,4 +52,4 @@ packetSlot(Class* instance, RT (Class::*method)(PT&), int id = -1, int priority 
 } // namespace icy
 
 
-/// @\}
+/// @}

@@ -357,4 +357,4 @@ std::string MediaCapture::error() const
 #endif
 
 
-/// @\}
+/// @}

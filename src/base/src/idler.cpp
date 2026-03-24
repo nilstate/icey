@@ -53,4 +53,4 @@ bool Idler::async() const
 } // namespace icy
 
 
-/// @\}
+/// @}

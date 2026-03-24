@@ -189,6 +189,43 @@ int main(int argc, char** argv)
         server.shutdown();
     });
 
+    icy_test::describe("client: sees virtual peer on connect", []() {
+        smpl::Server server;
+        server.Authenticate += [&](smpl::ServerPeer&, const json::Value&, bool& allowed, std::vector<std::string>& rooms) {
+            allowed = true;
+            rooms.push_back("public");
+        };
+        server.start({.host = SERVER_HOST, .port = SERVER_PORT + 21, .dynamicRooms = true});
+
+        smpl::Peer peer;
+        peer.setID("media-server");
+        peer.setUser("media-server");
+        peer.setName("Media Server");
+        peer.setType("media-server");
+        peer["online"] = true;
+        server.addVirtualPeer(peer, {"public"}, [&](const icy::json::Value&) {});
+
+        smpl::Client::Options opts;
+        opts.host = SERVER_HOST;
+        opts.port = SERVER_PORT + 21;
+        opts.user = "alice";
+        opts.reconnection = false;
+        TestClient client(opts);
+
+        client.connect();
+        expect(test::waitFor([&] { return client.gotOnline; }));
+        expect(test::waitFor([&] {
+            return client.client.roster().get("media-server") != nullptr;
+        }));
+        auto* remote = client.client.roster().get("media-server");
+        expect(remote != nullptr);
+        expect(remote->user() == "media-server");
+        expect(remote->type() == "media-server");
+
+        client.client.close();
+        server.shutdown();
+    });
+
 
     // =========================================================================
     // Client + Server Integration

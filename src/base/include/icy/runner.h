@@ -184,4 +184,4 @@ struct DeferredCallable
 } // namespace icy
 
 
-/// @\}
+/// @}

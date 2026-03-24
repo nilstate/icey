@@ -100,3 +100,5 @@ int main(int argc, char** argv)
     Logger::destroy();
     return 0;
 }
+
+/// @}

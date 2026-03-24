@@ -383,4 +383,4 @@ std::string ScopedConfiguration::getScopedKey(const std::string& key,
 } // namespace icy
 
 
-/// @\}
+/// @}

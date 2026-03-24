@@ -6,13 +6,15 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:smoke": "node tests/browser-smoke.mjs"
   },
   "dependencies": {
     "symple-client": "^4.0.0",
-    "symple-player": "^4.0.0"
+    "symple-client-player": "^4.0.0"
   },
   "devDependencies": {
+    "playwright-core": "^1.54.2",
     "vite": "^6.0.0"
   }
 }

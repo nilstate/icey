@@ -273,4 +273,4 @@ bool Test::passed()
 } // namespace icy
 
 
-/// @\}
+/// @}

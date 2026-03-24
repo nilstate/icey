@@ -246,3 +246,5 @@ struct Array
 
 } // namespace deleter
 } // namespace icy
+
+/// @}

@@ -260,4 +260,4 @@ AVPixelFormat selectPixelFormat(const AVCodec* codec, VideoCodec& params)
 #endif
 
 
-/// @\}
+/// @}

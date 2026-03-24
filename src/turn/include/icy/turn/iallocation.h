@@ -32,13 +32,13 @@ static constexpr std::int64_t kDefaultAllocationLifetime = 10 * 60 * 1000;
 /// are associated with an allocation.  An allocation conceptually
 /// consists of the following state data:
 ///
-///   * the relayed transport address;
-///   * the 5-tuple: (client's IP address, client's port, server IP
-///     address, server port, transport protocol);
-///   * the authentication information;
-///   * the time-to-expiry;
-///  * a list of permissions;
-///  * a list of channel to peer bindings.
+/// - the relayed transport address;
+/// - the 5-tuple: (client's IP address, client's port, server IP
+///   address, server port, transport protocol);
+/// - the authentication information;
+/// - the time-to-expiry;
+/// - a list of permissions;
+/// - a list of channel to peer bindings.
 ///
 /// The relayed transport address is the transport address allocated by
 /// the server for communicating with peers, while the 5-tuple describes
@@ -207,4 +207,4 @@ protected:
 } // namespace icy
 
 
-/// @\}
+/// @}

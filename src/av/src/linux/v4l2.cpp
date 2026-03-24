@@ -326,4 +326,4 @@ void LinuxDeviceWatcher::stop()
 } // namespace icy
 
 
-/// @\}
+/// @}

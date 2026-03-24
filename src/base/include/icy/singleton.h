@@ -73,3 +73,5 @@ private:
 
 
 } // namespace icy
+
+/// @}

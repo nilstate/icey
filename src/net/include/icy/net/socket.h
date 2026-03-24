@@ -263,4 +263,4 @@ public:
 } // namespace icy
 
 
-/// @\}
+/// @}

@@ -155,4 +155,4 @@ void Configuration::keys(std::vector<std::string>& keys, const std::string& base
 } // namespace icy
 
 
-/// @\}
+/// @}

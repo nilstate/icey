@@ -331,4 +331,4 @@ inline std::string decode(const T& bytes)
 } // namespace icy
 
 
-/// @\}
+/// @}

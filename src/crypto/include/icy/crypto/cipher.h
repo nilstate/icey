@@ -405,4 +405,4 @@ std::string decryptString(const std::string& algorithm, const std::string& data,
 } // namespace icy
 
 
-/// @\}
+/// @}

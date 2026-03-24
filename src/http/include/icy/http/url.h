@@ -114,7 +114,7 @@ public:
     /// (80 for http, 443 for https), or 0 if the scheme is unknown.
     [[nodiscard]] uint16_t port() const;
 
-    /// Returns the authority component (userinfo@host:port).
+    /// Returns the authority component (`userinfo@host:port`).
     /// Only includes components that are present.
     [[nodiscard]] std::string authority() const;
 

@@ -205,4 +205,4 @@ void format(std::string& str, const void* ptr)
 } // namespace icy
 
 
-/// @\}
+/// @}

@@ -234,4 +234,4 @@ struct GetAddrInfoReq : public uv::Request<uv_getaddrinfo_t, GetAddrInfoEvent>
 } // namespace icy
 
 
-/// @\}
+/// @}

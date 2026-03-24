@@ -178,4 +178,4 @@ void splitParameters(const std::string::const_iterator& begin,
 } // namespace icy
 
 
-/// @\}
+/// @}

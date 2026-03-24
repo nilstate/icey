@@ -63,4 +63,4 @@ struct Bitwise
 } // namespace icy
 
 
-/// @\}
+/// @}

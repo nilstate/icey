@@ -108,4 +108,4 @@ struct ScopedLoop
 } // namespace icy
 
 
-/// @\}
+/// @}

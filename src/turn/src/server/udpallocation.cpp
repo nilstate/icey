@@ -162,4 +162,4 @@ net::Address UDPAllocation::relayedAddress() const
 } // namespace icy
 
 
-/// @\}
+/// @}

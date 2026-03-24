@@ -114,4 +114,4 @@ void Format::print(std::ostream& ost)
 } // namespace icy
 
 
-/// @\}
+/// @}

@@ -95,4 +95,4 @@ private:
 } // namespace icy
 
 
-/// @\}
+/// @}

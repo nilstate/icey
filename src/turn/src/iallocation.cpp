@@ -256,4 +256,4 @@ bool IAllocation::hasPermission(const net::Address& peerAddress)
 } // namespace icy
 
 
-/// @\}
+/// @}

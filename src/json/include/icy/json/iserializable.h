@@ -74,3 +74,5 @@ inline bool deserialize(ISerializable* pObj, std::string& input)
 
 } // namespace json
 } // namespace icy
+
+/// @}

@@ -80,4 +80,4 @@ bool PermissionPolicy::isLocalAutoGrantAddress(const Permission::Key& peerKey) n
 } // namespace icy
 
 
-/// @\}
+/// @}

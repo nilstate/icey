@@ -1,0 +1,8 @@
+.git
+.github
+.plans
+build*
+dist
+node_modules
+doc/node_modules
+_deps

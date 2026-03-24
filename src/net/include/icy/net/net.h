@@ -108,3 +108,5 @@ enum SocketMode
 
 } // namespace net
 } // namespace icy
+
+/// @}

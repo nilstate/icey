@@ -444,4 +444,4 @@ void WindowsDeviceWatcher::stop()
 } // namespace icy
 
 
-/// @\}
+/// @}

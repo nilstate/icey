@@ -312,4 +312,4 @@ const std::string& BasicAuthenticator::password() const
 } // namespace icy
 
 
-/// @\}
+/// @}

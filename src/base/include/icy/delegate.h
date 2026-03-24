@@ -190,4 +190,4 @@ struct PolymorphicDelegate : AbstractDelegate<RT, IT&>
 } // namespace icy
 
 
-/// @\}
+/// @}

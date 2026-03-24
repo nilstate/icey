@@ -62,4 +62,4 @@ struct VideoDecoder : public VideoContext
 #endif
 
 
-/// @\}
+/// @}

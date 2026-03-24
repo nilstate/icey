@@ -169,4 +169,4 @@ std::string toUtf8(const std::wstring& wstr)
 } // namespace icy
 
 
-/// @\}
+/// @}

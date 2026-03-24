@@ -59,4 +59,4 @@ public:
 } // namespace icy
 
 
-/// @\}
+/// @}

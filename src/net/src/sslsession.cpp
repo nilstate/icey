@@ -41,4 +41,4 @@ SSL_SESSION* SSLSession::sslSession() const
 } // namespace icy
 
 
-/// @\}
+/// @}

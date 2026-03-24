@@ -173,3 +173,5 @@ int main(void)
     Logger::destroy();
     return 0;
 }
+
+/// @}

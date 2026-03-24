@@ -121,3 +121,5 @@ protected:
 
 
 } // namespace icy
+
+/// @}

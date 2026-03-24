@@ -110,7 +110,7 @@ public:
     /// Encode a single AVFrame of video.
     /// @param frame  The source video frame; all fields (format, width, height, pts) must be set.
     /// @return True if a packet was successfully encoded and written.
-    [[nodiscard]] virtual bool encodeVideo(AVFrame* /*frame*/) { return false; }
+    [[nodiscard]] virtual bool encodeVideo(AVFrame* frame) { (void)frame; return false; }
 
     /// Initialise the audio codec context and stream.
     virtual void createAudio() {}
@@ -148,4 +148,4 @@ using IPacketEncoder = IEncoder; ///< 0.8.x compatibility
 } // namespace icy
 
 
-/// @\}
+/// @}

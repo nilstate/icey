@@ -176,4 +176,4 @@ void VideoDecoder::flush()
 #endif
 
 
-/// @\}
+/// @}

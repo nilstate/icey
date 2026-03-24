@@ -153,4 +153,4 @@ inline bool findNestedObjectWithProperty(
 } // namespace icy
 
 
-/// @\}
+/// @}

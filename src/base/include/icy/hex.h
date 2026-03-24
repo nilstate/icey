@@ -205,4 +205,4 @@ struct Decoder : public basic::Decoder
 } // namespace icy
 
 
-/// @\}
+/// @}

@@ -104,4 +104,4 @@ uint64_t hrtime()
 } // namespace icy
 
 
-/// @\}
+/// @}

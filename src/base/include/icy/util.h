@@ -604,4 +604,4 @@ inline void clearMap(std::map<Key, Val*>& M)
 } // namespace icy
 
 
-/// @\}
+/// @}

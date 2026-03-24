@@ -86,4 +86,4 @@ struct AudioResampler
 #endif
 
 
-/// @\}
+/// @}

@@ -60,4 +60,4 @@ void Presence::setProbe(bool flag)
 } // namespace icy
 
 
-/// @\}
+/// @}

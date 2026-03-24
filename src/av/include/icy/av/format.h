@@ -114,3 +114,5 @@ using FormatPList = std::vector<Format*>;
 
 } // namespace av
 } // namespace icy
+
+/// @}

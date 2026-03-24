@@ -257,6 +257,9 @@ private:
                            const char* data,
                            size_t len,
                            const json::Value& msg);
+    void sendPresenceSnapshot(ServerPeer& recipient,
+                              const std::unordered_set<std::string>& rooms,
+                              std::string_view excludeId = {});
 
     struct VirtualPeer
     {
@@ -360,4 +363,4 @@ private:
 } // namespace icy
 
 
-/// @\}
+/// @}

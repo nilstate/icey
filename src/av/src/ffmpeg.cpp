@@ -163,4 +163,4 @@ void uninitializeFFmpeg()
 #endif
 
 
-/// @\}
+/// @}

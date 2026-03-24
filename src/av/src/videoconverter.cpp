@@ -120,4 +120,4 @@ AVFrame* VideoConverter::convert(AVFrame* iframe)
 #endif
 
 
-/// @\}
+/// @}

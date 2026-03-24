@@ -51,4 +51,4 @@ void runOnce(uv::Loop* loop, Function&& func, Args&&... args)
 } // namespace icy
 
 
-/// @\}
+/// @}

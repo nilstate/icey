@@ -52,4 +52,4 @@ bool Pipe::readStart()
 } // namespace icy
 
 
-/// @\}
+/// @}

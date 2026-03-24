@@ -284,4 +284,4 @@ void SSLAdapter::handleError(int rc)
 } // namespace icy
 
 
-/// @\}
+/// @}

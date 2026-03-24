@@ -48,16 +48,27 @@ If your change touches runtime behaviour, add or update a test. Tests live in `t
 ctest --test-dir build --output-on-failure
 ```
 
-## Regenerating API docs
+## Documentation
 
-The API reference in `doc/api/` is generated from source using [Doxygen](https://www.doxygen.nl/) and [Moxygen](https://github.com/sourcey/moxygen). Prerequisites: `doxygen` and `npx` (Node.js).
+The docs toolchain is pinned under [`doc/package.json`](package.json) and built through the top-level `Makefile`.
+
+Use these commands:
 
 ```bash
-doxygen Doxyfile
-npx moxygen --groups --output=./doc/api/%s.md ./build/doxygen/xml
+make docs        # doxygen xml + Sourcey site
+make docs-dev    # regenerate xml, then run Sourcey dev server
+make docs-api-md # optional: refresh the doc/api markdown mirror
+make docs-docker # same docs build inside the docs container
 ```
 
-This parses C++ source into XML, then converts it into the `doc/api/*.md` markdown files.
+The split is deliberate:
+
+- `doc/sourcey.config.ts` tells Sourcey how to render the site
+- Doxygen generates XML under `build/doxygen/xml`
+- Sourcey reads that XML directly for the `API Reference` tab
+- `doc/api/*.md` is an optional markdown mirror, not a requirement for the site
+
+The normal docs path is `make docs`. Use `make docs-api-md` only when you want the repo-local markdown mirror refreshed as well.
 
 ## Licence
 

@@ -55,4 +55,4 @@ inline auto resolve(const std::string& host, int port,
 } // namespace icy
 
 
-/// @\}
+/// @}

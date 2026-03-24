@@ -163,4 +163,4 @@ OptionParser::OptionParser(int argc, char* argv[], const char* delim)
 } // namespace icy
 
 
-/// @\}
+/// @}

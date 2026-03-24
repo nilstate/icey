@@ -1025,4 +1025,4 @@ void UInt16ListAttribute::write(BitWriter& writer) const
 } // namespace icy
 
 
-/// @\}
+/// @}

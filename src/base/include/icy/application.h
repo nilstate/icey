@@ -192,4 +192,4 @@ inline void waitForShutdown(std::function<void(void*)> callback = nullptr,
 } // namespace icy
 
 
-/// @\}
+/// @}

@@ -159,8 +159,9 @@ public:
     /// Override to apply filtering; return false to reject the packet (it will be deleted).
     /// @param packet Newly created packet.
     /// @return True to accept the packet, false to discard it and try the next strategy.
-    virtual bool onPacketCreated(IPacket*)
+    virtual bool onPacketCreated(IPacket* packet)
     {
+        (void)packet;
         return true;
     }
 
@@ -205,4 +206,4 @@ private:
 } // namespace icy
 
 
-/// @\}
+/// @}

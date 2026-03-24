@@ -160,4 +160,4 @@ struct Raw
 } // namespace icy
 
 
-/// @\}
+/// @}

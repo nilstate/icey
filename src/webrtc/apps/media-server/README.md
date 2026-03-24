@@ -118,7 +118,7 @@ media-server
 ├── net, crypto, json, base
 ```
 
-Frontend: `symple-client` + `symple-player` (npm, bundled with Vite).
+Frontend: `symple-client` + `symple-client-player` (npm, bundled with Vite).
 
 ## See Also
 

@@ -123,4 +123,4 @@ TimedToken::TimedToken(const std::string& id, long duration)
 } // namespace icy
 
 
-/// @\}
+/// @}

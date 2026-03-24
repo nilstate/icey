@@ -437,4 +437,4 @@ void Message::setMethod(MethodType type)
 } // namespace icy
 
 
-/// @\}
+/// @}

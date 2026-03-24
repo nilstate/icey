@@ -222,4 +222,4 @@ void formatHex(std::string& str, uint64_t value, int width);
 } // namespace icy
 
 
-/// @\}
+/// @}

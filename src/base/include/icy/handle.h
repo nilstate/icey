@@ -460,4 +460,4 @@ inline auto withHandleContext(Owner& owner, Callback&& callback)
 } // namespace icy
 
 
-/// @\}
+/// @}

@@ -226,4 +226,4 @@ struct PlanarAudioPacket : public AudioPacket
 } // namespace icy
 
 
-/// @\}
+/// @}

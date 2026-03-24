@@ -40,4 +40,4 @@ public:
 } // namespace icy
 
 
-/// @\}
+/// @}

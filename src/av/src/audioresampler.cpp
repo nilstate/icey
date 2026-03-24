@@ -210,4 +210,4 @@ int AudioResampler::resample(uint8_t** inSamples, int inNumSamples)
 #endif
 
 
-/// @\}
+/// @}

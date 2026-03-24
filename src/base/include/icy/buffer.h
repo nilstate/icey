@@ -624,3 +624,5 @@ protected:
 
 
 } // namespace icy
+
+/// @}

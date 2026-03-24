@@ -139,6 +139,11 @@ struct LoopbackSignaller : SignallingInterface
     {
     }
 
+    ~LoopbackSignaller()
+    {
+        alive->store(false, std::memory_order_release);
+    }
+
     void connect(LoopbackSignaller& other)
     {
         peer = &other;
@@ -152,7 +157,9 @@ struct LoopbackSignaller : SignallingInterface
     {
         if (!peer || peer->selfId != peerId)
             throw std::logic_error("LoopbackSignaller SDP peer mismatch");
-        bus->post([target = peer, peerId = selfId, type, sdp] {
+        bus->post([target = peer, guard = peer->alive, peerId = selfId, type, sdp] {
+            if (!guard->load(std::memory_order_acquire))
+                return;
             target->SdpReceived.emit(peerId, type, sdp);
         });
     }
@@ -163,7 +170,9 @@ struct LoopbackSignaller : SignallingInterface
     {
         if (!peer || peer->selfId != peerId)
             throw std::logic_error("LoopbackSignaller candidate peer mismatch");
-        bus->post([target = peer, peerId = selfId, candidate, mid] {
+        bus->post([target = peer, guard = peer->alive, peerId = selfId, candidate, mid] {
+            if (!guard->load(std::memory_order_acquire))
+                return;
             target->CandidateReceived.emit(peerId, candidate, mid);
         });
     }
@@ -174,7 +183,9 @@ struct LoopbackSignaller : SignallingInterface
     {
         if (!peer || peer->selfId != peerId)
             throw std::logic_error("LoopbackSignaller control peer mismatch");
-        bus->post([target = peer, peerId = selfId, type, reason] {
+        bus->post([target = peer, guard = peer->alive, peerId = selfId, type, reason] {
+            if (!guard->load(std::memory_order_acquire))
+                return;
             target->ControlReceived.emit(peerId, type, reason);
         });
     }
@@ -182,6 +193,7 @@ struct LoopbackSignaller : SignallingInterface
     std::string selfId;
     LoopbackSignaller* peer = nullptr;
     std::shared_ptr<LoopbackBus> bus;
+    std::shared_ptr<std::atomic<bool>> alive = std::make_shared<std::atomic<bool>>(true);
 };
 
 } // namespace

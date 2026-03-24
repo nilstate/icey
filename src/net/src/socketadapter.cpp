@@ -234,4 +234,4 @@ std::vector<SocketAdapter*> SocketAdapter::receivers()
 } // namespace icy
 
 
-/// @\}
+/// @}

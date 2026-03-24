@@ -102,4 +102,4 @@ struct Archo_API ZipFile
 } // namespace icy
 
 
-/// @\}
+/// @}

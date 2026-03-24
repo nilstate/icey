@@ -37,3 +37,5 @@ bool getDeviceList(Device::Type type, std::vector<av::Device>& devices);
 } // namespace avfoundation
 } // namespace av
 } // namespace icy
+
+/// @}

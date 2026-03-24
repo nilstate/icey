@@ -370,4 +370,4 @@ inline void clearErrorStack()
 } // namespace icy
 
 
-/// @\}
+/// @}

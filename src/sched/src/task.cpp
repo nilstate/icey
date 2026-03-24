@@ -157,4 +157,4 @@ sched::Scheduler& Task::scheduler()
 } // namespace icy
 
 
-/// @\}
+/// @}
