@@ -1,70 +1,788 @@
-# stun 
+{#stunmodulerfc5389}
+
+# stun
 
 The `stun` module contains a STUN (rfc5389) implementation.
+
+### Namespaces
+
+| Name | Description |
+|------|-------------|
+| [`stun`](#stun) |  |
+
+### Macros
+
+| Name | Description |
+|------|-------------|
+| [`DECLARE_FIXLEN_STUN_ATTRIBUTE`](#declare_fixlen_stun_attribute)  | Attribute macros. |
+
+---
+
+{#declare_fixlen_stun_attribute}
+
+#### DECLARE_FIXLEN_STUN_ATTRIBUTE
+
+```cpp
+DECLARE_FIXLEN_STUN_ATTRIBUTE()
+```
+
+Attribute macros.
+
+{#stun}
+
+# stun
 
 ### Classes
 
 | Name | Description |
 |------|-------------|
-| [`Attribute`](#classicy_1_1stun_1_1Attribute) | The virtual base class for all STUN/TURN attributes. |
-| [`AddressAttribute`](#classicy_1_1stun_1_1AddressAttribute) | Implements a STUN/TURN attribute that contains a socket address. |
-| [`UInt8Attribute`](#classicy_1_1stun_1_1UInt8Attribute) | Implements STUN/TURN attribute that reflects a 32-bit integer. |
-| [`UInt32Attribute`](#classicy_1_1stun_1_1UInt32Attribute) | Implements STUN/TURN attribute that reflects a 32-bit integer. |
-| [`UInt64Attribute`](#classicy_1_1stun_1_1UInt64Attribute) | Implements STUN/TURN attribute that reflects a 64-bit integer. |
-| [`FlagAttribute`](#classicy_1_1stun_1_1FlagAttribute) | Implements STUN/TURN attribute representing a 0 size flag. |
-| [`StringAttribute`](#classicy_1_1stun_1_1StringAttribute) | Implements STUN/TURN attribute that reflects an arbitrary byte string. |
-| [`UInt16ListAttribute`](#classicy_1_1stun_1_1UInt16ListAttribute) | Implements STUN/TURN attribute that reflects a list of attribute names. |
-| [`MessageIntegrity`](#classicy_1_1stun_1_1MessageIntegrity) | Implements STUN/TURN attributes that reflects an internet address. |
-| [`ErrorCode`](#classicy_1_1stun_1_1ErrorCode) | Implements STUN/TURN attribute that reflects an error code. |
-| [`Message`](#classicy_1_1stun_1_1Message) |  |
-| [`Transaction`](#classicy_1_1stun_1_1Transaction) |  |
+| [`AddressAttribute`](#addressattribute) | Implements a STUN/TURN attribute that contains a socket address. Handles XOR encoding/decoding for address and port as required by RFC 5389 section 15.2. |
+| [`Attribute`](#attribute) | The virtual base class for all STUN/TURN attributes. |
+| [`ErrorCode`](#errorcode-1) | Implements the STUN ERROR-CODE attribute (RFC 5389 section 15.6). Encodes a 3-digit error code as a class (hundreds digit) and number (tens + units digits), plus an optional UTF-8 reason phrase. |
+| [`FlagAttribute`](#flagattribute) | Implements a zero-length STUN/TURN flag attribute (presence implies the flag is set). |
+| [`Message`](#message-5) | STUN/TURN protocol message with method, class, transaction ID, and attributes. |
+| [`MessageIntegrity`](#messageintegrity) | Implements the STUN MESSAGE-INTEGRITY attribute (RFC 5389 section 15.4). On write, computes an HMAC-SHA1 over the message bytes preceding this attribute when a key is set. On read, captures the raw HMAC bytes and the input bytes needed to verify them later via [verifyHmac()](#verifyhmac). |
+| [`StringAttribute`](#stringattribute) | Implements a STUN/TURN attribute that holds an arbitrary byte string. Used for Username, Password, Realm, Nonce, Software, Data, and similar attributes. |
+| [`Transaction`](#transaction-2) | STUN request/response transaction with timeout and retry logic. Extends the generic [net::Transaction](#transaction) with STUN-specific transaction ID matching and response class inference (Success, [Error](#structicy_1_1Error), or Indication). |
+| [`UInt16ListAttribute`](#uint16listattribute) | Implements a STUN/TURN attribute that holds a list of attribute type codes. Used by the UNKNOWN-ATTRIBUTES attribute (RFC 5389 section 15.9). |
+| [`UInt32Attribute`](#uint32attribute) | Implements a STUN/TURN attribute that holds a 32-bit integer. |
+| [`UInt64Attribute`](#uint64attribute) | Implements a STUN/TURN attribute that holds a 64-bit integer. |
+| [`UInt8Attribute`](#uint8attribute) | Implements a STUN/TURN attribute that holds an 8-bit integer. |
 
-### Members
+### Enumerations
 
 | Name | Description |
 |------|-------------|
-| [`STUN_API`](#group__stun_1gac8f9e71a23b67649cae4888b67270410) |  |
+| [`AddressFamily`](#addressfamily)  | STUN address types as defined in RFC 5389. NB: Undefined is not part of the STUN spec. |
 
 ---
 
-#### STUN_API 
+{#addressfamily}
+
+#### AddressFamily
 
 ```cpp
-STUN_API()
+enum AddressFamily
 ```
 
-## Attribute 
+STUN address types as defined in RFC 5389. NB: Undefined is not part of the STUN spec.
 
-> **Subclasses:** `icy::stun::AddressAttribute`, `icy::stun::ErrorCode`, `icy::stun::FlagAttribute`, `icy::stun::MessageIntegrity`, `icy::stun::StringAttribute`, `icy::stun::UInt16ListAttribute`, `icy::stun::UInt32Attribute`, `icy::stun::UInt64Attribute`, `icy::stun::UInt8Attribute`
-> **Defined in:** `attributes.h`
+| Value | Description |
+|-------|-------------|
+| `Undefined` |  |
+| `IPv4` |  |
+| `IPv6` |  |
+
+### Functions
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `constexpr bool` | [`isValidMethod`](#isvalidmethod)  | Returns true if `methodType` corresponds to a recognised STUN/TURN method. Used during parsing to reject malformed packets.  |
+
+---
+
+{#isvalidmethod}
+
+#### isValidMethod
+
+```cpp
+constexpr bool isValidMethod(uint16_t methodType)
+```
+
+Returns true if `methodType` corresponds to a recognised STUN/TURN method. Used during parsing to reject malformed packets. 
+#### Parameters
+* `methodType` Raw method bits extracted from the message type field. 
+
+#### Returns
+true if the method is one of the defined MethodType values.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `methodType` | `uint16_t` |  |
+
+### Variables
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `constexpr int` | [`kAttributeHeaderSize`](#kattributeheadersize)  |  |
+| `constexpr int` | [`kMessageHeaderSize`](#kmessageheadersize)  |  |
+| `constexpr int` | [`kTransactionIdOffset`](#ktransactionidoffset)  |  |
+| `constexpr int` | [`kTransactionIdLength`](#ktransactionidlength)  |  |
+| `constexpr uint32_t` | [`kMagicCookie`](#kmagiccookie)  |  |
+| `constexpr int` | [`kMagicCookieLength`](#kmagiccookielength)  |  |
+
+---
+
+{#kattributeheadersize}
+
+#### kAttributeHeaderSize
+
+```cpp
+constexpr int kAttributeHeaderSize = 4
+```
+
+---
+
+{#kmessageheadersize}
+
+#### kMessageHeaderSize
+
+```cpp
+constexpr int kMessageHeaderSize = 20
+```
+
+---
+
+{#ktransactionidoffset}
+
+#### kTransactionIdOffset
+
+```cpp
+constexpr int kTransactionIdOffset = 8
+```
+
+---
+
+{#ktransactionidlength}
+
+#### kTransactionIdLength
+
+```cpp
+constexpr int kTransactionIdLength = 12
+```
+
+---
+
+{#kmagiccookie}
+
+#### kMagicCookie
+
+```cpp
+constexpr uint32_t kMagicCookie = 0x2112A442
+```
+
+---
+
+{#kmagiccookielength}
+
+#### kMagicCookieLength
+
+```cpp
+constexpr int kMagicCookieLength = sizeof()
+```
+
+{#addressattribute}
+
+## AddressAttribute
+
+```cpp
+#include <attributes.h>
+```
+
+> **Inherits:** [`Attribute`](#attribute)
+
+Implements a STUN/TURN attribute that contains a socket address. Handles XOR encoding/decoding for address and port as required by RFC 5389 section 15.2.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`AddressAttribute`](#addressattribute-1)  | #### Parameters |
+|  | [`AddressAttribute`](#addressattribute-2)  | Copy constructor; duplicates the stored address. |
+| `std::unique_ptr< Attribute >` | [`clone`](#clone-7) `virtual` | Returns a deep copy of this attribute. |
+| `stun::AddressFamily` | [`family`](#family-2) `const` `inline` | #### Returns |
+| `net::Address` | [`address`](#address-12) `virtual` `const` | #### Returns |
+| `void` | [`read`](#read-2) `virtual` | Reads the body (not the type or size) for this type of attribute from the given buffer.  |
+| `void` | [`write`](#write-17) `virtual` `const` | Writes the body (not the type or size) to the given buffer.  |
+| `void` | [`setAddress`](#setaddress) `virtual` `inline` | Sets the address to encode into this attribute.  |
+| `bool` | [`isXorType`](#isxortype) `const` `inline` | #### Returns |
+
+---
+
+{#addressattribute-1}
+
+#### AddressAttribute
+
+```cpp
+AddressAttribute(uint16_t type, bool ipv4)
+```
+
+#### Parameters
+* `type` Wire type code (e.g. XorMappedAddress::TypeID). 
+
+* `ipv4` When true, initialises the size for IPv4; otherwise IPv6.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `type` | `uint16_t` |  |
+| `ipv4` | `bool` |  |
+
+---
+
+{#addressattribute-2}
+
+#### AddressAttribute
+
+```cpp
+AddressAttribute(const AddressAttribute & r)
+```
+
+Copy constructor; duplicates the stored address.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `r` | `const [AddressAttribute](#addressattribute) &` |  |
+
+---
+
+{#clone-7}
+
+#### clone
+
+`virtual`
+
+```cpp
+virtual std::unique_ptr< Attribute > clone()
+```
+
+Returns a deep copy of this attribute.
+
+---
+
+{#family-2}
+
+#### family
+
+`const` `inline`
+
+```cpp
+inline stun::AddressFamily family() const
+```
+
+#### Returns
+The STUN address family (IPv4, IPv6, or Undefined) of the stored address.
+
+---
+
+{#address-12}
+
+#### address
+
+`virtual` `const`
+
+```cpp
+virtual net::Address address() const
+```
+
+#### Returns
+The decoded socket address stored in this attribute.
+
+---
+
+{#read-2}
+
+#### read
+
+`virtual`
+
+```cpp
+virtual void read(BitReader & reader)
+```
+
+Reads the body (not the type or size) for this type of attribute from the given buffer. 
+#### Parameters
+* `reader` Source bit reader positioned at the attribute body.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `reader` | `[BitReader](#classicy_1_1BitReader) &` |  |
+
+---
+
+{#write-17}
+
+#### write
+
+`virtual` `const`
+
+```cpp
+virtual void write(BitWriter & writer) const
+```
+
+Writes the body (not the type or size) to the given buffer. 
+#### Parameters
+* `writer` Destination bit writer.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `writer` | `[BitWriter](#classicy_1_1BitWriter) &` |  |
+
+---
+
+{#setaddress}
+
+#### setAddress
+
+`virtual` `inline`
+
+```cpp
+virtual inline void setAddress(const net::Address & addr)
+```
+
+Sets the address to encode into this attribute. 
+#### Parameters
+* `addr` Address to store.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `addr` | `const [net::Address](#address) &` |  |
+
+---
+
+{#isxortype}
+
+#### isXorType
+
+`const` `inline`
+
+```cpp
+inline bool isXorType() const
+```
+
+#### Returns
+true if this attribute type uses XOR encoding (RFC 5389).
+
+### Public Static Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `constexpr uint16_t` | [`IPv4Size`](#ipv4size) `static` |  |
+| `constexpr uint16_t` | [`IPv6Size`](#ipv6size) `static` |  |
+
+---
+
+{#ipv4size}
+
+#### IPv4Size
+
+`static`
+
+```cpp
+constexpr uint16_t IPv4Size = 8
+```
+
+---
+
+{#ipv6size}
+
+#### IPv6Size
+
+`static`
+
+```cpp
+constexpr uint16_t IPv6Size = 20
+```
+
+### Private Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `net::Address` | [`_address`](#_address-1)  |  |
+
+---
+
+{#_address-1}
+
+#### _address
+
+```cpp
+net::Address _address
+```
+
+{#attribute}
+
+## Attribute
+
+```cpp
+#include <attributes.h>
+```
+
+> **Subclassed by:** [`AddressAttribute`](#addressattribute), [`ErrorCode`](#errorcode-1), [`FlagAttribute`](#flagattribute), [`MessageIntegrity`](#messageintegrity), [`StringAttribute`](#stringattribute), [`UInt16ListAttribute`](#uint16listattribute), [`UInt32Attribute`](#uint32attribute), [`UInt64Attribute`](#uint64attribute), [`UInt8Attribute`](#uint8attribute)
 
 The virtual base class for all STUN/TURN attributes.
 
-### Members
+### Public Methods
 
-| Name | Description |
-|------|-------------|
-| [`Type`](#group__stun_1ga58f9974b99873c21b541593d70751f76) |  |
-| [`~Attribute`](#group__stun_1ga3d20ce1b5f294cccb1ceecfd7dde685b) |  |
-| [`clone`](#group__stun_1gac70507d30dee5fc90020e5b4a13b5762) |  |
-| [`read`](#group__stun_1ga7a8eaf6fae7ce506dead82c972fee53d) | Reads the body (not the type or size) for this type of attribute from the given buffer. Return value is true if successful. |
-| [`write`](#group__stun_1ga57e4567afce55ae046a19e20d5c96cb8) | Writes the body (not the type or size) to the given buffer. Return value is true if successful. |
-| [`type`](#group__stun_1ga327f31a9e5e89e630fa29bf4d48476ea) |  |
-| [`size`](#group__stun_1gaafbe6576c2b87a33cf0faceec8da4e34) |  |
-| [`consumePadding`](#group__stun_1ga49af5c5548066acb3de3553218ba04e4) |  |
-| [`writePadding`](#group__stun_1ga9337ef7bb7032ea501938e7713f7bc99) |  |
-| [`typeString`](#group__stun_1ga11de2203671a16db2e059abaade0d148) |  |
-| [`create`](#group__stun_1ga24c455ae024130e437d90515a1ab07bb) | Creates an attribute object with the given type and size. |
-| [`typeString`](#group__stun_1ga8f507e68f6b2d62ac7ea3e44cd620601) |  |
-| [`Attribute`](#group__stun_1ga9e161b5d779864cb7b8127b5bef9d7e0) |  |
-| [`setLength`](#group__stun_1ga5958b14f8dc45b50f2c3183fc1d120bc) |  |
-| [`TypeID`](#group__stun_1ga6abc429b06d52e8873d4cd1a20e0ab44) |  |
-| [`_type`](#group__stun_1gab338ca1d4ab28668a4c639ec33b31e7c) |  |
-| [`_size`](#group__stun_1ga33b3b945c5f3d949e63c24506da36a72) |  |
+| Return | Name | Description |
+|--------|------|-------------|
+| `std::unique_ptr< Attribute >` | [`clone`](#clone-8)  | Returns a deep copy of this attribute. |
+| `void` | [`read`](#read-3)  | Reads the body (not the type or size) for this type of attribute from the given buffer.  |
+| `void` | [`write`](#write-18) `const` | Writes the body (not the type or size) to the given buffer.  |
+| `uint16_t` | [`type`](#type-14) `const` | #### Returns |
+| `uint16_t` | [`size`](#size-3) `const` | #### Returns |
+| `uint16_t` | [`paddingBytes`](#paddingbytes) `const` `inline` | #### Returns |
+| `uint16_t` | [`paddedBytes`](#paddedbytes) `const` `inline` | #### Returns |
+| `void` | [`consumePadding`](#consumepadding) `const` | Advances the reader past any 4-byte alignment padding that follows this attribute's body.  |
+| `void` | [`writePadding`](#writepadding) `const` | Writes zero-fill padding bytes to align this attribute to a 4-byte boundary.  |
+| `std::string` | [`typeString`](#typestring)  | #### Returns |
 
 ---
 
-#### Type 
+{#clone-8}
+
+#### clone
+
+```cpp
+std::unique_ptr< Attribute > clone()
+```
+
+Returns a deep copy of this attribute.
+
+---
+
+{#read-3}
+
+#### read
+
+```cpp
+void read(BitReader & reader)
+```
+
+Reads the body (not the type or size) for this type of attribute from the given buffer. 
+#### Parameters
+* `reader` Source bit reader positioned at the attribute body.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `reader` | `[BitReader](#classicy_1_1BitReader) &` |  |
+
+---
+
+{#write-18}
+
+#### write
+
+`const`
+
+```cpp
+void write(BitWriter & writer) const
+```
+
+Writes the body (not the type or size) to the given buffer. 
+#### Parameters
+* `writer` Destination bit writer.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `writer` | `[BitWriter](#classicy_1_1BitWriter) &` |  |
+
+---
+
+{#type-14}
+
+#### type
+
+`const`
+
+```cpp
+uint16_t type() const
+```
+
+#### Returns
+The wire type code for this attribute.
+
+---
+
+{#size-3}
+
+#### size
+
+`const`
+
+```cpp
+uint16_t size() const
+```
+
+#### Returns
+The body length of this attribute in bytes (before padding).
+
+---
+
+{#paddingbytes}
+
+#### paddingBytes
+
+`const` `inline`
+
+```cpp
+inline uint16_t paddingBytes() const
+```
+
+#### Returns
+The 4-byte alignment padding required for this attribute body.
+
+---
+
+{#paddedbytes}
+
+#### paddedBytes
+
+`const` `inline`
+
+```cpp
+inline uint16_t paddedBytes() const
+```
+
+#### Returns
+The body length including 4-byte alignment padding.
+
+---
+
+{#consumepadding}
+
+#### consumePadding
+
+`const`
+
+```cpp
+void consumePadding(BitReader & reader) const
+```
+
+Advances the reader past any 4-byte alignment padding that follows this attribute's body. 
+#### Parameters
+* `reader` Reader to advance.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `reader` | `[BitReader](#classicy_1_1BitReader) &` |  |
+
+---
+
+{#writepadding}
+
+#### writePadding
+
+`const`
+
+```cpp
+void writePadding(BitWriter & writer) const
+```
+
+Writes zero-fill padding bytes to align this attribute to a 4-byte boundary. 
+#### Parameters
+* `writer` Writer to append padding to.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `writer` | `[BitWriter](#classicy_1_1BitWriter) &` |  |
+
+---
+
+{#typestring}
+
+#### typeString
+
+```cpp
+std::string typeString()
+```
+
+#### Returns
+Human-readable name for this attribute's type.
+
+### Public Static Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `constexpr uint16_t` | [`TypeID`](#typeid) `static` |  |
+
+---
+
+{#typeid}
+
+#### TypeID
+
+`static`
+
+```cpp
+constexpr uint16_t TypeID = 0
+```
+
+### Public Static Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `std::unique_ptr< Attribute >` | [`create`](#create-8) `static` | Creates an attribute of the given wire type and body size. Returns nullptr if the type is unknown or the size is invalid.  |
+| `constexpr uint16_t` | [`paddingBytes`](#paddingbytes-1) `static` `inline` | Returns the 4-byte alignment padding required for a body of `size` bytes. |
+| `constexpr uint16_t` | [`paddedBytes`](#paddedbytes-1) `static` `inline` | Returns the body length including 4-byte alignment padding. |
+| `std::string` | [`typeString`](#typestring-1) `static` | #### Parameters |
+
+---
+
+{#create-8}
+
+#### create
+
+`static`
+
+```cpp
+static std::unique_ptr< Attribute > create(uint16_t type, uint16_t size)
+```
+
+Creates an attribute of the given wire type and body size. Returns nullptr if the type is unknown or the size is invalid. 
+#### Parameters
+* `type` Wire type code (one of [Attribute::Type](#type-15)). 
+
+* `size` Body length in bytes as read from the wire header. 
+
+#### Returns
+Owning pointer to the new attribute, or nullptr on failure.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `type` | `uint16_t` |  |
+| `size` | `uint16_t` |  |
+
+---
+
+{#paddingbytes-1}
+
+#### paddingBytes
+
+`static` `inline`
+
+```cpp
+static inline constexpr uint16_t paddingBytes(uint16_t size)
+```
+
+Returns the 4-byte alignment padding required for a body of `size` bytes.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `size` | `uint16_t` |  |
+
+---
+
+{#paddedbytes-1}
+
+#### paddedBytes
+
+`static` `inline`
+
+```cpp
+static inline constexpr uint16_t paddedBytes(uint16_t size)
+```
+
+Returns the body length including 4-byte alignment padding.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `size` | `uint16_t` |  |
+
+---
+
+{#typestring-1}
+
+#### typeString
+
+`static`
+
+```cpp
+static std::string typeString(uint16_t type)
+```
+
+#### Parameters
+* `type` Wire type code. 
+
+#### Returns
+Human-readable name for the given type code.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `type` | `uint16_t` |  |
+
+### Protected Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `uint16_t` | [`_type`](#_type-1)  |  |
+| `uint16_t` | [`_size`](#_size)  |  |
+
+---
+
+{#_type-1}
+
+#### _type
+
+```cpp
+uint16_t _type
+```
+
+---
+
+{#_size}
+
+#### _size
+
+```cpp
+uint16_t _size
+```
+
+### Protected Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`Attribute`](#attribute-1)  | #### Parameters |
+| `void` | [`setLength`](#setlength)  | Updates the stored body length.  |
+
+---
+
+{#attribute-1}
+
+#### Attribute
+
+```cpp
+Attribute(uint16_t type, uint16_t size)
+```
+
+#### Parameters
+* `type` Wire type code for this attribute. 
+
+* `size` Initial body length in bytes.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `type` | `uint16_t` |  |
+| `size` | `uint16_t` |  |
+
+---
+
+{#setlength}
+
+#### setLength
+
+```cpp
+void setLength(uint16_t size)
+```
+
+Updates the stored body length. 
+#### Parameters
+* `size` New body length in bytes.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `size` | `uint16_t` |  |
+
+### Public Types
+
+| Name | Description |
+|------|-------------|
+| [`Type`](#type-15)  |  |
+
+---
+
+{#type-15}
+
+#### Type
 
 ```cpp
 enum Type
@@ -109,1424 +827,94 @@ enum Type
 | `ICEPriority` |  |
 | `ICEUseCandidate` |  |
 
----
-
-#### ~Attribute 
-
-```cpp
-virtual inline ~Attribute()
-```
-
----
-
-#### clone 
-
-```cpp
-std::unique_ptr< Attribute > clone()
-```
-
----
-
-#### read 
-
-```cpp
-void read(BitReader & reader)
-```
-
-Reads the body (not the type or size) for this type of attribute from the given buffer. Return value is true if successful.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `reader` | `BitReader &` |  |
-
----
-
-#### write 
-
-```cpp
-void write(BitWriter & writer) const
-```
-
-Writes the body (not the type or size) to the given buffer. Return value is true if successful.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `writer` | `BitWriter &` |  |
-
----
-
-#### type 
-
-```cpp
-uint16_t type() const
-```
-
----
-
-#### size 
-
-```cpp
-uint16_t size() const
-```
-
----
-
-#### consumePadding 
-
-```cpp
-void consumePadding(BitReader & reader) const
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `reader` | `BitReader &` |  |
-
----
-
-#### writePadding 
-
-```cpp
-void writePadding(BitWriter & writer) const
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `writer` | `BitWriter &` |  |
-
----
-
-#### typeString 
-
-```cpp
-std::string typeString()
-```
-
----
-
-#### create 
-
-```cpp
-static std::unique_ptr< Attribute > create(uint16_t type, uint16_t size)
-```
-
-Creates an attribute object with the given type and size.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `type` | `uint16_t` |  |
-| `size` | `uint16_t` |  |
-
----
-
-#### typeString 
-
-```cpp
-static std::string typeString(uint16_t type)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `type` | `uint16_t` |  |
-
----
-
-#### Attribute 
-
-```cpp
-Attribute(uint16_t type, uint16_t size)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `type` | `uint16_t` |  |
-| `size` | `uint16_t` |  |
-
----
-
-#### setLength 
-
-```cpp
-void setLength(uint16_t size)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `size` | `uint16_t` |  |
-
----
-
-#### TypeID 
-
-```cpp
-const uint16_t TypeID = 0
-```
-
----
-
-#### _type 
-
-```cpp
-uint16_t _type
-```
-
----
-
-#### _size 
-
-```cpp
-uint16_t _size
-```
-
-## AddressAttribute 
-
-> **Extends:** `icy::stun::Attribute`
-> **Defined in:** `attributes.h`
-
-Implements a STUN/TURN attribute that contains a socket address.
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`AddressAttribute`](#group__stun_1ga26532e946f35dd12074567cb9aa83a89) |  |
-| [`AddressAttribute`](#group__stun_1gab1889e0952a12fef4df481639ff5dfd6) |  |
-| [`clone`](#group__stun_1ga08f80db0eca11594774aa981fe087951) |  |
-| [`family`](#group__stun_1gaa211f6fa23b641e1c922595b1884c287) |  |
-| [`address`](#group__stun_1gae694a695a83a7310bb2c2da8e504353c) |  |
-| [`read`](#group__stun_1ga4277615adc80ec240e36aa21d198136a) | Reads the body (not the type or size) for this type of attribute from the given buffer. Return value is true if successful. |
-| [`write`](#group__stun_1gad48cd7a0d308a23c0c4c4549bf3d6fbf) | Writes the body (not the type or size) to the given buffer. Return value is true if successful. |
-| [`setAddress`](#group__stun_1ga6c71d6b0ab7739e63ef2eb58241501c1) |  |
-| [`IPv4Size`](#group__stun_1gafb2012ed9f02a84dad86e64a623c3369) |  |
-| [`IPv6Size`](#group__stun_1ga4a8505f95e92cbca1efdf9baaaf5e5c5) |  |
-| [`_address`](#group__stun_1gad05adfb619be3a9d6977eece3ecf1daa) |  |
-
----
-
-#### AddressAttribute 
-
-```cpp
-AddressAttribute(uint16_t type, bool ipv4)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `type` | `uint16_t` |  |
-| `ipv4` | `bool` |  |
-
----
-
-#### AddressAttribute 
-
-```cpp
-AddressAttribute(const AddressAttribute & r)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `r` | `const AddressAttribute &` |  |
-
----
-
-#### clone 
-
-```cpp
-virtual std::unique_ptr< Attribute > clone()
-```
-
----
-
-#### family 
-
-```cpp
-inline stun::AddressFamily family() const
-```
-
----
-
-#### address 
-
-```cpp
-virtual net::Address address() const
-```
-
----
-
-#### read 
-
-```cpp
-virtual void read(BitReader & reader)
-```
-
-Reads the body (not the type or size) for this type of attribute from the given buffer. Return value is true if successful.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `reader` | `BitReader &` |  |
-
----
-
-#### write 
-
-```cpp
-virtual void write(BitWriter & writer) const
-```
-
-Writes the body (not the type or size) to the given buffer. Return value is true if successful.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `writer` | `BitWriter &` |  |
-
----
-
-#### setAddress 
-
-```cpp
-virtual inline void setAddress(const net::Address & addr)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `addr` | `const net::Address &` |  |
-
----
-
-#### IPv4Size 
-
-```cpp
-const uint16_t IPv4Size = 8
-```
-
----
-
-#### IPv6Size 
-
-```cpp
-const uint16_t IPv6Size = 20
-```
-
----
-
-#### _address 
-
-```cpp
-net::Address _address
-```
-
-## UInt8Attribute 
-
-> **Extends:** `icy::stun::Attribute`
-> **Defined in:** `attributes.h`
-
-Implements STUN/TURN attribute that reflects a 32-bit integer.
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`UInt8Attribute`](#group__stun_1ga31a7ecc9da1ab6bb9aef4f84f912644c) |  |
-| [`UInt8Attribute`](#group__stun_1gae1a4c7c1a53211e52739bd68955a26dd) |  |
-| [`clone`](#group__stun_1ga285944fdf39bff63efd31a10d587769b) |  |
-| [`value`](#group__stun_1gaa2111055d94bd81a601e00397e45cc92) |  |
-| [`setValue`](#group__stun_1ga222451185a8a5a7f5430d02b76428ee6) |  |
-| [`getBit`](#group__stun_1gae230c8a7751d5edfd007cd34b6f56cca) |  |
-| [`setBit`](#group__stun_1ga05fb3927bbbb041bd82e06473b686cb3) |  |
-| [`read`](#group__stun_1gaab5390f9fbef3b2e7d5b64d65cb13fc7) | Reads the body (not the type or size) for this type of attribute from the given buffer. Return value is true if successful. |
-| [`write`](#group__stun_1ga632e2485387980cf23a0761705b68a5f) | Writes the body (not the type or size) to the given buffer. Return value is true if successful. |
-| [`Size`](#group__stun_1gaeb8f25eb585791829d527b726e2c2e84) |  |
-| [`_bits`](#group__stun_1gaa1803741db41034c1462a17f99a17633) |  |
-
----
-
-#### UInt8Attribute 
-
-```cpp
-UInt8Attribute(uint16_t type)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `type` | `uint16_t` |  |
-
----
-
-#### UInt8Attribute 
-
-```cpp
-UInt8Attribute(const UInt8Attribute & r)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `r` | `const UInt8Attribute &` |  |
-
----
-
-#### clone 
-
-```cpp
-virtual std::unique_ptr< Attribute > clone()
-```
-
----
-
-#### value 
-
-```cpp
-inline uint8_t value() const
-```
-
----
-
-#### setValue 
-
-```cpp
-inline void setValue(uint8_t bits)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `bits` | `uint8_t` |  |
-
----
-
-#### getBit 
-
-```cpp
-bool getBit(int index) const
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `index` | `int` |  |
-
----
-
-#### setBit 
-
-```cpp
-void setBit(int index, bool value)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `index` | `int` |  |
-| `value` | `bool` |  |
-
----
-
-#### read 
-
-```cpp
-virtual void read(BitReader & reader)
-```
-
-Reads the body (not the type or size) for this type of attribute from the given buffer. Return value is true if successful.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `reader` | `BitReader &` |  |
-
----
-
-#### write 
-
-```cpp
-virtual void write(BitWriter & writer) const
-```
-
-Writes the body (not the type or size) to the given buffer. Return value is true if successful.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `writer` | `BitWriter &` |  |
-
----
-
-#### Size 
-
-```cpp
-const uint16_t Size = 1
-```
-
----
-
-#### _bits 
-
-```cpp
-uint8_t _bits
-```
-
-## UInt32Attribute 
-
-> **Extends:** `icy::stun::Attribute`
-> **Defined in:** `attributes.h`
-
-Implements STUN/TURN attribute that reflects a 32-bit integer.
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`UInt32Attribute`](#group__stun_1ga3a756731e38a290ec92b77ac9b3dbc78) |  |
-| [`UInt32Attribute`](#group__stun_1ga0bf66ed373b22ff7629d82410fa4209a) |  |
-| [`clone`](#group__stun_1ga50ffdd5a4e24b8049bdd98fc0f9a578f) |  |
-| [`value`](#group__stun_1ga7a2fd11c9ca9b6c27f16efe46b0adfbd) |  |
-| [`setValue`](#group__stun_1gaf2e4cb4c7d16d53650c1a061c744472f) |  |
-| [`getBit`](#group__stun_1gabe7f310ea52d35848ff63ae5e02ef153) |  |
-| [`setBit`](#group__stun_1ga9745eaf379f6449f0a9aa3723cb342f2) |  |
-| [`read`](#group__stun_1ga336e05c124918d3e9046fb1b2f66cf09) | Reads the body (not the type or size) for this type of attribute from the given buffer. Return value is true if successful. |
-| [`write`](#group__stun_1gaf41984e4e8cf61d64d88b1dfbe6e78c7) | Writes the body (not the type or size) to the given buffer. Return value is true if successful. |
-| [`Size`](#group__stun_1ga3bd72ce4cd5089c44bdd15cbb651b656) |  |
-| [`_bits`](#group__stun_1gaa5deff7c7ea8a916ff518efb848834b3) |  |
-
----
-
-#### UInt32Attribute 
-
-```cpp
-UInt32Attribute(uint16_t type)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `type` | `uint16_t` |  |
-
----
-
-#### UInt32Attribute 
-
-```cpp
-UInt32Attribute(const UInt32Attribute & r)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `r` | `const UInt32Attribute &` |  |
-
----
-
-#### clone 
-
-```cpp
-virtual std::unique_ptr< Attribute > clone()
-```
-
----
-
-#### value 
-
-```cpp
-inline uint32_t value() const
-```
-
----
-
-#### setValue 
-
-```cpp
-inline void setValue(uint32_t bits)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `bits` | `uint32_t` |  |
-
----
-
-#### getBit 
-
-```cpp
-bool getBit(int index) const
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `index` | `int` |  |
-
----
-
-#### setBit 
-
-```cpp
-void setBit(int index, bool value)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `index` | `int` |  |
-| `value` | `bool` |  |
-
----
-
-#### read 
-
-```cpp
-virtual void read(BitReader & reader)
-```
-
-Reads the body (not the type or size) for this type of attribute from the given buffer. Return value is true if successful.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `reader` | `BitReader &` |  |
-
----
-
-#### write 
-
-```cpp
-virtual void write(BitWriter & writer) const
-```
-
-Writes the body (not the type or size) to the given buffer. Return value is true if successful.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `writer` | `BitWriter &` |  |
-
----
-
-#### Size 
-
-```cpp
-const uint16_t Size = 4
-```
-
----
-
-#### _bits 
-
-```cpp
-uint32_t _bits
-```
-
-## UInt64Attribute 
-
-> **Extends:** `icy::stun::Attribute`
-> **Defined in:** `attributes.h`
-
-Implements STUN/TURN attribute that reflects a 64-bit integer.
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`UInt64Attribute`](#group__stun_1ga65fc4d0c4d7140af12a61457b0a89c9e) |  |
-| [`UInt64Attribute`](#group__stun_1gae47d568c25008f4d3a6f85c540b0d3bd) |  |
-| [`clone`](#group__stun_1ga9903c1b451344bba8e6dd41402e9217d) |  |
-| [`value`](#group__stun_1ga986e86dcf77f87c37e4b0ef5cd02ae48) |  |
-| [`setValue`](#group__stun_1gaac2af4e0ddd4d677e02c4cae2d3360f5) |  |
-| [`getBit`](#group__stun_1ga6de43e36aa136e9b6a14e9821b5038e7) |  |
-| [`setBit`](#group__stun_1ga48748faff06ececd74ef35a1410ca2f6) |  |
-| [`read`](#group__stun_1ga33044c201fbeac3902f69cb7a6ec05f5) | Reads the body (not the type or size) for this type of attribute from the given buffer. Return value is true if successful. |
-| [`write`](#group__stun_1ga286f0a969b1a57a3587e04b630a783ce) | Writes the body (not the type or size) to the given buffer. Return value is true if successful. |
-| [`Size`](#group__stun_1ga272ae90692c75840b76ec27cc84ce594) |  |
-| [`_bits`](#group__stun_1gae4178ca4345081da2f7f3c610458069e) |  |
-
----
-
-#### UInt64Attribute 
-
-```cpp
-UInt64Attribute(uint16_t type)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `type` | `uint16_t` |  |
-
----
-
-#### UInt64Attribute 
-
-```cpp
-UInt64Attribute(const UInt64Attribute & r)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `r` | `const UInt64Attribute &` |  |
-
----
-
-#### clone 
-
-```cpp
-virtual std::unique_ptr< Attribute > clone()
-```
-
----
-
-#### value 
-
-```cpp
-inline uint64_t value() const
-```
-
----
-
-#### setValue 
-
-```cpp
-inline void setValue(uint64_t bits)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `bits` | `uint64_t` |  |
-
----
-
-#### getBit 
-
-```cpp
-bool getBit(int index) const
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `index` | `int` |  |
-
----
-
-#### setBit 
-
-```cpp
-void setBit(int index, bool value)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `index` | `int` |  |
-| `value` | `bool` |  |
-
----
-
-#### read 
-
-```cpp
-virtual void read(BitReader & reader)
-```
-
-Reads the body (not the type or size) for this type of attribute from the given buffer. Return value is true if successful.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `reader` | `BitReader &` |  |
-
----
-
-#### write 
-
-```cpp
-virtual void write(BitWriter & writer) const
-```
-
-Writes the body (not the type or size) to the given buffer. Return value is true if successful.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `writer` | `BitWriter &` |  |
-
----
-
-#### Size 
-
-```cpp
-const uint16_t Size = 8
-```
-
----
-
-#### _bits 
-
-```cpp
-uint64_t _bits
-```
-
-## FlagAttribute 
-
-> **Extends:** `icy::stun::Attribute`
-> **Defined in:** `attributes.h`
-
-Implements STUN/TURN attribute representing a 0 size flag.
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`FlagAttribute`](#group__stun_1ga3d77e3070134506d8f106ee70e09ac27) |  |
-| [`clone`](#group__stun_1ga46ddc45c2f45e6e3cf5df8beaadd66d0) |  |
-| [`read`](#group__stun_1ga797d67dc26d1b0eb52ff1b995b410200) | Reads the body (not the type or size) for this type of attribute from the given buffer. Return value is true if successful. |
-| [`write`](#group__stun_1ga0397db5d05fc7fe0ae4a6877ccf1a37d) | Writes the body (not the type or size) to the given buffer. Return value is true if successful. |
-| [`Size`](#group__stun_1gab159d8904434b86d4113e3a8ca6ef509) |  |
-
----
-
-#### FlagAttribute 
-
-```cpp
-FlagAttribute(uint16_t type)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `type` | `uint16_t` |  |
-
----
-
-#### clone 
-
-```cpp
-virtual std::unique_ptr< Attribute > clone()
-```
-
----
-
-#### read 
-
-```cpp
-virtual inline void read(BitReader & reader)
-```
-
-Reads the body (not the type or size) for this type of attribute from the given buffer. Return value is true if successful.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `reader` | `BitReader &` |  |
-
----
-
-#### write 
-
-```cpp
-virtual inline void write(BitWriter & writer) const
-```
-
-Writes the body (not the type or size) to the given buffer. Return value is true if successful.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `writer` | `BitWriter &` |  |
-
----
-
-#### Size 
-
-```cpp
-const uint16_t Size = 0
-```
-
-## StringAttribute 
-
-> **Extends:** `icy::stun::Attribute`
-> **Defined in:** `attributes.h`
-
-Implements STUN/TURN attribute that reflects an arbitrary byte string.
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`StringAttribute`](#group__stun_1gadc6a297cfcfa9c94fddef844138837ab) |  |
-| [`StringAttribute`](#group__stun_1ga6e51e83ff47fc75c46e8da2f87c338bf) |  |
-| [`~StringAttribute`](#group__stun_1ga44630835710accc66471ff5b43c19e87) |  |
-| [`clone`](#group__stun_1gab8166601b80abb25c2e4e6c5444680ea) |  |
-| [`bytes`](#group__stun_1ga3994fa1ebbe5dfd6e2814de47da07f3d) |  |
-| [`setBytes`](#group__stun_1ga4ed88f8e4e00fbd0ba5fd601d5ff55e5) |  |
-| [`asString`](#group__stun_1ga88fca368c8e188b41114f4cdea79e79b) |  |
-| [`copyBytes`](#group__stun_1gace004bc4eda7af876d91f1b7e5a01d02) |  |
-| [`copyBytes`](#group__stun_1ga3480d63f8b4d93697092fba0bdfd2e4d) |  |
-| [`getByte`](#group__stun_1ga8ad00fc7dfc7f4661ca2017271f4125b) |  |
-| [`setByte`](#group__stun_1gac45f8d1e10aeb2806f4fed85e6f8cd37) |  |
-| [`read`](#group__stun_1gabbb6dc3ce9fce25efb2225806a87cb80) | Reads the body (not the type or size) for this type of attribute from the given buffer. Return value is true if successful. |
-| [`write`](#group__stun_1ga1e9de7ae89ad743833a88413b09921d2) | Writes the body (not the type or size) to the given buffer. Return value is true if successful. |
-| [`_bytes`](#group__stun_1ga39143ccdeb16edc0f5b38f471a2c0c1d) |  |
-
----
-
-#### StringAttribute 
-
-```cpp
-StringAttribute(uint16_t type, uint16_t size)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `type` | `uint16_t` |  |
-| `size` | `uint16_t` |  |
-
----
-
-#### StringAttribute 
-
-```cpp
-StringAttribute(const StringAttribute & r)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `r` | `const StringAttribute &` |  |
-
----
-
-#### ~StringAttribute 
-
-```cpp
-virtual ~StringAttribute()
-```
-
----
-
-#### clone 
-
-```cpp
-virtual std::unique_ptr< Attribute > clone()
-```
-
----
-
-#### bytes 
-
-```cpp
-inline const char * bytes() const
-```
-
----
-
-#### setBytes 
-
-```cpp
-void setBytes(const char * bytes, unsigned size)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `bytes` | `const char *` |  |
-| `size` | `unsigned` |  |
-
----
-
-#### asString 
-
-```cpp
-std::string asString() const
-```
-
----
-
-#### copyBytes 
-
-```cpp
-void copyBytes(const char * bytes)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `bytes` | `const char *` |  |
-
----
-
-#### copyBytes 
-
-```cpp
-void copyBytes(const void * bytes, unsigned size)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `bytes` | `const void *` |  |
-| `size` | `unsigned` |  |
-
----
-
-#### getByte 
-
-```cpp
-uint8_t getByte(int index) const
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `index` | `int` |  |
-
----
-
-#### setByte 
-
-```cpp
-void setByte(int index, uint8_t value)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `index` | `int` |  |
-| `value` | `uint8_t` |  |
-
----
-
-#### read 
-
-```cpp
-virtual void read(BitReader & reader)
-```
-
-Reads the body (not the type or size) for this type of attribute from the given buffer. Return value is true if successful.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `reader` | `BitReader &` |  |
-
----
-
-#### write 
-
-```cpp
-virtual void write(BitWriter & writer) const
-```
-
-Writes the body (not the type or size) to the given buffer. Return value is true if successful.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `writer` | `BitWriter &` |  |
-
----
-
-#### _bytes 
-
-```cpp
-std::vector< char > _bytes
-```
-
-## UInt16ListAttribute 
-
-> **Extends:** `icy::stun::Attribute`
-> **Defined in:** `attributes.h`
-
-Implements STUN/TURN attribute that reflects a list of attribute names.
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`UInt16ListAttribute`](#group__stun_1ga30618de614e5bcccd94b2eb3476f5150) |  |
-| [`UInt16ListAttribute`](#group__stun_1ga41111abd042a5eabd072a592e423a293) |  |
-| [`~UInt16ListAttribute`](#group__stun_1gacc94c85b8a1b73a30b6a764e40685940) |  |
-| [`clone`](#group__stun_1gade90ae784fb78df631002185d7d73f6a) |  |
-| [`size`](#group__stun_1ga804d0d2ac328075bd20e570ff9e7092b) |  |
-| [`getType`](#group__stun_1ga59b9881a1c5ed1c516134aa9d7961fac) |  |
-| [`setType`](#group__stun_1ga404efd93fa166215b2181097290cb6eb) |  |
-| [`addType`](#group__stun_1gacd1c6bcf94ad054a67910a38da04f803) |  |
-| [`read`](#group__stun_1gad0591118478c524485107997abfef834) | Reads the body (not the type or size) for this type of attribute from the given buffer. Return value is true if successful. |
-| [`write`](#group__stun_1ga7807f8a64746aa49a1a81d9c494de1d6) | Writes the body (not the type or size) to the given buffer. Return value is true if successful. |
-| [`_attrTypes`](#group__stun_1ga2b6dbf667c7b48e8bab3002037438f9c) |  |
-
----
-
-#### UInt16ListAttribute 
-
-```cpp
-UInt16ListAttribute(uint16_t type, uint16_t size)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `type` | `uint16_t` |  |
-| `size` | `uint16_t` |  |
-
----
-
-#### UInt16ListAttribute 
-
-```cpp
-UInt16ListAttribute(const UInt16ListAttribute & r)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `r` | `const UInt16ListAttribute &` |  |
-
----
-
-#### ~UInt16ListAttribute 
-
-```cpp
-virtual ~UInt16ListAttribute()
-```
-
----
-
-#### clone 
-
-```cpp
-virtual std::unique_ptr< Attribute > clone()
-```
-
----
-
-#### size 
-
-```cpp
-size_t size() const
-```
-
----
-
-#### getType 
-
-```cpp
-uint16_t getType(int index) const
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `index` | `int` |  |
-
----
-
-#### setType 
-
-```cpp
-void setType(int index, uint16_t value)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `index` | `int` |  |
-| `value` | `uint16_t` |  |
-
----
-
-#### addType 
-
-```cpp
-void addType(uint16_t value)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `value` | `uint16_t` |  |
-
----
-
-#### read 
-
-```cpp
-virtual void read(BitReader & reader)
-```
-
-Reads the body (not the type or size) for this type of attribute from the given buffer. Return value is true if successful.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `reader` | `BitReader &` |  |
-
----
-
-#### write 
+{#errorcode-1}
 
-```cpp
-virtual void write(BitWriter & writer) const
-```
-
-Writes the body (not the type or size) to the given buffer. Return value is true if successful.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `writer` | `BitWriter &` |  |
-
----
-
-#### _attrTypes 
-
-```cpp
-std::vector< uint16_t > _attrTypes
-```
-
-## MessageIntegrity 
-
-> **Extends:** `icy::stun::Attribute`
-> **Defined in:** `attributes.h`
-
-Implements STUN/TURN attributes that reflects an internet address.
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`MessageIntegrity`](#group__stun_1ga6d3a6a3407b970154055dbe446670c8f) |  |
-| [`MessageIntegrity`](#group__stun_1ga0694d43ce6dc45ba4a11feffcf3c739b) |  |
-| [`~MessageIntegrity`](#group__stun_1gac74f0c9b519ad52390a6a4c231f9e60a) |  |
-| [`clone`](#group__stun_1ga0f9395fa807db78156ed21da4fd908ae) |  |
-| [`verifyHmac`](#group__stun_1gac299a78f8fa192ac0ae022ede8abaad1) |  |
-| [`input`](#group__stun_1ga403625dab98075c2b89fe8a65a9c0360) |  |
-| [`hmac`](#group__stun_1ga7d79aa318b53e4414af5669f911ec13b) |  |
-| [`key`](#group__stun_1ga0f30d8f2c2a6d93893ac5a520bfd9f4f) |  |
-| [`setInput`](#group__stun_1ga68372c04e7f849e206c8ceb5f0a19e3b) |  |
-| [`setHmac`](#group__stun_1gad71c737937a85fd4af54f6529d30d739) |  |
-| [`setKey`](#group__stun_1gaeafda2d185a37768cf3c1537bfa48447) |  |
-| [`read`](#group__stun_1gaf313ec3f5940d7dccaa8b9f9789dcedc) | Reads the body (not the type or size) for this type of attribute from the given buffer. Return value is true if successful. |
-| [`write`](#group__stun_1ga25627d6670f7291f232c0ef65652c3ce) | Writes the body (not the type or size) to the given buffer. Return value is true if successful. |
-| [`TypeID`](#group__stun_1ga4ed5e79ac9774b70be2b0833fbe193c4) |  |
-| [`Size`](#group__stun_1ga7f13e95256860a85ed679ea056a7fca1) |  |
-| [`_input`](#group__stun_1gac8a5a832e1b3107720359adfecce088a) |  |
-| [`_hmac`](#group__stun_1ga77f3a0fbb7cb13ddf7261775c885f5c2) |  |
-| [`_key`](#group__stun_1ga7441361a9d0be7ff9d3de74b5b09d81c) |  |
-
----
-
-#### MessageIntegrity 
-
-```cpp
-MessageIntegrity()
-```
-
----
-
-#### MessageIntegrity 
-
-```cpp
-MessageIntegrity(const MessageIntegrity & r)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `r` | `const MessageIntegrity &` |  |
-
----
-
-#### ~MessageIntegrity 
-
-```cpp
-virtual ~MessageIntegrity()
-```
-
----
-
-#### clone 
-
-```cpp
-virtual std::unique_ptr< Attribute > clone()
-```
-
----
-
-#### verifyHmac 
-
-```cpp
-bool verifyHmac(const std::string & key) const
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `const std::string &` |  |
-
----
-
-#### input 
-
-```cpp
-inline std::string input() const
-```
-
----
-
-#### hmac 
-
-```cpp
-inline std::string hmac() const
-```
-
----
-
-#### key 
-
-```cpp
-inline std::string key() const
-```
-
----
-
-#### setInput 
-
-```cpp
-inline void setInput(const std::string & input)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `input` | `const std::string &` |  |
-
----
-
-#### setHmac 
-
-```cpp
-inline void setHmac(const std::string & hmac)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `hmac` | `const std::string &` |  |
-
----
-
-#### setKey 
-
-```cpp
-inline void setKey(const std::string & key)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `const std::string &` |  |
-
----
-
-#### read 
-
-```cpp
-virtual void read(BitReader & reader)
-```
-
-Reads the body (not the type or size) for this type of attribute from the given buffer. Return value is true if successful.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `reader` | `BitReader &` |  |
-
----
+## ErrorCode
 
-#### write 
-
-```cpp
-virtual void write(BitWriter & writer) const
-```
-
-Writes the body (not the type or size) to the given buffer. Return value is true if successful.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `writer` | `BitWriter &` |  |
-
----
-
-#### TypeID 
-
-```cpp
-const uint16_t TypeID = 0x0008
-```
-
----
-
-#### Size 
-
 ```cpp
-const uint16_t Size = 20
+#include <attributes.h>
 ```
-
----
-
-#### _input 
 
-```cpp
-std::string _input
-```
+> **Inherits:** [`Attribute`](#attribute)
 
----
+Implements the STUN ERROR-CODE attribute (RFC 5389 section 15.6). Encodes a 3-digit error code as a class (hundreds digit) and number (tens + units digits), plus an optional UTF-8 reason phrase.
 
-#### _hmac 
+### Public Methods
 
-```cpp
-std::string _hmac
-```
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`ErrorCode`](#errorcode-2)  | #### Parameters |
+|  | [`ErrorCode`](#errorcode-3)  | Copy constructor. |
+| `std::unique_ptr< Attribute >` | [`clone`](#clone-9) `virtual` | Returns a deep copy of this attribute. |
+| `void` | [`setErrorCode`](#seterrorcode)  | Sets the error code, splitting it into class and number fields.  |
+| `void` | [`setReason`](#setreason-1)  | Sets the UTF-8 reason phrase and updates the attribute size.  |
+| `int` | [`errorCode`](#errorcode-4) `const` | #### Returns |
+| `uint8_t` | [`errorClass`](#errorclass) `const` `inline` | #### Returns |
+| `uint8_t` | [`errorNumber`](#errornumber-1) `const` `inline` | #### Returns |
+| `const std::string &` | [`reason`](#reason-1) `const` `inline` | #### Returns |
+| `void` | [`read`](#read-4) `virtual` | Reads the body (not the type or size) for this type of attribute from the given buffer.  |
+| `void` | [`write`](#write-19) `virtual` `const` | Writes the body (not the type or size) to the given buffer.  |
 
 ---
-
-#### _key 
 
-```cpp
-std::string _key
-```
-
-## ErrorCode 
-
-> **Extends:** `icy::stun::Attribute`
-> **Defined in:** `attributes.h`
-
-Implements STUN/TURN attribute that reflects an error code.
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`ErrorCode`](#group__stun_1gaa1566110dab6203ac5174c1a4a62a8b5) |  |
-| [`ErrorCode`](#group__stun_1ga90128dc8b841038c32835371b84afa93) |  |
-| [`~ErrorCode`](#group__stun_1gadcf975e8279a398a328a16b75dc29ca5) |  |
-| [`clone`](#group__stun_1ga11296179ca068fe44eaa534435b95f21) |  |
-| [`setErrorCode`](#group__stun_1gabffcf45778d52bcb75550ca73f7c8f9e) |  |
-| [`setReason`](#group__stun_1ga84d94ef041ed8a5e0ddc63547ac86114) |  |
-| [`errorCode`](#group__stun_1gaca2120c5893bbf603e0b199a285008ae) |  |
-| [`errorClass`](#group__stun_1gaad4ad600c8374950f9416a270b9be653) |  |
-| [`errorNumber`](#group__stun_1gab4a6abf000b4c8eb05a10a4ed2576298) |  |
-| [`reason`](#group__stun_1ga7fbdfcae77268b78efa51b3c88a06a19) |  |
-| [`read`](#group__stun_1ga2ccdf73aeed8dc2e0442f8e3d9078ea6) | Reads the body (not the type or size) for this type of attribute from the given buffer. Return value is true if successful. |
-| [`write`](#group__stun_1gabf64fa5d609d641a426dedf91bb6b321) | Writes the body (not the type or size) to the given buffer. Return value is true if successful. |
-| [`TypeID`](#group__stun_1ga2b266f933243cfc5d1b482c2d9d14418) |  |
-| [`MinSize`](#group__stun_1gaf2b0fdc230464a7dcf82ba4fd1a7edfb) |  |
-| [`_class`](#group__stun_1gaef16158bf5274f1f6be3cdee05657ff2) |  |
-| [`_number`](#group__stun_1gaf197ddb57d24858028593c668bfcf1d8) |  |
-| [`_reason`](#group__stun_1ga65fec4754ab028da7cf437a9658de75c) |  |
-
----
+{#errorcode-2}
 
-#### ErrorCode 
+#### ErrorCode
 
 ```cpp
 ErrorCode(uint16_t size)
 ```
 
+#### Parameters
+* `size` Initial body length in bytes (must be >= MinSize).
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `size` | `uint16_t` |  |
 
 ---
 
-#### ErrorCode 
+{#errorcode-3}
+
+#### ErrorCode
 
 ```cpp
 ErrorCode(const ErrorCode & r)
 ```
 
+Copy constructor.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `r` | `const ErrorCode &` |  |
+| `r` | `const [ErrorCode](#errorcode-1) &` |  |
 
 ---
 
-#### ~ErrorCode 
+{#clone-9}
 
-```cpp
-virtual ~ErrorCode()
-```
+#### clone
 
----
-
-#### clone 
+`virtual`
 
 ```cpp
 virtual std::unique_ptr< Attribute > clone()
 ```
 
+Returns a deep copy of this attribute.
+
 ---
 
-#### setErrorCode 
+{#seterrorcode}
+
+#### setErrorCode
 
 ```cpp
 void setErrorCode(int code)
 ```
+
+Sets the error code, splitting it into class and number fields. 
+#### Parameters
+* `code` 3-digit error code (e.g. 401, 438).
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -1534,11 +922,17 @@ void setErrorCode(int code)
 
 ---
 
-#### setReason 
+{#setreason-1}
+
+#### setReason
 
 ```cpp
 void setReason(const std::string & reason)
 ```
+
+Sets the UTF-8 reason phrase and updates the attribute size. 
+#### Parameters
+* `reason` Human-readable error description.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -1546,83 +940,150 @@ void setReason(const std::string & reason)
 
 ---
 
-#### errorCode 
+{#errorcode-4}
+
+#### errorCode
+
+`const`
 
 ```cpp
 int errorCode() const
 ```
 
+#### Returns
+The full 3-digit error code (class * 100 + number).
+
 ---
 
-#### errorClass 
+{#errorclass}
+
+#### errorClass
+
+`const` `inline`
 
 ```cpp
 inline uint8_t errorClass() const
 ```
 
+#### Returns
+The hundreds digit of the error code (e.g. 4 for a 4xx error).
+
 ---
 
-#### errorNumber 
+{#errornumber-1}
+
+#### errorNumber
+
+`const` `inline`
 
 ```cpp
 inline uint8_t errorNumber() const
 ```
 
+#### Returns
+The tens+units portion of the error code (0-99).
+
 ---
 
-#### reason 
+{#reason-1}
+
+#### reason
+
+`const` `inline`
 
 ```cpp
 inline const std::string & reason() const
 ```
 
+#### Returns
+The reason phrase string (may be empty).
+
 ---
 
-#### read 
+{#read-4}
+
+#### read
+
+`virtual`
 
 ```cpp
 virtual void read(BitReader & reader)
 ```
 
-Reads the body (not the type or size) for this type of attribute from the given buffer. Return value is true if successful.
+Reads the body (not the type or size) for this type of attribute from the given buffer. 
+#### Parameters
+* `reader` Source bit reader positioned at the attribute body.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `reader` | `BitReader &` |  |
+| `reader` | `[BitReader](#classicy_1_1BitReader) &` |  |
 
 ---
 
-#### write 
+{#write-19}
+
+#### write
+
+`virtual` `const`
 
 ```cpp
 virtual void write(BitWriter & writer) const
 ```
 
-Writes the body (not the type or size) to the given buffer. Return value is true if successful.
+Writes the body (not the type or size) to the given buffer. 
+#### Parameters
+* `writer` Destination bit writer.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `writer` | `BitWriter &` |  |
+| `writer` | `[BitWriter](#classicy_1_1BitWriter) &` |  |
+
+### Public Static Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `constexpr uint16_t` | [`TypeID`](#typeid-1) `static` |  |
+| `constexpr uint16_t` | [`MinSize`](#minsize) `static` | 4 bytes before the reason phrase. |
 
 ---
 
-#### TypeID 
+{#typeid-1}
+
+#### TypeID
+
+`static`
 
 ```cpp
-const uint16_t TypeID = 0x0009
+constexpr uint16_t TypeID = 0x0009
 ```
 
 ---
 
-#### MinSize 
+{#minsize}
+
+#### MinSize
+
+`static`
 
 ```cpp
-const uint16_t MinSize = 4
+constexpr uint16_t MinSize = 4
 ```
+
+4 bytes before the reason phrase.
+
+### Private Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `uint8_t` | [`_class`](#_class)  |  |
+| `uint8_t` | [`_number`](#_number)  |  |
+| `std::string` | [`_reason`](#_reason-1)  |  |
 
 ---
 
-#### _class 
+{#_class}
+
+#### _class
 
 ```cpp
 uint8_t _class
@@ -1630,7 +1091,9 @@ uint8_t _class
 
 ---
 
-#### _number 
+{#_number}
+
+#### _number
 
 ```cpp
 uint8_t _number
@@ -1638,61 +1101,691 @@ uint8_t _number
 
 ---
 
-#### _reason 
+{#_reason-1}
+
+#### _reason
 
 ```cpp
 std::string _reason
 ```
 
-## Message 
+{#flagattribute}
 
-> **Extends:** `icy::IPacket`
-> **Subclasses:** `icy::turn::Request`
-> **Defined in:** `message.h`
+## FlagAttribute
 
-### Members
+```cpp
+#include <attributes.h>
+```
 
-| Name | Description |
-|------|-------------|
-| [`MethodType`](#group__stun_1gac2630e3f14c223cdb85801feb8f848ee) |  |
-| [`ClassType`](#group__stun_1ga13db6d75080f8b7a57bdb7b7d14cdba6) |  |
-| [`ErrorCodes`](#group__stun_1ga4dbaf25761edabeffc85d63482b3aac9) |  |
-| [`Message`](#group__stun_1ga87d2d455f130210e6ebdcf10d0318f12) |  |
-| [`Message`](#group__stun_1ga19a2f2943326de6b24e4364c136482bf) |  |
-| [`Message`](#group__stun_1ga871f9b3b19510574bae25bd42509a1e7) |  |
-| [`Message`](#group__stun_1ga3ab2bf6930a6cbe8c847ae0a1c0c374d) |  |
-| [`operator=`](#group__stun_1gaa7b3f543c5d432bb2b052820b42d9dbd) |  |
-| [`operator=`](#group__stun_1ga3217c09e360934d369b01dbf95edf5b0) |  |
-| [`~Message`](#group__stun_1ga4a2d3d7faa8d1fae09689521c719f0e3) |  |
-| [`clone`](#group__stun_1gab3b901af3b3812c59a1e6e495f9ff9bd) |  |
-| [`setClass`](#group__stun_1gab1616a105946047c77332b9e5caadaac) |  |
-| [`setMethod`](#group__stun_1gac7c6555f867fef8dd90c388d13ba2afa) |  |
-| [`setTransactionID`](#group__stun_1ga7e1341a7429f6b7199354fda9b235a02) |  |
-| [`classType`](#group__stun_1ga7243fa9b4b257cd1ed0a00ae6ed131af) |  |
-| [`methodType`](#group__stun_1ga6453d6cb76a0ac955cf7c2d049b8ccce) |  |
-| [`transactionID`](#group__stun_1ga7fa4f16f053aa4cefde0941a7cee5696) |  |
-| [`size`](#group__stun_1ga6ea0876dd3d70145cdd1944cf257cc89) | The size of the packet in bytes. |
-| [`methodString`](#group__stun_1ga6cb46477fe5b8deca78bcfe3be57630c) |  |
-| [`classString`](#group__stun_1gae0caeab266e261ca5e0f904fbac29a2a) |  |
-| [`errorString`](#group__stun_1ga375de70d1b2e483534b9e152cdaa7e7f) |  |
-| [`add`](#group__stun_1ga6d8a672d498981ae3aaf6ae56b64ad57) | Takes ownership of the raw pointer (wraps in unique_ptr). |
-| [`add`](#group__stun_1gab062ea939971d108f24ef5a1e83179b4) | Takes ownership via unique_ptr. |
-| [`get`](#group__stun_1ga42b45b4a75a1c9a1b7f4e3ee8117e953) |  |
-| [`get`](#group__stun_1gae18ed3a5c629f860d1959b2c9a17ac45) |  |
-| [`read`](#group__stun_1ga5277c8889063ec2d13b50de692a0f544) | Parses the STUN/TURN packet from the given buffer. The return value indicates the number of bytes read. |
-| [`write`](#group__stun_1ga3c6edd2eda4563ce398271ca1e398f2f) | Writes this object into a STUN/TURN packet. |
-| [`toString`](#group__stun_1ga50c1ef178929f59e10581ce89f38dbea) |  |
-| [`print`](#group__stun_1gab7840803d8273b4343225476ed0c8b2a) |  |
-| [`className`](#group__stun_1ga71e77048a4f6e090e42bc441f83ce4c0) |  |
-| [`_class`](#group__stun_1gaa6eafc6984888611aa79354a1970d3dd) |  |
-| [`_method`](#group__stun_1ga4ae5ed97d42f01ae3556c2b9b4bc242f) |  |
-| [`_size`](#group__stun_1ga0f08193c20c1ff33348838fae495f4d7) |  |
-| [`_transactionID`](#group__stun_1ga664565d5c2616896d5128d84ca2a7f5f) |  |
-| [`_attrs`](#group__stun_1ga00b4d60b33f4d2693640e076f1c0bff3) |  |
+> **Inherits:** [`Attribute`](#attribute)
+
+Implements a zero-length STUN/TURN flag attribute (presence implies the flag is set).
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`FlagAttribute`](#flagattribute-1)  | #### Parameters |
+| `std::unique_ptr< Attribute >` | [`clone`](#clone-10) `virtual` | Returns a deep copy of this attribute. |
+| `void` | [`read`](#read-5) `virtual` `inline` | No-op: flag attributes carry no body bytes. |
+| `void` | [`write`](#write-20) `virtual` `const` `inline` | No-op: flag attributes carry no body bytes. |
 
 ---
 
-#### MethodType 
+{#flagattribute-1}
+
+#### FlagAttribute
+
+```cpp
+FlagAttribute(uint16_t type)
+```
+
+#### Parameters
+* `type` Wire type code for the concrete attribute.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `type` | `uint16_t` |  |
+
+---
+
+{#clone-10}
+
+#### clone
+
+`virtual`
+
+```cpp
+virtual std::unique_ptr< Attribute > clone()
+```
+
+Returns a deep copy of this attribute.
+
+---
+
+{#read-5}
+
+#### read
+
+`virtual` `inline`
+
+```cpp
+virtual inline void read(BitReader &)
+```
+
+No-op: flag attributes carry no body bytes.
+
+---
+
+{#write-20}
+
+#### write
+
+`virtual` `const` `inline`
+
+```cpp
+virtual inline void write(BitWriter &) const
+```
+
+No-op: flag attributes carry no body bytes.
+
+### Public Static Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `constexpr uint16_t` | [`Size`](#size-4) `static` |  |
+
+---
+
+{#size-4}
+
+#### Size
+
+`static`
+
+```cpp
+constexpr uint16_t Size = 0
+```
+
+{#message-5}
+
+## Message
+
+```cpp
+#include <message.h>
+```
+
+> **Inherits:** [`IPacket`](#classicy_1_1IPacket)
+> **Subclassed by:** [`Request`](#request-12)
+
+STUN/TURN protocol message with method, class, transaction ID, and attributes.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`Message`](#message-6)  | Constructs a default message (Request class, Undefined method) with a randomly generated 12-byte transaction ID. |
+|  | [`Message`](#message-7)  | Constructs a message with explicit class and method.  |
+|  | [`Message`](#message-8)  | Deep-copy constructor; clones all attributes. |
+|  | [`Message`](#message-9)  | Move constructor. |
+| `Message &` | [`operator=`](#operator-22)  | Deep-copy assignment; clones all attributes from `that`. |
+| `Message &` | [`operator=`](#operator-23)  | Move assignment. |
+| `std::unique_ptr< IPacket >` | [`clone`](#clone-11) `virtual` `const` | #### Returns |
+| `void` | [`setClass`](#setclass)  | Sets the message class field.  |
+| `void` | [`setMethod`](#setmethod-1)  | Sets the message method field.  |
+| `void` | [`setTransactionID`](#settransactionid)  | Sets the 12-byte transaction ID.  |
+| `ClassType` | [`classType`](#classtype) `const` | #### Returns |
+| `MethodType` | [`methodType`](#methodtype) `const` | #### Returns |
+| `const TransactionID &` | [`transactionID`](#transactionid-1) `const` `inline` | #### Returns |
+| `size_t` | [`size`](#size-5) `virtual` `const` `inline` | #### Returns |
+| `std::string` | [`methodString`](#methodstring) `const` | #### Returns |
+| `std::string` | [`classString`](#classstring) `const` | #### Returns |
+| `std::string` | [`errorString`](#errorstring) `const` | Maps a numeric error code to its canonical string description.  |
+| `T &` | [`add`](#add-1) `inline` | Constructs an attribute of type T in-place and appends it to the message. Returns a reference to the new attribute for further configuration.  |
+| `void` | [`add`](#add-2)  | Appends an attribute to the message, taking ownership via unique_ptr.  |
+| `Attribute *` | [`get`](#get-5) `const` | Returns the Nth attribute of the given type, or nullptr if not found.  |
+| `T *` | [`get`](#get-6) `const` `inline` | Type-safe attribute accessor using the concrete attribute's TypeID.  |
+| `ssize_t` | [`read`](#read-6) `virtual` | Parses a STUN/TURN packet from the given buffer.  |
+| `void` | [`write`](#write-21) `virtual` `const` | Serialises this message into a STUN/TURN wire-format packet.  |
+| `std::string` | [`toString`](#tostring-8) `const` | #### Returns |
+| `void` | [`print`](#print-13) `virtual` `const` | Writes the same representation as [toString()](#tostring-8) to the given stream.  |
+| `const char *` | [`className`](#classname-7) `virtual` `const` `inline` | Returns the class name of this packet type for logging and diagnostics. |
+
+---
+
+{#message-6}
+
+#### Message
+
+```cpp
+Message()
+```
+
+Constructs a default message (Request class, Undefined method) with a randomly generated 12-byte transaction ID.
+
+---
+
+{#message-7}
+
+#### Message
+
+```cpp
+Message(ClassType clss, MethodType meth)
+```
+
+Constructs a message with explicit class and method. 
+#### Parameters
+* `clss` [Message](#message-5) class (Request, Indication, SuccessResponse, or ErrorResponse). 
+
+* `meth` [Message](#message-5) method (Binding, Allocate, Refresh, etc.).
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `clss` | `[ClassType](#classtype-1)` |  |
+| `meth` | `[MethodType](#methodtype-1)` |  |
+
+---
+
+{#message-8}
+
+#### Message
+
+```cpp
+Message(const Message & that)
+```
+
+Deep-copy constructor; clones all attributes.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `that` | `const [Message](#message-5) &` |  |
+
+---
+
+{#message-9}
+
+#### Message
+
+```cpp
+Message(Message && that) noexcept
+```
+
+Move constructor.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `that` | `[Message](#message-5) &&` |  |
+
+---
+
+{#operator-22}
+
+#### operator=
+
+```cpp
+Message & operator=(const Message & that)
+```
+
+Deep-copy assignment; clones all attributes from `that`.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `that` | `const [Message](#message-5) &` |  |
+
+---
+
+{#operator-23}
+
+#### operator=
+
+```cpp
+Message & operator=(Message && that) noexcept
+```
+
+Move assignment.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `that` | `[Message](#message-5) &&` |  |
+
+---
+
+{#clone-11}
+
+#### clone
+
+`virtual` `const`
+
+```cpp
+virtual std::unique_ptr< IPacket > clone() const
+```
+
+#### Returns
+A heap-allocated deep copy of this message.
+
+---
+
+{#setclass}
+
+#### setClass
+
+```cpp
+void setClass(ClassType type)
+```
+
+Sets the message class field. 
+#### Parameters
+* `type` One of Request, Indication, SuccessResponse, ErrorResponse.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `type` | `[ClassType](#classtype-1)` |  |
+
+---
+
+{#setmethod-1}
+
+#### setMethod
+
+```cpp
+void setMethod(MethodType type)
+```
+
+Sets the message method field. 
+#### Parameters
+* `type` One of the MethodType enumerators.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `type` | `[MethodType](#methodtype-1)` |  |
+
+---
+
+{#settransactionid}
+
+#### setTransactionID
+
+```cpp
+void setTransactionID(const std::string & id)
+```
+
+Sets the 12-byte transaction ID. 
+#### Parameters
+* `id` Must be exactly kTransactionIdLength (12) bytes.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | `const std::string &` |  |
+
+---
+
+{#classtype}
+
+#### classType
+
+`const`
+
+```cpp
+ClassType classType() const
+```
+
+#### Returns
+The message class.
+
+---
+
+{#methodtype}
+
+#### methodType
+
+`const`
+
+```cpp
+MethodType methodType() const
+```
+
+#### Returns
+The message method.
+
+---
+
+{#transactionid-1}
+
+#### transactionID
+
+`const` `inline`
+
+```cpp
+inline const TransactionID & transactionID() const
+```
+
+#### Returns
+Reference to the 12-byte transaction ID string.
+
+---
+
+{#size-5}
+
+#### size
+
+`virtual` `const` `inline`
+
+```cpp
+virtual inline size_t size() const
+```
+
+#### Returns
+Total body size in bytes (sum of padded attribute headers and bodies).
+
+---
+
+{#methodstring}
+
+#### methodString
+
+`const`
+
+```cpp
+std::string methodString() const
+```
+
+#### Returns
+Human-readable method name (e.g. "BINDING", "ALLOCATE").
+
+---
+
+{#classstring}
+
+#### classString
+
+`const`
+
+```cpp
+std::string classString() const
+```
+
+#### Returns
+Human-readable class name (e.g. "Request", "SuccessResponse").
+
+---
+
+{#errorstring}
+
+#### errorString
+
+`const`
+
+```cpp
+std::string errorString(uint16_t errorCode) const
+```
+
+Maps a numeric error code to its canonical string description. 
+#### Parameters
+* `errorCode` One of the ErrorCodes enumerators. 
+
+#### Returns
+Human-readable error string, or "UnknownError" if not recognised.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `errorCode` | `uint16_t` |  |
+
+---
+
+{#add-1}
+
+#### add
+
+`inline`
+
+```cpp
+template<typename T> inline T & add()
+```
+
+Constructs an attribute of type T in-place and appends it to the message. Returns a reference to the new attribute for further configuration. 
+#### Parameters
+* `T` Concrete attribute type (e.g. stun::Lifetime, stun::XorMappedAddress). 
+
+#### Returns
+Reference to the newly added attribute.
+
+---
+
+{#add-2}
+
+#### add
+
+```cpp
+void add(std::unique_ptr< Attribute > attr)
+```
+
+Appends an attribute to the message, taking ownership via unique_ptr. 
+#### Parameters
+* `attr` [Attribute](#attribute) to add.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `attr` | `std::unique_ptr< [Attribute](#attribute) >` |  |
+
+---
+
+{#get-5}
+
+#### get
+
+`const`
+
+```cpp
+Attribute * get(Attribute::Type type, int index) const
+```
+
+Returns the Nth attribute of the given type, or nullptr if not found. 
+#### Parameters
+* `type` [Attribute](#attribute) type code to search for. 
+
+* `index` Zero-based occurrence index (0 = first match). 
+
+#### Returns
+Raw pointer to the attribute (owned by this message), or nullptr.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `type` | `[Attribute::Type](#type-15)` |  |
+| `index` | `int` |  |
+
+---
+
+{#get-6}
+
+#### get
+
+`const` `inline`
+
+```cpp
+template<typename T> inline T * get(int index) const
+```
+
+Type-safe attribute accessor using the concrete attribute's TypeID. 
+#### Parameters
+* `T` Concrete attribute type (must define TypeID). 
+
+#### Parameters
+* `index` Zero-based occurrence index. 
+
+#### Returns
+Pointer to T, or nullptr if the attribute is absent.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `index` | `int` |  |
+
+---
+
+{#read-6}
+
+#### read
+
+`virtual`
+
+```cpp
+virtual ssize_t read(const ConstBuffer & buf)
+```
+
+Parses a STUN/TURN packet from the given buffer. 
+#### Parameters
+* `buf` Buffer containing at least one complete STUN message. 
+
+#### Returns
+Number of bytes consumed, or 0 on parse failure.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `buf` | `const [ConstBuffer](#classicy_1_1ConstBuffer) &` |  |
+
+---
+
+{#write-21}
+
+#### write
+
+`virtual` `const`
+
+```cpp
+virtual void write(Buffer & buf) const
+```
+
+Serialises this message into a STUN/TURN wire-format packet. 
+#### Parameters
+* `buf` Destination buffer; data is appended.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `buf` | `[Buffer](#namespaceicy_1a9c464c811f03ea41ea100ed65a0580d3) &` |  |
+
+---
+
+{#tostring-8}
+
+#### toString
+
+`const`
+
+```cpp
+std::string toString() const
+```
+
+#### Returns
+A concise string representation for logging (method, transaction ID, attribute types).
+
+---
+
+{#print-13}
+
+#### print
+
+`virtual` `const`
+
+```cpp
+virtual void print(std::ostream & os) const
+```
+
+Writes the same representation as [toString()](#tostring-8) to the given stream. 
+#### Parameters
+* `os` Output stream.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `os` | `std::ostream &` |  |
+
+---
+
+{#classname-7}
+
+#### className
+
+`virtual` `const` `inline`
+
+```cpp
+virtual inline const char * className() const
+```
+
+Returns the class name of this packet type for logging and diagnostics.
+
+### Protected Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `uint16_t` | [`_class`](#_class-1)  |  |
+| `uint16_t` | [`_method`](#_method-1)  |  |
+| `uint16_t` | [`_size`](#_size-1)  | Set by [read()](#read-6); [write()](#write-21) uses computeBodySize() instead. |
+| `TransactionID` | [`_transactionID`](#_transactionid)  |  |
+| `std::vector< std::unique_ptr< Attribute > >` | [`_attrs`](#_attrs)  |  |
+
+---
+
+{#_class-1}
+
+#### _class
+
+```cpp
+uint16_t _class
+```
+
+---
+
+{#_method-1}
+
+#### _method
+
+```cpp
+uint16_t _method
+```
+
+---
+
+{#_size-1}
+
+#### _size
+
+```cpp
+uint16_t _size
+```
+
+Set by [read()](#read-6); [write()](#write-21) uses computeBodySize() instead.
+
+---
+
+{#_transactionid}
+
+#### _transactionID
+
+```cpp
+TransactionID _transactionID
+```
+
+---
+
+{#_attrs}
+
+#### _attrs
+
+```cpp
+std::vector< std::unique_ptr< Attribute > > _attrs
+```
+
+### Public Types
+
+| Name | Description |
+|------|-------------|
+| [`MethodType`](#methodtype-1)  |  |
+| [`ClassType`](#classtype-1)  |  |
+| [`ErrorCodes`](#errorcodes)  |  |
+
+---
+
+{#methodtype-1}
+
+#### MethodType
 
 ```cpp
 enum MethodType
@@ -1714,7 +1807,9 @@ enum MethodType
 
 ---
 
-#### ClassType 
+{#classtype-1}
+
+#### ClassType
 
 ```cpp
 enum ClassType
@@ -1729,7 +1824,9 @@ enum ClassType
 
 ---
 
-#### ErrorCodes 
+{#errorcodes}
+
+#### ErrorCodes
 
 ```cpp
 enum ErrorCodes
@@ -1737,409 +1834,1606 @@ enum ErrorCodes
 
 | Value | Description |
 |-------|-------------|
+| `TryAlternate` |  |
 | `BadRequest` |  |
 | `NotAuthorized` |  |
+| `Forbidden` |  |
 | `UnknownAttribute` |  |
 | `StaleCredentials` |  |
 | `IntegrityCheckFailure` |  |
 | `MissingUsername` |  |
 | `UseTLS` |  |
+| `AllocationMismatch` |  |
+| `StaleNonce` |  |
+| `WrongCredentials` |  |
+| `UnsupportedTransport` |  |
+| `AllocationQuotaReached` |  |
 | `RoleConflict` |  |
 | `ServerError` |  |
+| `InsufficientCapacity` |  |
 | `GlobalFailure` |  |
 | `ConnectionAlreadyExists` | TURN TCP. |
 | `ConnectionTimeoutOrFailure` |  |
 
+### Private Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `uint16_t` | [`computeBodySize`](#computebodysize) `const` | Computes the wire body size from the current attribute list. |
+
 ---
 
-#### Message 
+{#computebodysize}
+
+#### computeBodySize
+
+`const`
 
 ```cpp
-Message()
+uint16_t computeBodySize() const
+```
+
+Computes the wire body size from the current attribute list.
+
+{#messageintegrity}
+
+## MessageIntegrity
+
+```cpp
+#include <attributes.h>
+```
+
+> **Inherits:** [`Attribute`](#attribute)
+
+Implements the STUN MESSAGE-INTEGRITY attribute (RFC 5389 section 15.4). On write, computes an HMAC-SHA1 over the message bytes preceding this attribute when a key is set. On read, captures the raw HMAC bytes and the input bytes needed to verify them later via [verifyHmac()](#verifyhmac).
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`MessageIntegrity`](#messageintegrity-1)  |  |
+|  | [`MessageIntegrity`](#messageintegrity-2)  |  |
+| `std::unique_ptr< Attribute >` | [`clone`](#clone-12) `virtual` | Returns a deep copy of this attribute. |
+| `bool` | [`verifyHmac`](#verifyhmac) `const` | Verifies the stored HMAC against the stored input bytes using `key`.  |
+| `std::string` | [`input`](#input) `const` `inline` | #### Returns |
+| `std::string` | [`hmac`](#hmac) `const` `inline` | #### Returns |
+| `std::string` | [`key`](#key-2) `const` `inline` | #### Returns |
+| `void` | [`setInput`](#setinput) `inline` | Sets the raw message bytes used as HMAC input during verification.  |
+| `void` | [`setHmac`](#sethmac) `inline` | Sets the raw HMAC value (used when copying a received attribute).  |
+| `void` | [`setKey`](#setkey) `inline` | Sets the HMAC key; triggers HMAC computation on [write()](#write-22).  |
+| `void` | [`read`](#read-7) `virtual` | Reads the body (not the type or size) for this type of attribute from the given buffer.  |
+| `void` | [`write`](#write-22) `virtual` `const` | Writes the body (not the type or size) to the given buffer.  |
+
+---
+
+{#messageintegrity-1}
+
+#### MessageIntegrity
+
+```cpp
+MessageIntegrity()
 ```
 
 ---
 
-#### Message 
+{#messageintegrity-2}
+
+#### MessageIntegrity
 
 ```cpp
-Message(ClassType clss, MethodType meth)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `clss` | `ClassType` |  |
-| `meth` | `MethodType` |  |
-
----
-
-#### Message 
-
-```cpp
-Message(const Message & that)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `that` | `const Message &` |  |
-
----
-
-#### Message 
-
-```cpp
-Message(Message && that) noexcept
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `that` | `Message &&` |  |
-
----
-
-#### operator= 
-
-```cpp
-Message & operator=(const Message & that)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `that` | `const Message &` |  |
-
----
-
-#### operator= 
-
-```cpp
-Message & operator=(Message && that) noexcept
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `that` | `Message &&` |  |
-
----
-
-#### ~Message 
-
-```cpp
-virtual ~Message()
-```
-
----
-
-#### clone 
-
-```cpp
-virtual IPacket * clone() const
-```
-
----
-
-#### setClass 
-
-```cpp
-void setClass(ClassType type)
+MessageIntegrity(const MessageIntegrity & r)
 ```
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `type` | `ClassType` |  |
+| `r` | `const [MessageIntegrity](#messageintegrity) &` |  |
 
 ---
 
-#### setMethod 
+{#clone-12}
+
+#### clone
+
+`virtual`
 
 ```cpp
-void setMethod(MethodType type)
+virtual std::unique_ptr< Attribute > clone()
 ```
+
+Returns a deep copy of this attribute.
+
+---
+
+{#verifyhmac}
+
+#### verifyHmac
+
+`const`
+
+```cpp
+bool verifyHmac(std::string_view key) const
+```
+
+Verifies the stored HMAC against the stored input bytes using `key`. 
+#### Parameters
+* `key` HMAC key (MD5 of username:realm:password for long-term creds). 
+
+#### Returns
+true if the computed HMAC matches the stored HMAC.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `type` | `MethodType` |  |
+| `key` | `std::string_view` |  |
 
 ---
 
-#### setTransactionID 
+{#input}
+
+#### input
+
+`const` `inline`
 
 ```cpp
-void setTransactionID(const std::string & id)
+inline std::string input() const
 ```
+
+#### Returns
+The raw message bytes captured at read time, used for HMAC verification.
+
+---
+
+{#hmac}
+
+#### hmac
+
+`const` `inline`
+
+```cpp
+inline std::string hmac() const
+```
+
+#### Returns
+The raw 20-byte HMAC value as read from the wire.
+
+---
+
+{#key-2}
+
+#### key
+
+`const` `inline`
+
+```cpp
+inline std::string key() const
+```
+
+#### Returns
+The HMAC key set for outgoing message signing (empty if not set).
+
+---
+
+{#setinput}
+
+#### setInput
+
+`inline`
+
+```cpp
+inline void setInput(const std::string & input)
+```
+
+Sets the raw message bytes used as HMAC input during verification. 
+#### Parameters
+* `input` Byte string of the message up to this attribute.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `id` | `const std::string &` |  |
+| `input` | `const std::string &` |  |
 
 ---
 
-#### classType 
+{#sethmac}
+
+#### setHmac
+
+`inline`
 
 ```cpp
-ClassType classType() const
+inline void setHmac(const std::string & hmac)
 ```
 
----
-
-#### methodType 
-
-```cpp
-MethodType methodType() const
-```
-
----
-
-#### transactionID 
-
-```cpp
-inline const TransactionID & transactionID() const
-```
-
----
-
-#### size 
-
-```cpp
-virtual inline size_t size() const
-```
-
-The size of the packet in bytes.
-
-This is the nember of bytes that will be written on a call to [write()](#group__stun_1ga3c6edd2eda4563ce398271ca1e398f2f), but may not be the number of bytes that will be consumed by [read()](#group__stun_1ga5277c8889063ec2d13b50de692a0f544).
-
----
-
-#### methodString 
-
-```cpp
-std::string methodString() const
-```
-
----
-
-#### classString 
-
-```cpp
-std::string classString() const
-```
-
----
-
-#### errorString 
-
-```cpp
-std::string errorString(uint16_t errorCode) const
-```
+Sets the raw HMAC value (used when copying a received attribute). 
+#### Parameters
+* `hmac` 20-byte HMAC string.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `errorCode` | `uint16_t` |  |
+| `hmac` | `const std::string &` |  |
 
 ---
 
-#### add 
+{#setkey}
+
+#### setKey
+
+`inline`
 
 ```cpp
-void add(Attribute * attr)
+inline void setKey(const std::string & key)
 ```
 
-Takes ownership of the raw pointer (wraps in unique_ptr).
+Sets the HMAC key; triggers HMAC computation on [write()](#write-22). 
+#### Parameters
+* `key` MD5 digest of the long-term credential (username:realm:password).
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `attr` | `Attribute *` |  |
+| `key` | `const std::string &` |  |
 
 ---
 
-#### add 
+{#read-7}
+
+#### read
+
+`virtual`
 
 ```cpp
-void add(std::unique_ptr< Attribute > attr)
+virtual void read(BitReader & reader)
 ```
 
-Takes ownership via unique_ptr.
+Reads the body (not the type or size) for this type of attribute from the given buffer. 
+#### Parameters
+* `reader` Source bit reader positioned at the attribute body.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `attr` | `std::unique_ptr< Attribute >` |  |
+| `reader` | `[BitReader](#classicy_1_1BitReader) &` |  |
 
 ---
 
-#### get 
+{#write-22}
+
+#### write
+
+`virtual` `const`
 
 ```cpp
-Attribute * get(Attribute::Type type, int index) const
+virtual void write(BitWriter & writer) const
 ```
+
+Writes the body (not the type or size) to the given buffer. 
+#### Parameters
+* `writer` Destination bit writer.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `type` | `Attribute::Type` |  |
+| `writer` | `[BitWriter](#classicy_1_1BitWriter) &` |  |
+
+### Public Static Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `constexpr uint16_t` | [`TypeID`](#typeid-2) `static` |  |
+| `constexpr uint16_t` | [`Size`](#size-6) `static` | HMAC-SHA1 output is always 20 bytes. |
+
+---
+
+{#typeid-2}
+
+#### TypeID
+
+`static`
+
+```cpp
+constexpr uint16_t TypeID = 0x0008
+```
+
+---
+
+{#size-6}
+
+#### Size
+
+`static`
+
+```cpp
+constexpr uint16_t Size = 20
+```
+
+HMAC-SHA1 output is always 20 bytes.
+
+### Private Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `std::string` | [`_input`](#_input)  |  |
+| `std::string` | [`_hmac`](#_hmac)  |  |
+| `std::string` | [`_key`](#_key-1)  |  |
+
+---
+
+{#_input}
+
+#### _input
+
+```cpp
+std::string _input
+```
+
+---
+
+{#_hmac}
+
+#### _hmac
+
+```cpp
+std::string _hmac
+```
+
+---
+
+{#_key-1}
+
+#### _key
+
+```cpp
+std::string _key
+```
+
+{#stringattribute}
+
+## StringAttribute
+
+```cpp
+#include <attributes.h>
+```
+
+> **Inherits:** [`Attribute`](#attribute)
+
+Implements a STUN/TURN attribute that holds an arbitrary byte string. Used for Username, Password, Realm, Nonce, Software, Data, and similar attributes.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`StringAttribute`](#stringattribute-1)  | #### Parameters |
+|  | [`StringAttribute`](#stringattribute-2)  | Copy constructor; duplicates stored bytes. |
+| `std::unique_ptr< Attribute >` | [`clone`](#clone-13) `virtual` | Returns a deep copy of this attribute. |
+| `const char *` | [`bytes`](#bytes-1) `const` `inline` | #### Returns |
+| `void` | [`setBytes`](#setbytes)  | Replaces the stored bytes with a copy of the given buffer and updates the attribute's reported size.  |
+| `std::string` | [`asString`](#asstring) `const` | #### Returns |
+| `void` | [`copyBytes`](#copybytes)  | Copies a null-terminated string into the attribute, using strlen to determine the length.  |
+| `void` | [`copyBytes`](#copybytes-1)  | Copies an arbitrary block of memory into the attribute.  |
+| `uint8_t` | [`getByte`](#getbyte) `const` | Returns a single byte from the stored buffer.  |
+| `void` | [`setByte`](#setbyte)  | Overwrites a single byte in the stored buffer.  |
+| `void` | [`read`](#read-8) `virtual` | Reads the body (not the type or size) for this type of attribute from the given buffer.  |
+| `void` | [`write`](#write-23) `virtual` `const` | Writes the body (not the type or size) to the given buffer.  |
+
+---
+
+{#stringattribute-1}
+
+#### StringAttribute
+
+```cpp
+StringAttribute(uint16_t type, uint16_t size)
+```
+
+#### Parameters
+* `type` Wire type code for the concrete attribute. 
+
+* `size` Initial body length in bytes (0 for variable-length attributes).
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `type` | `uint16_t` |  |
+| `size` | `uint16_t` |  |
+
+---
+
+{#stringattribute-2}
+
+#### StringAttribute
+
+```cpp
+StringAttribute(const StringAttribute & r)
+```
+
+Copy constructor; duplicates stored bytes.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `r` | `const [StringAttribute](#stringattribute) &` |  |
+
+---
+
+{#clone-13}
+
+#### clone
+
+`virtual`
+
+```cpp
+virtual std::unique_ptr< Attribute > clone()
+```
+
+Returns a deep copy of this attribute.
+
+---
+
+{#bytes-1}
+
+#### bytes
+
+`const` `inline`
+
+```cpp
+inline const char * bytes() const
+```
+
+#### Returns
+Pointer to the raw byte buffer.
+
+---
+
+{#setbytes}
+
+#### setBytes
+
+```cpp
+void setBytes(const char * bytes, unsigned size)
+```
+
+Replaces the stored bytes with a copy of the given buffer and updates the attribute's reported size. 
+#### Parameters
+* `bytes` Source data pointer. 
+
+* `size` Number of bytes to copy.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `bytes` | `const char *` |  |
+| `size` | `unsigned` |  |
+
+---
+
+{#asstring}
+
+#### asString
+
+`const`
+
+```cpp
+std::string asString() const
+```
+
+#### Returns
+The stored bytes as a std::string.
+
+---
+
+{#copybytes}
+
+#### copyBytes
+
+```cpp
+void copyBytes(const char * bytes)
+```
+
+Copies a null-terminated string into the attribute, using strlen to determine the length. 
+#### Parameters
+* `bytes` Null-terminated source string.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `bytes` | `const char *` |  |
+
+---
+
+{#copybytes-1}
+
+#### copyBytes
+
+```cpp
+void copyBytes(const void * bytes, unsigned size)
+```
+
+Copies an arbitrary block of memory into the attribute. 
+#### Parameters
+* `bytes` Source data pointer. 
+
+* `size` Number of bytes to copy.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `bytes` | `const void *` |  |
+| `size` | `unsigned` |  |
+
+---
+
+{#getbyte}
+
+#### getByte
+
+`const`
+
+```cpp
+uint8_t getByte(int index) const
+```
+
+Returns a single byte from the stored buffer. 
+#### Parameters
+* `index` Zero-based byte offset. 
+
+#### Returns
+The byte value at `index`.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
 | `index` | `int` |  |
 
 ---
 
-#### get 
+{#setbyte}
+
+#### setByte
 
 ```cpp
-template<typename T> inline T * get(int index) const
+void setByte(int index, uint8_t value)
 ```
+
+Overwrites a single byte in the stored buffer. 
+#### Parameters
+* `index` Zero-based byte offset. 
+
+* `value` New value to write.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `index` | `int` |  |
+| `value` | `uint8_t` |  |
 
 ---
 
-#### read 
+{#read-8}
+
+#### read
+
+`virtual`
 
 ```cpp
-virtual ssize_t read(const ConstBuffer & buf)
+virtual void read(BitReader & reader)
 ```
 
-Parses the STUN/TURN packet from the given buffer. The return value indicates the number of bytes read.
+Reads the body (not the type or size) for this type of attribute from the given buffer. 
+#### Parameters
+* `reader` Source bit reader positioned at the attribute body.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `buf` | `const ConstBuffer &` |  |
+| `reader` | `[BitReader](#classicy_1_1BitReader) &` |  |
 
 ---
 
-#### write 
+{#write-23}
+
+#### write
+
+`virtual` `const`
 
 ```cpp
-virtual void write(Buffer & buf) const
+virtual void write(BitWriter & writer) const
 ```
 
-Writes this object into a STUN/TURN packet.
+Writes the body (not the type or size) to the given buffer. 
+#### Parameters
+* `writer` Destination bit writer.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `buf` | `Buffer &` |  |
+| `writer` | `[BitWriter](#classicy_1_1BitWriter) &` |  |
+
+### Private Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `std::vector< char >` | [`_bytes`](#_bytes)  |  |
 
 ---
 
-#### toString 
+{#_bytes}
+
+#### _bytes
 
 ```cpp
-std::string toString() const
+std::vector< char > _bytes
 ```
 
----
+{#transaction-2}
 
-#### print 
+## Transaction
 
 ```cpp
-virtual void print(std::ostream & os) const
+#include <transaction.h>
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `os` | `std::ostream &` |  |
+> **Inherits:** [`Transaction< Message >`](#transaction)
+
+STUN request/response transaction with timeout and retry logic. Extends the generic [net::Transaction](#transaction) with STUN-specific transaction ID matching and response class inference (Success, [Error](#structicy_1_1Error), or Indication).
+
+Lifetime is managed by [IntrusivePtr](#classicy_1_1IntrusivePtr). Create via makeIntrusive or wrap in [IntrusivePtr](#classicy_1_1IntrusivePtr) immediately after construction.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`Transaction`](#transaction-3)  | Constructs a STUN transaction bound to a specific socket and peer.  |
+| `bool` | [`checkResponse`](#checkresponse-1)  | Checks that `message` is a valid response for the pending request. In addition to the base class check, verifies that the transaction IDs match.  |
+| `void` | [`onResponse`](#onresponse-1) `virtual` | Called when a valid response is received. Infers the response class (SuccessResponse, ErrorResponse, or Indication) from the response attributes and delegates to the base class handler. |
 
 ---
 
-#### className 
+{#transaction-3}
 
-```cpp
-virtual inline const char * className() const
-```
-
----
-
-#### _class 
-
-```cpp
-uint16_t _class
-```
-
----
-
-#### _method 
-
-```cpp
-uint16_t _method
-```
-
----
-
-#### _size 
-
-```cpp
-uint16_t _size
-```
-
----
-
-#### _transactionID 
-
-```cpp
-TransactionID _transactionID
-```
-
----
-
-#### _attrs 
-
-```cpp
-std::vector< std::unique_ptr< Attribute > > _attrs
-```
-
-## Transaction 
-
-> **Extends:** `icy::net::Transaction< Message >`
-> **Defined in:** `transaction.h`
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`Transaction`](#group__stun_1gaa3eed85a17dc6869a699e7e9c030cca3) |  |
-| [`checkResponse`](#group__stun_1ga82ab3d79a18d478172c6b39cc6d7428a) |  |
-| [`onResponse`](#group__stun_1gabeecdd054fceca609f3fd449a323159f) | Called when a successful response match is received. |
-| [`~Transaction`](#group__stun_1ga8ab19322de3bf9d004ff2dacbcee5daf) |  |
-
----
-
-#### Transaction 
+#### Transaction
 
 ```cpp
 Transaction(const net::Socket::Ptr & socket, const net::Address & peerAddress, long timeout, int retries)
 ```
 
+Constructs a STUN transaction bound to a specific socket and peer. 
+#### Parameters
+* `socket` Socket used to send the request and receive the response. 
+
+* `peerAddress` Remote address of the STUN/TURN server. 
+
+* `timeout` Response timeout in milliseconds (default 10 s). 
+
+* `retries` Number of send retries before declaring failure (default 1).
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `const net::Socket::Ptr &` |  |
-| `peerAddress` | `const net::Address &` |  |
+| `socket` | `const [net::Socket::Ptr](#ptr-4) &` |  |
+| `peerAddress` | `const [net::Address](#address) &` |  |
 | `timeout` | `long` |  |
 | `retries` | `int` |  |
 
 ---
 
-#### checkResponse 
+{#checkresponse-1}
+
+#### checkResponse
 
 ```cpp
-virtual bool checkResponse(const Message & message)
+bool checkResponse(const Message & message)
 ```
+
+Checks that `message` is a valid response for the pending request. In addition to the base class check, verifies that the transaction IDs match. 
+#### Parameters
+* `message` Incoming STUN message to evaluate. 
+
+#### Returns
+true if `message` is the expected response.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `message` | `const Message &` |  |
+| `message` | `const [Message](#message-5) &` |  |
 
 ---
 
-#### onResponse 
+{#onresponse-1}
+
+#### onResponse
+
+`virtual`
 
 ```cpp
 virtual void onResponse()
 ```
 
-Called when a successful response match is received.
+Called when a valid response is received. Infers the response class (SuccessResponse, ErrorResponse, or Indication) from the response attributes and delegates to the base class handler.
+
+### Public Types
+
+| Name | Description |
+|------|-------------|
+| [`Ptr`](#ptr-16)  |  |
 
 ---
 
-#### ~Transaction 
+{#ptr-16}
+
+#### Ptr
 
 ```cpp
-virtual ~Transaction()
+IntrusivePtr< Transaction > Ptr()
+```
+
+{#uint16listattribute}
+
+## UInt16ListAttribute
+
+```cpp
+#include <attributes.h>
+```
+
+> **Inherits:** [`Attribute`](#attribute)
+
+Implements a STUN/TURN attribute that holds a list of attribute type codes. Used by the UNKNOWN-ATTRIBUTES attribute (RFC 5389 section 15.9).
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`UInt16ListAttribute`](#uint16listattribute-1)  | #### Parameters |
+|  | [`UInt16ListAttribute`](#uint16listattribute-2)  | Copy constructor; duplicates the type list. |
+| `std::unique_ptr< Attribute >` | [`clone`](#clone-14) `virtual` | Returns a deep copy of this attribute. |
+| `size_t` | [`size`](#size-7) `const` | #### Returns |
+| `uint16_t` | [`getType`](#gettype) `const` | Returns the type code at the given list position.  |
+| `void` | [`setType`](#settype)  | Overwrites the type code at the given list position.  |
+| `void` | [`addType`](#addtype)  | Appends a type code to the list and updates the attribute size.  |
+| `void` | [`read`](#read-9) `virtual` | Reads the body (not the type or size) for this type of attribute from the given buffer.  |
+| `void` | [`write`](#write-24) `virtual` `const` | Writes the body (not the type or size) to the given buffer.  |
+
+---
+
+{#uint16listattribute-1}
+
+#### UInt16ListAttribute
+
+```cpp
+UInt16ListAttribute(uint16_t type, uint16_t size)
+```
+
+#### Parameters
+* `type` Wire type code for the concrete attribute. 
+
+* `size` Initial body length in bytes.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `type` | `uint16_t` |  |
+| `size` | `uint16_t` |  |
+
+---
+
+{#uint16listattribute-2}
+
+#### UInt16ListAttribute
+
+```cpp
+UInt16ListAttribute(const UInt16ListAttribute & r)
+```
+
+Copy constructor; duplicates the type list.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `r` | `const [UInt16ListAttribute](#uint16listattribute) &` |  |
+
+---
+
+{#clone-14}
+
+#### clone
+
+`virtual`
+
+```cpp
+virtual std::unique_ptr< Attribute > clone()
+```
+
+Returns a deep copy of this attribute.
+
+---
+
+{#size-7}
+
+#### size
+
+`const`
+
+```cpp
+size_t size() const
+```
+
+#### Returns
+Number of attribute type codes in the list.
+
+---
+
+{#gettype}
+
+#### getType
+
+`const`
+
+```cpp
+uint16_t getType(int index) const
+```
+
+Returns the type code at the given list position. 
+#### Parameters
+* `index` Zero-based list index. 
+
+#### Returns
+[Attribute](#attribute) type code at `index`.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `index` | `int` |  |
+
+---
+
+{#settype}
+
+#### setType
+
+```cpp
+void setType(int index, uint16_t value)
+```
+
+Overwrites the type code at the given list position. 
+#### Parameters
+* `index` Zero-based list index. 
+
+* `value` New attribute type code.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `index` | `int` |  |
+| `value` | `uint16_t` |  |
+
+---
+
+{#addtype}
+
+#### addType
+
+```cpp
+void addType(uint16_t value)
+```
+
+Appends a type code to the list and updates the attribute size. 
+#### Parameters
+* `value` [Attribute](#attribute) type code to append.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `value` | `uint16_t` |  |
+
+---
+
+{#read-9}
+
+#### read
+
+`virtual`
+
+```cpp
+virtual void read(BitReader & reader)
+```
+
+Reads the body (not the type or size) for this type of attribute from the given buffer. 
+#### Parameters
+* `reader` Source bit reader positioned at the attribute body.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `reader` | `[BitReader](#classicy_1_1BitReader) &` |  |
+
+---
+
+{#write-24}
+
+#### write
+
+`virtual` `const`
+
+```cpp
+virtual void write(BitWriter & writer) const
+```
+
+Writes the body (not the type or size) to the given buffer. 
+#### Parameters
+* `writer` Destination bit writer.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `writer` | `[BitWriter](#classicy_1_1BitWriter) &` |  |
+
+### Private Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `std::vector< uint16_t >` | [`_attrTypes`](#_attrtypes)  |  |
+
+---
+
+{#_attrtypes}
+
+#### _attrTypes
+
+```cpp
+std::vector< uint16_t > _attrTypes
+```
+
+{#uint32attribute}
+
+## UInt32Attribute
+
+```cpp
+#include <attributes.h>
+```
+
+> **Inherits:** [`Attribute`](#attribute)
+
+Implements a STUN/TURN attribute that holds a 32-bit integer.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`UInt32Attribute`](#uint32attribute-1)  | #### Parameters |
+|  | [`UInt32Attribute`](#uint32attribute-2)  | Copy constructor. |
+| `std::unique_ptr< Attribute >` | [`clone`](#clone-15) `virtual` | Returns a deep copy of this attribute. |
+| `uint32_t` | [`value`](#value) `const` `inline` | #### Returns |
+| `void` | [`setValue`](#setvalue-1) `inline` | Sets the stored 32-bit value.  |
+| `bool` | [`getBit`](#getbit) `const` | Returns the state of a single bit within the stored word.  |
+| `void` | [`setBit`](#setbit)  | Sets or clears a single bit within the stored word.  |
+| `void` | [`read`](#read-10) `virtual` | Reads the body (not the type or size) for this type of attribute from the given buffer.  |
+| `void` | [`write`](#write-25) `virtual` `const` | Writes the body (not the type or size) to the given buffer.  |
+
+---
+
+{#uint32attribute-1}
+
+#### UInt32Attribute
+
+```cpp
+UInt32Attribute(uint16_t type)
+```
+
+#### Parameters
+* `type` Wire type code for the concrete attribute.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `type` | `uint16_t` |  |
+
+---
+
+{#uint32attribute-2}
+
+#### UInt32Attribute
+
+```cpp
+UInt32Attribute(const UInt32Attribute & r)
+```
+
+Copy constructor.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `r` | `const [UInt32Attribute](#uint32attribute) &` |  |
+
+---
+
+{#clone-15}
+
+#### clone
+
+`virtual`
+
+```cpp
+virtual std::unique_ptr< Attribute > clone()
+```
+
+Returns a deep copy of this attribute.
+
+---
+
+{#value}
+
+#### value
+
+`const` `inline`
+
+```cpp
+inline uint32_t value() const
+```
+
+#### Returns
+The stored 32-bit value.
+
+---
+
+{#setvalue-1}
+
+#### setValue
+
+`inline`
+
+```cpp
+inline void setValue(uint32_t bits)
+```
+
+Sets the stored 32-bit value. 
+#### Parameters
+* `bits` Value to store.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `bits` | `uint32_t` |  |
+
+---
+
+{#getbit}
+
+#### getBit
+
+`const`
+
+```cpp
+bool getBit(int index) const
+```
+
+Returns the state of a single bit within the stored word. 
+#### Parameters
+* `index` Bit position (0 = LSB, 31 = MSB). 
+
+#### Returns
+true if the bit is set.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `index` | `int` |  |
+
+---
+
+{#setbit}
+
+#### setBit
+
+```cpp
+void setBit(int index, bool value)
+```
+
+Sets or clears a single bit within the stored word. 
+#### Parameters
+* `index` Bit position (0 = LSB, 31 = MSB). 
+
+* `value` true to set, false to clear.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `index` | `int` |  |
+| `value` | `bool` |  |
+
+---
+
+{#read-10}
+
+#### read
+
+`virtual`
+
+```cpp
+virtual void read(BitReader & reader)
+```
+
+Reads the body (not the type or size) for this type of attribute from the given buffer. 
+#### Parameters
+* `reader` Source bit reader positioned at the attribute body.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `reader` | `[BitReader](#classicy_1_1BitReader) &` |  |
+
+---
+
+{#write-25}
+
+#### write
+
+`virtual` `const`
+
+```cpp
+virtual void write(BitWriter & writer) const
+```
+
+Writes the body (not the type or size) to the given buffer. 
+#### Parameters
+* `writer` Destination bit writer.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `writer` | `[BitWriter](#classicy_1_1BitWriter) &` |  |
+
+### Public Static Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `constexpr uint16_t` | [`Size`](#size-8) `static` |  |
+
+---
+
+{#size-8}
+
+#### Size
+
+`static`
+
+```cpp
+constexpr uint16_t Size = 4
+```
+
+### Private Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `uint32_t` | [`_bits`](#_bits)  |  |
+
+---
+
+{#_bits}
+
+#### _bits
+
+```cpp
+uint32_t _bits
+```
+
+{#uint64attribute}
+
+## UInt64Attribute
+
+```cpp
+#include <attributes.h>
+```
+
+> **Inherits:** [`Attribute`](#attribute)
+
+Implements a STUN/TURN attribute that holds a 64-bit integer.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`UInt64Attribute`](#uint64attribute-1)  | #### Parameters |
+|  | [`UInt64Attribute`](#uint64attribute-2)  | Copy constructor. |
+| `std::unique_ptr< Attribute >` | [`clone`](#clone-16) `virtual` | Returns a deep copy of this attribute. |
+| `uint64_t` | [`value`](#value-1) `const` `inline` | #### Returns |
+| `void` | [`setValue`](#setvalue-2) `inline` | Sets the stored 64-bit value.  |
+| `bool` | [`getBit`](#getbit-1) `const` | Returns the state of a single bit within the stored quad-word.  |
+| `void` | [`setBit`](#setbit-1)  | Sets or clears a single bit within the stored quad-word.  |
+| `void` | [`read`](#read-11) `virtual` | Reads the body (not the type or size) for this type of attribute from the given buffer.  |
+| `void` | [`write`](#write-26) `virtual` `const` | Writes the body (not the type or size) to the given buffer.  |
+
+---
+
+{#uint64attribute-1}
+
+#### UInt64Attribute
+
+```cpp
+UInt64Attribute(uint16_t type)
+```
+
+#### Parameters
+* `type` Wire type code for the concrete attribute.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `type` | `uint16_t` |  |
+
+---
+
+{#uint64attribute-2}
+
+#### UInt64Attribute
+
+```cpp
+UInt64Attribute(const UInt64Attribute & r)
+```
+
+Copy constructor.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `r` | `const [UInt64Attribute](#uint64attribute) &` |  |
+
+---
+
+{#clone-16}
+
+#### clone
+
+`virtual`
+
+```cpp
+virtual std::unique_ptr< Attribute > clone()
+```
+
+Returns a deep copy of this attribute.
+
+---
+
+{#value-1}
+
+#### value
+
+`const` `inline`
+
+```cpp
+inline uint64_t value() const
+```
+
+#### Returns
+The stored 64-bit value.
+
+---
+
+{#setvalue-2}
+
+#### setValue
+
+`inline`
+
+```cpp
+inline void setValue(uint64_t bits)
+```
+
+Sets the stored 64-bit value. 
+#### Parameters
+* `bits` Value to store.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `bits` | `uint64_t` |  |
+
+---
+
+{#getbit-1}
+
+#### getBit
+
+`const`
+
+```cpp
+bool getBit(int index) const
+```
+
+Returns the state of a single bit within the stored quad-word. 
+#### Parameters
+* `index` Bit position (0 = LSB, 63 = MSB). 
+
+#### Returns
+true if the bit is set.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `index` | `int` |  |
+
+---
+
+{#setbit-1}
+
+#### setBit
+
+```cpp
+void setBit(int index, bool value)
+```
+
+Sets or clears a single bit within the stored quad-word. 
+#### Parameters
+* `index` Bit position (0 = LSB, 63 = MSB). 
+
+* `value` true to set, false to clear.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `index` | `int` |  |
+| `value` | `bool` |  |
+
+---
+
+{#read-11}
+
+#### read
+
+`virtual`
+
+```cpp
+virtual void read(BitReader & reader)
+```
+
+Reads the body (not the type or size) for this type of attribute from the given buffer. 
+#### Parameters
+* `reader` Source bit reader positioned at the attribute body.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `reader` | `[BitReader](#classicy_1_1BitReader) &` |  |
+
+---
+
+{#write-26}
+
+#### write
+
+`virtual` `const`
+
+```cpp
+virtual void write(BitWriter & writer) const
+```
+
+Writes the body (not the type or size) to the given buffer. 
+#### Parameters
+* `writer` Destination bit writer.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `writer` | `[BitWriter](#classicy_1_1BitWriter) &` |  |
+
+### Public Static Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `constexpr uint16_t` | [`Size`](#size-9) `static` |  |
+
+---
+
+{#size-9}
+
+#### Size
+
+`static`
+
+```cpp
+constexpr uint16_t Size = 8
+```
+
+### Private Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `uint64_t` | [`_bits`](#_bits-1)  |  |
+
+---
+
+{#_bits-1}
+
+#### _bits
+
+```cpp
+uint64_t _bits
+```
+
+{#uint8attribute}
+
+## UInt8Attribute
+
+```cpp
+#include <attributes.h>
+```
+
+> **Inherits:** [`Attribute`](#attribute)
+
+Implements a STUN/TURN attribute that holds an 8-bit integer.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`UInt8Attribute`](#uint8attribute-1)  | #### Parameters |
+|  | [`UInt8Attribute`](#uint8attribute-2)  | Copy constructor. |
+| `std::unique_ptr< Attribute >` | [`clone`](#clone-17) `virtual` | Returns a deep copy of this attribute. |
+| `uint8_t` | [`value`](#value-2) `const` `inline` | #### Returns |
+| `void` | [`setValue`](#setvalue-3) `inline` | Sets the stored 8-bit value.  |
+| `bool` | [`getBit`](#getbit-2) `const` | Returns the state of a single bit within the stored byte.  |
+| `void` | [`setBit`](#setbit-2)  | Sets or clears a single bit within the stored byte.  |
+| `void` | [`read`](#read-12) `virtual` | Reads the body (not the type or size) for this type of attribute from the given buffer.  |
+| `void` | [`write`](#write-27) `virtual` `const` | Writes the body (not the type or size) to the given buffer.  |
+
+---
+
+{#uint8attribute-1}
+
+#### UInt8Attribute
+
+```cpp
+UInt8Attribute(uint16_t type)
+```
+
+#### Parameters
+* `type` Wire type code for the concrete attribute.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `type` | `uint16_t` |  |
+
+---
+
+{#uint8attribute-2}
+
+#### UInt8Attribute
+
+```cpp
+UInt8Attribute(const UInt8Attribute & r)
+```
+
+Copy constructor.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `r` | `const [UInt8Attribute](#uint8attribute) &` |  |
+
+---
+
+{#clone-17}
+
+#### clone
+
+`virtual`
+
+```cpp
+virtual std::unique_ptr< Attribute > clone()
+```
+
+Returns a deep copy of this attribute.
+
+---
+
+{#value-2}
+
+#### value
+
+`const` `inline`
+
+```cpp
+inline uint8_t value() const
+```
+
+#### Returns
+The stored 8-bit value.
+
+---
+
+{#setvalue-3}
+
+#### setValue
+
+`inline`
+
+```cpp
+inline void setValue(uint8_t bits)
+```
+
+Sets the stored 8-bit value. 
+#### Parameters
+* `bits` Value to store.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `bits` | `uint8_t` |  |
+
+---
+
+{#getbit-2}
+
+#### getBit
+
+`const`
+
+```cpp
+bool getBit(int index) const
+```
+
+Returns the state of a single bit within the stored byte. 
+#### Parameters
+* `index` Bit position (0 = LSB, 7 = MSB). 
+
+#### Returns
+true if the bit is set.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `index` | `int` |  |
+
+---
+
+{#setbit-2}
+
+#### setBit
+
+```cpp
+void setBit(int index, bool value)
+```
+
+Sets or clears a single bit within the stored byte. 
+#### Parameters
+* `index` Bit position (0 = LSB, 7 = MSB). 
+
+* `value` true to set, false to clear.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `index` | `int` |  |
+| `value` | `bool` |  |
+
+---
+
+{#read-12}
+
+#### read
+
+`virtual`
+
+```cpp
+virtual void read(BitReader & reader)
+```
+
+Reads the body (not the type or size) for this type of attribute from the given buffer. 
+#### Parameters
+* `reader` Source bit reader positioned at the attribute body.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `reader` | `[BitReader](#classicy_1_1BitReader) &` |  |
+
+---
+
+{#write-27}
+
+#### write
+
+`virtual` `const`
+
+```cpp
+virtual void write(BitWriter & writer) const
+```
+
+Writes the body (not the type or size) to the given buffer. 
+#### Parameters
+* `writer` Destination bit writer.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `writer` | `[BitWriter](#classicy_1_1BitWriter) &` |  |
+
+### Public Static Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `constexpr uint16_t` | [`Size`](#size-10) `static` |  |
+
+---
+
+{#size-10}
+
+#### Size
+
+`static`
+
+```cpp
+constexpr uint16_t Size = 1
+```
+
+### Private Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `uint8_t` | [`_bits`](#_bits-2)  |  |
+
+---
+
+{#_bits-2}
+
+#### _bits
+
+```cpp
+uint8_t _bits
 ```
 

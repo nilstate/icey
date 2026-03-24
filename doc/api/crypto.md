@@ -1,106 +1,327 @@
-# crypto 
+{#cryptomodule}
+
+# crypto
+
+Cryptographic operations; hashing, HMAC, RSA, X509 certificates.
+
+### Namespaces
+
+| Name | Description |
+|------|-------------|
+| [`crypto`](#crypto) |  |
+
+{#crypto}
+
+# crypto
 
 ### Classes
 
 | Name | Description |
 |------|-------------|
-| [`Cipher`](#classicy_1_1crypto_1_1Cipher) | Provides symmetric algorithms for encryption and decryption. The algorithms that are available depend on the particular version of OpenSSL that is installed. |
-| [`Hash`](#classicy_1_1crypto_1_1Hash) |  |
-| [`X509Certificate`](#classicy_1_1crypto_1_1X509Certificate) | This class represents a X509 Certificate. |
+| [`Cipher`](#cipher) | Provides symmetric algorithms for encryption and decryption. The algorithms that are available depend on the particular version of OpenSSL that is installed. |
+| [`Hash`](#hash-3) | Incremental cryptographic hash engine wrapping OpenSSL EVP digest functions. |
+| [`X509Certificate`](#x509certificate) | RAII wrapper for an OpenSSL X509 certificate with PEM loading and inspection. |
 
-### Members
+### Functions
 
-| Name | Description |
-|------|-------------|
-| [`Crypto_API`](#group__crypto_1ga5b6282a38265a398bb16794294a91f94) |  |
+| Return | Name | Description |
+|--------|------|-------------|
+| `std::string` | [`encryptString`](#encryptstring)  | Encrypts a string using the specified cipher, key, and IV in a single call. |
+| `std::string` | [`decryptString`](#decryptstring)  | Decrypts a string using the specified cipher, key, and IV in a single call. |
+| `void` | [`initializeEngine`](#initializeengine)  | Initialize the Crypto library, as well as the underlying OpenSSL libraries. |
+| `void` | [`uninitializeEngine`](#uninitializeengine)  | Uninitializes the Crypto library. |
+| `std::string` | [`hash`](#hash-1) `inline` | Computes a hex-encoded digest of a string in a single call. |
+| `std::string` | [`hash`](#hash-2) `inline` | Computes a hex-encoded digest of a raw buffer in a single call. |
+| `std::string` | [`checksum`](#checksum-1) `inline` | Computes the hex-encoded checksum of a file using the given algorithm. |
+| `std::string` | [`computeHMAC`](#computehmac)  | Computes an HMAC-SHA1 message authentication code. |
 
 ---
 
-#### Crypto_API 
+{#encryptstring}
+
+#### encryptString
 
 ```cpp
-Crypto_API()
+template<typename K, typename I> std::string encryptString(const std::string & algorithm, const std::string & data, const K & key, const I & iv, Cipher::Encoding encoding)
 ```
 
-## Cipher 
+Encrypts a string using the specified cipher, key, and IV in a single call.
 
-> **Defined in:** `cipher.h`
+Constructs a [Cipher](#cipher), optionally applies `key` and `iv` (skipped when empty), then delegates to [Cipher::encryptString()](#encryptstring-1).
+
+#### Parameters
+* `K` Key container type compatible with internal::Raw. 
+
+* `I` IV container type compatible with internal::Raw. 
+
+#### Parameters
+* `algorithm` OpenSSL cipher name (e.g. "aes-256-cbc"). 
+
+* `data` Plaintext string to encrypt. 
+
+* `key` Encryption key; pass an empty container to use a random key. 
+
+* `iv` Initialization vector; pass an empty container to use a random IV. 
+
+* `encoding` Transport encoding for the output (default: Binary). 
+
+#### Returns
+Encrypted (and optionally encoded) result as a std::string.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `algorithm` | `const std::string &` |  |
+| `data` | `const std::string &` |  |
+| `key` | `const K &` |  |
+| `iv` | `const I &` |  |
+| `encoding` | `[Cipher::Encoding](#encoding-1)` |  |
+
+---
+
+{#decryptstring}
+
+#### decryptString
+
+```cpp
+template<typename K, typename I> std::string decryptString(const std::string & algorithm, const std::string & data, const K & key, const I & iv, Cipher::Encoding encoding)
+```
+
+Decrypts a string using the specified cipher, key, and IV in a single call.
+
+Constructs a [Cipher](#cipher), optionally applies `key` and `iv` (skipped when empty), then delegates to [Cipher::decryptString()](#decryptstring-1).
+
+#### Parameters
+* `K` Key container type compatible with internal::Raw. 
+
+* `I` IV container type compatible with internal::Raw. 
+
+#### Parameters
+* `algorithm` OpenSSL cipher name (e.g. "aes-256-cbc"). 
+
+* `data` Ciphertext string to decrypt, in the format given by `encoding`. 
+
+* `key` Decryption key; pass an empty container to use a random key. 
+
+* `iv` Initialization vector; pass an empty container to use a random IV. 
+
+* `encoding` Transport encoding of the input data (default: Binary). 
+
+#### Returns
+Decrypted plaintext as a std::string.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `algorithm` | `const std::string &` |  |
+| `data` | `const std::string &` |  |
+| `key` | `const K &` |  |
+| `iv` | `const I &` |  |
+| `encoding` | `[Cipher::Encoding](#encoding-1)` |  |
+
+---
+
+{#initializeengine}
+
+#### initializeEngine
+
+```cpp
+void initializeEngine()
+```
+
+Initialize the Crypto library, as well as the underlying OpenSSL libraries.
+
+OpenSSL must be initialized before using any classes from the Crypto library. OpenSSL will be initialized automatically through OpenSSL instances held by various Crypto classes ([Cipher](#cipher), [Hash](#hash-3), [X509Certificate](#x509certificate)), however it is recommended to call [initializeEngine()](#initializeengine) in any case at application startup.
+
+The Crypto library can be called multiple times; however, for every call to [initializeEngine()](#initializeengine), a matching call to [uninitializeEngine()](#uninitializeengine) must be performed.
+
+---
+
+{#uninitializeengine}
+
+#### uninitializeEngine
+
+```cpp
+void uninitializeEngine()
+```
+
+Uninitializes the Crypto library.
+
+---
+
+{#hash-1}
+
+#### hash
+
+`inline`
+
+```cpp
+inline std::string hash(const std::string & algorithm, std::string_view data)
+```
+
+Computes a hex-encoded digest of a string in a single call.
+
+#### Parameters
+* `algorithm` OpenSSL digest name (e.g. "sha256", "md5"). 
+
+* `data` Input data to hash. 
+
+#### Returns
+Lowercase hex-encoded digest string.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `algorithm` | `const std::string &` |  |
+| `data` | `std::string_view` |  |
+
+---
+
+{#hash-2}
+
+#### hash
+
+`inline`
+
+```cpp
+inline std::string hash(const std::string & algorithm, const void * data, unsigned length)
+```
+
+Computes a hex-encoded digest of a raw buffer in a single call.
+
+#### Parameters
+* `algorithm` OpenSSL digest name (e.g. "sha256", "md5"). 
+
+* `data` Pointer to the input buffer. 
+
+* `length` Number of bytes to hash. 
+
+#### Returns
+Lowercase hex-encoded digest string.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `algorithm` | `const std::string &` |  |
+| `data` | `const void *` |  |
+| `length` | `unsigned` |  |
+
+---
+
+{#checksum-1}
+
+#### checksum
+
+`inline`
+
+```cpp
+inline std::string checksum(const std::string & algorithm, const std::string & path)
+```
+
+Computes the hex-encoded checksum of a file using the given algorithm.
+
+Reads the file in 4096-byte chunks; suitable for large files.
+
+#### Parameters
+* `algorithm` OpenSSL digest name (e.g. "sha256", "md5"). 
+
+* `path` Filesystem path to the file to hash. 
+
+#### Returns
+Lowercase hex-encoded digest string. 
+
+#### Exceptions
+* `std::runtime_error` if the file cannot be opened.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `algorithm` | `const std::string &` |  |
+| `path` | `const std::string &` |  |
+
+---
+
+{#computehmac}
+
+#### computeHMAC
+
+```cpp
+std::string computeHMAC(std::string_view input, std::string_view key)
+```
+
+Computes an HMAC-SHA1 message authentication code.
+
+Uses OpenSSL HMAC with SHA-1 as the underlying digest. The output is a 20-byte raw binary string (not hex-encoded).
+
+#### Parameters
+* `input` Data to authenticate. 
+
+* `key` Secret key used for the HMAC computation. 
+
+#### Returns
+20-byte raw binary HMAC-SHA1 digest. 
+
+#### Exceptions
+* `std::runtime_error` if OpenSSL returns an unexpected digest length.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `input` | `std::string_view` |  |
+| `key` | `std::string_view` |  |
+
+{#cipher}
+
+## Cipher
+
+```cpp
+#include <cipher.h>
+```
 
 Provides symmetric algorithms for encryption and decryption. The algorithms that are available depend on the particular version of OpenSSL that is installed.
 
-### Members
+### Public Methods
 
-| Name | Description |
-|------|-------------|
-| [`Encoding`](#group__crypto_1ga44fda7872beb30a68bbc8f2cac9271ae) | Transport encoding to use for [encrypt()](#group__crypto_1ga7cd265c66a382e6b9b396db93875a54c) and decrypt(). |
-| [`Cipher`](#group__crypto_1ga29c00ec7db3b341e2a40fb34324a6d00) | Creates a new [Cipher](#classicy_1_1crypto_1_1Cipher) object. Auto initializes the key and initialization vector with random bytes. |
-| [`Cipher`](#group__crypto_1ga3084b42100789d88220012f926e60504) | Creates a new [Cipher](#classicy_1_1crypto_1_1Cipher) object, using the given cipher name, key and initialization vector. |
-| [`Cipher`](#group__crypto_1gafa9fbfd0ac80c3e5fe6ee9d939e44907) | Creates a new [Cipher](#classicy_1_1crypto_1_1Cipher) object, using the given cipher name, passphrase, salt value and iteration count. |
-| [`~Cipher`](#group__crypto_1gabae774949c196156b08b3e62c997516f) | Destroys the [Cipher](#classicy_1_1crypto_1_1Cipher). |
-| [`initEncryptor`](#group__crypto_1ga144dd6c25b7d3d0ec97da382829cf636) | Initializes the [Cipher](#classicy_1_1crypto_1_1Cipher) for encryption. |
-| [`initDecryptor`](#group__crypto_1ga0677c7dac45328f0517b35cb32e3d48c) | Initializes the [Cipher](#classicy_1_1crypto_1_1Cipher) for decryption. |
-| [`update`](#group__crypto_1ga3041433d718ba3d7d7b47b4b40afac42) | Encrypts data in a streaming fashion. Hand consecutive blocks of data to the update method in order to encrypt it. Returns the encrypted data chunk. When done, the output of [final()](#group__crypto_1ga67e162bd2a71957d98cb1e0e2675e4ea) should be additionally added to the result. |
-| [`update`](#group__crypto_1ga04c53b48009782e244a2a468a7109c0d) | Alias for [update()](#group__crypto_1ga3041433d718ba3d7d7b47b4b40afac42) which accepts a range of buffer types. |
-| [`final`](#group__crypto_1ga67e162bd2a71957d98cb1e0e2675e4ea) | Returns the remaining data held in the cipher object. Further calls to [update()](#group__crypto_1ga3041433d718ba3d7d7b47b4b40afac42) or [final()](#group__crypto_1ga67e162bd2a71957d98cb1e0e2675e4ea) will return garbage. |
-| [`final`](#group__crypto_1gadcd86bffcf3501416c9114574b377b18) | Alias for [final()](#group__crypto_1ga67e162bd2a71957d98cb1e0e2675e4ea) which accepts a range of buffer types. |
-| [`encrypt`](#group__crypto_1ga7cd265c66a382e6b9b396db93875a54c) | Encrypts a buffer and encode it using the given encoding. This method performs the encryption, and calls [final()](#group__crypto_1ga67e162bd2a71957d98cb1e0e2675e4ea) internally. |
-| [`encrypt`](#group__crypto_1gaeb0d5c7ccfc327728ef33957822682f3) | Alias for [encrypt()](#group__crypto_1ga7cd265c66a382e6b9b396db93875a54c) which accepts a range of buffer types. |
-| [`encryptString`](#group__crypto_1ga8c440edf0d347751a1d1b9f43e99bd43) | Encrypts a string and encodes it using the given encoding. |
-| [`decryptString`](#group__crypto_1gaa51a187bd02ae8d71aa58686f738ff9b) | Decrypts a string that is encoded with the given encoding. |
-| [`encryptStream`](#group__crypto_1ga77107e1458845773e1ea7d3a81a6a3c3) | Encrypts an input stream and encodes it using the given encoding. |
-| [`decryptStream`](#group__crypto_1gada68a82360e3eb8853efe26e55fee509) | Decrypts an input stream that is encoded with the given encoding. |
-| [`setKey`](#group__crypto_1gaeec7a89c1fc12a93e00f2a119d67fc58) | Sets the key for the [Cipher](#classicy_1_1crypto_1_1Cipher). |
-| [`setIV`](#group__crypto_1ga0368e6675a26e93d69beea3a090b7908) | Sets the initialization vector (IV) for the [Cipher](#classicy_1_1crypto_1_1Cipher). |
-| [`setPadding`](#group__crypto_1ga4f8d10556e26c93af353a79d4f5bf65f) | Enables or disables padding. By default encryption operations are padded using standard block padding and the padding is checked and removed when decrypting. If the pad parameter is zero then no padding is performed, the total amount of data encrypted or decrypted must then be a multiple of the block size or an error will occur. |
-| [`getKey`](#group__crypto_1gad9b197b9bc698da0defede327f66aad6) | Returns the key for the [Cipher](#classicy_1_1crypto_1_1Cipher). |
-| [`getIV`](#group__crypto_1gacb5497a7ce6d4a39a57147cdf0b39f7c) | Returns the initialization vector (IV) for the [Cipher](#classicy_1_1crypto_1_1Cipher). |
-| [`name`](#group__crypto_1gaa230464d6fc653fde4b08afcd75242cf) | Returns the name of the [Cipher](#classicy_1_1crypto_1_1Cipher). |
-| [`blockSize`](#group__crypto_1gaddae447539926bb35a9394ad96dec391) | Returns the block size of the [Cipher](#classicy_1_1crypto_1_1Cipher). |
-| [`keySize`](#group__crypto_1ga25f3530bbbd017c9fc219c538a50726e) | Returns the key size of the [Cipher](#classicy_1_1crypto_1_1Cipher). |
-| [`ivSize`](#group__crypto_1ga50eab14578b8d9404f38276136514ea2) | Returns the IV size of the [Cipher](#classicy_1_1crypto_1_1Cipher). |
-| [`cipher`](#group__crypto_1ga51844517077a71950e7f384ccb2dd8b1) | Returns the cipher object. |
-| [`Cipher`](#group__crypto_1ga82b3135d1ca065df49483bba540ea3de) |  |
-| [`Cipher`](#group__crypto_1ga4113c32229f659416f774e08426d9488) |  |
-| [`operator=`](#group__crypto_1gacabc90b6f083892e54ffa99cc41552b0) |  |
-| [`generateKey`](#group__crypto_1ga6edba619802b9ca520bc4f8dd1b5d8b2) | Generates and sets the key and IV from a password and optional salt string. |
-| [`setRandomKey`](#group__crypto_1gad71d5cde5fea40cfeab6b08518ddbc95) | Generates and sets key from random data. |
-| [`setRandomIV`](#group__crypto_1gab3206763d10ce4674eb7e05f0390913a) | Generates and sets IV from random data. |
-| [`init`](#group__crypto_1ga84b340347deeb58f81292539edd90c0c) | Initializes the [Cipher](#classicy_1_1crypto_1_1Cipher) using the given direction. |
-| [`_initialized`](#group__crypto_1gaef37db5562b977395a89945b02e3b684) |  |
-| [`_encrypt`](#group__crypto_1ga234fb383e465ae6c7f322a4be0ba6a2f) |  |
-| [`_cipher`](#group__crypto_1ga6234e02c10a2a4be511fb2caaa7180b0) |  |
-| [`_ctx`](#group__crypto_1ga6d959336eca73fd8e1ba012de98de928) |  |
-| [`_name`](#group__crypto_1gae8bceb0c5aab20317421d37ccdf9b046) |  |
-| [`_key`](#group__crypto_1ga88a997190e8cd5880718fdbe4a613109) |  |
-| [`_iv`](#group__crypto_1ga9fb992dd64b02eaa38cac541d5072ac3) |  |
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`Cipher`](#cipher-1)  | Constructs a [Cipher](#cipher) with a randomly generated key and IV. |
+|  | [`Cipher`](#cipher-2)  | Constructs a [Cipher](#cipher) with an explicit key and initialization vector. |
+|  | [`Cipher`](#cipher-3)  | Constructs a [Cipher](#cipher) and derives a key and IV from a passphrase. |
+|  | [`~Cipher`](#cipher-4)  | Destroys the [Cipher](#cipher) and resets the OpenSSL context. |
+| `void` | [`initEncryptor`](#initencryptor)  | Initializes the cipher context for encryption. |
+| `void` | [`initDecryptor`](#initdecryptor)  | Initializes the cipher context for decryption. |
+| `ssize_t` | [`update`](#update-7)  | Processes a block of data through the cipher (encrypt or decrypt). |
+| `ssize_t` | [`update`](#update-8) `inline` | Processes a block of data through the cipher using generic buffer types. |
+| `ssize_t` | [`final`](#final)  | Finalizes the cipher operation and flushes any remaining buffered data. |
+| `ssize_t` | [`final`](#final-1) `inline` | Finalizes the cipher operation using a generic output buffer type. |
+| `ssize_t` | [`encrypt`](#encrypt)  | Encrypts a buffer and writes the result with optional transport encoding. |
+| `ssize_t` | [`encrypt`](#encrypt-1) `inline` | Encrypts data using generic input/output buffer types. |
+| `std::string` | [`encryptString`](#encryptstring-1) `virtual` | Encrypts a string and returns the result with optional transport encoding. |
+| `std::string` | [`decryptString`](#decryptstring-1) `virtual` | Decrypts a string that was previously encrypted with optional encoding. |
+| `void` | [`encryptStream`](#encryptstream) `virtual` | Encrypts all data from `source` and writes the result to `sink`. |
+| `void` | [`decryptStream`](#decryptstream) `virtual` | Decrypts all data from `source` and writes the result to `sink`. |
+| `void` | [`setKey`](#setkey-1) `inline` | Sets the encryption key. |
+| `void` | [`setIV`](#setiv) `inline` | Sets the initialization vector (IV). |
+| `int` | [`setPadding`](#setpadding)  | Enables or disables PKCS block padding. |
+| `const ByteVec &` | [`getKey`](#getkey) `const` | Returns the raw encryption key bytes. |
+| `const ByteVec &` | [`getIV`](#getiv) `const` | Returns the raw initialization vector bytes. |
+| `const std::string &` | [`name`](#name-10) `const` | Returns the OpenSSL cipher name this object was constructed with. |
+| `int` | [`blockSize`](#blocksize) `const` | Returns the cipher block size in bytes. |
+| `int` | [`keySize`](#keysize) `const` | Returns the required key length in bytes for this cipher. |
+| `int` | [`ivSize`](#ivsize) `const` | Returns the required initialization vector length in bytes. |
+| `const EVP_CIPHER *` | [`cipher`](#cipher-5)  | Returns the underlying OpenSSL EVP_CIPHER object. |
 
 ---
 
-#### Encoding 
+{#cipher-1}
 
-```cpp
-enum Encoding
-```
-
-Transport encoding to use for [encrypt()](#group__crypto_1ga7cd265c66a382e6b9b396db93875a54c) and decrypt().
-
-| Value | Description |
-|-------|-------------|
-| `Binary` | Plain binary output. |
-| `Base64` | Base64-encoded output. |
-| `BinHex` | BinHex-encoded output. |
-| `Base64_NoLF` | Base64-encoded output, no linefeeds. |
-| `BinHex_NoLF` | BinHex-encoded output, no linefeeds. |
-
----
-
-#### Cipher 
+#### Cipher
 
 ```cpp
 Cipher(const std::string & name)
 ```
 
-Creates a new [Cipher](#classicy_1_1crypto_1_1Cipher) object. Auto initializes the key and initialization vector with random bytes.
+Constructs a [Cipher](#cipher) with a randomly generated key and IV.
+
+#### Parameters
+* `name` OpenSSL cipher name (e.g. "aes-256-cbc"). 
+
+#### Exceptions
+* `std::invalid_argument` if the cipher name is not recognized.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -108,76 +329,133 @@ Creates a new [Cipher](#classicy_1_1crypto_1_1Cipher) object. Auto initializes t
 
 ---
 
-#### Cipher 
+{#cipher-2}
+
+#### Cipher
 
 ```cpp
 Cipher(const std::string & name, const ByteVec & key, const ByteVec & iv)
 ```
 
-Creates a new [Cipher](#classicy_1_1crypto_1_1Cipher) object, using the given cipher name, key and initialization vector.
+Constructs a [Cipher](#cipher) with an explicit key and initialization vector.
+
+#### Parameters
+* `name` OpenSSL cipher name (e.g. "aes-256-cbc"). 
+
+* `key` Encryption key; must match the cipher's required key length. 
+
+* `iv` Initialization vector; must match the cipher's IV length. 
+
+#### Exceptions
+* `std::invalid_argument` if the cipher name is not recognized.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `name` | `const std::string &` |  |
-| `key` | `const ByteVec &` |  |
-| `iv` | `const ByteVec &` |  |
+| `key` | `const [ByteVec](#namespaceicy_1_1crypto_1a5d8aa45f318cae337c15a195dbec260b) &` |  |
+| `iv` | `const [ByteVec](#namespaceicy_1_1crypto_1a5d8aa45f318cae337c15a195dbec260b) &` |  |
 
 ---
 
-#### Cipher 
+{#cipher-3}
+
+#### Cipher
 
 ```cpp
-Cipher(const std::string & name, const std::string & passphrase, const std::string & salt, int iterationCount)
+Cipher(const std::string & name, std::string_view passphrase, std::string_view salt, int iterationCount)
 ```
 
-Creates a new [Cipher](#classicy_1_1crypto_1_1Cipher) object, using the given cipher name, passphrase, salt value and iteration count.
+Constructs a [Cipher](#cipher) and derives a key and IV from a passphrase.
+
+Uses EVP_BytesToKey with SHA-256 to derive the key material.
+
+#### Parameters
+* `name` OpenSSL cipher name (e.g. "aes-256-cbc"). 
+
+* `passphrase` Secret passphrase for key derivation. 
+
+* `salt` Optional salt string; empty string means no salt. Values longer than 8 bytes are folded via XOR. 
+
+* `iterationCount` Number of key-derivation iterations. 
+
+#### Exceptions
+* `std::invalid_argument` if the cipher name is not recognized.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `name` | `const std::string &` |  |
-| `passphrase` | `const std::string &` |  |
-| `salt` | `const std::string &` |  |
+| `passphrase` | `std::string_view` |  |
+| `salt` | `std::string_view` |  |
 | `iterationCount` | `int` |  |
 
 ---
 
-#### ~Cipher 
+{#cipher-4}
+
+#### ~Cipher
 
 ```cpp
 ~Cipher()
 ```
 
-Destroys the [Cipher](#classicy_1_1crypto_1_1Cipher).
+Destroys the [Cipher](#cipher) and resets the OpenSSL context.
 
 ---
 
-#### initEncryptor 
+{#initencryptor}
+
+#### initEncryptor
 
 ```cpp
 void initEncryptor()
 ```
 
-Initializes the [Cipher](#classicy_1_1crypto_1_1Cipher) for encryption.
+Initializes the cipher context for encryption.
+
+Must be called before using [update()](#update-7) and [final()](#final) in encrypt mode. Calling this resets any prior context state.
 
 ---
 
-#### initDecryptor 
+{#initdecryptor}
+
+#### initDecryptor
 
 ```cpp
 void initDecryptor()
 ```
 
-Initializes the [Cipher](#classicy_1_1crypto_1_1Cipher) for decryption.
+Initializes the cipher context for decryption.
+
+Must be called before using [update()](#update-7) and [final()](#final) in decrypt mode. Calling this resets any prior context state.
 
 ---
 
-#### update 
+{#update-7}
+
+#### update
 
 ```cpp
 ssize_t update(const unsigned char * input, size_t inputLength, unsigned char * output, size_t outputLength)
 ```
 
-Encrypts data in a streaming fashion. Hand consecutive blocks of data to the update method in order to encrypt it. Returns the encrypted data chunk. When done, the output of [final()](#group__crypto_1ga67e162bd2a71957d98cb1e0e2675e4ea) should be additionally added to the result.
+Processes a block of data through the cipher (encrypt or decrypt).
+
+Hand consecutive blocks of data to this method for streaming operation. The output buffer must be at least `inputLength + [blockSize()](#blocksize) - 1` bytes. After all input is processed, call [final()](#final) to flush any remaining buffered data from the cipher context.
+
+#### Parameters
+* `input` Pointer to the input data buffer. 
+
+* `inputLength` Number of bytes to process from `input`. 
+
+* `output` Pointer to the output buffer. 
+
+* `outputLength` Size of the output buffer in bytes. 
+
+#### Returns
+Number of bytes written to `output`. 
+
+#### Exceptions
+* `std::runtime_error` if the output buffer is too small.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -188,13 +466,28 @@ Encrypts data in a streaming fashion. Hand consecutive blocks of data to the upd
 
 ---
 
-#### update 
+{#update-8}
+
+#### update
+
+`inline`
 
 ```cpp
 template<typename I, typename O> inline ssize_t update(const I & input, O & output)
 ```
 
-Alias for [update()](#group__crypto_1ga3041433d718ba3d7d7b47b4b40afac42) which accepts a range of buffer types.
+Processes a block of data through the cipher using generic buffer types.
+
+Convenience wrapper around [update(const unsigned char*, size_t,
+unsigned char*, size_t)](#update-7). Accepts any type supported by internal::Raw.
+
+#### Parameters
+* `input` Input buffer (std::string, ByteVec, etc.). 
+
+* `output` Output buffer; must be large enough for the result. 
+
+#### Returns
+Number of bytes written to `output`.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -203,15 +496,30 @@ Alias for [update()](#group__crypto_1ga3041433d718ba3d7d7b47b4b40afac42) which a
 
 ---
 
-#### final 
+{#final}
+
+#### final
 
 ```cpp
 ssize_t final(unsigned char * output, size_t length)
 ```
 
-Returns the remaining data held in the cipher object. Further calls to [update()](#group__crypto_1ga3041433d718ba3d7d7b47b4b40afac42) or [final()](#group__crypto_1ga67e162bd2a71957d98cb1e0e2675e4ea) will return garbage.
+Finalizes the cipher operation and flushes any remaining buffered data.
+
+Must be called after the last [update()](#update-7) call to retrieve any trailing cipher block. Further calls to [update()](#update-7) or [final()](#final) after this point produce undefined results; call [initEncryptor()](#initencryptor) / [initDecryptor()](#initdecryptor) to reset. The output buffer must be at least [blockSize()](#blocksize) bytes.
 
 See EVP_CipherFinal_ex for further information.
+
+#### Parameters
+* `output` Pointer to the output buffer; must be at least [blockSize()](#blocksize) bytes. 
+
+* `length` Size of the output buffer in bytes. 
+
+#### Returns
+Number of bytes written to `output`. 
+
+#### Exceptions
+* `std::runtime_error` if the output buffer is smaller than [blockSize()](#blocksize).
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -220,13 +528,25 @@ See EVP_CipherFinal_ex for further information.
 
 ---
 
-#### final 
+{#final-1}
+
+#### final
+
+`inline`
 
 ```cpp
 template<typename O> inline ssize_t final(O & output)
 ```
 
-Alias for [final()](#group__crypto_1ga67e162bd2a71957d98cb1e0e2675e4ea) which accepts a range of buffer types.
+Finalizes the cipher operation using a generic output buffer type.
+
+Convenience wrapper around [final(unsigned char*, size_t)](#final). Accepts any type supported by internal::Raw.
+
+#### Parameters
+* `output` Output buffer; must hold at least [blockSize()](#blocksize) bytes. 
+
+#### Returns
+Number of bytes written to `output`.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -234,13 +554,31 @@ Alias for [final()](#group__crypto_1ga67e162bd2a71957d98cb1e0e2675e4ea) which ac
 
 ---
 
-#### encrypt 
+{#encrypt}
+
+#### encrypt
 
 ```cpp
 ssize_t encrypt(const unsigned char * inbuf, size_t inlen, unsigned char * outbuf, size_t outlen, Encoding encoding)
 ```
 
-Encrypts a buffer and encode it using the given encoding. This method performs the encryption, and calls [final()](#group__crypto_1ga67e162bd2a71957d98cb1e0e2675e4ea) internally.
+Encrypts a buffer and writes the result with optional transport encoding.
+
+Calls [initEncryptor()](#initencryptor), [update()](#update-7), and [final()](#final) internally; the cipher does not need to be pre-initialized. The output buffer must be large enough to hold the encrypted and encoded result.
+
+#### Parameters
+* `inbuf` Pointer to the plaintext input buffer. 
+
+* `inlen` Number of bytes to encrypt from `inbuf`. 
+
+* `outbuf` Pointer to the output buffer. 
+
+* `outlen` Size of the output buffer in bytes. 
+
+* `encoding` Transport encoding applied to the ciphertext (default: Binary). 
+
+#### Returns
+Total number of bytes written to `outbuf`.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -248,95 +586,176 @@ Encrypts a buffer and encode it using the given encoding. This method performs t
 | `inlen` | `size_t` |  |
 | `outbuf` | `unsigned char *` |  |
 | `outlen` | `size_t` |  |
-| `encoding` | `Encoding` |  |
+| `encoding` | `[Encoding](#encoding-1)` |  |
 
 ---
 
-#### encrypt 
+{#encrypt-1}
+
+#### encrypt
+
+`inline`
 
 ```cpp
 template<typename I, typename O> inline ssize_t encrypt(const I & input, O & output, Encoding encoding)
 ```
 
-Alias for [encrypt()](#group__crypto_1ga7cd265c66a382e6b9b396db93875a54c) which accepts a range of buffer types.
+Encrypts data using generic input/output buffer types.
+
+Convenience wrapper around [encrypt(const unsigned char*, size_t,
+unsigned char*, size_t, Encoding)](#encrypt). Accepts any type supported by internal::Raw.
+
+#### Parameters
+* `input` Input buffer containing plaintext. 
+
+* `output` Output buffer; must be large enough for the result. 
+
+* `encoding` Transport encoding applied to the ciphertext (default: Binary). 
+
+#### Returns
+Total number of bytes written to `output`.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `input` | `const I &` |  |
 | `output` | `O &` |  |
-| `encoding` | `Encoding` |  |
+| `encoding` | `[Encoding](#encoding-1)` |  |
 
 ---
 
-#### encryptString 
+{#encryptstring-1}
+
+#### encryptString
+
+`virtual`
 
 ```cpp
 virtual std::string encryptString(const std::string & str, Encoding encoding)
 ```
 
-Encrypts a string and encodes it using the given encoding.
+Encrypts a string and returns the result with optional transport encoding.
+
+Internally streams through [encryptStream()](#encryptstream); the cipher is re-initialized on each call.
+
+#### Parameters
+* `str` Plaintext string to encrypt. 
+
+* `encoding` Transport encoding for the output (default: Binary). 
+
+#### Returns
+Encrypted (and optionally encoded) result as a std::string.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `str` | `const std::string &` |  |
-| `encoding` | `Encoding` |  |
+| `encoding` | `[Encoding](#encoding-1)` |  |
 
 ---
 
-#### decryptString 
+{#decryptstring-1}
+
+#### decryptString
+
+`virtual`
 
 ```cpp
 virtual std::string decryptString(const std::string & str, Encoding encoding)
 ```
 
-Decrypts a string that is encoded with the given encoding.
+Decrypts a string that was previously encrypted with optional encoding.
+
+Internally streams through [decryptStream()](#decryptstream); the cipher is re-initialized on each call.
+
+#### Parameters
+* `str` Ciphertext string to decrypt, in the format given by `encoding`. 
+
+* `encoding` Transport encoding of the input (default: Binary). 
+
+#### Returns
+Decrypted plaintext as a std::string.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `str` | `const std::string &` |  |
-| `encoding` | `Encoding` |  |
+| `encoding` | `[Encoding](#encoding-1)` |  |
 
 ---
 
-#### encryptStream 
+{#encryptstream}
+
+#### encryptStream
+
+`virtual`
 
 ```cpp
 virtual void encryptStream(std::istream & source, std::ostream & sink, Encoding encoding)
 ```
 
-Encrypts an input stream and encodes it using the given encoding.
+Encrypts all data from `source` and writes the result to `sink`.
+
+Reads in chunks of `[blockSize()](#blocksize) * 128` bytes. Calls [initEncryptor()](#initencryptor) internally; no prior initialization is required.
+
+#### Parameters
+* `source` Input stream containing plaintext. 
+
+* `sink` Output stream to receive the encrypted (and encoded) data. 
+
+* `encoding` Transport encoding applied to the output (default: Binary).
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `source` | `std::istream &` |  |
 | `sink` | `std::ostream &` |  |
-| `encoding` | `Encoding` |  |
+| `encoding` | `[Encoding](#encoding-1)` |  |
 
 ---
 
-#### decryptStream 
+{#decryptstream}
+
+#### decryptStream
+
+`virtual`
 
 ```cpp
 virtual void decryptStream(std::istream & source, std::ostream & sink, Encoding encoding)
 ```
 
-Decrypts an input stream that is encoded with the given encoding.
+Decrypts all data from `source` and writes the result to `sink`.
+
+Reads in chunks of `[blockSize()](#blocksize) * 128` bytes. Calls [initDecryptor()](#initdecryptor) internally; no prior initialization is required.
+
+#### Parameters
+* `source` Input stream containing ciphertext (in the given encoding). 
+
+* `sink` Output stream to receive the decrypted plaintext. 
+
+* `encoding` Transport encoding of the input data (default: Binary).
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `source` | `std::istream &` |  |
 | `sink` | `std::ostream &` |  |
-| `encoding` | `Encoding` |  |
+| `encoding` | `[Encoding](#encoding-1)` |  |
 
 ---
 
-#### setKey 
+{#setkey-1}
+
+#### setKey
+
+`inline`
 
 ```cpp
 template<typename T> inline void setKey(const T & key)
 ```
 
-Sets the key for the [Cipher](#classicy_1_1crypto_1_1Cipher).
+Sets the encryption key.
+
+#### Parameters
+* `key` Container whose size must exactly match [keySize()](#keysize). 
+
+#### Exceptions
+* `std::logic_error` if key.size() != [keySize()](#keysize).
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -344,13 +763,23 @@ Sets the key for the [Cipher](#classicy_1_1crypto_1_1Cipher).
 
 ---
 
-#### setIV 
+{#setiv}
+
+#### setIV
+
+`inline`
 
 ```cpp
 template<typename T> inline void setIV(const T & iv)
 ```
 
-Sets the initialization vector (IV) for the [Cipher](#classicy_1_1crypto_1_1Cipher).
+Sets the initialization vector (IV).
+
+#### Parameters
+* `iv` Container whose size must exactly match [ivSize()](#ivsize). 
+
+#### Exceptions
+* `std::logic_error` if iv.size() != [ivSize()](#ivsize).
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -358,15 +787,25 @@ Sets the initialization vector (IV) for the [Cipher](#classicy_1_1crypto_1_1Ciph
 
 ---
 
-#### setPadding 
+{#setpadding}
+
+#### setPadding
 
 ```cpp
 int setPadding(int padding)
 ```
 
-Enables or disables padding. By default encryption operations are padded using standard block padding and the padding is checked and removed when decrypting. If the pad parameter is zero then no padding is performed, the total amount of data encrypted or decrypted must then be a multiple of the block size or an error will occur.
+Enables or disables PKCS block padding.
+
+By default, encryption pads input to a block boundary and decryption strips and validates the padding. If `padding` is zero, no padding is applied; the total data length must then be an exact multiple of [blockSize()](#blocksize) or the operation will fail.
 
 See EVP_CIPHER_CTX_set_padding for further information.
+
+#### Parameters
+* `padding` Non-zero to enable padding (default), zero to disable. 
+
+#### Returns
+The return value from EVP_CIPHER_CTX_set_padding.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -374,151 +813,138 @@ See EVP_CIPHER_CTX_set_padding for further information.
 
 ---
 
-#### getKey 
+{#getkey}
+
+#### getKey
+
+`const`
 
 ```cpp
 const ByteVec & getKey() const
 ```
 
-Returns the key for the [Cipher](#classicy_1_1crypto_1_1Cipher).
+Returns the raw encryption key bytes.
+
+#### Returns
+Reference to the internal key byte vector.
 
 ---
 
-#### getIV 
+{#getiv}
+
+#### getIV
+
+`const`
 
 ```cpp
 const ByteVec & getIV() const
 ```
 
-Returns the initialization vector (IV) for the [Cipher](#classicy_1_1crypto_1_1Cipher).
+Returns the raw initialization vector bytes.
+
+#### Returns
+Reference to the internal IV byte vector.
 
 ---
 
-#### name 
+{#name-10}
+
+#### name
+
+`const`
 
 ```cpp
 const std::string & name() const
 ```
 
-Returns the name of the [Cipher](#classicy_1_1crypto_1_1Cipher).
+Returns the OpenSSL cipher name this object was constructed with.
+
+#### Returns
+[Cipher](#cipher) name string (e.g. "aes-256-cbc").
 
 ---
 
-#### blockSize 
+{#blocksize}
+
+#### blockSize
+
+`const`
 
 ```cpp
 int blockSize() const
 ```
 
-Returns the block size of the [Cipher](#classicy_1_1crypto_1_1Cipher).
+Returns the cipher block size in bytes.
+
+#### Returns
+Block size as reported by EVP_CIPHER_block_size.
 
 ---
 
-#### keySize 
+{#keysize}
+
+#### keySize
+
+`const`
 
 ```cpp
 int keySize() const
 ```
 
-Returns the key size of the [Cipher](#classicy_1_1crypto_1_1Cipher).
+Returns the required key length in bytes for this cipher.
+
+#### Returns
+Key length as reported by EVP_CIPHER_key_length.
 
 ---
 
-#### ivSize 
+{#ivsize}
+
+#### ivSize
+
+`const`
 
 ```cpp
 int ivSize() const
 ```
 
-Returns the IV size of the [Cipher](#classicy_1_1crypto_1_1Cipher).
+Returns the required initialization vector length in bytes.
+
+#### Returns
+IV length as reported by EVP_CIPHER_iv_length.
 
 ---
 
-#### cipher 
+{#cipher-5}
+
+#### cipher
 
 ```cpp
 const EVP_CIPHER * cipher()
 ```
 
-Returns the cipher object.
+Returns the underlying OpenSSL EVP_CIPHER object.
+
+#### Returns
+Pointer to the OpenSSL cipher descriptor; valid for the lifetime of this [Cipher](#cipher) object.
+
+### Protected Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `bool` | [`_initialized`](#_initialized-2)  |  |
+| `bool` | [`_encrypt`](#_encrypt)  |  |
+| `const EVP_CIPHER *` | [`_cipher`](#_cipher)  |  |
+| `EvpCipherCtxPtr` | [`_ctx`](#_ctx)  |  |
+| `std::string` | [`_name`](#_name-2)  |  |
+| `ByteVec` | [`_key`](#_key-2)  |  |
+| `ByteVec` | [`_iv`](#_iv)  |  |
 
 ---
 
-#### Cipher 
+{#_initialized-2}
 
-```cpp
-Cipher() = default
-```
-
----
-
-#### Cipher 
-
-```cpp
-Cipher(const Cipher &) = delete
-```
-
----
-
-#### operator= 
-
-```cpp
-Cipher & operator=(const Cipher &) = delete
-```
-
----
-
-#### generateKey 
-
-```cpp
-void generateKey(const std::string & passphrase, const std::string & salt, int iterationCount)
-```
-
-Generates and sets the key and IV from a password and optional salt string.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `passphrase` | `const std::string &` |  |
-| `salt` | `const std::string &` |  |
-| `iterationCount` | `int` |  |
-
----
-
-#### setRandomKey 
-
-```cpp
-void setRandomKey()
-```
-
-Generates and sets key from random data.
-
----
-
-#### setRandomIV 
-
-```cpp
-void setRandomIV()
-```
-
-Generates and sets IV from random data.
-
----
-
-#### init 
-
-```cpp
-void init(bool encrypt)
-```
-
-Initializes the [Cipher](#classicy_1_1crypto_1_1Cipher) using the given direction.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `encrypt` | `bool` |  |
-
----
-
-#### _initialized 
+#### _initialized
 
 ```cpp
 bool _initialized
@@ -526,7 +952,9 @@ bool _initialized
 
 ---
 
-#### _encrypt 
+{#_encrypt}
+
+#### _encrypt
 
 ```cpp
 bool _encrypt
@@ -534,7 +962,9 @@ bool _encrypt
 
 ---
 
-#### _cipher 
+{#_cipher}
+
+#### _cipher
 
 ```cpp
 const EVP_CIPHER * _cipher
@@ -542,15 +972,19 @@ const EVP_CIPHER * _cipher
 
 ---
 
-#### _ctx 
+{#_ctx}
+
+#### _ctx
 
 ```cpp
-EVP_CIPHER_CTX * _ctx
+EvpCipherCtxPtr _ctx
 ```
 
 ---
 
-#### _name 
+{#_name-2}
+
+#### _name
 
 ```cpp
 std::string _name
@@ -558,7 +992,9 @@ std::string _name
 
 ---
 
-#### _key 
+{#_key-2}
+
+#### _key
 
 ```cpp
 ByteVec _key
@@ -566,42 +1002,195 @@ ByteVec _key
 
 ---
 
-#### _iv 
+{#_iv}
+
+#### _iv
 
 ```cpp
 ByteVec _iv
 ```
 
-## Hash 
+### Protected Methods
 
-> **Defined in:** `hash.h`
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`Hash`](#group__crypto_1gaed22bcaf84b35efc1815a03903541da4) |  |
-| [`~Hash`](#group__crypto_1gaf1bea9c52e354b7b97550e1715105ee0) |  |
-| [`update`](#group__crypto_1ga7389984a20183881be045ff427036ce8) |  |
-| [`update`](#group__crypto_1ga8b68b47d859b92608a2ac7295c3ef702) |  |
-| [`update`](#group__crypto_1ga23679ad362d7a4a21f0ee73a61795161) | This function may (and normally will) be called many times for large blocks of data. |
-| [`digest`](#group__crypto_1gacbc12b3d6816140c2e5033fe32efafca) | Finish up the digest operation and return the result. |
-| [`digestStr`](#group__crypto_1gad11ff9012ce5157206e0a05a7c3f7347) | Finish up the digest operation and return the result as a string. |
-| [`reset`](#group__crypto_1ga58abad9c8210a2882d69dceb3883a973) | Resets the engine and digest state ready for the next computation. |
-| [`algorithm`](#group__crypto_1ga6f4e22146b390772a4d2c1d4ef6352c7) | Returns the hash algorithm being used. |
-| [`operator=`](#group__crypto_1gab33fa99f39b8f58fb69008442f1245b4) |  |
-| [`_ctx`](#group__crypto_1gaed86aa72bb57df7c08d903a6c1bf5621) |  |
-| [`_md`](#group__crypto_1gada899a7cc6726572e494dfa2e0aa4838) |  |
-| [`_digest`](#group__crypto_1gaa8321b86e61d992786de9a8be63630a7) |  |
-| [`_algorithm`](#group__crypto_1ga778a1b93ea54aff4e5b1b1b80ccbcb6f) |  |
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`Cipher`](#cipher-6)  |  |
+|  | [`Cipher`](#cipher-7)  |  |
+|  | [`Cipher`](#cipher-8)  |  |
+| `void` | [`generateKey`](#generatekey)  | Derives and sets the key and IV from a passphrase using EVP_BytesToKey. |
+| `void` | [`setRandomKey`](#setrandomkey)  | Fills the key buffer with cryptographically random bytes. |
+| `void` | [`setRandomIV`](#setrandomiv)  | Fills the IV buffer with cryptographically random bytes. |
+| `void` | [`init`](#init-9)  | Initializes or resets the OpenSSL cipher context for the given direction. |
 
 ---
 
-#### Hash 
+{#cipher-6}
+
+#### Cipher
+
+```cpp
+Cipher() = delete
+```
+
+---
+
+{#cipher-7}
+
+#### Cipher
+
+```cpp
+Cipher(const Cipher &) = delete
+```
+
+---
+
+{#cipher-8}
+
+#### Cipher
+
+```cpp
+Cipher(Cipher &&) = delete
+```
+
+---
+
+{#generatekey}
+
+#### generateKey
+
+```cpp
+void generateKey(std::string_view passphrase, std::string_view salt, int iterationCount)
+```
+
+Derives and sets the key and IV from a passphrase using EVP_BytesToKey.
+
+Uses SHA-256 as the digest. Salt values longer than 8 bytes are folded by XOR into an 8-byte array as required by OpenSSL.
+
+#### Parameters
+* `passphrase` Secret passphrase for key derivation. 
+
+* `salt` Salt string (may be empty for no salt). 
+
+* `iterationCount` Number of digest iterations.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `passphrase` | `std::string_view` |  |
+| `salt` | `std::string_view` |  |
+| `iterationCount` | `int` |  |
+
+---
+
+{#setrandomkey}
+
+#### setRandomKey
+
+```cpp
+void setRandomKey()
+```
+
+Fills the key buffer with cryptographically random bytes.
+
+---
+
+{#setrandomiv}
+
+#### setRandomIV
+
+```cpp
+void setRandomIV()
+```
+
+Fills the IV buffer with cryptographically random bytes.
+
+---
+
+{#init-9}
+
+#### init
+
+```cpp
+void init(bool encrypt)
+```
+
+Initializes or resets the OpenSSL cipher context for the given direction.
+
+#### Parameters
+* `encrypt` true to initialize for encryption, false for decryption.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `encrypt` | `bool` |  |
+
+### Public Types
+
+| Name | Description |
+|------|-------------|
+| [`Encoding`](#encoding-1)  | Transport encoding to use for [encrypt()](#encrypt) and decrypt(). |
+
+---
+
+{#encoding-1}
+
+#### Encoding
+
+```cpp
+enum Encoding
+```
+
+Transport encoding to use for [encrypt()](#encrypt) and decrypt().
+
+| Value | Description |
+|-------|-------------|
+| `Binary` | Plain binary output. |
+| `Base64` | Base64-encoded output. |
+| `BinHex` | BinHex-encoded output. |
+| `Base64_NoLF` | Base64-encoded output, no linefeeds. |
+| `BinHex_NoLF` | BinHex-encoded output, no linefeeds. |
+
+{#hash-3}
+
+## Hash
+
+```cpp
+#include <hash.h>
+```
+
+Incremental cryptographic hash engine wrapping OpenSSL EVP digest functions.
+
+Construct with an algorithm name recognized by OpenSSL (e.g. "sha256", "md5"). Feed data with one or more calls to [update()](#update-9), then call [digest()](#digest) or [digestStr()](#digeststr) to finalize and retrieve the result. Call [reset()](#reset-13) to reuse the engine for a new computation without reallocating the context.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`Hash`](#hash-4)  | Constructs a [Hash](#hash-3) engine for the given algorithm. |
+|  | [`~Hash`](#hash-5)  | Destroys the [Hash](#hash-3) engine and releases OpenSSL resources. |
+| `void` | [`update`](#update-9)  | Feeds a single character into the digest computation. |
+| `void` | [`update`](#update-10)  | Feeds a string view into the digest computation. |
+| `void` | [`update`](#update-11)  | Feeds a raw memory buffer into the digest computation. |
+| `const ByteVec &` | [`digest`](#digest)  | Finalizes the digest computation and returns the raw binary result. |
+| `std::string` | [`digestStr`](#digeststr)  | Finalizes the digest computation and returns the result as a raw binary string (not hex-encoded). Use [icy::hex::encode()](#encode-14) on [digest()](#digest) if you need a printable representation. |
+| `void` | [`reset`](#reset-13)  | Resets the digest context and clears the cached result, allowing the engine to be reused for a new computation with the same algorithm. |
+| `const std::string &` | [`algorithm`](#algorithm) `const` | Returns the algorithm name this engine was constructed with. |
+
+---
+
+{#hash-4}
+
+#### Hash
 
 ```cpp
 Hash(const std::string & algorithm)
 ```
+
+Constructs a [Hash](#hash-3) engine for the given algorithm.
+
+#### Parameters
+* `algorithm` OpenSSL digest name (e.g. "sha256", "sha1", "md5"). 
+
+#### Exceptions
+* `std::runtime_error` if the algorithm is not recognized by OpenSSL.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -609,19 +1198,30 @@ Hash(const std::string & algorithm)
 
 ---
 
-#### ~Hash 
+{#hash-5}
+
+#### ~Hash
 
 ```cpp
 ~Hash()
 ```
 
+Destroys the [Hash](#hash-3) engine and releases OpenSSL resources.
+
 ---
 
-#### update 
+{#update-9}
+
+#### update
 
 ```cpp
 void update(char data)
 ```
+
+Feeds a single character into the digest computation.
+
+#### Parameters
+* `data` The byte to hash.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -629,25 +1229,41 @@ void update(char data)
 
 ---
 
-#### update 
+{#update-10}
+
+#### update
 
 ```cpp
-void update(const std::string & data)
+void update(std::string_view data)
 ```
+
+Feeds a string view into the digest computation.
+
+#### Parameters
+* `data` The data to hash.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `data` | `const std::string &` |  |
+| `data` | `std::string_view` |  |
 
 ---
 
-#### update 
+{#update-11}
+
+#### update
 
 ```cpp
 void update(const void * data, size_t length)
 ```
 
-This function may (and normally will) be called many times for large blocks of data.
+Feeds a raw memory buffer into the digest computation.
+
+This method may be called multiple times for streaming large inputs.
+
+#### Parameters
+* `data` Pointer to the input buffer. 
+
+* `length` Number of bytes to hash from `data`.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -656,63 +1272,89 @@ This function may (and normally will) be called many times for large blocks of d
 
 ---
 
-#### digest 
+{#digest}
+
+#### digest
 
 ```cpp
 const ByteVec & digest()
 ```
 
-Finish up the digest operation and return the result.
+Finalizes the digest computation and returns the raw binary result.
+
+The result is computed on the first call and cached; subsequent calls return the same value without recomputing. Call [reset()](#reset-13) before reusing the engine for a new computation.
+
+#### Returns
+Reference to the internal byte vector containing the digest.
 
 ---
 
-#### digestStr 
+{#digeststr}
+
+#### digestStr
 
 ```cpp
 std::string digestStr()
 ```
 
-Finish up the digest operation and return the result as a string.
+Finalizes the digest computation and returns the result as a raw binary string (not hex-encoded). Use [icy::hex::encode()](#encode-14) on [digest()](#digest) if you need a printable representation.
+
+#### Returns
+Binary digest as a std::string.
 
 ---
 
-#### reset 
+{#reset-13}
+
+#### reset
 
 ```cpp
 void reset()
 ```
 
-Resets the engine and digest state ready for the next computation.
+Resets the digest context and clears the cached result, allowing the engine to be reused for a new computation with the same algorithm.
 
 ---
 
-#### algorithm 
+{#algorithm}
+
+#### algorithm
+
+`const`
 
 ```cpp
-const std::string & algorithm(void) const
+const std::string & algorithm() const
 ```
 
-Returns the hash algorithm being used.
+Returns the algorithm name this engine was constructed with.
+
+#### Returns
+OpenSSL digest name string (e.g. "sha256").
+
+### Protected Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `EvpMdCtxPtr` | [`_ctx`](#_ctx-1)  |  |
+| `const EVP_MD *` | [`_md`](#_md)  |  |
+| `crypto::ByteVec` | [`_digest`](#_digest)  |  |
+| `std::string` | [`_algorithm`](#_algorithm)  |  |
 
 ---
 
-#### operator= 
+{#_ctx-1}
+
+#### _ctx
 
 ```cpp
-Hash & operator=(Hash const &)
+EvpMdCtxPtr _ctx
 ```
 
 ---
 
-#### _ctx 
+{#_md}
 
-```cpp
-EVP_MD_CTX * _ctx
-```
-
----
-
-#### _md 
+#### _md
 
 ```cpp
 const EVP_MD * _md
@@ -720,7 +1362,9 @@ const EVP_MD * _md
 
 ---
 
-#### _digest 
+{#_digest}
+
+#### _digest
 
 ```cpp
 crypto::ByteVec _digest
@@ -728,91 +1372,73 @@ crypto::ByteVec _digest
 
 ---
 
-#### _algorithm 
+{#_algorithm}
+
+#### _algorithm
 
 ```cpp
 std::string _algorithm
 ```
 
-## X509Certificate 
+{#x509certificate}
 
-> **Defined in:** `x509certificate.h`
-
-This class represents a X509 Certificate.
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`NID`](#group__crypto_1gaf15888f0ebe57ab7978cb91f7bbd40d7) | Name identifier for extracting information from a certificate subject's or issuer's distinguished name. |
-| [``](#group__crypto_1ga16824404470aa043a22a79b9ca9a68c0) |  |
-| [`X509Certificate`](#group__crypto_1ga459ca16eab567ab22d1b675f6a334ced) | Creates the [X509Certificate](#classicy_1_1crypto_1_1X509Certificate) object by reading a certificate in PEM format from the given buffer. |
-| [`X509Certificate`](#group__crypto_1ga417bdf3f76dfecef89626b6cb71a9a32) | Creates the [X509Certificate](#classicy_1_1crypto_1_1X509Certificate) object by reading a certificate in PEM format from a file. |
-| [`X509Certificate`](#group__crypto_1ga2aa7feaea1f6c99c994fcc6fb7bea0ac) | Creates the [X509Certificate](#classicy_1_1crypto_1_1X509Certificate) from an existing OpenSSL certificate. Ownership is taken of the certificate. |
-| [`X509Certificate`](#group__crypto_1gaf7e31eac8d3095866847b5af0db366fa) | Creates the [X509Certificate](#classicy_1_1crypto_1_1X509Certificate) from an existing OpenSSL certificate. Ownership is taken of the certificate. If shared is true, the certificate's reference count is incremented. |
-| [`X509Certificate`](#group__crypto_1ga9aaeb1e01fbc97752b90be697230a504) | Creates the certificate by copying another one. |
-| [`operator=`](#group__crypto_1ga1516b536eadd451c76ecafa299f63d7c) | Assigns a certificate. |
-| [`swap`](#group__crypto_1gac487d92721c8e2bca13f0d13edcf942d) | Exchanges the certificate with another one. |
-| [`~X509Certificate`](#group__crypto_1ga9bca014de92bf3dcb7988eea0a41b92f) | Destroys the [X509Certificate](#classicy_1_1crypto_1_1X509Certificate). |
-| [`issuerName`](#group__crypto_1ga59be81cc1b19268c8c3f9b1fd046b20d) | Returns the certificate issuer's distinguished name. |
-| [`issuerName`](#group__crypto_1gade700582f523d36f9ba35b4ff42ae9da) | Extracts the information specified by the given NID (name identifier) from the certificate issuer's distinguished name. |
-| [`subjectName`](#group__crypto_1ga08cbb2a291c084ac15d427f2a75bed51) | Returns the certificate subject's distinguished name. |
-| [`subjectName`](#group__crypto_1ga448f08e983b8fc5e93bbd1de5f33d0ca) | Extracts the information specified by the given NID (name identifier) from the certificate subject's distinguished name. |
-| [`commonName`](#group__crypto_1ga5c8fd7098b3c4114b414a737ad5b10f8) | Returns the common name stored in the certificate subject's distinguished name. |
-| [`extractNames`](#group__crypto_1gacfd53defe5a0eb4329622b02f0725221) | Extracts the common name and the alias domain names from the certificate. |
-| [`validFrom`](#group__crypto_1ga79d4899027eb85cfad01e892f3595e33) | Returns the date and time the certificate is valid from. |
-| [`expiresOn`](#group__crypto_1gad2d8ba7bc9502843db12690f6ed24646) | Returns the date and time the certificate expires. |
-| [`save`](#group__crypto_1gaf0aaafac5aa2869c52d19b34f8768c0b) | Writes the certificate to the given stream. The certificate is written in PEM format. |
-| [`save`](#group__crypto_1ga0cea8f317ad0371de4a05ae1f4c4387d) | Writes the certificate to the file given by path. The certificate is written in PEM format. |
-| [`issuedBy`](#group__crypto_1ga8e93fd651db9982f6178b5fae9447fcc) | Checks whether the certificate has been issued by the issuer given by issuerCertificate. This can be used to validate a certificate chain. |
-| [`certificate`](#group__crypto_1ga351a6a8c90b667597ab6ddb1233be511) | Returns the underlying OpenSSL certificate. |
-| [`load`](#group__crypto_1ga0472559c4633b117e91bc68b50bb7de6) | Loads the certificate from the given buffer. The certificate must be in PEM format. |
-| [`load`](#group__crypto_1ga3d18050527eb8fd86b4b63924ecc7ca5) | Loads the certificate from the given file. The certificate must be in PEM format. |
-| [`init`](#group__crypto_1gaaf8694ec9aa62ec67324253b9456ba2e) | Extracts issuer and subject name from the certificate. |
-| [`_issuerName`](#group__crypto_1ga079edf7060b186eab27aa557db2021bf) |  |
-| [`_subjectName`](#group__crypto_1ga01c347e1866e5c461bf888093d7b78f8) |  |
-| [`_certificate`](#group__crypto_1ga8b1647c17acdec201f9247c9c43de2bc) |  |
-
----
-
-#### NID 
+## X509Certificate
 
 ```cpp
-enum NID
+#include <x509certificate.h>
 ```
 
-Name identifier for extracting information from a certificate subject's or issuer's distinguished name.
+RAII wrapper for an OpenSSL X509 certificate with PEM loading and inspection.
 
-| Value | Description |
-|-------|-------------|
-| `NID_COMMON_NAME` |  |
-| `NID_COUNTRY` |  |
-| `NID_LOCALITY_NAME` |  |
-| `NID_STATE_OR_PROVINCE` |  |
-| `NID_ORGANIZATION_NAME` |  |
-| `NID_ORGANIZATION_UNIT_NAME` |  |
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`X509Certificate`](#x509certificate-1) `explicit` | Constructs an [X509Certificate](#x509certificate) by parsing a PEM-encoded certificate from memory. |
+|  | [`X509Certificate`](#x509certificate-2) `explicit` | Constructs an [X509Certificate](#x509certificate) by reading a PEM-encoded certificate from a file. |
+|  | [`X509Certificate`](#x509certificate-3) `explicit` | Constructs an [X509Certificate](#x509certificate) taking ownership of an existing OpenSSL X509 object. |
+|  | [`X509Certificate`](#x509certificate-4)  | Constructs an [X509Certificate](#x509certificate) from an existing OpenSSL X509 object, optionally sharing ownership via reference count increment. |
+|  | [`X509Certificate`](#x509certificate-5)  | Copy-constructs an [X509Certificate](#x509certificate) by duplicating the underlying X509 object. |
+|  | [`X509Certificate`](#x509certificate-6)  | Move-constructs an [X509Certificate](#x509certificate), transferring ownership from `cert`. |
+| `X509Certificate &` | [`operator=`](#operator-24)  | Copy-assigns a certificate, duplicating the underlying X509 object. |
+| `X509Certificate &` | [`operator=`](#operator-25)  | Move-assigns a certificate, transferring ownership from `cert`. |
+| `void` | [`swap`](#swap-2)  | Swaps this certificate with `cert`. |
+|  | [`~X509Certificate`](#x509certificate-7)  | Destroys the [X509Certificate](#x509certificate) and releases the underlying OpenSSL X509 object. |
+| `const std::string &` | [`issuerName`](#issuername) `const` | Returns the full distinguished name of the certificate issuer. |
+| `std::string` | [`issuerName`](#issuername-1) `const` | Extracts a single field from the certificate issuer's distinguished name. |
+| `const std::string &` | [`subjectName`](#subjectname) `const` | Returns the full distinguished name of the certificate subject. |
+| `std::string` | [`subjectName`](#subjectname-1) `const` | Extracts a single field from the certificate subject's distinguished name. |
+| `std::string` | [`commonName`](#commonname) `const` | Returns the common name (CN) from the certificate subject. |
+| `void` | [`extractNames`](#extractnames) `const` | Extracts the common name and the set of Subject Alternative Name (SAN) DNS entries from the certificate. |
+| `DateTime` | [`validFrom`](#validfrom) `const` | Returns the date and time from which the certificate is valid. |
+| `DateTime` | [`expiresOn`](#expireson) `const` | Returns the date and time at which the certificate expires. |
+| `void` | [`save`](#save-1) `const` | Writes the certificate in PEM format to an output stream. |
+| `void` | [`save`](#save-2) `const` | Writes the certificate in PEM format to a file. |
+| `bool` | [`issuedBy`](#issuedby) `const` | Verifies whether this certificate was signed by the given issuer. |
+| `const X509 *` | [`certificate`](#certificate-1) `const` | Returns a const pointer to the underlying OpenSSL X509 object. |
+| `X509 *` | [`certificate`](#certificate-2)  | Returns a mutable pointer to the underlying OpenSSL X509 object. |
 
 ---
 
-####  
+{#x509certificate-1}
 
-```cpp
-enum 
-```
+#### X509Certificate
 
-| Value | Description |
-|-------|-------------|
-| `NAME_BUFFER_SIZE` |  |
-
----
-
-#### X509Certificate 
+`explicit`
 
 ```cpp
 explicit X509Certificate(const char * data, size_t length)
 ```
 
-Creates the [X509Certificate](#classicy_1_1crypto_1_1X509Certificate) object by reading a certificate in PEM format from the given buffer.
+Constructs an [X509Certificate](#x509certificate) by parsing a PEM-encoded certificate from memory.
+
+#### Parameters
+* `data` Pointer to a buffer containing the PEM-encoded certificate. 
+
+* `length` Number of bytes in `data`. 
+
+#### Exceptions
+* `std::runtime_error` if the BIO cannot be created or PEM parsing fails.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -821,13 +1447,23 @@ Creates the [X509Certificate](#classicy_1_1crypto_1_1X509Certificate) object by 
 
 ---
 
-#### X509Certificate 
+{#x509certificate-2}
+
+#### X509Certificate
+
+`explicit`
 
 ```cpp
 explicit X509Certificate(const std::string & path)
 ```
 
-Creates the [X509Certificate](#classicy_1_1crypto_1_1X509Certificate) object by reading a certificate in PEM format from a file.
+Constructs an [X509Certificate](#x509certificate) by reading a PEM-encoded certificate from a file.
+
+#### Parameters
+* `path` Filesystem path to the PEM certificate file. 
+
+#### Exceptions
+* `std::runtime_error` if the file cannot be opened or PEM parsing fails.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -835,13 +1471,23 @@ Creates the [X509Certificate](#classicy_1_1crypto_1_1X509Certificate) object by 
 
 ---
 
-#### X509Certificate 
+{#x509certificate-3}
+
+#### X509Certificate
+
+`explicit`
 
 ```cpp
 explicit X509Certificate(X509 * pCert)
 ```
 
-Creates the [X509Certificate](#classicy_1_1crypto_1_1X509Certificate) from an existing OpenSSL certificate. Ownership is taken of the certificate.
+Constructs an [X509Certificate](#x509certificate) taking ownership of an existing OpenSSL X509 object.
+
+#### Parameters
+* `pCert` Non-null pointer to an OpenSSL X509 certificate. This object takes ownership and will call X509_free on destruction. 
+
+#### Exceptions
+* `std::runtime_error` if `pCert` is null.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -849,13 +1495,23 @@ Creates the [X509Certificate](#classicy_1_1crypto_1_1X509Certificate) from an ex
 
 ---
 
-#### X509Certificate 
+{#x509certificate-4}
+
+#### X509Certificate
 
 ```cpp
 X509Certificate(X509 * pCert, bool shared)
 ```
 
-Creates the [X509Certificate](#classicy_1_1crypto_1_1X509Certificate) from an existing OpenSSL certificate. Ownership is taken of the certificate. If shared is true, the certificate's reference count is incremented.
+Constructs an [X509Certificate](#x509certificate) from an existing OpenSSL X509 object, optionally sharing ownership via reference count increment.
+
+#### Parameters
+* `pCert` Non-null pointer to an OpenSSL X509 certificate. Ownership is always taken (X509_free called on destruction). 
+
+* `shared` If true, increments the certificate's reference count via X509_up_ref before taking ownership, so the original pointer remains valid after this object is destroyed. 
+
+#### Exceptions
+* `std::runtime_error` if `pCert` is null.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -864,123 +1520,238 @@ Creates the [X509Certificate](#classicy_1_1crypto_1_1X509Certificate) from an ex
 
 ---
 
-#### X509Certificate 
+{#x509certificate-5}
+
+#### X509Certificate
 
 ```cpp
 X509Certificate(const X509Certificate & cert)
 ```
 
-Creates the certificate by copying another one.
+Copy-constructs an [X509Certificate](#x509certificate) by duplicating the underlying X509 object.
+
+#### Parameters
+* `cert` The certificate to copy.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `cert` | `const X509Certificate &` |  |
+| `cert` | `const [X509Certificate](#x509certificate) &` |  |
 
 ---
 
-#### operator= 
+{#x509certificate-6}
+
+#### X509Certificate
+
+```cpp
+X509Certificate(X509Certificate && cert) noexcept
+```
+
+Move-constructs an [X509Certificate](#x509certificate), transferring ownership from `cert`.
+
+#### Parameters
+* `cert` The certificate to move from; left in a valid but empty state.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `cert` | `[X509Certificate](#x509certificate) &&` |  |
+
+---
+
+{#operator-24}
+
+#### operator=
 
 ```cpp
 X509Certificate & operator=(const X509Certificate & cert)
 ```
 
-Assigns a certificate.
+Copy-assigns a certificate, duplicating the underlying X509 object.
+
+#### Parameters
+* `cert` The certificate to copy. 
+
+#### Returns
+Reference to this object.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `cert` | `const X509Certificate &` |  |
+| `cert` | `const [X509Certificate](#x509certificate) &` |  |
 
 ---
 
-#### swap 
+{#operator-25}
+
+#### operator=
+
+```cpp
+X509Certificate & operator=(X509Certificate && cert) noexcept
+```
+
+Move-assigns a certificate, transferring ownership from `cert`.
+
+#### Parameters
+* `cert` The certificate to move from; left in a valid but empty state. 
+
+#### Returns
+Reference to this object.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `cert` | `[X509Certificate](#x509certificate) &&` |  |
+
+---
+
+{#swap-2}
+
+#### swap
 
 ```cpp
 void swap(X509Certificate & cert)
 ```
 
-Exchanges the certificate with another one.
+Swaps this certificate with `cert`.
+
+#### Parameters
+* `cert` The certificate to swap with.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `cert` | `X509Certificate &` |  |
+| `cert` | `[X509Certificate](#x509certificate) &` |  |
 
 ---
 
-#### ~X509Certificate 
+{#x509certificate-7}
+
+#### ~X509Certificate
 
 ```cpp
 ~X509Certificate()
 ```
 
-Destroys the [X509Certificate](#classicy_1_1crypto_1_1X509Certificate).
+Destroys the [X509Certificate](#x509certificate) and releases the underlying OpenSSL X509 object.
 
 ---
 
-#### issuerName 
+{#issuername}
+
+#### issuerName
+
+`const`
 
 ```cpp
 const std::string & issuerName() const
 ```
 
-Returns the certificate issuer's distinguished name.
+Returns the full distinguished name of the certificate issuer.
+
+#### Returns
+One-line string representation produced by X509_NAME_oneline.
 
 ---
 
-#### issuerName 
+{#issuername-1}
+
+#### issuerName
+
+`const`
 
 ```cpp
 std::string issuerName(NID nid) const
 ```
 
-Extracts the information specified by the given NID (name identifier) from the certificate issuer's distinguished name.
+Extracts a single field from the certificate issuer's distinguished name.
+
+#### Parameters
+* `nid` The field to extract (e.g. NID_COMMON_NAME). 
+
+#### Returns
+Field value, or an empty string if the field is absent.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `nid` | `NID` |  |
+| `nid` | `[NID](#nid)` |  |
 
 ---
 
-#### subjectName 
+{#subjectname}
+
+#### subjectName
+
+`const`
 
 ```cpp
 const std::string & subjectName() const
 ```
 
-Returns the certificate subject's distinguished name.
+Returns the full distinguished name of the certificate subject.
+
+#### Returns
+One-line string representation produced by X509_NAME_oneline.
 
 ---
 
-#### subjectName 
+{#subjectname-1}
+
+#### subjectName
+
+`const`
 
 ```cpp
 std::string subjectName(NID nid) const
 ```
 
-Extracts the information specified by the given NID (name identifier) from the certificate subject's distinguished name.
+Extracts a single field from the certificate subject's distinguished name.
+
+#### Parameters
+* `nid` The field to extract (e.g. NID_ORGANIZATION_NAME). 
+
+#### Returns
+Field value, or an empty string if the field is absent.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `nid` | `NID` |  |
+| `nid` | `[NID](#nid)` |  |
 
 ---
 
-#### commonName 
+{#commonname}
+
+#### commonName
+
+`const`
 
 ```cpp
 std::string commonName() const
 ```
 
-Returns the common name stored in the certificate subject's distinguished name.
+Returns the common name (CN) from the certificate subject.
+
+Convenience wrapper for subjectName(NID_COMMON_NAME).
+
+#### Returns
+Common name string, or empty if absent.
 
 ---
 
-#### extractNames 
+{#extractnames}
+
+#### extractNames
+
+`const`
 
 ```cpp
 void extractNames(std::string & commonName, std::set< std::string > & domainNames) const
 ```
 
-Extracts the common name and the alias domain names from the certificate.
+Extracts the common name and the set of Subject Alternative Name (SAN) DNS entries from the certificate.
+
+If no SAN DNS entries are present and the common name is non-empty, the common name is added to `domainNames` as a fallback.
+
+#### Parameters
+* `commonName` Receives the certificate's common name. 
+
+* `domainNames` Receives all DNS SAN entries (cleared before population).
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -989,33 +1760,61 @@ Extracts the common name and the alias domain names from the certificate.
 
 ---
 
-#### validFrom 
+{#validfrom}
+
+#### validFrom
+
+`const`
 
 ```cpp
 DateTime validFrom() const
 ```
 
-Returns the date and time the certificate is valid from.
+Returns the date and time from which the certificate is valid.
+
+Parsed from the X509 notBefore field.
+
+#### Returns
+UTC [DateTime](#classicy_1_1DateTime) representing the start of the validity period.
 
 ---
 
-#### expiresOn 
+{#expireson}
+
+#### expiresOn
+
+`const`
 
 ```cpp
 DateTime expiresOn() const
 ```
 
-Returns the date and time the certificate expires.
+Returns the date and time at which the certificate expires.
+
+Parsed from the X509 notAfter field.
+
+#### Returns
+UTC [DateTime](#classicy_1_1DateTime) representing the end of the validity period.
 
 ---
 
-#### save 
+{#save-1}
+
+#### save
+
+`const`
 
 ```cpp
 void save(std::ostream & stream) const
 ```
 
-Writes the certificate to the given stream. The certificate is written in PEM format.
+Writes the certificate in PEM format to an output stream.
+
+#### Parameters
+* `stream` Destination stream to write to. 
+
+#### Exceptions
+* `std::runtime_error` if the BIO cannot be created or write fails.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -1023,13 +1822,23 @@ Writes the certificate to the given stream. The certificate is written in PEM fo
 
 ---
 
-#### save 
+{#save-2}
+
+#### save
+
+`const`
 
 ```cpp
 void save(const std::string & path) const
 ```
 
-Writes the certificate to the file given by path. The certificate is written in PEM format.
+Writes the certificate in PEM format to a file.
+
+#### Parameters
+* `path` Filesystem path of the output file (created or truncated). 
+
+#### Exceptions
+* `std::runtime_error` if the file cannot be opened or write fails.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -1037,41 +1846,94 @@ Writes the certificate to the file given by path. The certificate is written in 
 
 ---
 
-#### issuedBy 
+{#issuedby}
+
+#### issuedBy
+
+`const`
 
 ```cpp
 bool issuedBy(const X509Certificate & issuerCertificate) const
 ```
 
-Checks whether the certificate has been issued by the issuer given by issuerCertificate. This can be used to validate a certificate chain.
+Verifies whether this certificate was signed by the given issuer.
 
-Verifies if the certificate has been signed with the issuer's private key, using the public key from the issuer certificate.
+Extracts the public key from `issuerCertificate` and calls X509_verify. Use this to validate links in a certificate chain.
 
-Returns true if verification against the issuer certificate was successful, false otherwise.
+#### Parameters
+* `issuerCertificate` The certificate of the purported issuer. 
+
+#### Returns
+true if this certificate's signature verifies against the issuer's public key, false otherwise. 
+
+#### Exceptions
+* `std::invalid_argument` if the issuer certificate has no public key.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `issuerCertificate` | `const X509Certificate &` |  |
+| `issuerCertificate` | `const [X509Certificate](#x509certificate) &` |  |
 
 ---
 
-#### certificate 
+{#certificate-1}
+
+#### certificate
+
+`const`
 
 ```cpp
 const X509 * certificate() const
 ```
 
-Returns the underlying OpenSSL certificate.
+Returns a const pointer to the underlying OpenSSL X509 object.
+
+#### Returns
+Pointer valid for the lifetime of this [X509Certificate](#x509certificate).
 
 ---
 
-#### load 
+{#certificate-2}
+
+#### certificate
+
+```cpp
+X509 * certificate()
+```
+
+Returns a mutable pointer to the underlying OpenSSL X509 object.
+
+#### Returns
+Pointer valid for the lifetime of this [X509Certificate](#x509certificate).
+
+### Protected Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `void` | [`load`](#load-2)  | Parses a PEM-encoded certificate from a memory buffer and stores it. |
+| `void` | [`load`](#load-3)  | Reads a PEM-encoded certificate from a file and stores it. |
+| `void` | [`init`](#init-10)  | Populates _issuerName and _subjectName from the loaded certificate. |
+
+---
+
+{#load-2}
+
+#### load
 
 ```cpp
 void load(const char * data, size_t length)
 ```
 
-Loads the certificate from the given buffer. The certificate must be in PEM format.
+Parses a PEM-encoded certificate from a memory buffer and stores it.
+
+#### Parameters
+* `data` Pointer to PEM data. 
+
+* `length` Number of bytes in `data`. 
+
+#### Exceptions
+* `std::logic_error` if a certificate is already loaded. 
+
+* `std::runtime_error` if BIO creation or PEM parsing fails.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -1080,13 +1942,23 @@ Loads the certificate from the given buffer. The certificate must be in PEM form
 
 ---
 
-#### load 
+{#load-3}
+
+#### load
 
 ```cpp
 void load(const std::string & path)
 ```
 
-Loads the certificate from the given file. The certificate must be in PEM format.
+Reads a PEM-encoded certificate from a file and stores it.
+
+#### Parameters
+* `path` Filesystem path to the PEM certificate file. 
+
+#### Exceptions
+* `std::logic_error` if a certificate is already loaded. 
+
+* `std::runtime_error` if the file cannot be opened or PEM parsing fails.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -1094,17 +1966,60 @@ Loads the certificate from the given file. The certificate must be in PEM format
 
 ---
 
-#### init 
+{#init-10}
+
+#### init
 
 ```cpp
 void init()
 ```
 
-Extracts issuer and subject name from the certificate.
+Populates _issuerName and _subjectName from the loaded certificate.
+
+Called after each successful load or construction from an X509 pointer.
+
+### Public Types
+
+| Name | Description |
+|------|-------------|
+| [`NID`](#nid)  | Name identifier for extracting fields from a certificate's distinguished name. |
 
 ---
 
-#### _issuerName 
+{#nid}
+
+#### NID
+
+```cpp
+enum NID
+```
+
+Name identifier for extracting fields from a certificate's distinguished name.
+
+Values correspond to OpenSSL NID constants used with X509_NAME_get_text_by_NID.
+
+| Value | Description |
+|-------|-------------|
+| `NID_COMMON_NAME` | Common name (CN field). |
+| `NID_COUNTRY` | Country code (C field). |
+| `NID_LOCALITY_NAME` | Locality / city (L field). |
+| `NID_STATE_OR_PROVINCE` | [State](#classicy_1_1State) or province (ST field). |
+| `NID_ORGANIZATION_NAME` | Organization name (O field). |
+| `NID_ORGANIZATION_UNIT_NAME` | Organizational unit (OU field). |
+
+### Private Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `std::string` | [`_issuerName`](#_issuername)  |  |
+| `std::string` | [`_subjectName`](#_subjectname)  |  |
+| `X509Ptr` | [`_certificate`](#_certificate)  |  |
+
+---
+
+{#_issuername}
+
+#### _issuerName
 
 ```cpp
 std::string _issuerName
@@ -1112,7 +2027,9 @@ std::string _issuerName
 
 ---
 
-#### _subjectName 
+{#_subjectname}
+
+#### _subjectName
 
 ```cpp
 std::string _subjectName
@@ -1120,9 +2037,11 @@ std::string _subjectName
 
 ---
 
-#### _certificate 
+{#_certificate}
+
+#### _certificate
 
 ```cpp
-X509 * _certificate
+X509Ptr _certificate
 ```
 

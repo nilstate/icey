@@ -1,446 +1,537 @@
-# symple 
+{#symplemodule}
+
+# symple
+
+Realtime messaging protocol for presence, rooms, and WebRTC signalling.
+
+### Namespaces
+
+| Name | Description |
+|------|-------------|
+| [`smpl`](#smpl) |  |
+
+{#smpl}
+
+# smpl
 
 ### Classes
 
 | Name | Description |
 |------|-------------|
-| [`Client`](#classicy_1_1smpl_1_1Client) |  |
-| [`TCPClient`](#classicy_1_1smpl_1_1TCPClient) |  |
-| [`SSLClient`](#classicy_1_1smpl_1_1SSLClient) |  |
-| [`Command`](#classicy_1_1smpl_1_1Command) |  |
-| [`Event`](#classicy_1_1smpl_1_1Event) |  |
-| [`FormElement`](#classicy_1_1smpl_1_1FormElement) |  |
-| [`Form`](#classicy_1_1smpl_1_1Form) |  |
-| [`FormField`](#classicy_1_1smpl_1_1FormField) |  |
-| [`Message`](#classicy_1_1smpl_1_1Message) |  |
-| [`Peer`](#classicy_1_1smpl_1_1Peer) | This class represents a peer on the network. A [Peer](#classicy_1_1smpl_1_1Peer) object may also contain arbitrary data set by the client to share with other peers on the network. **See also**: [Address](#structicy_1_1smpl_1_1Address) for further methods and [basic](./doc/api-undefined.md#namespaceicy_1_1basic) accessors. |
-| [`Presence`](#classicy_1_1smpl_1_1Presence) |  |
-| [`Roster`](#classicy_1_1smpl_1_1Roster) | The [Roster](#classicy_1_1smpl_1_1Roster) provides a registry for active network peers indexed by session ID. |
-| [`Address`](#structicy_1_1smpl_1_1Address) | The [Address](#structicy_1_1smpl_1_1Address) structure is an endpoint identifier for a peer on the network. The format is like so: user|id |
-| [`Options`](#structicy_1_1smpl_1_1Client_1_1Options) |  |
-| [`Filter`](#structicy_1_1smpl_1_1Filter) |  |
+| [`Client`](#client-5) | Symple v4 client. |
+| [`Command`](#command) | Symple command message with a node path and action verb. |
+| [`Event`](#event-1) | Symple event message carrying a named occurrence with a timestamp. |
+| [`Form`](#form) | Interactive form with pages, sections, and fields for command data exchange. |
+| [`FormElement`](#formelement) | Base element within a Symple form. |
+| [`FormField`](#formfield) | [Form](#form) input field with typed values and selectable options. |
+| [`Message`](#message-10) | Base Symple protocol message with addressing, status, data, and notes. |
+| [`Peer`](#peer-1) | This class represents a peer on the network. A [Peer](#peer-1) object may also contain arbitrary data set by the client to share with other peers on the network. **See also**: [Address](#address-14) for further methods and [basic](#basic) accessors. |
+| [`Presence`](#presence) | Symple presence message indicating a peer's online status. |
+| [`Roster`](#roster-1) | The [Roster](#roster-1) provides a registry for active network peers indexed by session ID. |
+| [`Server`](#server-9) | Symple v4 server. |
+| [`ServerPeer`](#serverpeer) | Per-connection state for a connected Symple peer. |
+| [`Address`](#address-14) | The [Address](#address-14) structure is an endpoint identifier for a peer on the network. The format is like so: user\|id |
+| [`ClientState`](#clientstate-1) | [Client](#client-5) connection states. |
 
-### Members
+{#client-5}
 
-| Name | Description |
-|------|-------------|
-| [`Symple_API`](#group__symple_1gabbd11164ccdcea231be5cb5fe26438ea) |  |
-
----
-
-#### Symple_API 
+## Client
 
 ```cpp
-Symple_API()
+#include <client.h>
 ```
 
-## Client 
+> **Inherits:** [`Stateful< ClientState >`](#classicy_1_1Stateful), [`Signal< void(IPacket &)>`](#classicy_1_1Signal)
 
-> **Extends:** `icy::sockio::Client`
-> **Subclasses:** `icy::smpl::SSLClient`, `icy::smpl::TCPClient`
-> **Defined in:** `client.h`
+Symple v4 client.
 
-### Members
+Connects to a Symple server over plain WebSocket (no Socket.IO). Handles authentication, presence, roster management, rooms, and message routing.
 
-| Name | Description |
-|------|-------------|
-| [`Client`](#group__symple_1ga5b46d09313a3360148246158e11dce4c) |  |
-| [`~Client`](#group__symple_1ga1eb6bbd30e54e4c0e918c7ce43fadeec) |  |
-| [`connect`](#group__symple_1gaa8c97bf06d3fc80ceea252a2a611c5c7) |  |
-| [`close`](#group__symple_1gae27e4556310a4b935ffe78b62bbe3a9c) |  |
-| [`send`](#group__symple_1ga4dffb71d16288852dbeb54e38ce9cc82) | Send a message. May be a polymorphic [Command](#classicy_1_1smpl_1_1Command), [Presence](#classicy_1_1smpl_1_1Presence), [Event](#classicy_1_1smpl_1_1Event) or other ... |
-| [`send`](#group__symple_1ga6e121b7e49c36023f49190c9ab5bebef) | Send a string message. The message must be a valid Symple message otherwise it will not be delivered. |
-| [`createTransaction`](#group__symple_1ga51add0f918bee39b510fad050c973db9) | Create a Transaction object with the given message which will notify on Ack response from the server. |
-| [`respond`](#group__symple_1gaea0ec59bcf35da1f20a3cd46adf1e4f4) | Swap the 'to' and 'from' fields and send the given message. |
-| [`sendPresence`](#group__symple_1gaa2b2c55f34473f05b397c88e6a1f1e19) | Broadcast presence to the user group scope. The outgoing [Presence](#classicy_1_1smpl_1_1Presence) object may be modified via the CreatePresence signal. |
-| [`sendPresence`](#group__symple_1gaaf17806e06f596c196e007c5e98a0ea6) | Send directed presence to the given peer. |
-| [`joinRoom`](#group__symple_1ga426afee6e4914560d5b82fb9098898d6) | Join the given room. |
-| [`leaveRoom`](#group__symple_1ga7d696ae2396d9da0d87c7d0ed464b579) | Leave the given room. |
-| [`ourID`](#group__symple_1gaeb1cebadd1f004d6b259c4831ff0901a) | Return the session ID of our current peer object. Return an empty string when offline. |
-| [`rooms`](#group__symple_1ga468d33d5531670856a74208ecca2e8f6) | Return a list of rooms the client has joined. |
-| [`ourPeer`](#group__symple_1ga680bfb6b0db4f75e9a863b61b61d734b) | Return the peer object for the current session, or throws an exception when offline. |
-| [`roster`](#group__symple_1ga6998f1375a4767e630a98f60cb304300) | Return the roster which stores all online peers. |
-| [`persistence`](#group__symple_1ga7ee28acdc40837302c167b543fc56a15) | Return the persistence manager which stores long lived messages. |
-| [`options`](#group__symple_1ga6272271fea7d57a5719e2da9163b3224) | Return a reference to the client options object. |
-| [`operator>>`](#group__symple_1ga991c5b0bbcca7d16536b0dccce4107d2) | [Stream](./doc/api-base.md#classicy_1_1Stream) operator alias for [send()](#group__symple_1ga4dffb71d16288852dbeb54e38ce9cc82). |
-| [`onPresenceData`](#group__symple_1gaac8e9b77fda748176c2c99787b4d4355) | Update the roster from the given client object. |
-| [`announce`](#group__symple_1gadf0ac053e026a7c792d00ac165cb1298) | Called when a new connection is established to announce and authenticate the peer on the server. |
-| [`reset`](#group__symple_1gafe1d7b3e16488e4a61f6fc045601dc2a) | Resets variables and data at the beginning and end of each session. |
-| [`createPresence`](#group__symple_1gace2ee9e3f211f1fb9979953c6d0dfa34) | Creates a [Presence](#classicy_1_1smpl_1_1Presence) object. |
-| [`emit`](#group__symple_1ga805c44b00ddf3dfeba913dea6a03330d) | Override PacketSignal::emit. |
-| [`onOnline`](#group__symple_1ga34e2a7ff6cc2292a40102a0d51917cd6) |  |
-| [`onAnnounceState`](#group__symple_1gae30976d64dc3e2b64b470eb0774fdf16) |  |
-| [`Announce`](#group__symple_1ga0228d93d0cedc21b61f12a580bb7c6b9) | Signals Notifies the outside application about the response status code of our [announce()](#group__symple_1gadf0ac053e026a7c792d00ac165cb1298) call. Possible status codes are: // - 200: Authentication success |
-| [`PeerConnected`](#group__symple_1ga01d918d49dcf259d612543a353a7e98e) | Signals when a peer connects. |
-| [`PeerDisconnected`](#group__symple_1ga317fcf03f379f086db4b77bbc58ba7f6) | Signals when a peer disconnects. |
-| [`CreatePresence`](#group__symple_1ga026c3952b78bd1b4b4f18d9bd815e94e) | Called by [createPresence()](#group__symple_1gace2ee9e3f211f1fb9979953c6d0dfa34) so outside classes can modify the outgoing [Peer](#classicy_1_1smpl_1_1Peer) JSON object. |
-| [`_roster`](#group__symple_1ga8a6dc184e85eb02e1180a6ff11af402f) |  |
-| [`_ourID`](#group__symple_1ga7aa335a7730f803fabab6a0ac7bf629f) |  |
-| [`_persistence`](#group__symple_1ga0ecdbbbdc4f57cac6e7b5fda9072f5fa) |  |
-| [`_options`](#group__symple_1gadfb98483f4d159dc718c788f787d6adf) |  |
-| [`_rooms`](#group__symple_1ga362e9d47266c26dcf32e1603e6d39a85) |  |
-| [`_announceStatus`](#group__symple_1gacece49388fbe130519f6b58232dd8067) |  |
+Usage: [smpl::Client](#client-5) client({ .host = "localhost", .port = 4500, .user = "alice", .name = "Alice" }); client.connect();
+
+client += packetSlot(&handler, &Handler::onMessage); client.Announce += slot(&handler, &Handler::onAnnounce);
+
+Messages are emitted as polymorphic [IPacket](#classicy_1_1IPacket) via PacketSignal:
+
+* [smpl::Message](#message-10) (type "message")
+
+* [smpl::Presence](#presence) (type "presence")
+
+* [smpl::Event](#event-1) (type "event")
+
+* [smpl::Command](#command) (type "command")
+
+Use [packetSlot()](#namespaceicy_1af987091b6090babac0dcf3330fc14107) with the specific type to filter.
+
+### Public Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `Signal< void(const int &)>` | [`Announce`](#announce)  | Authentication response status (200 = success, 401 = failed). |
+| `Signal< void(Peer &)>` | [`PeerConnected`](#peerconnected)  | A peer has come online. |
+| `Signal< void(Peer &)>` | [`PeerDisconnected`](#peerdisconnected)  | A peer has gone offline. |
+| `Signal< void(Peer &)>` | [`CreatePresence`](#createpresence)  | Modify the outgoing peer object before presence broadcast. |
 
 ---
 
-#### Client 
+{#announce}
 
-```cpp
-Client(const net::Socket::Ptr & socket, const Options & options)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `socket` | `const net::Socket::Ptr &` |  |
-| `options` | `const Options &` |  |
-
----
-
-#### ~Client 
-
-```cpp
-virtual ~Client()
-```
-
----
-
-#### connect 
-
-```cpp
-virtual void connect()
-```
-
----
-
-#### close 
-
-```cpp
-virtual void close()
-```
-
----
-
-#### send 
-
-```cpp
-virtual int send(Message & message, bool ack)
-```
-
-Send a message. May be a polymorphic [Command](#classicy_1_1smpl_1_1Command), [Presence](#classicy_1_1smpl_1_1Presence), [Event](#classicy_1_1smpl_1_1Event) or other ...
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `message` | `Message &` |  |
-| `ack` | `bool` |  |
-
----
-
-#### send 
-
-```cpp
-virtual int send(const std::string & message, bool ack)
-```
-
-Send a string message. The message must be a valid Symple message otherwise it will not be delivered.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `message` | `const std::string &` |  |
-| `ack` | `bool` |  |
-
----
-
-#### createTransaction 
-
-```cpp
-sockio::Transaction * createTransaction(Message & message)
-```
-
-Create a Transaction object with the given message which will notify on Ack response from the server.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `message` | `Message &` |  |
-
----
-
-#### respond 
-
-```cpp
-virtual int respond(Message & message, bool ack)
-```
-
-Swap the 'to' and 'from' fields and send the given message.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `message` | `Message &` |  |
-| `ack` | `bool` |  |
-
----
-
-#### sendPresence 
-
-```cpp
-virtual int sendPresence(bool probe)
-```
-
-Broadcast presence to the user group scope. The outgoing [Presence](#classicy_1_1smpl_1_1Presence) object may be modified via the CreatePresence signal.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `probe` | `bool` |  |
-
----
-
-#### sendPresence 
-
-```cpp
-virtual int sendPresence(const Address & to, bool probe)
-```
-
-Send directed presence to the given peer.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `to` | `const Address &` |  |
-| `probe` | `bool` |  |
-
----
-
-#### joinRoom 
-
-```cpp
-virtual int joinRoom(const std::string & room)
-```
-
-Join the given room.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `room` | `const std::string &` |  |
-
----
-
-#### leaveRoom 
-
-```cpp
-virtual int leaveRoom(const std::string & room)
-```
-
-Leave the given room.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `room` | `const std::string &` |  |
-
----
-
-#### ourID 
-
-```cpp
-virtual std::string ourID() const
-```
-
-Return the session ID of our current peer object. Return an empty string when offline.
-
----
-
-#### rooms 
-
-```cpp
-StringVec rooms() const
-```
-
-Return a list of rooms the client has joined.
-
----
-
-#### ourPeer 
-
-```cpp
-virtual Peer * ourPeer()
-```
-
-Return the peer object for the current session, or throws an exception when offline.
-
----
-
-#### roster 
-
-```cpp
-virtual Roster & roster()
-```
-
-Return the roster which stores all online peers.
-
----
-
-#### persistence 
-
-```cpp
-virtual PersistenceT & persistence()
-```
-
-Return the persistence manager which stores long lived messages.
-
----
-
-#### options 
-
-```cpp
-Client::Options & options()
-```
-
-Return a reference to the client options object.
-
----
-
-#### operator>> 
-
-```cpp
-virtual Client & operator>>(Message & message)
-```
-
-[Stream](./doc/api-base.md#classicy_1_1Stream) operator alias for [send()](#group__symple_1ga4dffb71d16288852dbeb54e38ce9cc82).
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `message` | `Message &` |  |
-
----
-
-#### onPresenceData 
-
-```cpp
-virtual void onPresenceData(const json::value & data, bool whiny)
-```
-
-Update the roster from the given client object.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `const json::value &` |  |
-| `whiny` | `bool` |  |
-
----
-
-#### announce 
-
-```cpp
-virtual int announce()
-```
-
-Called when a new connection is established to announce and authenticate the peer on the server.
-
----
-
-#### reset 
-
-```cpp
-virtual void reset()
-```
-
-Resets variables and data at the beginning and end of each session.
-
----
-
-#### createPresence 
-
-```cpp
-virtual void createPresence(Presence & p)
-```
-
-Creates a [Presence](#classicy_1_1smpl_1_1Presence) object.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `p` | `Presence &` |  |
-
----
-
-#### emit 
-
-```cpp
-virtual void emit(IPacket & packet)
-```
-
-Override PacketSignal::emit.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `packet` | `IPacket &` |  |
-
----
-
-#### onOnline 
-
-```cpp
-virtual void onOnline()
-```
-
----
-
-#### onAnnounceState 
-
-```cpp
-virtual void onAnnounceState(void * sender, TransactionState & state, const TransactionState &)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `sender` | `void *` |  |
-| `state` | `TransactionState &` |  |
-
----
-
-#### Announce 
+#### Announce
 
 ```cpp
 Signal< void(const int &)> Announce
 ```
 
-Signals Notifies the outside application about the response status code of our [announce()](#group__symple_1gadf0ac053e026a7c792d00ac165cb1298) call. Possible status codes are: // - 200: Authentication success
-
-* 401: Authentication failed
-
-* 400: Bad request data
-
-* 500: Server not found
+Authentication response status (200 = success, 401 = failed).
 
 ---
 
-#### PeerConnected 
+{#peerconnected}
+
+#### PeerConnected
 
 ```cpp
 Signal< void(Peer &)> PeerConnected
 ```
 
-Signals when a peer connects.
+A peer has come online.
 
 ---
 
-#### PeerDisconnected 
+{#peerdisconnected}
+
+#### PeerDisconnected
 
 ```cpp
 Signal< void(Peer &)> PeerDisconnected
 ```
 
-Signals when a peer disconnects.
+A peer has gone offline.
 
 ---
 
-#### CreatePresence 
+{#createpresence}
+
+#### CreatePresence
 
 ```cpp
 Signal< void(Peer &)> CreatePresence
 ```
 
-Called by [createPresence()](#group__symple_1gace2ee9e3f211f1fb9979953c6d0dfa34) so outside classes can modify the outgoing [Peer](#classicy_1_1smpl_1_1Peer) JSON object.
+Modify the outgoing peer object before presence broadcast.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`Client`](#client-6)  |  |
+|  | [`Client`](#client-7)  | Default constructor with default [Options](#options-13). |
+| `void` | [`connect`](#connect-14)  | Connect to the Symple server. |
+| `void` | [`close`](#close-24)  | Disconnect from the server. |
+| `int` | [`send`](#send-17) `virtual` | Send a Symple message. Sets the `from` field automatically. |
+| `int` | [`send`](#send-18) `virtual` | Send a string message (parsed as JSON). |
+| `int` | [`respond`](#respond-1) `virtual` | Swap to/from and send. |
+| `int` | [`sendPresence`](#sendpresence) `virtual` | Broadcast presence to joined rooms. |
+| `int` | [`sendPresence`](#sendpresence-1) `virtual` | Send directed presence to a specific peer. |
+| `int` | [`joinRoom`](#joinroom) `virtual` | Join a room on the server. |
+| `int` | [`leaveRoom`](#leaveroom) `virtual` | Leave a room on the server. |
+| `bool` | [`isOnline`](#isonline) `const` | Return true if in Online state. |
+| `std::string` | [`ourID`](#ourid) `const` | Return the session ID assigned by the server. |
+| `Peer *` | [`ourPeer`](#ourpeer)  | Return the local peer object (null if offline). |
+| `StringVec` | [`rooms`](#rooms) `const` | Return joined rooms. |
+| `Roster &` | [`roster`](#roster)  | Return the roster of online peers. |
+| `const Options &` | [`options`](#options-12) `const` | Return the current client options. |
+| `void` | [`setOptions`](#setoptions)  | Replace the client options while the client is closed. This is the only supported way to reconfigure a default-constructed client.  |
+| `void` | [`setError`](#seterror-6)  | Set an error and transition to [Error](#structicy_1_1Error) state. |
 
 ---
 
-#### _roster 
+{#client-6}
+
+#### Client
+
+```cpp
+Client(const Options & options, uv::Loop * loop)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `options` | `const [Options](#options-13) &` |  |
+| `loop` | `[uv::Loop](#namespaceicy_1_1uv_1a8bfd153231f95de982e16db911389619) *` |  |
+
+---
+
+{#client-7}
+
+#### Client
+
+```cpp
+Client()
+```
+
+Default constructor with default [Options](#options-13).
+
+---
+
+{#connect-14}
+
+#### connect
+
+```cpp
+void connect()
+```
+
+Connect to the Symple server.
+
+---
+
+{#close-24}
+
+#### close
+
+```cpp
+void close()
+```
+
+Disconnect from the server.
+
+---
+
+{#send-17}
+
+#### send
+
+`virtual`
+
+```cpp
+virtual int send(Message & message)
+```
+
+Send a Symple message. Sets the `from` field automatically.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `message` | `[Message](#message-10) &` |  |
+
+---
+
+{#send-18}
+
+#### send
+
+`virtual`
+
+```cpp
+virtual int send(const std::string & message)
+```
+
+Send a string message (parsed as JSON).
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `message` | `const std::string &` |  |
+
+---
+
+{#respond-1}
+
+#### respond
+
+`virtual`
+
+```cpp
+virtual int respond(Message & message)
+```
+
+Swap to/from and send.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `message` | `[Message](#message-10) &` |  |
+
+---
+
+{#sendpresence}
+
+#### sendPresence
+
+`virtual`
+
+```cpp
+virtual int sendPresence(bool probe)
+```
+
+Broadcast presence to joined rooms.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `probe` | `bool` |  |
+
+---
+
+{#sendpresence-1}
+
+#### sendPresence
+
+`virtual`
+
+```cpp
+virtual int sendPresence(const Address & to, bool probe)
+```
+
+Send directed presence to a specific peer.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `to` | `const [Address](#address-14) &` |  |
+| `probe` | `bool` |  |
+
+---
+
+{#joinroom}
+
+#### joinRoom
+
+`virtual`
+
+```cpp
+virtual int joinRoom(const std::string & room)
+```
+
+Join a room on the server.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `room` | `const std::string &` |  |
+
+---
+
+{#leaveroom}
+
+#### leaveRoom
+
+`virtual`
+
+```cpp
+virtual int leaveRoom(const std::string & room)
+```
+
+Leave a room on the server.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `room` | `const std::string &` |  |
+
+---
+
+{#isonline}
+
+#### isOnline
+
+`const`
+
+```cpp
+bool isOnline() const
+```
+
+Return true if in Online state.
+
+---
+
+{#ourid}
+
+#### ourID
+
+`const`
+
+```cpp
+std::string ourID() const
+```
+
+Return the session ID assigned by the server.
+
+---
+
+{#ourpeer}
+
+#### ourPeer
+
+```cpp
+Peer * ourPeer()
+```
+
+Return the local peer object (null if offline).
+
+---
+
+{#rooms}
+
+#### rooms
+
+`const`
+
+```cpp
+StringVec rooms() const
+```
+
+Return joined rooms.
+
+---
+
+{#roster}
+
+#### roster
+
+```cpp
+Roster & roster()
+```
+
+Return the roster of online peers.
+
+---
+
+{#options-12}
+
+#### options
+
+`const`
+
+```cpp
+const Options & options() const
+```
+
+Return the current client options.
+
+---
+
+{#setoptions}
+
+#### setOptions
+
+```cpp
+void setOptions(Options options)
+```
+
+Replace the client options while the client is closed. This is the only supported way to reconfigure a default-constructed client. 
+#### Exceptions
+* `std::logic_error` if the client is currently connecting, online, or reconnecting.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `options` | `[Options](#options-13)` |  |
+
+---
+
+{#seterror-6}
+
+#### setError
+
+```cpp
+void setError(const std::string & error)
+```
+
+Set an error and transition to [Error](#structicy_1_1Error) state.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `error` | `const std::string &` |  |
+
+### Protected Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `void` | [`createPresence`](#createpresence-1) `virtual` | Underlying connection state changed. Inherits StateChange from [Stateful<ClientState>](#classicy_1_1Stateful). |
+| `void` | [`onPresenceData`](#onpresencedata) `virtual` |  |
+
+---
+
+{#createpresence-1}
+
+#### createPresence
+
+`virtual`
+
+```cpp
+virtual void createPresence(Presence & p)
+```
+
+Underlying connection state changed. Inherits StateChange from [Stateful<ClientState>](#classicy_1_1Stateful).
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `p` | `[Presence](#presence) &` |  |
+
+---
+
+{#onpresencedata}
+
+#### onPresenceData
+
+`virtual`
+
+```cpp
+virtual void onPresenceData(const json::Value & data, bool whiny)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `data` | `const [json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
+| `whiny` | `bool` |  |
+
+### Private Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `Options` | [`_options`](#_options-5)  |  |
+| `uv::Loop *` | [`_loop`](#_loop-3)  |  |
+| `http::ClientConnection::Ptr` | [`_ws`](#_ws)  |  |
+| `Roster` | [`_roster`](#_roster)  |  |
+| `std::string` | [`_ourID`](#_ourid)  |  |
+| `std::unordered_set< std::string >` | [`_currentRooms`](#_currentrooms)  | Authoritative rooms from welcome / acks. |
+| `std::unordered_set< std::string >` | [`_desiredRooms`](#_desiredrooms)  | Rooms the client wants persisted across reconnects. |
+| `std::unordered_set< std::string >` | [`_pendingJoins`](#_pendingjoins)  | Join requests sent but not yet acknowledged. |
+| `std::unordered_set< std::string >` | [`_pendingLeaves`](#_pendingleaves)  | Leave requests sent but not yet acknowledged. |
+| `int` | [`_announceStatus`](#_announcestatus)  |  |
+| `Timer` | [`_reconnectTimer`](#_reconnecttimer)  |  |
+| `int` | [`_reconnectCount`](#_reconnectcount)  |  |
+| `bool` | [`_wasOnline`](#_wasonline)  |  |
+| `bool` | [`_closing`](#_closing)  |  |
+
+---
+
+{#_options-5}
+
+#### _options
+
+```cpp
+Options _options
+```
+
+---
+
+{#_loop-3}
+
+#### _loop
+
+```cpp
+uv::Loop * _loop
+```
+
+---
+
+{#_ws}
+
+#### _ws
+
+```cpp
+http::ClientConnection::Ptr _ws
+```
+
+---
+
+{#_roster}
+
+#### _roster
 
 ```cpp
 Roster _roster
@@ -448,7 +539,9 @@ Roster _roster
 
 ---
 
-#### _ourID 
+{#_ourid}
+
+#### _ourID
 
 ```cpp
 std::string _ourID
@@ -456,604 +549,161 @@ std::string _ourID
 
 ---
 
-#### _persistence 
+{#_currentrooms}
+
+#### _currentRooms
 
 ```cpp
-PersistenceT _persistence
+std::unordered_set< std::string > _currentRooms
+```
+
+Authoritative rooms from welcome / acks.
+
+---
+
+{#_desiredrooms}
+
+#### _desiredRooms
+
+```cpp
+std::unordered_set< std::string > _desiredRooms
+```
+
+Rooms the client wants persisted across reconnects.
+
+---
+
+{#_pendingjoins}
+
+#### _pendingJoins
+
+```cpp
+std::unordered_set< std::string > _pendingJoins
+```
+
+Join requests sent but not yet acknowledged.
+
+---
+
+{#_pendingleaves}
+
+#### _pendingLeaves
+
+```cpp
+std::unordered_set< std::string > _pendingLeaves
+```
+
+Leave requests sent but not yet acknowledged.
+
+---
+
+{#_announcestatus}
+
+#### _announceStatus
+
+```cpp
+int _announceStatus = 0
 ```
 
 ---
 
-#### _options 
+{#_reconnecttimer}
+
+#### _reconnectTimer
 
 ```cpp
-Client::Options _options
+Timer _reconnectTimer
 ```
 
 ---
 
-#### _rooms 
+{#_reconnectcount}
+
+#### _reconnectCount
 
 ```cpp
-StringVec _rooms
+int _reconnectCount = 0
 ```
 
 ---
 
-#### _announceStatus 
+{#_wasonline}
+
+#### _wasOnline
 
 ```cpp
-int _announceStatus
-```
-
-## Options 
-
-> **Defined in:** `client.h`
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`Options`](#group__symple_1ga7dd4fee81e4318912e9d82a1e35c6550) |  |
-| [`host`](#group__symple_1ga05d0bdf5ab5eeefec7d0019bb110bb58) |  |
-| [`port`](#group__symple_1ga1b77c19ba3010b95adab9572de8812d4) |  |
-| [`reconnection`](#group__symple_1ga8388c0e51b717793da8e136f24ef4df6) | Weather or not to reconnect if disconnected from the server. |
-| [`reconnectAttempts`](#group__symple_1gaad73b34182da94bd80d394d6c2cf8d59) | The number of times to attempt to reconnect if disconnected from the server. (0 = unlimited) |
-| [`user`](#group__symple_1gace5d72442ca0ddd400242766dcbe0075) |  |
-| [`name`](#group__symple_1ga937a706d0ff802b29881200dd0f9b140) |  |
-| [`type`](#group__symple_1ga3a94f72a2f8e72b1bb84f11630f9cd9a) |  |
-| [`token`](#group__symple_1gae46b1ce6b2a9c5e8ae983cf36137d18d) |  |
-
----
-
-#### Options 
-
-```cpp
-inline Options()
+bool _wasOnline = false
 ```
 
 ---
 
-#### host 
+{#_closing}
+
+#### _closing
 
 ```cpp
-std::string host = "127.0.0.1"
+bool _closing = false
+```
+
+### Private Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `void` | [`doConnect`](#doconnect)  |  |
+| `void` | [`onSocketRecv`](#onsocketrecv-9)  |  |
+| `void` | [`onSocketClose`](#onsocketclose-6)  |  |
+| `void` | [`onSocketError`](#onsocketerror-3)  |  |
+| `void` | [`onWelcome`](#onwelcome)  |  |
+| `void` | [`onServerMessage`](#onservermessage)  |  |
+| `void` | [`startReconnect`](#startreconnect)  |  |
+| `void` | [`reset`](#reset-14)  |  |
+| `void` | [`syncDesiredRooms`](#syncdesiredrooms)  |  |
+| `int` | [`sendJson`](#sendjson)  |  |
+| `std::string` | [`buildUrl`](#buildurl) `const` |  |
+
+---
+
+{#doconnect}
+
+#### doConnect
+
+```cpp
+void doConnect()
 ```
 
 ---
 
-#### port 
+{#onsocketrecv-9}
+
+#### onSocketRecv
 
 ```cpp
-uint16_t port = 4500
-```
-
----
-
-#### reconnection 
-
-```cpp
-bool reconnection = true
-```
-
-Weather or not to reconnect if disconnected from the server.
-
----
-
-#### reconnectAttempts 
-
-```cpp
-int reconnectAttempts = 0
-```
-
-The number of times to attempt to reconnect if disconnected from the server. (0 = unlimited)
-
----
-
-#### user 
-
-```cpp
-std::string user
-```
-
----
-
-#### name 
-
-```cpp
-std::string name
-```
-
----
-
-#### type 
-
-```cpp
-std::string type
-```
-
----
-
-#### token 
-
-```cpp
-std::string token
-```
-
-## TCPClient 
-
-> **Extends:** `icy::smpl::Client`
-> **Defined in:** `client.h`
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`TCPClient`](#group__symple_1gafc1541506c7fded90f495818835590b4) |  |
-
----
-
-#### TCPClient 
-
-```cpp
-TCPClient(const Client::Options & options, uv::Loop * loop)
+void onSocketRecv(const std::string & data)
 ```
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `options` | `const Client::Options &` |  |
-| `loop` | `uv::Loop *` |  |
-
-## SSLClient 
-
-> **Extends:** `icy::smpl::Client`
-> **Defined in:** `client.h`
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`SSLClient`](#group__symple_1ga03327af0bc01ae4e7a56affb83991aad) |  |
+| `data` | `const std::string &` |  |
 
 ---
 
-#### SSLClient 
+{#onsocketclose-6}
+
+#### onSocketClose
 
 ```cpp
-SSLClient(const Client::Options & options, uv::Loop * loop)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `options` | `const Client::Options &` |  |
-| `loop` | `uv::Loop *` |  |
-
-## Command 
-
-> **Extends:** `icy::smpl::Message`
-> **Defined in:** `command.h`
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`Command`](#group__symple_1ga1d83f2b5a9be1780e3b77f5c96b34a9a) |  |
-| [`Command`](#group__symple_1ga91132752945caa9ada473cb1f820bd39) |  |
-| [`Command`](#group__symple_1ga2f980c97f7fdfee4882f8923cb2853c2) |  |
-| [`~Command`](#group__symple_1ga964d5a75ca62c76ff2c27e9236f90e00) |  |
-| [`node`](#group__symple_1gac5f9bb1710c74e1f8281c267ecf04c5f) |  |
-| [`action`](#group__symple_1ga81df2719cd693fbda9e76dff7027a654) |  |
-| [`setNode`](#group__symple_1ga904c2957be56206f513c33f92f89bcad) |  |
-| [`setAction`](#group__symple_1ga276a75d047efd959d77cfe473f8a1c58) |  |
-| [`valid`](#group__symple_1gad76ae409faa59e3300da80f7c745aec2) |  |
-| [`param`](#group__symple_1ga1611d5b3bdcc91574bae67dfbde437ae) |  |
-| [`params`](#group__symple_1ga43384ed4f7303ac921bcf65e6f18db26) |  |
-| [`matches`](#group__symple_1gae80a575c75e000c040d320ead0896323) |  |
-
----
-
-#### Command 
-
-```cpp
-Command()
+void onSocketClose()
 ```
 
 ---
 
-#### Command 
+{#onsocketerror-3}
+
+#### onSocketError
 
 ```cpp
-Command(const json::value & root)
+void onSocketError(const std::string & error)
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `root` | `const json::value &` |  |
-
----
-
-#### Command 
-
-```cpp
-Command(const Command & root)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `root` | `const Command &` |  |
-
----
-
-#### ~Command 
-
-```cpp
-virtual ~Command()
-```
-
----
-
-#### node 
-
-```cpp
-std::string node() const
-```
-
----
-
-#### action 
-
-```cpp
-std::string action() const
-```
-
----
-
-#### setNode 
-
-```cpp
-void setNode(const std::string & node)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `node` | `const std::string &` |  |
-
----
-
-#### setAction 
-
-```cpp
-void setAction(const std::string & action)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `action` | `const std::string &` |  |
-
----
-
-#### valid 
-
-```cpp
-virtual bool valid() const
-```
-
----
-
-#### param 
-
-```cpp
-std::string param(int n) const
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `n` | `int` |  |
-
----
-
-#### params 
-
-```cpp
-std::vector< std::string > params()
-```
-
----
-
-#### matches 
-
-```cpp
-bool matches(const std::string & xnode) const
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `xnode` | `const std::string &` |  |
-
-## Event 
-
-> **Extends:** `icy::smpl::Message`
-> **Defined in:** `event.h`
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`Event`](#group__symple_1gafe163cd025c2c0dafa7e779df5f5962d) |  |
-| [`Event`](#group__symple_1ga801abee141af76f34f96bd282fa9f1d3) |  |
-| [`Event`](#group__symple_1gae6aaee01e127e7de476f49d0ecb9f8c7) |  |
-| [`~Event`](#group__symple_1ga9b9bb5b13b492ec09f88e72249a83e3b) |  |
-| [`valid`](#group__symple_1ga365f48210b899bf487ac334a6b50bb6a) |  |
-| [`name`](#group__symple_1gaf4898557f256d37c2ec91dae453ba244) |  |
-| [`time`](#group__symple_1ga3f9805f507320d2a864fe81eaac155b5) |  |
-| [`setName`](#group__symple_1ga97e213f54bcc541345da6867f3f083ed) |  |
-| [`setTime`](#group__symple_1gab3e4b9fa8d12289de33477c9ac68330a) |  |
-
----
-
-#### Event 
-
-```cpp
-Event()
-```
-
----
-
-#### Event 
-
-```cpp
-Event(const json::value & root)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `root` | `const json::value &` |  |
-
----
-
-#### Event 
-
-```cpp
-Event(const Event & root)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `root` | `const Event &` |  |
-
----
-
-#### ~Event 
-
-```cpp
-virtual ~Event()
-```
-
----
-
-#### valid 
-
-```cpp
-virtual bool valid() const
-```
-
----
-
-#### name 
-
-```cpp
-std::string name() const
-```
-
----
-
-#### time 
-
-```cpp
-std::time_t time() const
-```
-
----
-
-#### setName 
-
-```cpp
-void setName(const std::string & name)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `const std::string &` |  |
-
----
-
-#### setTime 
-
-```cpp
-void setTime(std::time_t time)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `time` | `std::time_t` |  |
-
-## FormElement 
-
-> **Subclasses:** `icy::smpl::Form`, `icy::smpl::FormField`
-> **Defined in:** `form.h`
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`FormElement`](#group__symple_1ga7e047bc6b6e46abe01a946a82745ee11) |  |
-| [`FormElement`](#group__symple_1ga3ef7f1f4de265f10ddcc83061e21ab77) |  |
-| [`FormElement`](#group__symple_1ga94f85597aa5b95ef7dcc246ef41787b9) |  |
-| [`operator=`](#group__symple_1ga0d7c97e98878eb69ebd8830df6a01e58) |  |
-| [`~FormElement`](#group__symple_1ga2c7bf72c2e0e6650fe27a68cd5e1beec) |  |
-| [`type`](#group__symple_1ga3b53f1858ddcc524004726f4d6a463b4) |  |
-| [`id`](#group__symple_1ga0eacc59669c12ecf4faf45395cc08f17) |  |
-| [`label`](#group__symple_1ga0bf79407646db8313d409ccc9a2f4ba8) |  |
-| [`setType`](#group__symple_1gae723f824695861e34898005f225e12b7) | Possible "type" values page, section, text, text-multi, list, list-multi, checkbox, media, custom |
-| [`setId`](#group__symple_1gaba4de61935c0d3795d537964f47c33d0) |  |
-| [`setLabel`](#group__symple_1ga52798e6759dd37b1116720a37a2c967d) |  |
-| [`setHint`](#group__symple_1ga1a9595540a1969bb17a3115be6e26df6) |  |
-| [`setError`](#group__symple_1gaf621f96173fcbe523d419fd4a3a87f3e) | Sets and optional validation error message. |
-| [`addPage`](#group__symple_1ga432f56acec954ed84897f7fc01059813) |  |
-| [`addSection`](#group__symple_1gab0619bb63ac7241e61c36f69bbc4ed07) |  |
-| [`addField`](#group__symple_1ga474c9727e83a9ce0e0b206d246379d6c) |  |
-| [`getField`](#group__symple_1gac9715a4fffff97d29092698755242cab) |  |
-| [`getField`](#group__symple_1gad7d9fdada931140ef706d58036afb0fe) |  |
-| [`hasField`](#group__symple_1gae28386fbc730fd60fea605384563dc1c) | Returns true if the given [Address](#structicy_1_1smpl_1_1Address) matches any of the internal form element IDs. If the partial flag is set then substring matches will be counted. |
-| [`setLive`](#group__symple_1ga88878fc79bdeed108b06703d29fab26b) | Live fields or elements are used to submit partial sections a form, without sending the entire form. |
-| [`live`](#group__symple_1gace9f6fd60c701c643d660971c159ce43) | Returns true if this field is live, meaning the form-processing entity should auto-update this field's value whenever it changes. |
-| [`clearElements`](#group__symple_1gac2ee4183b9d5465c0036ee4a4c38e562) | Clears child elements matching the given ID. |
-| [`clear`](#group__symple_1ga4cf4750e263530a525b89755b20677c6) | Clear the entire form. |
-| [`valid`](#group__symple_1ga47cf107cf15ea93bdb9f377253f76aa6) | Returns true if the form element is valid. |
-| [`numElements`](#group__symple_1gaae3b7577b27fb174619fc68801607ea1) | Returns the number of child elements. |
-| [`hasErrors`](#group__symple_1ga50aa0c3f85c44063771f28b75de0a428) | Returns true if any fields have errors. |
-| [`hasPages`](#group__symple_1ga61e65544fa1f0357bc0721864cc54768) | Returns true if the form has multiple pages. |
-| [`root`](#group__symple_1gaade1f7bef1e9dcc71718a22cbc7ffa2d) |  |
-| [`_root`](#group__symple_1ga16c6666fcbd0fa750e6e14b2464a3ad5) | The root pointer is just a reference to the externally managed JSON value memory. |
-
----
-
-#### FormElement 
-
-```cpp
-FormElement()
-```
-
----
-
-#### FormElement 
-
-```cpp
-FormElement(json::value & root, const std::string & type, const std::string & id, const std::string & label)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `root` | `json::value &` |  |
-| `type` | `const std::string &` |  |
-| `id` | `const std::string &` |  |
-| `label` | `const std::string &` |  |
-
----
-
-#### FormElement 
-
-```cpp
-FormElement(const FormElement & r)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `r` | `const FormElement &` |  |
-
----
-
-#### operator= 
-
-```cpp
-FormElement & operator=(const FormElement & r)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `r` | `const FormElement &` |  |
-
----
-
-#### ~FormElement 
-
-```cpp
-virtual ~FormElement()
-```
-
----
-
-#### type 
-
-```cpp
-std::string type() const
-```
-
----
-
-#### id 
-
-```cpp
-std::string id() const
-```
-
----
-
-#### label 
-
-```cpp
-std::string label() const
-```
-
----
-
-#### setType 
-
-```cpp
-void setType(const std::string & type)
-```
-
-Possible "type" values page, section, text, text-multi, list, list-multi, checkbox, media, custom
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `type` | `const std::string &` |  |
-
----
-
-#### setId 
-
-```cpp
-void setId(const std::string & id)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `id` | `const std::string &` |  |
-
----
-
-#### setLabel 
-
-```cpp
-void setLabel(const std::string & text)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `text` | `const std::string &` |  |
-
----
-
-#### setHint 
-
-```cpp
-void setHint(const std::string & text)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `text` | `const std::string &` |  |
-
----
-
-#### setError 
-
-```cpp
-void setError(const std::string & error)
-```
-
-Sets and optional validation error message.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -1061,95 +711,1175 @@ Sets and optional validation error message.
 
 ---
 
-#### addPage 
+{#onwelcome}
+
+#### onWelcome
 
 ```cpp
-FormElement addPage(const std::string & id, const std::string & label)
+void onWelcome(const json::Value & msg)
 ```
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `id` | `const std::string &` |  |
-| `label` | `const std::string &` |  |
+| `msg` | `const [json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
 
 ---
 
-#### addSection 
+{#onservermessage}
+
+#### onServerMessage
 
 ```cpp
-FormElement addSection(const std::string & id, const std::string & label)
+void onServerMessage(const json::Value & msg)
 ```
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `id` | `const std::string &` |  |
-| `label` | `const std::string &` |  |
+| `msg` | `const [json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
 
 ---
 
-#### addField 
+{#startreconnect}
+
+#### startReconnect
 
 ```cpp
-FormField addField(const std::string & type, const std::string & id, const std::string & label)
+void startReconnect()
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `type` | `const std::string &` |  |
-| `id` | `const std::string &` |  |
-| `label` | `const std::string &` |  |
 
 ---
 
-#### getField 
+{#reset-14}
+
+#### reset
 
 ```cpp
-FormField getField(const std::string & id, bool partial)
+void reset()
+```
+
+---
+
+{#syncdesiredrooms}
+
+#### syncDesiredRooms
+
+```cpp
+void syncDesiredRooms()
+```
+
+---
+
+{#sendjson}
+
+#### sendJson
+
+```cpp
+int sendJson(const json::Value & msg)
 ```
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `id` | `const std::string &` |  |
+| `msg` | `const [json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
+
+---
+
+{#buildurl}
+
+#### buildUrl
+
+`const`
+
+```cpp
+std::string buildUrl() const
+```
+
+{#options-13}
+
+## Options
+
+```cpp
+#include <client.h>
+```
+
+Connection and authentication options for the Symple client.
+
+### Public Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `std::string` | [`host`](#host-2)  |  |
+| `uint16_t` | [`port`](#port-2)  |  |
+| `bool` | [`secure`](#secure-1)  | Use wss:// instead of ws://. |
+| `bool` | [`reconnection`](#reconnection)  | Auto-reconnect on disconnect. |
+| `int` | [`reconnectAttempts`](#reconnectattempts)  | 0 = unlimited |
+| `int` | [`reconnectDelay`](#reconnectdelay)  | Milliseconds between retries. |
+| `std::string` | [`user`](#user)  | User identifier (required) |
+| `std::string` | [`name`](#name-11)  | Display name. |
+| `std::string` | [`type`](#type-18)  | [Peer](#peer-1) type. |
+| `std::string` | [`token`](#token)  | Auth token (optional) |
+
+---
+
+{#host-2}
+
+#### host
+
+```cpp
+std::string host = "127.0.0.1"
+```
+
+---
+
+{#port-2}
+
+#### port
+
+```cpp
+uint16_t port = 4500
+```
+
+---
+
+{#secure-1}
+
+#### secure
+
+```cpp
+bool secure = false
+```
+
+Use wss:// instead of ws://.
+
+---
+
+{#reconnection}
+
+#### reconnection
+
+```cpp
+bool reconnection = true
+```
+
+Auto-reconnect on disconnect.
+
+---
+
+{#reconnectattempts}
+
+#### reconnectAttempts
+
+```cpp
+int reconnectAttempts = 0
+```
+
+0 = unlimited
+
+---
+
+{#reconnectdelay}
+
+#### reconnectDelay
+
+```cpp
+int reconnectDelay = 3000
+```
+
+Milliseconds between retries.
+
+---
+
+{#user}
+
+#### user
+
+```cpp
+std::string user
+```
+
+User identifier (required)
+
+---
+
+{#name-11}
+
+#### name
+
+```cpp
+std::string name
+```
+
+Display name.
+
+---
+
+{#type-18}
+
+#### type
+
+```cpp
+std::string type
+```
+
+[Peer](#peer-1) type.
+
+---
+
+{#token}
+
+#### token
+
+```cpp
+std::string token
+```
+
+Auth token (optional)
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`Options`](#options-14)  |  |
+
+---
+
+{#options-14}
+
+#### Options
+
+```cpp
+Options() = default
+```
+
+{#command}
+
+## Command
+
+```cpp
+#include <command.h>
+```
+
+> **Inherits:** [`Message`](#message-10)
+
+Symple command message with a node path and action verb.
+
+The `node` field is a colon-delimited path (e.g. "camera:zoom:in"). Individual path segments can be retrieved with [param()](#param).
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`Command`](#command-1)  | Constructs an empty command with type set to "command". |
+|  | [`Command`](#command-2)  | Constructs a command from a JSON value.  |
+|  | [`Command`](#command-3)  | Copy constructor.  |
+| `std::string` | [`node`](#node) `const` | Returns the colon-delimited node path (e.g. "camera:zoom"). |
+| `std::string` | [`action`](#action-2) `const` | Returns the action verb (defaults to "execute"). |
+| `void` | [`setNode`](#setnode)  | Sets the node path field.  |
+| `void` | [`setAction`](#setaction)  | Sets the action verb field.  |
+| `bool` | [`valid`](#valid-8) `virtual` `const` | Returns true if the base message is valid and the `node` field is set. |
+| `std::string` | [`param`](#param) `const` | Returns the nth colon-separated segment of the node path (1-based). Throws std::out_of_range if n exceeds the number of segments.  |
+| `std::vector< std::string >` | [`params`](#params)  | Returns all colon-separated segments of the node path.  |
+| `bool` | [`matches`](#matches-3) `const` | Returns true if the node path matches the given pattern. Uses wildcard node matching via [util::matchNodes](#matchnodes).  |
+
+---
+
+{#command-1}
+
+#### Command
+
+```cpp
+Command()
+```
+
+Constructs an empty command with type set to "command".
+
+---
+
+{#command-2}
+
+#### Command
+
+```cpp
+Command(const json::Value & root)
+```
+
+Constructs a command from a JSON value. 
+#### Parameters
+* `root` JSON object to initialise from.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `root` | `const [json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
+
+---
+
+{#command-3}
+
+#### Command
+
+```cpp
+Command(const Command & root)
+```
+
+Copy constructor. 
+#### Parameters
+* `root` Source command.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `root` | `const [Command](#command) &` |  |
+
+---
+
+{#node}
+
+#### node
+
+`const`
+
+```cpp
+std::string node() const
+```
+
+Returns the colon-delimited node path (e.g. "camera:zoom").
+
+---
+
+{#action-2}
+
+#### action
+
+`const`
+
+```cpp
+std::string action() const
+```
+
+Returns the action verb (defaults to "execute").
+
+---
+
+{#setnode}
+
+#### setNode
+
+```cpp
+void setNode(std::string_view node)
+```
+
+Sets the node path field. 
+#### Parameters
+* `node` Colon-delimited node path string.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `node` | `std::string_view` |  |
+
+---
+
+{#setaction}
+
+#### setAction
+
+```cpp
+void setAction(std::string_view action)
+```
+
+Sets the action verb field. 
+#### Parameters
+* `action` Action string (e.g. "execute", "get", "set").
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `action` | `std::string_view` |  |
+
+---
+
+{#valid-8}
+
+#### valid
+
+`virtual` `const`
+
+```cpp
+virtual bool valid() const
+```
+
+Returns true if the base message is valid and the `node` field is set.
+
+---
+
+{#param}
+
+#### param
+
+`const`
+
+```cpp
+std::string param(int n) const
+```
+
+Returns the nth colon-separated segment of the node path (1-based). Throws std::out_of_range if n exceeds the number of segments. 
+#### Parameters
+* `n` 1-based segment index. 
+
+#### Returns
+The nth path segment.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `n` | `int` |  |
+
+---
+
+{#params}
+
+#### params
+
+```cpp
+std::vector< std::string > params()
+```
+
+Returns all colon-separated segments of the node path. 
+#### Returns
+Vector of path segment strings.
+
+---
+
+{#matches-3}
+
+#### matches
+
+`const`
+
+```cpp
+bool matches(std::string_view xnode) const
+```
+
+Returns true if the node path matches the given pattern. Uses wildcard node matching via [util::matchNodes](#matchnodes). 
+#### Parameters
+* `xnode` Pattern to match against (colon-delimited, supports wildcards).
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `xnode` | `std::string_view` |  |
+
+{#event-1}
+
+## Event
+
+```cpp
+#include <event.h>
+```
+
+> **Inherits:** [`Message`](#message-10)
+
+Symple event message carrying a named occurrence with a timestamp.
+
+The `name` field identifies the event. The `time` field is stored as a Unix timestamp (seconds since epoch).
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`Event`](#event-2)  | Constructs an event with type "event" and time set to now. |
+|  | [`Event`](#event-3)  | Constructs an event from a JSON value; sets missing time to now.  |
+|  | [`Event`](#event-4)  | Copy constructor; preserves or sets missing time to now.  |
+| `bool` | [`valid`](#valid-9) `virtual` `const` | Returns true if the base message is valid and the `name` field is set. |
+| `std::string` | [`name`](#name-12) `const` | Returns the event name string. |
+| `std::time_t` | [`time`](#time-4) `const` | Returns the event timestamp as a Unix time_t value. |
+| `void` | [`setName`](#setname-2)  | Sets the event name field.  |
+| `void` | [`setTime`](#settime)  | Sets the event timestamp.  |
+
+---
+
+{#event-2}
+
+#### Event
+
+```cpp
+Event()
+```
+
+Constructs an event with type "event" and time set to now.
+
+---
+
+{#event-3}
+
+#### Event
+
+```cpp
+Event(const json::Value & root)
+```
+
+Constructs an event from a JSON value; sets missing time to now. 
+#### Parameters
+* `root` JSON object to initialise from.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `root` | `const [json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
+
+---
+
+{#event-4}
+
+#### Event
+
+```cpp
+Event(const Event & root)
+```
+
+Copy constructor; preserves or sets missing time to now. 
+#### Parameters
+* `root` Source event.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `root` | `const [Event](#event-1) &` |  |
+
+---
+
+{#valid-9}
+
+#### valid
+
+`virtual` `const`
+
+```cpp
+virtual bool valid() const
+```
+
+Returns true if the base message is valid and the `name` field is set.
+
+---
+
+{#name-12}
+
+#### name
+
+`const`
+
+```cpp
+std::string name() const
+```
+
+Returns the event name string.
+
+---
+
+{#time-4}
+
+#### time
+
+`const`
+
+```cpp
+std::time_t time() const
+```
+
+Returns the event timestamp as a Unix time_t value.
+
+---
+
+{#setname-2}
+
+#### setName
+
+```cpp
+void setName(std::string_view name)
+```
+
+Sets the event name field. 
+#### Parameters
+* `name` [Event](#event-1) name string.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `name` | `std::string_view` |  |
+
+---
+
+{#settime}
+
+#### setTime
+
+```cpp
+void setTime(std::time_t time)
+```
+
+Sets the event timestamp. 
+#### Parameters
+* `time` Unix timestamp (seconds since epoch).
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `time` | `std::time_t` |  |
+
+{#form}
+
+## Form
+
+```cpp
+#include <form.h>
+```
+
+> **Inherits:** [`FormElement`](#formelement)
+
+Interactive form with pages, sections, and fields for command data exchange.
+
+Attach a [Form](#form) to a [Command](#command) message to carry structured input/output. The `action` field governs the exchange direction; `partial` enables live/auto-complete field submission.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`Form`](#form-1)  | Constructs an unbound form (root pointer is null). |
+|  | [`Form`](#form-2)  | Constructs a form bound to the given JSON node. Sets the `type` field to "form".  |
+|  | [`Form`](#form-3)  | Constructs a form from a [Command](#command), binding to `command["form"]`. Sets the `type` field to "form".  |
+| `bool` | [`valid`](#valid-10)  | Returns true if the element is valid, non-empty, and has no errors. |
+| `std::string` | [`action`](#action-3) `const` | Returns the form action string (defaults to "form"). |
+| `bool` | [`partial`](#partial) `const` | Returns true if this is a partial form submission. |
+| `void` | [`setAction`](#setaction-1)  | Sets the form action field. Throws std::invalid_argument for unrecognised values. Possible values: `form` - Form-processing entity requests form completion. `submit` - Form-submitting entity is sending data. `cancel` - Form-submitting entity cancelled submission. `result` - Form-processing entity is returning data.  |
+| `void` | [`setPartial`](#setpartial)  | Marks the form as a partial section for live/auto-complete updates. Partial forms transmit only the changed fields rather than the entire form payload.  |
+
+---
+
+{#form-1}
+
+#### Form
+
+```cpp
+Form()
+```
+
+Constructs an unbound form (root pointer is null).
+
+---
+
+{#form-2}
+
+#### Form
+
+```cpp
+Form(json::Value & root)
+```
+
+Constructs a form bound to the given JSON node. Sets the `type` field to "form". 
+#### Parameters
+* `root` JSON node to bind to.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `root` | `[json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
+
+---
+
+{#form-3}
+
+#### Form
+
+```cpp
+Form(Command & root)
+```
+
+Constructs a form from a [Command](#command), binding to `command["form"]`. Sets the `type` field to "form". 
+#### Parameters
+* `root` Parent command message.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `root` | `[Command](#command) &` |  |
+
+---
+
+{#valid-10}
+
+#### valid
+
+```cpp
+bool valid()
+```
+
+Returns true if the element is valid, non-empty, and has no errors.
+
+---
+
+{#action-3}
+
+#### action
+
+`const`
+
+```cpp
+std::string action() const
+```
+
+Returns the form action string (defaults to "form").
+
+---
+
+{#partial}
+
+#### partial
+
+`const`
+
+```cpp
+bool partial() const
+```
+
+Returns true if this is a partial form submission.
+
+---
+
+{#setaction-1}
+
+#### setAction
+
+```cpp
+void setAction(std::string_view action)
+```
+
+Sets the form action field. Throws std::invalid_argument for unrecognised values. Possible values: `form` - Form-processing entity requests form completion. `submit` - Form-submitting entity is sending data. `cancel` - Form-submitting entity cancelled submission. `result` - Form-processing entity is returning data. 
+#### Parameters
+* `action` Action string.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `action` | `std::string_view` |  |
+
+---
+
+{#setpartial}
+
+#### setPartial
+
+```cpp
+void setPartial(bool flag)
+```
+
+Marks the form as a partial section for live/auto-complete updates. Partial forms transmit only the changed fields rather than the entire form payload. 
+#### Parameters
+* `flag` True to mark as partial.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `flag` | `bool` |  |
+
+{#formelement}
+
+## FormElement
+
+```cpp
+#include <form.h>
+```
+
+> **Subclassed by:** [`Form`](#form), [`FormField`](#formfield)
+
+Base element within a Symple form.
+
+[FormElement](#formelement) wraps a reference to an external JSON node and provides typed accessors for the common `type`, `id`, `label`, and `elements` fields. Pages, sections, and fields all derive from this base.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`FormElement`](#formelement-1)  | Constructs an unbound element (root pointer is null). |
+|  | [`FormElement`](#formelement-2)  | Constructs an element bound to the given JSON node.  |
+|  | [`FormElement`](#formelement-3)  | Copy constructor; copies the root pointer reference (shallow).  |
+| `FormElement &` | [`operator=`](#operator-26)  | Copy-assigns the root pointer reference.  |
+| `std::string` | [`type`](#type-19) `const` | Returns the element type string. |
+| `std::string` | [`id`](#id-4) `const` | Returns the element ID string. |
+| `std::string` | [`label`](#label) `const` | Returns the display label string. |
+| `void` | [`setType`](#settype-1)  | Sets the element type. Possible values: page, section, text, text-multi, list, list-multi, checkbox, media, custom  |
+| `void` | [`setId`](#setid)  | Sets the element ID field.  |
+| `void` | [`setLabel`](#setlabel)  | Sets the display label field.  |
+| `void` | [`setHint`](#sethint)  | Sets the hint/description field shown below the element.  |
+| `void` | [`setError`](#seterror-7)  | Sets an optional validation error message.  |
+| `FormElement` | [`addPage`](#addpage)  | Appends a page child element and returns a handle to it.  |
+| `FormElement` | [`addSection`](#addsection)  | Appends a section child element and returns a handle to it.  |
+| `FormField` | [`addField`](#addfield)  | Appends a typed field child element and returns a handle to it. Throws std::invalid_argument if type is not a recognised field type.  |
+| `FormField` | [`getField`](#getfield)  | Searches child elements for the field with the given ID.  |
+| `bool` | [`getField`](#getfield-1)  | Populates a [FormField](#formfield) by searching child elements for the given ID.  |
+| `bool` | [`hasField`](#hasfield)  | Returns true if any child element has an ID matching the given value.  |
+| `void` | [`setLive`](#setlive)  | Sets the live flag on this element. Live elements are used to submit partial form sections (e.g. for auto-complete) without sending the entire form.  |
+| `bool` | [`live`](#live) `const` | Returns true if this field is live, meaning the form-processing entity should auto-update this field's value whenever it changes. |
+| `bool` | [`clearElements`](#clearelements)  | Removes all child elements whose ID matches the given value.  |
+| `void` | [`clear`](#clear-3)  | Clears all fields from the underlying JSON node. |
+| `bool` | [`valid`](#valid-11) `const` | Returns true if the form element is valid. |
+| `int` | [`numElements`](#numelements)  | Returns the number of child elements. |
+| `bool` | [`hasErrors`](#haserrors)  | Returns true if any fields have errors. |
+| `bool` | [`hasPages`](#haspages)  | Returns true if the form has multiple pages. |
+| `json::Value &` | [`root`](#root-3) `const` | Returns a reference to the underlying JSON node. Throws std::runtime_error if the root pointer is null. |
+
+---
+
+{#formelement-1}
+
+#### FormElement
+
+```cpp
+FormElement()
+```
+
+Constructs an unbound element (root pointer is null).
+
+---
+
+{#formelement-2}
+
+#### FormElement
+
+```cpp
+FormElement(json::Value & root, std::string_view type, std::string_view id, std::string_view label)
+```
+
+Constructs an element bound to the given JSON node. 
+#### Parameters
+* `root` JSON node this element refers to. 
+
+* `type` Optional element type string. 
+
+* `id` Optional element ID string. 
+
+* `label` Optional display label string.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `root` | `[json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
+| `type` | `std::string_view` |  |
+| `id` | `std::string_view` |  |
+| `label` | `std::string_view` |  |
+
+---
+
+{#formelement-3}
+
+#### FormElement
+
+```cpp
+FormElement(const FormElement & r)
+```
+
+Copy constructor; copies the root pointer reference (shallow). 
+#### Parameters
+* `r` Source element.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `r` | `const [FormElement](#formelement) &` |  |
+
+---
+
+{#operator-26}
+
+#### operator=
+
+```cpp
+FormElement & operator=(const FormElement & r)
+```
+
+Copy-assigns the root pointer reference. 
+#### Parameters
+* `r` Source element.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `r` | `const [FormElement](#formelement) &` |  |
+
+---
+
+{#type-19}
+
+#### type
+
+`const`
+
+```cpp
+std::string type() const
+```
+
+Returns the element type string.
+
+---
+
+{#id-4}
+
+#### id
+
+`const`
+
+```cpp
+std::string id() const
+```
+
+Returns the element ID string.
+
+---
+
+{#label}
+
+#### label
+
+`const`
+
+```cpp
+std::string label() const
+```
+
+Returns the display label string.
+
+---
+
+{#settype-1}
+
+#### setType
+
+```cpp
+void setType(std::string_view type)
+```
+
+Sets the element type. Possible values: page, section, text, text-multi, list, list-multi, checkbox, media, custom 
+#### Parameters
+* `type` Element type string.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `type` | `std::string_view` |  |
+
+---
+
+{#setid}
+
+#### setId
+
+```cpp
+void setId(std::string_view id)
+```
+
+Sets the element ID field. 
+#### Parameters
+* `id` Element ID string.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | `std::string_view` |  |
+
+---
+
+{#setlabel}
+
+#### setLabel
+
+```cpp
+void setLabel(std::string_view text)
+```
+
+Sets the display label field. 
+#### Parameters
+* `text` Label text.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `text` | `std::string_view` |  |
+
+---
+
+{#sethint}
+
+#### setHint
+
+```cpp
+void setHint(std::string_view text)
+```
+
+Sets the hint/description field shown below the element. 
+#### Parameters
+* `text` Hint text.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `text` | `std::string_view` |  |
+
+---
+
+{#seterror-7}
+
+#### setError
+
+```cpp
+void setError(std::string_view error)
+```
+
+Sets an optional validation error message. 
+#### Parameters
+* `error` [Error](#structicy_1_1Error) text to display.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `error` | `std::string_view` |  |
+
+---
+
+{#addpage}
+
+#### addPage
+
+```cpp
+FormElement addPage(std::string_view id, std::string_view label)
+```
+
+Appends a page child element and returns a handle to it. 
+#### Parameters
+* `id` Optional page ID. 
+
+* `label` Optional page label. 
+
+#### Returns
+[FormElement](#formelement) referencing the new page node.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | `std::string_view` |  |
+| `label` | `std::string_view` |  |
+
+---
+
+{#addsection}
+
+#### addSection
+
+```cpp
+FormElement addSection(std::string_view id, std::string_view label)
+```
+
+Appends a section child element and returns a handle to it. 
+#### Parameters
+* `id` Optional section ID. 
+
+* `label` Optional section label. 
+
+#### Returns
+[FormElement](#formelement) referencing the new section node.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | `std::string_view` |  |
+| `label` | `std::string_view` |  |
+
+---
+
+{#addfield}
+
+#### addField
+
+```cpp
+FormField addField(std::string_view type, std::string_view id, std::string_view label)
+```
+
+Appends a typed field child element and returns a handle to it. Throws std::invalid_argument if type is not a recognised field type. 
+#### Parameters
+* `type` Field type (e.g. "text", "list", "boolean"). 
+
+* `id` Optional field ID. 
+
+* `label` Optional field label. 
+
+#### Returns
+[FormField](#formfield) referencing the new field node.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `type` | `std::string_view` |  |
+| `id` | `std::string_view` |  |
+| `label` | `std::string_view` |  |
+
+---
+
+{#getfield}
+
+#### getField
+
+```cpp
+FormField getField(std::string_view id, bool partial)
+```
+
+Searches child elements for the field with the given ID. 
+#### Parameters
+* `id` Field ID to search for. 
+
+* `partial` If true, performs a substring match. 
+
+#### Returns
+[FormField](#formfield) handle (may be invalid if not found).
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | `std::string_view` |  |
 | `partial` | `bool` |  |
 
 ---
 
-#### getField 
+{#getfield-1}
+
+#### getField
 
 ```cpp
-bool getField(const std::string & id, FormField & field, bool partial)
+bool getField(std::string_view id, FormField & field, bool partial)
 ```
+
+Populates a [FormField](#formfield) by searching child elements for the given ID. 
+#### Parameters
+* `id` Field ID to search for. 
+
+* `field` Output field handle. 
+
+* `partial` If true, performs a substring match. 
+
+#### Returns
+True if the field was found.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `id` | `const std::string &` |  |
-| `field` | `FormField &` |  |
+| `id` | `std::string_view` |  |
+| `field` | `[FormField](#formfield) &` |  |
 | `partial` | `bool` |  |
 
 ---
 
-#### hasField 
+{#hasfield}
+
+#### hasField
 
 ```cpp
-bool hasField(const std::string & id, bool partial)
+bool hasField(std::string_view id, bool partial)
 ```
 
-Returns true if the given [Address](#structicy_1_1smpl_1_1Address) matches any of the internal form element IDs. If the partial flag is set then substring matches will be counted.
+Returns true if any child element has an ID matching the given value. 
+#### Parameters
+* `id` ID string to search for. 
+
+* `partial` If true, a substring match is sufficient.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `id` | `const std::string &` |  |
+| `id` | `std::string_view` |  |
 | `partial` | `bool` |  |
 
 ---
 
-#### setLive 
+{#setlive}
+
+#### setLive
 
 ```cpp
 void setLive(bool flag)
 ```
 
-Live fields or elements are used to submit partial sections a form, without sending the entire form.
+Sets the live flag on this element. Live elements are used to submit partial form sections (e.g. for auto-complete) without sending the entire form. 
+#### Parameters
+* `flag` True to enable live updates.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -1157,7 +1887,11 @@ Live fields or elements are used to submit partial sections a form, without send
 
 ---
 
-#### live 
+{#live}
+
+#### live
+
+`const`
 
 ```cpp
 bool live() const
@@ -1167,32 +1901,47 @@ Returns true if this field is live, meaning the form-processing entity should au
 
 ---
 
-#### clearElements 
+{#clearelements}
+
+#### clearElements
 
 ```cpp
-bool clearElements(const std::string & id, bool partial)
+bool clearElements(std::string_view id, bool partial)
 ```
 
-Clears child elements matching the given ID.
+Removes all child elements whose ID matches the given value. 
+#### Parameters
+* `id` ID string to match against. 
+
+* `partial` If true, removes elements whose ID contains the string. 
+
+#### Returns
+True if at least one element was removed.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `id` | `const std::string &` |  |
+| `id` | `std::string_view` |  |
 | `partial` | `bool` |  |
 
 ---
 
-#### clear 
+{#clear-3}
+
+#### clear
 
 ```cpp
 void clear()
 ```
 
-Clear the entire form.
+Clears all fields from the underlying JSON node.
 
 ---
 
-#### valid 
+{#valid-11}
+
+#### valid
+
+`const`
 
 ```cpp
 bool valid() const
@@ -1202,7 +1951,9 @@ Returns true if the form element is valid.
 
 ---
 
-#### numElements 
+{#numelements}
+
+#### numElements
 
 ```cpp
 int numElements()
@@ -1212,7 +1963,9 @@ Returns the number of child elements.
 
 ---
 
-#### hasErrors 
+{#haserrors}
+
+#### hasErrors
 
 ```cpp
 bool hasErrors()
@@ -1222,7 +1975,9 @@ Returns true if any fields have errors.
 
 ---
 
-#### hasPages 
+{#haspages}
+
+#### hasPages
 
 ```cpp
 bool hasPages()
@@ -1232,264 +1987,217 @@ Returns true if the form has multiple pages.
 
 ---
 
-#### root 
+{#root-3}
+
+#### root
+
+`const`
 
 ```cpp
-json::value & root() const
+json::Value & root() const
 ```
+
+Returns a reference to the underlying JSON node. Throws std::runtime_error if the root pointer is null.
+
+### Protected Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `json::Value *` | [`_root`](#_root)  | The root pointer is just a reference to the externally managed JSON value memory. |
 
 ---
 
-#### _root 
+{#_root}
+
+#### _root
 
 ```cpp
-json::value * _root
+json::Value * _root
 ```
 
 The root pointer is just a reference to the externally managed JSON value memory.
 
-## Form 
+{#formfield}
 
-> **Extends:** `icy::smpl::FormElement`
-> **Defined in:** `form.h`
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`Form`](#group__symple_1ga68e4093955870a7823a1a0e2fb32781a) |  |
-| [`Form`](#group__symple_1gab2fed5a941e921052b77cf4e94120f22) |  |
-| [`Form`](#group__symple_1gaa8a3c6e4f9bca2257fdae351d7621a45) |  |
-| [`~Form`](#group__symple_1ga78e6a83ae030945f05c990ea856d7281) |  |
-| [`valid`](#group__symple_1ga0259ae314e90190494940841638b4a0e) |  |
-| [`action`](#group__symple_1ga2974536cdcca932554f986ed1dbd7e58) |  |
-| [`partial`](#group__symple_1ga25bd29f8f64828762cfeb0d44a2be46c) |  |
-| [`setAction`](#group__symple_1ga8bc4b676485d8e4e28da58b2f941acb9) | Possible "action" values `form` The form-processing entity is asking the form-submitting entity to complete a form. `submit` The form-submitting entity is submitting data to the form-processing entity. `cancel` The form-submitting entity has cancelled submission of data to the form-processing entity. `result` The form-processing entity is returning data to the form-submitting entity. |
-| [`setPartial`](#group__symple_1ga828e2ab5535b743420349e7bb1ff59f9) | Notifies the form is a partial section of the form. This is used for transmitting and updating live fields such as for auto-complete. |
-
----
-
-#### Form 
+## FormField
 
 ```cpp
-Form()
+#include <form.h>
 ```
+
+> **Inherits:** [`FormElement`](#formelement)
+
+[Form](#form) input field with typed values and selectable options.
+
+Values are stored as strings in a JSON array. Typed accessors (intValue, doubleValue, boolValue) parse the first string on demand.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`FormField`](#formfield-1)  | Constructs an unbound field (root pointer is null). |
+|  | [`FormField`](#formfield-2)  | Constructs a field bound to the given JSON node.  |
+| `void` | [`addOption`](#addoption)  | Adds a labelled option for list-based fields.  |
+| `void` | [`addOption`](#addoption-1)  | Adds an option whose key and display value are identical.  |
+| `void` | [`setValue`](#setvalue-4)  | Replaces all current values with a single string value.  |
+| `void` | [`setValue`](#setvalue-5)  | Replaces all current values with a single integer value.  |
+| `void` | [`setValue`](#setvalue-6)  | Replaces all current values with a single double value.  |
+| `void` | [`setValue`](#setvalue-7)  | Replaces all current values with a single boolean value.  |
+| `void` | [`addValue`](#addvalue)  | Appends a string value to the values array.  |
+| `void` | [`addValue`](#addvalue-1)  | Appends an integer value to the values array.  |
+| `void` | [`addValue`](#addvalue-2)  | Appends a double value to the values array.  |
+| `void` | [`addValue`](#addvalue-3)  | Appends a boolean value to the values array.  |
+| `json::Value &` | [`values`](#values)  | Returns a reference to the JSON array of all values. |
+| `std::string` | [`value`](#value-3) `const` | Returns the first value as a string. Most field types (except multi-value) only use a single value. |
+| `int` | [`intValue`](#intvalue) `const` | Returns the first value parsed as an integer. |
+| `double` | [`doubleValue`](#doublevalue) `const` | Returns the first value parsed as a double. |
+| `bool` | [`boolValue`](#boolvalue) `const` | Returns the first value parsed as a boolean. Treats "1", "true", and "on" as true; all other strings as false. |
 
 ---
 
-#### Form 
+{#formfield-1}
 
-```cpp
-Form(json::value & root)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `root` | `json::value &` |  |
-
----
-
-#### Form 
-
-```cpp
-Form(Command & root)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `root` | `Command &` |  |
-
----
-
-#### ~Form 
-
-```cpp
-virtual ~Form()
-```
-
----
-
-#### valid 
-
-```cpp
-bool valid()
-```
-
----
-
-#### action 
-
-```cpp
-std::string action() const
-```
-
----
-
-#### partial 
-
-```cpp
-bool partial() const
-```
-
----
-
-#### setAction 
-
-```cpp
-void setAction(const std::string & action)
-```
-
-Possible "action" values `form` The form-processing entity is asking the form-submitting entity to complete a form. `submit` The form-submitting entity is submitting data to the form-processing entity. `cancel` The form-submitting entity has cancelled submission of data to the form-processing entity. `result` The form-processing entity is returning data to the form-submitting entity.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `action` | `const std::string &` |  |
-
----
-
-#### setPartial 
-
-```cpp
-void setPartial(bool flag)
-```
-
-Notifies the form is a partial section of the form. This is used for transmitting and updating live fields such as for auto-complete.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `flag` | `bool` |  |
-
-## FormField 
-
-> **Extends:** `icy::smpl::FormElement`
-> **Defined in:** `form.h`
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`FormField`](#group__symple_1gaf9378e4d88099d33f5c73cd6e5301841) |  |
-| [`FormField`](#group__symple_1gabe61a857e005af10301b5ac987d0946d) |  |
-| [`~FormField`](#group__symple_1gac0c5aeeef91f25f93d981deff77382dd) |  |
-| [`addOption`](#group__symple_1ga26777a113bae5c3083906e77b62d13f6) | Adds an option for list based fields. |
-| [`addOption`](#group__symple_1gaf3d1bf938ba0cbeade0da2a18543a35d) |  |
-| [`setValue`](#group__symple_1gaeee92fee4944e5013ebef43eee2b9183) | Sets the value clearing all other values. |
-| [`setValue`](#group__symple_1ga170d9a5ddc51953f406331b6da779bcf) |  |
-| [`setValue`](#group__symple_1gaa29f083206c8cbf9005f730f61b55dad) |  |
-| [`setValue`](#group__symple_1gaee3ee4b29024eee4fc34e1dded5267b8) |  |
-| [`addValue`](#group__symple_1ga7cd9073b9e7c2a476f17104d6e9ce8fb) | Appends a value to the value array. |
-| [`addValue`](#group__symple_1ga89b16c8639181a01f676ea4ec1d48cbc) |  |
-| [`addValue`](#group__symple_1ga686348a5aacfc900b9a4d3d3aea903ad) |  |
-| [`addValue`](#group__symple_1ga89eaf8cd95b3a7f081e30f154720e883) |  |
-| [`values`](#group__symple_1ga5f80c4930f8fb7127d42f7af3ceb93aa) | Returns a JSON array of all values. |
-| [`value`](#group__symple_1gae0051a3119d85c46034f1167a35fc9e5) | Returns the first value. Most formats (except multi) only require single value. |
-| [`intValue`](#group__symple_1ga6806b9902742ea0bfe06e2a4a3e18cb1) |  |
-| [`doubleValue`](#group__symple_1ga744a0a50084034c5179a92b6c5538956) |  |
-| [`boolValue`](#group__symple_1ga6d0f293a15bce06dc455fc7535619eef) |  |
-
----
-
-#### FormField 
+#### FormField
 
 ```cpp
 FormField()
 ```
 
+Constructs an unbound field (root pointer is null).
+
 ---
 
-#### FormField 
+{#formfield-2}
+
+#### FormField
 
 ```cpp
-FormField(json::value & root, const std::string & type, const std::string & id, const std::string & label)
+FormField(json::Value & root, std::string_view type, std::string_view id, std::string_view label)
 ```
+
+Constructs a field bound to the given JSON node. 
+#### Parameters
+* `root` JSON node to bind to. 
+
+* `type` Field type string (e.g. "text", "list"). 
+
+* `id` Optional field ID. 
+
+* `label` Optional display label.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `root` | `json::value &` |  |
-| `type` | `const std::string &` |  |
-| `id` | `const std::string &` |  |
-| `label` | `const std::string &` |  |
+| `root` | `[json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
+| `type` | `std::string_view` |  |
+| `id` | `std::string_view` |  |
+| `label` | `std::string_view` |  |
 
 ---
 
-#### ~FormField 
+{#addoption}
+
+#### addOption
 
 ```cpp
-virtual ~FormField()
+void addOption(std::string_view key, std::string_view value)
 ```
 
----
+Adds a labelled option for list-based fields. 
+#### Parameters
+* `key` Option key sent on submit. 
 
-#### addOption 
-
-```cpp
-void addOption(const std::string & key, const std::string & value)
-```
-
-Adds an option for list based fields.
+* `value` Display label for the option.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `key` | `const std::string &` |  |
-| `value` | `const std::string &` |  |
+| `key` | `std::string_view` |  |
+| `value` | `std::string_view` |  |
 
 ---
 
-#### addOption 
+{#addoption-1}
+
+#### addOption
 
 ```cpp
-void addOption(const std::string & value)
+void addOption(std::string_view value)
 ```
+
+Adds an option whose key and display value are identical. 
+#### Parameters
+* `value` Option string.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `value` | `const std::string &` |  |
+| `value` | `std::string_view` |  |
 
 ---
 
-#### setValue 
+{#setvalue-4}
+
+#### setValue
 
 ```cpp
-void setValue(const std::string & value)
+void setValue(std::string_view value)
 ```
 
-Sets the value clearing all other values.
+Replaces all current values with a single string value. 
+#### Parameters
+* `value` String value to set.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `value` | `const std::string &` |  |
+| `value` | `std::string_view` |  |
 
 ---
 
-#### setValue 
+{#setvalue-5}
+
+#### setValue
 
 ```cpp
 void setValue(int value)
 ```
 
+Replaces all current values with a single integer value. 
+#### Parameters
+* `value` Integer value to set.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `value` | `int` |  |
 
 ---
 
-#### setValue 
+{#setvalue-6}
+
+#### setValue
 
 ```cpp
 void setValue(double value)
 ```
 
+Replaces all current values with a single double value. 
+#### Parameters
+* `value` Double value to set.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `value` | `double` |  |
 
 ---
 
-#### setValue 
+{#setvalue-7}
+
+#### setValue
 
 ```cpp
 void setValue(bool value)
 ```
+
+Replaces all current values with a single boolean value. 
+#### Parameters
+* `value` Boolean value to set.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -1497,25 +2205,35 @@ void setValue(bool value)
 
 ---
 
-#### addValue 
+{#addvalue}
+
+#### addValue
 
 ```cpp
-void addValue(const std::string & value)
+void addValue(std::string_view value)
 ```
 
-Appends a value to the value array.
+Appends a string value to the values array. 
+#### Parameters
+* `value` String value to append.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `value` | `const std::string &` |  |
+| `value` | `std::string_view` |  |
 
 ---
 
-#### addValue 
+{#addvalue-1}
+
+#### addValue
 
 ```cpp
 void addValue(int value)
 ```
+
+Appends an integer value to the values array. 
+#### Parameters
+* `value` Integer value to append.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -1523,11 +2241,17 @@ void addValue(int value)
 
 ---
 
-#### addValue 
+{#addvalue-2}
+
+#### addValue
 
 ```cpp
 void addValue(double value)
 ```
+
+Appends a double value to the values array. 
+#### Parameters
+* `value` Double value to append.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -1535,11 +2259,17 @@ void addValue(double value)
 
 ---
 
-#### addValue 
+{#addvalue-3}
+
+#### addValue
 
 ```cpp
 void addValue(bool value)
 ```
+
+Appends a boolean value to the values array. 
+#### Parameters
+* `value` Boolean value to append.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -1547,313 +2277,520 @@ void addValue(bool value)
 
 ---
 
-#### values 
+{#values}
+
+#### values
 
 ```cpp
-json::value & values()
+json::Value & values()
 ```
 
-Returns a JSON array of all values.
+Returns a reference to the JSON array of all values.
 
 ---
 
-#### value 
+{#value-3}
+
+#### value
+
+`const`
 
 ```cpp
 std::string value() const
 ```
 
-Returns the first value. Most formats (except multi) only require single value.
+Returns the first value as a string. Most field types (except multi-value) only use a single value.
 
 ---
 
-#### intValue 
+{#intvalue}
+
+#### intValue
+
+`const`
 
 ```cpp
 int intValue() const
 ```
 
+Returns the first value parsed as an integer.
+
 ---
 
-#### doubleValue 
+{#doublevalue}
+
+#### doubleValue
+
+`const`
 
 ```cpp
 double doubleValue() const
 ```
 
+Returns the first value parsed as a double.
+
 ---
 
-#### boolValue 
+{#boolvalue}
+
+#### boolValue
+
+`const`
 
 ```cpp
 bool boolValue() const
 ```
 
-## Message 
+Returns the first value parsed as a boolean. Treats "1", "true", and "on" as true; all other strings as false.
 
-> **Extends:** `json::value`, `icy::IPacket`
-> **Subclasses:** `icy::smpl::Command`, `icy::smpl::Event`, `icy::smpl::Presence`
-> **Defined in:** `message.h`
+{#message-10}
 
-### Members
+## Message
 
-| Name | Description |
-|------|-------------|
-| [`Message`](#group__symple_1ga993977c8fc55c8b8b8ec172b720df218) |  |
-| [`Message`](#group__symple_1gaf736d72cc20d17cc96035a9ca153f7f9) |  |
-| [`Message`](#group__symple_1gad7ccee50283b43fb6203d5d38655b5a8) |  |
-| [`~Message`](#group__symple_1ga6a2eb621f26dda23a4e00cf085e28733) |  |
-| [`clone`](#group__symple_1ga7772d48d3c40973f8ba273404efbc0f5) |  |
-| [`valid`](#group__symple_1ga6bc8ec508472b3a845517e37a7d9ecee) |  |
-| [`clear`](#group__symple_1gab6a00a852821506f2003ea5916e0937f) |  |
-| [`clearData`](#group__symple_1ga004941b724014d459a60784e9f638d62) |  |
-| [`clearNotes`](#group__symple_1ga2a2409a6b3bbff22b57394f3c64f232f) |  |
-| [`type`](#group__symple_1ga238a19ce026c212bbbb53242e22e0b35) |  |
-| [`id`](#group__symple_1ga36664179f4acfcacf616fdbae6f42cc3) |  |
-| [`to`](#group__symple_1ga91b5760d36713eb890827f069f82b6c5) |  |
-| [`from`](#group__symple_1ga97accfebe0c98bf39caa4f92159a52c9) |  |
-| [`status`](#group__symple_1gad93c255aca03896f8e91a360022521c8) |  |
-| [`setType`](#group__symple_1gad1ff57aeeaa0788b12714750c856aa97) |  |
-| [`setTo`](#group__symple_1ga59aff14b0a347efc0d7cd13790aee564) |  |
-| [`setTo`](#group__symple_1ga35ebeab4af091f299ea7813dec40b611) |  |
-| [`setTo`](#group__symple_1gaa95416e0a9ebdeae0311cfc2f5ec9a7a) |  |
-| [`setFrom`](#group__symple_1ga883e4a76d045695cbeb1d95fd6b09a06) |  |
-| [`setFrom`](#group__symple_1ga0121323c2d20f1ee7b6ec0b65949dd82) |  |
-| [`setFrom`](#group__symple_1gae951b7a32bf75402fc59b2eacd29e262) |  |
-| [`setStatus`](#group__symple_1gaaf9e802be207af079eb682439868720b) | HTTP status codes are used to describe the message response. **See also**: [http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html](http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html) |
-| [`notes`](#group__symple_1ga423f8746648172da7e2fcaa7d5e61333) |  |
-| [`setNote`](#group__symple_1ga2a15db81f2ee696f70977047dc5c1388) | Set a note for the application Possible "type" values: `info`, `warn`, `error` |
-| [`addNote`](#group__symple_1gabf23c5c1f2a42649d2c85ca0502bf7d5) |  |
-| [`data`](#group__symple_1gaee52f1f411f45da20cb48fea81b141f8) |  |
-| [`data`](#group__symple_1ga579e0d948fe9cca7ece181b0e851c72f) |  |
-| [`setData`](#group__symple_1ga737ffbb719a355701337880a4e27c754) |  |
-| [`setData`](#group__symple_1ga46b69d25c45569ff2c15f5c1982226c0) |  |
-| [`setData`](#group__symple_1ga27601dfabf9f11b474046c765f01d0f6) |  |
-| [`setData`](#group__symple_1ga24c090297182428c0391e4850439facc) |  |
-| [`setData`](#group__symple_1gab75585a9f4e4555c0a7da64926a3a5fd) |  |
-| [`removeData`](#group__symple_1gaad4ce633c0a2f4be14c2dc34114aea14) |  |
-| [`hasData`](#group__symple_1ga622a343fa5a0c26fe39d0a8822756d79) |  |
-| [`read`](#group__symple_1ga41bc3235b35ef5ade9c5bc5e639701b9) | Read/parse to the packet from the given input buffer. The number of bytes read is returned. |
-| [`read`](#group__symple_1gacb4307d7c2134e6720b380553e56fa74) |  |
-| [`write`](#group__symple_1gac31e3c36ff63b87942058867a282fa29) | Copy/generate to the packet given output buffer. The number of bytes written can be obtained from the buffer. |
-| [`isRequest`](#group__symple_1ga8893c0f725efc3aa1f42e0d8de208879) |  |
-| [`size`](#group__symple_1gae7dcb4133dd8d5a3492629aabf85b385) | The size of the packet in bytes. |
-| [`print`](#group__symple_1gaefb77bc8f9a03adc57f931d0b1d1e05d) |  |
-| [`className`](#group__symple_1gaaae1eafc94ace22f9d961cc985ba9984) |  |
+```cpp
+#include <message.h>
+```
+
+> **Inherits:** `Value`, [`IPacket`](#classicy_1_1IPacket)
+> **Subclassed by:** [`Command`](#command), [`Event`](#event-1), [`Presence`](#presence)
+
+Base Symple protocol message with addressing, status, data, and notes.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`Message`](#message-11)  | Constructs a new message with a random ID and type set to "message". |
+|  | [`Message`](#message-12)  | Constructs a message from a JSON value; sets missing id/type fields.  |
+|  | [`Message`](#message-13)  | Copy constructor; preserves or generates id/type fields.  |
+| `std::unique_ptr< IPacket >` | [`clone`](#clone-18) `virtual` `const` | Returns a heap-allocated copy of this message. |
+| `bool` | [`valid`](#valid-12) `virtual` `const` | Returns true if the message has both `type` and `id` fields. |
+| `void` | [`clear`](#clear-4) `virtual` | Clears all JSON fields from this message. |
+| `void` | [`clearData`](#cleardata) `virtual` | Clears the `data` sub-object. |
+| `void` | [`clearNotes`](#clearnotes) `virtual` | Clears the `notes` array. |
+| `std::string` | [`type`](#type-20) `const` | Returns the message type string (defaults to "message"). |
+| `std::string` | [`id`](#id-5) `const` | Returns the message ID string. |
+| `Address` | [`to`](#to) `const` | Returns the recipient address parsed from the `to` field. |
+| `Address` | [`from`](#from) `const` | Returns the sender address parsed from the `from` field. |
+| `std::string` | [`toUser`](#touser) `const` | Returns the user component of the `to` address without constructing an [Address](#address-14). |
+| `std::string` | [`toId`](#toid) `const` | Returns the id component of the `to` address without constructing an [Address](#address-14). |
+| `std::string` | [`fromUser`](#fromuser) `const` | Returns the user component of the `from` address without constructing an [Address](#address-14). |
+| `std::string` | [`fromId`](#fromid) `const` | Returns the id component of the `from` address without constructing an [Address](#address-14). |
+| `int` | [`status`](#status-3) `const` | Returns the HTTP status code, or -1 if not set. |
+| `void` | [`setType`](#settype-2)  | Sets the message type field.  |
+| `void` | [`setTo`](#setto)  | Sets the `to` field from a peer's address.  |
+| `void` | [`setTo`](#setto-1)  | Sets the `to` field from an address object.  |
+| `void` | [`setTo`](#setto-2)  | Sets the `to` field from an address string.  |
+| `void` | [`setFrom`](#setfrom)  | Sets the `from` field from a peer's address.  |
+| `void` | [`setFrom`](#setfrom-1)  | Sets the `from` field from an address object.  |
+| `void` | [`setFrom`](#setfrom-2)  | Sets the `from` field from an address string.  |
+| `void` | [`setStatus`](#setstatus-1)  | HTTP status codes are used to describe the message response. Throws std::invalid_argument if code is outside [101, 504].  |
+| `json::Value &` | [`notes`](#notes)  | Returns a reference to the `notes` JSON array. |
+| `void` | [`setNote`](#setnote)  | Replaces all notes with a single note.  |
+| `void` | [`addNote`](#addnote)  | Appends a note to the `notes` array.  |
+| `json::Value` | [`data`](#data-3) `const` | Returns a copy of the named data field.  |
+| `json::Value &` | [`data`](#data-4)  | Returns a reference to the named data field (creates it if absent).  |
+| `json::Value &` | [`setData`](#setdata)  | Creates or replaces a named data field; returns a reference to it.  |
+| `void` | [`setData`](#setdata-1)  | Sets a named data field to a C-string value.  |
+| `void` | [`setData`](#setdata-2)  | Sets a named data field to a string value.  |
+| `void` | [`setData`](#setdata-3)  | Sets a named data field to a JSON value.  |
+| `void` | [`setData`](#setdata-4)  | Sets a named data field to an integer value.  |
+| `void` | [`removeData`](#removedata)  | Removes a named field from the `data` sub-object.  |
+| `bool` | [`hasData`](#hasdata)  | Returns true if the named field exists in the `data` sub-object.  |
+| `ssize_t` | [`read`](#read-13) `virtual` | Deserialises the message from a raw buffer.  |
+| `ssize_t` | [`read`](#read-14) `virtual` | Deserialises the message from a JSON string.  |
+| `void` | [`write`](#write-28) `virtual` `const` | Serialises the message as JSON into a buffer.  |
+| `bool` | [`isRequest`](#isrequest) `const` | Returns true if no status code has been set (i.e. [status()](#status-3) == -1). |
+| `size_t` | [`size`](#size-11) `virtual` `const` | Returns the serialised JSON size in bytes. |
+| `void` | [`print`](#print-15) `virtual` `const` | Pretty-prints the message JSON to the given stream.  |
+| `const char *` | [`className`](#classname-8) `virtual` `const` `inline` | Returns the class name of this packet type for logging and diagnostics. |
+| `char *` | [`data`](#data-5) `virtual` `const` `inline` | The packet data pointer for buffered packets. |
 
 ---
 
-#### Message 
+{#message-11}
+
+#### Message
 
 ```cpp
 Message()
 ```
 
+Constructs a new message with a random ID and type set to "message".
+
 ---
 
-#### Message 
+{#message-12}
+
+#### Message
 
 ```cpp
-Message(const json::value & root)
+Message(const json::Value & root)
 ```
+
+Constructs a message from a JSON value; sets missing id/type fields. 
+#### Parameters
+* `root` JSON object to initialise from.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `root` | `const json::value &` |  |
+| `root` | `const [json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
 
 ---
 
-#### Message 
+{#message-13}
+
+#### Message
 
 ```cpp
 Message(const Message & root)
 ```
 
+Copy constructor; preserves or generates id/type fields. 
+#### Parameters
+* `root` Source message.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `root` | `const Message &` |  |
+| `root` | `const [Message](#message-10) &` |  |
 
 ---
 
-#### ~Message 
+{#clone-18}
+
+#### clone
+
+`virtual` `const`
 
 ```cpp
-virtual ~Message()
+virtual std::unique_ptr< IPacket > clone() const
 ```
+
+Returns a heap-allocated copy of this message.
 
 ---
 
-#### clone 
+{#valid-12}
 
-```cpp
-virtual IPacket * clone() const
-```
+#### valid
 
----
-
-#### valid 
+`virtual` `const`
 
 ```cpp
 virtual bool valid() const
 ```
 
+Returns true if the message has both `type` and `id` fields.
+
 ---
 
-#### clear 
+{#clear-4}
+
+#### clear
+
+`virtual`
 
 ```cpp
 virtual void clear()
 ```
 
+Clears all JSON fields from this message.
+
 ---
 
-#### clearData 
+{#cleardata}
+
+#### clearData
+
+`virtual`
 
 ```cpp
 virtual void clearData()
 ```
 
+Clears the `data` sub-object.
+
 ---
 
-#### clearNotes 
+{#clearnotes}
+
+#### clearNotes
+
+`virtual`
 
 ```cpp
 virtual void clearNotes()
 ```
 
+Clears the `notes` array.
+
 ---
 
-#### type 
+{#type-20}
+
+#### type
+
+`const`
 
 ```cpp
 std::string type() const
 ```
 
+Returns the message type string (defaults to "message").
+
 ---
 
-#### id 
+{#id-5}
+
+#### id
+
+`const`
 
 ```cpp
 std::string id() const
 ```
 
+Returns the message ID string.
+
 ---
 
-#### to 
+{#to}
+
+#### to
+
+`const`
 
 ```cpp
 Address to() const
 ```
 
+Returns the recipient address parsed from the `to` field.
+
 ---
 
-#### from 
+{#from}
+
+#### from
+
+`const`
 
 ```cpp
 Address from() const
 ```
 
+Returns the sender address parsed from the `from` field.
+
 ---
 
-#### status 
+{#touser}
+
+#### toUser
+
+`const`
+
+```cpp
+std::string toUser() const
+```
+
+Returns the user component of the `to` address without constructing an [Address](#address-14).
+
+---
+
+{#toid}
+
+#### toId
+
+`const`
+
+```cpp
+std::string toId() const
+```
+
+Returns the id component of the `to` address without constructing an [Address](#address-14).
+
+---
+
+{#fromuser}
+
+#### fromUser
+
+`const`
+
+```cpp
+std::string fromUser() const
+```
+
+Returns the user component of the `from` address without constructing an [Address](#address-14).
+
+---
+
+{#fromid}
+
+#### fromId
+
+`const`
+
+```cpp
+std::string fromId() const
+```
+
+Returns the id component of the `from` address without constructing an [Address](#address-14).
+
+---
+
+{#status-3}
+
+#### status
+
+`const`
 
 ```cpp
 int status() const
 ```
 
+Returns the HTTP status code, or -1 if not set.
+
 ---
 
-#### setType 
+{#settype-2}
+
+#### setType
 
 ```cpp
-void setType(const std::string & type)
+void setType(std::string_view type)
 ```
+
+Sets the message type field. 
+#### Parameters
+* `type` Type string (e.g. "message", "command").
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `type` | `const std::string &` |  |
+| `type` | `std::string_view` |  |
 
 ---
 
-#### setTo 
+{#setto}
+
+#### setTo
 
 ```cpp
 void setTo(const Peer & to)
 ```
 
+Sets the `to` field from a peer's address. 
+#### Parameters
+* `to` Destination peer.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `to` | `const Peer &` |  |
+| `to` | `const [Peer](#peer-1) &` |  |
 
 ---
 
-#### setTo 
+{#setto-1}
+
+#### setTo
 
 ```cpp
 void setTo(const Address & to)
 ```
 
+Sets the `to` field from an address object. 
+#### Parameters
+* `to` Destination address.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `to` | `const Address &` |  |
+| `to` | `const [Address](#address-14) &` |  |
 
 ---
 
-#### setTo 
+{#setto-2}
+
+#### setTo
 
 ```cpp
-void setTo(const std::string & to)
+void setTo(std::string_view to)
 ```
+
+Sets the `to` field from an address string. 
+#### Parameters
+* `to` Destination address string.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `to` | `const std::string &` |  |
+| `to` | `std::string_view` |  |
 
 ---
 
-#### setFrom 
+{#setfrom}
+
+#### setFrom
 
 ```cpp
 void setFrom(const Peer & from)
 ```
 
+Sets the `from` field from a peer's address. 
+#### Parameters
+* `from` Sender peer.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `from` | `const Peer &` |  |
+| `from` | `const [Peer](#peer-1) &` |  |
 
 ---
 
-#### setFrom 
+{#setfrom-1}
+
+#### setFrom
 
 ```cpp
 void setFrom(const Address & from)
 ```
 
+Sets the `from` field from an address object. 
+#### Parameters
+* `from` Sender address.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `from` | `const Address &` |  |
+| `from` | `const [Address](#address-14) &` |  |
 
 ---
 
-#### setFrom 
+{#setfrom-2}
+
+#### setFrom
 
 ```cpp
-void setFrom(const std::string & from)
+void setFrom(std::string_view from)
 ```
+
+Sets the `from` field from an address string. 
+#### Parameters
+* `from` Sender address string.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `from` | `const std::string &` |  |
+| `from` | `std::string_view` |  |
 
 ---
 
-#### setStatus 
+{#setstatus-1}
+
+#### setStatus
 
 ```cpp
 void setStatus(int code)
 ```
 
-HTTP status codes are used to describe the message response. **See also**: [http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html](http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html)
+HTTP status codes are used to describe the message response. Throws std::invalid_argument if code is outside [101, 504]. 
+#### Parameters
+* `code` HTTP status code. 
+
+**See also**: [http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html](http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html)
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -1861,169 +2798,275 @@ HTTP status codes are used to describe the message response. **See also**: [http
 
 ---
 
-#### notes 
+{#notes}
+
+#### notes
 
 ```cpp
-json::value & notes()
+json::Value & notes()
 ```
+
+Returns a reference to the `notes` JSON array.
 
 ---
 
-#### setNote 
+{#setnote}
+
+#### setNote
 
 ```cpp
-void setNote(const std::string & type, const std::string & text)
+void setNote(std::string_view type, std::string_view text)
 ```
 
-Set a note for the application Possible "type" values: `info`, `warn`, `error`
+Replaces all notes with a single note. 
+#### Parameters
+* `type` Note severity: `info`, `warn`, or `error`. 
+
+* `text` Note message text.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `type` | `const std::string &` |  |
-| `text` | `const std::string &` |  |
+| `type` | `std::string_view` |  |
+| `text` | `std::string_view` |  |
 
 ---
 
-#### addNote 
+{#addnote}
+
+#### addNote
 
 ```cpp
-void addNote(const std::string & type, const std::string & text)
+void addNote(std::string_view type, std::string_view text)
 ```
+
+Appends a note to the `notes` array. 
+#### Parameters
+* `type` Note severity: `info`, `warn`, or `error`. 
+
+* `text` Note message text.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `type` | `const std::string &` |  |
-| `text` | `const std::string &` |  |
+| `type` | `std::string_view` |  |
+| `text` | `std::string_view` |  |
 
 ---
 
-#### data 
+{#data-3}
+
+#### data
+
+`const`
 
 ```cpp
-json::value data(const std::string & name) const
+json::Value data(std::string_view name) const
 ```
+
+Returns a copy of the named data field. 
+#### Parameters
+* `name` Field name within `data`.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `name` | `const std::string &` |  |
+| `name` | `std::string_view` |  |
 
 ---
 
-#### data 
+{#data-4}
+
+#### data
 
 ```cpp
-json::value & data(const std::string & name)
+json::Value & data(std::string_view name)
 ```
+
+Returns a reference to the named data field (creates it if absent). 
+#### Parameters
+* `name` Field name within `data`.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `name` | `const std::string &` |  |
+| `name` | `std::string_view` |  |
 
 ---
 
-#### setData 
+{#setdata}
+
+#### setData
 
 ```cpp
-json::value & setData(const std::string & name)
+json::Value & setData(std::string_view name)
 ```
+
+Creates or replaces a named data field; returns a reference to it. 
+#### Parameters
+* `name` Field name within `data`.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `name` | `const std::string &` |  |
+| `name` | `std::string_view` |  |
 
 ---
 
-#### setData 
+{#setdata-1}
+
+#### setData
 
 ```cpp
-void setData(const std::string & name, const char * data)
+void setData(std::string_view name, const char * data)
 ```
+
+Sets a named data field to a C-string value. 
+#### Parameters
+* `name` Field name within `data`. 
+
+* `data` String value to assign.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `name` | `const std::string &` |  |
+| `name` | `std::string_view` |  |
 | `data` | `const char *` |  |
 
 ---
 
-#### setData 
+{#setdata-2}
+
+#### setData
 
 ```cpp
-void setData(const std::string & name, const std::string & data)
+void setData(std::string_view name, std::string_view data)
 ```
+
+Sets a named data field to a string value. 
+#### Parameters
+* `name` Field name within `data`. 
+
+* `data` String value to assign.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `name` | `const std::string &` |  |
-| `data` | `const std::string &` |  |
+| `name` | `std::string_view` |  |
+| `data` | `std::string_view` |  |
 
 ---
 
-#### setData 
+{#setdata-3}
+
+#### setData
 
 ```cpp
-void setData(const std::string & name, const json::value & data)
+void setData(std::string_view name, const json::Value & data)
 ```
+
+Sets a named data field to a JSON value. 
+#### Parameters
+* `name` Field name within `data`. 
+
+* `data` JSON value to assign.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `name` | `const std::string &` |  |
-| `data` | `const json::value &` |  |
+| `name` | `std::string_view` |  |
+| `data` | `const [json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
 
 ---
 
-#### setData 
+{#setdata-4}
+
+#### setData
 
 ```cpp
-void setData(const std::string & name, int data)
+void setData(std::string_view name, int data)
 ```
+
+Sets a named data field to an integer value. 
+#### Parameters
+* `name` Field name within `data`. 
+
+* `data` Integer value to assign.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `name` | `const std::string &` |  |
+| `name` | `std::string_view` |  |
 | `data` | `int` |  |
 
 ---
 
-#### removeData 
+{#removedata}
+
+#### removeData
 
 ```cpp
-void removeData(const std::string & name)
+void removeData(std::string_view name)
 ```
+
+Removes a named field from the `data` sub-object. 
+#### Parameters
+* `name` Field name to remove.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `name` | `const std::string &` |  |
+| `name` | `std::string_view` |  |
 
 ---
 
-#### hasData 
+{#hasdata}
+
+#### hasData
 
 ```cpp
-bool hasData(const std::string & name)
+bool hasData(std::string_view name)
 ```
+
+Returns true if the named field exists in the `data` sub-object. 
+#### Parameters
+* `name` Field name to look up.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `name` | `const std::string &` |  |
+| `name` | `std::string_view` |  |
 
 ---
 
-#### read 
+{#read-13}
+
+#### read
+
+`virtual`
 
 ```cpp
-virtual ssize_t read(const ConstBuffer &)
+virtual ssize_t read(const ConstBuffer & buf)
 ```
 
-Read/parse to the packet from the given input buffer. The number of bytes read is returned.
+Deserialises the message from a raw buffer. 
+#### Parameters
+* `buf` Buffer containing the JSON payload. 
+
+#### Returns
+Number of bytes consumed.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `buf` | `const [ConstBuffer](#classicy_1_1ConstBuffer) &` |  |
 
 ---
 
-#### read 
+{#read-14}
+
+#### read
+
+`virtual`
 
 ```cpp
 virtual ssize_t read(const std::string & root)
 ```
+
+Deserialises the message from a JSON string. 
+#### Parameters
+* `root` JSON string to parse. 
+
+#### Returns
+Number of characters consumed.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -2031,43 +3074,67 @@ virtual ssize_t read(const std::string & root)
 
 ---
 
-#### write 
+{#write-28}
+
+#### write
+
+`virtual` `const`
 
 ```cpp
-virtual void write(Buffer &) const
+virtual void write(Buffer & buf) const
 ```
 
-Copy/generate to the packet given output buffer. The number of bytes written can be obtained from the buffer.
+Serialises the message as JSON into a buffer. 
+#### Parameters
+* `buf` Buffer to append to.
 
-Todo: It may be prefferable to use our pod types here instead of buffer input, but the current codebase requires that the buffer be dynamically resizable for some protocols...
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `buf` | `[Buffer](#namespaceicy_1a9c464c811f03ea41ea100ed65a0580d3) &` |  |
 
 ---
 
-#### isRequest 
+{#isrequest}
+
+#### isRequest
+
+`const`
 
 ```cpp
 bool isRequest() const
 ```
 
+Returns true if no status code has been set (i.e. [status()](#status-3) == -1).
+
 ---
 
-#### size 
+{#size-11}
+
+#### size
+
+`virtual` `const`
 
 ```cpp
 virtual size_t size() const
 ```
 
-The size of the packet in bytes.
-
-This is the nember of bytes that will be written on a call to [write()](#group__symple_1gac31e3c36ff63b87942058867a282fa29), but may not be the number of bytes that will be consumed by [read()](#group__symple_1ga41bc3235b35ef5ade9c5bc5e639701b9).
+Returns the serialised JSON size in bytes.
 
 ---
 
-#### print 
+{#print-15}
+
+#### print
+
+`virtual` `const`
 
 ```cpp
 virtual void print(std::ostream & os) const
 ```
+
+Pretty-prints the message JSON to the given stream. 
+#### Parameters
+* `os` Output stream.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -2075,193 +3142,316 @@ virtual void print(std::ostream & os) const
 
 ---
 
-#### className 
+{#classname-8}
+
+#### className
+
+`virtual` `const` `inline`
 
 ```cpp
 virtual inline const char * className() const
 ```
 
-## Peer 
-
-> **Extends:** `json::value`
-> **Defined in:** `peer.h`
-
-This class represents a peer on the network. A [Peer](#classicy_1_1smpl_1_1Peer) object may also contain arbitrary data set by the client to share with other peers on the network. **See also**: [Address](#structicy_1_1smpl_1_1Address) for further methods and [basic](./doc/api-undefined.md#namespaceicy_1_1basic) accessors.
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`Peer`](#group__symple_1ga21699ec274f5b4a4609fa1232c7c2759) |  |
-| [`Peer`](#group__symple_1gaf1d1b51b210184552aa1e52ed9c1043f) |  |
-| [`Peer`](#group__symple_1ga2be2d8f4cc8f1f0a5ce2d7c4187645a1) |  |
-| [`~Peer`](#group__symple_1gab6b9fd40ad19b75f1476719938486687) |  |
-| [`address`](#group__symple_1gae18b7a663a71100f65a480a309928274) |  |
-| [`id`](#group__symple_1ga477d474d5af82b4d59a762efa970bb1a) |  |
-| [`user`](#group__symple_1ga9731497468e46249d9640bb38637ebdd) |  |
-| [`name`](#group__symple_1ga52cc114ca838238810e3d554425194b7) |  |
-| [`type`](#group__symple_1gab1ff841dfeb0d69ac798ad12c55bf43d) |  |
-| [`host`](#group__symple_1gae1ac4cb0de0b4845a2f73403b3caa83e) |  |
-| [`setID`](#group__symple_1ga0901ffbe8ce396fb01d83553815bad54) |  |
-| [`setUser`](#group__symple_1ga6da2b366cdda5ed7dfaa11b69d20ef37) |  |
-| [`setName`](#group__symple_1gaae1a1e30ed070876d5dc7d124a99434e) |  |
-| [`setType`](#group__symple_1ga6b4ce3657cc8995ad02e7c51939f1d53) |  |
-| [`setHost`](#group__symple_1ga1bab6aa0690fff8ca6cbf8749fc0efd8) |  |
-| [`valid`](#group__symple_1gad056870e5ed4649ca9d218c9cc6c8df3) | Updates the peer from the given data object. |
-| [`print`](#group__symple_1gaba929db58e4c8245ed8e0c61d7f6bc57) |  |
-| [`className`](#group__symple_1ga9a99cfc94cb96aef6c338e514a254809) |  |
+Returns the class name of this packet type for logging and diagnostics.
 
 ---
 
-#### Peer 
+{#data-5}
+
+#### data
+
+`virtual` `const` `inline`
+
+```cpp
+virtual inline char * data() const
+```
+
+The packet data pointer for buffered packets.
+
+{#peer-1}
+
+## Peer
+
+```cpp
+#include <peer.h>
+```
+
+> **Inherits:** `Value`
+
+This class represents a peer on the network. A [Peer](#peer-1) object may also contain arbitrary data set by the client to share with other peers on the network. **See also**: [Address](#address-14) for further methods and [basic](#basic) accessors.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`Peer`](#peer-2)  | Constructs an empty peer with type set to "Peer". |
+|  | [`Peer`](#peer-3)  | Copy constructor; preserves type field.  |
+| `Peer &` | [`operator=`](#operator-27)  | Copy-assigns peer data from another peer.  |
+|  | [`Peer`](#peer-4)  | Constructs a peer from a raw JSON value.  |
+| `Address` | [`address`](#address-13) `const` | Returns the peer's address (user + session ID).  |
+| `std::string` | [`id`](#id-6) `const` | Returns the session ID assigned by the server. |
+| `std::string` | [`user`](#user-1) `const` | Returns the user identifier. |
+| `std::string` | [`name`](#name-13) `const` | Returns the display name. |
+| `std::string` | [`type`](#type-21) `const` | Returns the peer type string (e.g. "Peer", "bot"). |
+| `std::string` | [`host`](#host-3) `const` | Returns the host address associated with this peer. |
+| `void` | [`setID`](#setid-1)  | Sets the session ID field.  |
+| `void` | [`setUser`](#setuser)  | Sets the user identifier field.  |
+| `void` | [`setName`](#setname-3)  | Sets the display name field.  |
+| `void` | [`setType`](#settype-3)  | Sets the peer type field.  |
+| `void` | [`setHost`](#sethost-2)  | Sets the host address field.  |
+| `bool` | [`valid`](#valid-13) `virtual` | Updates the peer from the given data object. |
+| `void` | [`print`](#print-16) `const` | Writes the peer's JSON representation to the given stream.  |
+| `const char *` | [`className`](#classname-9) `virtual` `const` `inline` |  |
+
+---
+
+{#peer-2}
+
+#### Peer
 
 ```cpp
 Peer()
 ```
 
+Constructs an empty peer with type set to "Peer".
+
 ---
 
-#### Peer 
+{#peer-3}
+
+#### Peer
 
 ```cpp
 Peer(const Peer & r)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `r` | `const Peer &` |  |
-
----
-
-#### Peer 
-
-```cpp
-Peer(const json::value & r)
-```
+Copy constructor; preserves type field. 
+#### Parameters
+* `r` Source peer.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `r` | `const json::value &` |  |
+| `r` | `const [Peer](#peer-1) &` |  |
 
 ---
 
-#### ~Peer 
+{#operator-27}
+
+#### operator=
 
 ```cpp
-virtual ~Peer()
+Peer & operator=(const Peer & r)
 ```
+
+Copy-assigns peer data from another peer. 
+#### Parameters
+* `r` Source peer.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `r` | `const [Peer](#peer-1) &` |  |
 
 ---
 
-#### address 
+{#peer-4}
+
+#### Peer
+
+```cpp
+Peer(const json::Value & r)
+```
+
+Constructs a peer from a raw JSON value. 
+#### Parameters
+* `r` JSON object containing peer fields.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `r` | `const [json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
+
+---
+
+{#address-13}
+
+#### address
+
+`const`
 
 ```cpp
 Address address() const
 ```
 
+Returns the peer's address (user + session ID). 
+#### Returns
+[Address](#address-14) constructed from the `user` and `id` fields.
+
 ---
 
-#### id 
+{#id-6}
+
+#### id
+
+`const`
 
 ```cpp
 std::string id() const
 ```
 
+Returns the session ID assigned by the server.
+
 ---
 
-#### user 
+{#user-1}
+
+#### user
+
+`const`
 
 ```cpp
 std::string user() const
 ```
 
+Returns the user identifier.
+
 ---
 
-#### name 
+{#name-13}
+
+#### name
+
+`const`
 
 ```cpp
 std::string name() const
 ```
 
+Returns the display name.
+
 ---
 
-#### type 
+{#type-21}
+
+#### type
+
+`const`
 
 ```cpp
 std::string type() const
 ```
 
+Returns the peer type string (e.g. "Peer", "bot").
+
 ---
 
-#### host 
+{#host-3}
+
+#### host
+
+`const`
 
 ```cpp
 std::string host() const
 ```
 
+Returns the host address associated with this peer.
+
 ---
 
-#### setID 
+{#setid-1}
+
+#### setID
 
 ```cpp
-void setID(const std::string & id)
+void setID(std::string_view id)
 ```
+
+Sets the session ID field. 
+#### Parameters
+* `id` Session ID string.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `id` | `const std::string &` |  |
+| `id` | `std::string_view` |  |
 
 ---
 
-#### setUser 
+{#setuser}
+
+#### setUser
 
 ```cpp
-void setUser(const std::string & user)
+void setUser(std::string_view user)
 ```
+
+Sets the user identifier field. 
+#### Parameters
+* `user` User identifier string.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `user` | `const std::string &` |  |
+| `user` | `std::string_view` |  |
 
 ---
 
-#### setName 
+{#setname-3}
+
+#### setName
 
 ```cpp
-void setName(const std::string & name)
+void setName(std::string_view name)
 ```
+
+Sets the display name field. 
+#### Parameters
+* `name` Display name string.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `name` | `const std::string &` |  |
+| `name` | `std::string_view` |  |
 
 ---
 
-#### setType 
+{#settype-3}
+
+#### setType
 
 ```cpp
-void setType(const std::string & type)
+void setType(std::string_view type)
 ```
+
+Sets the peer type field. 
+#### Parameters
+* `type` Type string.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `type` | `const std::string &` |  |
+| `type` | `std::string_view` |  |
 
 ---
 
-#### setHost 
+{#sethost-2}
+
+#### setHost
 
 ```cpp
-void setHost(const std::string & host)
+void setHost(std::string_view host)
 ```
+
+Sets the host address field. 
+#### Parameters
+* `host` Host address string.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `host` | `const std::string &` |  |
+| `host` | `std::string_view` |  |
 
 ---
 
-#### valid 
+{#valid-13}
+
+#### valid
+
+`virtual`
 
 ```cpp
 virtual bool valid()
@@ -2269,9 +3459,240 @@ virtual bool valid()
 
 Updates the peer from the given data object.
 
+Returns true if the peer has `id`, `user`, and `type` fields.
+
 ---
 
-#### print 
+{#print-16}
+
+#### print
+
+`const`
+
+```cpp
+void print(std::ostream & os) const
+```
+
+Writes the peer's JSON representation to the given stream. 
+#### Parameters
+* `os` Output stream.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `os` | `std::ostream &` |  |
+
+---
+
+{#classname-9}
+
+#### className
+
+`virtual` `const` `inline`
+
+```cpp
+virtual inline const char * className() const
+```
+
+{#presence}
+
+## Presence
+
+```cpp
+#include <presence.h>
+```
+
+> **Inherits:** [`Message`](#message-10)
+
+Symple presence message indicating a peer's online status.
+
+[Presence](#presence) messages carry peer data in the `data` field. When `probe` is true the recipient should respond with their own presence.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`Presence`](#presence-1)  | Constructs a presence message with type set to "presence". |
+|  | [`Presence`](#presence-2)  | Constructs a presence message from a JSON value.  |
+|  | [`Presence`](#presence-3)  | Copy constructor.  |
+| `bool` | [`isProbe`](#isprobe)  | Returns true if this is a presence probe request. Recipients of a probe should send back their own presence. |
+| `void` | [`setProbe`](#setprobe)  | Sets or clears the probe flag on this presence message.  |
+
+---
+
+{#presence-1}
+
+#### Presence
+
+```cpp
+Presence()
+```
+
+Constructs a presence message with type set to "presence".
+
+---
+
+{#presence-2}
+
+#### Presence
+
+```cpp
+Presence(const json::Value & root)
+```
+
+Constructs a presence message from a JSON value. 
+#### Parameters
+* `root` JSON object to initialise from.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `root` | `const [json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
+
+---
+
+{#presence-3}
+
+#### Presence
+
+```cpp
+Presence(const Presence & root)
+```
+
+Copy constructor. 
+#### Parameters
+* `root` Source presence message.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `root` | `const [Presence](#presence) &` |  |
+
+---
+
+{#isprobe}
+
+#### isProbe
+
+```cpp
+bool isProbe()
+```
+
+Returns true if this is a presence probe request. Recipients of a probe should send back their own presence.
+
+---
+
+{#setprobe}
+
+#### setProbe
+
+```cpp
+void setProbe(bool flag)
+```
+
+Sets or clears the probe flag on this presence message. 
+#### Parameters
+* `flag` True to mark this as a probe.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `flag` | `bool` |  |
+
+{#roster-1}
+
+## Roster
+
+```cpp
+#include <roster.h>
+```
+
+> **Inherits:** [`string, Peer >`](#classicy_1_1KeyedStore)
+
+The [Roster](#roster-1) provides a registry for active network peers indexed by session ID.
+
+### Public Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `Signal< void(Peer &)>` | [`PeerAdded`](#peeradded)  | Lifecycle signals for external observers (samples, UI). |
+| `Signal< void(constPeer &)>` | [`PeerRemoved`](#peerremoved)  |  |
+
+---
+
+{#peeradded}
+
+#### PeerAdded
+
+```cpp
+Signal< void(Peer &)> PeerAdded
+```
+
+Lifecycle signals for external observers (samples, UI).
+
+---
+
+{#peerremoved}
+
+#### PeerRemoved
+
+```cpp
+Signal< void(constPeer &)> PeerRemoved
+```
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`Roster`](#roster-2)  |  |
+| `Peer *` | [`getByHost`](#getbyhost)  | Returns the first peer which matches the given host address. |
+| `Map` | [`peers`](#peers) `const` | Returns a deep copy of the peer map. |
+| `void` | [`print`](#print-17) `const` |  |
+| `constchar *` | [`className`](#classname-10) `virtual` `const` `inline` |  |
+
+---
+
+{#roster-2}
+
+#### Roster
+
+```cpp
+Roster()
+```
+
+---
+
+{#getbyhost}
+
+#### getByHost
+
+```cpp
+Peer * getByHost(std::string_view host)
+```
+
+Returns the first peer which matches the given host address.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `host` | `std::string_view` |  |
+
+---
+
+{#peers}
+
+#### peers
+
+`const`
+
+```cpp
+Map peers() const
+```
+
+Returns a deep copy of the peer map.
+
+---
+
+{#print-17}
+
+#### print
+
+`const`
 
 ```cpp
 void print(std::ostream & os) const
@@ -2283,216 +3704,1784 @@ void print(std::ostream & os) const
 
 ---
 
-#### className 
+{#classname-10}
+
+#### className
+
+`virtual` `const` `inline`
 
 ```cpp
-virtual inline const char * className() const
+virtual inline constchar * className() const
 ```
 
-## Presence 
+### Protected Methods
 
-> **Extends:** `icy::smpl::Message`
-> **Defined in:** `presence.h`
+| Return | Name | Description |
+|--------|------|-------------|
+| `void` | [`onAdd`](#onadd) `inline` |  |
+| `void` | [`onRemove`](#onremove) `inline` |  |
 
-### Members
+---
+
+{#onadd}
+
+#### onAdd
+
+`inline`
+
+```cpp
+inline void onAdd(const std::string &, Peer * peer)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `peer` | `[Peer](#peer-1) *` |  |
+
+---
+
+{#onremove}
+
+#### onRemove
+
+`inline`
+
+```cpp
+inline void onRemove(const std::string &, Peer * peer)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `peer` | `[Peer](#peer-1) *` |  |
+
+{#server-9}
+
+## Server
+
+```cpp
+#include <server.h>
+```
+
+Symple v4 server.
+
+Accepts WebSocket connections, authenticates peers, manages rooms, and routes messages. Implements the Symple v4 protocol over native WebSocket.
+
+Usage: [smpl::Server](#server-9) server; server.start({.port = 4500});
+
+// Optional: custom authentication server.Authenticate += []([ServerPeer](#serverpeer)& peer, const [json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e)& auth, bool& allowed, std::vector<std::string>& rooms) { allowed = (auth.value("token", "") == "secret"); rooms.push_back("team-a"); };
+
+The server also serves as an HTTP server, so you can serve static files (e.g. a web UI) on the same port.
+
+### Public Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `Signal< void(ServerPeer &, const json::Value &auth, bool &allowed, std::vector< std::string > &rooms)>` | [`Authenticate`](#authenticate-2)  | Custom authentication hook. Set `allowed` to false to reject the peer. Append to `rooms` to assign team/group memberships. If not connected, all peers with a valid `user` field are accepted. |
+| `Signal< void(ServerPeer &)>` | [`PeerConnected`](#peerconnected-1)  | [Peer](#peer-1) authenticated and online. |
+| `Signal< void(ServerPeer &)>` | [`PeerDisconnected`](#peerdisconnected-1)  | [Peer](#peer-1) disconnected. |
+
+---
+
+{#authenticate-2}
+
+#### Authenticate
+
+```cpp
+Signal< void(ServerPeer &, const json::Value &auth, bool &allowed, std::vector< std::string > &rooms)> Authenticate
+```
+
+Custom authentication hook. Set `allowed` to false to reject the peer. Append to `rooms` to assign team/group memberships. If not connected, all peers with a valid `user` field are accepted.
+
+---
+
+{#peerconnected-1}
+
+#### PeerConnected
+
+```cpp
+Signal< void(ServerPeer &)> PeerConnected
+```
+
+[Peer](#peer-1) authenticated and online.
+
+---
+
+{#peerdisconnected-1}
+
+#### PeerDisconnected
+
+```cpp
+Signal< void(ServerPeer &)> PeerDisconnected
+```
+
+[Peer](#peer-1) disconnected.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`Server`](#server-10)  | Constructs a server using the given event loop.  |
+|  | [`Server`](#server-11)  |  |
+| `void` | [`start`](#start-12)  | Starts the server with the given options. Begins accepting WebSocket connections on opts.host:opts.port.  |
+| `void` | [`start`](#start-13)  | Starts the server with a custom HTTP factory for non-WebSocket requests. The Symple server handles WebSocket upgrades internally; any other HTTP request (e.g. static files, REST API) is delegated to this factory.  |
+| `void` | [`shutdown`](#shutdown-13)  | Broadcasts a shutdown notice to all peers, closes the listen socket, and releases all internal state. Safe to call more than once. |
+| `void` | [`broadcast`](#broadcast)  | Broadcast a message to all peers in a room (excluding sender). |
+| `void` | [`broadcastRooms`](#broadcastrooms)  | Broadcast to multiple rooms with per-recipient dedup. |
+| `bool` | [`sendTo`](#sendto)  | Send a message to a specific peer by session ID. |
+| `bool` | [`sendToUser`](#sendtouser)  | Send a message to any peer with the given user name. |
+| `ServerPeer *` | [`getPeer`](#getpeer)  | Get a connected peer by session ID. |
+| `std::vector< ServerPeer * >` | [`getPeersInRoom`](#getpeersinroom)  | Get all peers in a room. |
+| `size_t` | [`peerCount`](#peercount) `const` | Number of connected, authenticated peers. |
+| `void` | [`addVirtualPeer`](#addvirtualpeer)  | Register a virtual peer that receives messages via callback. |
+| `void` | [`removeVirtualPeer`](#removevirtualpeer)  | Remove a virtual peer by session ID. |
+| `http::Server &` | [`httpServer`](#httpserver) `inline` | Access the underlying HTTP server (e.g. to serve static files). |
+
+---
+
+{#server-10}
+
+#### Server
+
+```cpp
+Server(uv::Loop * loop)
+```
+
+Constructs a server using the given event loop. 
+#### Parameters
+* `loop` libuv event loop; defaults to [uv::defaultLoop()](#namespaceicy_1_1uv_1abd6f78850a03d71a7303b499b2ddee4e).
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `loop` | `[uv::Loop](#namespaceicy_1_1uv_1a8bfd153231f95de982e16db911389619) *` |  |
+
+---
+
+{#server-11}
+
+#### Server
+
+```cpp
+Server(const Server &) = delete
+```
+
+---
+
+{#start-12}
+
+#### start
+
+```cpp
+void start(const Options & opts)
+```
+
+Starts the server with the given options. Begins accepting WebSocket connections on opts.host:opts.port. 
+#### Parameters
+* `opts` [Server](#server-9) configuration options.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `opts` | `const [Options](#options-15) &` |  |
+
+---
+
+{#start-13}
+
+#### start
+
+```cpp
+void start(const Options & opts, std::unique_ptr< http::ServerConnectionFactory > httpFactory)
+```
+
+Starts the server with a custom HTTP factory for non-WebSocket requests. The Symple server handles WebSocket upgrades internally; any other HTTP request (e.g. static files, REST API) is delegated to this factory. 
+#### Parameters
+* `opts` [Server](#server-9) configuration options. 
+
+* `httpFactory` Factory for HTTP responders; may be nullptr.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `opts` | `const [Options](#options-15) &` |  |
+| `httpFactory` | `std::unique_ptr< [http::ServerConnectionFactory](#serverconnectionfactory) >` |  |
+
+---
+
+{#shutdown-13}
+
+#### shutdown
+
+```cpp
+void shutdown()
+```
+
+Broadcasts a shutdown notice to all peers, closes the listen socket, and releases all internal state. Safe to call more than once.
+
+---
+
+{#broadcast}
+
+#### broadcast
+
+```cpp
+void broadcast(const std::string & room, const json::Value & msg, const std::string & excludeId)
+```
+
+Broadcast a message to all peers in a room (excluding sender).
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `room` | `const std::string &` |  |
+| `msg` | `const [json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
+| `excludeId` | `const std::string &` |  |
+
+---
+
+{#broadcastrooms}
+
+#### broadcastRooms
+
+```cpp
+void broadcastRooms(const std::unordered_set< std::string > & rooms, const json::Value & msg, const std::string & excludeId)
+```
+
+Broadcast to multiple rooms with per-recipient dedup.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `rooms` | `const std::unordered_set< std::string > &` |  |
+| `msg` | `const [json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
+| `excludeId` | `const std::string &` |  |
+
+---
+
+{#sendto}
+
+#### sendTo
+
+```cpp
+bool sendTo(const std::string & peerId, const json::Value & msg)
+```
+
+Send a message to a specific peer by session ID.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `peerId` | `const std::string &` |  |
+| `msg` | `const [json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
+
+---
+
+{#sendtouser}
+
+#### sendToUser
+
+```cpp
+bool sendToUser(const std::string & user, const json::Value & msg)
+```
+
+Send a message to any peer with the given user name.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `user` | `const std::string &` |  |
+| `msg` | `const [json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
+
+---
+
+{#getpeer}
+
+#### getPeer
+
+```cpp
+ServerPeer * getPeer(const std::string & id)
+```
+
+Get a connected peer by session ID.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | `const std::string &` |  |
+
+---
+
+{#getpeersinroom}
+
+#### getPeersInRoom
+
+```cpp
+std::vector< ServerPeer * > getPeersInRoom(const std::string & room)
+```
+
+Get all peers in a room.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `room` | `const std::string &` |  |
+
+---
+
+{#peercount}
+
+#### peerCount
+
+`const`
+
+```cpp
+size_t peerCount() const
+```
+
+Number of connected, authenticated peers.
+
+---
+
+{#addvirtualpeer}
+
+#### addVirtualPeer
+
+```cpp
+void addVirtualPeer(const Peer & peer, const std::vector< std::string > & rooms, std::function< void(const json::Value &)> handler)
+```
+
+Register a virtual peer that receives messages via callback.
+
+The virtual peer appears in presence broadcasts and is routable like any WebSocket-connected peer. Messages addressed to it are delivered via the callback instead of a WebSocket connection.
+
+#### Parameters
+* `peer` [Peer](#peer-1) data (must have "id", "user", "name" fields). 
+
+* `rooms` Rooms the virtual peer joins. 
+
+* `handler` Called when a message is routed to this peer.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `peer` | `const [Peer](#peer-1) &` |  |
+| `rooms` | `const std::vector< std::string > &` |  |
+| `handler` | `std::function< void(const [json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &)>` |  |
+
+---
+
+{#removevirtualpeer}
+
+#### removeVirtualPeer
+
+```cpp
+void removeVirtualPeer(const std::string & peerId)
+```
+
+Remove a virtual peer by session ID.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `peerId` | `const std::string &` |  |
+
+---
+
+{#httpserver}
+
+#### httpServer
+
+`inline`
+
+```cpp
+inline http::Server & httpServer()
+```
+
+Access the underlying HTTP server (e.g. to serve static files).
+
+### Private Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `Options` | [`_opts`](#_opts)  |  |
+| `uv::Loop *` | [`_loop`](#_loop-4)  |  |
+| `std::unique_ptr< http::Server >` | [`_http`](#_http)  |  |
+| `PeerRegistry` | [`_peerRegistry`](#_peerregistry)  |  |
+| `RoomIndex` | [`_roomIndex`](#_roomindex)  |  |
+| `std::mutex` | [`_mutex`](#_mutex-16)  |  |
+| `std::atomic< bool >` | [`_shuttingDown`](#_shuttingdown)  |  |
+| `std::unique_ptr< http::ServerConnectionFactory >` | [`_httpFallback`](#_httpfallback)  | Fallback factory for non-WebSocket HTTP requests. |
+
+---
+
+{#_opts}
+
+#### _opts
+
+```cpp
+Options _opts
+```
+
+---
+
+{#_loop-4}
+
+#### _loop
+
+```cpp
+uv::Loop * _loop = nullptr
+```
+
+---
+
+{#_http}
+
+#### _http
+
+```cpp
+std::unique_ptr< http::Server > _http
+```
+
+---
+
+{#_peerregistry}
+
+#### _peerRegistry
+
+```cpp
+PeerRegistry _peerRegistry
+```
+
+---
+
+{#_roomindex}
+
+#### _roomIndex
+
+```cpp
+RoomIndex _roomIndex
+```
+
+---
+
+{#_mutex-16}
+
+#### _mutex
+
+```cpp
+std::mutex _mutex
+```
+
+---
+
+{#_shuttingdown}
+
+#### _shuttingDown
+
+```cpp
+std::atomic< bool > _shuttingDown {false}
+```
+
+---
+
+{#_httpfallback}
+
+#### _httpFallback
+
+```cpp
+std::unique_ptr< http::ServerConnectionFactory > _httpFallback
+```
+
+Fallback factory for non-WebSocket HTTP requests.
+
+### Private Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `void` | [`onAuth`](#onauth)  |  |
+| `void` | [`onMessage`](#onmessage)  |  |
+| `void` | [`onJoin`](#onjoin)  |  |
+| `void` | [`onLeave`](#onleave)  |  |
+| `void` | [`onDisconnect`](#ondisconnect)  |  |
+| `void` | [`route`](#route)  |  |
+| `bool` | [`deliver`](#deliver)  |  |
+| `bool` | [`deliverSerialized`](#deliverserialized)  |  |
+| `void` | [`sendPresenceSnapshot`](#sendpresencesnapshot)  |  |
+
+---
+
+{#onauth}
+
+#### onAuth
+
+```cpp
+void onAuth(ServerPeer & peer, const json::Value & msg, std::unique_lock< std::mutex > & lock)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `peer` | `[ServerPeer](#serverpeer) &` |  |
+| `msg` | `const [json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
+| `lock` | `std::unique_lock< std::mutex > &` |  |
+
+---
+
+{#onmessage}
+
+#### onMessage
+
+```cpp
+void onMessage(ServerPeer & peer, json::Value msg)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `peer` | `[ServerPeer](#serverpeer) &` |  |
+| `msg` | `[json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e)` |  |
+
+---
+
+{#onjoin}
+
+#### onJoin
+
+```cpp
+void onJoin(ServerPeer & peer, const std::string & room)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `peer` | `[ServerPeer](#serverpeer) &` |  |
+| `room` | `const std::string &` |  |
+
+---
+
+{#onleave}
+
+#### onLeave
+
+```cpp
+void onLeave(ServerPeer & peer, const std::string & room)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `peer` | `[ServerPeer](#serverpeer) &` |  |
+| `room` | `const std::string &` |  |
+
+---
+
+{#ondisconnect}
+
+#### onDisconnect
+
+```cpp
+void onDisconnect(ServerPeer & peer, std::unique_lock< std::mutex > & lock)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `peer` | `[ServerPeer](#serverpeer) &` |  |
+| `lock` | `std::unique_lock< std::mutex > &` |  |
+
+---
+
+{#route}
+
+#### route
+
+```cpp
+void route(ServerPeer & sender, const json::Value & msg)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `sender` | `[ServerPeer](#serverpeer) &` |  |
+| `msg` | `const [json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
+
+---
+
+{#deliver}
+
+#### deliver
+
+```cpp
+bool deliver(const std::string & peerId, const json::Value & msg)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `peerId` | `const std::string &` |  |
+| `msg` | `const [json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
+
+---
+
+{#deliverserialized}
+
+#### deliverSerialized
+
+```cpp
+bool deliverSerialized(const std::string & peerId, const char * data, size_t len, const json::Value & msg)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `peerId` | `const std::string &` |  |
+| `data` | `const char *` |  |
+| `len` | `size_t` |  |
+| `msg` | `const [json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
+
+---
+
+{#sendpresencesnapshot}
+
+#### sendPresenceSnapshot
+
+```cpp
+void sendPresenceSnapshot(ServerPeer & recipient, const std::unordered_set< std::string > & rooms, std::string_view excludeId)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `recipient` | `[ServerPeer](#serverpeer) &` |  |
+| `rooms` | `const std::unordered_set< std::string > &` |  |
+| `excludeId` | `std::string_view` |  |
+
+{#peerregistry}
+
+## PeerRegistry
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `void` | [`add`](#add-3)  |  |
+| `void` | [`addVirtual`](#addvirtual)  |  |
+| `void` | [`bind`](#bind-4)  |  |
+| `void` | [`unbind`](#unbind)  |  |
+| `void` | [`erase`](#erase)  |  |
+| `void` | [`eraseVirtual`](#erasevirtual)  |  |
+| `void` | [`clear`](#clear-5)  |  |
+| `ServerPeer *` | [`find`](#find)  |  |
+| `const ServerPeer *` | [`find`](#find-1) `const` |  |
+| `VirtualPeer *` | [`findVirtual`](#findvirtual)  |  |
+| `const VirtualPeer *` | [`findVirtual`](#findvirtual-1) `const` |  |
+| `ServerPeer *` | [`findByConnection`](#findbyconnection)  |  |
+| `const ServerPeer *` | [`findByConnection`](#findbyconnection-1) `const` |  |
+| `size_t` | [`size`](#size-12) `const` |  |
+| `const std::unordered_map< std::string, std::unique_ptr< ServerPeer > > &` | [`peers`](#peers-1) `const` `inline` |  |
+
+---
+
+{#add-3}
+
+#### add
+
+```cpp
+void add(std::string id, std::unique_ptr< ServerPeer > peer)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | `std::string` |  |
+| `peer` | `std::unique_ptr< [ServerPeer](#serverpeer) >` |  |
+
+---
+
+{#addvirtual}
+
+#### addVirtual
+
+```cpp
+void addVirtual(std::string id, VirtualPeer peer)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | `std::string` |  |
+| `peer` | `VirtualPeer` |  |
+
+---
+
+{#bind-4}
+
+#### bind
+
+```cpp
+void bind(http::ServerConnection & conn, const std::string & id)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `conn` | `[http::ServerConnection](#serverconnection) &` |  |
+| `id` | `const std::string &` |  |
+
+---
+
+{#unbind}
+
+#### unbind
+
+```cpp
+void unbind(http::ServerConnection & conn)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `conn` | `[http::ServerConnection](#serverconnection) &` |  |
+
+---
+
+{#erase}
+
+#### erase
+
+```cpp
+void erase(const std::string & id)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | `const std::string &` |  |
+
+---
+
+{#erasevirtual}
+
+#### eraseVirtual
+
+```cpp
+void eraseVirtual(const std::string & id)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | `const std::string &` |  |
+
+---
+
+{#clear-5}
+
+#### clear
+
+```cpp
+void clear()
+```
+
+---
+
+{#find}
+
+#### find
+
+```cpp
+ServerPeer * find(const std::string & id)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | `const std::string &` |  |
+
+---
+
+{#find-1}
+
+#### find
+
+`const`
+
+```cpp
+const ServerPeer * find(const std::string & id) const
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | `const std::string &` |  |
+
+---
+
+{#findvirtual}
+
+#### findVirtual
+
+```cpp
+VirtualPeer * findVirtual(const std::string & id)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | `const std::string &` |  |
+
+---
+
+{#findvirtual-1}
+
+#### findVirtual
+
+`const`
+
+```cpp
+const VirtualPeer * findVirtual(const std::string & id) const
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | `const std::string &` |  |
+
+---
+
+{#findbyconnection}
+
+#### findByConnection
+
+```cpp
+ServerPeer * findByConnection(http::ServerConnection & conn)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `conn` | `[http::ServerConnection](#serverconnection) &` |  |
+
+---
+
+{#findbyconnection-1}
+
+#### findByConnection
+
+`const`
+
+```cpp
+const ServerPeer * findByConnection(http::ServerConnection & conn) const
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `conn` | `[http::ServerConnection](#serverconnection) &` |  |
+
+---
+
+{#size-12}
+
+#### size
+
+`const`
+
+```cpp
+size_t size() const
+```
+
+---
+
+{#peers-1}
+
+#### peers
+
+`const` `inline`
+
+```cpp
+inline const std::unordered_map< std::string, std::unique_ptr< ServerPeer > > & peers() const
+```
+
+### Private Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `std::unordered_map< std::string, std::unique_ptr< ServerPeer > >` | [`_peers`](#_peers)  |  |
+| `std::unordered_map< std::string, VirtualPeer >` | [`_virtualPeers`](#_virtualpeers)  |  |
+| `std::unordered_map< http::ServerConnection *, std::string >` | [`_connToPeer`](#_conntopeer)  |  |
+
+---
+
+{#_peers}
+
+#### _peers
+
+```cpp
+std::unordered_map< std::string, std::unique_ptr< ServerPeer > > _peers
+```
+
+---
+
+{#_virtualpeers}
+
+#### _virtualPeers
+
+```cpp
+std::unordered_map< std::string, VirtualPeer > _virtualPeers
+```
+
+---
+
+{#_conntopeer}
+
+#### _connToPeer
+
+```cpp
+std::unordered_map< http::ServerConnection *, std::string > _connToPeer
+```
+
+{#roomindex}
+
+## RoomIndex
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `void` | [`join`](#join)  |  |
+| `void` | [`leave`](#leave)  |  |
+| `void` | [`leaveAll`](#leaveall)  |  |
+| `void` | [`clear`](#clear-6)  |  |
+| `const MemberSet *` | [`members`](#members) `const` |  |
+| `std::unordered_set< std::string >` | [`collectRecipients`](#collectrecipients) `const` |  |
+
+---
+
+{#join}
+
+#### join
+
+```cpp
+void join(const std::string & room, const std::string & peerId)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `room` | `const std::string &` |  |
+| `peerId` | `const std::string &` |  |
+
+---
+
+{#leave}
+
+#### leave
+
+```cpp
+void leave(const std::string & room, const std::string & peerId)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `room` | `const std::string &` |  |
+| `peerId` | `const std::string &` |  |
+
+---
+
+{#leaveall}
+
+#### leaveAll
+
+```cpp
+void leaveAll(const std::string & peerId)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `peerId` | `const std::string &` |  |
+
+---
+
+{#clear-6}
+
+#### clear
+
+```cpp
+void clear()
+```
+
+---
+
+{#members}
+
+#### members
+
+`const`
+
+```cpp
+const MemberSet * members(const std::string & room) const
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `room` | `const std::string &` |  |
+
+---
+
+{#collectrecipients}
+
+#### collectRecipients
+
+`const`
+
+```cpp
+std::unordered_set< std::string > collectRecipients(const std::unordered_set< std::string > & rooms, std::string_view excludeId) const
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `rooms` | `const std::unordered_set< std::string > &` |  |
+| `excludeId` | `std::string_view` |  |
+
+### Public Types
 
 | Name | Description |
 |------|-------------|
-| [`Presence`](#group__symple_1ga8e1bf8928c147286c6992a68ba000b22) |  |
-| [`Presence`](#group__symple_1ga5b4433cbeca31ebc1d47be79a5e35e9f) |  |
-| [`Presence`](#group__symple_1gaa1b5a011069c478b0cc808efa0b8e3d2) |  |
-| [`~Presence`](#group__symple_1gae3237592f9d4e644c94eb9652b3ddd82) |  |
-| [`isProbe`](#group__symple_1ga2a03e7f09b7455a88ebc06bea78da377) |  |
-| [`setProbe`](#group__symple_1ga991b723ca51fbcc7d4b0a6e5ee9577ae) |  |
+| [`MemberSet`](#memberset)  |  |
 
 ---
 
-#### Presence 
+{#memberset}
+
+#### MemberSet
 
 ```cpp
-Presence()
+std::unordered_set< std::string > MemberSet()
+```
+
+### Private Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `std::unordered_map< std::string, MemberSet >` | [`_rooms`](#_rooms)  |  |
+
+---
+
+{#_rooms}
+
+#### _rooms
+
+```cpp
+std::unordered_map< std::string, MemberSet > _rooms
+```
+
+{#options-15}
+
+## Options
+
+```cpp
+#include <server.h>
+```
+
+[Configuration](#classicy_1_1Configuration) options for the Symple server.
+
+### Public Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `std::string` | [`host`](#host-4)  |  |
+| `uint16_t` | [`port`](#port-3)  |  |
+| `bool` | [`authentication`](#authentication)  | Require token in auth message. |
+| `bool` | [`dynamicRooms`](#dynamicrooms)  | Allow clients to join/leave rooms. |
+| `size_t` | [`maxConnections`](#maxconnections)  | Max WebSocket connections (0 = unlimited) |
+| `size_t` | [`maxMessageSize`](#maxmessagesize)  | Max message payload in bytes (64KB default) |
+| `double` | [`rateLimit`](#ratelimit)  | Messages per rate window. |
+| `double` | [`rateSeconds`](#rateseconds)  | Rate window in seconds. |
+
+---
+
+{#host-4}
+
+#### host
+
+```cpp
+std::string host = "0.0.0.0"
 ```
 
 ---
 
-#### Presence 
+{#port-3}
+
+#### port
 
 ```cpp
-Presence(const json::value & root)
+uint16_t port = 4500
+```
+
+---
+
+{#authentication}
+
+#### authentication
+
+```cpp
+bool authentication = false
+```
+
+Require token in auth message.
+
+---
+
+{#dynamicrooms}
+
+#### dynamicRooms
+
+```cpp
+bool dynamicRooms = true
+```
+
+Allow clients to join/leave rooms.
+
+---
+
+{#maxconnections}
+
+#### maxConnections
+
+```cpp
+size_t maxConnections = 0
+```
+
+Max WebSocket connections (0 = unlimited)
+
+---
+
+{#maxmessagesize}
+
+#### maxMessageSize
+
+```cpp
+size_t maxMessageSize = 64 * 1024
+```
+
+Max message payload in bytes (64KB default)
+
+---
+
+{#ratelimit}
+
+#### rateLimit
+
+```cpp
+double rateLimit = 100.0
+```
+
+Messages per rate window.
+
+---
+
+{#rateseconds}
+
+#### rateSeconds
+
+```cpp
+double rateSeconds = 10.0
+```
+
+Rate window in seconds.
+
+{#presencebuilder}
+
+## PresenceBuilder
+
+### Public Static Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `json::Value` | [`make`](#make) `static` |  |
+| `void` | [`rewrite`](#rewrite) `static` |  |
+
+---
+
+{#make}
+
+#### make
+
+`static`
+
+```cpp
+static json::Value make(const Peer & peer, const std::string & id, bool online, const json::Value * extra)
 ```
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `root` | `const json::value &` |  |
+| `peer` | `const [Peer](#peer-1) &` |  |
+| `id` | `const std::string &` |  |
+| `online` | `bool` |  |
+| `extra` | `const [json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) *` |  |
 
 ---
 
-#### Presence 
+{#rewrite}
+
+#### rewrite
+
+`static`
 
 ```cpp
-Presence(const Presence & root)
+static void rewrite(json::Value & data, const Peer & peer, const std::string & id, bool online)
 ```
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `root` | `const Presence &` |  |
+| `data` | `[json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
+| `peer` | `const [Peer](#peer-1) &` |  |
+| `id` | `const std::string &` |  |
+| `online` | `bool` |  |
+
+{#routingpolicy}
+
+## RoutingPolicy
+
+### Public Static Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `bool` | [`sharesAnyRoom`](#sharesanyroom) `static` |  |
+| `bool` | [`canDirectMessage`](#candirectmessage) `static` |  |
+| `bool` | [`canDirectMessage`](#candirectmessage-1) `static` |  |
+| `bool` | [`canBroadcastToRoom`](#canbroadcasttoroom) `static` |  |
 
 ---
 
-#### ~Presence 
+{#sharesanyroom}
+
+#### sharesAnyRoom
+
+`static`
 
 ```cpp
-virtual ~Presence()
-```
-
----
-
-#### isProbe 
-
-```cpp
-bool isProbe()
-```
-
----
-
-#### setProbe 
-
-```cpp
-void setProbe(bool flag)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `flag` | `bool` |  |
-
-## Roster 
-
-> **Extends:** `icy::LiveCollection< std::string, Peer >`
-> **Defined in:** `roster.h`
-
-The [Roster](#classicy_1_1smpl_1_1Roster) provides a registry for active network peers indexed by session ID.
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`Roster`](#group__symple_1ga52cf6d7c73b07459e7231898cf3267c0) |  |
-| [`~Roster`](#group__symple_1ga548c497780612733999913ad9be891a6) |  |
-| [`getByHost`](#group__symple_1ga2762fe4481b419996e1f6f8ca51a222d) | Returns the first peer which matches the given host address. |
-| [`peers`](#group__symple_1ga82d3344e72e6d3cea1acee9929613076) | Returns a copy of the peer map for thread-safe iteration. |
-| [`print`](#group__symple_1ga1938a8f8c5784b7cafd64225133a1bae) |  |
-| [`className`](#group__symple_1ga626f160e6db0deb2de31b4d6f85a1689) |  |
-
----
-
-#### Roster 
-
-```cpp
-Roster()
-```
-
----
-
-#### ~Roster 
-
-```cpp
-virtual ~Roster()
-```
-
----
-
-#### getByHost 
-
-```cpp
-Peer * getByHost(const std::string & host)
-```
-
-Returns the first peer which matches the given host address.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `host` | `const std::string &` |  |
-
----
-
-#### peers 
-
-```cpp
-virtual PeerMap peers() const
-```
-
-Returns a copy of the peer map for thread-safe iteration.
-
----
-
-#### print 
-
-```cpp
-virtual void print(std::ostream & os) const
+static bool sharesAnyRoom(const std::unordered_set< std::string > & a, const std::unordered_set< std::string > & b)
 ```
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `os` | `std::ostream &` |  |
+| `a` | `const std::unordered_set< std::string > &` |  |
+| `b` | `const std::unordered_set< std::string > &` |  |
 
 ---
 
-#### className 
+{#candirectmessage}
+
+#### canDirectMessage
+
+`static`
 
 ```cpp
-virtual inline const char * className() const
+static bool canDirectMessage(const ServerPeer & sender, const ServerPeer & recipient)
 ```
 
-## Address 
-
-> **Defined in:** `address.h`
-
-The [Address](#structicy_1_1smpl_1_1Address) structure is an endpoint identifier for a peer on the network. The format is like so: user|id
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`Address`](#group__symple_1gac343658359ea35750fc8db0954b4859b) |  |
-| [`Address`](#group__symple_1ga7767484bbc9b2b9eef8ed405a1d6df4e) |  |
-| [`Address`](#group__symple_1ga124f7f256546189d7bb40403f15d1aee) |  |
-| [`~Address`](#group__symple_1gaec7089a1558336d72614e3ac3c6fe31b) |  |
-| [`parse`](#group__symple_1gadce752de542bbfc15cbbc6bd3399a609) |  |
-| [`valid`](#group__symple_1gad9683597832591065ff7527d9d0d1e7b) |  |
-| [`print`](#group__symple_1gae575d3b61d86073b6644fb77525e12b8) |  |
-| [`toString`](#group__symple_1ga3e7d857b2da0971cc034191a13ce4936) |  |
-| [`operator==`](#group__symple_1ga8404d6640ae900b3a41bd5bc9eb1ec0e) |  |
-| [`operator==`](#group__symple_1gad2e78b790fca7e0f7a234cdb3c39bd3c) |  |
-| [`user`](#group__symple_1gab04caf4352786515fca8fce459a56931) |  |
-| [`id`](#group__symple_1gae830f59b90e94397743b6f9540a7afe0) |  |
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `sender` | `const [ServerPeer](#serverpeer) &` |  |
+| `recipient` | `const [ServerPeer](#serverpeer) &` |  |
 
 ---
 
-#### Address 
+{#candirectmessage-1}
+
+#### canDirectMessage
+
+`static`
+
+```cpp
+static bool canDirectMessage(const ServerPeer & sender, const VirtualPeer & recipient)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `sender` | `const [ServerPeer](#serverpeer) &` |  |
+| `recipient` | `const VirtualPeer &` |  |
+
+---
+
+{#canbroadcasttoroom}
+
+#### canBroadcastToRoom
+
+`static`
+
+```cpp
+static bool canBroadcastToRoom(const ServerPeer & sender, const std::string & room)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `sender` | `const [ServerPeer](#serverpeer) &` |  |
+| `room` | `const std::string &` |  |
+
+{#virtualpeer}
+
+## VirtualPeer
+
+### Public Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `Peer` | [`peer`](#peer-5)  |  |
+| `std::unordered_set< std::string >` | [`rooms`](#rooms-1)  |  |
+| `std::function< void(const json::Value &)>` | [`handler`](#handler)  |  |
+
+---
+
+{#peer-5}
+
+#### peer
+
+```cpp
+Peer peer
+```
+
+---
+
+{#rooms-1}
+
+#### rooms
+
+```cpp
+std::unordered_set< std::string > rooms
+```
+
+---
+
+{#handler}
+
+#### handler
+
+```cpp
+std::function< void(const json::Value &)> handler
+```
+
+{#serverpeer}
+
+## ServerPeer
+
+```cpp
+#include <server.h>
+```
+
+Per-connection state for a connected Symple peer.
+
+Created by the server after successful authentication. Holds the peer data, room memberships, and a reference to the underlying WebSocket connection for sending.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`ServerPeer`](#serverpeer-1)  | Constructs a peer bound to the given server-side connection.  |
+| `void` | [`send`](#send-19)  | Serialises and sends a JSON message over the WebSocket connection. Logs a warning if the send fails; does not throw.  |
+| `void` | [`sendSerialized`](#sendserialized)  | Sends a pre-serialized JSON payload over the WebSocket connection. Use this on fanout paths that already serialized once. |
+| `void` | [`join`](#join-1)  | Adds this peer to the named room (local tracking only).  |
+| `void` | [`leave`](#leave-1)  | Removes this peer from the named room (local tracking only).  |
+| `void` | [`leaveAll`](#leaveall-1)  | Removes this peer from all rooms (local tracking only). |
+| `Peer &` | [`peer`](#peer-6) `inline` | Returns a mutable reference to the peer data object. |
+| `const Peer &` | [`peer`](#peer-7) `const` `inline` | Returns a const reference to the peer data object. |
+| `std::string` | [`id`](#id-7) `const` | Returns the session ID assigned to this peer. |
+| `const std::unordered_set< std::string > &` | [`rooms`](#rooms-2) `const` `inline` | Returns the set of room names this peer is currently joined to. |
+| `bool` | [`authenticated`](#authenticated) `const` `inline` | Returns true if the peer has completed authentication. |
+| `void` | [`setAuthenticated`](#setauthenticated) `inline` | Marks the peer as authenticated or unauthenticated.  |
+| `void` | [`setPeer`](#setpeer) `inline` | Replaces the peer's data object.  |
+| `http::ServerConnection &` | [`connection`](#connection-10) `inline` | Returns a reference to the underlying server connection. |
+| `bool` | [`checkRate`](#checkrate) `inline` | Per-peer rate limiter. Returns false if message should be dropped. |
+| `void` | [`setRateLimit`](#setratelimit) `inline` | Configures the per-peer rate limit.  |
+
+---
+
+{#serverpeer-1}
+
+#### ServerPeer
+
+```cpp
+ServerPeer(http::ServerConnection & conn)
+```
+
+Constructs a peer bound to the given server-side connection. 
+#### Parameters
+* `conn` The underlying WebSocket server connection.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `conn` | `[http::ServerConnection](#serverconnection) &` |  |
+
+---
+
+{#send-19}
+
+#### send
+
+```cpp
+void send(const json::Value & msg)
+```
+
+Serialises and sends a JSON message over the WebSocket connection. Logs a warning if the send fails; does not throw. 
+#### Parameters
+* `msg` JSON value to send.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `msg` | `const [json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
+
+---
+
+{#sendserialized}
+
+#### sendSerialized
+
+```cpp
+void sendSerialized(const char * data, size_t len)
+```
+
+Sends a pre-serialized JSON payload over the WebSocket connection. Use this on fanout paths that already serialized once.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `data` | `const char *` |  |
+| `len` | `size_t` |  |
+
+---
+
+{#join-1}
+
+#### join
+
+```cpp
+void join(const std::string & room)
+```
+
+Adds this peer to the named room (local tracking only). 
+#### Parameters
+* `room` Room name to join.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `room` | `const std::string &` |  |
+
+---
+
+{#leave-1}
+
+#### leave
+
+```cpp
+void leave(const std::string & room)
+```
+
+Removes this peer from the named room (local tracking only). 
+#### Parameters
+* `room` Room name to leave.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `room` | `const std::string &` |  |
+
+---
+
+{#leaveall-1}
+
+#### leaveAll
+
+```cpp
+void leaveAll()
+```
+
+Removes this peer from all rooms (local tracking only).
+
+---
+
+{#peer-6}
+
+#### peer
+
+`inline`
+
+```cpp
+inline Peer & peer()
+```
+
+Returns a mutable reference to the peer data object.
+
+---
+
+{#peer-7}
+
+#### peer
+
+`const` `inline`
+
+```cpp
+inline const Peer & peer() const
+```
+
+Returns a const reference to the peer data object.
+
+---
+
+{#id-7}
+
+#### id
+
+`const`
+
+```cpp
+std::string id() const
+```
+
+Returns the session ID assigned to this peer.
+
+---
+
+{#rooms-2}
+
+#### rooms
+
+`const` `inline`
+
+```cpp
+inline const std::unordered_set< std::string > & rooms() const
+```
+
+Returns the set of room names this peer is currently joined to.
+
+---
+
+{#authenticated}
+
+#### authenticated
+
+`const` `inline`
+
+```cpp
+inline bool authenticated() const
+```
+
+Returns true if the peer has completed authentication.
+
+---
+
+{#setauthenticated}
+
+#### setAuthenticated
+
+`inline`
+
+```cpp
+inline void setAuthenticated(bool v)
+```
+
+Marks the peer as authenticated or unauthenticated. 
+#### Parameters
+* `v` True to mark as authenticated.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `v` | `bool` |  |
+
+---
+
+{#setpeer}
+
+#### setPeer
+
+`inline`
+
+```cpp
+inline void setPeer(const Peer & p)
+```
+
+Replaces the peer's data object. 
+#### Parameters
+* `p` New peer data.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `p` | `const [Peer](#peer-1) &` |  |
+
+---
+
+{#connection-10}
+
+#### connection
+
+`inline`
+
+```cpp
+inline http::ServerConnection & connection()
+```
+
+Returns a reference to the underlying server connection.
+
+---
+
+{#checkrate}
+
+#### checkRate
+
+`inline`
+
+```cpp
+inline bool checkRate()
+```
+
+Per-peer rate limiter. Returns false if message should be dropped.
+
+---
+
+{#setratelimit}
+
+#### setRateLimit
+
+`inline`
+
+```cpp
+inline void setRateLimit(double rate, double seconds)
+```
+
+Configures the per-peer rate limit. 
+#### Parameters
+* `rate` Maximum messages allowed per window. 
+
+* `seconds` Duration of the rate window in seconds.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `rate` | `double` |  |
+| `seconds` | `double` |  |
+
+### Private Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `http::ServerConnection &` | [`_conn`](#_conn)  |  |
+| `Peer` | [`_peer`](#_peer-1)  |  |
+| `std::unordered_set< std::string >` | [`_rooms`](#_rooms-1)  |  |
+| `RateLimiter` | [`_rateLimiter`](#_ratelimiter)  | 100 messages per 10 seconds default |
+| `bool` | [`_authenticated`](#_authenticated)  |  |
+
+---
+
+{#_conn}
+
+#### _conn
+
+```cpp
+http::ServerConnection & _conn
+```
+
+---
+
+{#_peer-1}
+
+#### _peer
+
+```cpp
+Peer _peer
+```
+
+---
+
+{#_rooms-1}
+
+#### _rooms
+
+```cpp
+std::unordered_set< std::string > _rooms
+```
+
+---
+
+{#_ratelimiter}
+
+#### _rateLimiter
+
+```cpp
+RateLimiter _rateLimiter {100.0, 10.0}
+```
+
+100 messages per 10 seconds default
+
+---
+
+{#_authenticated}
+
+#### _authenticated
+
+```cpp
+bool _authenticated = false
+```
+
+{#address-14}
+
+## Address
+
+```cpp
+#include <address.h>
+```
+
+The [Address](#address-14) structure is an endpoint identifier for a peer on the network. The format is like so: user|id
+
+### Public Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `std::string` | [`user`](#user-2)  |  |
+| `std::string` | [`id`](#id-8)  |  |
+
+---
+
+{#user-2}
+
+#### user
+
+```cpp
+std::string user
+```
+
+---
+
+{#id-8}
+
+#### id
+
+```cpp
+std::string id
+```
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`Address`](#address-15)  | Constructs an empty (invalid) address. |
+|  | [`Address`](#address-16)  | Parses an address string of the form `user\|id`.  |
+|  | [`Address`](#address-17)  | Constructs an address from explicit user and session ID components.  |
+| `bool` | [`parse`](#parse-2)  | Parses an address string of the form `user\|id`. Populates the `user` and `id` fields.  |
+| `bool` | [`valid`](#valid-14) `const` | Returns true if at least one of `user` or `id` is non-empty. |
+| `void` | [`print`](#print-18) `const` | Writes the address in `user\|id` format to the given stream.  |
+| `std::string` | [`toString`](#tostring-9) `const` | Returns the address as a string in `user\|id` format.  |
+| `bool` | [`operator==`](#operator-28) `const` | Compares two addresses for equality (both user and id must match).  |
+| `bool` | [`operator==`](#operator-29) `const` | Compares this address against a string in `user\|id` format without allocating.  |
+
+---
+
+{#address-15}
+
+#### Address
 
 ```cpp
 Address()
 ```
 
+Constructs an empty (invalid) address.
+
 ---
 
-#### Address 
+{#address-16}
+
+#### Address
 
 ```cpp
-Address(const std::string & addr)
+Address(std::string_view addr)
 ```
+
+Parses an address string of the form `user|id`. 
+#### Parameters
+* `addr` [Address](#address-14) string to parse.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `addr` | `const std::string &` |  |
+| `addr` | `std::string_view` |  |
 
 ---
 
-#### Address 
+{#address-17}
+
+#### Address
 
 ```cpp
 Address(const std::string & user, const std::string & id)
 ```
+
+Constructs an address from explicit user and session ID components. 
+#### Parameters
+* `user` User identifier. 
+
+* `id` Session ID.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -2501,39 +5490,54 @@ Address(const std::string & user, const std::string & id)
 
 ---
 
-#### ~Address 
+{#parse-2}
+
+#### parse
 
 ```cpp
-virtual ~Address()
+bool parse(std::string_view addr)
 ```
 
----
+Parses an address string of the form `user|id`. Populates the `user` and `id` fields. 
+#### Parameters
+* `addr` [Address](#address-14) string to parse. 
 
-#### parse 
-
-```cpp
-bool parse(const std::string & addr)
-```
+#### Returns
+True if the result is a valid address.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `addr` | `const std::string &` |  |
+| `addr` | `std::string_view` |  |
 
 ---
 
-#### valid 
+{#valid-14}
+
+#### valid
+
+`const`
 
 ```cpp
 bool valid() const
 ```
 
+Returns true if at least one of `user` or `id` is non-empty.
+
 ---
 
-#### print 
+{#print-18}
+
+#### print
+
+`const`
 
 ```cpp
 void print(std::ostream & os) const
 ```
+
+Writes the address in `user|id` format to the given stream. 
+#### Parameters
+* `os` Output stream.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -2541,197 +5545,115 @@ void print(std::ostream & os) const
 
 ---
 
-#### toString 
+{#tostring-9}
+
+#### toString
+
+`const`
 
 ```cpp
 std::string toString() const
 ```
 
+Returns the address as a string in `user|id` format. 
+#### Returns
+Serialised address string.
+
 ---
 
-#### operator== 
+{#operator-28}
+
+#### operator==
+
+`const`
 
 ```cpp
-bool operator==(const Address & r)
+bool operator==(const Address & r) const
+```
+
+Compares two addresses for equality (both user and id must match). 
+#### Parameters
+* `r` [Address](#address-14) to compare against.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `r` | `const [Address](#address-14) &` |  |
+
+---
+
+{#operator-29}
+
+#### operator==
+
+`const`
+
+```cpp
+bool operator==(const std::string & r) const
+```
+
+Compares this address against a string in `user|id` format without allocating. 
+#### Parameters
+* `r` String to compare against.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `r` | `const std::string &` |  |
+
+{#clientstate-1}
+
+## ClientState
+
+```cpp
+#include <client.h>
+```
+
+> **Inherits:** [`State`](#classicy_1_1State)
+
+[Client](#client-5) connection states.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `std::string` | [`str`](#str-3) `const` `inline` |  |
+
+---
+
+{#str-3}
+
+#### str
+
+`const` `inline`
+
+```cpp
+inline std::string str(unsigned int id) const
 ```
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `r` | `const Address &` |  |
+| `id` | `unsigned int` |  |
 
----
-
-#### operator== 
-
-```cpp
-bool operator==(std::string & r)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `r` | `std::string &` |  |
-
----
-
-#### user 
-
-```cpp
-std::string user
-```
-
----
-
-#### id 
-
-```cpp
-std::string id
-```
-
-## Options 
-
-> **Defined in:** `client.h`
-
-### Members
+### Public Types
 
 | Name | Description |
 |------|-------------|
-| [`Options`](#group__symple_1ga7dd4fee81e4318912e9d82a1e35c6550) |  |
-| [`host`](#group__symple_1ga05d0bdf5ab5eeefec7d0019bb110bb58) |  |
-| [`port`](#group__symple_1ga1b77c19ba3010b95adab9572de8812d4) |  |
-| [`reconnection`](#group__symple_1ga8388c0e51b717793da8e136f24ef4df6) | Weather or not to reconnect if disconnected from the server. |
-| [`reconnectAttempts`](#group__symple_1gaad73b34182da94bd80d394d6c2cf8d59) | The number of times to attempt to reconnect if disconnected from the server. (0 = unlimited) |
-| [`user`](#group__symple_1gace5d72442ca0ddd400242766dcbe0075) |  |
-| [`name`](#group__symple_1ga937a706d0ff802b29881200dd0f9b140) |  |
-| [`type`](#group__symple_1ga3a94f72a2f8e72b1bb84f11630f9cd9a) |  |
-| [`token`](#group__symple_1gae46b1ce6b2a9c5e8ae983cf36137d18d) |  |
+| [`Type`](#type-22)  |  |
 
 ---
 
-#### Options 
+{#type-22}
+
+#### Type
 
 ```cpp
-inline Options()
+enum Type
 ```
 
----
-
-#### host 
-
-```cpp
-std::string host = "127.0.0.1"
-```
-
----
-
-#### port 
-
-```cpp
-uint16_t port = 4500
-```
-
----
-
-#### reconnection 
-
-```cpp
-bool reconnection = true
-```
-
-Weather or not to reconnect if disconnected from the server.
-
----
-
-#### reconnectAttempts 
-
-```cpp
-int reconnectAttempts = 0
-```
-
-The number of times to attempt to reconnect if disconnected from the server. (0 = unlimited)
-
----
-
-#### user 
-
-```cpp
-std::string user
-```
-
----
-
-#### name 
-
-```cpp
-std::string name
-```
-
----
-
-#### type 
-
-```cpp
-std::string type
-```
-
----
-
-#### token 
-
-```cpp
-std::string token
-```
-
-## Filter 
-
-> **Defined in:** `client.h`
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`Filter`](#group__symple_1ga7e21efcc6d5fc951be79a19e246294dd) |  |
-| [`Filter`](#group__symple_1ga1f3cd2015d9c9dd0f710ec47c2d68e03) |  |
-| [`flags`](#group__symple_1ga84b2f5acb1cf965cae191acd953dfad4) |  |
-| [`path`](#group__symple_1ga54304a93d73847a0a53f8f1da50a62a1) |  |
-
----
-
-#### Filter 
-
-```cpp
-inline Filter(const std::string & path, unsigned flags)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `path` | `const std::string &` |  |
-| `flags` | `unsigned` |  |
-
----
-
-#### Filter 
-
-```cpp
-inline Filter(unsigned flags)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `flags` | `unsigned` |  |
-
----
-
-#### flags 
-
-```cpp
-Bitwise flags
-```
-
----
-
-#### path 
-
-```cpp
-std::string path
-```
+| Value | Description |
+|-------|-------------|
+| `Closed` |  |
+| `Connecting` |  |
+| `Authenticating` |  |
+| `Online` |  |
+| `Error` |  |
 

@@ -814,9 +814,7 @@ INPUT_ENCODING         = UTF-8
 # *.m, *.markdown, *.md, *.mm, *.dox, *.py, *.pyw, *.f90, *.f95, *.f03, *.f08,
 # *.f, *.for, *.tcl, *.vhd, *.vhdl, *.ucf and *.qsf.
 
-FILE_PATTERNS          = *.c \
-                         *.cpp \
-                         *.h \
+FILE_PATTERNS          = *.h \
                          *.hpp \
                          *.qsf
 
@@ -1993,7 +1991,7 @@ ENABLE_PREPROCESSING   = YES
 # The default value is: NO.
 # This tag requires that the tag ENABLE_PREPROCESSING is set to YES.
 
-MACRO_EXPANSION        = NO
+MACRO_EXPANSION        = YES
 
 # If the EXPAND_ONLY_PREDEF and MACRO_EXPANSION tags are both set to YES then
 # the macro expansion is limited to the macros specified with the PREDEFINED and
@@ -2001,7 +1999,7 @@ MACRO_EXPANSION        = NO
 # The default value is: NO.
 # This tag requires that the tag ENABLE_PREPROCESSING is set to YES.
 
-EXPAND_ONLY_PREDEF     = NO
+EXPAND_ONLY_PREDEF     = YES
 
 # If the SEARCH_INCLUDES tag is set to YES, the include files in the
 # INCLUDE_PATH will be searched if a #include is found.
@@ -2033,7 +2031,22 @@ INCLUDE_FILE_PATTERNS  =
 # recursively expanded use the := operator instead of the = operator.
 # This tag requires that the tag ENABLE_PREPROCESSING is set to YES.
 
-PREDEFINED             = HAVE_FFMPEG HAVE_FFMPEG_AVDEVICE
+PREDEFINED             = HAVE_FFMPEG \
+                         HAVE_FFMPEG_AVDEVICE \
+                         Base_API= \
+                         HTTP_API= \
+                         Net_API= \
+                         Symple_API= \
+                         Archo_API= \
+                         STUN_API= \
+                         AV_API= \
+                         TURN_API= \
+                         JSON_API= \
+                         WEBRTC_API= \
+                         Crypto_API= \
+                         Sched_API= \
+                         Pacm_API= \
+                         Pluga_API=
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then this
 # tag can be used to specify a list of macro names that should be expanded. The

@@ -1,124 +1,401 @@
-# net 
+{#netmodule}
+
+# net
+
+TCP/SSL/UDP networking, socket adapters, DNS resolution.
+
+### Namespaces
+
+| Name | Description |
+|------|-------------|
+| [`net`](#net) |  |
+| [`dns`](#dns) | DNS utilities. |
+
+{#net}
+
+# net
 
 ### Classes
 
 | Name | Description |
 |------|-------------|
-| [`Address`](#classicy_1_1net_1_1Address) |  |
-| [`PacketSocketEmitter`](#classicy_1_1net_1_1PacketSocketEmitter) |  |
-| [`Socket`](#classicy_1_1net_1_1Socket) | Base socket implementation from which all sockets derive. |
-| [`SocketPacket`](#classicy_1_1net_1_1SocketPacket) | [SocketPacket](#classicy_1_1net_1_1SocketPacket) is the default packet type emitted by sockets. [SocketPacket](#classicy_1_1net_1_1SocketPacket) provides peer address information and a buffer reference for nocopy binary operations. |
-| [`SocketAdapter`](#classicy_1_1net_1_1SocketAdapter) | [SocketAdapter](#classicy_1_1net_1_1SocketAdapter) is the abstract interface for all socket classes. A [SocketAdapter](#classicy_1_1net_1_1SocketAdapter) can also be attached to a [Socket](#classicy_1_1net_1_1Socket) in order to override default [Socket](#classicy_1_1net_1_1Socket) callbacks and behaviour, while still maintaining the default [Socket](#classicy_1_1net_1_1Socket) interface (see Socket::setAdapter). |
-| [`SocketEmitter`](#classicy_1_1net_1_1SocketEmitter) | [SocketAdapter](#classicy_1_1net_1_1SocketAdapter) class that adds signal callbacks for sockets. Asde from adding a signal interface the class works as a wrapper for the socket instance, and is designed to be used the same way as a `std::unique_ptr` by overriding the ->() operator. |
-| [`SSLAdapter`](#classicy_1_1net_1_1SSLAdapter) |  |
-| [`SSLContext`](#classicy_1_1net_1_1SSLContext) | This class encapsulates context information for an SSL server or client, such as the certificate verification mode and the location of certificates and private key files, as well as the list of supported ciphers. |
-| [`SSLManager`](#classicy_1_1net_1_1SSLManager) | [SSLManager](#classicy_1_1net_1_1SSLManager) is a singleton for holding the default server/client Context and handling callbacks for certificate verification errors and private key passphrases. |
-| [`VerificationErrorDetails`](#classicy_1_1net_1_1VerificationErrorDetails) | A utility class for certificate error handling. |
-| [`SSLSession`](#classicy_1_1net_1_1SSLSession) | This class encapsulates a SSL session object used with session caching on the client side. |
-| [`SSLSocket`](#classicy_1_1net_1_1SSLSocket) | SSL socket implementation. |
-| [`TCPSocket`](#classicy_1_1net_1_1TCPSocket) | TCP socket implementation. |
-| [`Transaction`](#classicy_1_1net_1_1Transaction) | This class provides request/response functionality for [IPacket](./doc/api-base.md#classicy_1_1IPacket) types emitted from a [Socket](#classicy_1_1net_1_1Socket). |
-| [`UDPSocket`](#classicy_1_1net_1_1UDPSocket) | UDP socket implementation. |
-| [`AddressBase`](#classicy_1_1net_1_1AddressBase) |  |
-| [`IPv4AddressBase`](#classicy_1_1net_1_1IPv4AddressBase) |  |
-| [`PacketInfo`](#structicy_1_1net_1_1PacketInfo) | Provides information about packets emitted from a socket. See [SocketPacket](#classicy_1_1net_1_1SocketPacket). |
-| [`Ref`](#structicy_1_1net_1_1SocketAdapter_1_1Ref) |  |
+| [`Address`](#address) | Represents an IPv4 or IPv6 socket address with host and port. |
+| [`PacketSocketEmitter`](#packetsocketemitter) | [Socket](#socket) adapter that emits received data as packets. |
+| [`Socket`](#socket) | Base socket implementation from which all sockets derive. |
+| [`SocketAdapter`](#socketadapter) | [SocketAdapter](#socketadapter) is the abstract interface for all socket classes. A [SocketAdapter](#socketadapter) can also be attached to a [Socket](#socket) in order to override default [Socket](#socket) callbacks and behaviour, while still maintaining the default [Socket](#socket) interface (see Socket::setAdapter). |
+| [`SocketEmitter`](#socketemitter) | [SocketAdapter](#socketadapter) class that adds signal callbacks for sockets. Asde from adding a signal interface the class works as a wrapper for the socket instance, and is designed to be used the same way as a `std::unique_ptr` by overriding the ->() operator. |
+| [`SocketPacket`](#socketpacket) | [SocketPacket](#socketpacket) is the default packet type emitted by sockets. [SocketPacket](#socketpacket) provides peer address information and a buffer reference for nocopy binary operations. |
+| [`SSLAdapter`](#ssladapter) | Manages the OpenSSL context and BIO buffers for an SSL socket connection. |
+| [`SSLContext`](#sslcontext) | This class encapsulates context information for an SSL server or client, such as the certificate verification mode and the location of certificates and private key files, as well as the list of supported ciphers. |
+| [`SSLManager`](#sslmanager) | [SSLManager](#sslmanager) is a singleton for holding the default server/client Context and handling callbacks for certificate verification errors and private key passphrases. |
+| [`SSLSession`](#sslsession) | This class encapsulates a SSL session object used with session caching on the client side. |
+| [`SSLSocket`](#sslsocket) | SSL socket implementation. |
+| [`TCPSocket`](#tcpsocket) | TCP socket implementation. |
+| [`Transaction`](#transaction) | This class provides request/response functionality for [IPacket](#classicy_1_1IPacket) types emitted from a [Socket](#socket). |
+| [`UDPSocket`](#udpsocket) | UDP socket implementation. |
+| [`VerificationErrorDetails`](#verificationerrordetails) | A utility class for certificate error handling. |
+| [`PacketInfo`](#packetinfo-1) | Provides information about packets emitted from a socket. See [SocketPacket](#socketpacket). |
 
-### Members
+### Enumerations
 
 | Name | Description |
 |------|-------------|
-| [`ICY_HAVE_IPv6`](#group__net_1gab13f08bf90488904c8a33b55bd07d704) | Windows. |
-| [`Net_API`](#group__net_1gae68e75c96e9669ffa526fadc5d953721) | Linux. |
+| [`TransportType`](#transporttype)  | Transport protocol identifier used to distinguish socket types at runtime. |
+| [`SocketMode`](#socketmode)  |  |
 
 ---
 
-#### ICY_HAVE_IPv6 
+{#transporttype}
+
+#### TransportType
 
 ```cpp
-ICY_HAVE_IPv6()
+enum TransportType
 ```
 
-Windows.
-
----
-
-#### Net_API 
-
-```cpp
-Net_API()
-```
-
-Linux.
-
-## Address 
-
-> **Defined in:** `address.h`
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`Family`](#group__net_1gaf91e77d155f2852974bbae5a2da34106) | Possible address families for IP addresses. |
-| [`Address`](#group__net_1ga4376b5c4c7a0390b9148741c61331775) | Creates a wildcard (all zero) IPv4 [Address](#classicy_1_1net_1_1Address). |
-| [`Address`](#group__net_1ga9738fe42686a855ffaa0ceb14541c42c) | Creates a [Address](#classicy_1_1net_1_1Address) from an IP address and a port number. |
-| [`Address`](#group__net_1ga1ebca1dc763be19d20ec69be97bbb3d7) | Creates a [Address](#classicy_1_1net_1_1Address) by copying another one. |
-| [`Address`](#group__net_1gac57cc836572c64291fe739745be8e25e) | Creates a [Address](#classicy_1_1net_1_1Address) from a native socket address. |
-| [`Address`](#group__net_1gacde53f645ce818600709e240dbf510eb) | Creates a [Address](#classicy_1_1net_1_1Address) from an IP address and a service name or port number. |
-| [`Address`](#group__net_1ga94e2bed4c55e369c97a2d229d2b591e6) | Creates a [Address](#classicy_1_1net_1_1Address) from an IP address or host name and a port number/service name. Host name/address and port number must be separated by a colon. In case of an IPv6 address, the address part must be enclosed in brackets. |
-| [`~Address`](#group__net_1ga5b9e05ed6187c478f65d0d57ad4cdb35) | Destroys the [Address](#classicy_1_1net_1_1Address). |
-| [`operator=`](#group__net_1ga3b3ec108da40cf5fafd15cc21b4388bd) | Assigns another [Address](#classicy_1_1net_1_1Address). |
-| [`swap`](#group__net_1ga877434e8e2b5a266d99f9f35be0882b0) | Swaps the [Address](#classicy_1_1net_1_1Address) with another one. |
-| [`host`](#group__net_1gad8fbd6353a1f03ef3e0346ef1be64800) | Returns the host IP address. |
-| [`port`](#group__net_1ga36e14fd72aceb8470cb7e6d2931ca622) | Returns the port number. |
-| [`length`](#group__net_1ga474b01eea594bde98f3dca27ca6d09bd) | Returns the length of the internal native socket address. |
-| [`addr`](#group__net_1ga6ea740a58361a1e81ed6319d6529dcf4) | Returns a pointer to the internal native socket address. |
-| [`af`](#group__net_1gac1036c47a13a55df8cae09cf4ca82137) | Returns the address family (AF_INET or AF_INET6) of the address. |
-| [`toString`](#group__net_1gacc785d126d40fabb5af3e6f71c835084) | Returns a string representation of the address. |
-| [`family`](#group__net_1ga7683b700d696248f25f2a125a1e0f645) | Returns the address family of the host's address. |
-| [`valid`](#group__net_1ga657136484ebe9fedce2ce01cb5c4497e) | Returns true when the port is set and the address is valid ie. not wildcard. |
-| [`operator<`](#group__net_1ga7a1cc2425e33d40740dd5d706de9ebd6) |  |
-| [`operator==`](#group__net_1gaa0f9e31b04a54f297c6b970ad8c6719f) |  |
-| [`operator!=`](#group__net_1gadf21121f417c9ef8ea3ebd441e6ee72e) |  |
-| [`resolveService`](#group__net_1gaef529a989e8e83bfab2cf62b87e6f024) |  |
-| [`validateIP`](#group__net_1gabe7ed7441d105e3a4b878594a2d051c1) |  |
-| [`init`](#group__net_1ga945edbcf0846406f0ef4e2a09dcf43cf) |  |
-| [`_base`](#group__net_1gacff7149edafcdf3b5879a7211175c5b7) |  |
-
----
-
-#### Family 
-
-```cpp
-enum Family
-```
-
-Possible address families for IP addresses.
+Transport protocol identifier used to distinguish socket types at runtime.
 
 | Value | Description |
 |-------|-------------|
-| `IPv4` |  |
-| `IPv6` |  |
+| `UDP` | Unreliable datagram protocol. |
+| `TCP` | Reliable stream protocol. |
+| `SSLTCP` | TLS-encrypted TCP stream. |
 
 ---
 
-#### Address 
+{#socketmode}
+
+#### SocketMode
+
+```cpp
+enum SocketMode
+```
+
+| Value | Description |
+|-------|-------------|
+| `ServerSide` | Server-side adapter. |
+| `ClientSide` | Client-side adapter. |
+
+### Functions
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `std::shared_ptr< SocketT >` | [`makeSocket`](#makesocket) `inline` | Creates a socket of type SocketT wrapped in a shared_ptr. |
+| `SSLContext::VerificationMode` | [`convertVerificationMode`](#convertverificationmode) `inline` | Non-case sensitive conversion of a string to a VerificationMode enum. If verMode is illegal an ArgumentException is thrown. |
+| `std::string` | [`convertCertificateError`](#convertcertificateerror) `inline` | Converts an SSL certificate handling error code into an error message. |
+| `std::string` | [`getLastError`](#getlasterror) `inline` | Returns the last error from the error stack. |
+| `void` | [`clearErrorStack`](#clearerrorstack) `inline` | Clears the error stack. |
+| `void` | [`getNetworkInterfaces`](#getnetworkinterfaces) `inline` | Populates `hosts` with all local network interface addresses. |
+| `int` | [`getServerSocketSendBufSize`](#getserversocketsendbufsize)  | Returns the current send buffer size for a socket handle, in bytes. Passes val=0 to uv_send_buffer_size, which queries rather than sets the value.  |
+| `int` | [`getServerSocketRecvBufSize`](#getserversocketrecvbufsize)  | Returns the current receive buffer size for a socket handle, in bytes. Passes val=0 to uv_recv_buffer_size, which queries rather than sets the value.  |
+| `int` | [`setServerSocketSendBufSize`](#setserversocketsendbufsize)  | Sets the send buffer size for a socket handle.  |
+| `int` | [`setServerSocketRecvBufSize`](#setserversocketrecvbufsize)  | Sets the receive buffer size for a socket handle.  |
+
+---
+
+{#makesocket}
+
+#### makeSocket
+
+`inline`
+
+```cpp
+template<class SocketT> inline std::shared_ptr< SocketT > makeSocket(uv::Loop * loop)
+```
+
+Creates a socket of type SocketT wrapped in a shared_ptr.
+
+The socket is automatically destroyed when the last shared_ptr owner releases it. 
+#### Parameters
+* `SocketT` The concrete socket type to instantiate (e.g. [TCPSocket](#tcpsocket), [UDPSocket](#udpsocket)). 
+
+#### Parameters
+* `loop` Event loop to associate with the socket; defaults to the default loop. 
+
+#### Returns
+A shared_ptr owning the newly created socket.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `loop` | `[uv::Loop](#namespaceicy_1_1uv_1a8bfd153231f95de982e16db911389619) *` |  |
+
+---
+
+{#convertverificationmode}
+
+#### convertVerificationMode
+
+`inline`
+
+```cpp
+inline SSLContext::VerificationMode convertVerificationMode(const std::string & vMode)
+```
+
+Non-case sensitive conversion of a string to a VerificationMode enum. If verMode is illegal an ArgumentException is thrown.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `vMode` | `const std::string &` |  |
+
+---
+
+{#convertcertificateerror}
+
+#### convertCertificateError
+
+`inline`
+
+```cpp
+inline std::string convertCertificateError(long errCode)
+```
+
+Converts an SSL certificate handling error code into an error message.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `errCode` | `long` |  |
+
+---
+
+{#getlasterror}
+
+#### getLastError
+
+`inline`
+
+```cpp
+inline std::string getLastError()
+```
+
+Returns the last error from the error stack.
+
+---
+
+{#clearerrorstack}
+
+#### clearErrorStack
+
+`inline`
+
+```cpp
+inline void clearErrorStack()
+```
+
+Clears the error stack.
+
+---
+
+{#getnetworkinterfaces}
+
+#### getNetworkInterfaces
+
+`inline`
+
+```cpp
+inline void getNetworkInterfaces(std::vector< net::Address > & hosts)
+```
+
+Populates `hosts` with all local network interface addresses.
+
+Each entry is an IPv4 address constructed from the interface's address4 field. The results include loopback and any other active interfaces reported by libuv. 
+#### Parameters
+* `hosts` Vector to append the discovered addresses to.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `hosts` | `std::vector< [net::Address](#address) > &` |  |
+
+---
+
+{#getserversocketsendbufsize}
+
+#### getServerSocketSendBufSize
+
+```cpp
+template<typename T> int getServerSocketSendBufSize(uv::Handle< T > & handle)
+```
+
+Returns the current send buffer size for a socket handle, in bytes. Passes val=0 to uv_send_buffer_size, which queries rather than sets the value. 
+#### Parameters
+* `T` The libuv handle type (e.g. uv_tcp_t, uv_udp_t). 
+
+#### Parameters
+* `handle` The socket handle to query. 
+
+#### Returns
+The send buffer size, or a libuv error code on failure.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `handle` | `[uv::Handle](#handle)< T > &` |  |
+
+---
+
+{#getserversocketrecvbufsize}
+
+#### getServerSocketRecvBufSize
+
+```cpp
+template<typename T> int getServerSocketRecvBufSize(uv::Handle< T > & handle)
+```
+
+Returns the current receive buffer size for a socket handle, in bytes. Passes val=0 to uv_recv_buffer_size, which queries rather than sets the value. 
+#### Parameters
+* `T` The libuv handle type (e.g. uv_tcp_t, uv_udp_t). 
+
+#### Parameters
+* `handle` The socket handle to query. 
+
+#### Returns
+The receive buffer size, or a libuv error code on failure.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `handle` | `[uv::Handle](#handle)< T > &` |  |
+
+---
+
+{#setserversocketsendbufsize}
+
+#### setServerSocketSendBufSize
+
+```cpp
+template<typename T> int setServerSocketSendBufSize(uv::Handle< T > & handle, int size)
+```
+
+Sets the send buffer size for a socket handle. 
+#### Parameters
+* `T` The libuv handle type (e.g. uv_tcp_t, uv_udp_t). 
+
+#### Parameters
+* `handle` The socket handle to configure. 
+
+* `size` The desired send buffer size in bytes. 
+
+#### Returns
+0 on success, or a libuv error code on failure.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `handle` | `[uv::Handle](#handle)< T > &` |  |
+| `size` | `int` |  |
+
+---
+
+{#setserversocketrecvbufsize}
+
+#### setServerSocketRecvBufSize
+
+```cpp
+template<typename T> int setServerSocketRecvBufSize(uv::Handle< T > & handle, int size)
+```
+
+Sets the receive buffer size for a socket handle. 
+#### Parameters
+* `T` The libuv handle type (e.g. uv_tcp_t, uv_udp_t). 
+
+#### Parameters
+* `handle` The socket handle to configure. 
+
+* `size` The desired receive buffer size in bytes. 
+
+#### Returns
+0 on success, or a libuv error code on failure.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `handle` | `[uv::Handle](#handle)< T > &` |  |
+| `size` | `int` |  |
+
+### Variables
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `constexpr int` | [`MAX_TCP_PACKET_SIZE`](#max_tcp_packet_size)  | Maximum size of a single TCP receive buffer, in bytes. |
+| `constexpr int` | [`MAX_UDP_PACKET_SIZE`](#max_udp_packet_size)  | Maximum size of a single UDP datagram payload, in bytes. |
+
+---
+
+{#max_tcp_packet_size}
+
+#### MAX_TCP_PACKET_SIZE
+
+```cpp
+constexpr int MAX_TCP_PACKET_SIZE = 64 * 1024
+```
+
+Maximum size of a single TCP receive buffer, in bytes.
+
+---
+
+{#max_udp_packet_size}
+
+#### MAX_UDP_PACKET_SIZE
+
+```cpp
+constexpr int MAX_UDP_PACKET_SIZE = 1500
+```
+
+Maximum size of a single UDP datagram payload, in bytes.
+
+{#address}
+
+## Address
+
+```cpp
+#include <address.h>
+```
+
+Represents an IPv4 or IPv6 socket address with host and port.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`Address`](#address-1)  | Creates a wildcard (all zero) IPv4 [Address](#address). |
+|  | [`Address`](#address-2)  | Creates a [Address](#address) from an IP address and a port number. |
+|  | [`Address`](#address-3)  | Creates a [Address](#address) by copying another one. |
+|  | [`Address`](#address-4)  | Creates a [Address](#address) from a native socket address. |
+|  | [`Address`](#address-5)  | Creates a [Address](#address) from an IP address and a service name or port number. |
+|  | [`Address`](#address-6) `explicit` | Creates a [Address](#address) from an IP address or host name and a port number/service name. Host name/address and port number must be separated by a colon. In case of an IPv6 address, the address part must be enclosed in brackets. |
+|  | [`~Address`](#address-7)  | Destroys the [Address](#address). |
+| `Address &` | [`operator=`](#operator-4)  | Assigns another [Address](#address). |
+| `void` | [`swap`](#swap)  | Swaps the [Address](#address) with another one. |
+| `std::string` | [`host`](#host) `const` | Returns the host IP address. |
+| `uint16_t` | [`port`](#port) `const` | Returns the port number. |
+| `socklen_t` | [`length`](#length) `const` | Returns the length of the internal native socket address. |
+| `const struct sockaddr *` | [`addr`](#addr-1) `const` | Returns a pointer to the internal native socket address. |
+| `int` | [`af`](#af) `const` | Returns the address family (AF_INET or AF_INET6) of the address. |
+| `std::string` | [`toString`](#tostring-4) `const` | Returns a string representation of the address. |
+| `Address::Family` | [`family`](#family) `const` | Returns the address family of the host's address. |
+| `bool` | [`valid`](#valid) `const` | Returns true when the port is set and the address is valid ie. not wildcard. |
+| `bool` | [`operator<`](#operator-5) `const` | Compares two addresses for ordering (by family then port).  |
+| `bool` | [`operator==`](#operator-6) `const` | Returns true if the host and port of both addresses are equal.  |
+| `bool` | [`operator!=`](#operator-7) `const` | Returns true if the host or port of the addresses differ.  |
+
+---
+
+{#address-1}
+
+#### Address
 
 ```cpp
 Address()
 ```
 
-Creates a wildcard (all zero) IPv4 [Address](#classicy_1_1net_1_1Address).
+Creates a wildcard (all zero) IPv4 [Address](#address).
 
 ---
 
-#### Address 
+{#address-2}
+
+#### Address
 
 ```cpp
 Address(const std::string & host, uint16_t port)
 ```
 
-Creates a [Address](#classicy_1_1net_1_1Address) from an IP address and a port number.
+Creates a [Address](#address) from an IP address and a port number.
 
 The IP address must either be a domain name, or it must be in dotted decimal (IPv4) or hex string (IPv6) format.
 
@@ -129,27 +406,31 @@ The IP address must either be a domain name, or it must be in dotted decimal (IP
 
 ---
 
-#### Address 
+{#address-3}
+
+#### Address
 
 ```cpp
 Address(const Address & addr)
 ```
 
-Creates a [Address](#classicy_1_1net_1_1Address) by copying another one.
+Creates a [Address](#address) by copying another one.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `addr` | `const Address &` |  |
+| `addr` | `const [Address](#address) &` |  |
 
 ---
 
-#### Address 
+{#address-4}
+
+#### Address
 
 ```cpp
 Address(const struct sockaddr * addr, socklen_t length)
 ```
 
-Creates a [Address](#classicy_1_1net_1_1Address) from a native socket address.
+Creates a [Address](#address) from a native socket address.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -158,13 +439,15 @@ Creates a [Address](#classicy_1_1net_1_1Address) from a native socket address.
 
 ---
 
-#### Address 
+{#address-5}
+
+#### Address
 
 ```cpp
 Address(const std::string & host, const std::string & port)
 ```
 
-Creates a [Address](#classicy_1_1net_1_1Address) from an IP address and a service name or port number.
+Creates a [Address](#address) from an IP address and a service name or port number.
 
 The IP address must either be a domain name, or it must be in dotted decimal (IPv4) or hex string (IPv6) format.
 
@@ -177,13 +460,17 @@ The given port must either be a decimal port number, or a service name.
 
 ---
 
-#### Address 
+{#address-6}
+
+#### Address
+
+`explicit`
 
 ```cpp
 explicit Address(const std::string & hostAndPort)
 ```
 
-Creates a [Address](#classicy_1_1net_1_1Address) from an IP address or host name and a port number/service name. Host name/address and port number must be separated by a colon. In case of an IPv6 address, the address part must be enclosed in brackets.
+Creates a [Address](#address) from an IP address or host name and a port number/service name. Host name/address and port number must be separated by a colon. In case of an IPv6 address, the address part must be enclosed in brackets.
 
 Examples: 192.168.1.10:80
 
@@ -195,45 +482,55 @@ www.0state.com:8080
 
 ---
 
-#### ~Address 
+{#address-7}
+
+#### ~Address
 
 ```cpp
-~Address()
+~Address() noexcept
 ```
 
-Destroys the [Address](#classicy_1_1net_1_1Address).
+Destroys the [Address](#address).
 
 ---
 
-#### operator= 
+{#operator-4}
+
+#### operator=
 
 ```cpp
 Address & operator=(const Address & addr)
 ```
 
-Assigns another [Address](#classicy_1_1net_1_1Address).
+Assigns another [Address](#address).
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `addr` | `const Address &` |  |
+| `addr` | `const [Address](#address) &` |  |
 
 ---
 
-#### swap 
+{#swap}
+
+#### swap
 
 ```cpp
 void swap(Address & addr)
 ```
 
-Swaps the [Address](#classicy_1_1net_1_1Address) with another one.
+Swaps the [Address](#address) with another one.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `addr` | `Address &` |  |
+| `addr` | `[Address](#address) &` |  |
 
 ---
 
-#### host 
+{#host}
+
+#### host
+
+`const`
 
 ```cpp
 std::string host() const
@@ -243,7 +540,11 @@ Returns the host IP address.
 
 ---
 
-#### port 
+{#port}
+
+#### port
+
+`const`
 
 ```cpp
 uint16_t port() const
@@ -253,7 +554,11 @@ Returns the port number.
 
 ---
 
-#### length 
+{#length}
+
+#### length
+
+`const`
 
 ```cpp
 socklen_t length() const
@@ -263,7 +568,11 @@ Returns the length of the internal native socket address.
 
 ---
 
-#### addr 
+{#addr-1}
+
+#### addr
+
+`const`
 
 ```cpp
 const struct sockaddr * addr() const
@@ -273,7 +582,11 @@ Returns a pointer to the internal native socket address.
 
 ---
 
-#### af 
+{#af}
+
+#### af
+
+`const`
 
 ```cpp
 int af() const
@@ -283,7 +596,11 @@ Returns the address family (AF_INET or AF_INET6) of the address.
 
 ---
 
-#### toString 
+{#tostring-4}
+
+#### toString
+
+`const`
 
 ```cpp
 std::string toString() const
@@ -293,7 +610,11 @@ Returns a string representation of the address.
 
 ---
 
-#### family 
+{#family}
+
+#### family
+
+`const`
 
 ```cpp
 Address::Family family() const
@@ -303,7 +624,11 @@ Returns the address family of the host's address.
 
 ---
 
-#### valid 
+{#valid}
+
+#### valid
+
+`const`
 
 ```cpp
 bool valid() const
@@ -313,47 +638,92 @@ Returns true when the port is set and the address is valid ie. not wildcard.
 
 ---
 
-#### operator< 
+{#operator-5}
+
+#### operator<
+
+`const`
 
 ```cpp
 bool operator<(const Address & addr) const
 ```
 
+Compares two addresses for ordering (by family then port). 
+#### Parameters
+* `addr` The address to compare against. 
+
+#### Returns
+true if this address is less than `addr`.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `addr` | `const Address &` |  |
+| `addr` | `const [Address](#address) &` |  |
 
 ---
 
-#### operator== 
+{#operator-6}
+
+#### operator==
+
+`const`
 
 ```cpp
 bool operator==(const Address & addr) const
 ```
 
+Returns true if the host and port of both addresses are equal. 
+#### Parameters
+* `addr` The address to compare against.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `addr` | `const Address &` |  |
+| `addr` | `const [Address](#address) &` |  |
 
 ---
 
-#### operator!= 
+{#operator-7}
+
+#### operator!=
+
+`const`
 
 ```cpp
 bool operator!=(const Address & addr) const
 ```
 
+Returns true if the host or port of the addresses differ. 
+#### Parameters
+* `addr` The address to compare against.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `addr` | `const Address &` |  |
+| `addr` | `const [Address](#address) &` |  |
+
+### Public Static Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `uint16_t` | [`resolveService`](#resolveservice) `static` | Resolves a service name or decimal port string to a port number.  |
+| `bool` | [`validateIP`](#validateip) `static` | Returns true if the given string is a valid IPv4 or IPv6 address.  |
 
 ---
 
-#### resolveService 
+{#resolveservice}
+
+#### resolveService
+
+`static`
 
 ```cpp
 static uint16_t resolveService(const std::string & service)
 ```
+
+Resolves a service name or decimal port string to a port number. 
+#### Parameters
+* `service` Service name (e.g. "http") or decimal port string (e.g. "80"). 
+
+#### Returns
+The resolved port number in host byte order.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -361,19 +731,38 @@ static uint16_t resolveService(const std::string & service)
 
 ---
 
-#### validateIP 
+{#validateip}
+
+#### validateIP
+
+`static`
 
 ```cpp
-static bool validateIP(const std::string & address)
+static bool validateIP(std::string_view address)
 ```
+
+Returns true if the given string is a valid IPv4 or IPv6 address. 
+#### Parameters
+* `address` The string to validate. 
+
+#### Returns
+true if the address parses as a valid IP address, false otherwise.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `address` | `const std::string &` |  |
+| `address` | `std::string_view` |  |
+
+### Protected Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `void` | [`init`](#init-3)  |  |
 
 ---
 
-#### init 
+{#init-3}
+
+#### init
 
 ```cpp
 void init(const std::string & host, uint16_t port)
@@ -384,81 +773,69 @@ void init(const std::string & host, uint16_t port)
 | `host` | `const std::string &` |  |
 | `port` | `uint16_t` |  |
 
+### Public Types
+
+| Name | Description |
+|------|-------------|
+| [`Family`](#family-1)  | Possible address families for IP addresses. |
+
 ---
 
-#### _base 
+{#family-1}
+
+#### Family
+
+```cpp
+enum Family
+```
+
+Possible address families for IP addresses.
+
+| Value | Description |
+|-------|-------------|
+| `IPv4` |  |
+| `IPv6` |  |
+
+### Private Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `std::shared_ptr< AddressBase >` | [`_base`](#_base)  |  |
+
+---
+
+{#_base}
+
+#### _base
 
 ```cpp
 std::shared_ptr< AddressBase > _base
 ```
 
-## PacketSocketEmitter 
+{#packetsocketemitter}
 
-> **Extends:** `icy::net::SocketEmitter`, `icy::Signal< void(IPacket &)>`
-> **Subclasses:** `icy::net::Transaction< Message >`, `icy::net::Transaction< PacketT >`
-> **Defined in:** `packetsocket.h`
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`PacketSocketEmitter`](#group__net_1ga3140a2a25a6ce7db74108f3111235015) | Creates the [PacketSocketEmitter](#classicy_1_1net_1_1PacketSocketEmitter) This class should have a higher priority than standard sockets so we can parse data packets first. Creates and dispatches a packet utilizing the available creation strategies. For best performance the most used strategies should have the highest priority. |
-| [`~PacketSocketEmitter`](#group__net_1ga9d770233ff68edeace9e64b262a61abc) |  |
-| [`onSocketRecv`](#group__net_1gadc517059efc11e7b96c9aac48d3621f4) |  |
-| [`onPacket`](#group__net_1ga0de3859d43f868dbbdb88fda6e713092) |  |
-| [`factory`](#group__net_1gaed6e38fcedd99dba4ad9cb4aee59b071) | The packet factory. |
-
----
-
-#### PacketSocketEmitter 
+## PacketSocketEmitter
 
 ```cpp
-PacketSocketEmitter(const Socket::Ptr & socket)
+#include <packetsocket.h>
 ```
 
-Creates the [PacketSocketEmitter](#classicy_1_1net_1_1PacketSocketEmitter) This class should have a higher priority than standard sockets so we can parse data packets first. Creates and dispatches a packet utilizing the available creation strategies. For best performance the most used strategies should have the highest priority.
+> **Inherits:** [`SocketEmitter`](#socketemitter), [`Signal< void(IPacket &)>`](#classicy_1_1Signal)
+> **Subclassed by:** [`Transaction< Message >`](#transaction), [`Transaction< PacketT >`](#transaction)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `socket` | `const Socket::Ptr &` |  |
+[Socket](#socket) adapter that emits received data as packets.
+
+### Public Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `PacketFactory` | [`factory`](#factory)  | The packet factory. |
 
 ---
 
-#### ~PacketSocketEmitter 
+{#factory}
 
-```cpp
-virtual ~PacketSocketEmitter()
-```
-
----
-
-#### onSocketRecv 
-
-```cpp
-virtual void onSocketRecv(Socket & socket, const MutableBuffer & buffer, const Address & peerAddress)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `socket` | `Socket &` |  |
-| `buffer` | `const MutableBuffer &` |  |
-| `peerAddress` | `const Address &` |  |
-
----
-
-#### onPacket 
-
-```cpp
-virtual void onPacket(IPacket & pkt)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `pkt` | `IPacket &` |  |
-
----
-
-#### factory 
+#### factory
 
 ```cpp
 PacketFactory factory
@@ -466,41 +843,142 @@ PacketFactory factory
 
 The packet factory.
 
-## Socket 
+### Public Methods
 
-> **Extends:** `icy::net::SocketAdapter`
-> **Subclasses:** `icy::net::TCPSocket`, `icy::net::UDPSocket`
-> **Defined in:** `socket.h`
-
-Base socket implementation from which all sockets derive.
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`Socket`](#group__net_1ga0d1fd3c6568df4d23baf8bac3443b031) |  |
-| [`~Socket`](#group__net_1ga6d1ec3118de86711205b220fae9228c5) |  |
-| [`connect`](#group__net_1ga26b4c04fb14fb521c3777966f5500814) | Connects to the given peer IP address. |
-| [`connect`](#group__net_1gad8ed2e347065221848364977f3f4b0ad) | Resolves and connects to the given host address. |
-| [`bind`](#group__net_1gad12fbab04fa447ab0104325d7062af03) | Bind a local address to the socket. The address may be IPv4 or IPv6 (if supported). |
-| [`listen`](#group__net_1ga3f113f66f6dcbb1fc2a2c25a86833eaa) | Listens the socket on the given address. |
-| [`shutdown`](#group__net_1ga68cca230e61d94ddcb530c8236b8b65a) | Sends the shutdown packet which should result is socket closure via callback. |
-| [`close`](#group__net_1gaef3e9d763d40129224c70087c0b8660b) | Closes the underlying socket. |
-| [`address`](#group__net_1gadb57bf71ea7475434e304193495a22f8) | The locally bound address. |
-| [`peerAddress`](#group__net_1gaa7aad8f6cdfc70fd2d993cc99e65f73c) | The connected peer address. |
-| [`transport`](#group__net_1ga1e1b0fbbf92bb3dd962783a8c0e94b3d) | The transport protocol: TCP, UDP or SSLTCP. |
-| [`setError`](#group__net_1gaed1d2e8ca6eb5140528c044b675299b4) | Sets the socket error. |
-| [`error`](#group__net_1gad2a2feb9ea2e6069d6f7b283b44b2e34) | Return the socket error if any. |
-| [`closed`](#group__net_1ga9bf8cf75403f7f833c37ed7fb16443a6) | Returns true if the native socket handle is closed. |
-| [`loop`](#group__net_1ga1c0302f62375661291b891972a178b09) | Returns the socket event loop. |
-| [`init`](#group__net_1ga0b9b76689ad2ca6a398e909a5424c24b) | Initializes the underlying socket context. |
-| [`reset`](#group__net_1ga07e4b137f7019e83ce21fcd2441ddc9b) | Resets the socket context for reuse. |
-| [`opaque`](#group__net_1ga1379e3c59f9934f2b2668a5014ab6d6c) | Optional client data pointer. |
-| [`_af`](#group__net_1gae27f31658bb7c71f26afd113b066465a) |  |
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`PacketSocketEmitter`](#packetsocketemitter-1)  | Creates the [PacketSocketEmitter](#packetsocketemitter) and attaches it to the given socket. |
+| `bool` | [`onSocketRecv`](#onsocketrecv) `virtual` | Parses raw received data into packets via the factory and forwards each parsed packet to [onPacket()](#onpacket). Returns true if propagation should stop.  |
+| `bool` | [`onPacket`](#onpacket) `virtual` | [Process](#classicy_1_1Process) a parsed packet. Returns true to stop propagation. |
 
 ---
 
-#### Socket 
+{#packetsocketemitter-1}
+
+#### PacketSocketEmitter
+
+```cpp
+PacketSocketEmitter(const Socket::Ptr & socket)
+```
+
+Creates the [PacketSocketEmitter](#packetsocketemitter) and attaches it to the given socket.
+
+The emitter should be assigned a higher priority than plain socket adapters so that packet parsing occurs before generic data callbacks. Packets are created and dispatched using the registered factory strategies; strategies with the highest priority are tried first. 
+#### Parameters
+* `socket` Optional socket to attach to immediately.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `socket` | `const [Socket::Ptr](#ptr-4) &` |  |
+
+---
+
+{#onsocketrecv}
+
+#### onSocketRecv
+
+`virtual`
+
+```cpp
+virtual bool onSocketRecv(Socket & socket, const MutableBuffer & buffer, const Address & peerAddress)
+```
+
+Parses raw received data into packets via the factory and forwards each parsed packet to [onPacket()](#onpacket). Returns true if propagation should stop. 
+#### Parameters
+* `socket` The socket that received the data. 
+
+* `buffer` The raw received data buffer. 
+
+* `peerAddress` The sender's address. 
+
+#### Returns
+true if the event was consumed and should not propagate further.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `socket` | `[Socket](#socket) &` |  |
+| `buffer` | `const [MutableBuffer](#classicy_1_1MutableBuffer) &` |  |
+| `peerAddress` | `const [Address](#address) &` |  |
+
+---
+
+{#onpacket}
+
+#### onPacket
+
+`virtual`
+
+```cpp
+virtual bool onPacket(IPacket & pkt)
+```
+
+[Process](#classicy_1_1Process) a parsed packet. Returns true to stop propagation.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `pkt` | `[IPacket](#classicy_1_1IPacket) &` |  |
+
+{#socket}
+
+## Socket
+
+```cpp
+#include <socket.h>
+```
+
+> **Inherits:** [`SocketAdapter`](#socketadapter)
+> **Subclassed by:** [`TCPSocket`](#tcpsocket), [`UDPSocket`](#udpsocket)
+
+Base socket implementation from which all sockets derive.
+
+### Public Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `std::any` | [`opaque`](#opaque)  | Optional client data. |
+
+---
+
+{#opaque}
+
+#### opaque
+
+```cpp
+std::any opaque
+```
+
+Optional client data.
+
+The value is empty on initialization.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`Socket`](#socket-1)  |  |
+|  | [`Socket`](#socket-2)  |  |
+|  | [`Socket`](#socket-3)  |  |
+| `void` | [`connect`](#connect-2)  | Connects to the given peer IP address. |
+| `void` | [`connect`](#connect-3)  | Resolves and connects to the given host address. |
+| `void` | [`bind`](#bind)  | Bind a local address to the socket. The address may be IPv4 or IPv6 (if supported). |
+| `void` | [`listen`](#listen) `virtual` `inline` | Listens the socket on the given address. |
+| `bool` | [`shutdown`](#shutdown-1) `virtual` `inline` | Sends the shutdown packet which should result is socket closure via callback. |
+| `ssize_t` | [`sendOwned`](#sendowned)  | Sends an owned payload buffer to the connected peer. |
+| `ssize_t` | [`sendOwned`](#sendowned-1)  |  |
+| `void` | [`close`](#close-12)  | Closes the underlying socket. |
+| `Address` | [`address`](#address-8) `const` | The locally bound address. |
+| `Address` | [`peerAddress`](#peeraddress) `const` | The connected peer address. |
+| `net::TransportType` | [`transport`](#transport) `const` | The transport protocol: TCP, UDP or SSLTCP. |
+| `void` | [`setError`](#seterror-1)  | Sets the socket error. |
+| `const icy::Error &` | [`error`](#error-4) `const` | Return the socket error if any. |
+| `bool` | [`closed`](#closed-1) `const` | Returns true if the native socket handle is closed. |
+| `uv::Loop *` | [`loop`](#loop-2) `const` | Returns the socket event loop. |
+
+---
+
+{#socket-1}
+
+#### Socket
 
 ```cpp
 Socket() = default
@@ -508,15 +986,29 @@ Socket() = default
 
 ---
 
-#### ~Socket 
+{#socket-2}
+
+#### Socket
 
 ```cpp
-virtual ~Socket() = default
+Socket(const Socket &) = delete
 ```
 
 ---
 
-#### connect 
+{#socket-3}
+
+#### Socket
+
+```cpp
+Socket(Socket &&) = delete
+```
+
+---
+
+{#connect-2}
+
+#### connect
 
 ```cpp
 void connect(const Address & address)
@@ -524,32 +1016,36 @@ void connect(const Address & address)
 
 Connects to the given peer IP address.
 
-Throws an exception if the address is malformed. Connection errors can be handled via the [Error](./doc/api-base.md#structicy_1_1Error) signal.
+Throws an exception if the address is malformed. Connection errors can be handled via the [Error](#structicy_1_1Error) signal.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `address` | `const Address &` |  |
+| `address` | `const [Address](#address) &` |  |
 
 ---
 
-#### connect 
+{#connect-3}
+
+#### connect
 
 ```cpp
-void connect(const std::string & host, uint16_t port)
+void connect(std::string_view host, uint16_t port)
 ```
 
 Resolves and connects to the given host address.
 
-Throws an Exception if the host is malformed. Since the DNS callback is asynchronous implementations need to listen for the [Error](./doc/api-base.md#structicy_1_1Error) signal for handling connection errors.
+Throws an Exception if the host is malformed. Since the DNS callback is asynchronous implementations need to listen for the [Error](#structicy_1_1Error) signal for handling connection errors.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `host` | `const std::string &` |  |
+| `host` | `std::string_view` |  |
 | `port` | `uint16_t` |  |
 
 ---
 
-#### bind 
+{#bind}
+
+#### bind
 
 ```cpp
 void bind(const Address & address, unsigned flags)
@@ -561,12 +1057,16 @@ Throws an Exception on error.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `address` | `const Address &` |  |
+| `address` | `const [Address](#address) &` |  |
 | `flags` | `unsigned` |  |
 
 ---
 
-#### listen 
+{#listen}
+
+#### listen
+
+`virtual` `inline`
 
 ```cpp
 virtual inline void listen(int backlog)
@@ -582,7 +1082,11 @@ Throws an Exception on error.
 
 ---
 
-#### shutdown 
+{#shutdown-1}
+
+#### shutdown
+
+`virtual` `inline`
 
 ```cpp
 virtual inline bool shutdown()
@@ -592,7 +1096,42 @@ Sends the shutdown packet which should result is socket closure via callback.
 
 ---
 
-#### close 
+{#sendowned}
+
+#### sendOwned
+
+```cpp
+ssize_t sendOwned(Buffer && buffer, int flags)
+```
+
+Sends an owned payload buffer to the connected peer.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `buffer` | `[Buffer](#namespaceicy_1a9c464c811f03ea41ea100ed65a0580d3) &&` |  |
+| `flags` | `int` |  |
+
+---
+
+{#sendowned-1}
+
+#### sendOwned
+
+```cpp
+ssize_t sendOwned(Buffer && buffer, const Address & peerAddress, int flags)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `buffer` | `[Buffer](#namespaceicy_1a9c464c811f03ea41ea100ed65a0580d3) &&` |  |
+| `peerAddress` | `const [Address](#address) &` |  |
+| `flags` | `int` |  |
+
+---
+
+{#close-12}
+
+#### close
 
 ```cpp
 void close()
@@ -602,7 +1141,11 @@ Closes the underlying socket.
 
 ---
 
-#### address 
+{#address-8}
+
+#### address
+
+`const`
 
 ```cpp
 Address address() const
@@ -614,7 +1157,11 @@ This function will not throw. A Wildcard 0.0.0.0:0 address is returned if the so
 
 ---
 
-#### peerAddress 
+{#peeraddress}
+
+#### peerAddress
+
+`const`
 
 ```cpp
 Address peerAddress() const
@@ -626,7 +1173,11 @@ This function will not throw. A Wildcard 0.0.0.0:0 address is returned if the so
 
 ---
 
-#### transport 
+{#transport}
+
+#### transport
+
+`const`
 
 ```cpp
 net::TransportType transport() const
@@ -636,10 +1187,12 @@ The transport protocol: TCP, UDP or SSLTCP.
 
 ---
 
-#### setError 
+{#seterror-1}
+
+#### setError
 
 ```cpp
-void setError(const [icy::Error](./doc/api-base.md#structicy_1_1Error) & err)
+void setError(const icy::Error & err)
 ```
 
 Sets the socket error.
@@ -648,21 +1201,29 @@ Setting the error will result in socket closure.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `err` | `const [icy::Error](./doc/api-base.md#structicy_1_1Error) &` |  |
+| `err` | `const [icy::Error](#structicy_1_1Error) &` |  |
 
 ---
 
-#### error 
+{#error-4}
+
+#### error
+
+`const`
 
 ```cpp
-const [icy::Error](./doc/api-base.md#structicy_1_1Error) & error() const
+const icy::Error & error() const
 ```
 
 Return the socket error if any.
 
 ---
 
-#### closed 
+{#closed-1}
+
+#### closed
+
+`const`
 
 ```cpp
 bool closed() const
@@ -672,7 +1233,11 @@ Returns true if the native socket handle is closed.
 
 ---
 
-#### loop 
+{#loop-2}
+
+#### loop
+
+`const`
 
 ```cpp
 uv::Loop * loop() const
@@ -680,9 +1245,34 @@ uv::Loop * loop() const
 
 Returns the socket event loop.
 
+### Protected Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `int` | [`_af`](#_af)  |  |
+
 ---
 
-#### init 
+{#_af}
+
+#### _af
+
+```cpp
+int _af {AF_UNSPEC}
+```
+
+### Protected Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `void` | [`init`](#init-4)  | Initializes the underlying socket context. |
+| `void` | [`reset`](#reset-4)  | Resets the socket context for reuse. |
+
+---
+
+{#init-4}
+
+#### init
 
 ```cpp
 void init()
@@ -692,7 +1282,9 @@ Initializes the underlying socket context.
 
 ---
 
-#### reset 
+{#reset-4}
+
+#### reset
 
 ```cpp
 void reset()
@@ -700,206 +1292,126 @@ void reset()
 
 Resets the socket context for reuse.
 
----
-
-#### opaque 
-
-```cpp
-void * opaque { nullptr }
-```
-
-Optional client data pointer.
-
-The pointer is set to null on initialization but not managed.
-
----
-
-#### _af 
-
-```cpp
-int _af { AF_UNSPEC }
-```
-
-## SocketPacket 
-
-> **Extends:** `icy::RawPacket`
-> **Defined in:** `socket.h`
-
-[SocketPacket](#classicy_1_1net_1_1SocketPacket) is the default packet type emitted by sockets. [SocketPacket](#classicy_1_1net_1_1SocketPacket) provides peer address information and a buffer reference for nocopy binary operations.
-
-The referenced packet buffer lifetime is only guaranteed for the duration of the receiver callback.
-
-### Members
+### Public Types
 
 | Name | Description |
 |------|-------------|
-| [`SocketPacket`](#group__net_1gaec154054d8c54269655aa062d8fe1ffd) |  |
-| [`SocketPacket`](#group__net_1gad327456520e77574cd3cb730ccc0a75a) |  |
-| [`packetInfo`](#group__net_1gaf192ea8a4488fdb7ff04961999496954) | Returns the [PacketInfo](#structicy_1_1net_1_1PacketInfo) for this socket packet. |
-| [`~SocketPacket`](#group__net_1ga3e883a20f382b845e90c1047e8ff03f1) |  |
-| [`print`](#group__net_1ga319694029ed98f048cdaf68330e31807) |  |
-| [`clone`](#group__net_1gad4dc225d63a642fb0eb1b43c271c796c) |  |
-| [`read`](#group__net_1gae771cf7b5b4a141bb898acb1cafddc62) | Read/parse to the packet from the given input buffer. The number of bytes read is returned. |
-| [`write`](#group__net_1gaac943003d23e0dbbedbf120a45ab3078) | Copy/generate to the packet given output buffer. The number of bytes written can be obtained from the buffer. |
-| [`className`](#group__net_1ga69704ee8a377cbcd6e06ec3d44d93a24) |  |
+| [`Ptr`](#ptr-4)  |  |
+| [`Vec`](#vec)  |  |
 
 ---
 
-#### SocketPacket 
+{#ptr-4}
+
+#### Ptr
 
 ```cpp
-inline SocketPacket(const Socket::Ptr & socket, const MutableBuffer & buffer, const Address & peerAddress)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `socket` | `const Socket::Ptr &` |  |
-| `buffer` | `const MutableBuffer &` |  |
-| `peerAddress` | `const Address &` |  |
-
----
-
-#### SocketPacket 
-
-```cpp
-inline SocketPacket(const SocketPacket & that)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `that` | `const SocketPacket &` |  |
-
----
-
-#### packetInfo 
-
-```cpp
-inline PacketInfo * packetInfo() const
-```
-
-Returns the [PacketInfo](#structicy_1_1net_1_1PacketInfo) for this socket packet.
-
----
-
-#### ~SocketPacket 
-
-```cpp
-virtual inline ~SocketPacket()
+std::shared_ptr< Socket > Ptr()
 ```
 
 ---
 
-#### print 
+{#vec}
+
+#### Vec
 
 ```cpp
-virtual inline void print(std::ostream & os) const
+std::vector< Ptr > Vec()
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `os` | `std::ostream &` |  |
+{#socketadapter}
+
+## SocketAdapter
+
+```cpp
+#include <socketadapter.h>
+```
+
+> **Subclassed by:** [`Connection`](#connection-1), [`ConnectionAdapter`](#connectionadapter), [`ConnectionStream`](#connectionstream), [`Server`](#server), [`Socket`](#socket), [`SocketEmitter`](#socketemitter)
+
+[SocketAdapter](#socketadapter) is the abstract interface for all socket classes. A [SocketAdapter](#socketadapter) can also be attached to a [Socket](#socket) in order to override default [Socket](#socket) callbacks and behaviour, while still maintaining the default [Socket](#socket) interface (see Socket::setAdapter).
+
+This class also be extended to implement custom processing for received socket data before it is dispatched to the application (see [PacketSocketEmitter](#packetsocketemitter) and [Transaction](#transaction) classes).
+
+### Public Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `int` | [`priority`](#priority-1)  | The priority of this adapter for STL sort operations. |
 
 ---
 
-#### clone 
+{#priority-1}
+
+#### priority
 
 ```cpp
-virtual inline IPacket * clone() const
+int priority = 0
 ```
+
+The priority of this adapter for STL sort operations.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`SocketAdapter`](#socketadapter-1)  | Creates the [SocketAdapter](#socketadapter). |
+|  | [`~SocketAdapter`](#socketadapter-2) `virtual` | Destroys the [SocketAdapter](#socketadapter). |
+| `ssize_t` | [`send`](#send) `virtual` | Sends the given data buffer to the connected peer. Returns the number of bytes sent or -1 on error. No exception will be thrown. For TCP sockets the given peer address must match the connected peer address. |
+| `ssize_t` | [`send`](#send-1) `virtual` |  |
+| `ssize_t` | [`sendOwned`](#sendowned-2) `virtual` | Sends an owned payload buffer to the connected peer. |
+| `ssize_t` | [`sendOwned`](#sendowned-3) `virtual` |  |
+| `ssize_t` | [`sendPacket`](#sendpacket) `virtual` | Sends the given packet to the connected peer. Returns the number of bytes sent or -1 on error. No exception will be thrown. For TCP sockets the given peer address must match the connected peer address. |
+| `ssize_t` | [`sendPacket`](#sendpacket-1) `virtual` |  |
+| `void` | [`sendPacket`](#sendpacket-2) `virtual` | Sends the given packet to the connected peer. This method provides delegate compatability, and unlike other send methods throws an exception if the underlying socket is closed. |
+| `void` | [`setSender`](#setsender) `virtual` | Sets the pointer to the outgoing data adapter. Send methods proxy data to this adapter by default. |
+| `SocketAdapter *` | [`sender`](#sender)  | Returns the output [SocketAdapter](#socketadapter) pointer. |
+| `void` | [`addReceiver`](#addreceiver) `virtual` | Sets the pointer to the incoming data adapter. Events proxy data to this adapter by default. |
+| `void` | [`removeReceiver`](#removereceiver) `virtual` | Remove the given receiver. |
+| `bool` | [`hasReceiver`](#hasreceiver) `virtual` | Returns true if the given receiver is connected. |
+| `std::vector< SocketAdapter * >` | [`receivers`](#receivers)  | Returns all currently registered input [SocketAdapter](#socketadapter) pointers. Dead (removed) entries are excluded from the returned list. |
+| `bool` | [`onSocketConnect`](#onsocketconnect) `virtual` | Called when the socket establishes a connection. Forwards the event to all registered receivers in priority order. Override to intercept before the application sees the event.  |
+| `bool` | [`onSocketRecv`](#onsocketrecv-1) `virtual` | Called when data is received from the socket. Forwards the event to all registered receivers in priority order.  |
+| `bool` | [`onSocketError`](#onsocketerror) `virtual` | Called when the socket encounters an error. Forwards the event to all registered receivers in priority order.  |
+| `bool` | [`onSocketClose`](#onsocketclose) `virtual` | Called when the socket is closed. Forwards the event to all registered receivers in priority order.  |
 
 ---
 
-#### read 
+{#socketadapter-1}
 
-```cpp
-virtual inline ssize_t read(const ConstBuffer &)
-```
-
-Read/parse to the packet from the given input buffer. The number of bytes read is returned.
-
----
-
-#### write 
-
-```cpp
-virtual inline void write(Buffer &) const
-```
-
-Copy/generate to the packet given output buffer. The number of bytes written can be obtained from the buffer.
-
-Todo: It may be prefferable to use our pod types here instead of buffer input, but the current codebase requires that the buffer be dynamically resizable for some protocols...
-
----
-
-#### className 
-
-```cpp
-virtual inline const char * className() const
-```
-
-## SocketAdapter 
-
-> **Subclasses:** `icy::http::Connection`, `icy::http::ConnectionAdapter`, `icy::http::ConnectionStream`, `icy::http::Server`, `icy::net::Socket`, `icy::net::SocketEmitter`, `icy::sockio::Client`
-> **Defined in:** `socketadapter.h`
-
-[SocketAdapter](#classicy_1_1net_1_1SocketAdapter) is the abstract interface for all socket classes. A [SocketAdapter](#classicy_1_1net_1_1SocketAdapter) can also be attached to a [Socket](#classicy_1_1net_1_1Socket) in order to override default [Socket](#classicy_1_1net_1_1Socket) callbacks and behaviour, while still maintaining the default [Socket](#classicy_1_1net_1_1Socket) interface (see Socket::setAdapter).
-
-This class also be extended to implement custom processing for received socket data before it is dispatched to the application (see [PacketSocketEmitter](#classicy_1_1net_1_1PacketSocketEmitter) and [Transaction](#classicy_1_1net_1_1Transaction) classes).
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`SocketAdapter`](#group__net_1ga35ca78ac04abbd6828af02fb1b65e6d1) | Creates the [SocketAdapter](#classicy_1_1net_1_1SocketAdapter). |
-| [`~SocketAdapter`](#group__net_1gac06480990b5301cb185000fe8bf860e4) | Destroys the [SocketAdapter](#classicy_1_1net_1_1SocketAdapter). |
-| [`send`](#group__net_1gae0701649bbdbe02ac987c21dbf180745) | Sends the given data buffer to the connected peer. Returns the number of bytes sent or -1 on error. No exception will be thrown. For TCP sockets the given peer address must match the connected peer address. |
-| [`send`](#group__net_1ga4d695c349c6c483b36bc2a406ffa8554) |  |
-| [`sendPacket`](#group__net_1ga51b07fc133c1761959118191f392509e) | Sends the given packet to the connected peer. Returns the number of bytes sent or -1 on error. No exception will be thrown. For TCP sockets the given peer address must match the connected peer address. |
-| [`sendPacket`](#group__net_1ga7ef73b7c3d563756f492e9abc196c77d) |  |
-| [`sendPacket`](#group__net_1ga6d7c711236a3570235353f634f9d1a77) | Sends the given packet to the connected peer. This method provides delegate compatability, and unlike other send methods throws an exception if the underlying socket is closed. |
-| [`setSender`](#group__net_1ga566fd551c24638ab22d42f6c6082d85f) | Sets the pointer to the outgoing data adapter. Send methods proxy data to this adapter by default. |
-| [`sender`](#group__net_1gaf327b8e4712403322638ea10151dc1d6) | Returns the output [SocketAdapter](#classicy_1_1net_1_1SocketAdapter) pointer. |
-| [`addReceiver`](#group__net_1ga255f77677b0e9b2d95b663c413f16fee) | Sets the pointer to the incoming data adapter. Events proxy data to this adapter by default. |
-| [`removeReceiver`](#group__net_1ga523f50c94ac42d49d81efb8a4ff81629) | Remove the given receiver. |
-| [`hasReceiver`](#group__net_1ga083660a332c15c43e6a1945d59b3f0d7) | Returns true if the given receiver is connected. |
-| [`receivers`](#group__net_1ga1e96c66f9d52faadb197b59c75cefb67) | Returns the input [SocketAdapter](#classicy_1_1net_1_1SocketAdapter) pointer. |
-| [`onSocketConnect`](#group__net_1ga8dae1c179274b0571d1b5d8040f5afd8) | These virtual methods can be overridden as necessary to intercept socket events before they hit the application. |
-| [`onSocketRecv`](#group__net_1ga48f8129547ba9eaac88094e059205529) |  |
-| [`onSocketError`](#group__net_1ga5658d5b01a3ff4cbad6010190aefe3b7) |  |
-| [`onSocketClose`](#group__net_1gab5d5c13b628ba6a010785f447f9e4fdc) |  |
-| [`cleanupReceivers`](#group__net_1gacd031591dc8a642107aeb1f16ad55764) |  |
-| [`priority`](#group__net_1ga66462899a27420bf50af004887355e83) | The priority of this adapter for STL sort operations. |
-| [`_sender`](#group__net_1ga17dc4823b85f24d94b5127681006439f) |  |
-| [`_receivers`](#group__net_1ga16be0b8461e4aeb9bc6fa0acf0447288) |  |
-| [`_dirty`](#group__net_1ga69b4294f637aa586d0e247e5c4b8b2a9) |  |
-
----
-
-#### SocketAdapter 
+#### SocketAdapter
 
 ```cpp
 SocketAdapter(SocketAdapter * sender)
 ```
 
-Creates the [SocketAdapter](#classicy_1_1net_1_1SocketAdapter).
+Creates the [SocketAdapter](#socketadapter).
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `sender` | `SocketAdapter *` |  |
+| `sender` | `[SocketAdapter](#socketadapter) *` |  |
 
 ---
 
-#### ~SocketAdapter 
+{#socketadapter-2}
+
+#### ~SocketAdapter
+
+`virtual`
 
 ```cpp
-virtual ~SocketAdapter()
+virtual ~SocketAdapter() noexcept
 ```
 
-Destroys the [SocketAdapter](#classicy_1_1net_1_1SocketAdapter).
+Destroys the [SocketAdapter](#socketadapter).
 
 ---
 
-#### send 
+{#send}
+
+#### send
+
+`virtual`
 
 ```cpp
 virtual ssize_t send(const char * data, size_t len, int flags)
@@ -915,7 +1427,11 @@ Sends the given data buffer to the connected peer. Returns the number of bytes s
 
 ---
 
-#### send 
+{#send-1}
+
+#### send
+
+`virtual`
 
 ```cpp
 virtual ssize_t send(const char * data, size_t len, const Address & peerAddress, int flags)
@@ -925,12 +1441,55 @@ virtual ssize_t send(const char * data, size_t len, const Address & peerAddress,
 |-----------|------|-------------|
 | `data` | `const char *` |  |
 | `len` | `size_t` |  |
-| `peerAddress` | `const Address &` |  |
+| `peerAddress` | `const [Address](#address) &` |  |
 | `flags` | `int` |  |
 
 ---
 
-#### sendPacket 
+{#sendowned-2}
+
+#### sendOwned
+
+`virtual`
+
+```cpp
+virtual ssize_t sendOwned(Buffer && buffer, int flags)
+```
+
+Sends an owned payload buffer to the connected peer.
+
+The buffer is moved through the adapter chain and retained by the transport layer until async write completion.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `buffer` | `[Buffer](#namespaceicy_1a9c464c811f03ea41ea100ed65a0580d3) &&` |  |
+| `flags` | `int` |  |
+
+---
+
+{#sendowned-3}
+
+#### sendOwned
+
+`virtual`
+
+```cpp
+virtual ssize_t sendOwned(Buffer && buffer, const Address & peerAddress, int flags)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `buffer` | `[Buffer](#namespaceicy_1a9c464c811f03ea41ea100ed65a0580d3) &&` |  |
+| `peerAddress` | `const [Address](#address) &` |  |
+| `flags` | `int` |  |
+
+---
+
+{#sendpacket}
+
+#### sendPacket
+
+`virtual`
 
 ```cpp
 virtual ssize_t sendPacket(const IPacket & packet, int flags)
@@ -940,12 +1499,16 @@ Sends the given packet to the connected peer. Returns the number of bytes sent o
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `packet` | `const IPacket &` |  |
+| `packet` | `const [IPacket](#classicy_1_1IPacket) &` |  |
 | `flags` | `int` |  |
 
 ---
 
-#### sendPacket 
+{#sendpacket-1}
+
+#### sendPacket
+
+`virtual`
 
 ```cpp
 virtual ssize_t sendPacket(const IPacket & packet, const Address & peerAddress, int flags)
@@ -953,13 +1516,17 @@ virtual ssize_t sendPacket(const IPacket & packet, const Address & peerAddress, 
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `packet` | `const IPacket &` |  |
-| `peerAddress` | `const Address &` |  |
+| `packet` | `const [IPacket](#classicy_1_1IPacket) &` |  |
+| `peerAddress` | `const [Address](#address) &` |  |
 | `flags` | `int` |  |
 
 ---
 
-#### sendPacket 
+{#sendpacket-2}
+
+#### sendPacket
+
+`virtual`
 
 ```cpp
 virtual void sendPacket(IPacket & packet)
@@ -969,11 +1536,15 @@ Sends the given packet to the connected peer. This method provides delegate comp
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `packet` | `IPacket &` |  |
+| `packet` | `[IPacket](#classicy_1_1IPacket) &` |  |
 
 ---
 
-#### setSender 
+{#setsender}
+
+#### setSender
+
+`virtual`
 
 ```cpp
 virtual void setSender(SocketAdapter * adapter)
@@ -983,21 +1554,27 @@ Sets the pointer to the outgoing data adapter. Send methods proxy data to this a
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `adapter` | `SocketAdapter *` |  |
+| `adapter` | `[SocketAdapter](#socketadapter) *` |  |
 
 ---
 
-#### sender 
+{#sender}
+
+#### sender
 
 ```cpp
 SocketAdapter * sender()
 ```
 
-Returns the output [SocketAdapter](#classicy_1_1net_1_1SocketAdapter) pointer.
+Returns the output [SocketAdapter](#socketadapter) pointer.
 
 ---
 
-#### addReceiver 
+{#addreceiver}
+
+#### addReceiver
+
+`virtual`
 
 ```cpp
 virtual void addReceiver(SocketAdapter * adapter)
@@ -1007,11 +1584,15 @@ Sets the pointer to the incoming data adapter. Events proxy data to this adapter
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `adapter` | `SocketAdapter *` |  |
+| `adapter` | `[SocketAdapter](#socketadapter) *` |  |
 
 ---
 
-#### removeReceiver 
+{#removereceiver}
+
+#### removeReceiver
+
+`virtual`
 
 ```cpp
 virtual void removeReceiver(SocketAdapter * adapter)
@@ -1023,11 +1604,15 @@ By default this function does nothing unless the given receiver matches the curr
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `adapter` | `SocketAdapter *` |  |
+| `adapter` | `[SocketAdapter](#socketadapter) *` |  |
 
 ---
 
-#### hasReceiver 
+{#hasreceiver}
+
+#### hasReceiver
+
+`virtual`
 
 ```cpp
 virtual bool hasReceiver(SocketAdapter * adapter)
@@ -1037,92 +1622,134 @@ Returns true if the given receiver is connected.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `adapter` | `SocketAdapter *` |  |
+| `adapter` | `[SocketAdapter](#socketadapter) *` |  |
 
 ---
 
-#### receivers 
+{#receivers}
+
+#### receivers
 
 ```cpp
 std::vector< SocketAdapter * > receivers()
 ```
 
-Returns the input [SocketAdapter](#classicy_1_1net_1_1SocketAdapter) pointer.
+Returns all currently registered input [SocketAdapter](#socketadapter) pointers. Dead (removed) entries are excluded from the returned list.
 
 ---
 
-#### onSocketConnect 
+{#onsocketconnect}
+
+#### onSocketConnect
+
+`virtual`
 
 ```cpp
-virtual void onSocketConnect(Socket & socket)
+virtual bool onSocketConnect(Socket & socket)
 ```
 
-These virtual methods can be overridden as necessary to intercept socket events before they hit the application.
+Called when the socket establishes a connection. Forwards the event to all registered receivers in priority order. Override to intercept before the application sees the event. 
+#### Parameters
+* `socket` The connected socket. 
+
+#### Returns
+true to stop propagation to subsequent receivers.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `Socket &` |  |
+| `socket` | `[Socket](#socket) &` |  |
 
 ---
 
-#### onSocketRecv 
+{#onsocketrecv-1}
+
+#### onSocketRecv
+
+`virtual`
 
 ```cpp
-virtual void onSocketRecv(Socket & socket, const MutableBuffer & buffer, const Address & peerAddress)
+virtual bool onSocketRecv(Socket & socket, const MutableBuffer & buffer, const Address & peerAddress)
 ```
+
+Called when data is received from the socket. Forwards the event to all registered receivers in priority order. 
+#### Parameters
+* `socket` The socket that received data. 
+
+* `buffer` The received data buffer. 
+
+* `peerAddress` [Address](#address) of the sender. 
+
+#### Returns
+true to stop propagation to subsequent receivers.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `Socket &` |  |
-| `buffer` | `const MutableBuffer &` |  |
-| `peerAddress` | `const Address &` |  |
+| `socket` | `[Socket](#socket) &` |  |
+| `buffer` | `const [MutableBuffer](#classicy_1_1MutableBuffer) &` |  |
+| `peerAddress` | `const [Address](#address) &` |  |
 
 ---
 
-#### onSocketError 
+{#onsocketerror}
+
+#### onSocketError
+
+`virtual`
 
 ```cpp
-virtual void onSocketError(Socket & socket, const Error & error)
+virtual bool onSocketError(Socket & socket, const Error & error)
 ```
+
+Called when the socket encounters an error. Forwards the event to all registered receivers in priority order. 
+#### Parameters
+* `socket` The socket that encountered the error. 
+
+* `error` [Error](#structicy_1_1Error) details. 
+
+#### Returns
+true to stop propagation to subsequent receivers.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `Socket &` |  |
-| `error` | `const Error &` |  |
+| `socket` | `[Socket](#socket) &` |  |
+| `error` | `const [Error](#structicy_1_1Error) &` |  |
 
 ---
 
-#### onSocketClose 
+{#onsocketclose}
+
+#### onSocketClose
+
+`virtual`
 
 ```cpp
-virtual void onSocketClose(Socket & socket)
+virtual bool onSocketClose(Socket & socket)
 ```
+
+Called when the socket is closed. Forwards the event to all registered receivers in priority order. 
+#### Parameters
+* `socket` The socket that was closed. 
+
+#### Returns
+true to stop propagation to subsequent receivers.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `Socket &` |  |
+| `socket` | `[Socket](#socket) &` |  |
+
+### Protected Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `SocketAdapter *` | [`_sender`](#_sender)  |  |
+| `std::vector< Ref >` | [`_receivers`](#_receivers)  |  |
+| `bool` | [`_dirty`](#_dirty)  |  |
 
 ---
 
-#### cleanupReceivers 
+{#_sender}
 
-```cpp
-virtual void cleanupReceivers()
-```
-
----
-
-#### priority 
-
-```cpp
-int priority = 0
-```
-
-The priority of this adapter for STL sort operations.
-
----
-
-#### _sender 
+#### _sender
 
 ```cpp
 SocketAdapter * _sender
@@ -1130,34 +1757,64 @@ SocketAdapter * _sender
 
 ---
 
-#### _receivers 
+{#_receivers}
+
+#### _receivers
 
 ```cpp
-std::vector< Ref::ptr_t > _receivers
+std::vector< Ref > _receivers
 ```
 
 ---
 
-#### _dirty 
+{#_dirty}
+
+#### _dirty
 
 ```cpp
 bool _dirty = false
 ```
 
-## Ref 
+### Protected Methods
 
-> **Defined in:** `socketadapter.h`
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`ptr`](#group__net_1ga7850ea3acb3330d7fb974c45f780f1c4) |  |
-| [`alive`](#group__net_1ga5e0d22008a914828d87ecd623872db05) |  |
+| Return | Name | Description |
+|--------|------|-------------|
+| `void` | [`cleanupReceivers`](#cleanupreceivers) `virtual` |  |
 
 ---
 
-#### ptr 
+{#cleanupreceivers}
+
+#### cleanupReceivers
+
+`virtual`
+
+```cpp
+virtual void cleanupReceivers()
+```
+
+{#ref-1}
+
+## Ref
+
+```cpp
+#include <socketadapter.h>
+```
+
+Reference-counted handle to a [SocketAdapter](#socketadapter).
+
+### Public Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `SocketAdapter *` | [`ptr`](#ptr-5)  |  |
+| `bool` | [`alive`](#alive)  |  |
+
+---
+
+{#ptr-5}
+
+#### ptr
 
 ```cpp
 SocketAdapter * ptr
@@ -1165,238 +1822,90 @@ SocketAdapter * ptr
 
 ---
 
-#### alive 
+{#alive}
+
+#### alive
 
 ```cpp
 bool alive
 ```
 
-## SocketEmitter 
+{#socketemitter}
 
-> **Extends:** `icy::net::SocketAdapter`
-> **Subclasses:** `icy::http::ws::WebSocketAdapter`, `icy::net::PacketSocketEmitter`
-> **Defined in:** `socketemitter.h`
-
-[SocketAdapter](#classicy_1_1net_1_1SocketAdapter) class that adds signal callbacks for sockets. Asde from adding a signal interface the class works as a wrapper for the socket instance, and is designed to be used the same way as a `std::unique_ptr` by overriding the ->() operator.
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`SocketEmitter`](#group__net_1ga6a57fd61fe37d7d7aae29fb85d708d0f) | Creates the [SocketEmitter](#classicy_1_1net_1_1SocketEmitter). |
-| [`SocketEmitter`](#group__net_1gac0c6fd442346109bae43fd86e490268a) | Copy constructor. |
-| [`~SocketEmitter`](#group__net_1ga371482dd5151aea7cb88803946a09144) | Destroys the [SocketAdapter](#classicy_1_1net_1_1SocketAdapter). |
-| [`addReceiver`](#group__net_1ga33c730a0439c41d71c1bd673320f71bf) | Adds an input [SocketAdapter](#classicy_1_1net_1_1SocketAdapter) for receiving socket signals. |
-| [`removeReceiver`](#group__net_1gaa962167a885ba5f15a3420771f861204) | Removes an input [SocketAdapter](#classicy_1_1net_1_1SocketAdapter). |
-| [`swap`](#group__net_1gae5c17082651ccf5847bbec840fa89443) | Swap the underlying socket pointer. |
-| [`as`](#group__net_1ga9a944688f65c76fa9fda90d4927e2b3d) | Cast getter for the underlying socket. |
-| [`operator->`](#group__net_1gaa66861023d067035a62030280a7c36e6) | Accessor to the underlying socket. |
-| [`onSocketConnect`](#group__net_1gaf3ef9945319491216f42833e5791a678) | Internal callback events. |
-| [`onSocketRecv`](#group__net_1ga9157f82d8c9d2d849aa173f06a143ddd) |  |
-| [`onSocketError`](#group__net_1gaea46a3b9af1d0bed4bd708c1e5f59cbe) |  |
-| [`onSocketClose`](#group__net_1ga8b6d7dcdd05f2f7a21f19733239f083e) |  |
-| [`Connect`](#group__net_1gaf6b9705a3bd3faf2bfb550dbc7c5249e) | Signals that the socket is connected. |
-| [`Recv`](#group__net_1ga6a2406c9364edbff61e1d559e5b6576c) | Signals when data is received by the socket. |
-| [`Error`](#group__net_1gaa0ff0673de03635fc0ea26c2be3c2daa) | Signals that the socket is closed in error. This signal will be sent just before the Closed signal. |
-| [`Close`](#group__net_1ga950604a2babd224d2b2c7b1f5e00d101) | Signals that the underlying socket is closed. |
-| [`impl`](#group__net_1ga0b423a8b6597057e39dcd3dcb0222364) | Pointer to the underlying socket. Sent data will be proxied to this socket. |
-
----
-
-#### SocketEmitter 
+## SocketEmitter
 
 ```cpp
-SocketEmitter(const Socket::Ptr & socket)
+#include <socketemitter.h>
 ```
 
-Creates the [SocketEmitter](#classicy_1_1net_1_1SocketEmitter).
+> **Inherits:** [`SocketAdapter`](#socketadapter)
+> **Subclassed by:** [`WebSocketAdapter`](#websocketadapter), [`PacketSocketEmitter`](#packetsocketemitter)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `socket` | `const Socket::Ptr &` |  |
+[SocketAdapter](#socketadapter) class that adds signal callbacks for sockets. Asde from adding a signal interface the class works as a wrapper for the socket instance, and is designed to be used the same way as a `std::unique_ptr` by overriding the ->() operator.
 
----
+### Public Attributes
 
-#### SocketEmitter 
-
-```cpp
-SocketEmitter(const SocketEmitter & that)
-```
-
-Copy constructor.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `that` | `const SocketEmitter &` |  |
+| Return | Name | Description |
+|--------|------|-------------|
+| `LocalSignal< bool(Socket &)>` | [`Connect`](#connect-4)  | Signals that the socket is connected. |
+| `LocalSignal< bool(Socket &, const MutableBuffer &, const Address &)>` | [`Recv`](#recv)  | Signals when data is received by the socket. |
+| `LocalSignal< bool(Socket &, const icy::Error &)>` | [`Error`](#error-5)  | Signals that the socket is closed in error. This signal will be sent just before the Closed signal. |
+| `LocalSignal< bool(Socket &)>` | [`Close`](#close-13)  | Signals that the underlying socket is closed. |
+| `Socket::Ptr` | [`impl`](#impl)  | Pointer to the underlying socket. Sent data will be proxied to this socket. |
 
 ---
 
-#### ~SocketEmitter 
+{#connect-4}
+
+#### Connect
 
 ```cpp
-virtual ~SocketEmitter()
-```
-
-Destroys the [SocketAdapter](#classicy_1_1net_1_1SocketAdapter).
-
----
-
-#### addReceiver 
-
-```cpp
-virtual void addReceiver(SocketAdapter * adapter)
-```
-
-Adds an input [SocketAdapter](#classicy_1_1net_1_1SocketAdapter) for receiving socket signals.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `adapter` | `SocketAdapter *` |  |
-
----
-
-#### removeReceiver 
-
-```cpp
-virtual void removeReceiver(SocketAdapter * adapter)
-```
-
-Removes an input [SocketAdapter](#classicy_1_1net_1_1SocketAdapter).
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `adapter` | `SocketAdapter *` |  |
-
----
-
-#### swap 
-
-```cpp
-virtual void swap(const Socket::Ptr & socket)
-```
-
-Swap the underlying socket pointer.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `socket` | `const Socket::Ptr &` |  |
-
----
-
-#### as 
-
-```cpp
-template<class T> inline T * as()
-```
-
-Cast getter for the underlying socket.
-
----
-
-#### operator-> 
-
-```cpp
-inline Socket * operator->() const
-```
-
-Accessor to the underlying socket.
-
----
-
-#### onSocketConnect 
-
-```cpp
-virtual void onSocketConnect(Socket & socket)
-```
-
-Internal callback events.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `socket` | `Socket &` |  |
-
----
-
-#### onSocketRecv 
-
-```cpp
-virtual void onSocketRecv(Socket & socket, const MutableBuffer & buffer, const Address & peerAddress)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `socket` | `Socket &` |  |
-| `buffer` | `const MutableBuffer &` |  |
-| `peerAddress` | `const Address &` |  |
-
----
-
-#### onSocketError 
-
-```cpp
-virtual void onSocketError(Socket & socket, const [icy::Error](./doc/api-base.md#structicy_1_1Error) & error)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `socket` | `Socket &` |  |
-| `error` | `const [icy::Error](./doc/api-base.md#structicy_1_1Error) &` |  |
-
----
-
-#### onSocketClose 
-
-```cpp
-virtual void onSocketClose(Socket & socket)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `socket` | `Socket &` |  |
-
----
-
-#### Connect 
-
-```cpp
-Signal< void(Socket &)> Connect
+LocalSignal< bool(Socket &)> Connect
 ```
 
 Signals that the socket is connected.
 
 ---
 
-#### Recv 
+{#recv}
+
+#### Recv
 
 ```cpp
-Signal< void(Socket &, const MutableBuffer &, const Address &)> Recv
+LocalSignal< bool(Socket &, const MutableBuffer &, const Address &)> Recv
 ```
 
 Signals when data is received by the socket.
 
 ---
 
-#### Error 
+{#error-5}
+
+#### Error
 
 ```cpp
-Signal< void(Socket &, const [icy::Error](./doc/api-base.md#structicy_1_1Error) &)> Error
+LocalSignal< bool(Socket &, const icy::Error &)> Error
 ```
 
 Signals that the socket is closed in error. This signal will be sent just before the Closed signal.
 
 ---
 
-#### Close 
+{#close-13}
+
+#### Close
 
 ```cpp
-Signal< void(Socket &)> Close
+LocalSignal< bool(Socket &)> Close
 ```
 
 Signals that the underlying socket is closed.
 
 ---
 
-#### impl 
+{#impl}
+
+#### impl
 
 ```cpp
 Socket::Ptr impl
@@ -1404,59 +1913,498 @@ Socket::Ptr impl
 
 Pointer to the underlying socket. Sent data will be proxied to this socket.
 
-## SSLAdapter 
+### Public Methods
 
-> **Defined in:** `ssladapter.h`
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`SSLAdapter`](#group__net_1ga26cc38aebf1d0d1846ae6603ba2be64f) |  |
-| [`~SSLAdapter`](#group__net_1ga4639bd49bcad7899337f22ba0ec68084) |  |
-| [`initClient`](#group__net_1gaebf891ed98b4c4f2c5edeccfd98cef03) | Initializes the SSL context as a client. |
-| [`initServer`](#group__net_1ga707dd2a10f4541d9a38205083a60c08f) | Initializes the SSL context as a server. |
-| [`initialized`](#group__net_1ga3051dc8e9a424368aeb91027d4b9d8be) | Returns true when SSL context has been initialized. |
-| [`ready`](#group__net_1ga05e325d251acd31625116021c4abcf4a) | Returns true when the handshake is complete. |
-| [`handshake`](#group__net_1ga16c72dfccd9cc787ca4d570179de7bb9) | Start/continue the SSL handshake process. |
-| [`available`](#group__net_1gaebf583d1844bb5eb37b6c7d94a7cdca1) | Returns the number of bytes available in the SSL buffer for immediate reading. |
-| [`shutdown`](#group__net_1gaa2a689ba83da2bcc9d3b8b4b3bab303e) | Issues an orderly SSL shutdown. |
-| [`flush`](#group__net_1gabf462204b841bac2edbc2d9c12d36d59) | Flushes the SSL read/write buffers. |
-| [`addIncomingData`](#group__net_1ga17018e5db975debd3765e5611a6c5c66) |  |
-| [`addOutgoingData`](#group__net_1ga80a755a8a5a1369ace2d8f95740767f7) |  |
-| [`addOutgoingData`](#group__net_1ga9d0f1cb4beaf061be33cb162ad674571) |  |
-| [`handleError`](#group__net_1ga37281519a34b937cbf763e587e5675c4) |  |
-| [`flushReadBIO`](#group__net_1ga8c32288c3e5badc7985dcc0f58ac8336) |  |
-| [`flushWriteBIO`](#group__net_1ga5949d6d6339de68d4d38f1b4b07e3360) |  |
-| [`_socket`](#group__net_1gae207495c52da9720625af1c1a8234ca0) |  |
-| [`_ssl`](#group__net_1gab767ae04b5ac979a1e2d0d337b4c4028) |  |
-| [`_readBIO`](#group__net_1ga0a542283ee6c57fcc584a1315cd0b9a7) | The incoming buffer we write encrypted SSL data into. |
-| [`_writeBIO`](#group__net_1ga7837fb89f6f46ab90a408290f308ee2a) | The outgoing buffer we write to the socket. |
-| [`_bufferOut`](#group__net_1ga3c2e88ec5aa5631dedaf5179bf8dbfa0) | The outgoing payload to be encrypted and sent. |
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`SocketEmitter`](#socketemitter-1)  | Creates the [SocketEmitter](#socketemitter) and optionally attaches it to a socket. If `socket` is provided, this emitter registers itself as a receiver.  |
+|  | [`SocketEmitter`](#socketemitter-2)  | Copy constructor; copies all signal connections and attaches to the same socket.  |
+|  | [`~SocketEmitter`](#socketemitter-3) `virtual` | Destroys the [SocketAdapter](#socketadapter). |
+| `void` | [`addReceiver`](#addreceiver-1) `virtual` | Attaches a [SocketAdapter](#socketadapter) as a receiver; wires it to all four socket signals.  |
+| `void` | [`removeReceiver`](#removereceiver-1) `virtual` | Detaches a [SocketAdapter](#socketadapter) from all four socket signals.  |
+| `void` | [`swap`](#swap-1) `virtual` | Replaces the underlying socket with `socket`. |
+| `T *` | [`as`](#as) `inline` | Returns the underlying socket cast to type T, or nullptr if the cast fails.  |
+| `Socket *` | [`operator->`](#operator-8) `const` `inline` | Returns a raw pointer to the underlying socket for direct method access. Follows shared_ptr semantics; the caller must not delete the returned pointer.  |
 
 ---
 
-#### SSLAdapter 
+{#socketemitter-1}
+
+#### SocketEmitter
+
+```cpp
+SocketEmitter(const Socket::Ptr & socket)
+```
+
+Creates the [SocketEmitter](#socketemitter) and optionally attaches it to a socket. If `socket` is provided, this emitter registers itself as a receiver. 
+#### Parameters
+* `socket` Optional socket to attach to; pass nullptr to attach later via [swap()](#swap-1).
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `socket` | `const [Socket::Ptr](#ptr-4) &` |  |
+
+---
+
+{#socketemitter-2}
+
+#### SocketEmitter
+
+```cpp
+SocketEmitter(const SocketEmitter & that)
+```
+
+Copy constructor; copies all signal connections and attaches to the same socket. 
+#### Parameters
+* `that` The [SocketEmitter](#socketemitter) to copy from.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `that` | `const [SocketEmitter](#socketemitter) &` |  |
+
+---
+
+{#socketemitter-3}
+
+#### ~SocketEmitter
+
+`virtual`
+
+```cpp
+virtual ~SocketEmitter() noexcept
+```
+
+Destroys the [SocketAdapter](#socketadapter).
+
+---
+
+{#addreceiver-1}
+
+#### addReceiver
+
+`virtual`
+
+```cpp
+virtual void addReceiver(SocketAdapter * adapter)
+```
+
+Attaches a [SocketAdapter](#socketadapter) as a receiver; wires it to all four socket signals. 
+#### Parameters
+* `adapter` The adapter to attach; its priority determines signal ordering.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `adapter` | `[SocketAdapter](#socketadapter) *` |  |
+
+---
+
+{#removereceiver-1}
+
+#### removeReceiver
+
+`virtual`
+
+```cpp
+virtual void removeReceiver(SocketAdapter * adapter)
+```
+
+Detaches a [SocketAdapter](#socketadapter) from all four socket signals. 
+#### Parameters
+* `adapter` The adapter to detach.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `adapter` | `[SocketAdapter](#socketadapter) *` |  |
+
+---
+
+{#swap-1}
+
+#### swap
+
+`virtual`
+
+```cpp
+virtual void swap(const Socket::Ptr & socket)
+```
+
+Replaces the underlying socket with `socket`.
+
+Throws std::logic_error if the emitter already has an attached socket. 
+#### Parameters
+* `socket` The new socket to attach.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `socket` | `const [Socket::Ptr](#ptr-4) &` |  |
+
+---
+
+{#as}
+
+#### as
+
+`inline`
+
+```cpp
+template<class T> inline T * as()
+```
+
+Returns the underlying socket cast to type T, or nullptr if the cast fails. 
+#### Parameters
+* `T` Derived socket type to cast to. 
+
+#### Returns
+Pointer to the socket as T, or nullptr on type mismatch.
+
+---
+
+{#operator-8}
+
+#### operator->
+
+`const` `inline`
+
+```cpp
+inline Socket * operator->() const
+```
+
+Returns a raw pointer to the underlying socket for direct method access. Follows shared_ptr semantics; the caller must not delete the returned pointer. 
+#### Returns
+Raw pointer to the socket (never null if a socket was attached).
+
+### Protected Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `bool` | [`onSocketConnect`](#onsocketconnect-1) `virtual` | Forwards the connect event to chained adapters, then fires the Connect signal. |
+| `bool` | [`onSocketRecv`](#onsocketrecv-2) `virtual` | Forwards the recv event to chained adapters, then fires the Recv signal. |
+| `bool` | [`onSocketError`](#onsocketerror-1) `virtual` | Forwards the error event to chained adapters, then fires the [Error](#structicy_1_1Error) signal. |
+| `bool` | [`onSocketClose`](#onsocketclose-1) `virtual` | Forwards the close event to chained adapters, then fires the Close signal. |
+
+---
+
+{#onsocketconnect-1}
+
+#### onSocketConnect
+
+`virtual`
+
+```cpp
+virtual bool onSocketConnect(Socket & socket)
+```
+
+Forwards the connect event to chained adapters, then fires the Connect signal.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `socket` | `[Socket](#socket) &` |  |
+
+---
+
+{#onsocketrecv-2}
+
+#### onSocketRecv
+
+`virtual`
+
+```cpp
+virtual bool onSocketRecv(Socket & socket, const MutableBuffer & buffer, const Address & peerAddress)
+```
+
+Forwards the recv event to chained adapters, then fires the Recv signal.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `socket` | `[Socket](#socket) &` |  |
+| `buffer` | `const [MutableBuffer](#classicy_1_1MutableBuffer) &` |  |
+| `peerAddress` | `const [Address](#address) &` |  |
+
+---
+
+{#onsocketerror-1}
+
+#### onSocketError
+
+`virtual`
+
+```cpp
+virtual bool onSocketError(Socket & socket, const icy::Error & error)
+```
+
+Forwards the error event to chained adapters, then fires the [Error](#structicy_1_1Error) signal.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `socket` | `[Socket](#socket) &` |  |
+| `error` | `const [icy::Error](#structicy_1_1Error) &` |  |
+
+---
+
+{#onsocketclose-1}
+
+#### onSocketClose
+
+`virtual`
+
+```cpp
+virtual bool onSocketClose(Socket & socket)
+```
+
+Forwards the close event to chained adapters, then fires the Close signal.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `socket` | `[Socket](#socket) &` |  |
+
+{#socketpacket}
+
+## SocketPacket
+
+```cpp
+#include <socket.h>
+```
+
+> **Inherits:** [`RawPacket`](#classicy_1_1RawPacket)
+
+[SocketPacket](#socketpacket) is the default packet type emitted by sockets. [SocketPacket](#socketpacket) provides peer address information and a buffer reference for nocopy binary operations.
+
+The referenced packet buffer lifetime is only guaranteed for the duration of the receiver callback.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`SocketPacket`](#socketpacket-1) `inline` | Constructs a [SocketPacket](#socketpacket) wrapping the received buffer. |
+|  | [`SocketPacket`](#socketpacket-2) `inline` | Copy constructor; shares the underlying buffer reference.  |
+| `PacketInfo *` | [`packetInfo`](#packetinfo) `const` `inline` | Returns the [PacketInfo](#packetinfo-1) for this socket packet.  |
+| `void` | [`print`](#print-6) `virtual` `const` `inline` | Prints a one-line description of the packet to `os`.  |
+| `std::unique_ptr< IPacket >` | [`clone`](#clone-5) `virtual` `const` `inline` | Returns a heap-allocated copy of this [SocketPacket](#socketpacket). |
+| `ssize_t` | [`read`](#read-1) `virtual` `inline` | Not supported; always throws std::logic_error. |
+| `void` | [`write`](#write-1) `virtual` `const` `inline` | Appends the packet payload to `buf`.  |
+| `const char *` | [`className`](#classname-5) `virtual` `const` `inline` | #### Returns |
+
+---
+
+{#socketpacket-1}
+
+#### SocketPacket
+
+`inline`
+
+```cpp
+inline SocketPacket(const Socket::Ptr & socket, const MutableBuffer & buffer, const Address & peerAddress)
+```
+
+Constructs a [SocketPacket](#socketpacket) wrapping the received buffer.
+
+The buffer data pointer remains valid only for the duration of the enclosing receive callback; do not retain references beyond that scope. 
+#### Parameters
+* `socket` Shared pointer to the receiving socket. 
+
+* `buffer` View of the raw received bytes. 
+
+* `peerAddress` [Address](#address) of the remote sender.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `socket` | `const [Socket::Ptr](#ptr-4) &` |  |
+| `buffer` | `const [MutableBuffer](#classicy_1_1MutableBuffer) &` |  |
+| `peerAddress` | `const [Address](#address) &` |  |
+
+---
+
+{#socketpacket-2}
+
+#### SocketPacket
+
+`inline`
+
+```cpp
+inline SocketPacket(const SocketPacket & that)
+```
+
+Copy constructor; shares the underlying buffer reference. 
+#### Parameters
+* `that` Source [SocketPacket](#socketpacket) to copy.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `that` | `const [SocketPacket](#socketpacket) &` |  |
+
+---
+
+{#packetinfo}
+
+#### packetInfo
+
+`const` `inline`
+
+```cpp
+inline PacketInfo * packetInfo() const
+```
+
+Returns the [PacketInfo](#packetinfo-1) for this socket packet. 
+#### Returns
+Pointer to the associated [PacketInfo](#packetinfo-1) (never null for a valid packet).
+
+---
+
+{#print-6}
+
+#### print
+
+`virtual` `const` `inline`
+
+```cpp
+virtual inline void print(std::ostream & os) const
+```
+
+Prints a one-line description of the packet to `os`. 
+#### Parameters
+* `os` Output stream to write to.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `os` | `std::ostream &` |  |
+
+---
+
+{#clone-5}
+
+#### clone
+
+`virtual` `const` `inline`
+
+```cpp
+virtual inline std::unique_ptr< IPacket > clone() const
+```
+
+Returns a heap-allocated copy of this [SocketPacket](#socketpacket).
+
+---
+
+{#read-1}
+
+#### read
+
+`virtual` `inline`
+
+```cpp
+virtual inline ssize_t read(const ConstBuffer &)
+```
+
+Not supported; always throws std::logic_error.
+
+---
+
+{#write-1}
+
+#### write
+
+`virtual` `const` `inline`
+
+```cpp
+virtual inline void write(Buffer & buf) const
+```
+
+Appends the packet payload to `buf`. 
+#### Parameters
+* `buf` Destination buffer to append raw bytes to.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `buf` | `[Buffer](#namespaceicy_1a9c464c811f03ea41ea100ed65a0580d3) &` |  |
+
+---
+
+{#classname-5}
+
+#### className
+
+`virtual` `const` `inline`
+
+```cpp
+virtual inline const char * className() const
+```
+
+#### Returns
+The string "SocketPacket".
+
+{#ssladapter}
+
+## SSLAdapter
+
+```cpp
+#include <ssladapter.h>
+```
+
+Manages the OpenSSL context and BIO buffers for an SSL socket connection.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`SSLAdapter`](#ssladapter-1)  | Constructs the [SSLAdapter](#ssladapter) and associates it with the given socket. The socket pointer must remain valid for the lifetime of this adapter.  |
+|  | [`SSLAdapter`](#ssladapter-2)  |  |
+|  | [`SSLAdapter`](#ssladapter-3)  |  |
+| `void` | [`initClient`](#initclient)  | Initializes the SSL context as a client. |
+| `void` | [`initServer`](#initserver)  | Initializes the SSL context as a server. |
+| `bool` | [`initialized`](#initialized-2) `const` | Returns true when SSL context has been initialized. |
+| `bool` | [`ready`](#ready) `const` | Returns true when the handshake is complete. |
+| `void` | [`handshake`](#handshake)  | Start/continue the SSL handshake process. |
+| `int` | [`available`](#available-1) `const` | Returns the number of bytes available in the SSL buffer for immediate reading. |
+| `void` | [`shutdown`](#shutdown-2)  | Issues an orderly SSL shutdown. |
+| `void` | [`flush`](#flush-8)  | Flushes the SSL read/write buffers. |
+| `void` | [`setHostname`](#sethostname)  | Set the expected peer hostname for certificate verification. Must be called before [initClient()](#initclient) to enable hostname verification. |
+| `void` | [`addIncomingData`](#addincomingdata)  | Feeds encrypted data received from the network into the SSL read BIO. Triggers a flush, which drives the handshake or decrypts and delivers plaintext to the socket via onRecv().  |
+| `void` | [`addOutgoingData`](#addoutgoingdata)  | Queues plaintext data for encryption and transmission.  |
+| `void` | [`addOutgoingData`](#addoutgoingdata-1)  | Queues plaintext data for encryption and transmission.  |
+| `void` | [`addOutgoingData`](#addoutgoingdata-2)  | Moves plaintext data into the pending write buffer when possible. |
+
+---
+
+{#ssladapter-1}
+
+#### SSLAdapter
 
 ```cpp
 SSLAdapter(net::SSLSocket * socket)
 ```
 
+Constructs the [SSLAdapter](#ssladapter) and associates it with the given socket. The socket pointer must remain valid for the lifetime of this adapter. 
+#### Parameters
+* `socket` The owning [SSLSocket](#sslsocket) that sends and receives raw data.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `net::SSLSocket *` |  |
+| `socket` | `[net::SSLSocket](#sslsocket) *` |  |
 
 ---
 
-#### ~SSLAdapter 
+{#ssladapter-2}
+
+#### SSLAdapter
 
 ```cpp
-~SSLAdapter()
+SSLAdapter(const SSLAdapter &) = delete
 ```
 
 ---
 
-#### initClient 
+{#ssladapter-3}
+
+#### SSLAdapter
+
+```cpp
+SSLAdapter(SSLAdapter &&) = delete
+```
+
+---
+
+{#initclient}
+
+#### initClient
 
 ```cpp
 void initClient()
@@ -1466,7 +2414,9 @@ Initializes the SSL context as a client.
 
 ---
 
-#### initServer 
+{#initserver}
+
+#### initServer
 
 ```cpp
 void initServer()
@@ -1476,7 +2426,11 @@ Initializes the SSL context as a server.
 
 ---
 
-#### initialized 
+{#initialized-2}
+
+#### initialized
+
+`const`
 
 ```cpp
 bool initialized() const
@@ -1486,7 +2440,11 @@ Returns true when SSL context has been initialized.
 
 ---
 
-#### ready 
+{#ready}
+
+#### ready
+
+`const`
 
 ```cpp
 bool ready() const
@@ -1496,7 +2454,9 @@ Returns true when the handshake is complete.
 
 ---
 
-#### handshake 
+{#handshake}
+
+#### handshake
 
 ```cpp
 void handshake()
@@ -1506,7 +2466,11 @@ Start/continue the SSL handshake process.
 
 ---
 
-#### available 
+{#available-1}
+
+#### available
+
+`const`
 
 ```cpp
 int available() const
@@ -1516,7 +2480,9 @@ Returns the number of bytes available in the SSL buffer for immediate reading.
 
 ---
 
-#### shutdown 
+{#shutdown-2}
+
+#### shutdown
 
 ```cpp
 void shutdown()
@@ -1526,7 +2492,9 @@ Issues an orderly SSL shutdown.
 
 ---
 
-#### flush 
+{#flush-8}
+
+#### flush
 
 ```cpp
 void flush()
@@ -1536,12 +2504,36 @@ Flushes the SSL read/write buffers.
 
 ---
 
-#### addIncomingData 
+{#sethostname}
+
+#### setHostname
+
+```cpp
+void setHostname(std::string_view hostname)
+```
+
+Set the expected peer hostname for certificate verification. Must be called before [initClient()](#initclient) to enable hostname verification.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `hostname` | `std::string_view` |  |
+
+---
+
+{#addincomingdata}
+
+#### addIncomingData
 
 ```cpp
 void addIncomingData(const char * data, size_t len)
 ```
 
+Feeds encrypted data received from the network into the SSL read BIO. Triggers a flush, which drives the handshake or decrypts and delivers plaintext to the socket via onRecv(). 
+#### Parameters
+* `data` Pointer to the encrypted bytes. 
+
+* `len` Number of bytes to feed.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `data` | `const char *` |  |
@@ -1549,24 +2541,38 @@ void addIncomingData(const char * data, size_t len)
 
 ---
 
-#### addOutgoingData 
+{#addoutgoingdata}
+
+#### addOutgoingData
 
 ```cpp
-void addOutgoingData(const std::string & data)
+void addOutgoingData(std::string_view data)
 ```
+
+Queues plaintext data for encryption and transmission. 
+#### Parameters
+* `data` String view of the plaintext payload.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `data` | `const std::string &` |  |
+| `data` | `std::string_view` |  |
 
 ---
 
-#### addOutgoingData 
+{#addoutgoingdata-1}
+
+#### addOutgoingData
 
 ```cpp
 void addOutgoingData(const char * data, size_t len)
 ```
 
+Queues plaintext data for encryption and transmission. 
+#### Parameters
+* `data` Pointer to the plaintext bytes. 
+
+* `len` Number of bytes to queue.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `data` | `const char *` |  |
@@ -1574,7 +2580,112 @@ void addOutgoingData(const char * data, size_t len)
 
 ---
 
-#### handleError 
+{#addoutgoingdata-2}
+
+#### addOutgoingData
+
+```cpp
+void addOutgoingData(Buffer && data)
+```
+
+Moves plaintext data into the pending write buffer when possible.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `data` | `[Buffer](#namespaceicy_1a9c464c811f03ea41ea100ed65a0580d3) &&` |  |
+
+### Protected Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `net::SSLSocket *` | [`_socket`](#_socket)  |  |
+| `SSL *` | [`_ssl`](#_ssl)  |  |
+| `BIO *` | [`_readBIO`](#_readbio)  | The incoming buffer we write encrypted SSL data into. |
+| `BIO *` | [`_writeBIO`](#_writebio)  | The outgoing buffer we write to the socket. |
+| `std::vector< char >` | [`_bufferOut`](#_bufferout)  | The outgoing payload to be encrypted and sent. |
+| `std::string` | [`_hostname`](#_hostname)  | Expected peer hostname for verification. |
+
+---
+
+{#_socket}
+
+#### _socket
+
+```cpp
+net::SSLSocket * _socket
+```
+
+---
+
+{#_ssl}
+
+#### _ssl
+
+```cpp
+SSL * _ssl
+```
+
+---
+
+{#_readbio}
+
+#### _readBIO
+
+```cpp
+BIO * _readBIO
+```
+
+The incoming buffer we write encrypted SSL data into.
+
+---
+
+{#_writebio}
+
+#### _writeBIO
+
+```cpp
+BIO * _writeBIO
+```
+
+The outgoing buffer we write to the socket.
+
+---
+
+{#_bufferout}
+
+#### _bufferOut
+
+```cpp
+std::vector< char > _bufferOut
+```
+
+The outgoing payload to be encrypted and sent.
+
+---
+
+{#_hostname}
+
+#### _hostname
+
+```cpp
+std::string _hostname
+```
+
+Expected peer hostname for verification.
+
+### Protected Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `void` | [`handleError`](#handleerror)  |  |
+| `void` | [`flushReadBIO`](#flushreadbio)  |  |
+| `void` | [`flushWriteBIO`](#flushwritebio)  |  |
+
+---
+
+{#handleerror}
+
+#### handleError
 
 ```cpp
 void handleError(int rc)
@@ -1586,7 +2697,9 @@ void handleError(int rc)
 
 ---
 
-#### flushReadBIO 
+{#flushreadbio}
+
+#### flushReadBIO
 
 ```cpp
 void flushReadBIO()
@@ -1594,130 +2707,58 @@ void flushReadBIO()
 
 ---
 
-#### flushWriteBIO 
+{#flushwritebio}
+
+#### flushWriteBIO
 
 ```cpp
 void flushWriteBIO()
 ```
 
----
+{#sslcontext}
 
-#### _socket 
-
-```cpp
-net::SSLSocket * _socket
-```
-
----
-
-#### _ssl 
+## SSLContext
 
 ```cpp
-SSL * _ssl
+#include <sslcontext.h>
 ```
-
----
-
-#### _readBIO 
-
-```cpp
-BIO * _readBIO
-```
-
-The incoming buffer we write encrypted SSL data into.
-
----
-
-#### _writeBIO 
-
-```cpp
-BIO * _writeBIO
-```
-
-The outgoing buffer we write to the socket.
-
----
-
-#### _bufferOut 
-
-```cpp
-std::vector< char > _bufferOut
-```
-
-The outgoing payload to be encrypted and sent.
-
-## SSLContext 
-
-> **Defined in:** `sslcontext.h`
 
 This class encapsulates context information for an SSL server or client, such as the certificate verification mode and the location of certificates and private key files, as well as the list of supported ciphers.
 
 The Context class is also used to control SSL session caching on the server and client side.
 
-### Members
+### Public Methods
 
-| Name | Description |
-|------|-------------|
-| [`Usage`](#group__net_1ga2e13fff7d4c75c080e515a427bf15c71) |  |
-| [`VerificationMode`](#group__net_1gafd7da63f7077511ce8d4da68f37d255e) |  |
-| [`SSLContext`](#group__net_1ga9bc5bae0a271799c171b37d3e6e13735) | Creates a Context. |
-| [`SSLContext`](#group__net_1ga9fe3fe5f358b95a71a49a42798ec36ce) | Creates a Context. |
-| [`~SSLContext`](#group__net_1gaf88baeb14fd0ee8d539e960f81142043) | Destroys the Context. |
-| [`useCertificate`](#group__net_1ga840711ee078f8ee6432aaef8b50b48b9) | Sets the certificate to be used by the Context. |
-| [`addChainCertificate`](#group__net_1gac4fe7dff44de813dcdf7daf80ea48d5f) | Adds a certificate for certificate chain validation. |
-| [`addVerificationCertificate`](#group__net_1ga553376bb332952ef5c1829fb3600d554) | Sets the private key to be used by the Context. |
-| [`sslContext`](#group__net_1ga88c101c4f8f5b4fe3ff3a4e50ff7ccfd) | Returns the underlying OpenSSL SSL Context object. |
-| [`usage`](#group__net_1ga9b4562b3b554ae7b584a1cb2ab3825df) | Returns whether the context is for use by a client or by a server and whether TLSv1 is required. |
-| [`isForServerUse`](#group__net_1ga5b018180ca35ce83c8d5efa9a33b3d35) | Returns true if the context is for use by a server. |
-| [`verificationMode`](#group__net_1ga134311a6874bd856a4ad24fb7605784f) | Returns the verification mode. |
-| [`enableSessionCache`](#group__net_1gabcb6479878cbc88959c819b4315d9d5b) | Enable or disable SSL/TLS session caching. For session caching to work, it must be enabled on the server, as well as on the client side. |
-| [`enableSessionCache`](#group__net_1gafc6d7cc2fd93fb8e85f793e00b5d2926) | Enables or disables SSL/TLS session caching on the server. For session caching to work, it must be enabled on the server, as well as on the client side. |
-| [`sessionCacheEnabled`](#group__net_1ga660b36fa2986687c39716fbf170d5284) | Returns true if the session cache is enabled. |
-| [`setSessionCacheSize`](#group__net_1ga866c6d92313d85c8c580e742a722964b) | Sets the maximum size of the server session cache, in number of sessions. The default size (according to OpenSSL documentation) is 1024*20, which may be too large for many applications, especially on embedded platforms with limited memory. |
-| [`getSessionCacheSize`](#group__net_1ga57776ff4697488efe841f32fd6334c0e) | Returns the current maximum size of the server session cache. |
-| [`setSessionTimeout`](#group__net_1ga4f769feef9c5e604a5f66121e3618e14) | Sets the timeout (in seconds) of cached sessions on the server. A cached session will be removed from the cache if it has not been used for the given number of seconds. |
-| [`getSessionTimeout`](#group__net_1ga00d5531a1264b6dbb8079779ba864eca) | Returns the timeout (in seconds) of cached sessions on the server. |
-| [`flushSessionCache`](#group__net_1ga9d5e8a57a06cdaa54a8c5782785848c8) | Flushes the SSL session cache on the server. |
-| [`disableStatelessSessionResumption`](#group__net_1gae16a7eff1253b2924e5254066e151c6b) | Newer versions of OpenSSL support RFC 4507 tickets for stateless session resumption. |
-| [`createSSLContext`](#group__net_1ga93f1f41e4374901ebba9a13a07e6d851) | Create a SSL_CTX object according to Context configuration. |
-| [`_usage`](#group__net_1ga171ace8794c0f1b9ff4ceb91ec887cd1) |  |
-| [`_mode`](#group__net_1ga9afa80a0f6ca11b832a906cb95180399) |  |
-| [`_sslContext`](#group__net_1ga7b1415c11d5ba729dfd704a0ea7183b6) |  |
-| [`_extendedVerificationErrorDetails`](#group__net_1gaecb958e393d9723c5fad530d024f1c51) |  |
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`SSLContext`](#sslcontext-1)  | Creates a Context. |
+|  | [`SSLContext`](#sslcontext-2)  | Creates a Context. |
+|  | [`~SSLContext`](#sslcontext-3)  | Destroys the Context. |
+| `void` | [`useCertificate`](#usecertificate)  | Sets the certificate to be used by the Context. |
+| `void` | [`addChainCertificate`](#addchaincertificate)  | Adds a certificate for certificate chain validation. |
+| `void` | [`addVerificationCertificate`](#addverificationcertificate)  | Sets the private key to be used by the Context. |
+| `SSL_CTX *` | [`sslContext`](#sslcontext-4) `const` `inline` | Returns the underlying OpenSSL SSL Context object. |
+| `Usage` | [`usage`](#usage) `const` `inline` | Returns whether the context is for use by a client or by a server and whether TLSv1 is required. |
+| `bool` | [`isForServerUse`](#isforserveruse) `const` `inline` | Returns true if the context is for use by a server. |
+| `SSLContext::VerificationMode` | [`verificationMode`](#verificationmode) `const` `inline` | Returns the verification mode. |
+| `void` | [`enableSessionCache`](#enablesessioncache)  | Enable or disable SSL/TLS session caching. For session caching to work, it must be enabled on the server, as well as on the client side. |
+| `void` | [`enableSessionCache`](#enablesessioncache-1)  | Enables or disables SSL/TLS session caching on the server. For session caching to work, it must be enabled on the server, as well as on the client side. |
+| `bool` | [`sessionCacheEnabled`](#sessioncacheenabled) `const` | Returns true if the session cache is enabled. |
+| `void` | [`setSessionCacheSize`](#setsessioncachesize)  | Sets the maximum size of the server session cache, in number of sessions. The default size (according to OpenSSL documentation) is 1024*20, which may be too large for many applications, especially on embedded platforms with limited memory. |
+| `size_t` | [`getSessionCacheSize`](#getsessioncachesize) `const` | Returns the current maximum size of the server session cache. |
+| `void` | [`setSessionTimeout`](#setsessiontimeout)  | Sets the timeout (in seconds) of cached sessions on the server. A cached session will be removed from the cache if it has not been used for the given number of seconds. |
+| `long` | [`getSessionTimeout`](#getsessiontimeout) `const` | Returns the timeout (in seconds) of cached sessions on the server. |
+| `void` | [`flushSessionCache`](#flushsessioncache)  | Flushes the SSL session cache on the server. |
+| `void` | [`disableStatelessSessionResumption`](#disablestatelesssessionresumption)  | Newer versions of OpenSSL support RFC 4507 tickets for stateless session resumption. |
+| `void` | [`setALPNProtocols`](#setalpnprotocols)  | Set the ALPN protocols for negotiation. Protocols should be in preference order. Example: {"h2", "http/1.1"} |
+|  | [`SSLContext`](#sslcontext-5)  |  |
+|  | [`SSLContext`](#sslcontext-6)  |  |
 
 ---
 
-#### Usage 
+{#sslcontext-1}
 
-```cpp
-enum Usage
-```
-
-| Value | Description |
-|-------|-------------|
-| `CLIENT_USE` | Context is used by a client. |
-| `SERVER_USE` | Context is used by a server. |
-| `TLSV1_CLIENT_USE` | Context is used by a client requiring TLSv1. |
-| `TLSV1_SERVER_USE` | Context is used by a server requiring TLSv2. |
-
----
-
-#### VerificationMode 
-
-```cpp
-enum VerificationMode
-```
-
-| Value | Description |
-|-------|-------------|
-| `VERIFY_NONE` | Server: The server will not send a client certificate request to the client, so the client will not send a certificate. |
-| `VERIFY_RELAXED` | Server: The server sends a client certificate request to the client. The certificate returned (if any) is checked. If the verification process fails, the TLS/SSL handshake is immediately terminated with an alert message containing the reason for the verification failure. |
-| `VERIFY_STRICT` | Server: If the client did not return a certificate, the TLS/SSL handshake is immediately terminated with a handshake failure alert. |
-| `VERIFY_ONCE` | Server: Only request a client certificate on the initial TLS/SSL handshake. Do not ask for a client certificate again in case of a renegotiation. |
-
----
-
-#### SSLContext 
+#### SSLContext
 
 ```cpp
 SSLContext(Usage usage, const std::string & privateKeyFile, const std::string & certificateFile, const std::string & caLocation, VerificationMode verificationMode, int verificationDepth, bool loadDefaultCAs, const std::string & cipherList)
@@ -1741,22 +2782,24 @@ Creates a Context.
 
 * cipherList specifies the supported ciphers in OpenSSL notation.
 
-Note: If the private key is protected by a passphrase, a PrivateKeyPassphraseHandler must have been setup with the [SSLManager](#classicy_1_1net_1_1SSLManager), or the [SSLManager](#classicy_1_1net_1_1SSLManager)'s PrivateKeyPassphraseRequired event must be handled.
+Note: If the private key is protected by a passphrase, a PrivateKeyPassphraseHandler must have been setup with the [SSLManager](#sslmanager), or the [SSLManager](#sslmanager)'s PrivateKeyPassphraseRequired event must be handled.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `usage` | `Usage` |  |
+| `usage` | `[Usage](#usage-1)` |  |
 | `privateKeyFile` | `const std::string &` |  |
 | `certificateFile` | `const std::string &` |  |
 | `caLocation` | `const std::string &` |  |
-| `verificationMode` | `VerificationMode` |  |
+| `verificationMode` | `[VerificationMode](#verificationmode-1)` |  |
 | `verificationDepth` | `int` |  |
 | `loadDefaultCAs` | `bool` |  |
 | `cipherList` | `const std::string &` |  |
 
 ---
 
-#### SSLContext 
+{#sslcontext-2}
+
+#### SSLContext
 
 ```cpp
 SSLContext(Usage usage, const std::string & caLocation, VerificationMode verificationMode, int verificationDepth, bool loadDefaultCAs, const std::string & cipherList)
@@ -1780,76 +2823,88 @@ Note that a private key and/or certificate must be specified with usePrivateKey(
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `usage` | `Usage` |  |
+| `usage` | `[Usage](#usage-1)` |  |
 | `caLocation` | `const std::string &` |  |
-| `verificationMode` | `VerificationMode` |  |
+| `verificationMode` | `[VerificationMode](#verificationmode-1)` |  |
 | `verificationDepth` | `int` |  |
 | `loadDefaultCAs` | `bool` |  |
 | `cipherList` | `const std::string &` |  |
 
 ---
 
-#### ~SSLContext 
+{#sslcontext-3}
+
+#### ~SSLContext
 
 ```cpp
-~SSLContext()
+~SSLContext() noexcept
 ```
 
 Destroys the Context.
 
 ---
 
-#### useCertificate 
+{#usecertificate}
+
+#### useCertificate
 
 ```cpp
-void useCertificate(const crypto::X509Certificate & certificate)
+void useCertificate(crypto::X509Certificate & certificate)
 ```
 
 Sets the certificate to be used by the Context.
 
-To set-up a complete certificate chain, it might be necessary to call [addChainCertificate()](#group__net_1gac4fe7dff44de813dcdf7daf80ea48d5f) to specify additional certificates.
+To set-up a complete certificate chain, it might be necessary to call [addChainCertificate()](#addchaincertificate) to specify additional certificates.
 
-Note that [useCertificate()](#group__net_1ga840711ee078f8ee6432aaef8b50b48b9) must always be called before usePrivateKey().
+Note that [useCertificate()](#usecertificate) must always be called before usePrivateKey().
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `certificate` | `const crypto::X509Certificate &` |  |
+| `certificate` | `[crypto::X509Certificate](#x509certificate) &` |  |
 
 ---
 
-#### addChainCertificate 
+{#addchaincertificate}
+
+#### addChainCertificate
 
 ```cpp
-void addChainCertificate(const crypto::X509Certificate & certificate)
+void addChainCertificate(crypto::X509Certificate & certificate)
 ```
 
 Adds a certificate for certificate chain validation.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `certificate` | `const crypto::X509Certificate &` |  |
+| `certificate` | `[crypto::X509Certificate](#x509certificate) &` |  |
 
 ---
 
-#### addVerificationCertificate 
+{#addverificationcertificate}
+
+#### addVerificationCertificate
 
 ```cpp
-void addVerificationCertificate(const crypto::X509Certificate & certificate)
+void addVerificationCertificate(crypto::X509Certificate & certificate)
 ```
 
 Sets the private key to be used by the Context.
 
-Note that [useCertificate()](#group__net_1ga840711ee078f8ee6432aaef8b50b48b9) must always be called before usePrivateKey().
+Note that [useCertificate()](#usecertificate) must always be called before usePrivateKey().
 
-Note: If the private key is protected by a passphrase, a PrivateKeyPassphraseHandler must have been setup with the [SSLManager](#classicy_1_1net_1_1SSLManager), or the [SSLManager](#classicy_1_1net_1_1SSLManager)'s PrivateKeyPassphraseRequired event must be handled. Adds the given certificate to the list of trusted certificates that will be used for verification.
+Note: If the private key is protected by a passphrase, a PrivateKeyPassphraseHandler must have been setup with the [SSLManager](#sslmanager), or the [SSLManager](#sslmanager)'s PrivateKeyPassphraseRequired event must be handled. Adds the given certificate to the list of trusted certificates that will be used for verification.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `certificate` | `const crypto::X509Certificate &` |  |
+| `certificate` | `[crypto::X509Certificate](#x509certificate) &` |  |
 
 ---
 
-#### sslContext 
+{#sslcontext-4}
+
+#### sslContext
+
+`const` `inline`
 
 ```cpp
 inline SSL_CTX * sslContext() const
@@ -1859,7 +2914,11 @@ Returns the underlying OpenSSL SSL Context object.
 
 ---
 
-#### usage 
+{#usage}
+
+#### usage
+
+`const` `inline`
 
 ```cpp
 inline Usage usage() const
@@ -1869,7 +2928,11 @@ Returns whether the context is for use by a client or by a server and whether TL
 
 ---
 
-#### isForServerUse 
+{#isforserveruse}
+
+#### isForServerUse
+
+`const` `inline`
 
 ```cpp
 inline bool isForServerUse() const
@@ -1879,7 +2942,11 @@ Returns true if the context is for use by a server.
 
 ---
 
-#### verificationMode 
+{#verificationmode}
+
+#### verificationMode
+
+`const` `inline`
 
 ```cpp
 inline SSLContext::VerificationMode verificationMode() const
@@ -1889,7 +2956,9 @@ Returns the verification mode.
 
 ---
 
-#### enableSessionCache 
+{#enablesessioncache}
+
+#### enableSessionCache
 
 ```cpp
 void enableSessionCache(bool flag)
@@ -1907,10 +2976,12 @@ To enable session caching on the server side, use the two-argument version of th
 
 ---
 
-#### enableSessionCache 
+{#enablesessioncache-1}
+
+#### enableSessionCache
 
 ```cpp
-void enableSessionCache(bool flag, const std::string & sessionIdContext)
+void enableSessionCache(bool flag, std::string_view sessionIdContext)
 ```
 
 Enables or disables SSL/TLS session caching on the server. For session caching to work, it must be enabled on the server, as well as on the client side.
@@ -1924,11 +2995,15 @@ This method may only be called on SERVER_USE Context objects.
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `flag` | `bool` |  |
-| `sessionIdContext` | `const std::string &` |  |
+| `sessionIdContext` | `std::string_view` |  |
 
 ---
 
-#### sessionCacheEnabled 
+{#sessioncacheenabled}
+
+#### sessionCacheEnabled
+
+`const`
 
 ```cpp
 bool sessionCacheEnabled() const
@@ -1938,7 +3013,9 @@ Returns true if the session cache is enabled.
 
 ---
 
-#### setSessionCacheSize 
+{#setsessioncachesize}
+
+#### setSessionCacheSize
 
 ```cpp
 void setSessionCacheSize(size_t size)
@@ -1956,7 +3033,11 @@ This method may only be called on SERVER_USE Context objects.
 
 ---
 
-#### getSessionCacheSize 
+{#getsessioncachesize}
+
+#### getSessionCacheSize
+
+`const`
 
 ```cpp
 size_t getSessionCacheSize() const
@@ -1968,7 +3049,9 @@ This method may only be called on SERVER_USE Context objects.
 
 ---
 
-#### setSessionTimeout 
+{#setsessiontimeout}
+
+#### setSessionTimeout
 
 ```cpp
 void setSessionTimeout(long seconds)
@@ -1984,7 +3067,11 @@ This method may only be called on SERVER_USE Context objects.
 
 ---
 
-#### getSessionTimeout 
+{#getsessiontimeout}
+
+#### getSessionTimeout
+
+`const`
 
 ```cpp
 long getSessionTimeout() const
@@ -1996,7 +3083,9 @@ This method may only be called on SERVER_USE Context objects.
 
 ---
 
-#### flushSessionCache 
+{#flushsessioncache}
+
+#### flushSessionCache
 
 ```cpp
 void flushSessionCache()
@@ -2008,7 +3097,9 @@ This method may only be called on SERVER_USE Context objects.
 
 ---
 
-#### disableStatelessSessionResumption 
+{#disablestatelesssessionresumption}
+
+#### disableStatelessSessionResumption
 
 ```cpp
 void disableStatelessSessionResumption()
@@ -2020,17 +3111,132 @@ The feature can be disabled by calling this method.
 
 ---
 
-#### createSSLContext 
+{#setalpnprotocols}
+
+#### setALPNProtocols
 
 ```cpp
-void createSSLContext()
+void setALPNProtocols(const std::vector< std::string > & protocols)
 ```
 
-Create a SSL_CTX object according to Context configuration.
+Set the ALPN protocols for negotiation. Protocols should be in preference order. Example: {"h2", "http/1.1"}
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `protocols` | `const std::vector< std::string > &` |  |
 
 ---
 
-#### _usage 
+{#sslcontext-5}
+
+#### SSLContext
+
+```cpp
+SSLContext(const SSLContext &) = delete
+```
+
+---
+
+{#sslcontext-6}
+
+#### SSLContext
+
+```cpp
+SSLContext(SSLContext &&) = delete
+```
+
+### Public Static Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `void` | [`enableSNI`](#enablesni) `static` | Enable SNI (Server Name Indication) for a specific SSL connection. The hostname is sent during the TLS handshake to allow the server to select the appropriate certificate. |
+
+---
+
+{#enablesni}
+
+#### enableSNI
+
+`static`
+
+```cpp
+static void enableSNI(SSL * ssl, const std::string & hostname)
+```
+
+Enable SNI (Server Name Indication) for a specific SSL connection. The hostname is sent during the TLS handshake to allow the server to select the appropriate certificate.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `ssl` | `SSL *` |  |
+| `hostname` | `const std::string &` |  |
+
+### Public Types
+
+| Name | Description |
+|------|-------------|
+| [`Usage`](#usage-1)  |  |
+| [`VerificationMode`](#verificationmode-1)  |  |
+| [`Ptr`](#ptr-6)  |  |
+
+---
+
+{#usage-1}
+
+#### Usage
+
+```cpp
+enum Usage
+```
+
+| Value | Description |
+|-------|-------------|
+| `CLIENT_USE` | Context is used by a client. |
+| `SERVER_USE` | Context is used by a server. |
+| `TLSV1_CLIENT_USE` | Context is used by a client requiring TLSv1. |
+| `TLSV1_SERVER_USE` | Context is used by a server requiring TLSv2. |
+
+---
+
+{#verificationmode-1}
+
+#### VerificationMode
+
+```cpp
+enum VerificationMode
+```
+
+| Value | Description |
+|-------|-------------|
+| `VERIFY_NONE` | Server: The server will not send a client certificate request to the client, so the client will not send a certificate. |
+| `VERIFY_RELAXED` | Server: The server sends a client certificate request to the client. The certificate returned (if any) is checked. If the verification process fails, the TLS/SSL handshake is immediately terminated with an alert message containing the reason for the verification failure. |
+| `VERIFY_STRICT` | Server: If the client did not return a certificate, the TLS/SSL handshake is immediately terminated with a handshake failure alert. |
+| `VERIFY_ONCE` | Server: Only request a client certificate on the initial TLS/SSL handshake. Do not ask for a client certificate again in case of a renegotiation. |
+
+---
+
+{#ptr-6}
+
+#### Ptr
+
+```cpp
+std::shared_ptr< SSLContext > Ptr()
+```
+
+### Private Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `Usage` | [`_usage`](#_usage)  |  |
+| `VerificationMode` | [`_mode`](#_mode)  |  |
+| `SSL_CTX *` | [`_sslContext`](#_sslcontext)  |  |
+| `bool` | [`_extendedVerificationErrorDetails`](#_extendedverificationerrordetails)  |  |
+| `std::vector< unsigned char >` | [`_alpnWire`](#_alpnwire)  | Wire-format ALPN protocols for server selection. |
+
+---
+
+{#_usage}
+
+#### _usage
 
 ```cpp
 Usage _usage
@@ -2038,7 +3244,9 @@ Usage _usage
 
 ---
 
-#### _mode 
+{#_mode}
+
+#### _mode
 
 ```cpp
 VerificationMode _mode
@@ -2046,7 +3254,9 @@ VerificationMode _mode
 
 ---
 
-#### _sslContext 
+{#_sslcontext}
+
+#### _sslContext
 
 ```cpp
 SSL_CTX * _sslContext
@@ -2054,75 +3264,145 @@ SSL_CTX * _sslContext
 
 ---
 
-#### _extendedVerificationErrorDetails 
+{#_extendedverificationerrordetails}
+
+#### _extendedVerificationErrorDetails
 
 ```cpp
 bool _extendedVerificationErrorDetails
 ```
 
-## SSLManager 
+---
 
-> **Defined in:** `sslmanager.h`
+{#_alpnwire}
 
-[SSLManager](#classicy_1_1net_1_1SSLManager) is a singleton for holding the default server/client Context and handling callbacks for certificate verification errors and private key passphrases.
+#### _alpnWire
 
-### Members
+```cpp
+std::vector< unsigned char > _alpnWire
+```
 
-| Name | Description |
-|------|-------------|
-| [`initializeServer`](#group__net_1ga5476ccf3e346e493c3d053a21f3f2b29) | Initializes the server side of the [SSLManager](#classicy_1_1net_1_1SSLManager) server-side [SSLContext](#classicy_1_1net_1_1SSLContext). |
-| [`initializeClient`](#group__net_1ga4472c80b8b9152947333589515621051) | Initializes the client side of the [SSLManager](#classicy_1_1net_1_1SSLManager) with a default client-side [SSLContext](#classicy_1_1net_1_1SSLContext). |
-| [`defaultServerContext`](#group__net_1ga5888698b042c4c4a16d69fc98cb0e582) | Returns the default Context used by the server if initialized. |
-| [`defaultClientContext`](#group__net_1gaf06768dcfa955ebdd5b9c3977682e6ea) | Returns the default Context used by the client if initialized. |
-| [`shutdown`](#group__net_1ga4061d56eaf906bf79a0713310a3841c5) | Shuts down the [SSLManager](#classicy_1_1net_1_1SSLManager) and releases the default Context objects. After a call to [shutdown()](#group__net_1ga4061d56eaf906bf79a0713310a3841c5), the [SSLManager](#classicy_1_1net_1_1SSLManager) can no longer be used. |
-| [`instance`](#group__net_1gad3081151d10c5c6c4247f891925f93a7) | Returns the instance of the [SSLManager](#classicy_1_1net_1_1SSLManager) singleton. |
-| [`destroy`](#group__net_1ga64402426d6371b93d7a3544da637621f) | Shuts down and destroys the [SSLManager](#classicy_1_1net_1_1SSLManager) singleton instance. |
-| [`initNoVerifyClient`](#group__net_1ga9ea94e19abecb2e8227dbda1d577f093) | Initializes a default no verify client context that's useful for testing. |
-| [`initNoVerifyServer`](#group__net_1ga71aad45fb6aceb1a551c247c90523e8d) | Initializes a default no verify server context that's useful for testing. |
-| [`verifyClientCallback`](#group__net_1gaf4e686f568fceeba5b78df815a050745) | The return value of this method defines how errors in verification are handled. Return 0 to terminate the handshake, or 1 to continue despite the error. |
-| [`verifyServerCallback`](#group__net_1gacc7394320818b4d2fe6c75f486876d76) | The return value of this method defines how errors in verification are handled. Return 0 to terminate the handshake, ' or 1 to continue despite the error. |
-| [`privateKeyPassphraseCallback`](#group__net_1ga5266f886ac5eb14dcd5e3df0f80c5dc0) | Method is invoked by OpenSSL to retrieve a passwd for an encrypted certificate. The request is delegated to the PrivatekeyPassword event. This method returns the length of the password. |
-| [`SSLManager`](#group__net_1gac04b1f45008ee73e39c9e05e3f86c7c8) | Creates the [SSLManager](#classicy_1_1net_1_1SSLManager). |
-| [`~SSLManager`](#group__net_1gaa643df995c0323b8c4e4d5f6e0cd8558) | Destroys the [SSLManager](#classicy_1_1net_1_1SSLManager). |
-| [`verifyCallback`](#group__net_1gaaca523b350828a78b7dfbd7792e50868) | The return value of this method defines how errors in verification are handled. Return 0 to terminate the handshake, or 1 to continue despite the error. |
-| [`ServerVerificationError`](#group__net_1ga5c8d1a58ad63cfe7fd8c6ef8da2bc7bc) | Fired whenever a certificate verification error is detected by the server during a handshake. |
-| [`ClientVerificationError`](#group__net_1ga79cecc2be9b8293b79f9dc92b3ab967d) | Fired whenever a certificate verification error is detected by the client during a handshake. |
-| [`PrivateKeyPassphraseRequired`](#group__net_1gac92a4d1a788ac605e000055f0c2d1f0b) | Fired when a encrypted certificate is loaded. Not setting the password in the event parameter will result in a failure to load the certificate. |
-| [`_defaultServerContext`](#group__net_1ga24b0830bf753c01e75d4fcf73cfb29d5) |  |
-| [`_defaultClientContext`](#group__net_1ga800460ae0a45bca4054a039e64475d13) |  |
-| [`_mutex`](#group__net_1ga59eebca4de704e16e969adf52f602d68) |  |
+Wire-format ALPN protocols for server selection.
+
+### Private Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `void` | [`createSSLContext`](#createsslcontext)  | Create a SSL_CTX object according to Context configuration. |
 
 ---
 
-#### initializeServer 
+{#createsslcontext}
+
+#### createSSLContext
+
+```cpp
+void createSSLContext()
+```
+
+Create a SSL_CTX object according to Context configuration.
+
+{#sslmanager}
+
+## SSLManager
+
+```cpp
+#include <sslmanager.h>
+```
+
+[SSLManager](#sslmanager) is a singleton for holding the default server/client Context and handling callbacks for certificate verification errors and private key passphrases.
+
+### Public Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `ThreadSignal< void(VerificationErrorDetails &)>` | [`ServerVerificationError`](#serververificationerror)  | Fired whenever a certificate verification error is detected by the server during a handshake. |
+| `ThreadSignal< void(VerificationErrorDetails &)>` | [`ClientVerificationError`](#clientverificationerror)  | Fired whenever a certificate verification error is detected by the client during a handshake. |
+| `ThreadSignal< void(std::string &)>` | [`PrivateKeyPassphraseRequired`](#privatekeypassphraserequired)  | Fired when a encrypted certificate is loaded. Not setting the password in the event parameter will result in a failure to load the certificate. |
+
+---
+
+{#serververificationerror}
+
+#### ServerVerificationError
+
+```cpp
+ThreadSignal< void(VerificationErrorDetails &)> ServerVerificationError
+```
+
+Fired whenever a certificate verification error is detected by the server during a handshake.
+
+---
+
+{#clientverificationerror}
+
+#### ClientVerificationError
+
+```cpp
+ThreadSignal< void(VerificationErrorDetails &)> ClientVerificationError
+```
+
+Fired whenever a certificate verification error is detected by the client during a handshake.
+
+---
+
+{#privatekeypassphraserequired}
+
+#### PrivateKeyPassphraseRequired
+
+```cpp
+ThreadSignal< void(std::string &)> PrivateKeyPassphraseRequired
+```
+
+Fired when a encrypted certificate is loaded. Not setting the password in the event parameter will result in a failure to load the certificate.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `void` | [`initializeServer`](#initializeserver)  | Initializes the server side of the [SSLManager](#sslmanager) server-side [SSLContext](#sslcontext). |
+| `void` | [`initializeClient`](#initializeclient)  | Initializes the client side of the [SSLManager](#sslmanager) with a default client-side [SSLContext](#sslcontext). |
+| `SSLContext::Ptr` | [`defaultServerContext`](#defaultservercontext)  | Returns the default Context used by the server if initialized. |
+| `SSLContext::Ptr` | [`defaultClientContext`](#defaultclientcontext)  | Returns the default Context used by the client if initialized. |
+| `void` | [`shutdown`](#shutdown-3)  | Shuts down the [SSLManager](#sslmanager) and releases the default Context objects. After a call to [shutdown()](#shutdown-3), the [SSLManager](#sslmanager) can no longer be used. |
+
+---
+
+{#initializeserver}
+
+#### initializeServer
 
 ```cpp
 void initializeServer(SSLContext::Ptr ptrContext)
 ```
 
-Initializes the server side of the [SSLManager](#classicy_1_1net_1_1SSLManager) server-side [SSLContext](#classicy_1_1net_1_1SSLContext).
+Initializes the server side of the [SSLManager](#sslmanager) server-side [SSLContext](#sslcontext).
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `ptrContext` | `SSLContext::Ptr` |  |
+| `ptrContext` | `[SSLContext::Ptr](#ptr-6)` |  |
 
 ---
 
-#### initializeClient 
+{#initializeclient}
+
+#### initializeClient
 
 ```cpp
 void initializeClient(SSLContext::Ptr ptrContext)
 ```
 
-Initializes the client side of the [SSLManager](#classicy_1_1net_1_1SSLManager) with a default client-side [SSLContext](#classicy_1_1net_1_1SSLContext).
+Initializes the client side of the [SSLManager](#sslmanager) with a default client-side [SSLContext](#sslcontext).
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `ptrContext` | `SSLContext::Ptr` |  |
+| `ptrContext` | `[SSLContext::Ptr](#ptr-6)` |  |
 
 ---
 
-#### defaultServerContext 
+{#defaultservercontext}
+
+#### defaultServerContext
 
 ```cpp
 SSLContext::Ptr defaultServerContext()
@@ -2132,7 +3412,9 @@ Returns the default Context used by the server if initialized.
 
 ---
 
-#### defaultClientContext 
+{#defaultclientcontext}
+
+#### defaultClientContext
 
 ```cpp
 SSLContext::Ptr defaultClientContext()
@@ -2142,39 +3424,62 @@ Returns the default Context used by the client if initialized.
 
 ---
 
-#### shutdown 
+{#shutdown-3}
+
+#### shutdown
 
 ```cpp
 void shutdown()
 ```
 
-Shuts down the [SSLManager](#classicy_1_1net_1_1SSLManager) and releases the default Context objects. After a call to [shutdown()](#group__net_1ga4061d56eaf906bf79a0713310a3841c5), the [SSLManager](#classicy_1_1net_1_1SSLManager) can no longer be used.
+Shuts down the [SSLManager](#sslmanager) and releases the default Context objects. After a call to [shutdown()](#shutdown-3), the [SSLManager](#sslmanager) can no longer be used.
 
-Normally, it's not necessary to call this method directly, as this will be called either by [uninitializeSSL()](#group__net_1gab2698107bdb6a2b9a2bcea869e26d50b), or when the [SSLManager](#classicy_1_1net_1_1SSLManager) instance is destroyed.
+Normally, it's not necessary to call this method directly, as this will be called either by uninitializeSSL(), or when the [SSLManager](#sslmanager) instance is destroyed.
+
+### Public Static Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `SSLManager &` | [`instance`](#instance-2) `static` | Returns the instance of the [SSLManager](#sslmanager) singleton. |
+| `void` | [`destroy`](#destroy) `static` | Shuts down and destroys the [SSLManager](#sslmanager) singleton instance. |
+| `void` | [`initNoVerifyClient`](#initnoverifyclient) `static` | Initializes a default no verify client context that's useful for testing. |
+| `void` | [`initNoVerifyServer`](#initnoverifyserver) `static` | Initializes a default no verify server context that's useful for testing. Optionally accepts private key and certificate file paths for server identity; if omitted, no certificate is loaded. |
 
 ---
 
-#### instance 
+{#instance-2}
+
+#### instance
+
+`static`
 
 ```cpp
 static SSLManager & instance()
 ```
 
-Returns the instance of the [SSLManager](#classicy_1_1net_1_1SSLManager) singleton.
+Returns the instance of the [SSLManager](#sslmanager) singleton.
 
 ---
 
-#### destroy 
+{#destroy}
+
+#### destroy
+
+`static`
 
 ```cpp
 static void destroy()
 ```
 
-Shuts down and destroys the [SSLManager](#classicy_1_1net_1_1SSLManager) singleton instance.
+Shuts down and destroys the [SSLManager](#sslmanager) singleton instance.
 
 ---
 
-#### initNoVerifyClient 
+{#initnoverifyclient}
+
+#### initNoVerifyClient
+
+`static`
 
 ```cpp
 static void initNoVerifyClient()
@@ -2184,89 +3489,127 @@ Initializes a default no verify client context that's useful for testing.
 
 ---
 
-#### initNoVerifyServer 
+{#initnoverifyserver}
+
+#### initNoVerifyServer
+
+`static`
 
 ```cpp
 static void initNoVerifyServer(const std::string & privateKeyFile, const std::string & certificateFile)
 ```
 
-Initializes a default no verify server context that's useful for testing.
+Initializes a default no verify server context that's useful for testing. Optionally accepts private key and certificate file paths for server identity; if omitted, no certificate is loaded.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `privateKeyFile` | `const std::string &` |  |
 | `certificateFile` | `const std::string &` |  |
 
+### Private Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `SSLContext::Ptr` | [`_defaultServerContext`](#_defaultservercontext)  |  |
+| `SSLContext::Ptr` | [`_defaultClientContext`](#_defaultclientcontext)  |  |
+| `std::mutex` | [`_mutex`](#_mutex-6)  |  |
+
 ---
 
-#### verifyClientCallback 
+{#_defaultservercontext}
+
+#### _defaultServerContext
 
 ```cpp
-static int verifyClientCallback(int ok, X509_STORE_CTX * pStore)
+SSLContext::Ptr _defaultServerContext
 ```
-
-The return value of this method defines how errors in verification are handled. Return 0 to terminate the handshake, or 1 to continue despite the error.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ok` | `int` |  |
-| `pStore` | `X509_STORE_CTX *` |  |
 
 ---
 
-#### verifyServerCallback 
+{#_defaultclientcontext}
+
+#### _defaultClientContext
 
 ```cpp
-static int verifyServerCallback(int ok, X509_STORE_CTX * pStore)
+SSLContext::Ptr _defaultClientContext
 ```
-
-The return value of this method defines how errors in verification are handled. Return 0 to terminate the handshake, ' or 1 to continue despite the error.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ok` | `int` |  |
-| `pStore` | `X509_STORE_CTX *` |  |
 
 ---
 
-#### privateKeyPassphraseCallback 
+{#_mutex-6}
+
+#### _mutex
 
 ```cpp
-static int privateKeyPassphraseCallback(char * pBuf, int size, int flag, void * userData)
+std::mutex _mutex
 ```
 
-Method is invoked by OpenSSL to retrieve a passwd for an encrypted certificate. The request is delegated to the PrivatekeyPassword event. This method returns the length of the password.
+### Private Methods
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `pBuf` | `char *` |  |
-| `size` | `int` |  |
-| `flag` | `int` |  |
-| `userData` | `void *` |  |
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`SSLManager`](#sslmanager-1)  | Creates the [SSLManager](#sslmanager). |
+|  | [`~SSLManager`](#sslmanager-2)  | Destroys the [SSLManager](#sslmanager). |
+|  | [`SSLManager`](#sslmanager-3)  |  |
+|  | [`SSLManager`](#sslmanager-4)  |  |
 
 ---
 
-#### SSLManager 
+{#sslmanager-1}
+
+#### SSLManager
 
 ```cpp
 SSLManager()
 ```
 
-Creates the [SSLManager](#classicy_1_1net_1_1SSLManager).
+Creates the [SSLManager](#sslmanager).
 
 ---
 
-#### ~SSLManager 
+{#sslmanager-2}
+
+#### ~SSLManager
 
 ```cpp
-~SSLManager()
+~SSLManager() noexcept
 ```
 
-Destroys the [SSLManager](#classicy_1_1net_1_1SSLManager).
+Destroys the [SSLManager](#sslmanager).
 
 ---
 
-#### verifyCallback 
+{#sslmanager-3}
+
+#### SSLManager
+
+```cpp
+SSLManager(const SSLManager &) = delete
+```
+
+---
+
+{#sslmanager-4}
+
+#### SSLManager
+
+```cpp
+SSLManager(SSLManager &&) = delete
+```
+
+### Private Static Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `int` | [`verifyCallback`](#verifycallback) `static` | The return value of this method defines how errors in verification are handled. Return 0 to terminate the handshake, or 1 to continue despite the error. |
+
+---
+
+{#verifycallback}
+
+#### verifyCallback
+
+`static`
 
 ```cpp
 static int verifyCallback(bool server, int ok, X509_STORE_CTX * pStore)
@@ -2280,114 +3623,2322 @@ The return value of this method defines how errors in verification are handled. 
 | `ok` | `int` |  |
 | `pStore` | `X509_STORE_CTX *` |  |
 
----
+{#sslsession}
 
-#### ServerVerificationError 
-
-```cpp
-Signal< void(VerificationErrorDetails &)> ServerVerificationError
-```
-
-Fired whenever a certificate verification error is detected by the server during a handshake.
-
----
-
-#### ClientVerificationError 
+## SSLSession
 
 ```cpp
-Signal< void(VerificationErrorDetails &)> ClientVerificationError
+#include <sslsession.h>
 ```
 
-Fired whenever a certificate verification error is detected by the client during a handshake.
+This class encapsulates a SSL session object used with session caching on the client side.
 
----
+For session caching to work, a client must save the session object from an existing connection, if it wants to reuse it with a future connection.
 
-#### PrivateKeyPassphraseRequired 
+### Public Methods
 
-```cpp
-Signal< void(std::string &)> PrivateKeyPassphraseRequired
-```
-
-Fired when a encrypted certificate is loaded. Not setting the password in the event parameter will result in a failure to load the certificate.
+| Return | Name | Description |
+|--------|------|-------------|
+| `SSL_SESSION *` | [`sslSession`](#sslsession-1) `const` | Returns the stored OpenSSL SSL_SESSION object. |
+|  | [`SSLSession`](#sslsession-2)  | Creates a new [SSLSession](#sslsession) wrapping the given OpenSSL session object. |
+|  | [`~SSLSession`](#sslsession-3)  | Destroys the Session. |
+|  | [`SSLSession`](#sslsession-4)  | Constructs an empty [SSLSession](#sslsession) with a null session pointer. |
+|  | [`SSLSession`](#sslsession-5)  |  |
+|  | [`SSLSession`](#sslsession-6)  |  |
 
 ---
 
-#### _defaultServerContext 
+{#sslsession-1}
+
+#### sslSession
+
+`const`
 
 ```cpp
-SSLContext::Ptr _defaultServerContext
+SSL_SESSION * sslSession() const
+```
+
+Returns the stored OpenSSL SSL_SESSION object.
+
+---
+
+{#sslsession-2}
+
+#### SSLSession
+
+```cpp
+SSLSession(SSL_SESSION * ptr)
+```
+
+Creates a new [SSLSession](#sslsession) wrapping the given OpenSSL session object.
+
+The SSL_SESSION's reference count is not incremented; the [SSLSession](#sslsession) takes ownership and will call SSL_SESSION_free() on destruction. 
+#### Parameters
+* `ptr` The OpenSSL session object to wrap.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `ptr` | `SSL_SESSION *` |  |
+
+---
+
+{#sslsession-3}
+
+#### ~SSLSession
+
+```cpp
+~SSLSession() noexcept
+```
+
+Destroys the Session.
+
+Calls SSL_SESSION_free() on the stored SSL_SESSION object.
+
+---
+
+{#sslsession-4}
+
+#### SSLSession
+
+```cpp
+SSLSession()
+```
+
+Constructs an empty [SSLSession](#sslsession) with a null session pointer.
+
+---
+
+{#sslsession-5}
+
+#### SSLSession
+
+```cpp
+SSLSession(const SSLSession &) = delete
 ```
 
 ---
 
-#### _defaultClientContext 
+{#sslsession-6}
+
+#### SSLSession
 
 ```cpp
-SSLContext::Ptr _defaultClientContext
+SSLSession(SSLSession &&) = delete
 ```
+
+### Protected Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `SSL_SESSION *` | [`_ptr`](#_ptr)  |  |
 
 ---
 
-#### _mutex 
+{#_ptr}
+
+#### _ptr
 
 ```cpp
-std::mutex _mutex
+SSL_SESSION * _ptr
 ```
 
-## VerificationErrorDetails 
-
-> **Defined in:** `sslmanager.h`
-
-A utility class for certificate error handling.
-
-### Members
+### Public Types
 
 | Name | Description |
 |------|-------------|
-| [`VerificationErrorDetails`](#group__net_1ga6149cde284d053bbb8ea7f7d4febf260) | Creates the [VerificationErrorDetails](#classicy_1_1net_1_1VerificationErrorDetails). _ignoreError is per default set to false. |
-| [`~VerificationErrorDetails`](#group__net_1ga341d067a4369d88415b30f9d6acf9516) | Destroys the [VerificationErrorDetails](#classicy_1_1net_1_1VerificationErrorDetails). |
-| [`certificate`](#group__net_1gaa61f1bc21123f77329fcc4c2e9c1b3a5) | Returns the certificate that caused the error. |
-| [`errorDepth`](#group__net_1ga7f64fe88500e3df99bd0bd7cd8d2d598) | Returns the position of the certificate in the certificate chain. |
-| [`errorNumber`](#group__net_1gac0130d1cbbca92575e2259000f792cef) | Returns the id of the error. |
-| [`errorMessage`](#group__net_1gaa13f824914ad36284036dcf6a07d6b2c) | Returns the textual presentation of the errorNumber. |
-| [`setIgnoreError`](#group__net_1ga762c71561020eb2eae6842f5cfc6dcd4) | setIgnoreError to true, if a verification error is judged non-fatal by the user. |
-| [`getIgnoreError`](#group__net_1ga682fc13cdc647b176d2e0d3ef3e783fb) | returns the value of _ignoreError |
-| [`_cert`](#group__net_1ga7bd145c098bbf10aa7b8887a0927dfed) |  |
-| [`_errorDepth`](#group__net_1gacaa650f5c1a9317c9e18cb33468aec10) |  |
-| [`_errorNumber`](#group__net_1gad62239805ea4bfee112162f09b203163) |  |
-| [`_errorMessage`](#group__net_1ga24a7e119f990bdc4965004d070588c30) |  |
-| [`_ignoreError`](#group__net_1ga32ad9d20fe3b08310d3b4152ec840bc5) |  |
+| [`Ptr`](#ptr-7)  |  |
 
 ---
 
-#### VerificationErrorDetails 
+{#ptr-7}
+
+#### Ptr
+
+```cpp
+std::shared_ptr< SSLSession > Ptr()
+```
+
+{#sslsocket}
+
+## SSLSocket
+
+```cpp
+#include <sslsocket.h>
+```
+
+> **Inherits:** [`TCPSocket`](#tcpsocket)
+
+SSL socket implementation.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`SSLSocket`](#sslsocket-1)  | Constructs an [SSLSocket](#sslsocket) that acquires its context from [SSLManager](#sslmanager) on first use.  |
+|  | [`SSLSocket`](#sslsocket-2)  | Constructs an [SSLSocket](#sslsocket) with an explicit SSL context.  |
+|  | [`SSLSocket`](#sslsocket-3)  | Constructs an [SSLSocket](#sslsocket) with an explicit context and a prior session for resumption.  |
+| `void` | [`connect`](#connect-5) `virtual` | Initialize the [SSLSocket](#sslsocket) with the given [SSLContext](#sslcontext). |
+| `void` | [`connect`](#connect-6) `virtual` | Resolves `host` and initiates a secure connection. |
+| `void` | [`bind`](#bind-1) `virtual` | Binds the socket to `address` for server-side use. Throws std::logic_error if the context is not a server context.  |
+| `void` | [`listen`](#listen-1) `virtual` | Starts listening for incoming connections. Throws std::logic_error if the context is not a server context.  |
+| `bool` | [`shutdown`](#shutdown-4) `virtual` | Shuts down the connection by attempting an orderly SSL shutdown, then actually shutting down the TCP connection. |
+| `void` | [`close`](#close-14) `virtual` | Closes the socket forcefully. |
+| `ssize_t` | [`send`](#send-2) `virtual` | Encrypts and sends `len` bytes to the connected peer.  |
+| `ssize_t` | [`sendOwned`](#sendowned-4) `virtual` | Sends an owned payload buffer to the connected peer. |
+| `ssize_t` | [`send`](#send-3) `virtual` | Encrypts and sends `len` bytes, ignoring `peerAddress` (TCP is connected).  |
+| `ssize_t` | [`sendOwned`](#sendowned-5) `virtual` |  |
+| `void` | [`setHostname`](#sethostname-1)  | Set the expected peer hostname for certificate verification and SNI. Must be called before [connect()](#connect-5) to enable hostname verification. |
+| `void` | [`useContext`](#usecontext)  | Use the given SSL context for this socket. |
+| `SSLContext::Ptr` | [`context`](#context-3) `const` | Returns the SSL context used for this socket. |
+| `void` | [`useSession`](#usesession)  | Sets the SSL session to use for the next connection. Setting a previously saved Session object is necessary to enable session caching. |
+| `SSLSession::Ptr` | [`currentSession`](#currentsession)  | Returns the SSL session of the current connection, for reuse in a future connection (if session caching is enabled). |
+| `bool` | [`sessionWasReused`](#sessionwasreused)  | Returns true if a reused session was negotiated during the handshake. |
+| `int` | [`available`](#available-2) `const` | Returns the number of bytes available from the SSL buffer for immediate reading. |
+| `X509 *` | [`peerCertificate`](#peercertificate) `const` | Returns the peer's X.509 certificate, or nullptr if no certificate was presented. |
+| `net::TransportType` | [`transport`](#transport-1) `virtual` `const` | Returns the SSLTCP transport protocol identifier. |
+| `void` | [`acceptConnection`](#acceptconnection) `virtual` | Accepts a pending client connection, initializes the server-side SSL context on the new socket, and fires the AcceptConnection signal. |
+| `void` | [`onConnect`](#onconnect) `virtual` | Called when the TCP connection is established; starts reading and initiates the client-side SSL handshake. |
+| `void` | [`onRead`](#onread) `virtual` | Feeds raw encrypted bytes from the network into the SSL adapter. Called by the stream layer when ciphertext arrives from the peer.  |
+
+---
+
+{#sslsocket-1}
+
+#### SSLSocket
+
+```cpp
+SSLSocket(uv::Loop * loop)
+```
+
+Constructs an [SSLSocket](#sslsocket) that acquires its context from [SSLManager](#sslmanager) on first use. 
+#### Parameters
+* `loop` Event loop to use; defaults to the default loop.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `loop` | `[uv::Loop](#namespaceicy_1_1uv_1a8bfd153231f95de982e16db911389619) *` |  |
+
+---
+
+{#sslsocket-2}
+
+#### SSLSocket
+
+```cpp
+SSLSocket(SSLContext::Ptr sslContext, uv::Loop * loop)
+```
+
+Constructs an [SSLSocket](#sslsocket) with an explicit SSL context. 
+#### Parameters
+* `sslContext` The SSL context to use for this connection. 
+
+* `loop` Event loop to use; defaults to the default loop.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `sslContext` | `[SSLContext::Ptr](#ptr-6)` |  |
+| `loop` | `[uv::Loop](#namespaceicy_1_1uv_1a8bfd153231f95de982e16db911389619) *` |  |
+
+---
+
+{#sslsocket-3}
+
+#### SSLSocket
+
+```cpp
+SSLSocket(SSLContext::Ptr sslContext, SSLSession::Ptr session, uv::Loop * loop)
+```
+
+Constructs an [SSLSocket](#sslsocket) with an explicit context and a prior session for resumption. 
+#### Parameters
+* `sslContext` The SSL context to use for this connection. 
+
+* `session` A previously saved session to attempt resumption with. 
+
+* `loop` Event loop to use; defaults to the default loop.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `sslContext` | `[SSLContext::Ptr](#ptr-6)` |  |
+| `session` | `[SSLSession::Ptr](#ptr-7)` |  |
+| `loop` | `[uv::Loop](#namespaceicy_1_1uv_1a8bfd153231f95de982e16db911389619) *` |  |
+
+---
+
+{#connect-5}
+
+#### connect
+
+`virtual`
+
+```cpp
+virtual void connect(const Address & peerAddress)
+```
+
+Initialize the [SSLSocket](#sslsocket) with the given [SSLContext](#sslcontext).
+
+Initiates a secure connection to the peer at the given address.
+
+The SSL handshake begins automatically once the TCP connection is established. 
+#### Parameters
+* `peerAddress` The remote address to connect to.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `peerAddress` | `const [Address](#address) &` |  |
+
+---
+
+{#connect-6}
+
+#### connect
+
+`virtual`
+
+```cpp
+virtual void connect(std::string_view host, uint16_t port)
+```
+
+Resolves `host` and initiates a secure connection.
+
+Sets the hostname on the SSL adapter for SNI and certificate verification before resolving and connecting. 
+#### Parameters
+* `host` Hostname or IP address string. 
+
+* `port` Destination port.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `host` | `std::string_view` |  |
+| `port` | `uint16_t` |  |
+
+---
+
+{#bind-1}
+
+#### bind
+
+`virtual`
+
+```cpp
+virtual void bind(const net::Address & address, unsigned flags)
+```
+
+Binds the socket to `address` for server-side use. Throws std::logic_error if the context is not a server context. 
+#### Parameters
+* `address` Local address to bind to. 
+
+* `flags` Optional bind flags (passed to uv_tcp_bind).
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `address` | `const [net::Address](#address) &` |  |
+| `flags` | `unsigned` |  |
+
+---
+
+{#listen-1}
+
+#### listen
+
+`virtual`
+
+```cpp
+virtual void listen(int backlog)
+```
+
+Starts listening for incoming connections. Throws std::logic_error if the context is not a server context. 
+#### Parameters
+* `backlog` Maximum number of pending connections.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `backlog` | `int` |  |
+
+---
+
+{#shutdown-4}
+
+#### shutdown
+
+`virtual`
+
+```cpp
+virtual bool shutdown()
+```
+
+Shuts down the connection by attempting an orderly SSL shutdown, then actually shutting down the TCP connection.
+
+---
+
+{#close-14}
+
+#### close
+
+`virtual`
+
+```cpp
+virtual void close()
+```
+
+Closes the socket forcefully.
+
+---
+
+{#send-2}
+
+#### send
+
+`virtual`
+
+```cpp
+virtual ssize_t send(const char * data, size_t len, int flags)
+```
+
+Encrypts and sends `len` bytes to the connected peer. 
+#### Parameters
+* `data` Pointer to the plaintext payload. 
+
+* `len` Number of bytes to send. 
+
+* `flags` Reserved; currently unused. 
+
+#### Returns
+Number of plaintext bytes accepted, or -1 on error.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `data` | `const char *` |  |
+| `len` | `size_t` |  |
+| `flags` | `int` |  |
+
+---
+
+{#sendowned-4}
+
+#### sendOwned
+
+`virtual`
+
+```cpp
+virtual ssize_t sendOwned(Buffer && buffer, int flags)
+```
+
+Sends an owned payload buffer to the connected peer.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `buffer` | `[Buffer](#namespaceicy_1a9c464c811f03ea41ea100ed65a0580d3) &&` |  |
+| `flags` | `int` |  |
+
+---
+
+{#send-3}
+
+#### send
+
+`virtual`
+
+```cpp
+virtual ssize_t send(const char * data, size_t len, const net::Address & peerAddress, int flags)
+```
+
+Encrypts and sends `len` bytes, ignoring `peerAddress` (TCP is connected). 
+#### Parameters
+* `data` Pointer to the plaintext payload. 
+
+* `len` Number of bytes to send. 
+
+* `peerAddress` Ignored for SSL/TCP; present for interface conformance. 
+
+* `flags` Reserved; currently unused. 
+
+#### Returns
+Number of plaintext bytes accepted, or -1 on error.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `data` | `const char *` |  |
+| `len` | `size_t` |  |
+| `peerAddress` | `const [net::Address](#address) &` |  |
+| `flags` | `int` |  |
+
+---
+
+{#sendowned-5}
+
+#### sendOwned
+
+`virtual`
+
+```cpp
+virtual ssize_t sendOwned(Buffer && buffer, const net::Address & peerAddress, int flags)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `buffer` | `[Buffer](#namespaceicy_1a9c464c811f03ea41ea100ed65a0580d3) &&` |  |
+| `peerAddress` | `const [net::Address](#address) &` |  |
+| `flags` | `int` |  |
+
+---
+
+{#sethostname-1}
+
+#### setHostname
+
+```cpp
+void setHostname(std::string_view hostname)
+```
+
+Set the expected peer hostname for certificate verification and SNI. Must be called before [connect()](#connect-5) to enable hostname verification.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `hostname` | `std::string_view` |  |
+
+---
+
+{#usecontext}
+
+#### useContext
+
+```cpp
+void useContext(SSLContext::Ptr context)
+```
+
+Use the given SSL context for this socket.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `context` | `[SSLContext::Ptr](#ptr-6)` |  |
+
+---
+
+{#context-3}
+
+#### context
+
+`const`
+
+```cpp
+SSLContext::Ptr context() const
+```
+
+Returns the SSL context used for this socket.
+
+---
+
+{#usesession}
+
+#### useSession
+
+```cpp
+void useSession(SSLSession::Ptr session)
+```
+
+Sets the SSL session to use for the next connection. Setting a previously saved Session object is necessary to enable session caching.
+
+To remove the currently set session, a nullptr pointer can be given.
+
+Must be called before [connect()](#connect-5) to be effective.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `session` | `[SSLSession::Ptr](#ptr-7)` |  |
+
+---
+
+{#currentsession}
+
+#### currentSession
+
+```cpp
+SSLSession::Ptr currentSession()
+```
+
+Returns the SSL session of the current connection, for reuse in a future connection (if session caching is enabled).
+
+If no connection is established, returns nullptr.
+
+---
+
+{#sessionwasreused}
+
+#### sessionWasReused
+
+```cpp
+bool sessionWasReused()
+```
+
+Returns true if a reused session was negotiated during the handshake.
+
+---
+
+{#available-2}
+
+#### available
+
+`const`
+
+```cpp
+int available() const
+```
+
+Returns the number of bytes available from the SSL buffer for immediate reading.
+
+---
+
+{#peercertificate}
+
+#### peerCertificate
+
+`const`
+
+```cpp
+X509 * peerCertificate() const
+```
+
+Returns the peer's X.509 certificate, or nullptr if no certificate was presented.
+
+---
+
+{#transport-1}
+
+#### transport
+
+`virtual` `const`
+
+```cpp
+virtual net::TransportType transport() const
+```
+
+Returns the SSLTCP transport protocol identifier.
+
+---
+
+{#acceptconnection}
+
+#### acceptConnection
+
+`virtual`
+
+```cpp
+virtual void acceptConnection()
+```
+
+Accepts a pending client connection, initializes the server-side SSL context on the new socket, and fires the AcceptConnection signal.
+
+---
+
+{#onconnect}
+
+#### onConnect
+
+`virtual`
+
+```cpp
+virtual void onConnect()
+```
+
+Called when the TCP connection is established; starts reading and initiates the client-side SSL handshake.
+
+---
+
+{#onread}
+
+#### onRead
+
+`virtual`
+
+```cpp
+virtual void onRead(const char * data, size_t len)
+```
+
+Feeds raw encrypted bytes from the network into the SSL adapter. Called by the stream layer when ciphertext arrives from the peer. 
+#### Parameters
+* `data` Pointer to the encrypted bytes. 
+
+* `len` Number of bytes received.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `data` | `const char *` |  |
+| `len` | `size_t` |  |
+
+### Protected Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `net::SSLContext::Ptr` | [`_sslContext`](#_sslcontext-1)  |  |
+| `net::SSLSession::Ptr` | [`_sslSession`](#_sslsession)  |  |
+| `net::SSLAdapter` | [`_sslAdapter`](#_ssladapter)  |  |
+
+---
+
+{#_sslcontext-1}
+
+#### _sslContext
+
+```cpp
+net::SSLContext::Ptr _sslContext
+```
+
+---
+
+{#_sslsession}
+
+#### _sslSession
+
+```cpp
+net::SSLSession::Ptr _sslSession
+```
+
+---
+
+{#_ssladapter}
+
+#### _sslAdapter
+
+```cpp
+net::SSLAdapter _sslAdapter
+```
+
+### Public Types
+
+| Name | Description |
+|------|-------------|
+| [`Ptr`](#ptr-8)  |  |
+| [`Vec`](#vec-1)  |  |
+
+---
+
+{#ptr-8}
+
+#### Ptr
+
+```cpp
+std::shared_ptr< SSLSocket > Ptr()
+```
+
+---
+
+{#vec-1}
+
+#### Vec
+
+```cpp
+std::vector< Ptr > Vec()
+```
+
+{#tcpsocket}
+
+## TCPSocket
+
+```cpp
+#include <tcpsocket.h>
+```
+
+> **Inherits:** [`Stream< uv_tcp_t >`](#classicy_1_1Stream), [`Socket`](#socket)
+> **Subclassed by:** [`SSLSocket`](#sslsocket)
+
+TCP socket implementation.
+
+### Public Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `LocalSignal< void(const net::TCPSocket::Ptr &)>` | [`AcceptConnection`](#acceptconnection-1)  | Fired when a new client connection is accepted; carries a shared_ptr to the new socket. |
+
+---
+
+{#acceptconnection-1}
+
+#### AcceptConnection
+
+```cpp
+LocalSignal< void(const net::TCPSocket::Ptr &)> AcceptConnection
+```
+
+Fired when a new client connection is accepted; carries a shared_ptr to the new socket.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`TCPSocket`](#tcpsocket-1)  | Constructs the [TCPSocket](#tcpsocket) and initializes the underlying libuv handle.  |
+|  | [`TCPSocket`](#tcpsocket-2)  |  |
+|  | [`TCPSocket`](#tcpsocket-3)  |  |
+| `bool` | [`shutdown`](#shutdown-5) `virtual` | Sends a TCP shutdown request; the socket closes after the peer acknowledges.  |
+| `void` | [`close`](#close-15) `virtual` | Closes the socket immediately, releasing all associated resources. |
+| `void` | [`connect`](#connect-7) `virtual` | Connects to `peerAddress` using a libuv connect request. On success, calls [onConnect()](#onconnect-1); on failure, calls [setUVError()](#setuverror).  |
+| `void` | [`connect`](#connect-8) `virtual` | Resolves `host` via DNS (or maps "localhost"), then connects.  |
+| `ssize_t` | [`send`](#send-4) `virtual` | Writes `len` bytes to the connected peer.  |
+| `ssize_t` | [`sendOwned`](#sendowned-6) `virtual` | Sends an owned payload buffer to the connected peer. |
+| `ssize_t` | [`send`](#send-5) `virtual` | Writes `len` bytes; `peerAddress` is ignored for TCP (connected stream).  |
+| `ssize_t` | [`sendOwned`](#sendowned-7) `virtual` |  |
+| `void` | [`bind`](#bind-2) `virtual` | Binds the socket to `address`. Resets and reinitializes the handle if the address family changes.  |
+| `void` | [`listen`](#listen-2) `virtual` | Starts listening for incoming connections with the given backlog.  |
+| `void` | [`acceptConnection`](#acceptconnection-2) `virtual` | Accepts the next pending client connection and fires AcceptConnection. |
+| `bool` | [`setReusePort`](#setreuseport)  | Enables SO_REUSEPORT on Linux kernel >= 3.9 for multi-thread load balancing. Must be called after [bind()](#bind-2). No-op and returns false on unsupported platforms.  |
+| `bool` | [`setNoDelay`](#setnodelay)  | Enables or disables TCP_NODELAY (Nagle's algorithm).  |
+| `bool` | [`setKeepAlive`](#setkeepalive)  | Enables or disables TCP keep-alive probes.  |
+| `bool` | [`setSimultaneousAccepts`](#setsimultaneousaccepts)  | Enables or disables simultaneous accepts on Windows. No-op and returns false on non-Windows platforms.  |
+| `void` | [`setMode`](#setmode)  | Sets the socket mode (ServerSide or ClientSide).  |
+| `SocketMode` | [`mode`](#mode) `const` | Returns the current socket mode. |
+| `void` | [`setError`](#seterror-2) `virtual` | Sets the socket error; ignores the call if an error is already recorded. Setting an error causes the socket to close.  |
+| `const icy::Error &` | [`error`](#error-6) `virtual` `const` | Returns the current socket error, if any. |
+| `bool` | [`closed`](#closed-2) `virtual` `const` | Returns true if the native socket handle is closed. |
+| `net::Address` | [`address`](#address-9) `virtual` `const` | Returns the IP address and port number of the socket. A wildcard address is returned if the socket is not connected. |
+| `net::Address` | [`peerAddress`](#peeraddress-1) `virtual` `const` | Returns the IP address and port number of the peer socket. A wildcard address is returned if the socket is not connected. |
+| `net::TransportType` | [`transport`](#transport-2) `virtual` `const` | Returns the TCP transport protocol. |
+| `uv::Loop *` | [`loop`](#loop-3) `virtual` `const` | Returns the event loop associated with this socket. |
+| `void` | [`onConnect`](#onconnect-1) `virtual` | Called by the stream layer when the TCP connection is established. |
+| `void` | [`onRead`](#onread-1) `virtual` | Called by the stream layer with raw received bytes; wraps them in a [MutableBuffer](#classicy_1_1MutableBuffer).  |
+| `void` | [`onRecv`](#onrecv) `virtual` | Dispatches a received buffer to all socket adapters via onSocketRecv.  |
+| `void` | [`onError`](#onerror-1) `virtual` | Dispatches the error to adapters and closes the socket.  |
+| `void` | [`onClose`](#onclose-1) `virtual` | Dispatches the close event to all socket adapters. |
+
+---
+
+{#tcpsocket-1}
+
+#### TCPSocket
+
+```cpp
+TCPSocket(uv::Loop * loop)
+```
+
+Constructs the [TCPSocket](#tcpsocket) and initializes the underlying libuv handle. 
+#### Parameters
+* `loop` Event loop to use; defaults to the default loop.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `loop` | `[uv::Loop](#namespaceicy_1_1uv_1a8bfd153231f95de982e16db911389619) *` |  |
+
+---
+
+{#tcpsocket-2}
+
+#### TCPSocket
+
+```cpp
+TCPSocket(const TCPSocket &) = delete
+```
+
+---
+
+{#tcpsocket-3}
+
+#### TCPSocket
+
+```cpp
+TCPSocket(TCPSocket &&) = delete
+```
+
+---
+
+{#shutdown-5}
+
+#### shutdown
+
+`virtual`
+
+```cpp
+virtual bool shutdown()
+```
+
+Sends a TCP shutdown request; the socket closes after the peer acknowledges. 
+#### Returns
+true if the shutdown request was queued successfully.
+
+---
+
+{#close-15}
+
+#### close
+
+`virtual`
+
+```cpp
+virtual void close()
+```
+
+Closes the socket immediately, releasing all associated resources.
+
+---
+
+{#connect-7}
+
+#### connect
+
+`virtual`
+
+```cpp
+virtual void connect(const net::Address & peerAddress)
+```
+
+Connects to `peerAddress` using a libuv connect request. On success, calls [onConnect()](#onconnect-1); on failure, calls [setUVError()](#setuverror). 
+#### Parameters
+* `peerAddress` The remote address to connect to.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `peerAddress` | `const [net::Address](#address) &` |  |
+
+---
+
+{#connect-8}
+
+#### connect
+
+`virtual`
+
+```cpp
+virtual void connect(std::string_view host, uint16_t port)
+```
+
+Resolves `host` via DNS (or maps "localhost"), then connects. 
+#### Parameters
+* `host` Hostname or IP address string. 
+
+* `port` Destination port.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `host` | `std::string_view` |  |
+| `port` | `uint16_t` |  |
+
+---
+
+{#send-4}
+
+#### send
+
+`virtual`
+
+```cpp
+virtual ssize_t send(const char * data, size_t len, int flags)
+```
+
+Writes `len` bytes to the connected peer. 
+#### Parameters
+* `data` Pointer to the data to send. 
+
+* `len` Number of bytes to send. 
+
+* `flags` Reserved; currently unused. 
+
+#### Returns
+Number of bytes sent, or -1 on error.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `data` | `const char *` |  |
+| `len` | `size_t` |  |
+| `flags` | `int` |  |
+
+---
+
+{#sendowned-6}
+
+#### sendOwned
+
+`virtual`
+
+```cpp
+virtual ssize_t sendOwned(Buffer && buffer, int flags)
+```
+
+Sends an owned payload buffer to the connected peer.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `buffer` | `[Buffer](#namespaceicy_1a9c464c811f03ea41ea100ed65a0580d3) &&` |  |
+| `flags` | `int` |  |
+
+---
+
+{#send-5}
+
+#### send
+
+`virtual`
+
+```cpp
+virtual ssize_t send(const char * data, size_t len, const net::Address & peerAddress, int flags)
+```
+
+Writes `len` bytes; `peerAddress` is ignored for TCP (connected stream). 
+#### Parameters
+* `data` Pointer to the data to send. 
+
+* `len` Number of bytes to send. 
+
+* `peerAddress` Ignored; present for interface conformance. 
+
+* `flags` Reserved; currently unused. 
+
+#### Returns
+Number of bytes sent, or -1 on error.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `data` | `const char *` |  |
+| `len` | `size_t` |  |
+| `peerAddress` | `const [net::Address](#address) &` |  |
+| `flags` | `int` |  |
+
+---
+
+{#sendowned-7}
+
+#### sendOwned
+
+`virtual`
+
+```cpp
+virtual ssize_t sendOwned(Buffer && buffer, const net::Address & peerAddress, int flags)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `buffer` | `[Buffer](#namespaceicy_1a9c464c811f03ea41ea100ed65a0580d3) &&` |  |
+| `peerAddress` | `const [net::Address](#address) &` |  |
+| `flags` | `int` |  |
+
+---
+
+{#bind-2}
+
+#### bind
+
+`virtual`
+
+```cpp
+virtual void bind(const net::Address & address, unsigned flags)
+```
+
+Binds the socket to `address`. Resets and reinitializes the handle if the address family changes. 
+#### Parameters
+* `address` Local address to bind to. 
+
+* `flags` Optional bind flags (e.g. UV_TCP_IPV6ONLY is added automatically for IPv6).
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `address` | `const [net::Address](#address) &` |  |
+| `flags` | `unsigned` |  |
+
+---
+
+{#listen-2}
+
+#### listen
+
+`virtual`
+
+```cpp
+virtual void listen(int backlog)
+```
+
+Starts listening for incoming connections with the given backlog. 
+#### Parameters
+* `backlog` Maximum length of the pending connection queue.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `backlog` | `int` |  |
+
+---
+
+{#acceptconnection-2}
+
+#### acceptConnection
+
+`virtual`
+
+```cpp
+virtual void acceptConnection()
+```
+
+Accepts the next pending client connection and fires AcceptConnection.
+
+---
+
+{#setreuseport}
+
+#### setReusePort
+
+```cpp
+bool setReusePort()
+```
+
+Enables SO_REUSEPORT on Linux kernel >= 3.9 for multi-thread load balancing. Must be called after [bind()](#bind-2). No-op and returns false on unsupported platforms. 
+#### Returns
+true if the socket option was set successfully.
+
+---
+
+{#setnodelay}
+
+#### setNoDelay
+
+```cpp
+bool setNoDelay(bool enable)
+```
+
+Enables or disables TCP_NODELAY (Nagle's algorithm). 
+#### Parameters
+* `enable` true to disable Nagle's algorithm (lower latency). 
+
+#### Returns
+true if the option was set successfully.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `enable` | `bool` |  |
+
+---
+
+{#setkeepalive}
+
+#### setKeepAlive
+
+```cpp
+bool setKeepAlive(bool enable, int delay)
+```
+
+Enables or disables TCP keep-alive probes. 
+#### Parameters
+* `enable` true to enable keep-alive. 
+
+* `delay` Initial delay in seconds before the first keep-alive probe. 
+
+#### Returns
+true if the option was set successfully.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `enable` | `bool` |  |
+| `delay` | `int` |  |
+
+---
+
+{#setsimultaneousaccepts}
+
+#### setSimultaneousAccepts
+
+```cpp
+bool setSimultaneousAccepts(bool enable)
+```
+
+Enables or disables simultaneous accepts on Windows. No-op and returns false on non-Windows platforms. 
+#### Parameters
+* `enable` true to enable simultaneous accepts. 
+
+#### Returns
+true if the option was set successfully.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `enable` | `bool` |  |
+
+---
+
+{#setmode}
+
+#### setMode
+
+```cpp
+void setMode(SocketMode mode)
+```
+
+Sets the socket mode (ServerSide or ClientSide). 
+#### Parameters
+* `mode` The mode to assign.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `mode` | `[SocketMode](#socketmode)` |  |
+
+---
+
+{#mode}
+
+#### mode
+
+`const`
+
+```cpp
+SocketMode mode() const
+```
+
+Returns the current socket mode.
+
+---
+
+{#seterror-2}
+
+#### setError
+
+`virtual`
+
+```cpp
+virtual void setError(const icy::Error & err)
+```
+
+Sets the socket error; ignores the call if an error is already recorded. Setting an error causes the socket to close. 
+#### Parameters
+* `err` The error to record.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `err` | `const [icy::Error](#structicy_1_1Error) &` |  |
+
+---
+
+{#error-6}
+
+#### error
+
+`virtual` `const`
+
+```cpp
+virtual const icy::Error & error() const
+```
+
+Returns the current socket error, if any.
+
+---
+
+{#closed-2}
+
+#### closed
+
+`virtual` `const`
+
+```cpp
+virtual bool closed() const
+```
+
+Returns true if the native socket handle is closed.
+
+---
+
+{#address-9}
+
+#### address
+
+`virtual` `const`
+
+```cpp
+virtual net::Address address() const
+```
+
+Returns the IP address and port number of the socket. A wildcard address is returned if the socket is not connected.
+
+---
+
+{#peeraddress-1}
+
+#### peerAddress
+
+`virtual` `const`
+
+```cpp
+virtual net::Address peerAddress() const
+```
+
+Returns the IP address and port number of the peer socket. A wildcard address is returned if the socket is not connected.
+
+---
+
+{#transport-2}
+
+#### transport
+
+`virtual` `const`
+
+```cpp
+virtual net::TransportType transport() const
+```
+
+Returns the TCP transport protocol.
+
+---
+
+{#loop-3}
+
+#### loop
+
+`virtual` `const`
+
+```cpp
+virtual uv::Loop * loop() const
+```
+
+Returns the event loop associated with this socket.
+
+---
+
+{#onconnect-1}
+
+#### onConnect
+
+`virtual`
+
+```cpp
+virtual void onConnect()
+```
+
+Called by the stream layer when the TCP connection is established.
+
+---
+
+{#onread-1}
+
+#### onRead
+
+`virtual`
+
+```cpp
+virtual void onRead(const char * data, size_t len)
+```
+
+Called by the stream layer with raw received bytes; wraps them in a [MutableBuffer](#classicy_1_1MutableBuffer). 
+#### Parameters
+* `data` Pointer to received bytes. 
+
+* `len` Number of bytes received.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `data` | `const char *` |  |
+| `len` | `size_t` |  |
+
+---
+
+{#onrecv}
+
+#### onRecv
+
+`virtual`
+
+```cpp
+virtual void onRecv(const MutableBuffer & buf)
+```
+
+Dispatches a received buffer to all socket adapters via onSocketRecv. 
+#### Parameters
+* `buf` The buffer containing the received data.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `buf` | `const [MutableBuffer](#classicy_1_1MutableBuffer) &` |  |
+
+---
+
+{#onerror-1}
+
+#### onError
+
+`virtual`
+
+```cpp
+virtual void onError(const icy::Error & error)
+```
+
+Dispatches the error to adapters and closes the socket. 
+#### Parameters
+* `error` The error that occurred.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `error` | `const [icy::Error](#structicy_1_1Error) &` |  |
+
+---
+
+{#onclose-1}
+
+#### onClose
+
+`virtual`
+
+```cpp
+virtual void onClose()
+```
+
+Dispatches the close event to all socket adapters.
+
+### Protected Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `SocketMode` | [`_mode`](#_mode-1)  |  |
+| `net::Address` | [`_peerAddress`](#_peeraddress)  | Cached peer address (avoids syscall per recv) |
+
+---
+
+{#_mode-1}
+
+#### _mode
+
+```cpp
+SocketMode _mode
+```
+
+---
+
+{#_peeraddress}
+
+#### _peerAddress
+
+```cpp
+net::Address _peerAddress
+```
+
+Cached peer address (avoids syscall per recv)
+
+### Protected Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `void` | [`init`](#init-5) `virtual` | Initializes the underlying socket context. |
+| `void` | [`reset`](#reset-5) `virtual` | Resets the socket context for reuse. |
+
+---
+
+{#init-5}
+
+#### init
+
+`virtual`
+
+```cpp
+virtual void init()
+```
+
+Initializes the underlying socket context.
+
+---
+
+{#reset-5}
+
+#### reset
+
+`virtual`
+
+```cpp
+virtual void reset()
+```
+
+Resets the socket context for reuse.
+
+### Public Types
+
+| Name | Description |
+|------|-------------|
+| [`Ptr`](#ptr-9)  |  |
+| [`Vec`](#vec-2)  |  |
+
+---
+
+{#ptr-9}
+
+#### Ptr
+
+```cpp
+std::shared_ptr< TCPSocket > Ptr()
+```
+
+---
+
+{#vec-2}
+
+#### Vec
+
+```cpp
+std::vector< Ptr > Vec()
+```
+
+{#transaction}
+
+## Transaction
+
+```cpp
+#include <transaction.h>
+```
+
+> **Inherits:** [`PacketTransaction< PacketT >`](#classicy_1_1PacketTransaction), [`PacketSocketEmitter`](#packetsocketemitter)
+
+This class provides request/response functionality for [IPacket](#classicy_1_1IPacket) types emitted from a [Socket](#socket).
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`Transaction`](#transaction-1) `inline` | Constructs a [Transaction](#transaction) on the given socket targeting `peerAddress`.  |
+| `bool` | [`send`](#send-6) `virtual` `inline` | Sends the request packet to the peer address and starts the timeout timer. Sets state to Failed and returns false if the packet could not be sent.  |
+| `void` | [`cancel`](#cancel) `virtual` `inline` | Cancels the transaction and stops the timeout timer. |
+| `void` | [`dispose`](#dispose) `virtual` `inline` | Stops the timer and unregisters callbacks. |
+| `Address` | [`peerAddress`](#peeraddress-2) `const` `inline` | Returns the remote peer address used for this transaction. |
+
+---
+
+{#transaction-1}
+
+#### Transaction
+
+`inline`
+
+```cpp
+inline Transaction(const net::Socket::Ptr & socket, const Address & peerAddress, int timeout, int retries)
+```
+
+Constructs a [Transaction](#transaction) on the given socket targeting `peerAddress`. 
+#### Parameters
+* `socket` The socket to send/receive packets on. 
+
+* `peerAddress` The remote address for the request and response matching. 
+
+* `timeout` Milliseconds to wait for a response before failing. 
+
+* `retries` Number of additional send attempts on timeout.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `socket` | `const [net::Socket::Ptr](#ptr-4) &` |  |
+| `peerAddress` | `const [Address](#address) &` |  |
+| `timeout` | `int` |  |
+| `retries` | `int` |  |
+
+---
+
+{#send-6}
+
+#### send
+
+`virtual` `inline`
+
+```cpp
+virtual inline bool send()
+```
+
+Sends the request packet to the peer address and starts the timeout timer. Sets state to Failed and returns false if the packet could not be sent. 
+#### Returns
+true if the packet was sent and the timer started successfully.
+
+---
+
+{#cancel}
+
+#### cancel
+
+`virtual` `inline`
+
+```cpp
+virtual inline void cancel()
+```
+
+Cancels the transaction and stops the timeout timer.
+
+---
+
+{#dispose}
+
+#### dispose
+
+`virtual` `inline`
+
+```cpp
+virtual inline void dispose()
+```
+
+Stops the timer and unregisters callbacks.
+
+---
+
+{#peeraddress-2}
+
+#### peerAddress
+
+`const` `inline`
+
+```cpp
+inline Address peerAddress() const
+```
+
+Returns the remote peer address used for this transaction.
+
+### Protected Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `Address` | [`_peerAddress`](#_peeraddress-1)  |  |
+
+---
+
+{#_peeraddress-1}
+
+#### _peerAddress
+
+```cpp
+Address _peerAddress
+```
+
+### Protected Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `bool` | [`onPacket`](#onpacket-1) `virtual` `inline` | Checks whether `packet` is a matching response for the pending request. If it matches, the transaction completes; socket data propagation stops.  |
+| `void` | [`onResponse`](#onresponse) `virtual` `inline` | Called when a confirmed response is received; emits the response via PacketSignal. |
+| `bool` | [`checkResponse`](#checkresponse) `virtual` `inline` | Returns true if `packet` is a valid response for this transaction. |
+
+---
+
+{#onpacket-1}
+
+#### onPacket
+
+`virtual` `inline`
+
+```cpp
+virtual inline bool onPacket(IPacket & packet)
+```
+
+Checks whether `packet` is a matching response for the pending request. If it matches, the transaction completes; socket data propagation stops. 
+#### Parameters
+* `packet` The received packet to test. 
+
+#### Returns
+true to stop further propagation of the socket data event.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `packet` | `[IPacket](#classicy_1_1IPacket) &` |  |
+
+---
+
+{#onresponse}
+
+#### onResponse
+
+`virtual` `inline`
+
+```cpp
+virtual inline void onResponse()
+```
+
+Called when a confirmed response is received; emits the response via PacketSignal.
+
+---
+
+{#checkresponse}
+
+#### checkResponse
+
+`virtual` `inline`
+
+```cpp
+virtual inline bool checkResponse(const PacketT & packet)
+```
+
+Returns true if `packet` is a valid response for this transaction.
+
+The base implementation matches the local socket address against the [PacketInfo](#packetinfo-1) socket address and the stored peer address against the [PacketInfo](#packetinfo-1) peer address. Subclasses may override for stricter matching. 
+#### Parameters
+* `packet` The candidate response packet. 
+
+#### Returns
+true if the packet satisfies the response criteria.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `packet` | `const PacketT &` |  |
+
+### Public Types
+
+| Name | Description |
+|------|-------------|
+| [`BaseT`](#baset)  |  |
+
+---
+
+{#baset}
+
+#### BaseT
+
+```cpp
+PacketTransaction< PacketT > BaseT()
+```
+
+{#udpsocket}
+
+## UDPSocket
+
+```cpp
+#include <udpsocket.h>
+```
+
+> **Inherits:** [`Handle< uv_udp_t >`](#handle), [`Socket`](#socket)
+
+UDP socket implementation.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`UDPSocket`](#udpsocket-1)  | Constructs the [UDPSocket](#udpsocket) and initializes the underlying libuv handle.  |
+|  | [`UDPSocket`](#udpsocket-2)  |  |
+|  | [`UDPSocket`](#udpsocket-3)  |  |
+| `void` | [`connect`](#connect-9) `virtual` | Records the peer address and fires the Connect signal to mimic TCP socket behaviour. UDP is connectionless; this call does not send any data.  |
+| `void` | [`connect`](#connect-10) `virtual` | Resolves `host` via DNS (or maps "localhost"), then calls connect(Address).  |
+| `void` | [`close`](#close-16) `virtual` | Stops receiving and closes the underlying UDP handle. |
+| `void` | [`bind`](#bind-3) `virtual` | Binds the socket to `address` and starts the receive loop.  |
+| `ssize_t` | [`send`](#send-7) `virtual` | Sends `len` bytes to the previously connected peer address. Returns -1 if no peer address has been set.  |
+| `ssize_t` | [`sendOwned`](#sendowned-8) `virtual` | Sends an owned payload buffer to the connected peer. |
+| `ssize_t` | [`send`](#send-8) `virtual` | Sends `len` bytes to `peerAddress`. Returns -1 if the socket is uninitialized or the address is not authorized.  |
+| `ssize_t` | [`sendOwned`](#sendowned-9) `virtual` |  |
+| `bool` | [`setBroadcast`](#setbroadcast)  | Enables or disables UDP broadcast.  |
+| `bool` | [`setMulticastLoop`](#setmulticastloop)  | Enables or disables IP multicast loopback.  |
+| `bool` | [`setMulticastTTL`](#setmulticastttl)  | Sets the IP multicast time-to-live (hop limit).  |
+| `net::Address` | [`address`](#address-10) `virtual` `const` | Returns the locally bound address, or a wildcard address if unbound. |
+| `net::Address` | [`peerAddress`](#peeraddress-3) `virtual` `const` | Returns the connected peer address set by [connect()](#connect-9), or a wildcard address if unconnected. |
+| `net::TransportType` | [`transport`](#transport-3) `virtual` `const` | Returns the UDP transport protocol. |
+| `void` | [`setError`](#seterror-3) `virtual` | Sets the socket error and triggers close.  |
+| `const icy::Error &` | [`error`](#error-7) `virtual` `const` | Returns the current socket error, if any. |
+| `bool` | [`closed`](#closed-3) `virtual` `const` | Returns true if the native socket handle is closed. |
+| `uv::Loop *` | [`loop`](#loop-4) `virtual` `const` | Returns the event loop associated with this socket. |
+| `void` | [`onRecv`](#onrecv-1) `virtual` | Dispatches a received datagram to all socket adapters via onSocketRecv.  |
+
+---
+
+{#udpsocket-1}
+
+#### UDPSocket
+
+```cpp
+UDPSocket(uv::Loop * loop)
+```
+
+Constructs the [UDPSocket](#udpsocket) and initializes the underlying libuv handle. 
+#### Parameters
+* `loop` Event loop to use; defaults to the default loop.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `loop` | `[uv::Loop](#namespaceicy_1_1uv_1a8bfd153231f95de982e16db911389619) *` |  |
+
+---
+
+{#udpsocket-2}
+
+#### UDPSocket
+
+```cpp
+UDPSocket(const UDPSocket &) = delete
+```
+
+---
+
+{#udpsocket-3}
+
+#### UDPSocket
+
+```cpp
+UDPSocket(UDPSocket &&) = delete
+```
+
+---
+
+{#connect-9}
+
+#### connect
+
+`virtual`
+
+```cpp
+virtual void connect(const net::Address & peerAddress)
+```
+
+Records the peer address and fires the Connect signal to mimic TCP socket behaviour. UDP is connectionless; this call does not send any data. 
+#### Parameters
+* `peerAddress` The remote address to associate with this socket.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `peerAddress` | `const [net::Address](#address) &` |  |
+
+---
+
+{#connect-10}
+
+#### connect
+
+`virtual`
+
+```cpp
+virtual void connect(std::string_view host, uint16_t port)
+```
+
+Resolves `host` via DNS (or maps "localhost"), then calls connect(Address). 
+#### Parameters
+* `host` Hostname or IP address string. 
+
+* `port` Destination port.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `host` | `std::string_view` |  |
+| `port` | `uint16_t` |  |
+
+---
+
+{#close-16}
+
+#### close
+
+`virtual`
+
+```cpp
+virtual void close()
+```
+
+Stops receiving and closes the underlying UDP handle.
+
+---
+
+{#bind-3}
+
+#### bind
+
+`virtual`
+
+```cpp
+virtual void bind(const net::Address & address, unsigned flags)
+```
+
+Binds the socket to `address` and starts the receive loop. 
+#### Parameters
+* `address` Local address to bind to. 
+
+* `flags` Optional bind flags (UV_UDP_IPV6ONLY is added automatically for IPv6).
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `address` | `const [net::Address](#address) &` |  |
+| `flags` | `unsigned` |  |
+
+---
+
+{#send-7}
+
+#### send
+
+`virtual`
+
+```cpp
+virtual ssize_t send(const char * data, size_t len, int flags)
+```
+
+Sends `len` bytes to the previously connected peer address. Returns -1 if no peer address has been set. 
+#### Parameters
+* `data` Pointer to the data to send. 
+
+* `len` Number of bytes to send. 
+
+* `flags` Reserved; currently unused. 
+
+#### Returns
+Number of bytes accepted for sending, or -1 on error.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `data` | `const char *` |  |
+| `len` | `size_t` |  |
+| `flags` | `int` |  |
+
+---
+
+{#sendowned-8}
+
+#### sendOwned
+
+`virtual`
+
+```cpp
+virtual ssize_t sendOwned(Buffer && buffer, int flags)
+```
+
+Sends an owned payload buffer to the connected peer.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `buffer` | `[Buffer](#namespaceicy_1a9c464c811f03ea41ea100ed65a0580d3) &&` |  |
+| `flags` | `int` |  |
+
+---
+
+{#send-8}
+
+#### send
+
+`virtual`
+
+```cpp
+virtual ssize_t send(const char * data, size_t len, const net::Address & peerAddress, int flags)
+```
+
+Sends `len` bytes to `peerAddress`. Returns -1 if the socket is uninitialized or the address is not authorized. 
+#### Parameters
+* `data` Pointer to the data to send. 
+
+* `len` Number of bytes to send. 
+
+* `peerAddress` Destination address; must match the connected peer if one is set. 
+
+* `flags` Reserved; currently unused. 
+
+#### Returns
+Number of bytes accepted for sending, or -1 on error.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `data` | `const char *` |  |
+| `len` | `size_t` |  |
+| `peerAddress` | `const [net::Address](#address) &` |  |
+| `flags` | `int` |  |
+
+---
+
+{#sendowned-9}
+
+#### sendOwned
+
+`virtual`
+
+```cpp
+virtual ssize_t sendOwned(Buffer && buffer, const net::Address & peerAddress, int flags)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `buffer` | `[Buffer](#namespaceicy_1a9c464c811f03ea41ea100ed65a0580d3) &&` |  |
+| `peerAddress` | `const [net::Address](#address) &` |  |
+| `flags` | `int` |  |
+
+---
+
+{#setbroadcast}
+
+#### setBroadcast
+
+```cpp
+bool setBroadcast(bool flag)
+```
+
+Enables or disables UDP broadcast. 
+#### Parameters
+* `flag` true to enable broadcast. 
+
+#### Returns
+true if the option was set successfully.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `flag` | `bool` |  |
+
+---
+
+{#setmulticastloop}
+
+#### setMulticastLoop
+
+```cpp
+bool setMulticastLoop(bool flag)
+```
+
+Enables or disables IP multicast loopback. 
+#### Parameters
+* `flag` true to enable multicast loopback. 
+
+#### Returns
+true if the option was set successfully.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `flag` | `bool` |  |
+
+---
+
+{#setmulticastttl}
+
+#### setMulticastTTL
+
+```cpp
+bool setMulticastTTL(int ttl)
+```
+
+Sets the IP multicast time-to-live (hop limit). 
+#### Parameters
+* `ttl` Value in the range [1, 255]. 
+
+#### Returns
+true if the option was set successfully. 
+
+#### Exceptions
+* `std::invalid_argument` if `ttl` is out of range.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `ttl` | `int` |  |
+
+---
+
+{#address-10}
+
+#### address
+
+`virtual` `const`
+
+```cpp
+virtual net::Address address() const
+```
+
+Returns the locally bound address, or a wildcard address if unbound.
+
+---
+
+{#peeraddress-3}
+
+#### peerAddress
+
+`virtual` `const`
+
+```cpp
+virtual net::Address peerAddress() const
+```
+
+Returns the connected peer address set by [connect()](#connect-9), or a wildcard address if unconnected.
+
+---
+
+{#transport-3}
+
+#### transport
+
+`virtual` `const`
+
+```cpp
+virtual net::TransportType transport() const
+```
+
+Returns the UDP transport protocol.
+
+---
+
+{#seterror-3}
+
+#### setError
+
+`virtual`
+
+```cpp
+virtual void setError(const icy::Error & err)
+```
+
+Sets the socket error and triggers close. 
+#### Parameters
+* `err` The error to record.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `err` | `const [icy::Error](#structicy_1_1Error) &` |  |
+
+---
+
+{#error-7}
+
+#### error
+
+`virtual` `const`
+
+```cpp
+virtual const icy::Error & error() const
+```
+
+Returns the current socket error, if any.
+
+---
+
+{#closed-3}
+
+#### closed
+
+`virtual` `const`
+
+```cpp
+virtual bool closed() const
+```
+
+Returns true if the native socket handle is closed.
+
+---
+
+{#loop-4}
+
+#### loop
+
+`virtual` `const`
+
+```cpp
+virtual uv::Loop * loop() const
+```
+
+Returns the event loop associated with this socket.
+
+---
+
+{#onrecv-1}
+
+#### onRecv
+
+`virtual`
+
+```cpp
+virtual void onRecv(const MutableBuffer & buf, const net::Address & address)
+```
+
+Dispatches a received datagram to all socket adapters via onSocketRecv. 
+#### Parameters
+* `buf` Buffer containing the received datagram payload. 
+
+* `address` [Address](#address) of the sender.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `buf` | `const [MutableBuffer](#classicy_1_1MutableBuffer) &` |  |
+| `address` | `const [net::Address](#address) &` |  |
+
+### Protected Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `net::Address` | [`_peer`](#_peer)  |  |
+| `Buffer` | [`_buffer`](#_buffer)  |  |
+
+---
+
+{#_peer}
+
+#### _peer
+
+```cpp
+net::Address _peer
+```
+
+---
+
+{#_buffer}
+
+#### _buffer
+
+```cpp
+Buffer _buffer
+```
+
+### Protected Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `void` | [`init`](#init-6) `virtual` | Initializes the underlying socket context. |
+| `void` | [`reset`](#reset-6) `virtual` | Resets the socket context for reuse. |
+| `void` | [`onError`](#onerror-2) `virtual` | Called by `[setError()](#seterror-3)` after the error state has been updated. |
+| `void` | [`onClose`](#onclose-2) `virtual` | Called by `[close()](#close-16)` after the context has been released. |
+| `bool` | [`recvStart`](#recvstart) `virtual` |  |
+| `bool` | [`recvStop`](#recvstop) `virtual` |  |
+
+---
+
+{#init-6}
+
+#### init
+
+`virtual`
+
+```cpp
+virtual void init()
+```
+
+Initializes the underlying socket context.
+
+---
+
+{#reset-6}
+
+#### reset
+
+`virtual`
+
+```cpp
+virtual void reset()
+```
+
+Resets the socket context for reuse.
+
+---
+
+{#onerror-2}
+
+#### onError
+
+`virtual`
+
+```cpp
+virtual void onError(const icy::Error & error)
+```
+
+Called by `[setError()](#seterror-3)` after the error state has been updated.
+
+Override to react to errors. The default implementation is a no-op.
+
+#### Parameters
+* `error` The error that was set.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `error` | `const [icy::Error](#structicy_1_1Error) &` |  |
+
+---
+
+{#onclose-2}
+
+#### onClose
+
+`virtual`
+
+```cpp
+virtual void onClose()
+```
+
+Called by `[close()](#close-16)` after the context has been released.
+
+Override to perform cleanup on handle closure. The default implementation is a no-op.
+
+---
+
+{#recvstart}
+
+#### recvStart
+
+`virtual`
+
+```cpp
+virtual bool recvStart()
+```
+
+---
+
+{#recvstop}
+
+#### recvStop
+
+`virtual`
+
+```cpp
+virtual bool recvStop()
+```
+
+### Public Types
+
+| Name | Description |
+|------|-------------|
+| [`Ptr`](#ptr-10)  |  |
+| [`Vec`](#vec-3)  |  |
+
+---
+
+{#ptr-10}
+
+#### Ptr
+
+```cpp
+std::shared_ptr< UDPSocket > Ptr()
+```
+
+---
+
+{#vec-3}
+
+#### Vec
+
+```cpp
+std::vector< Ptr > Vec()
+```
+
+{#verificationerrordetails}
+
+## VerificationErrorDetails
+
+```cpp
+#include <sslmanager.h>
+```
+
+A utility class for certificate error handling.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`VerificationErrorDetails`](#verificationerrordetails-1)  | Creates the [VerificationErrorDetails](#verificationerrordetails). _ignoreError is per default set to false. |
+|  | [`~VerificationErrorDetails`](#verificationerrordetails-2)  | Destroys the [VerificationErrorDetails](#verificationerrordetails). |
+| `const crypto::X509Certificate &` | [`certificate`](#certificate) `const` `inline` | Returns the certificate that caused the error. |
+| `int` | [`errorDepth`](#errordepth) `const` `inline` | Returns the position of the certificate in the certificate chain. |
+| `int` | [`errorNumber`](#errornumber) `const` `inline` | Returns the id of the error. |
+| `const std::string &` | [`errorMessage`](#errormessage) `const` `inline` | Returns the textual presentation of the errorNumber. |
+| `void` | [`setIgnoreError`](#setignoreerror) `inline` | setIgnoreError to true, if a verification error is judged non-fatal by the user. |
+| `bool` | [`getIgnoreError`](#getignoreerror) `const` `inline` | returns the value of _ignoreError |
+
+---
+
+{#verificationerrordetails-1}
+
+#### VerificationErrorDetails
 
 ```cpp
 VerificationErrorDetails(const crypto::X509Certificate & cert, int errDepth, int errNum, const std::string & errMsg)
 ```
 
-Creates the [VerificationErrorDetails](#classicy_1_1net_1_1VerificationErrorDetails). _ignoreError is per default set to false.
+Creates the [VerificationErrorDetails](#verificationerrordetails). _ignoreError is per default set to false.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `cert` | `const crypto::X509Certificate &` |  |
+| `cert` | `const [crypto::X509Certificate](#x509certificate) &` |  |
 | `errDepth` | `int` |  |
 | `errNum` | `int` |  |
 | `errMsg` | `const std::string &` |  |
 
 ---
 
-#### ~VerificationErrorDetails 
+{#verificationerrordetails-2}
+
+#### ~VerificationErrorDetails
 
 ```cpp
-~VerificationErrorDetails()
+~VerificationErrorDetails() noexcept
 ```
 
-Destroys the [VerificationErrorDetails](#classicy_1_1net_1_1VerificationErrorDetails).
+Destroys the [VerificationErrorDetails](#verificationerrordetails).
 
 ---
 
-#### certificate 
+{#certificate}
+
+#### certificate
+
+`const` `inline`
 
 ```cpp
 inline const crypto::X509Certificate & certificate() const
@@ -2397,7 +5948,11 @@ Returns the certificate that caused the error.
 
 ---
 
-#### errorDepth 
+{#errordepth}
+
+#### errorDepth
+
+`const` `inline`
 
 ```cpp
 inline int errorDepth() const
@@ -2407,7 +5962,11 @@ Returns the position of the certificate in the certificate chain.
 
 ---
 
-#### errorNumber 
+{#errornumber}
+
+#### errorNumber
+
+`const` `inline`
 
 ```cpp
 inline int errorNumber() const
@@ -2417,7 +5976,11 @@ Returns the id of the error.
 
 ---
 
-#### errorMessage 
+{#errormessage}
+
+#### errorMessage
+
+`const` `inline`
 
 ```cpp
 inline const std::string & errorMessage() const
@@ -2427,7 +5990,11 @@ Returns the textual presentation of the errorNumber.
 
 ---
 
-#### setIgnoreError 
+{#setignoreerror}
+
+#### setIgnoreError
+
+`inline`
 
 ```cpp
 inline void setIgnoreError(bool ignoreError)
@@ -2441,7 +6008,11 @@ setIgnoreError to true, if a verification error is judged non-fatal by the user.
 
 ---
 
-#### getIgnoreError 
+{#getignoreerror}
+
+#### getIgnoreError
+
+`const` `inline`
 
 ```cpp
 inline bool getIgnoreError() const
@@ -2449,9 +6020,21 @@ inline bool getIgnoreError() const
 
 returns the value of _ignoreError
 
+### Private Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `crypto::X509Certificate` | [`_cert`](#_cert)  |  |
+| `int` | [`_errorDepth`](#_errordepth)  |  |
+| `int` | [`_errorNumber`](#_errornumber)  |  |
+| `std::string` | [`_errorMessage`](#_errormessage)  |  |
+| `bool` | [`_ignoreError`](#_ignoreerror)  |  |
+
 ---
 
-#### _cert 
+{#_cert}
+
+#### _cert
 
 ```cpp
 crypto::X509Certificate _cert
@@ -2459,7 +6042,9 @@ crypto::X509Certificate _cert
 
 ---
 
-#### _errorDepth 
+{#_errordepth}
+
+#### _errorDepth
 
 ```cpp
 int _errorDepth
@@ -2467,7 +6052,9 @@ int _errorDepth
 
 ---
 
-#### _errorNumber 
+{#_errornumber}
+
+#### _errorNumber
 
 ```cpp
 int _errorNumber
@@ -2475,7 +6062,9 @@ int _errorNumber
 
 ---
 
-#### _errorMessage 
+{#_errormessage}
+
+#### _errorMessage
 
 ```cpp
 std::string _errorMessage
@@ -2483,1636 +6072,38 @@ std::string _errorMessage
 
 ---
 
-#### _ignoreError 
+{#_ignoreerror}
+
+#### _ignoreError
 
 ```cpp
 bool _ignoreError
 ```
 
-## SSLSession 
+{#packetinfo-1}
 
-> **Defined in:** `sslsession.h`
+## PacketInfo
 
-This class encapsulates a SSL session object used with session caching on the client side.
-
-For session caching to work, a client must save the session object from an existing connection, if it wants to reuse it with a future connection.
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`sslSession`](#group__net_1ga6581d3ef3c9d2cb11707fcd0f1848b7e) | Returns the stored OpenSSL SSL_SESSION object. |
-| [`SSLSession`](#group__net_1ga432cb2d0fa33e99be752e2f67b05b24e) | Creates a new Session object, using the given SSL_SESSION object. |
-| [`~SSLSession`](#group__net_1ga46203b77ac08b39a29c45bd4cb616f96) | Destroys the Session. |
-| [`SSLSession`](#group__net_1ga9e95112e1b50fd581979c940f7024655) |  |
-| [`_ptr`](#group__net_1ga304e950ce3ef764e602a67033539de62) |  |
-
----
-
-#### sslSession 
-
-```cpp
-SSL_SESSION * sslSession() const
-```
-
-Returns the stored OpenSSL SSL_SESSION object.
-
----
-
-#### SSLSession 
-
-```cpp
-SSLSession(SSL_SESSION * ptr)
-```
-
-Creates a new Session object, using the given SSL_SESSION object.
-
-The SSL_SESSION's reference count is not changed.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ptr` | `SSL_SESSION *` |  |
-
----
-
-#### ~SSLSession 
-
-```cpp
-~SSLSession()
-```
-
-Destroys the Session.
-
-Calls SSL_SESSION_free() on the stored SSL_SESSION object.
-
----
-
-#### SSLSession 
-
-```cpp
-SSLSession()
-```
-
----
-
-#### _ptr 
-
-```cpp
-SSL_SESSION * _ptr
-```
-
-## SSLSocket 
-
-> **Extends:** `icy::net::TCPSocket`
-> **Defined in:** `sslsocket.h`
-
-SSL socket implementation.
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`SSLSocket`](#group__net_1ga621415db5b8ff309cec65201efc086bf) |  |
-| [`SSLSocket`](#group__net_1ga6ef56420a681a95cd42e066a842b1b63) |  |
-| [`SSLSocket`](#group__net_1ga0d27d1f822710a64478dffc4fad17f98) |  |
-| [`~SSLSocket`](#group__net_1ga55a2e9ca93a9fcaddbf2bad40a57966b) |  |
-| [`bind`](#group__net_1gaa16ace2e62e4b075bba8920cfbd098ad) | Initialize the [SSLSocket](#classicy_1_1net_1_1SSLSocket) with the given [SSLContext](#classicy_1_1net_1_1SSLContext). |
-| [`listen`](#group__net_1ga68e4327abb9e2bdb1ed7e3a6e7c0e49b) | Listens the socket on the given address. |
-| [`shutdown`](#group__net_1ga8d6ff3564619b9ea9cb1cc0aa54aa760) | Shuts down the connection by attempting an orderly SSL shutdown, then actually shutting down the TCP connection. |
-| [`close`](#group__net_1ga0fe89adb626dcd2aeaba9b941ea3c6cf) | Closes the socket forcefully. |
-| [`send`](#group__net_1gabd0a71795b9bfe30bf29447d750c8617) | Sends the given data buffer to the connected peer. Returns the number of bytes sent or -1 on error. No exception will be thrown. For TCP sockets the given peer address must match the connected peer address. |
-| [`send`](#group__net_1gace69dc9e5072193cbc7c7a84efd3ad84) |  |
-| [`useContext`](#group__net_1ga25cdc10ce54de6edcf57b5612788e23d) | Use the given SSL context for this socket. |
-| [`context`](#group__net_1gacd6970a43ee59539f56d29cc503f78ab) | Returns the SSL context used for this socket. |
-| [`useSession`](#group__net_1ga73a2c547fb422f580065091121dcba3c) | Sets the SSL session to use for the next connection. Setting a previously saved Session object is necessary to enable session caching. |
-| [`currentSession`](#group__net_1gab2d4b703c76423909dd34f47f46e73fe) | Returns the SSL session of the current connection, for reuse in a future connection (if session caching is enabled). |
-| [`sessionWasReused`](#group__net_1gab713d571c3f619b39d09686f6299ce14) | Returns true if a reused session was negotiated during the handshake. |
-| [`available`](#group__net_1gacbbee7806e51d77e9cbe79c104806f17) | Returns the number of bytes available from the SSL buffer for immediate reading. |
-| [`peerCertificate`](#group__net_1ga6d0638ab3739dbb622be0dccf39c5002) | Returns the peer's certificate. |
-| [`transport`](#group__net_1ga5c1ccbcbd95f4ffed016be3e42a3e238) | The transport protocol: TCP, UDP or SSLTCP. |
-| [`acceptConnection`](#group__net_1ga7192db6b478429219e604abf05c191b9) |  |
-| [`onConnect`](#group__net_1ga71746677601b346f690890cdff280fcb) |  |
-| [`onRead`](#group__net_1gaeb276dae5d2dd0009507a0fd85aabab2) | Reads raw encrypted SSL data. |
-| [`_sslContext`](#group__net_1ga765115a8e31c43eb06a1468685942dd9) |  |
-| [`_sslSession`](#group__net_1ga387514f7edb5f125120b2db1e3caffa2) |  |
-| [`_sslAdapter`](#group__net_1ga6d18c18a5cf420456474c9e55736a1ac) |  |
-
----
-
-#### SSLSocket 
-
-```cpp
-SSLSocket(uv::Loop * loop)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `loop` | `uv::Loop *` |  |
-
----
-
-#### SSLSocket 
-
-```cpp
-SSLSocket(SSLContext::Ptr sslContext, uv::Loop * loop)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `sslContext` | `SSLContext::Ptr` |  |
-| `loop` | `uv::Loop *` |  |
-
----
-
-#### SSLSocket 
-
-```cpp
-SSLSocket(SSLContext::Ptr sslContext, SSLSession::Ptr session, uv::Loop * loop)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `sslContext` | `SSLContext::Ptr` |  |
-| `session` | `SSLSession::Ptr` |  |
-| `loop` | `uv::Loop *` |  |
-
----
-
-#### ~SSLSocket 
-
-```cpp
-virtual ~SSLSocket()
-```
-
----
-
-#### bind 
-
-```cpp
-virtual void bind(const net::Address & address, unsigned flags)
-```
-
-Initialize the [SSLSocket](#classicy_1_1net_1_1SSLSocket) with the given [SSLContext](#classicy_1_1net_1_1SSLContext).
-
-Initializes the socket and establishes a secure connection to the TCP server at the given address.
-
-The SSL handshake is performed when the socket is connected.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `address` | `const net::Address &` |  |
-| `flags` | `unsigned` |  |
-
----
-
-#### listen 
-
-```cpp
-virtual void listen(int backlog)
-```
-
-Listens the socket on the given address.
-
-Throws an Exception on error.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `backlog` | `int` |  |
-
----
-
-#### shutdown 
-
-```cpp
-virtual bool shutdown()
-```
-
-Shuts down the connection by attempting an orderly SSL shutdown, then actually shutting down the TCP connection.
-
----
-
-#### close 
-
-```cpp
-virtual void close()
-```
-
-Closes the socket forcefully.
-
----
-
-#### send 
-
-```cpp
-virtual ssize_t send(const char * data, size_t len, int flags)
-```
-
-Sends the given data buffer to the connected peer. Returns the number of bytes sent or -1 on error. No exception will be thrown. For TCP sockets the given peer address must match the connected peer address.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `const char *` |  |
-| `len` | `size_t` |  |
-| `flags` | `int` |  |
-
----
-
-#### send 
-
-```cpp
-virtual ssize_t send(const char * data, size_t len, const net::Address & peerAddress, int flags)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `const char *` |  |
-| `len` | `size_t` |  |
-| `peerAddress` | `const net::Address &` |  |
-| `flags` | `int` |  |
-
----
-
-#### useContext 
-
-```cpp
-void useContext(SSLContext::Ptr context)
-```
-
-Use the given SSL context for this socket.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `context` | `SSLContext::Ptr` |  |
-
----
-
-#### context 
-
-```cpp
-SSLContext::Ptr context() const
-```
-
-Returns the SSL context used for this socket.
-
----
-
-#### useSession 
-
-```cpp
-void useSession(SSLSession::Ptr session)
-```
-
-Sets the SSL session to use for the next connection. Setting a previously saved Session object is necessary to enable session caching.
-
-To remove the currently set session, a nullptr pointer can be given.
-
-Must be called before [connect()](#group__net_1ga54a8edb09f593627d120d15339b4a04d) to be effective.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `session` | `SSLSession::Ptr` |  |
-
----
-
-#### currentSession 
-
-```cpp
-SSLSession::Ptr currentSession()
-```
-
-Returns the SSL session of the current connection, for reuse in a future connection (if session caching is enabled).
-
-If no connection is established, returns nullptr.
-
----
-
-#### sessionWasReused 
-
-```cpp
-bool sessionWasReused()
-```
-
-Returns true if a reused session was negotiated during the handshake.
-
----
-
-#### available 
-
-```cpp
-int available() const
-```
-
-Returns the number of bytes available from the SSL buffer for immediate reading.
-
----
-
-#### peerCertificate 
-
-```cpp
-X509 * peerCertificate() const
-```
-
-Returns the peer's certificate.
-
----
-
-#### transport 
-
-```cpp
-virtual net::TransportType transport() const
-```
-
-The transport protocol: TCP, UDP or SSLTCP.
-
----
-
-#### acceptConnection 
-
-```cpp
-virtual void acceptConnection()
-```
-
----
-
-#### onConnect 
-
-```cpp
-virtual void onConnect()
-```
-
----
-
-#### onRead 
-
-```cpp
-virtual void onRead(const char * data, size_t len)
-```
-
-Reads raw encrypted SSL data.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `const char *` |  |
-| `len` | `size_t` |  |
-
----
-
-#### _sslContext 
-
-```cpp
-net::SSLContext::Ptr _sslContext
-```
-
----
-
-#### _sslSession 
-
-```cpp
-net::SSLSession::Ptr _sslSession
-```
-
----
-
-#### _sslAdapter 
-
-```cpp
-net::SSLAdapter _sslAdapter
-```
-
-## TCPSocket 
-
-> **Extends:** `icy::Stream< uv_tcp_t >`, `icy::net::Socket`
-> **Subclasses:** `icy::net::SSLSocket`
-> **Defined in:** `tcpsocket.h`
-
-TCP socket implementation.
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`TCPSocket`](#group__net_1gaec3b1c6ef0978a45b92a3941550d34cc) |  |
-| [`~TCPSocket`](#group__net_1gaf96b67205dcf571df23d167589688858) |  |
-| [`shutdown`](#group__net_1gaf4823d66f85cfa1b9fc59a786244c948) | Sends the shutdown packet which should result is socket closure via callback. |
-| [`close`](#group__net_1gab486aed3b742f783104b2af9e2d1fd53) | Closes and resets the stream handle. This will close the active socket/pipe and destroy the handle. |
-| [`connect`](#group__net_1ga54a8edb09f593627d120d15339b4a04d) | Connects to the given peer IP address. |
-| [`connect`](#group__net_1gabdf25f4a4b76b89510b9ac02b50c350c) | Resolves and connects to the given host address. |
-| [`send`](#group__net_1gac358d98a73620318e8b8c5774668cb2e) | Sends the given data buffer to the connected peer. Returns the number of bytes sent or -1 on error. No exception will be thrown. For TCP sockets the given peer address must match the connected peer address. |
-| [`send`](#group__net_1gac8210c5420cc804749543b3be2d10500) |  |
-| [`bind`](#group__net_1gac4f44d12fc31ac77b739e8bb4b68b73c) | Bind a local address to the socket. The address may be IPv4 or IPv6 (if supported). |
-| [`listen`](#group__net_1ga3ec7b2814a110d4c6e01ea304ed35f87) | Listens the socket on the given address. |
-| [`acceptConnection`](#group__net_1ga32b031a136c7083ed70b9586dbf4cb6c) |  |
-| [`setReusePort`](#group__net_1gaca8530109419dfe268c82c22dcc9bcfb) |  |
-| [`setNoDelay`](#group__net_1gadded4f43faf2734dfc0a56e1b875c997) |  |
-| [`setKeepAlive`](#group__net_1ga159fae0ed680e7c7b981bfab570f3597) |  |
-| [`setSimultaneousAccepts`](#group__net_1ga11872bd792fd0a3c7864c04be7c81035) |  |
-| [`setMode`](#group__net_1gaecf346cd0d3f3d3b4cd560b5776f84d9) |  |
-| [`mode`](#group__net_1ga3415e01ef65890d3e03c6c4bcb716cce) |  |
-| [`setError`](#group__net_1ga5f09190f5a798aa81aafe6e14d863f5b) | Set the error and triggers callbacks. |
-| [`error`](#group__net_1ga390828725a5262b7d50943d66e511f03) | Return the socket error if any. |
-| [`closed`](#group__net_1gad537da936506f40a1750d43f07ceaea5) | Returns true if the native socket handle is closed. |
-| [`address`](#group__net_1ga9ca4f02f521e88d7ff93b7da9a817027) | Returns the IP address and port number of the socket. A wildcard address is returned if the socket is not connected. |
-| [`peerAddress`](#group__net_1ga452e885bdd0ac8e601c6f8c8d6fd2cc1) | Returns the IP address and port number of the peer socket. A wildcard address is returned if the socket is not connected. |
-| [`transport`](#group__net_1gaef3175a72fb606864dc49509992be0f8) | Returns the TCP transport protocol. |
-| [`loop`](#group__net_1ga809e5e9d55cf1c9111882f7acfa07909) | Returns the socket event loop. |
-| [`self`](#group__net_1gae60bb4b285ed6cf6bbe2a7952dbb33bc) | Return a pointer to the current or derived instance. |
-| [`onConnect`](#group__net_1gac2ec475984519b881e9756cf6a2d5cac) |  |
-| [`onRead`](#group__net_1gad149233e10e70b3d978e949201eda69d) |  |
-| [`onRecv`](#group__net_1ga5cddc3672cd38ebb92e2b699c68599bf) |  |
-| [`onError`](#group__net_1ga0f18b40e4845de47e56d67df0ae40b86) | [Error](./doc/api-base.md#structicy_1_1Error) callback. Override to handle errors. The error may be a UV error, or a custom error. |
-| [`onClose`](#group__net_1ga9123b0743cd6eb593b093a9ee20fe319) | Close callback. Override to handle closure. |
-| [`init`](#group__net_1gab18632622e10ee1c7324b2704cf0a03e) | Initializes the underlying socket context. |
-| [`reset`](#group__net_1ga2b0d3646563e08be2697a365e1157e9e) | Resets the socket context for reuse. |
-| [`AcceptConnection`](#group__net_1ga22c24cb537c35dbdd0443b5b2d96b374) |  |
-| [`_mode`](#group__net_1ga27a244b308b0d1632172cd2a5ebeb8aa) |  |
-
----
-
-#### TCPSocket 
-
-```cpp
-TCPSocket(uv::Loop * loop)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `loop` | `uv::Loop *` |  |
-
----
-
-#### ~TCPSocket 
-
-```cpp
-virtual ~TCPSocket()
-```
-
----
-
-#### shutdown 
-
-```cpp
-virtual bool shutdown()
-```
-
-Sends the shutdown packet which should result is socket closure via callback.
-
----
-
-#### close 
-
-```cpp
-virtual void close()
-```
-
-Closes and resets the stream handle. This will close the active socket/pipe and destroy the handle.
-
-If the stream is already closed this call will have no side-effects.
-
----
-
-#### connect 
-
-```cpp
-virtual void connect(const net::Address & address)
-```
-
-Connects to the given peer IP address.
-
-Throws an exception if the address is malformed. Connection errors can be handled via the [Error](./doc/api-base.md#structicy_1_1Error) signal.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `address` | `const net::Address &` |  |
-
----
-
-#### connect 
-
-```cpp
-virtual void connect(const std::string & host, uint16_t port)
-```
-
-Resolves and connects to the given host address.
-
-Throws an Exception if the host is malformed. Since the DNS callback is asynchronous implementations need to listen for the [Error](./doc/api-base.md#structicy_1_1Error) signal for handling connection errors.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `host` | `const std::string &` |  |
-| `port` | `uint16_t` |  |
-
----
-
-#### send 
-
-```cpp
-virtual ssize_t send(const char * data, size_t len, int flags)
-```
-
-Sends the given data buffer to the connected peer. Returns the number of bytes sent or -1 on error. No exception will be thrown. For TCP sockets the given peer address must match the connected peer address.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `const char *` |  |
-| `len` | `size_t` |  |
-| `flags` | `int` |  |
-
----
-
-#### send 
-
-```cpp
-virtual ssize_t send(const char * data, size_t len, const net::Address & peerAddress, int flags)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `const char *` |  |
-| `len` | `size_t` |  |
-| `peerAddress` | `const net::Address &` |  |
-| `flags` | `int` |  |
-
----
-
-#### bind 
-
-```cpp
-virtual void bind(const net::Address & address, unsigned flags)
-```
-
-Bind a local address to the socket. The address may be IPv4 or IPv6 (if supported).
-
-Throws an Exception on error.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `address` | `const net::Address &` |  |
-| `flags` | `unsigned` |  |
-
----
-
-#### listen 
-
-```cpp
-virtual void listen(int backlog)
-```
-
-Listens the socket on the given address.
-
-Throws an Exception on error.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `backlog` | `int` |  |
-
----
-
-#### acceptConnection 
-
-```cpp
-virtual void acceptConnection()
-```
-
----
-
-#### setReusePort 
-
-```cpp
-bool setReusePort()
-```
-
----
-
-#### setNoDelay 
-
-```cpp
-bool setNoDelay(bool enable)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `enable` | `bool` |  |
-
----
-
-#### setKeepAlive 
-
-```cpp
-bool setKeepAlive(bool enable, int delay)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `enable` | `bool` |  |
-| `delay` | `int` |  |
-
----
-
-#### setSimultaneousAccepts 
-
-```cpp
-bool setSimultaneousAccepts(bool enable)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `enable` | `bool` |  |
-
----
-
-#### setMode 
-
-```cpp
-void setMode(SocketMode mode)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `mode` | `SocketMode` |  |
-
----
-
-#### mode 
-
-```cpp
-const SocketMode mode() const
-```
-
----
-
-#### setError 
-
-```cpp
-virtual void setError(const [icy::Error](./doc/api-base.md#structicy_1_1Error) & error)
-```
-
-Set the error and triggers callbacks.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `error` | `const [icy::Error](./doc/api-base.md#structicy_1_1Error) &` |  |
-
----
-
-#### error 
-
-```cpp
-virtual const [icy::Error](./doc/api-base.md#structicy_1_1Error) & error() const
-```
-
-Return the socket error if any.
-
----
-
-#### closed 
-
-```cpp
-virtual bool closed() const
-```
-
-Returns true if the native socket handle is closed.
-
----
-
-#### address 
-
-```cpp
-virtual net::Address address() const
-```
-
-Returns the IP address and port number of the socket. A wildcard address is returned if the socket is not connected.
-
----
-
-#### peerAddress 
-
-```cpp
-virtual net::Address peerAddress() const
-```
-
-Returns the IP address and port number of the peer socket. A wildcard address is returned if the socket is not connected.
-
----
-
-#### transport 
-
-```cpp
-virtual net::TransportType transport() const
-```
-
-Returns the TCP transport protocol.
-
----
-
-#### loop 
-
-```cpp
-virtual uv::Loop * loop() const
-```
-
-Returns the socket event loop.
-
----
-
-#### self 
-
-```cpp
-virtual void * self()
-```
-
-Return a pointer to the current or derived instance.
-
----
-
-#### onConnect 
-
-```cpp
-virtual void onConnect()
-```
-
----
-
-#### onRead 
-
-```cpp
-virtual void onRead(const char * data, size_t len)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `const char *` |  |
-| `len` | `size_t` |  |
-
----
-
-#### onRecv 
-
-```cpp
-virtual void onRecv(const MutableBuffer & buf)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `buf` | `const MutableBuffer &` |  |
-
----
-
-#### onError 
-
-```cpp
-virtual void onError(const [icy::Error](./doc/api-base.md#structicy_1_1Error) & error)
-```
-
-[Error](./doc/api-base.md#structicy_1_1Error) callback. Override to handle errors. The error may be a UV error, or a custom error.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `error` | `const [icy::Error](./doc/api-base.md#structicy_1_1Error) &` |  |
-
----
-
-#### onClose 
-
-```cpp
-virtual void onClose()
-```
-
-Close callback. Override to handle closure.
-
----
-
-#### init 
-
-```cpp
-virtual void init()
-```
-
-Initializes the underlying socket context.
-
----
-
-#### reset 
-
-```cpp
-virtual void reset()
-```
-
-Resets the socket context for reuse.
-
----
-
-#### AcceptConnection 
-
-```cpp
-Signal< void(const net::TCPSocket::Ptr &)> AcceptConnection
-```
-
----
-
-#### _mode 
-
-```cpp
-SocketMode _mode
-```
-
-## Transaction 
-
-> **Extends:** `icy::PacketTransaction< PacketT >`, `icy::net::PacketSocketEmitter`
-> **Defined in:** `transaction.h`
-
-This class provides request/response functionality for [IPacket](./doc/api-base.md#classicy_1_1IPacket) types emitted from a [Socket](#classicy_1_1net_1_1Socket).
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`Transaction`](#group__net_1gae43259e00099a144f7179053f01b2f01) |  |
-| [`send`](#group__net_1ga1571d979ca34fd821ec55540a69201dd) | Starts the transaction timer and sends the request. Overriding classes should implement send logic here. |
-| [`cancel`](#group__net_1ga92a0c808ddb8bc5cde490c5f6927b129) | Cancellation means that the agent will not retransmit the request, will not treat the lack of response to be a failure, but will wait the duration of the transaction timeout for a response. |
-| [`dispose`](#group__net_1ga4ebc25a93c33e047d2b6c23151a2c1a6) | Schedules the transaction for deferred deletion. |
-| [`peerAddress`](#group__net_1ga4dbe158ad4bd2e7a844cfe8571623d71) |  |
-| [`~Transaction`](#group__net_1ga5ffa69ee1385312be868b345bc743193) |  |
-| [`onPacket`](#group__net_1gaa6c774d7f241760afe5e21cd55eb2970) | Overrides the [PacketSocketEmitter::onPacket](#group__net_1ga0de3859d43f868dbbdb88fda6e713092) callback for checking potential response candidates. |
-| [`onResponse`](#group__net_1gae4f8a3d88a8fb944171ea7758e0e95bd) | Called when a successful response match is received. |
-| [`checkResponse`](#group__net_1gad7f496deb9796c70a864033645e09121) | Sub classes should derive this method to implement response checking logic. The base implementation only performs address matching. |
-| [`_peerAddress`](#group__net_1ga267322b198b169cb769dbc3b74432592) |  |
-
----
-
-#### Transaction 
-
-```cpp
-inline Transaction(const net::Socket::Ptr & socket, const Address & peerAddress, int timeout, int retries)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `socket` | `const net::Socket::Ptr &` |  |
-| `peerAddress` | `const Address &` |  |
-| `timeout` | `int` |  |
-| `retries` | `int` |  |
-
----
-
-#### send 
-
-```cpp
-virtual inline bool send()
-```
-
-Starts the transaction timer and sends the request. Overriding classes should implement send logic here.
-
----
-
-#### cancel 
-
-```cpp
-virtual inline void cancel()
-```
-
-Cancellation means that the agent will not retransmit the request, will not treat the lack of response to be a failure, but will wait the duration of the transaction timeout for a response.
-
----
-
-#### dispose 
-
-```cpp
-virtual inline void dispose()
-```
-
-Schedules the transaction for deferred deletion.
-
-It is safe to call this function while the transaction is still active, providing the call is made from the same loop thread which the timer is running on.
-
-Protected by the base implementation as this is called by the internal state machine.
-
----
-
-#### peerAddress 
-
-```cpp
-inline Address peerAddress() const
-```
-
----
-
-#### ~Transaction 
-
-```cpp
-virtual ~Transaction() = default
-```
-
----
-
-#### onPacket 
-
-```cpp
-virtual inline void onPacket(IPacket & packet)
-```
-
-Overrides the [PacketSocketEmitter::onPacket](#group__net_1ga0de3859d43f868dbbdb88fda6e713092) callback for checking potential response candidates.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `packet` | `IPacket &` |  |
-
----
-
-#### onResponse 
-
-```cpp
-virtual inline void onResponse()
-```
-
-Called when a successful response match is received.
-
----
-
-#### checkResponse 
-
-```cpp
-virtual inline bool checkResponse(const PacketT & packet)
-```
-
-Sub classes should derive this method to implement response checking logic. The base implementation only performs address matching.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `packet` | `const PacketT &` |  |
-
----
-
-#### _peerAddress 
-
-```cpp
-Address _peerAddress
-```
-
-## UDPSocket 
-
-> **Extends:** `icy::uv::Handle< uv_udp_t >`, `icy::net::Socket`
-> **Defined in:** `udpsocket.h`
-
-UDP socket implementation.
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`UDPSocket`](#group__net_1gac832137d0bc5d3397f48186f4265c800) |  |
-| [`~UDPSocket`](#group__net_1gac421df9fbeeb69142769802e9a80a178) |  |
-| [`connect`](#group__net_1ga89db9f772f64dd169d9363c0adf41932) | Connects to the given peer IP address. |
-| [`connect`](#group__net_1ga63bd2be01433407bc8e58fd585432943) | Resolves and connects to the given host address. |
-| [`close`](#group__net_1ga0f15d459c3559ed1307fe88c7107e6b0) | Close and destroy the handle. |
-| [`bind`](#group__net_1ga914a8a799d51ed173950aade35e914f9) | Bind a local address to the socket. The address may be IPv4 or IPv6 (if supported). |
-| [`send`](#group__net_1gaf4e0dc198384fc23e5f575458b92a269) | Sends the given data buffer to the connected peer. Returns the number of bytes sent or -1 on error. No exception will be thrown. For TCP sockets the given peer address must match the connected peer address. |
-| [`send`](#group__net_1gaa082e3292be95cc50fb0db7fb327b4c3) |  |
-| [`setBroadcast`](#group__net_1ga0ee0352e997a45deff1805bfaa7dbe62) |  |
-| [`setMulticastLoop`](#group__net_1gad485a50948ead139d839ec2d53d83707) |  |
-| [`setMulticastTTL`](#group__net_1ga1b751c2f4af3dc831bde8ee1c08059d3) |  |
-| [`address`](#group__net_1gaf1c03aeaa87edc8b1666368c16eb84c8) | The locally bound address. |
-| [`peerAddress`](#group__net_1ga40f222c85f1f1c0ef0da2f751e8aa15c) | The connected peer address. |
-| [`transport`](#group__net_1ga1f7e25495d5fdae305009e341c567c5f) | Returns the UDP transport protocol. |
-| [`setError`](#group__net_1ga5390d0fb28b4090359e008d541a9ca33) | Set the error and triggers callbacks. |
-| [`error`](#group__net_1gad52712581b6bc1b18b72057ca007c025) | Return the socket error if any. |
-| [`closed`](#group__net_1ga6358b5af775f5344616e029f95306fb2) | Returns true if the native socket handle is closed. |
-| [`loop`](#group__net_1ga3076c8d49eef7dac47b706e096580a07) | Returns the socket event loop. |
-| [`self`](#group__net_1gacd160add50e469282daa7c499bebadac) | Return a pointer to the current or derived instance. |
-| [`onRecv`](#group__net_1ga1b142a3c18ca885e72d45aff466723a9) |  |
-| [`init`](#group__net_1gaa3b285eec570adc6aa71add9c23aff76) | Initializes the underlying socket context. |
-| [`reset`](#group__net_1ga426001966462dda0611a52d27e09f295) | Resets the socket context for reuse. |
-| [`onError`](#group__net_1ga31d96f40e2012f8069ef47ea3c8d4f4e) | [Error](./doc/api-base.md#structicy_1_1Error) callback. Override to handle errors. The error may be a UV error, or a custom error. |
-| [`onClose`](#group__net_1ga45f862d7b7395e07da0a2d3c369dcb80) | Close callback. Override to handle closure. |
-| [`recvStart`](#group__net_1ga33d1b77ebd07eade126a299151ef5258) |  |
-| [`recvStop`](#group__net_1gaf16dae934756ee7a561a7cc965cde0bd) |  |
-| [`onRecv`](#group__net_1gad9b6572bc6425425b294479b51cecfef) |  |
-| [`allocRecvBuffer`](#group__net_1ga11234c9a7d898b91b676d5f3944dfbda) |  |
-| [`_peer`](#group__net_1ga4b6e88e303adb6fc54a6d496e04d6d7e) |  |
-| [`_buffer`](#group__net_1gae4164f1c3392a3ef567cd255191afe78) |  |
-
----
-
-#### UDPSocket 
-
-```cpp
-UDPSocket(uv::Loop * loop)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `loop` | `uv::Loop *` |  |
-
----
-
-#### ~UDPSocket 
-
-```cpp
-virtual ~UDPSocket()
-```
-
----
-
-#### connect 
-
-```cpp
-virtual void connect(const net::Address & address)
-```
-
-Connects to the given peer IP address.
-
-Throws an exception if the address is malformed. Connection errors can be handled via the [Error](./doc/api-base.md#structicy_1_1Error) signal.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `address` | `const net::Address &` |  |
-
----
-
-#### connect 
-
-```cpp
-virtual void connect(const std::string & host, uint16_t port)
-```
-
-Resolves and connects to the given host address.
-
-Throws an Exception if the host is malformed. Since the DNS callback is asynchronous implementations need to listen for the [Error](./doc/api-base.md#structicy_1_1Error) signal for handling connection errors.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `host` | `const std::string &` |  |
-| `port` | `uint16_t` |  |
-
----
-
-#### close 
-
-```cpp
-virtual void close()
-```
-
-Close and destroy the handle.
-
----
-
-#### bind 
-
-```cpp
-virtual void bind(const net::Address & address, unsigned flags)
-```
-
-Bind a local address to the socket. The address may be IPv4 or IPv6 (if supported).
-
-Throws an Exception on error.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `address` | `const net::Address &` |  |
-| `flags` | `unsigned` |  |
-
----
-
-#### send 
-
-```cpp
-virtual ssize_t send(const char * data, size_t len, int flags)
-```
-
-Sends the given data buffer to the connected peer. Returns the number of bytes sent or -1 on error. No exception will be thrown. For TCP sockets the given peer address must match the connected peer address.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `const char *` |  |
-| `len` | `size_t` |  |
-| `flags` | `int` |  |
-
----
-
-#### send 
-
-```cpp
-virtual ssize_t send(const char * data, size_t len, const net::Address & peerAddress, int flags)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `const char *` |  |
-| `len` | `size_t` |  |
-| `peerAddress` | `const net::Address &` |  |
-| `flags` | `int` |  |
-
----
-
-#### setBroadcast 
-
-```cpp
-bool setBroadcast(bool flag)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `flag` | `bool` |  |
-
----
-
-#### setMulticastLoop 
-
-```cpp
-bool setMulticastLoop(bool flag)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `flag` | `bool` |  |
-
----
-
-#### setMulticastTTL 
-
-```cpp
-bool setMulticastTTL(int ttl)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ttl` | `int` |  |
-
----
-
-#### address 
-
-```cpp
-virtual net::Address address() const
-```
-
-The locally bound address.
-
-This function will not throw. A Wildcard 0.0.0.0:0 address is returned if the socket is closed or invalid.
-
----
-
-#### peerAddress 
-
-```cpp
-virtual net::Address peerAddress() const
-```
-
-The connected peer address.
-
-This function will not throw. A Wildcard 0.0.0.0:0 address is returned if the socket is closed or invalid.
-
----
-
-#### transport 
-
-```cpp
-virtual net::TransportType transport() const
-```
-
-Returns the UDP transport protocol.
-
----
-
-#### setError 
-
-```cpp
-virtual void setError(const [icy::Error](./doc/api-base.md#structicy_1_1Error) & error)
-```
-
-Set the error and triggers callbacks.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `error` | `const [icy::Error](./doc/api-base.md#structicy_1_1Error) &` |  |
-
----
-
-#### error 
-
-```cpp
-virtual const [icy::Error](./doc/api-base.md#structicy_1_1Error) & error() const
-```
-
-Return the socket error if any.
-
----
-
-#### closed 
-
-```cpp
-virtual bool closed() const
-```
-
-Returns true if the native socket handle is closed.
-
----
-
-#### loop 
-
-```cpp
-virtual uv::Loop * loop() const
-```
-
-Returns the socket event loop.
-
----
-
-#### self 
-
-```cpp
-virtual void * self()
-```
-
-Return a pointer to the current or derived instance.
-
----
-
-#### onRecv 
-
-```cpp
-virtual void onRecv(const MutableBuffer & buf, const net::Address & address)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `buf` | `const MutableBuffer &` |  |
-| `address` | `const net::Address &` |  |
-
----
-
-#### init 
-
-```cpp
-virtual void init()
-```
-
-Initializes the underlying socket context.
-
----
-
-#### reset 
-
-```cpp
-virtual void reset()
-```
-
-Resets the socket context for reuse.
-
----
-
-#### onError 
-
-```cpp
-virtual void onError(const [icy::Error](./doc/api-base.md#structicy_1_1Error) & error)
-```
-
-[Error](./doc/api-base.md#structicy_1_1Error) callback. Override to handle errors. The error may be a UV error, or a custom error.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `error` | `const [icy::Error](./doc/api-base.md#structicy_1_1Error) &` |  |
-
----
-
-#### onClose 
-
-```cpp
-virtual void onClose()
-```
-
-Close callback. Override to handle closure.
-
----
-
-#### recvStart 
-
-```cpp
-virtual bool recvStart()
-```
-
----
-
-#### recvStop 
-
-```cpp
-virtual bool recvStop()
-```
-
----
-
-#### onRecv 
-
-```cpp
-static void onRecv(uv_udp_t * handle, ssize_t nread, const uv_buf_t * buf, const struct sockaddr * addr, unsigned flags)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `handle` | `uv_udp_t *` |  |
-| `nread` | `ssize_t` |  |
-| `buf` | `const uv_buf_t *` |  |
-| `addr` | `const struct sockaddr *` |  |
-| `flags` | `unsigned` |  |
-
----
-
-#### allocRecvBuffer 
-
-```cpp
-static void allocRecvBuffer(uv_handle_t * handle, size_t suggested_size, uv_buf_t * buf)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `handle` | `uv_handle_t *` |  |
-| `suggested_size` | `size_t` |  |
-| `buf` | `uv_buf_t *` |  |
-
----
-
-#### _peer 
-
-```cpp
-net::Address _peer
-```
-
----
-
-#### _buffer 
-
-```cpp
-Buffer _buffer
-```
-
-## AddressBase 
-
-> **Subclasses:** `icy::net::IPv4AddressBase`
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`host`](#group__net_1ga867db5d11fa5c964830368ac1a4cbb7a) |  |
-| [`port`](#group__net_1ga44e7f8716b0b2f0a701d22e3edcf21b3) |  |
-| [`family`](#group__net_1ga018e56177bc5c8bf2b02bc88ec6efcfe) |  |
-| [`length`](#group__net_1ga9d32a44cd01e1e7e7e082f5c36aee5e1) |  |
-| [`addr`](#group__net_1ga532c3627f0f9a78bfa33a31a8951673b) |  |
-| [`af`](#group__net_1ga69583a3ceab6d1839acb20d972d7fa7f) |  |
-| [`AddressBase`](#group__net_1ga0c4217e82452f7e70750ba1662802a67) |  |
-| [`~AddressBase`](#group__net_1gaee163e8131fa554005928e0941c8bf93) |  |
-| [`AddressBase`](#group__net_1ga17555486795b6ea35256a3c3f564b4ba) |  |
-| [`operator=`](#group__net_1ga4f04abeacdbcd881b8491c5d79f80887) |  |
-
----
-
-#### host 
-
-```cpp
-std::string host() const
-```
-
----
-
-#### port 
-
-```cpp
-uint16_t port() const
-```
-
----
-
-#### family 
-
-```cpp
-Address::Family family() const
-```
-
----
-
-#### length 
-
-```cpp
-socklen_t length() const
-```
-
----
-
-#### addr 
-
-```cpp
-const struct sockaddr * addr() const
-```
-
----
-
-#### af 
-
-```cpp
-int af() const
-```
-
----
-
-#### AddressBase 
-
-```cpp
-inline AddressBase()
-```
-
----
-
-#### ~AddressBase 
-
-```cpp
-virtual inline ~AddressBase()
-```
-
----
-
-#### AddressBase 
-
-```cpp
-AddressBase(const AddressBase &) = delete
-```
-
----
-
-#### operator= 
-
-```cpp
-AddressBase & operator=(const AddressBase &) = delete
-```
-
-## IPv4AddressBase 
-
-> **Extends:** `icy::net::AddressBase`
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`IPv4AddressBase`](#group__net_1ga48fc92d2cb95f0b16b6c28b77c7d04d9) |  |
-| [`IPv4AddressBase`](#group__net_1ga9130e321cd339b3b9414929e1e6ff6d5) |  |
-| [`IPv4AddressBase`](#group__net_1ga88f691bffa5d02c3d34440fab859d2a1) |  |
-| [`host`](#group__net_1ga2d455659c2dd8150f39122a4b70c2459) |  |
-| [`port`](#group__net_1ga01593bde5ff3a252088beb95619ec343) |  |
-| [`family`](#group__net_1ga8200f0c126c892638c7f0818b786a0c6) |  |
-| [`length`](#group__net_1gae374547c5843e238cfdfaee8cdd82037) |  |
-| [`addr`](#group__net_1ga96ebb36649f22c95d05295b6a1afb699) |  |
-| [`af`](#group__net_1ga3468fd918b7a508ed76fb12baf0491e4) |  |
-| [`_addr`](#group__net_1ga5f0e8f71be2be18dde24822a37e523ff) |  |
-
----
-
-#### IPv4AddressBase 
-
-```cpp
-inline IPv4AddressBase()
-```
-
----
-
-#### IPv4AddressBase 
-
-```cpp
-inline IPv4AddressBase(const struct sockaddr_in * addr)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `addr` | `const struct sockaddr_in *` |  |
-
----
-
-#### IPv4AddressBase 
-
-```cpp
-inline IPv4AddressBase(const void * addr, uint16_t port)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `addr` | `const void *` |  |
-| `port` | `uint16_t` |  |
-
----
-
-#### host 
-
-```cpp
-virtual inline std::string host() const
-```
-
----
-
-#### port 
-
-```cpp
-virtual inline uint16_t port() const
-```
-
----
-
-#### family 
-
-```cpp
-virtual inline Address::Family family() const
-```
-
----
-
-#### length 
-
-```cpp
-virtual inline socklen_t length() const
-```
-
----
-
-#### addr 
-
-```cpp
-virtual inline const struct sockaddr * addr() const
-```
-
----
-
-#### af 
-
-```cpp
-virtual inline int af() const
-```
-
----
-
-#### _addr 
-
-```cpp
-struct sockaddr_in _addr
-```
-
-## PacketInfo 
-
-> **Extends:** `icy::IPacketInfo`
-> **Defined in:** `socket.h`
-
-Provides information about packets emitted from a socket. See [SocketPacket](#classicy_1_1net_1_1SocketPacket).
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`PacketInfo`](#group__net_1gac4cee1c5178b1581eee877736e102755) |  |
-| [`PacketInfo`](#group__net_1gae0b9f9bcc10f550dfea602f962092247) |  |
-| [`clone`](#group__net_1ga92ec5afeaea19e87ea092a48a3a5d5d2) |  |
-| [`~PacketInfo`](#group__net_1ga0b05488ca9b52e594d47a21678150869) |  |
-| [`socket`](#group__net_1ga679e93ce36b1f3bd031bbc54ea7939db) | The source socket. |
-| [`peerAddress`](#group__net_1ga41acad06a100d281506e6bf269b13799) | The originating peer address. For TCP this will always be connected address. |
-
----
-
-#### PacketInfo 
-
-```cpp
-inline PacketInfo(const Socket::Ptr & socket, const Address & peerAddress)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `socket` | `const Socket::Ptr &` |  |
-| `peerAddress` | `const Address &` |  |
-
----
-
-#### PacketInfo 
-
 ```cpp
-inline PacketInfo(const PacketInfo & r)
+#include <socket.h>
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `r` | `const PacketInfo &` |  |
+> **Inherits:** [`IPacketInfo`](#structicy_1_1IPacketInfo)
 
----
+Provides information about packets emitted from a socket. See [SocketPacket](#socketpacket).
 
-#### clone 
+### Public Attributes
 
-```cpp
-virtual inline IPacketInfo * clone() const
-```
+| Return | Name | Description |
+|--------|------|-------------|
+| `Socket::Ptr` | [`socket`](#socket-4)  | The source socket. |
+| `Address` | [`peerAddress`](#peeraddress-4)  | The originating peer address. For TCP this will always be connected address. |
 
 ---
 
-#### ~PacketInfo 
-
-```cpp
-virtual inline ~PacketInfo()
-```
-
----
+{#socket-4}
 
-#### socket 
+#### socket
 
 ```cpp
 Socket::Ptr socket
@@ -4122,7 +6113,9 @@ The source socket.
 
 ---
 
-#### peerAddress 
+{#peeraddress-4}
+
+#### peerAddress
 
 ```cpp
 Address peerAddress
@@ -4130,30 +6123,114 @@ Address peerAddress
 
 The originating peer address. For TCP this will always be connected address.
 
-## Ref 
+### Public Methods
 
-> **Defined in:** `socketadapter.h`
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`ptr`](#group__net_1ga7850ea3acb3330d7fb974c45f780f1c4) |  |
-| [`alive`](#group__net_1ga5e0d22008a914828d87ecd623872db05) |  |
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`PacketInfo`](#packetinfo-2) `inline` | Constructs [PacketInfo](#packetinfo-1) with the originating socket and peer address.  |
+|  | [`PacketInfo`](#packetinfo-3) `inline` | Copy constructor.  |
+| `std::unique_ptr< IPacketInfo >` | [`clone`](#clone-6) `virtual` `const` `inline` | Returns a heap-allocated copy of this [PacketInfo](#packetinfo-1). |
 
 ---
 
-#### ptr 
+{#packetinfo-2}
+
+#### PacketInfo
+
+`inline`
 
 ```cpp
-SocketAdapter * ptr
+inline PacketInfo(const Socket::Ptr & socket, const Address & peerAddress)
 ```
+
+Constructs [PacketInfo](#packetinfo-1) with the originating socket and peer address. 
+#### Parameters
+* `socket` Shared pointer to the socket that received the packet. 
+
+* `peerAddress` [Address](#address) of the remote peer that sent the packet.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `socket` | `const [Socket::Ptr](#ptr-4) &` |  |
+| `peerAddress` | `const [Address](#address) &` |  |
 
 ---
 
-#### alive 
+{#packetinfo-3}
+
+#### PacketInfo
+
+`inline`
 
 ```cpp
-bool alive
+inline PacketInfo(const PacketInfo & r)
 ```
+
+Copy constructor. 
+#### Parameters
+* `r` Source [PacketInfo](#packetinfo-1) to copy from.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `r` | `const [PacketInfo](#packetinfo-1) &` |  |
+
+---
+
+{#clone-6}
+
+#### clone
+
+`virtual` `const` `inline`
+
+```cpp
+virtual inline std::unique_ptr< IPacketInfo > clone() const
+```
+
+Returns a heap-allocated copy of this [PacketInfo](#packetinfo-1).
+
+{#dns}
+
+# dns
+
+DNS utilities.
+
+### Functions
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `auto` | [`resolve`](#resolve-1) `inline` | Resolves a hostname to a network address asynchronously. |
+
+---
+
+{#resolve-1}
+
+#### resolve
+
+`inline`
+
+```cpp
+inline auto resolve(const std::string & host, int port, std::function< void(int, const net::Address &)> callback, uv::Loop * loop)
+```
+
+Resolves a hostname to a network address asynchronously.
+
+The callback is invoked on the event loop thread when resolution completes. On failure, the callback receives a non-zero status and an empty [Address](#address). 
+#### Parameters
+* `host` Hostname or IP address string to resolve. 
+
+* `port` Port number to associate with the resolved address. 
+
+* `callback` Invoked with (status, resolved [Address](#address)); status is 0 on success. 
+
+* `loop` Event loop to use; defaults to the default loop. 
+
+#### Returns
+A request handle whose lifetime controls the in-flight DNS query.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `host` | `const std::string &` |  |
+| `port` | `int` |  |
+| `callback` | `std::function< void(int, const [net::Address](#address) &)>` |  |
+| `loop` | `[uv::Loop](#namespaceicy_1_1uv_1a8bfd153231f95de982e16db911389619) *` |  |
 

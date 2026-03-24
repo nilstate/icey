@@ -21,7 +21,6 @@
 namespace icy {
 
 
-/// @addtogroup base
 /// Packet processor that Base64-encodes packet data
 class /* ICY_EXTERN */ Base64PacketEncoder : public PacketProcessor
 {

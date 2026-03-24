@@ -1,161 +1,627 @@
-# turn 
+{#turnmodulerfc5766}
+
+# turn
 
 The `turn` module contains TURN (rfc5766) client and server implementations.
+
+### Namespaces
+
+| Name | Description |
+|------|-------------|
+| [`turn`](#turn) |  |
+
+{#turn}
+
+# turn
 
 ### Classes
 
 | Name | Description |
 |------|-------------|
-| [`Client`](#classicy_1_1turn_1_1Client) |  |
-| [`TCPClient`](#classicy_1_1turn_1_1TCPClient) |  |
-| [`UDPClient`](#classicy_1_1turn_1_1UDPClient) |  |
-| [`FiveTuple`](#classicy_1_1turn_1_1FiveTuple) | The 5-TUPLE consists of a local, a remote address, and the transport protocol used by the client to communicate with the server.                                                           +---------+ |
-| [`IAllocation`](#classicy_1_1turn_1_1IAllocation) | All TURN operations revolve around allocations, and all TURN messages are associated with an allocation. An allocation conceptually consists of the following state data: |
-| [`Server`](#classicy_1_1turn_1_1Server) | TURN server rfc5766 implementation. |
-| [`ServerAllocation`](#classicy_1_1turn_1_1ServerAllocation) |  |
-| [`TCPAllocation`](#classicy_1_1turn_1_1TCPAllocation) |  |
-| [`TCPConnectionPair`](#classicy_1_1turn_1_1TCPConnectionPair) |  |
-| [`UDPAllocation`](#classicy_1_1turn_1_1UDPAllocation) |  |
-| [`Request`](#classicy_1_1turn_1_1Request) |  |
-| [`ClientState`](#structicy_1_1turn_1_1ClientState) |  |
-| [`ClientObserver`](#structicy_1_1turn_1_1ClientObserver) |  |
-| [`Options`](#structicy_1_1turn_1_1Client_1_1Options) |  |
-| [`TCPClientObserver`](#structicy_1_1turn_1_1TCPClientObserver) |  |
-| [`RelayConnectionBinding`](#structicy_1_1turn_1_1RelayConnectionBinding) |  |
-| [`Permission`](#structicy_1_1turn_1_1Permission) | TURN permission for a user session. |
-| [`ServerOptions`](#structicy_1_1turn_1_1ServerOptions) | [Configuration](./doc/api-base.md#classicy_1_1Configuration) options for the TURN server. |
-| [`ServerObserver`](#structicy_1_1turn_1_1ServerObserver) | The [ServerObserver](#structicy_1_1turn_1_1ServerObserver) receives callbacks for and is responsible for managing allocation and bandwidth quotas, authentication methods and authentication. |
+| [`Client`](#client-2) | TURN client that manages relay allocations, permissions, and data relay via RFC 5766. |
+| [`FiveTuple`](#fivetuple) | The 5-TUPLE consists of a local, a remote address, and the transport protocol used by the client to communicate with the server.                                                           +---------+ |
+| [`IAllocation`](#iallocation) | All TURN operations revolve around allocations, and all TURN messages are associated with an allocation. An allocation conceptually consists of the following state data: |
+| [`PermissionPolicy`](#permissionpolicy) | Lightweight server-side TURN permission policy. |
+| [`Request`](#request-12) | A STUN message annotated with the transport type and source/destination addresses needed for server-side routing and response generation. |
+| [`Server`](#server-6) | TURN server RFC 5766 / RFC 6062 implementation. Listens on UDP and/or TCP, authenticates requests via [ServerObserver](#serverobserver), and manages [ServerAllocation](#serverallocation) objects for each 5-tuple. |
+| [`ServerAllocation`](#serverallocation) | Server-side TURN allocation that tracks permissions, lifetime, and relay state. Handles Refresh and CreatePermission requests common to both UDP and TCP allocations. Subclassed by [UDPAllocation](#udpallocation) and [TCPAllocation](#tcpallocation) for transport-specific behaviour. |
+| [`TCPAllocation`](#tcpallocation) | Server-side TCP TURN allocation with connection pair management per RFC 6062. Maintains a control connection for STUN signalling and an acceptor socket for incoming peer TCP connections. Each peer connection is tracked as a [TCPConnectionPair](#tcpconnectionpair) and bridged to the client after a successful ConnectionBind. |
+| [`TCPClient`](#tcpclient) | TCP transport TURN client with relay connection management per RFC 6062. Uses a single TCP control connection for STUN signalling and opens additional TCP relay connections for each peer via the Connect / ConnectionBind flow. |
+| [`TCPConnectionPair`](#tcpconnectionpair) | Paired TCP connections forming a single TURN relay pipe between a client and a peer. Lifetime managed by [IntrusivePtr](#classicy_1_1IntrusivePtr); the owning [TCPAllocation](#tcpallocation) holds the Ptr in its pair map. |
+| [`UDPAllocation`](#udpallocation) | Server-side UDP TURN allocation that relays datagrams to permitted peers. Binds a dedicated UDP relay socket for peer communication and forwards incoming datagrams to the client as Data Indications. |
+| [`UDPClient`](#udpclient) | UDP transport TURN client for datagram-based relay allocations. Uses a single UDP socket for both STUN signalling and Send/Data Indications. All [Client](#client-2) methods apply; data is relayed via [sendData()](#senddata) using Send Indications. |
+| [`ClientObserver`](#clientobserver) | Abstract observer interface for TURN client events. Callers subclass this to receive allocation lifecycle and data relay callbacks. |
+| [`ClientState`](#clientstate) | [State](#classicy_1_1State) machine states for the TURN client. |
+| [`Permission`](#permission) | A single TURN permission entry associating a peer IP with a 5-minute expiry timer. Per RFC 5766 section 8, permissions last exactly 300 seconds and must be refreshed via a new CreatePermission request before they expire. |
+| [`RelayConnectionBinding`](#relayconnectionbinding) | Binding metadata stored as socket opaque data during a ConnectionBind handshake. Associates a relay socket with its TURN connection ID and peer address. |
+| [`ServerObserver`](#serverobserver) | Observer interface that the application must implement to participate in server-side allocation management and authentication. |
+| [`ServerOptions`](#serveroptions) | [Configuration](#classicy_1_1Configuration) options for the TURN server. |
+| [`TCPClientObserver`](#tcpclientobserver) | Observer interface for TCP TURN client events (RFC 6062). Extends [ClientObserver](#clientobserver) with callbacks specific to TCP relay connections. |
 
-## Client 
-
-> **Extends:** `icy::Stateful< ClientState >`, `icy::turn::IAllocation`
-> **Subclasses:** `icy::turn::TCPClient`, `icy::turn::UDPClient`
-> **Defined in:** `client.h`
-
-### Members
+### Enumerations
 
 | Name | Description |
 |------|-------------|
-| [`Client`](#group__turn_1ga65ce6f16a338792a1783d51edffd71dd) |  |
-| [`~Client`](#group__turn_1ga7fc90ccb1863fddf1a63fae16ae9c371) |  |
-| [`initiate`](#group__turn_1gadf723a357d7bb4ad4162850e1689d3e3) | Initiates the allocation sequence. |
-| [`shutdown`](#group__turn_1ga1e0682ce8d32f7c62946ee7793c1181c) | Shutdown the client and destroy the active allocation. |
-| [`sendAllocate`](#group__turn_1ga7d568f600867e83b78f42f61d24e13ef) | Sends the allocation request. |
-| [`addPermission`](#group__turn_1ga63590b39064f8a8f96adb89eee134d63) |  |
-| [`addPermission`](#group__turn_1gaba5057ecad2da5a048e67a51efc74d0f) | Peer permissions should be added/created before we kick off the allocation sequence, but may be added later. |
-| [`sendCreatePermission`](#group__turn_1ga8555bd85d39c6430f2f00f0f684d7628) | Sends a CreatePermission request including all hosts. |
-| [`sendChannelBind`](#group__turn_1ga8901df806b203e670fe925fe13dca81e) |  |
-| [`sendRefresh`](#group__turn_1gacd3057049693dd485726f0a14b1e5ee0) |  |
-| [`sendData`](#group__turn_1ga20f4a32be7ab6b6ee5a787eb3c9320bc) |  |
-| [`handleResponse`](#group__turn_1ga0f6ebc4b5830aaa97b69ca66f0999261) |  |
-| [`handleAllocateResponse`](#group__turn_1ga68bbf8a80eedb0ba14918aec893448a5) |  |
-| [`handleAllocateErrorResponse`](#group__turn_1ga12709199bdbf16d3c7dc0cd82e3a93ab) |  |
-| [`handleCreatePermissionResponse`](#group__turn_1gaa22352721ef5518a253a6594877a21eb) |  |
-| [`handleCreatePermissionErrorResponse`](#group__turn_1gabbd2963a3eb1021634c55abb70d39d63) |  |
-| [`handleRefreshResponse`](#group__turn_1ga144c651f56df26ffc92879219930e848) |  |
-| [`handleDataIndication`](#group__turn_1gaadd3916417580152b965c64c32cf73bb) |  |
-| [`transportProtocol`](#group__turn_1ga32c28b5280210a450c0e008904a7b6b2) |  |
-| [`createTransaction`](#group__turn_1ga88dd79f35429039f830cd1fbfd7f3870) |  |
-| [`authenticateRequest`](#group__turn_1ga7a7dac39cdf0e23586d6607ac65b06cb) |  |
-| [`sendAuthenticatedTransaction`](#group__turn_1ga44237aae8a9ad5ad3cc4cecc19881e53) |  |
-| [`removeTransaction`](#group__turn_1ga9f51f7e1bcbe90260db6c8e862927482) |  |
-| [`mappedAddress`](#group__turn_1ga06d529cceb90e17ad9cdac3998cad80e) |  |
-| [`relayedAddress`](#group__turn_1ga5708eadcbe76c7c9bc3904d5942e07f5) |  |
-| [`closed`](#group__turn_1gafd23179bb00b8ce9dca4aaa666ba8f97) |  |
-| [`observer`](#group__turn_1gaba66ee1063e547550dcbb32432b42ec8) |  |
-| [`options`](#group__turn_1ga36514efc351b6cca0222702e137b27c9) |  |
-| [`setError`](#group__turn_1ga21670cb1ae05473fe43a5e82cb40b754) |  |
-| [`onSocketConnect`](#group__turn_1ga926f40e036ce12b00f365ae387b2102b) |  |
-| [`onSocketRecv`](#group__turn_1gaf226ce27add87f373131003383569b20) |  |
-| [`onSocketClose`](#group__turn_1gacfb499500c58c0392df68342e5aa59e7) |  |
-| [`onTransactionProgress`](#group__turn_1ga461a2a0c78dbde5294f0260cadf5410c) |  |
-| [`onStateChange`](#group__turn_1ga35a6d685c1ddb38d29e1467278b7bedc) |  |
-| [`onTimer`](#group__turn_1ga7fb62ec5f7d6748b7ba6549b86709344) |  |
-| [`_observer`](#group__turn_1gab2775eacd7fff57764950d54e7383306) |  |
-| [`_options`](#group__turn_1ga7baa7e34fb78a93ed627c6a3b36740ba) |  |
-| [`_socket`](#group__turn_1ga53562b6579f7832ad236ce922021852e) |  |
-| [`_timer`](#group__turn_1ga1704ecb1572601a2f2863ce70cc4fb97) |  |
-| [`_error`](#group__turn_1ga66ea7fae1ca4bed8445763221eb54020) |  |
-| [`_mappedAddress`](#group__turn_1ga21a746dd56680daa4e14d19630ba4ecf) |  |
-| [`_relayedAddress`](#group__turn_1ga1f3592858503ccb9efc59cad55ce3041) |  |
-| [`_realm`](#group__turn_1ga819fcd60d15c7c555792ad91e34df15f) |  |
-| [`_nonce`](#group__turn_1ga59aa3850af49ff0ea281fd6cb2168e14) |  |
-| [`_pendingIndications`](#group__turn_1ga269602d5f2c548df6a654ad9e7c17144) | A list of queued Send indication packets awaiting server permissions. |
-| [`_transactions`](#group__turn_1ga9d80bebccf3f7cdf8d34d1246bf6fb02) | A list containing currently active transactions. |
+| [`AuthenticationState`](#authenticationstate)  | Result returned by [ServerObserver::authenticateRequest()](#authenticaterequest-1) to control how the server proceeds with an incoming STUN request. |
 
 ---
 
-#### Client 
+{#authenticationstate}
+
+#### AuthenticationState
+
+```cpp
+enum AuthenticationState
+```
+
+Result returned by [ServerObserver::authenticateRequest()](#authenticaterequest-1) to control how the server proceeds with an incoming STUN request.
+
+| Value | Description |
+|-------|-------------|
+| `Authenticating` | Authentication is in progress; server holds the request. |
+| `Authorized` | Credentials verified; request may proceed. |
+| `QuotaReached` | User quota exceeded; respond with 486. |
+| `NotAuthorized` | Credentials rejected; respond with 401. |
+
+### Variables
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `constexpr std::int64_t` | [`kClientTimerInterval`](#kclienttimerinterval) `static` | [Timer](#classicy_1_1Timer) interval for client maintenance (30 seconds) |
+| `constexpr std::int64_t` | [`kClientDefaultLifetime`](#kclientdefaultlifetime) `static` | Default client allocation lifetime (5 minutes, in milliseconds) |
+| `constexpr long` | [`kClientDefaultTimeout`](#kclientdefaulttimeout) `static` | Default client transaction timeout (10 seconds) |
+| `constexpr std::int64_t` | [`kDefaultAllocationLifetime`](#kdefaultallocationlifetime) `static` | Default allocation lifetime: 10 minutes (in milliseconds) |
+| `constexpr int` | [`PERMISSION_LIFETIME`](#permission_lifetime) `static` | [Permission](#permission) Lifetime MUST be 300 seconds (= 5 minutes). |
+| `constexpr uint32_t` | [`kServerDefaultLifetime`](#kserverdefaultlifetime) `static` | Default server allocation lifetime (2 minutes, in milliseconds) |
+| `constexpr uint32_t` | [`kServerMaxLifetime`](#kservermaxlifetime) `static` | Maximum server allocation lifetime (15 minutes, in milliseconds) |
+| `constexpr int` | [`kServerMaxPermissions`](#kservermaxpermissions) `static` | Maximum number of permissions per allocation. |
+| `constexpr int` | [`kServerTimerInterval`](#kservertimerinterval) `static` | [Server](#server-6) timer interval (10 seconds) |
+| `constexpr int` | [`kServerEarlyMediaBufferSize`](#kserverearlymediabuffersize) `static` | Early media buffer size. |
+| `constexpr int` | [`kConnectionBindTimeout`](#kconnectionbindtimeout) `static` | ConnectionBind request timeout (30 seconds, in milliseconds) |
+| `constexpr int` | [`CLIENT_SOCK_BUF_SIZE`](#client_sock_buf_size) `static` |  |
+| `constexpr int` | [`SERVER_SOCK_BUF_SIZE`](#server_sock_buf_size) `static` |  |
+| `constexpr uint8_t` | [`kProtocolUDP`](#kprotocoludp) `static` | TURN protocol numbers. |
+| `constexpr uint8_t` | [`kProtocolTCP`](#kprotocoltcp) `static` |  |
+| `constexpr int` | [`kErrorTryAlternate`](#kerrortryalternate) `static` | TURN/STUN error codes used in this module. |
+| `constexpr int` | [`kErrorBadRequest`](#kerrorbadrequest) `static` |  |
+| `constexpr int` | [`kErrorNotAuthorized`](#kerrornotauthorized) `static` |  |
+| `constexpr int` | [`kErrorForbidden`](#kerrorforbidden) `static` |  |
+| `constexpr int` | [`kErrorUnknownAttribute`](#kerrorunknownattribute) `static` |  |
+| `constexpr int` | [`kErrorUnsupportedTransport`](#kerrorunsupportedtransport) `static` |  |
+| `constexpr int` | [`kErrorAllocationMismatch`](#kerrorallocationmismatch) `static` |  |
+| `constexpr int` | [`kErrorStaleNonce`](#kerrorstalenonce) `static` |  |
+| `constexpr int` | [`kErrorWrongCredentials`](#kerrorwrongcredentials) `static` |  |
+| `constexpr int` | [`kErrorConnectionAlreadyExists`](#kerrorconnectionalreadyexists) `static` |  |
+| `constexpr int` | [`kErrorConnectionTimeoutOrFailure`](#kerrorconnectiontimeoutorfailure) `static` |  |
+| `constexpr int` | [`kErrorAllocationQuotaReached`](#kerrorallocationquotareached) `static` |  |
+| `constexpr int` | [`kErrorInsufficientCapacity`](#kerrorinsufficientcapacity) `static` |  |
+| `constexpr int` | [`kErrorOperationNotSupported`](#kerroroperationnotsupported) `static` |  |
+
+---
+
+{#kclienttimerinterval}
+
+#### kClientTimerInterval
+
+`static`
+
+```cpp
+constexpr std::int64_t kClientTimerInterval = 30 * 1000
+```
+
+[Timer](#classicy_1_1Timer) interval for client maintenance (30 seconds)
+
+---
+
+{#kclientdefaultlifetime}
+
+#### kClientDefaultLifetime
+
+`static`
+
+```cpp
+constexpr std::int64_t kClientDefaultLifetime = 5 * 60 * 1000
+```
+
+Default client allocation lifetime (5 minutes, in milliseconds)
+
+---
+
+{#kclientdefaulttimeout}
+
+#### kClientDefaultTimeout
+
+`static`
+
+```cpp
+constexpr long kClientDefaultTimeout = 10 * 1000
+```
+
+Default client transaction timeout (10 seconds)
+
+---
+
+{#kdefaultallocationlifetime}
+
+#### kDefaultAllocationLifetime
+
+`static`
+
+```cpp
+constexpr std::int64_t kDefaultAllocationLifetime = 10 * 60 * 1000
+```
+
+Default allocation lifetime: 10 minutes (in milliseconds)
+
+---
+
+{#permission_lifetime}
+
+#### PERMISSION_LIFETIME
+
+`static`
+
+```cpp
+constexpr int PERMISSION_LIFETIME = 5 * 60 * 1000
+```
+
+[Permission](#permission) Lifetime MUST be 300 seconds (= 5 minutes).
+
+---
+
+{#kserverdefaultlifetime}
+
+#### kServerDefaultLifetime
+
+`static`
+
+```cpp
+constexpr uint32_t kServerDefaultLifetime = 2 * 60 * 1000
+```
+
+Default server allocation lifetime (2 minutes, in milliseconds)
+
+---
+
+{#kservermaxlifetime}
+
+#### kServerMaxLifetime
+
+`static`
+
+```cpp
+constexpr uint32_t kServerMaxLifetime = 15 * 60 * 1000
+```
+
+Maximum server allocation lifetime (15 minutes, in milliseconds)
+
+---
+
+{#kservermaxpermissions}
+
+#### kServerMaxPermissions
+
+`static`
+
+```cpp
+constexpr int kServerMaxPermissions = 10
+```
+
+Maximum number of permissions per allocation.
+
+---
+
+{#kservertimerinterval}
+
+#### kServerTimerInterval
+
+`static`
+
+```cpp
+constexpr int kServerTimerInterval = 10 * 1000
+```
+
+[Server](#server-6) timer interval (10 seconds)
+
+---
+
+{#kserverearlymediabuffersize}
+
+#### kServerEarlyMediaBufferSize
+
+`static`
+
+```cpp
+constexpr int kServerEarlyMediaBufferSize = 8192
+```
+
+Early media buffer size.
+
+---
+
+{#kconnectionbindtimeout}
+
+#### kConnectionBindTimeout
+
+`static`
+
+```cpp
+constexpr int kConnectionBindTimeout = 30 * 1000
+```
+
+ConnectionBind request timeout (30 seconds, in milliseconds)
+
+---
+
+{#client_sock_buf_size}
+
+#### CLIENT_SOCK_BUF_SIZE
+
+`static`
+
+```cpp
+constexpr int CLIENT_SOCK_BUF_SIZE = 65536
+```
+
+---
+
+{#server_sock_buf_size}
+
+#### SERVER_SOCK_BUF_SIZE
+
+`static`
+
+```cpp
+constexpr int SERVER_SOCK_BUF_SIZE = CLIENT_SOCK_BUF_SIZE * 32
+```
+
+---
+
+{#kprotocoludp}
+
+#### kProtocolUDP
+
+`static`
+
+```cpp
+constexpr uint8_t kProtocolUDP = 17
+```
+
+TURN protocol numbers.
+
+---
+
+{#kprotocoltcp}
+
+#### kProtocolTCP
+
+`static`
+
+```cpp
+constexpr uint8_t kProtocolTCP = 6
+```
+
+---
+
+{#kerrortryalternate}
+
+#### kErrorTryAlternate
+
+`static`
+
+```cpp
+constexpr int kErrorTryAlternate = 300
+```
+
+TURN/STUN error codes used in this module.
+
+---
+
+{#kerrorbadrequest}
+
+#### kErrorBadRequest
+
+`static`
+
+```cpp
+constexpr int kErrorBadRequest = 400
+```
+
+---
+
+{#kerrornotauthorized}
+
+#### kErrorNotAuthorized
+
+`static`
+
+```cpp
+constexpr int kErrorNotAuthorized = 401
+```
+
+---
+
+{#kerrorforbidden}
+
+#### kErrorForbidden
+
+`static`
+
+```cpp
+constexpr int kErrorForbidden = 403
+```
+
+---
+
+{#kerrorunknownattribute}
+
+#### kErrorUnknownAttribute
+
+`static`
+
+```cpp
+constexpr int kErrorUnknownAttribute = 420
+```
+
+---
+
+{#kerrorunsupportedtransport}
+
+#### kErrorUnsupportedTransport
+
+`static`
+
+```cpp
+constexpr int kErrorUnsupportedTransport = 442
+```
+
+---
+
+{#kerrorallocationmismatch}
+
+#### kErrorAllocationMismatch
+
+`static`
+
+```cpp
+constexpr int kErrorAllocationMismatch = 437
+```
+
+---
+
+{#kerrorstalenonce}
+
+#### kErrorStaleNonce
+
+`static`
+
+```cpp
+constexpr int kErrorStaleNonce = 438
+```
+
+---
+
+{#kerrorwrongcredentials}
+
+#### kErrorWrongCredentials
+
+`static`
+
+```cpp
+constexpr int kErrorWrongCredentials = 441
+```
+
+---
+
+{#kerrorconnectionalreadyexists}
+
+#### kErrorConnectionAlreadyExists
+
+`static`
+
+```cpp
+constexpr int kErrorConnectionAlreadyExists = 446
+```
+
+---
+
+{#kerrorconnectiontimeoutorfailure}
+
+#### kErrorConnectionTimeoutOrFailure
+
+`static`
+
+```cpp
+constexpr int kErrorConnectionTimeoutOrFailure = 447
+```
+
+---
+
+{#kerrorallocationquotareached}
+
+#### kErrorAllocationQuotaReached
+
+`static`
+
+```cpp
+constexpr int kErrorAllocationQuotaReached = 486
+```
+
+---
+
+{#kerrorinsufficientcapacity}
+
+#### kErrorInsufficientCapacity
+
+`static`
+
+```cpp
+constexpr int kErrorInsufficientCapacity = 508
+```
+
+---
+
+{#kerroroperationnotsupported}
+
+#### kErrorOperationNotSupported
+
+`static`
+
+```cpp
+constexpr int kErrorOperationNotSupported = 600
+```
+
+{#client-2}
+
+## Client
+
+```cpp
+#include <client.h>
+```
+
+> **Inherits:** [`Stateful< ClientState >`](#classicy_1_1Stateful), [`IAllocation`](#iallocation)
+> **Subclassed by:** [`TCPClient`](#tcpclient), [`UDPClient`](#udpclient)
+
+TURN client that manages relay allocations, permissions, and data relay via RFC 5766.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`Client`](#client-3)  | #### Parameters |
+| `void` | [`initiate`](#initiate) `virtual` | Connects the socket to the TURN server and starts the allocation sequence. Permissions must be added via [addPermission()](#addpermission) before calling this. |
+| `void` | [`shutdown`](#shutdown-11) `virtual` | Stops the timer, cancels pending transactions, and closes the socket. |
+| `void` | [`sendAllocate`](#sendallocate) `virtual` | Sends an Allocate request to the server with the configured transport and lifetime. On first call the server will typically respond with a 401 challenge; the client re-sends with credentials automatically. |
+| `void` | [`addPermission`](#addpermission) `virtual` | Adds multiple peer IP addresses to the permission list.  |
+| `void` | [`addPermission`](#addpermission-1) `virtual` | Adds a single peer IP to the permission list, or refreshes it if already present. Permissions should be added before [initiate()](#initiate); they may also be added later, in which case a new CreatePermission request is required.  |
+| `void` | [`sendCreatePermission`](#sendcreatepermission) `virtual` | Sends a CreatePermission request for all IPs currently in the permission list. Called automatically after allocation succeeds and periodically by the timer to refresh expiring permissions. |
+| `void` | [`sendChannelBind`](#sendchannelbind) `virtual` | Channel bindings (RFC 5766 Section 11) are intentionally not implemented. They are a bandwidth optimization that replaces STUN-framed Send/Data indications with a compact 4-byte ChannelData header. This only benefits high-throughput media relay scenarios; in practice, media flows directly via ICE/DTLS rather than through this TURN client's data path, so the optimization is not worth the complexity (channel number allocation, 10-minute binding refresh timers, ChannelData wire framing). Data relay uses [sendData()](#senddata) with Send Indications instead.  |
+| `void` | [`sendRefresh`](#sendrefresh) `virtual` | Sends a Refresh request to extend the allocation lifetime. Called automatically by the timer when roughly one-third of the lifetime remains. |
+| `void` | [`sendData`](#senddata) `virtual` | Sends a Send Indication to relay `data` to `peerAddress` through the TURN server. If permissions are still being negotiated the indication is queued and flushed once CreatePermission succeeds.  |
+| `bool` | [`handleResponse`](#handleresponse) `virtual` | Dispatches an incoming STUN/TURN response to the appropriate handler.  |
+| `void` | [`handleAllocateResponse`](#handleallocateresponse) `virtual` | Processes a successful Allocate response; extracts mapped/relayed addresses and advances the state to Authorizing, then sends CreatePermission.  |
+| `void` | [`handleAllocateErrorResponse`](#handleallocateerrorresponse) `virtual` | Handles an Allocate error response; manages the 401 challenge/re-send flow and sets the client to Failed for unrecoverable errors.  |
+| `void` | [`handleCreatePermissionResponse`](#handlecreatepermissionresponse) `virtual` | Handles a successful CreatePermission response; flushes queued Send Indications and advances state to Success.  |
+| `void` | [`handleCreatePermissionErrorResponse`](#handlecreatepermissionerrorresponse) `virtual` | Handles a failed CreatePermission response; clears all permissions and sets the client to Failed.  |
+| `void` | [`handleRefreshResponse`](#handlerefreshresponse) `virtual` | Handles a Refresh response; updates the stored lifetime.  |
+| `void` | [`handleDataIndication`](#handledataindication) `virtual` | Handles an incoming Data Indication; extracts peer address and data and forwards to [ClientObserver::onRelayDataReceived()](#onrelaydatareceived-1).  |
+| `int` | [`transportProtocol`](#transportprotocol) `virtual` | #### Returns |
+| `stun::Transaction::Ptr` | [`createTransaction`](#createtransaction) `virtual` | Creates a new STUN transaction, registers the progress callback, and adds it to the active transaction list.  |
+| `void` | [`authenticateRequest`](#authenticaterequest) `virtual` | Adds STUN long-term credential attributes (Username, Realm, Nonce, MessageIntegrity) to `request` if the realm has been received from the server.  |
+| `bool` | [`sendAuthenticatedTransaction`](#sendauthenticatedtransaction) `virtual` | Calls [authenticateRequest()](#authenticaterequest) then sends the transaction.  |
+| `stun::Transaction::Ptr` | [`removeTransaction`](#removetransaction) `virtual` | Removes a transaction from the active list. The [IntrusivePtr](#classicy_1_1IntrusivePtr) keeps the object alive until the caller's copy is released.  |
+| `net::Address` | [`mappedAddress`](#mappedaddress) `const` | #### Returns |
+| `net::Address` | [`relayedAddress`](#relayedaddress) `virtual` `const` | #### Returns |
+| `bool` | [`closed`](#closed-5) `const` | #### Returns |
+| `ClientObserver &` | [`observer`](#observer-1)  | #### Returns |
+| `const Options &` | [`options`](#options-8) `const` | #### Returns |
+| `void` | [`addPermission`](#addpermission-2) `virtual` | Adds a permission for `ip`, or refreshes the existing one.  |
+| `void` | [`addPermission`](#addpermission-3) `virtual` | Adds a permission for `address`, or refreshes the existing one. The port is ignored; TURN permissions are IP-only. |
+| `bool` | [`hasPermission`](#haspermission) `virtual` | Checks whether a permission exists for `peerIP`. Local addresses (192.168.x.x and 127.x.x.x) are always permitted.  |
+| `bool` | [`hasPermission`](#haspermission-1) `virtual` | Checks whether a permission exists for `peerAddress`. The port is ignored; TURN permissions are IP-only. |
+| `void` | [`removePermission`](#removepermission) `virtual` | Removes the permission for `ip` if present.  |
+| `void` | [`removePermission`](#removepermission-1) `virtual` | Removes the permission for `address` if present. The port is ignored; TURN permissions are IP-only. |
+
+---
+
+{#client-3}
+
+#### Client
 
 ```cpp
 Client(ClientObserver & observer, const Options & options, const net::Socket::Ptr & socket)
 ```
 
+#### Parameters
+* `observer` Observer to receive lifecycle and data callbacks. 
+
+* `options` [Configuration](#classicy_1_1Configuration) for this client instance. 
+
+* `socket` Underlying transport socket (TCP or UDP).
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `observer` | `ClientObserver &` |  |
-| `options` | `const Options &` |  |
-| `socket` | `const net::Socket::Ptr &` |  |
+| `observer` | `[ClientObserver](#clientobserver) &` |  |
+| `options` | `const [Options](#options-9) &` |  |
+| `socket` | `const [net::Socket::Ptr](#ptr-4) &` |  |
 
 ---
 
-#### ~Client 
+{#initiate}
 
-```cpp
-virtual ~Client()
-```
+#### initiate
 
----
-
-#### initiate 
+`virtual`
 
 ```cpp
 virtual void initiate()
 ```
 
-Initiates the allocation sequence.
+Connects the socket to the TURN server and starts the allocation sequence. Permissions must be added via [addPermission()](#addpermission) before calling this.
 
 ---
 
-#### shutdown 
+{#shutdown-11}
+
+#### shutdown
+
+`virtual`
 
 ```cpp
 virtual void shutdown()
 ```
 
-Shutdown the client and destroy the active allocation.
+Stops the timer, cancels pending transactions, and closes the socket.
 
 ---
 
-#### sendAllocate 
+{#sendallocate}
+
+#### sendAllocate
+
+`virtual`
 
 ```cpp
 virtual void sendAllocate()
 ```
 
-Sends the allocation request.
+Sends an Allocate request to the server with the configured transport and lifetime. On first call the server will typically respond with a 401 challenge; the client re-sends with credentials automatically.
 
 ---
 
-#### addPermission 
+{#addpermission}
+
+#### addPermission
+
+`virtual`
 
 ```cpp
 virtual void addPermission(const IPList & peerIPs)
 ```
 
+Adds multiple peer IP addresses to the permission list. 
+#### Parameters
+* `peerIPs` List of IPv4 address strings to permit.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `peerIPs` | `const IPList &` |  |
+| `peerIPs` | `const [IPList](#namespaceicy_1_1turn_1a77672906ed98cc6cc47131f0f0da1720) &` |  |
 
 ---
 
-#### addPermission 
+{#addpermission-1}
+
+#### addPermission
+
+`virtual`
 
 ```cpp
 virtual void addPermission(const std::string & ip)
 ```
 
-Peer permissions should be added/created before we kick off the allocation sequence, but may be added later.
+Adds a single peer IP to the permission list, or refreshes it if already present. Permissions should be added before [initiate()](#initiate); they may also be added later, in which case a new CreatePermission request is required. 
+#### Parameters
+* `ip` IPv4 address string of the permitted peer.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -163,23 +629,33 @@ Peer permissions should be added/created before we kick off the allocation seque
 
 ---
 
-#### sendCreatePermission 
+{#sendcreatepermission}
+
+#### sendCreatePermission
+
+`virtual`
 
 ```cpp
 virtual void sendCreatePermission()
 ```
 
-Sends a CreatePermission request including all hosts.
-
-A CreatePermission request will be sent as soon as the Allocation is created, and at timer x intervals.
+Sends a CreatePermission request for all IPs currently in the permission list. Called automatically after allocation succeeds and periodically by the timer to refresh expiring permissions.
 
 ---
 
-#### sendChannelBind 
+{#sendchannelbind}
+
+#### sendChannelBind
+
+`virtual`
 
 ```cpp
 virtual void sendChannelBind(const std::string & peerIP)
 ```
+
+Channel bindings (RFC 5766 Section 11) are intentionally not implemented. They are a bandwidth optimization that replaces STUN-framed Send/Data indications with a compact 4-byte ChannelData header. This only benefits high-throughput media relay scenarios; in practice, media flows directly via ICE/DTLS rather than through this TURN client's data path, so the optimization is not worth the complexity (channel number allocation, 10-minute binding refresh timers, ChannelData wire framing). Data relay uses [sendData()](#senddata) with Send Indications instead. 
+#### Parameters
+* `peerIP` Unused; always throws std::logic_error.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -187,293 +663,502 @@ virtual void sendChannelBind(const std::string & peerIP)
 
 ---
 
-#### sendRefresh 
+{#sendrefresh}
+
+#### sendRefresh
+
+`virtual`
 
 ```cpp
 virtual void sendRefresh()
 ```
 
+Sends a Refresh request to extend the allocation lifetime. Called automatically by the timer when roughly one-third of the lifetime remains.
+
 ---
 
-#### sendData 
+{#senddata}
+
+#### sendData
+
+`virtual`
 
 ```cpp
 virtual void sendData(const char * data, size_t size, const net::Address & peerAddress)
 ```
 
+Sends a Send Indication to relay `data` to `peerAddress` through the TURN server. If permissions are still being negotiated the indication is queued and flushed once CreatePermission succeeds. 
+#### Parameters
+* `data` Pointer to the payload to relay. 
+
+* `size` Number of bytes to relay. 
+
+* `peerAddress` Destination peer address (must have an active permission).
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `data` | `const char *` |  |
 | `size` | `size_t` |  |
-| `peerAddress` | `const net::Address &` |  |
+| `peerAddress` | `const [net::Address](#address) &` |  |
 
 ---
 
-#### handleResponse 
+{#handleresponse}
+
+#### handleResponse
+
+`virtual`
 
 ```cpp
 virtual bool handleResponse(const stun::Message & response)
 ```
 
+Dispatches an incoming STUN/TURN response to the appropriate handler. 
+#### Parameters
+* `response` Received STUN message. 
+
+#### Returns
+true if the message was handled, false if it was unrecognised.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `response` | `const stun::Message &` |  |
+| `response` | `const [stun::Message](#message-5) &` |  |
 
 ---
 
-#### handleAllocateResponse 
+{#handleallocateresponse}
+
+#### handleAllocateResponse
+
+`virtual`
 
 ```cpp
 virtual void handleAllocateResponse(const stun::Message & response)
 ```
 
+Processes a successful Allocate response; extracts mapped/relayed addresses and advances the state to Authorizing, then sends CreatePermission. 
+#### Parameters
+* `response` Allocate success response from the server.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `response` | `const stun::Message &` |  |
+| `response` | `const [stun::Message](#message-5) &` |  |
 
 ---
 
-#### handleAllocateErrorResponse 
+{#handleallocateerrorresponse}
+
+#### handleAllocateErrorResponse
+
+`virtual`
 
 ```cpp
 virtual void handleAllocateErrorResponse(const stun::Message & response)
 ```
 
+Handles an Allocate error response; manages the 401 challenge/re-send flow and sets the client to Failed for unrecoverable errors. 
+#### Parameters
+* `response` Allocate error response from the server.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `response` | `const stun::Message &` |  |
+| `response` | `const [stun::Message](#message-5) &` |  |
 
 ---
 
-#### handleCreatePermissionResponse 
+{#handlecreatepermissionresponse}
+
+#### handleCreatePermissionResponse
+
+`virtual`
 
 ```cpp
 virtual void handleCreatePermissionResponse(const stun::Message & response)
 ```
 
+Handles a successful CreatePermission response; flushes queued Send Indications and advances state to Success. 
+#### Parameters
+* `response` CreatePermission success response from the server.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `response` | `const stun::Message &` |  |
+| `response` | `const [stun::Message](#message-5) &` |  |
 
 ---
 
-#### handleCreatePermissionErrorResponse 
+{#handlecreatepermissionerrorresponse}
+
+#### handleCreatePermissionErrorResponse
+
+`virtual`
 
 ```cpp
 virtual void handleCreatePermissionErrorResponse(const stun::Message & response)
 ```
 
+Handles a failed CreatePermission response; clears all permissions and sets the client to Failed. 
+#### Parameters
+* `response` CreatePermission error response from the server.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `response` | `const stun::Message &` |  |
+| `response` | `const [stun::Message](#message-5) &` |  |
 
 ---
 
-#### handleRefreshResponse 
+{#handlerefreshresponse}
+
+#### handleRefreshResponse
+
+`virtual`
 
 ```cpp
 virtual void handleRefreshResponse(const stun::Message & response)
 ```
 
+Handles a Refresh response; updates the stored lifetime. 
+#### Parameters
+* `response` Refresh response from the server.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `response` | `const stun::Message &` |  |
+| `response` | `const [stun::Message](#message-5) &` |  |
 
 ---
 
-#### handleDataIndication 
+{#handledataindication}
+
+#### handleDataIndication
+
+`virtual`
 
 ```cpp
 virtual void handleDataIndication(const stun::Message & response)
 ```
 
+Handles an incoming Data Indication; extracts peer address and data and forwards to [ClientObserver::onRelayDataReceived()](#onrelaydatareceived-1). 
+#### Parameters
+* `response` Data Indication message from the server.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `response` | `const stun::Message &` |  |
+| `response` | `const [stun::Message](#message-5) &` |  |
 
 ---
 
-#### transportProtocol 
+{#transportprotocol}
+
+#### transportProtocol
+
+`virtual`
 
 ```cpp
 virtual int transportProtocol()
 ```
 
+#### Returns
+The IANA protocol number for the underlying transport (kProtocolUDP or kProtocolTCP).
+
 ---
 
-#### createTransaction 
+{#createtransaction}
+
+#### createTransaction
+
+`virtual`
 
 ```cpp
-virtual stun::Transaction * createTransaction(const net::Socket::Ptr & socket)
+virtual stun::Transaction::Ptr createTransaction(const net::Socket::Ptr & socket)
 ```
+
+Creates a new STUN transaction, registers the progress callback, and adds it to the active transaction list. 
+#### Parameters
+* `socket` Optional override socket; uses the control socket if nullptr. 
+
+#### Returns
+[IntrusivePtr](#classicy_1_1IntrusivePtr) to the new transaction.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `const net::Socket::Ptr &` |  |
+| `socket` | `const [net::Socket::Ptr](#ptr-4) &` |  |
 
 ---
 
-#### authenticateRequest 
+{#authenticaterequest}
+
+#### authenticateRequest
+
+`virtual`
 
 ```cpp
 virtual void authenticateRequest(stun::Message & request)
 ```
 
+Adds STUN long-term credential attributes (Username, Realm, Nonce, MessageIntegrity) to `request` if the realm has been received from the server. 
+#### Parameters
+* `request` Message to decorate with authentication attributes.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `request` | `stun::Message &` |  |
+| `request` | `[stun::Message](#message-5) &` |  |
 
 ---
 
-#### sendAuthenticatedTransaction 
+{#sendauthenticatedtransaction}
+
+#### sendAuthenticatedTransaction
+
+`virtual`
 
 ```cpp
 virtual bool sendAuthenticatedTransaction(stun::Transaction * transaction)
 ```
 
+Calls [authenticateRequest()](#authenticaterequest) then sends the transaction. 
+#### Parameters
+* `transaction` Transaction whose request to authenticate and send. 
+
+#### Returns
+true if the send succeeded.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `transaction` | `stun::Transaction *` |  |
+| `transaction` | `[stun::Transaction](#transaction-2) *` |  |
 
 ---
 
-#### removeTransaction 
+{#removetransaction}
+
+#### removeTransaction
+
+`virtual`
 
 ```cpp
-virtual bool removeTransaction(stun::Transaction * transaction)
+virtual stun::Transaction::Ptr removeTransaction(stun::Transaction * transaction)
 ```
+
+Removes a transaction from the active list. The [IntrusivePtr](#classicy_1_1IntrusivePtr) keeps the object alive until the caller's copy is released. 
+#### Parameters
+* `transaction` Transaction to remove. 
+
+#### Returns
+The removed Ptr, or nullptr if not found.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `transaction` | `stun::Transaction *` |  |
+| `transaction` | `[stun::Transaction](#transaction-2) *` |  |
 
 ---
 
-#### mappedAddress 
+{#mappedaddress}
+
+#### mappedAddress
+
+`const`
 
 ```cpp
 net::Address mappedAddress() const
 ```
 
+#### Returns
+The server-reflexive (mapped) address assigned by the TURN server.
+
 ---
 
-#### relayedAddress 
+{#relayedaddress}
+
+#### relayedAddress
+
+`virtual` `const`
 
 ```cpp
 virtual net::Address relayedAddress() const
 ```
 
+#### Returns
+The relayed transport address assigned by the TURN server.
+
 ---
 
-#### closed 
+{#closed-5}
+
+#### closed
+
+`const`
 
 ```cpp
 bool closed() const
 ```
 
+#### Returns
+true when the client is in the None or Failed state.
+
 ---
 
-#### observer 
+{#observer-1}
+
+#### observer
 
 ```cpp
 ClientObserver & observer()
 ```
 
----
-
-#### options 
-
-```cpp
-Options & options()
-```
+#### Returns
+Reference to the observer provided at construction.
 
 ---
 
-#### setError 
+{#options-8}
+
+#### options
+
+`const`
 
 ```cpp
-virtual void setError(const [icy::Error](./doc/api-base.md#structicy_1_1Error) & error)
+const Options & options() const
 ```
+
+#### Returns
+Reference to the immutable options struct.
+
+---
+
+{#addpermission-2}
+
+#### addPermission
+
+`virtual`
+
+```cpp
+virtual void addPermission(const std::string & ip)
+```
+
+Adds a permission for `ip`, or refreshes the existing one. 
+#### Parameters
+* `ip` IPv4 address string to permit.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `error` | `const [icy::Error](./doc/api-base.md#structicy_1_1Error) &` |  |
+| `ip` | `const std::string &` |  |
 
 ---
 
-#### onSocketConnect 
+{#addpermission-3}
+
+#### addPermission
+
+`virtual`
 
 ```cpp
-virtual void onSocketConnect(net::Socket & socket)
+virtual void addPermission(const net::Address & address)
 ```
+
+Adds a permission for `address`, or refreshes the existing one. The port is ignored; TURN permissions are IP-only.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `net::Socket &` |  |
+| `address` | `const [net::Address](#address) &` |  |
 
 ---
 
-#### onSocketRecv 
+{#haspermission}
+
+#### hasPermission
+
+`virtual`
 
 ```cpp
-virtual void onSocketRecv(net::Socket & socket, const MutableBuffer & buffer, const net::Address & peerAddress)
+virtual bool hasPermission(const std::string & peerIP)
 ```
+
+Checks whether a permission exists for `peerIP`. Local addresses (192.168.x.x and 127.x.x.x) are always permitted. 
+#### Parameters
+* `peerIP` IPv4 address string to check. 
+
+#### Returns
+true if a valid (non-expired) permission exists.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `net::Socket &` |  |
-| `buffer` | `const MutableBuffer &` |  |
-| `peerAddress` | `const net::Address &` |  |
+| `peerIP` | `const std::string &` |  |
 
 ---
 
-#### onSocketClose 
+{#haspermission-1}
+
+#### hasPermission
+
+`virtual`
 
 ```cpp
-virtual void onSocketClose(net::Socket & socket)
+virtual bool hasPermission(const net::Address & peerAddress)
 ```
+
+Checks whether a permission exists for `peerAddress`. The port is ignored; TURN permissions are IP-only.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `net::Socket &` |  |
+| `peerAddress` | `const [net::Address](#address) &` |  |
 
 ---
 
-#### onTransactionProgress 
+{#removepermission}
+
+#### removePermission
+
+`virtual`
 
 ```cpp
-virtual void onTransactionProgress(void * sender, TransactionState & state, const TransactionState &)
+virtual void removePermission(const std::string & ip)
 ```
+
+Removes the permission for `ip` if present. 
+#### Parameters
+* `ip` IPv4 address string to remove.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `sender` | `void *` |  |
-| `state` | `TransactionState &` |  |
+| `ip` | `const std::string &` |  |
 
 ---
 
-#### onStateChange 
+{#removepermission-1}
+
+#### removePermission
+
+`virtual`
 
 ```cpp
-virtual void onStateChange(ClientState & state, const ClientState & oldState)
+virtual void removePermission(const net::Address & address)
 ```
+
+Removes the permission for `address` if present. The port is ignored; TURN permissions are IP-only.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `state` | `ClientState &` |  |
-| `oldState` | `const ClientState &` |  |
+| `address` | `const [net::Address](#address) &` |  |
+
+### Protected Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `ClientObserver &` | [`_observer`](#_observer-1)  |  |
+| `Options` | [`_options`](#_options-3)  |  |
+| `net::SocketEmitter` | [`_socket`](#_socket-3)  |  |
+| `Timer` | [`_timer`](#_timer-1)  |  |
+| `icy::Error` | [`_error`](#_error-5)  |  |
+| `net::Address` | [`_mappedAddress`](#_mappedaddress)  |  |
+| `net::Address` | [`_relayedAddress`](#_relayedaddress)  |  |
+| `std::string` | [`_realm`](#_realm)  |  |
+| `std::string` | [`_nonce`](#_nonce)  |  |
+| `std::deque< stun::Message >` | [`_pendingIndications`](#_pendingindications)  | A list of queued Send indication packets awaiting server permissions. |
+| `std::vector< stun::Transaction::Ptr >` | [`_transactions`](#_transactions)  | A list containing currently active transactions. |
 
 ---
 
-#### onTimer 
+{#_observer-1}
 
-```cpp
-virtual void onTimer()
-```
-
----
-
-#### _observer 
+#### _observer
 
 ```cpp
 ClientObserver & _observer
@@ -481,7 +1166,9 @@ ClientObserver & _observer
 
 ---
 
-#### _options 
+{#_options-3}
+
+#### _options
 
 ```cpp
 Options _options
@@ -489,7 +1176,9 @@ Options _options
 
 ---
 
-#### _socket 
+{#_socket-3}
+
+#### _socket
 
 ```cpp
 net::SocketEmitter _socket
@@ -497,7 +1186,9 @@ net::SocketEmitter _socket
 
 ---
 
-#### _timer 
+{#_timer-1}
+
+#### _timer
 
 ```cpp
 Timer _timer
@@ -505,15 +1196,19 @@ Timer _timer
 
 ---
 
-#### _error 
+{#_error-5}
+
+#### _error
 
 ```cpp
-[icy::Error](./doc/api-base.md#structicy_1_1Error) _error
+icy::Error _error
 ```
 
 ---
 
-#### _mappedAddress 
+{#_mappedaddress}
+
+#### _mappedAddress
 
 ```cpp
 net::Address _mappedAddress
@@ -521,7 +1216,9 @@ net::Address _mappedAddress
 
 ---
 
-#### _relayedAddress 
+{#_relayedaddress}
+
+#### _relayedAddress
 
 ```cpp
 net::Address _relayedAddress
@@ -529,7 +1226,9 @@ net::Address _relayedAddress
 
 ---
 
-#### _realm 
+{#_realm}
+
+#### _realm
 
 ```cpp
 std::string _realm
@@ -537,7 +1236,9 @@ std::string _realm
 
 ---
 
-#### _nonce 
+{#_nonce}
+
+#### _nonce
 
 ```cpp
 std::string _nonce
@@ -545,7 +1246,9 @@ std::string _nonce
 
 ---
 
-#### _pendingIndications 
+{#_pendingindications}
+
+#### _pendingIndications
 
 ```cpp
 std::deque< stun::Message > _pendingIndications
@@ -555,42 +1258,195 @@ A list of queued Send indication packets awaiting server permissions.
 
 ---
 
-#### _transactions 
+{#_transactions}
+
+#### _transactions
 
 ```cpp
-std::vector< stun::Transaction * > _transactions
+std::vector< stun::Transaction::Ptr > _transactions
 ```
 
 A list containing currently active transactions.
 
-## Options 
+### Protected Methods
 
-> **Defined in:** `client.h`
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`Options`](#group__turn_1gae926546e19d8fd9a7fab86271b96a54f) |  |
-| [`software`](#group__turn_1ga5353220869e0f09239060488ecdb7fef) |  |
-| [`username`](#group__turn_1gac72217fb6b73d1d050c84379189354a5) |  |
-| [`password`](#group__turn_1ga90e75f93e08bd392b9def185c4f29ec1) |  |
-| [`timeout`](#group__turn_1ga3b36f9f68df1b465c1046b88529ccf69) |  |
-| [`lifetime`](#group__turn_1ga7dc6b1fc053f08ec22d0f2f97084d996) |  |
-| [`timerInterval`](#group__turn_1ga50b1abb4fea151715d0c93b5ac675f30) |  |
-| [`serverAddr`](#group__turn_1gaca69ae3e4cb351a623def3f8ca67a950) |  |
+| Return | Name | Description |
+|--------|------|-------------|
+| `void` | [`setError`](#seterror-5) `virtual` | Sets the error field and transitions the client to the Failed state.  |
+| `bool` | [`onSocketConnect`](#onsocketconnect-5) `virtual` | Socket connect callback; starts the timer and sends the first Allocate request.  |
+| `bool` | [`onSocketRecv`](#onsocketrecv-7) `virtual` | Socket receive callback; parses STUN messages from the buffer and dispatches them.  |
+| `bool` | [`onSocketClose`](#onsocketclose-5) `virtual` | Socket close callback; shuts down the client and records the socket error.  |
+| `void` | [`onTransactionProgress`](#ontransactionprogress) `virtual` | STUN transaction state-change callback; handles Success and Failed outcomes.  |
+| `void` | [`onStateChange`](#onstatechange-1)  | Forwards state-change events to the observer. |
+| `void` | [`onTimer`](#ontimer-1) `virtual` | Periodic timer callback; re-allocates on expiry or refreshes when lifetime is below one-third remaining. Also calls [ClientObserver::onTimer()](#ontimer-5). |
 
 ---
 
-#### Options 
+{#seterror-5}
+
+#### setError
+
+`virtual`
 
 ```cpp
-inline Options()
+virtual void setError(const icy::Error & error)
 ```
+
+Sets the error field and transitions the client to the Failed state. 
+#### Parameters
+* `error` [Error](#structicy_1_1Error) descriptor.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `error` | `const [icy::Error](#structicy_1_1Error) &` |  |
 
 ---
 
-#### software 
+{#onsocketconnect-5}
+
+#### onSocketConnect
+
+`virtual`
+
+```cpp
+virtual bool onSocketConnect(net::Socket & socket)
+```
+
+Socket connect callback; starts the timer and sends the first Allocate request. 
+#### Parameters
+* `socket` The connected socket.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `socket` | `[net::Socket](#socket) &` |  |
+
+---
+
+{#onsocketrecv-7}
+
+#### onSocketRecv
+
+`virtual`
+
+```cpp
+virtual bool onSocketRecv(net::Socket & socket, const MutableBuffer & buffer, const net::Address & peerAddress)
+```
+
+Socket receive callback; parses STUN messages from the buffer and dispatches them. 
+#### Parameters
+* `socket` The receiving socket. 
+
+* `buffer` Received data. 
+
+* `peerAddress` Source address of the received data.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `socket` | `[net::Socket](#socket) &` |  |
+| `buffer` | `const [MutableBuffer](#classicy_1_1MutableBuffer) &` |  |
+| `peerAddress` | `const [net::Address](#address) &` |  |
+
+---
+
+{#onsocketclose-5}
+
+#### onSocketClose
+
+`virtual`
+
+```cpp
+virtual bool onSocketClose(net::Socket & socket)
+```
+
+Socket close callback; shuts down the client and records the socket error. 
+#### Parameters
+* `socket` The closed socket.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `socket` | `[net::Socket](#socket) &` |  |
+
+---
+
+{#ontransactionprogress}
+
+#### onTransactionProgress
+
+`virtual`
+
+```cpp
+virtual void onTransactionProgress(void * sender, TransactionState & state, const TransactionState &)
+```
+
+STUN transaction state-change callback; handles Success and Failed outcomes. 
+#### Parameters
+* `sender` Pointer to the [stun::Transaction](#transaction-2) that changed state. 
+
+* `state` The new transaction state.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `sender` | `void *` |  |
+| `state` | `[TransactionState](#structicy_1_1TransactionState) &` |  |
+
+---
+
+{#onstatechange-1}
+
+#### onStateChange
+
+```cpp
+void onStateChange(ClientState & state, const ClientState & oldState)
+```
+
+Forwards state-change events to the observer.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `state` | `[ClientState](#clientstate) &` |  |
+| `oldState` | `const [ClientState](#clientstate) &` |  |
+
+---
+
+{#ontimer-1}
+
+#### onTimer
+
+`virtual`
+
+```cpp
+virtual void onTimer()
+```
+
+Periodic timer callback; re-allocates on expiry or refreshes when lifetime is below one-third remaining. Also calls [ClientObserver::onTimer()](#ontimer-5).
+
+{#options-9}
+
+## Options
+
+```cpp
+#include <client.h>
+```
+
+[Configuration](#classicy_1_1Configuration) options for the TURN client.
+
+### Public Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `std::string` | [`software`](#software)  |  |
+| `std::string` | [`username`](#username-2)  |  |
+| `std::string` | [`password`](#password-2)  |  |
+| `long` | [`timeout`](#timeout)  |  |
+| `std::int64_t` | [`lifetime`](#lifetime)  |  |
+| `std::int64_t` | [`timerInterval`](#timerinterval)  |  |
+| `net::Address` | [`serverAddr`](#serveraddr)  |  |
+
+---
+
+{#software}
+
+#### software
 
 ```cpp
 std::string software
@@ -598,7 +1454,9 @@ std::string software
 
 ---
 
-#### username 
+{#username-2}
+
+#### username
 
 ```cpp
 std::string username
@@ -606,7 +1464,9 @@ std::string username
 
 ---
 
-#### password 
+{#password-2}
+
+#### password
 
 ```cpp
 std::string password
@@ -614,7 +1474,9 @@ std::string password
 
 ---
 
-#### timeout 
+{#timeout}
+
+#### timeout
 
 ```cpp
 long timeout
@@ -622,7 +1484,9 @@ long timeout
 
 ---
 
-#### lifetime 
+{#lifetime}
+
+#### lifetime
 
 ```cpp
 std::int64_t lifetime
@@ -630,7 +1494,9 @@ std::int64_t lifetime
 
 ---
 
-#### timerInterval 
+{#timerinterval}
+
+#### timerInterval
 
 ```cpp
 std::int64_t timerInterval
@@ -638,336 +1504,39 @@ std::int64_t timerInterval
 
 ---
 
-#### serverAddr 
+{#serveraddr}
+
+#### serverAddr
 
 ```cpp
 net::Address serverAddr
 ```
 
-## TCPClient 
+### Public Methods
 
-> **Extends:** `icy::turn::Client`
-> **Defined in:** `tcpclient.h`
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`TCPClient`](#group__turn_1ga66a06f08c0fec14c755537b176dbe6fd) |  |
-| [`~TCPClient`](#group__turn_1gaa8bf16affc9175efa5ec96b7638cdd75) |  |
-| [`initiate`](#group__turn_1ga21a24b1e8e50a72306595dde1e62b8c8) | Initiates the allocation sequence. |
-| [`shutdown`](#group__turn_1ga10311576b628961147df231abeea2e45) | Shutdown the client and destroy the active allocation. |
-| [`sendConnectRequest`](#group__turn_1gabc681709fb413701323ae55d99ef86c2) |  |
-| [`sendData`](#group__turn_1gabd45ceb62c2d3cf0ccadc05d7ebe6867) |  |
-| [`handleResponse`](#group__turn_1ga2d300174a7c09873df9bc36af3a66fe7) |  |
-| [`handleConnectResponse`](#group__turn_1gaab0f1e53575195633d0e150b7532bbb9) |  |
-| [`handleConnectErrorResponse`](#group__turn_1gaf5be5aa0c7f2a0a346dcdb5b1af90cb0) |  |
-| [`handleConnectionBindResponse`](#group__turn_1ga577618f2ce93bc9e8089f84037a48381) |  |
-| [`handleConnectionBindErrorResponse`](#group__turn_1gab8e9eb2b935c3af5ad0823c7f6e3d693) |  |
-| [`handleConnectionAttemptIndication`](#group__turn_1ga5cee29ca9f9c7ffc3d6580f5ca504f2f) |  |
-| [`createAndBindConnection`](#group__turn_1ga3f7d5efb351d7f2b107d3a25d410ce89) |  |
-| [`onRelayConnectionConnect`](#group__turn_1ga9434e3aa4723ad58c16e197d12824031) |  |
-| [`onRelayDataReceived`](#group__turn_1ga3c4890ab6d10d4f3766a70ea4c6c12aa) |  |
-| [`onRelayConnectionError`](#group__turn_1ga12267279e5f527ecbe401f5bc3c96066) |  |
-| [`onRelayConnectionClosed`](#group__turn_1gad643fdeeeb3355f0df9bd946029a5791) |  |
-| [`freeConnection`](#group__turn_1ga1b8eac8a9103d924fcac1b6284c0c584) |  |
-| [`transportProtocol`](#group__turn_1ga1fa35721f9353c21bf1e7b470c836883) |  |
-| [`connections`](#group__turn_1ga8080d44f1441c6315d3cfcbae375b979) |  |
-| [`className`](#group__turn_1ga57bf3238ed15d6472a35559674673eda) |  |
-| [`_observer`](#group__turn_1ga07f4b77e0079d379c598ed2dd7fccb1c) |  |
-| [`_connections`](#group__turn_1ga35cdf1b381e1516ae904410722e6bbb1) |  |
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`Options`](#options-10) `inline` |  |
 
 ---
 
-#### TCPClient 
+{#options-10}
+
+#### Options
+
+`inline`
 
 ```cpp
-TCPClient(TCPClientObserver & observer, const Client::Options & options)
+inline Options()
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `observer` | `TCPClientObserver &` |  |
-| `options` | `const Client::Options &` |  |
+{#fivetuple}
 
----
-
-#### ~TCPClient 
+## FiveTuple
 
 ```cpp
-virtual ~TCPClient()
+#include <fivetuple.h>
 ```
-
----
-
-#### initiate 
-
-```cpp
-virtual void initiate()
-```
-
-Initiates the allocation sequence.
-
----
-
-#### shutdown 
-
-```cpp
-virtual void shutdown()
-```
-
-Shutdown the client and destroy the active allocation.
-
----
-
-#### sendConnectRequest 
-
-```cpp
-virtual void sendConnectRequest(const net::Address & peerAddress)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `peerAddress` | `const net::Address &` |  |
-
----
-
-#### sendData 
-
-```cpp
-virtual void sendData(const char * data, size_t size, const net::Address & peerAddress)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `const char *` |  |
-| `size` | `size_t` |  |
-| `peerAddress` | `const net::Address &` |  |
-
----
-
-#### handleResponse 
-
-```cpp
-virtual bool handleResponse(const stun::Message & response)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `response` | `const stun::Message &` |  |
-
----
-
-#### handleConnectResponse 
-
-```cpp
-virtual void handleConnectResponse(const stun::Message & response)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `response` | `const stun::Message &` |  |
-
----
-
-#### handleConnectErrorResponse 
-
-```cpp
-virtual void handleConnectErrorResponse(const stun::Message & response)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `response` | `const stun::Message &` |  |
-
----
-
-#### handleConnectionBindResponse 
-
-```cpp
-virtual void handleConnectionBindResponse(const stun::Message & response)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `response` | `const stun::Message &` |  |
-
----
-
-#### handleConnectionBindErrorResponse 
-
-```cpp
-virtual void handleConnectionBindErrorResponse(const stun::Message & response)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `response` | `const stun::Message &` |  |
-
----
-
-#### handleConnectionAttemptIndication 
-
-```cpp
-virtual void handleConnectionAttemptIndication(const stun::Message & response)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `response` | `const stun::Message &` |  |
-
----
-
-#### createAndBindConnection 
-
-```cpp
-virtual bool createAndBindConnection(uint32_t connectionID, const net::Address & peerAddress)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `connectionID` | `uint32_t` |  |
-| `peerAddress` | `const net::Address &` |  |
-
----
-
-#### onRelayConnectionConnect 
-
-```cpp
-virtual void onRelayConnectionConnect(net::Socket & socket)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `socket` | `net::Socket &` |  |
-
----
-
-#### onRelayDataReceived 
-
-```cpp
-virtual void onRelayDataReceived(net::Socket & socket, const MutableBuffer & buffer, const net::Address & peerAddress)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `socket` | `net::Socket &` |  |
-| `buffer` | `const MutableBuffer &` |  |
-| `peerAddress` | `const net::Address &` |  |
-
----
-
-#### onRelayConnectionError 
-
-```cpp
-virtual void onRelayConnectionError(net::Socket & socket, const Error & error)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `socket` | `net::Socket &` |  |
-| `error` | `const Error &` |  |
-
----
-
-#### onRelayConnectionClosed 
-
-```cpp
-virtual void onRelayConnectionClosed(net::Socket & socket)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `socket` | `net::Socket &` |  |
-
----
-
-#### freeConnection 
-
-```cpp
-void freeConnection(const net::Address & peerAddress)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `peerAddress` | `const net::Address &` |  |
-
----
-
-#### transportProtocol 
-
-```cpp
-virtual int transportProtocol()
-```
-
----
-
-#### connections 
-
-```cpp
-ConnectionManager & connections()
-```
-
----
-
-#### className 
-
-```cpp
-virtual inline const char * className() const
-```
-
----
-
-#### _observer 
-
-```cpp
-TCPClientObserver & _observer
-```
-
----
-
-#### _connections 
-
-```cpp
-ConnectionManager _connections
-```
-
-## UDPClient 
-
-> **Extends:** `icy::turn::Client`
-> **Defined in:** `udpclient.h`
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`UDPClient`](#group__turn_1gac81111283b7df471a1afe3409587ae20) |  |
-| [`~UDPClient`](#group__turn_1gac46009fd65b1194565e6f5b2a25ed3d5) |  |
-
----
-
-#### UDPClient 
-
-```cpp
-UDPClient(ClientObserver & observer, const Options & options)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `observer` | `ClientObserver &` |  |
-| `options` | `const Options &` |  |
-
----
-
-#### ~UDPClient 
-
-```cpp
-virtual ~UDPClient()
-```
-
-## FiveTuple 
-
-> **Defined in:** `fivetuple.h`
 
 The 5-TUPLE consists of a local, a remote address, and the transport protocol used by the client to communicate with the server.                                                           +---------+
                                                           |         |
@@ -1006,155 +1575,244 @@ Allocations    Address      Address     Address          Address
                        Internal                External
                        5-Tuple                 5-tuple
 
-### Members
+### Public Methods
 
-| Name | Description |
-|------|-------------|
-| [`FiveTuple`](#group__turn_1ga7b1939ff40fd399a6e235149f46c240d) |  |
-| [`FiveTuple`](#group__turn_1ga2bf36ada2e32974976906cbef746713d) |  |
-| [`FiveTuple`](#group__turn_1ga9b05151cdd2cd10f1420c4a1bc60cd39) |  |
-| [`remote`](#group__turn_1gaeb5c122700c33f78f0dc1c3dd76a8ede) |  |
-| [`local`](#group__turn_1ga9cadde536d31752438fca9b62d69c463) |  |
-| [`transport`](#group__turn_1ga4bb51c63a1d47d47a5ce9bc262f6abeb) |  |
-| [`remote`](#group__turn_1ga4cfdde49f1c93769f29f20486a023de8) |  |
-| [`local`](#group__turn_1ga6a5743d49cf4a503f4e336a75e6ab1ec) |  |
-| [`transport`](#group__turn_1gaf92193a44ae9ae9eb7e490cc5d4ac889) |  |
-| [`operator==`](#group__turn_1ga68c363f7fec160aedbc1e43e842cf7ef) |  |
-| [`operator<`](#group__turn_1gaa8935b7a8df4ba5590d54571a244fb94) |  |
-| [`toString`](#group__turn_1gad03e05d274665545b82f9978f121f9a4) |  |
-| [`_remote`](#group__turn_1gacee27ca34748828d5a1e4b876b8a2eba) |  |
-| [`_local`](#group__turn_1ga7eec69720319bddd10a38120854d7698) |  |
-| [`_transport`](#group__turn_1gafe4ddb63e9ec25724be3301660d26f39) |  |
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`FiveTuple`](#fivetuple-1)  | Constructs a default [FiveTuple](#fivetuple) with empty addresses and UDP transport. |
+|  | [`FiveTuple`](#fivetuple-2)  | Constructs a [FiveTuple](#fivetuple) from explicit addresses and transport.  |
+|  | [`FiveTuple`](#fivetuple-3)  | Copy constructor. |
+| `const net::Address &` | [`remote`](#remote-2) `const` `inline` | #### Returns |
+| `const net::Address &` | [`local`](#local-2) `const` `inline` | #### Returns |
+| `const net::TransportType &` | [`transport`](#transport-4) `const` `inline` | #### Returns |
+| `void` | [`remote`](#remote-3) `inline` | Sets the remote address.  |
+| `void` | [`local`](#local-3) `inline` | Sets the local address.  |
+| `void` | [`transport`](#transport-5) `inline` | Sets the transport protocol.  |
+| `bool` | [`operator==`](#operator-19) `const` | Equality comparison; all three components must match. |
+| `bool` | [`operator<`](#operator-20) `const` | Less-than ordering based on remote then local port; used as std::map key. |
+| `std::string` | [`toString`](#tostring-6) `const` | #### Returns |
 
 ---
 
-#### FiveTuple 
+{#fivetuple-1}
+
+#### FiveTuple
 
 ```cpp
 FiveTuple()
 ```
 
+Constructs a default [FiveTuple](#fivetuple) with empty addresses and UDP transport.
+
 ---
 
-#### FiveTuple 
+{#fivetuple-2}
+
+#### FiveTuple
 
 ```cpp
 FiveTuple(const net::Address & remote, const net::Address & local, net::TransportType transport)
 ```
 
+Constructs a [FiveTuple](#fivetuple) from explicit addresses and transport. 
+#### Parameters
+* `remote` [Client](#client-2)'s remote transport address (as seen by the server). 
+
+* `local` [Server](#server-6)'s local transport address. 
+
+* `transport` Protocol in use ([net::UDP](#namespaceicy_1_1net_1af6e0b9e4d8542b9f4db630e2523bc4b7ad002734ee233012c57a0ca3ed2bff53e) or [net::TCP](#namespaceicy_1_1net_1af6e0b9e4d8542b9f4db630e2523bc4b7acd16ad02f430bf3259a04674e57f7105)).
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `remote` | `const net::Address &` |  |
-| `local` | `const net::Address &` |  |
-| `transport` | `net::TransportType` |  |
+| `remote` | `const [net::Address](#address) &` |  |
+| `local` | `const [net::Address](#address) &` |  |
+| `transport` | `[net::TransportType](#transporttype)` |  |
 
 ---
 
-#### FiveTuple 
+{#fivetuple-3}
+
+#### FiveTuple
 
 ```cpp
 FiveTuple(const FiveTuple & r)
 ```
 
+Copy constructor.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `r` | `const FiveTuple &` |  |
+| `r` | `const [FiveTuple](#fivetuple) &` |  |
 
 ---
 
-#### remote 
+{#remote-2}
+
+#### remote
+
+`const` `inline`
 
 ```cpp
 inline const net::Address & remote() const
 ```
 
+#### Returns
+The remote (client-side) transport address.
+
 ---
 
-#### local 
+{#local-2}
+
+#### local
+
+`const` `inline`
 
 ```cpp
 inline const net::Address & local() const
 ```
 
+#### Returns
+The local (server-side) transport address.
+
 ---
 
-#### transport 
+{#transport-4}
+
+#### transport
+
+`const` `inline`
 
 ```cpp
 inline const net::TransportType & transport() const
 ```
 
+#### Returns
+The transport protocol for this tuple.
+
 ---
 
-#### remote 
+{#remote-3}
+
+#### remote
+
+`inline`
 
 ```cpp
 inline void remote(const net::Address & remote)
 ```
 
+Sets the remote address. 
+#### Parameters
+* `remote` New remote address.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `remote` | `const net::Address &` |  |
+| `remote` | `const [net::Address](#address) &` |  |
 
 ---
 
-#### local 
+{#local-3}
+
+#### local
+
+`inline`
 
 ```cpp
 inline void local(const net::Address & local)
 ```
 
+Sets the local address. 
+#### Parameters
+* `local` New local address.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `local` | `const net::Address &` |  |
+| `local` | `const [net::Address](#address) &` |  |
 
 ---
 
-#### transport 
+{#transport-5}
+
+#### transport
+
+`inline`
 
 ```cpp
 inline void transport(const net::TransportType & transport)
 ```
 
+Sets the transport protocol. 
+#### Parameters
+* `transport` New transport type.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `transport` | `const net::TransportType &` |  |
+| `transport` | `const [net::TransportType](#transporttype) &` |  |
 
 ---
 
-#### operator== 
+{#operator-19}
+
+#### operator==
+
+`const`
 
 ```cpp
 bool operator==(const FiveTuple & r) const
 ```
 
+Equality comparison; all three components must match.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `r` | `const FiveTuple &` |  |
+| `r` | `const [FiveTuple](#fivetuple) &` |  |
 
 ---
 
-#### operator< 
+{#operator-20}
+
+#### operator<
+
+`const`
 
 ```cpp
 bool operator<(const FiveTuple & r) const
 ```
 
+Less-than ordering based on remote then local port; used as std::map key.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `r` | `const FiveTuple &` |  |
+| `r` | `const [FiveTuple](#fivetuple) &` |  |
 
 ---
 
-#### toString 
+{#tostring-6}
+
+#### toString
+
+`const`
 
 ```cpp
 std::string toString() const
 ```
 
+#### Returns
+A human-readable string of the form "FiveTuple[remote:local:transport]".
+
+### Private Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `net::Address` | [`_remote`](#_remote-1)  |  |
+| `net::Address` | [`_local`](#_local-1)  |  |
+| `net::TransportType` | [`_transport`](#_transport)  |  |
+
 ---
 
-#### _remote 
+{#_remote-1}
+
+#### _remote
 
 ```cpp
 net::Address _remote
@@ -1162,7 +1820,9 @@ net::Address _remote
 
 ---
 
-#### _local 
+{#_local-1}
+
+#### _local
 
 ```cpp
 net::Address _local
@@ -1170,16 +1830,23 @@ net::Address _local
 
 ---
 
-#### _transport 
+{#_transport}
+
+#### _transport
 
 ```cpp
 net::TransportType _transport
 ```
 
-## IAllocation 
+{#iallocation}
 
-> **Subclasses:** `icy::turn::Client`, `icy::turn::ServerAllocation`
-> **Defined in:** `iallocation.h`
+## IAllocation
+
+```cpp
+#include <iallocation.h>
+```
+
+> **Subclassed by:** [`Client`](#client-2), [`ServerAllocation`](#serverallocation)
 
 All TURN operations revolve around allocations, and all TURN messages are associated with an allocation. An allocation conceptually consists of the following state data:
 
@@ -1191,7 +1858,7 @@ All TURN operations revolve around allocations, and all TURN messages are associ
 
 * the time-to-expiry;
 
-a list of permissions;
+* a list of permissions;
 
 * a list of channel to peer bindings.
 
@@ -1201,75 +1868,96 @@ Both the relayed transport address and the 5-tuple MUST be unique across all all
 
 The time-to-expiry is the time in seconds left until the allocation expires. Each Allocate or Refresh transaction sets this timer, which then ticks down towards 0. By default, each Allocate or Refresh transaction resets this timer to the default lifetime value of 600 seconds (10 minutes), but the client can request a different value in the Allocate and Refresh request. Allocations can only be refreshed using the Refresh request; sending data to a peer does not refresh an allocation. When an allocation expires, the state data associated with the allocation can be freed.
 
-### Members
+### Public Methods
 
-| Name | Description |
-|------|-------------|
-| [`IAllocation`](#group__turn_1gab486a4e544ced3afa2e9af62cbba7300) |  |
-| [`~IAllocation`](#group__turn_1ga072f2bd3c27a11c556e95ca2f64a1b96) |  |
-| [`updateUsage`](#group__turn_1gabe3a1c0062b6a83c84afb534016a2518) | Updates the allocation's internal timeout and bandwidth usage each time the allocation is used. |
-| [`setLifetime`](#group__turn_1gac08a8899932878a7f5a0fdcc0b48a071) | Sets the lifetime of the allocation and resets the timeout. |
-| [`setBandwidthLimit`](#group__turn_1ga8e2c86e075882c326d4c9bde49901a07) | Sets the bandwidth limit in bytes for this allocation. |
-| [`expired`](#group__turn_1ga853e61b93b00bf9298f2e6b63f09e175) | Returns true if the allocation is expired ie. is timed out or the bandwidth limit has been reached. |
-| [`deleted`](#group__turn_1ga9a7c145937ae53982675cef2f30bfb94) | Returns true if the allocation's deleted flag is set and or if the allocation has expired. |
-| [`bandwidthLimit`](#group__turn_1gaa53520d7f1d391551df07362f251e12d) |  |
-| [`bandwidthUsed`](#group__turn_1ga83e1e4abe2f5f66d276efde8912f07fe) |  |
-| [`bandwidthRemaining`](#group__turn_1ga6fae3daac8a208fe57d3415e17f9efb3) |  |
-| [`timeRemaining`](#group__turn_1gae4af5f598634519896c21d05b2ae3dff) |  |
-| [`tuple`](#group__turn_1ga1654e4d9fa04276e5f9e4bcf890bf744) |  |
-| [`username`](#group__turn_1ga9c6bf9973f8f4f0dda5aa9db792ab7cd) |  |
-| [`lifetime`](#group__turn_1ga849c4d7c1ee031980c799b30896ea3d0) |  |
-| [`permissions`](#group__turn_1gaa8d3ddee83af5feb781b95ef9453e4f1) |  |
-| [`relayedAddress`](#group__turn_1ga5541d6593c96ed16b5b82d7ed5e77d7d) |  |
-| [`addPermission`](#group__turn_1ga30fd3724a345cc202bc2c147f2fe0a0f) |  |
-| [`addPermissions`](#group__turn_1gaa48e79d80a25a5652d6ce7d1a8b20fed) |  |
-| [`removePermission`](#group__turn_1ga9204e82ce85c16b73ae5ba216f9d12f3) |  |
-| [`removeAllPermissions`](#group__turn_1gac156f8c87e140b20655b276d4fb2b99f) |  |
-| [`removeExpiredPermissions`](#group__turn_1ga3b88ba0d8ef79bccb52cf4bdba1b6be9) |  |
-| [`hasPermission`](#group__turn_1ga65e660c87fbe3a3ec5ff449a0b271c34) |  |
-| [`print`](#group__turn_1ga0bcf2cb6675c36864ac804c12bff53c4) |  |
-| [`_mutex`](#group__turn_1gafca7ccdb9a9e02a6cb14727308fa3d9b) |  |
-| [`_tuple`](#group__turn_1ga7c8695af0fa8d476fd2b3395c0e7acda) |  |
-| [`_username`](#group__turn_1gaf6bbdd7265acb0086e3946281bcab790) |  |
-| [`_permissions`](#group__turn_1ga8c38ed137db89cd1bee04ae3a94cf32a) |  |
-| [`_lifetime`](#group__turn_1ga4dcd6ce15037d29fd6d9b6a9a2ce470c) |  |
-| [`_bandwidthLimit`](#group__turn_1ga3a9549208c623572daf3e0fad84c17c1) |  |
-| [`_bandwidthUsed`](#group__turn_1ga3712c06d098b80de261f7476fa7cf445) |  |
-| [`_createdAt`](#group__turn_1ga70a95a5e99046c782c602708ab305573) |  |
-| [`_updatedAt`](#group__turn_1ga584485c991cbbc5a060b48b778d62b8e) |  |
-| [`_deleted`](#group__turn_1ga71472ac047f1522bf0bb6ac08f6e5c69) |  |
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`IAllocation`](#iallocation-1)  | #### Parameters |
+|  | [`IAllocation`](#iallocation-2)  |  |
+|  | [`IAllocation`](#iallocation-3)  |  |
+| `void` | [`updateUsage`](#updateusage) `virtual` | Updates the last-activity timestamp and accumulates bandwidth usage. Call this whenever data is relayed through the allocation.  |
+| `void` | [`setLifetime`](#setlifetime) `virtual` | Sets the allocation lifetime in seconds and resets the activity timestamp, effectively extending the expiry from the current moment.  |
+| `void` | [`setBandwidthLimit`](#setbandwidthlimit) `virtual` | Sets the maximum number of bytes this allocation may relay in its lifetime. Pass 0 to disable bandwidth limiting.  |
+| `bool` | [`expired`](#expired) `virtual` `const` | #### Returns |
+| `bool` | [`deleted`](#deleted-1) `virtual` `const` | Returns true if the allocation's deleted flag is set and or if the allocation has expired. |
+| `std::int64_t` | [`bandwidthLimit`](#bandwidthlimit) `virtual` `const` | #### Returns |
+| `std::int64_t` | [`bandwidthUsed`](#bandwidthused) `virtual` `const` | #### Returns |
+| `std::int64_t` | [`bandwidthRemaining`](#bandwidthremaining) `virtual` `const` | #### Returns |
+| `std::int64_t` | [`timeRemaining`](#timeremaining) `virtual` `const` | #### Returns |
+| `FiveTuple &` | [`tuple`](#tuple) `virtual` | #### Returns |
+| `std::string` | [`username`](#username-3) `virtual` `const` | #### Returns |
+| `std::int64_t` | [`lifetime`](#lifetime-1) `virtual` `const` | #### Returns |
+| `PermissionList` | [`permissions`](#permissions) `virtual` `const` | #### Returns |
+| `net::Address` | [`relayedAddress`](#relayedaddress-1) `const` | #### Returns |
+| `void` | [`addPermission`](#addpermission-4) `virtual` | Adds a permission for `ip`, or refreshes the existing one.  |
+| `void` | [`addPermission`](#addpermission-5) `virtual` | Adds a permission for `address`, or refreshes the existing one. The port is ignored; TURN permissions are IP-only. |
+| `void` | [`addPermissions`](#addpermissions) `virtual` | Adds (or refreshes) permissions for multiple IPs.  |
+| `void` | [`removePermission`](#removepermission-2) `virtual` | Removes the permission for `ip` if present.  |
+| `void` | [`removePermission`](#removepermission-3) `virtual` | Removes the permission for `address` if present. The port is ignored; TURN permissions are IP-only. |
+| `void` | [`removeAllPermissions`](#removeallpermissions) `virtual` | Removes all permissions from the list. |
+| `void` | [`removeExpiredPermissions`](#removeexpiredpermissions) `virtual` | Removes any permissions whose 5-minute lifetime has elapsed. |
+| `bool` | [`hasPermission`](#haspermission-2) `virtual` | Checks whether a permission exists for `peerIP`. Local addresses (192.168.x.x and 127.x.x.x) are always permitted.  |
+| `bool` | [`hasPermission`](#haspermission-3) `virtual` | Checks whether a permission exists for `peerAddress`. The port is ignored; TURN permissions are IP-only. |
+| `void` | [`print`](#print-11) `virtual` `const` `inline` |  |
 
 ---
 
-#### IAllocation 
+{#iallocation-1}
+
+#### IAllocation
 
 ```cpp
 IAllocation(const FiveTuple & tuple, const std::string & username, std::int64_t lifetime)
 ```
 
+#### Parameters
+* `tuple` The 5-tuple identifying this allocation. 
+
+* `username` Authenticated username associated with this allocation. 
+
+* `lifetime` Initial lifetime in seconds.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `tuple` | `const FiveTuple &` |  |
+| `tuple` | `const [FiveTuple](#fivetuple) &` |  |
 | `username` | `const std::string &` |  |
 | `lifetime` | `std::int64_t` |  |
 
 ---
 
-#### ~IAllocation 
+{#iallocation-2}
+
+#### IAllocation
 
 ```cpp
-virtual ~IAllocation()
+IAllocation(const IAllocation &) = delete
 ```
 
 ---
 
-#### updateUsage 
+{#iallocation-3}
+
+#### IAllocation
+
+```cpp
+IAllocation(IAllocation &&) = delete
+```
+
+---
+
+{#updateusage}
+
+#### updateUsage
+
+`virtual`
 
 ```cpp
 virtual void updateUsage(std::int64_t numBytes)
 ```
 
-Updates the allocation's internal timeout and bandwidth usage each time the allocation is used.
+Updates the last-activity timestamp and accumulates bandwidth usage. Call this whenever data is relayed through the allocation. 
+#### Parameters
+* `numBytes` Number of bytes relayed (0 just refreshes the timestamp).
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -1277,13 +1965,19 @@ Updates the allocation's internal timeout and bandwidth usage each time the allo
 
 ---
 
-#### setLifetime 
+{#setlifetime}
+
+#### setLifetime
+
+`virtual`
 
 ```cpp
 virtual void setLifetime(std::int64_t lifetime)
 ```
 
-Sets the lifetime of the allocation and resets the timeout.
+Sets the allocation lifetime in seconds and resets the activity timestamp, effectively extending the expiry from the current moment. 
+#### Parameters
+* `lifetime` New lifetime in seconds.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -1291,13 +1985,19 @@ Sets the lifetime of the allocation and resets the timeout.
 
 ---
 
-#### setBandwidthLimit 
+{#setbandwidthlimit}
+
+#### setBandwidthLimit
+
+`virtual`
 
 ```cpp
 virtual void setBandwidthLimit(std::int64_t numBytes)
 ```
 
-Sets the bandwidth limit in bytes for this allocation.
+Sets the maximum number of bytes this allocation may relay in its lifetime. Pass 0 to disable bandwidth limiting. 
+#### Parameters
+* `numBytes` Bandwidth cap in bytes (0 = unlimited).
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -1305,17 +2005,26 @@ Sets the bandwidth limit in bytes for this allocation.
 
 ---
 
-#### expired 
+{#expired}
+
+#### expired
+
+`virtual` `const`
 
 ```cpp
 virtual bool expired() const
 ```
 
-Returns true if the allocation is expired ie. is timed out or the bandwidth limit has been reached.
+#### Returns
+true if the allocation's lifetime has elapsed or the bandwidth quota has been exhausted.
 
 ---
 
-#### deleted 
+{#deleted-1}
+
+#### deleted
+
+`virtual` `const`
 
 ```cpp
 virtual bool deleted() const
@@ -1323,111 +2032,216 @@ virtual bool deleted() const
 
 Returns true if the allocation's deleted flag is set and or if the allocation has expired.
 
-This signifies that the allocation is ready to be destroyed via async garbage collection. See [Server::onTimer()](#group__turn_1gad98e27c134b19c27bd2fc446aa927694) and [Client::onTimer()](#group__turn_1ga7fb62ec5f7d6748b7ba6549b86709344)
+This signifies that the allocation is ready to be destroyed via async garbage collection. See [Server::onTimer()](#ontimer-2) and [Client::onTimer()](#ontimer-1)
 
 ---
 
-#### bandwidthLimit 
+{#bandwidthlimit}
+
+#### bandwidthLimit
+
+`virtual` `const`
 
 ```cpp
 virtual std::int64_t bandwidthLimit() const
 ```
 
+#### Returns
+The configured bandwidth limit in bytes (0 means unlimited).
+
 ---
 
-#### bandwidthUsed 
+{#bandwidthused}
+
+#### bandwidthUsed
+
+`virtual` `const`
 
 ```cpp
 virtual std::int64_t bandwidthUsed() const
 ```
 
+#### Returns
+Total bytes transferred through this allocation since creation.
+
 ---
 
-#### bandwidthRemaining 
+{#bandwidthremaining}
+
+#### bandwidthRemaining
+
+`virtual` `const`
 
 ```cpp
 virtual std::int64_t bandwidthRemaining() const
 ```
 
+#### Returns
+Bytes remaining before the bandwidth quota is exhausted. Returns a large sentinel value when no limit is configured.
+
 ---
 
-#### timeRemaining 
+{#timeremaining}
+
+#### timeRemaining
+
+`virtual` `const`
 
 ```cpp
 virtual std::int64_t timeRemaining() const
 ```
 
+#### Returns
+Seconds until the allocation expires (0 if already expired).
+
 ---
 
-#### tuple 
+{#tuple}
+
+#### tuple
+
+`virtual`
 
 ```cpp
 virtual FiveTuple & tuple()
 ```
 
+#### Returns
+Reference to the 5-tuple identifying this allocation.
+
 ---
 
-#### username 
+{#username-3}
+
+#### username
+
+`virtual` `const`
 
 ```cpp
 virtual std::string username() const
 ```
 
+#### Returns
+The username associated with this allocation.
+
 ---
 
-#### lifetime 
+{#lifetime-1}
+
+#### lifetime
+
+`virtual` `const`
 
 ```cpp
 virtual std::int64_t lifetime() const
 ```
 
+#### Returns
+The configured lifetime in seconds.
+
 ---
 
-#### permissions 
+{#permissions}
+
+#### permissions
+
+`virtual` `const`
 
 ```cpp
 virtual PermissionList permissions() const
 ```
 
+#### Returns
+A copy of the current permission list.
+
 ---
 
-#### relayedAddress 
+{#relayedaddress-1}
+
+#### relayedAddress
+
+`const`
 
 ```cpp
 net::Address relayedAddress() const
 ```
 
+#### Returns
+The relay transport address assigned to this allocation.
+
 ---
 
-#### addPermission 
+{#addpermission-4}
+
+#### addPermission
+
+`virtual`
 
 ```cpp
 virtual void addPermission(const std::string & ip)
 ```
 
+Adds a permission for `ip`, or refreshes the existing one. 
+#### Parameters
+* `ip` IPv4 address string to permit.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `ip` | `const std::string &` |  |
 
 ---
 
-#### addPermissions 
+{#addpermission-5}
+
+#### addPermission
+
+`virtual`
+
+```cpp
+virtual void addPermission(const net::Address & address)
+```
+
+Adds a permission for `address`, or refreshes the existing one. The port is ignored; TURN permissions are IP-only.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `address` | `const [net::Address](#address) &` |  |
+
+---
+
+{#addpermissions}
+
+#### addPermissions
+
+`virtual`
 
 ```cpp
 virtual void addPermissions(const IPList & ips)
 ```
 
+Adds (or refreshes) permissions for multiple IPs. 
+#### Parameters
+* `ips` List of IPv4 address strings.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `ips` | `const IPList &` |  |
+| `ips` | `const [IPList](#namespaceicy_1_1turn_1a77672906ed98cc6cc47131f0f0da1720) &` |  |
 
 ---
 
-#### removePermission 
+{#removepermission-2}
+
+#### removePermission
+
+`virtual`
 
 ```cpp
 virtual void removePermission(const std::string & ip)
 ```
+
+Removes the permission for `ip` if present. 
+#### Parameters
+* `ip` IPv4 address string to remove.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -1435,27 +2249,68 @@ virtual void removePermission(const std::string & ip)
 
 ---
 
-#### removeAllPermissions 
+{#removepermission-3}
+
+#### removePermission
+
+`virtual`
+
+```cpp
+virtual void removePermission(const net::Address & address)
+```
+
+Removes the permission for `address` if present. The port is ignored; TURN permissions are IP-only.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `address` | `const [net::Address](#address) &` |  |
+
+---
+
+{#removeallpermissions}
+
+#### removeAllPermissions
+
+`virtual`
 
 ```cpp
 virtual void removeAllPermissions()
 ```
 
+Removes all permissions from the list.
+
 ---
 
-#### removeExpiredPermissions 
+{#removeexpiredpermissions}
+
+#### removeExpiredPermissions
+
+`virtual`
 
 ```cpp
 virtual void removeExpiredPermissions()
 ```
 
+Removes any permissions whose 5-minute lifetime has elapsed.
+
 ---
 
-#### hasPermission 
+{#haspermission-2}
+
+#### hasPermission
+
+`virtual`
 
 ```cpp
 virtual bool hasPermission(const std::string & peerIP)
 ```
+
+Checks whether a permission exists for `peerIP`. Local addresses (192.168.x.x and 127.x.x.x) are always permitted. 
+#### Parameters
+* `peerIP` IPv4 address string to check. 
+
+#### Returns
+true if a valid (non-expired) permission exists.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -1463,7 +2318,29 @@ virtual bool hasPermission(const std::string & peerIP)
 
 ---
 
-#### print 
+{#haspermission-3}
+
+#### hasPermission
+
+`virtual`
+
+```cpp
+virtual bool hasPermission(const net::Address & peerAddress)
+```
+
+Checks whether a permission exists for `peerAddress`. The port is ignored; TURN permissions are IP-only.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `peerAddress` | `const [net::Address](#address) &` |  |
+
+---
+
+{#print-11}
+
+#### print
+
+`virtual` `const` `inline`
 
 ```cpp
 virtual inline void print(std::ostream & os) const
@@ -1473,17 +2350,25 @@ virtual inline void print(std::ostream & os) const
 |-----------|------|-------------|
 | `os` | `std::ostream &` |  |
 
+### Protected Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `FiveTuple` | [`_tuple`](#_tuple)  |  |
+| `std::string` | [`_username`](#_username-2)  |  |
+| `PermissionList` | [`_permissions`](#_permissions)  |  |
+| `std::int64_t` | [`_lifetime`](#_lifetime)  |  |
+| `std::int64_t` | [`_bandwidthLimit`](#_bandwidthlimit)  |  |
+| `std::int64_t` | [`_bandwidthUsed`](#_bandwidthused)  |  |
+| `time_t` | [`_createdAt`](#_createdat)  |  |
+| `time_t` | [`_updatedAt`](#_updatedat)  |  |
+| `bool` | [`_deleted`](#_deleted)  |  |
+
 ---
 
-#### _mutex 
+{#_tuple}
 
-```cpp
-std::mutex _mutex
-```
-
----
-
-#### _tuple 
+#### _tuple
 
 ```cpp
 FiveTuple _tuple
@@ -1491,7 +2376,9 @@ FiveTuple _tuple
 
 ---
 
-#### _username 
+{#_username-2}
+
+#### _username
 
 ```cpp
 std::string _username
@@ -1499,7 +2386,9 @@ std::string _username
 
 ---
 
-#### _permissions 
+{#_permissions}
+
+#### _permissions
 
 ```cpp
 PermissionList _permissions
@@ -1507,7 +2396,9 @@ PermissionList _permissions
 
 ---
 
-#### _lifetime 
+{#_lifetime}
+
+#### _lifetime
 
 ```cpp
 std::int64_t _lifetime
@@ -1515,7 +2406,9 @@ std::int64_t _lifetime
 
 ---
 
-#### _bandwidthLimit 
+{#_bandwidthlimit}
+
+#### _bandwidthLimit
 
 ```cpp
 std::int64_t _bandwidthLimit
@@ -1523,7 +2416,9 @@ std::int64_t _bandwidthLimit
 
 ---
 
-#### _bandwidthUsed 
+{#_bandwidthused}
+
+#### _bandwidthUsed
 
 ```cpp
 std::int64_t _bandwidthUsed
@@ -1531,7 +2426,9 @@ std::int64_t _bandwidthUsed
 
 ---
 
-#### _createdAt 
+{#_createdat}
+
+#### _createdAt
 
 ```cpp
 time_t _createdAt
@@ -1539,7 +2436,9 @@ time_t _createdAt
 
 ---
 
-#### _updatedAt 
+{#_updatedat}
+
+#### _updatedAt
 
 ```cpp
 time_t _updatedAt
@@ -1547,236 +2446,561 @@ time_t _updatedAt
 
 ---
 
-#### _deleted 
+{#_deleted}
+
+#### _deleted
 
 ```cpp
 bool _deleted
 ```
 
-## Server 
+{#permissionpolicy}
 
-> **Defined in:** `server.h`
+## PermissionPolicy
 
-TURN server rfc5766 implementation.
+```cpp
+#include <permissionpolicy.h>
+```
 
-### Members
+Lightweight server-side TURN permission policy.
 
-| Name | Description |
-|------|-------------|
-| [`Server`](#group__turn_1ga2a8d83c2d9447d113d890b3850ea57fc) |  |
-| [`~Server`](#group__turn_1ga4abeb288eb73e7bed7699a4ed532564c) |  |
-| [`start`](#group__turn_1ga3f604371cc77d7849381505a586242c1) |  |
-| [`stop`](#group__turn_1gaf06ef5bbb67fe0d064273adf1bd47a64) |  |
-| [`handleRequest`](#group__turn_1gacb5bac1767407f17246c357bae94d8bc) |  |
-| [`handleAuthorizedRequest`](#group__turn_1gaab030a0ce83ea7ce592ee288c8ad3e45) |  |
-| [`handleBindingRequest`](#group__turn_1gaa5867d6f3c8126b0c1dd8daedf72455e) |  |
-| [`handleAllocateRequest`](#group__turn_1ga3b400ef28f963bbd282b747299762d53) |  |
-| [`handleConnectionBindRequest`](#group__turn_1ga9c45a88e010c2141510fdd7adbbaa331) |  |
-| [`respond`](#group__turn_1gafcae1c06fb5122cf021d731934c8725b) |  |
-| [`respondError`](#group__turn_1gadf23ef7b1ca2346b6b0ed57a865674aa) |  |
-| [`allocations`](#group__turn_1gac5a3297389a4f1b4f7f8a8297f38d7d4) | Returns a snapshot copy of the allocation map for safe iteration. Callers receive raw pointers that are valid only while the corresponding unique_ptr in _allocations is alive. |
-| [`addAllocation`](#group__turn_1ga0f9507b513b5b0608085de25aa3b1862) |  |
-| [`removeAllocation`](#group__turn_1gaef7c8d35bd764c75388dce31f63d3eae) |  |
-| [`getAllocation`](#group__turn_1ga58132f7190c65ecad4f141eef0f3c971) |  |
-| [`getTCPAllocation`](#group__turn_1ga77c93ca11da8f7de8a0b95c048c8e8c2) |  |
-| [`getTCPSocket`](#group__turn_1ga67b8b43fd81875a89642793685adc25a) |  |
-| [`releaseTCPSocket`](#group__turn_1gac17bef322ec362bfb5b7bf6c2a8fa6a3) |  |
-| [`observer`](#group__turn_1gae00e2da8460fa504d5c184a30153c808) |  |
-| [`options`](#group__turn_1gac50bc8f6103c1f019a729e1fd8ab600d) |  |
-| [`udpSocket`](#group__turn_1gadc7036d9cd7736d8dddeb01a08344bfa) |  |
-| [`tcpSocket`](#group__turn_1ga87a51e97cb7537c4218e85d6c7f76eed) |  |
-| [`timer`](#group__turn_1ga52cc24e000f44454546ddfccdc85b197) |  |
-| [`onTCPAcceptConnection`](#group__turn_1gac7e0f1a43edbd4c6fb38536454e09825) |  |
-| [`onTCPSocketClosed`](#group__turn_1ga0795966f2c9e6d86f5d3ed508409958f) |  |
-| [`onSocketRecv`](#group__turn_1ga54e3e322a963a2a51287a650f76d7826) |  |
-| [`onTimer`](#group__turn_1gad98e27c134b19c27bd2fc446aa927694) |  |
-| [`_mutex`](#group__turn_1gae8b03ceb4deeae0c484c11832947a558) |  |
-| [`_observer`](#group__turn_1gae3092b782905e055347186b2a5b1743f) |  |
-| [`_options`](#group__turn_1ga8f6b7686421cf3346129c41b9033bf83) |  |
-| [`_udpSocket`](#group__turn_1ga90b2575c1704eebdf810d3651c346f5b) |  |
-| [`_tcpSocket`](#group__turn_1ga01eda07ea349c90434e83546fd43b84f) |  |
-| [`_tcpSockets`](#group__turn_1ga8176a75aa704535baedb19739c234dc2) |  |
-| [`_allocations`](#group__turn_1ga7752bede01f2191dc4f951638ab7463a) |  |
-| [`_timer`](#group__turn_1ga8cbb0a7dc682401cc9bff193537628a7) |  |
+Keeps the explicit permission list fast and binary, while making server exceptions such as local-IP auto-grants explicit and auditable.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`PermissionPolicy`](#permissionpolicy-1) `inline` `explicit` |  |
+| `bool` | [`allowsExplicit`](#allowsexplicit) `const` |  |
+| `bool` | [`allowsImplicit`](#allowsimplicit) `const` |  |
+| `bool` | [`allows`](#allows) `const` |  |
 
 ---
 
-#### Server 
+{#permissionpolicy-1}
+
+#### PermissionPolicy
+
+`inline` `explicit`
+
+```cpp
+inline explicit PermissionPolicy(bool enableLocalIPPermissions) noexcept
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `enableLocalIPPermissions` | `bool` |  |
+
+---
+
+{#allowsexplicit}
+
+#### allowsExplicit
+
+`const`
+
+```cpp
+bool allowsExplicit(const PermissionList & permissions, const Permission::Key & peerKey) const noexcept
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `permissions` | `const [PermissionList](#namespaceicy_1_1turn_1a3576b7add46f415c935f8b3af2fb49fc) &` |  |
+| `peerKey` | `const [Permission::Key](#key-1) &` |  |
+
+---
+
+{#allowsimplicit}
+
+#### allowsImplicit
+
+`const`
+
+```cpp
+bool allowsImplicit(const Permission::Key & peerKey) const noexcept
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `peerKey` | `const [Permission::Key](#key-1) &` |  |
+
+---
+
+{#allows}
+
+#### allows
+
+`const`
+
+```cpp
+bool allows(const PermissionList & permissions, const Permission::Key & peerKey) const noexcept
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `permissions` | `const [PermissionList](#namespaceicy_1_1turn_1a3576b7add46f415c935f8b3af2fb49fc) &` |  |
+| `peerKey` | `const [Permission::Key](#key-1) &` |  |
+
+### Private Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `bool` | [`_enableLocalIPPermissions`](#_enablelocalippermissions)  |  |
+
+---
+
+{#_enablelocalippermissions}
+
+#### _enableLocalIPPermissions
+
+```cpp
+bool _enableLocalIPPermissions = false
+```
+
+### Private Static Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `bool` | [`isLocalAutoGrantAddress`](#islocalautograntaddress) `static` |  |
+
+---
+
+{#islocalautograntaddress}
+
+#### isLocalAutoGrantAddress
+
+`static`
+
+```cpp
+static bool isLocalAutoGrantAddress(const Permission::Key & peerKey) noexcept
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `peerKey` | `const [Permission::Key](#key-1) &` |  |
+
+{#request-12}
+
+## Request
+
+```cpp
+#include <types.h>
+```
+
+> **Inherits:** [`Message`](#message-5)
+
+A STUN message annotated with the transport type and source/destination addresses needed for server-side routing and response generation.
+
+### Public Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `net::TransportType` | [`transport`](#transport-6)  | Protocol on which the request arrived (UDP or TCP). |
+| `net::Address` | [`localAddress`](#localaddress)  | [Server](#server-6)'s local address that received the request. |
+| `net::Address` | [`remoteAddress`](#remoteaddress)  | [Client](#client-2)'s remote address (used to build the 5-tuple). |
+| `std::string` | [`hash`](#hash)  | Pre-computed MessageIntegrity key for signing responses. |
+
+---
+
+{#transport-6}
+
+#### transport
+
+```cpp
+net::TransportType transport
+```
+
+Protocol on which the request arrived (UDP or TCP).
+
+---
+
+{#localaddress}
+
+#### localAddress
+
+```cpp
+net::Address localAddress
+```
+
+[Server](#server-6)'s local address that received the request.
+
+---
+
+{#remoteaddress}
+
+#### remoteAddress
+
+```cpp
+net::Address remoteAddress
+```
+
+[Client](#client-2)'s remote address (used to build the 5-tuple).
+
+---
+
+{#hash}
+
+#### hash
+
+```cpp
+std::string hash
+```
+
+Pre-computed MessageIntegrity key for signing responses.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`Request`](#request-13) `inline` | Constructs a [Request](#request-12) by copying a parsed STUN message and annotating it with the transport context.  |
+
+---
+
+{#request-13}
+
+#### Request
+
+`inline`
+
+```cpp
+inline Request(const stun::Message & message, net::TransportType transport, const net::Address & localAddress, const net::Address & remoteAddress)
+```
+
+Constructs a [Request](#request-12) by copying a parsed STUN message and annotating it with the transport context. 
+#### Parameters
+* `message` Parsed STUN message. 
+
+* `transport` Transport protocol on which the message arrived. 
+
+* `localAddress` Server-side local address. 
+
+* `remoteAddress` Client-side remote address.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `message` | `const [stun::Message](#message-5) &` |  |
+| `transport` | `[net::TransportType](#transporttype)` |  |
+| `localAddress` | `const [net::Address](#address) &` |  |
+| `remoteAddress` | `const [net::Address](#address) &` |  |
+
+{#server-6}
+
+## Server
+
+```cpp
+#include <server.h>
+```
+
+TURN server RFC 5766 / RFC 6062 implementation. Listens on UDP and/or TCP, authenticates requests via [ServerObserver](#serverobserver), and manages [ServerAllocation](#serverallocation) objects for each 5-tuple.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`Server`](#server-7)  | #### Parameters |
+| `void` | [`start`](#start-11) `virtual` | Binds and listens on the configured address, then starts the maintenance timer. |
+| `void` | [`stop`](#stop-8) `virtual` | Stops the timer, destroys all allocations, and closes server sockets. |
+| `void` | [`handleRequest`](#handlerequest)  | Routes an authenticated request to the appropriate handler based on state. Pending (Authenticating) requests are held until the observer calls back.  |
+| `void` | [`handleAuthorizedRequest`](#handleauthorizedrequest)  | Dispatches an already-authorized request to the specific method handler.  |
+| `void` | [`handleBindingRequest`](#handlebindingrequest)  | Handles a Binding request; responds with XOR-MAPPED-ADDRESS.  |
+| `void` | [`handleAllocateRequest`](#handleallocaterequest)  | Handles an Allocate request; creates a UDP or TCP [ServerAllocation](#serverallocation) and sends a success response with XOR-RELAYED-ADDRESS and LIFETIME.  |
+| `void` | [`handleConnectionBindRequest`](#handleconnectionbindrequest)  | Handles a ConnectionBind request by locating the [TCPAllocation](#tcpallocation) that owns the given CONNECTION-ID and delegating to it.  |
+| `void` | [`respond`](#respond)  | Sends a STUN response, signing it with MessageIntegrity if the request had a hash. Routes via UDP or TCP depending on request.transport.  |
+| `void` | [`respondError`](#responderror)  | Constructs and sends an error response with SOFTWARE, REALM, NONCE, and ERROR-CODE.  |
+| `std::map< FiveTuple, ServerAllocation * >` | [`allocations`](#allocations) `const` | Returns a snapshot copy of the allocation map for safe iteration. Returned raw pointers are valid only while the server holds the allocations.  |
+| `void` | [`addAllocation`](#addallocation)  | Transfers ownership of `alloc` to the server and notifies the observer.  |
+| `void` | [`removeAllocation`](#removeallocation)  | Removes `alloc` from the map and notifies the observer. Called automatically from the [ServerAllocation](#serverallocation) destructor.  |
+| `ServerAllocation *` | [`getAllocation`](#getallocation)  | Looks up an allocation by its 5-tuple.  |
+| `TCPAllocation *` | [`getTCPAllocation`](#gettcpallocation)  | Finds the [TCPAllocation](#tcpallocation) that owns a [TCPConnectionPair](#tcpconnectionpair) with the given connection ID.  |
+| `net::TCPSocket::Ptr` | [`getTCPSocket`](#gettcpsocket)  | Returns the accepted TCP socket whose peer address matches `remoteAddr`.  |
+| `void` | [`releaseTCPSocket`](#releasetcpsocket)  | Removes a TCP control socket from the server's socket list and unregisters callbacks. Called when the socket is handed off to a [TCPAllocation](#tcpallocation) (ConnectionBind).  |
+| `ServerObserver &` | [`observer`](#observer-2)  | #### Returns |
+| `const ServerOptions &` | [`options`](#options-11) `const` | #### Returns |
+| `net::UDPSocket &` | [`udpSocket`](#udpsocket-4)  | #### Returns |
+| `net::TCPSocket &` | [`tcpSocket`](#tcpsocket-4)  | #### Returns |
+| `Timer &` | [`timer`](#timer)  | #### Returns |
+| `void` | [`onTCPAcceptConnection`](#ontcpacceptconnection)  | Accept callback for the TCP listening socket; registers new connections for STUN message processing.  |
+| `bool` | [`onTCPSocketClosed`](#ontcpsocketclosed)  | Close callback for accepted TCP sockets; removes the socket from the list.  |
+| `bool` | [`onSocketRecv`](#onsocketrecv-8)  | Receive callback for both UDP and TCP sockets; parses STUN messages and calls [handleRequest()](#handlerequest) for each one.  |
+| `void` | [`onTimer`](#ontimer-2)  | Periodic maintenance callback; expires and removes stale allocations. |
+| `void` | [`scheduleDeferredTCPSocketRelease`](#scheduledeferredtcpsocketrelease)  | Defers accepted TCP socket removal until after the active callback stack unwinds. |
+| `void` | [`drainReleasedTCPSockets`](#drainreleasedtcpsockets)  |  |
+
+---
+
+{#server-7}
+
+#### Server
 
 ```cpp
 Server(ServerObserver & observer, const ServerOptions & options)
 ```
 
+#### Parameters
+* `observer` Observer used for authentication and allocation lifecycle events. 
+
+* `options` [Server](#server-6) configuration; defaults to 0.0.0.0:3478 with TCP and UDP enabled.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `observer` | `ServerObserver &` |  |
-| `options` | `const ServerOptions &` |  |
+| `observer` | `[ServerObserver](#serverobserver) &` |  |
+| `options` | `const [ServerOptions](#serveroptions) &` |  |
 
 ---
 
-#### ~Server 
+{#start-11}
 
-```cpp
-virtual ~Server()
-```
+#### start
 
----
-
-#### start 
+`virtual`
 
 ```cpp
 virtual void start()
 ```
 
+Binds and listens on the configured address, then starts the maintenance timer.
+
 ---
 
-#### stop 
+{#stop-8}
+
+#### stop
+
+`virtual`
 
 ```cpp
 virtual void stop()
 ```
 
+Stops the timer, destroys all allocations, and closes server sockets.
+
 ---
 
-#### handleRequest 
+{#handlerequest}
+
+#### handleRequest
 
 ```cpp
 void handleRequest(Request & request, AuthenticationState state)
 ```
 
+Routes an authenticated request to the appropriate handler based on state. Pending (Authenticating) requests are held until the observer calls back. 
+#### Parameters
+* `request` Incoming STUN request. 
+
+* `state` Result of the observer's authenticateRequest() call.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `request` | `Request &` |  |
-| `state` | `AuthenticationState` |  |
+| `request` | `[Request](#request-12) &` |  |
+| `state` | `[AuthenticationState](#authenticationstate)` |  |
 
 ---
 
-#### handleAuthorizedRequest 
+{#handleauthorizedrequest}
+
+#### handleAuthorizedRequest
 
 ```cpp
 void handleAuthorizedRequest(Request & request)
 ```
 
+Dispatches an already-authorized request to the specific method handler. 
+#### Parameters
+* `request` Authorized STUN request.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `request` | `Request &` |  |
+| `request` | `[Request](#request-12) &` |  |
 
 ---
 
-#### handleBindingRequest 
+{#handlebindingrequest}
+
+#### handleBindingRequest
 
 ```cpp
 void handleBindingRequest(Request & request)
 ```
 
+Handles a Binding request; responds with XOR-MAPPED-ADDRESS. 
+#### Parameters
+* `request` Incoming Binding request.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `request` | `Request &` |  |
+| `request` | `[Request](#request-12) &` |  |
 
 ---
 
-#### handleAllocateRequest 
+{#handleallocaterequest}
+
+#### handleAllocateRequest
 
 ```cpp
 void handleAllocateRequest(Request & request)
 ```
 
+Handles an Allocate request; creates a UDP or TCP [ServerAllocation](#serverallocation) and sends a success response with XOR-RELAYED-ADDRESS and LIFETIME. 
+#### Parameters
+* `request` Incoming Allocate request.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `request` | `Request &` |  |
+| `request` | `[Request](#request-12) &` |  |
 
 ---
 
-#### handleConnectionBindRequest 
+{#handleconnectionbindrequest}
+
+#### handleConnectionBindRequest
 
 ```cpp
 void handleConnectionBindRequest(Request & request)
 ```
 
+Handles a ConnectionBind request by locating the [TCPAllocation](#tcpallocation) that owns the given CONNECTION-ID and delegating to it. 
+#### Parameters
+* `request` Incoming ConnectionBind request.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `request` | `Request &` |  |
+| `request` | `[Request](#request-12) &` |  |
 
 ---
 
-#### respond 
+{#respond}
+
+#### respond
 
 ```cpp
 void respond(Request & request, stun::Message & response)
 ```
 
+Sends a STUN response, signing it with MessageIntegrity if the request had a hash. Routes via UDP or TCP depending on request.transport. 
+#### Parameters
+* `request` The original request (provides transport and remote address). 
+
+* `response` The response message to send.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `request` | `Request &` |  |
-| `response` | `stun::Message &` |  |
+| `request` | `[Request](#request-12) &` |  |
+| `response` | `[stun::Message](#message-5) &` |  |
 
 ---
 
-#### respondError 
+{#responderror}
+
+#### respondError
 
 ```cpp
 void respondError(Request & request, int errorCode, const char * errorDesc)
 ```
 
+Constructs and sends an error response with SOFTWARE, REALM, NONCE, and ERROR-CODE. 
+#### Parameters
+* `request` The original request. 
+
+* `errorCode` STUN error code (e.g. 400, 401, 437). 
+
+* `errorDesc` Human-readable error description string.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `request` | `Request &` |  |
+| `request` | `[Request](#request-12) &` |  |
 | `errorCode` | `int` |  |
 | `errorDesc` | `const char *` |  |
 
 ---
 
-#### allocations 
+{#allocations}
+
+#### allocations
+
+`const`
 
 ```cpp
 std::map< FiveTuple, ServerAllocation * > allocations() const
 ```
 
-Returns a snapshot copy of the allocation map for safe iteration. Callers receive raw pointers that are valid only while the corresponding unique_ptr in _allocations is alive.
+Returns a snapshot copy of the allocation map for safe iteration. Returned raw pointers are valid only while the server holds the allocations. 
+#### Returns
+Map from [FiveTuple](#fivetuple) to raw [ServerAllocation](#serverallocation) pointers.
 
 ---
 
-#### addAllocation 
+{#addallocation}
+
+#### addAllocation
 
 ```cpp
 void addAllocation(std::unique_ptr< ServerAllocation > alloc)
 ```
 
+Transfers ownership of `alloc` to the server and notifies the observer. 
+#### Parameters
+* `alloc` Newly constructed allocation to register.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `alloc` | `std::unique_ptr< ServerAllocation >` |  |
+| `alloc` | `std::unique_ptr< [ServerAllocation](#serverallocation) >` |  |
 
 ---
 
-#### removeAllocation 
+{#removeallocation}
+
+#### removeAllocation
 
 ```cpp
 void removeAllocation(ServerAllocation * alloc)
 ```
 
+Removes `alloc` from the map and notifies the observer. Called automatically from the [ServerAllocation](#serverallocation) destructor. 
+#### Parameters
+* `alloc` Allocation being destroyed.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `alloc` | `ServerAllocation *` |  |
+| `alloc` | `[ServerAllocation](#serverallocation) *` |  |
 
 ---
 
-#### getAllocation 
+{#getallocation}
+
+#### getAllocation
 
 ```cpp
 ServerAllocation * getAllocation(const FiveTuple & tuple)
 ```
 
+Looks up an allocation by its 5-tuple. 
+#### Parameters
+* `tuple` The 5-tuple to search for. 
+
+#### Returns
+Pointer to the matching allocation, or nullptr if not found.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `tuple` | `const FiveTuple &` |  |
+| `tuple` | `const [FiveTuple](#fivetuple) &` |  |
 
 ---
 
-#### getTCPAllocation 
+{#gettcpallocation}
+
+#### getTCPAllocation
 
 ```cpp
 TCPAllocation * getTCPAllocation(const uint32_t & connectionID)
 ```
+
+Finds the [TCPAllocation](#tcpallocation) that owns a [TCPConnectionPair](#tcpconnectionpair) with the given connection ID. 
+#### Parameters
+* `connectionID` TURN CONNECTION-ID to search for. 
+
+#### Returns
+Pointer to the owning [TCPAllocation](#tcpallocation), or nullptr if not found.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -1784,117 +3008,224 @@ TCPAllocation * getTCPAllocation(const uint32_t & connectionID)
 
 ---
 
-#### getTCPSocket 
+{#gettcpsocket}
+
+#### getTCPSocket
 
 ```cpp
 net::TCPSocket::Ptr getTCPSocket(const net::Address & remoteAddr)
 ```
 
+Returns the accepted TCP socket whose peer address matches `remoteAddr`. 
+#### Parameters
+* `remoteAddr` Peer address to search for. 
+
+#### Returns
+Shared pointer to the socket, or empty if not found.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `remoteAddr` | `const net::Address &` |  |
+| `remoteAddr` | `const [net::Address](#address) &` |  |
 
 ---
 
-#### releaseTCPSocket 
+{#releasetcpsocket}
+
+#### releaseTCPSocket
 
 ```cpp
 void releaseTCPSocket(const net::Socket & socket)
 ```
 
+Removes a TCP control socket from the server's socket list and unregisters callbacks. Called when the socket is handed off to a [TCPAllocation](#tcpallocation) (ConnectionBind). 
+#### Parameters
+* `socket` The socket to release.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `const net::Socket &` |  |
+| `socket` | `const [net::Socket](#socket) &` |  |
 
 ---
 
-#### observer 
+{#observer-2}
+
+#### observer
 
 ```cpp
 ServerObserver & observer()
 ```
 
+#### Returns
+Reference to the observer provided at construction.
+
 ---
 
-#### options 
+{#options-11}
+
+#### options
+
+`const`
 
 ```cpp
-ServerOptions & options()
+const ServerOptions & options() const
 ```
+
+#### Returns
+Reference to the immutable options struct.
 
 ---
 
-#### udpSocket 
+{#udpsocket-4}
+
+#### udpSocket
 
 ```cpp
 net::UDPSocket & udpSocket()
 ```
 
+#### Returns
+Reference to the UDP server socket.
+
 ---
 
-#### tcpSocket 
+{#tcpsocket-4}
+
+#### tcpSocket
 
 ```cpp
 net::TCPSocket & tcpSocket()
 ```
 
+#### Returns
+Reference to the TCP server listening socket.
+
 ---
 
-#### timer 
+{#timer}
+
+#### timer
 
 ```cpp
 Timer & timer()
 ```
 
+#### Returns
+Reference to the maintenance timer.
+
 ---
 
-#### onTCPAcceptConnection 
+{#ontcpacceptconnection}
+
+#### onTCPAcceptConnection
 
 ```cpp
 void onTCPAcceptConnection(const net::TCPSocket::Ptr & sock)
 ```
 
+Accept callback for the TCP listening socket; registers new connections for STUN message processing. 
+#### Parameters
+* `sock` Newly accepted TCP socket.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `sock` | `const net::TCPSocket::Ptr &` |  |
+| `sock` | `const [net::TCPSocket::Ptr](#ptr-9) &` |  |
 
 ---
 
-#### onTCPSocketClosed 
+{#ontcpsocketclosed}
+
+#### onTCPSocketClosed
 
 ```cpp
-void onTCPSocketClosed(net::Socket & socket)
+bool onTCPSocketClosed(net::Socket & socket)
 ```
+
+Close callback for accepted TCP sockets; removes the socket from the list. 
+#### Parameters
+* `socket` The closed socket.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `net::Socket &` |  |
+| `socket` | `[net::Socket](#socket) &` |  |
 
 ---
 
-#### onSocketRecv 
+{#onsocketrecv-8}
+
+#### onSocketRecv
 
 ```cpp
-void onSocketRecv(net::Socket & socket, const MutableBuffer & buffer, const net::Address & peerAddress)
+bool onSocketRecv(net::Socket & socket, const MutableBuffer & buffer, const net::Address & peerAddress)
 ```
+
+Receive callback for both UDP and TCP sockets; parses STUN messages and calls [handleRequest()](#handlerequest) for each one. 
+#### Parameters
+* `socket` The receiving socket. 
+
+* `buffer` Received data buffer. 
+
+* `peerAddress` Source address of the data.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `net::Socket &` |  |
-| `buffer` | `const MutableBuffer &` |  |
-| `peerAddress` | `const net::Address &` |  |
+| `socket` | `[net::Socket](#socket) &` |  |
+| `buffer` | `const [MutableBuffer](#classicy_1_1MutableBuffer) &` |  |
+| `peerAddress` | `const [net::Address](#address) &` |  |
 
 ---
 
-#### onTimer 
+{#ontimer-2}
+
+#### onTimer
 
 ```cpp
 void onTimer()
 ```
 
+Periodic maintenance callback; expires and removes stale allocations.
+
 ---
 
-#### _mutex 
+{#scheduledeferredtcpsocketrelease}
+
+#### scheduleDeferredTCPSocketRelease
+
+```cpp
+void scheduleDeferredTCPSocketRelease()
+```
+
+Defers accepted TCP socket removal until after the active callback stack unwinds.
+
+---
+
+{#drainreleasedtcpsockets}
+
+#### drainReleasedTCPSockets
+
+```cpp
+void drainReleasedTCPSockets()
+```
+
+### Private Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `std::mutex` | [`_mutex`](#_mutex-13)  |  |
+| `ServerObserver &` | [`_observer`](#_observer-2)  |  |
+| `ServerOptions` | [`_options`](#_options-4)  |  |
+| `net::SocketEmitter` | [`_udpSocket`](#_udpsocket)  |  |
+| `net::SocketEmitter` | [`_tcpSocket`](#_tcpsocket)  |  |
+| `std::vector< net::SocketEmitter >` | [`_tcpSockets`](#_tcpsockets)  |  |
+| `std::unordered_set< const net::Socket * >` | [`_pendingReleasedTCPSockets`](#_pendingreleasedtcpsockets)  |  |
+| `bool` | [`_tcpSocketReleaseScheduled`](#_tcpsocketreleasescheduled)  |  |
+| `ServerAllocationMap` | [`_allocations`](#_allocations)  |  |
+| `Timer` | [`_timer`](#_timer-2)  |  |
+
+---
+
+{#_mutex-13}
+
+#### _mutex
 
 ```cpp
 std::mutex _mutex
@@ -1902,7 +3233,9 @@ std::mutex _mutex
 
 ---
 
-#### _observer 
+{#_observer-2}
+
+#### _observer
 
 ```cpp
 ServerObserver & _observer
@@ -1910,7 +3243,9 @@ ServerObserver & _observer
 
 ---
 
-#### _options 
+{#_options-4}
+
+#### _options
 
 ```cpp
 ServerOptions _options
@@ -1918,7 +3253,9 @@ ServerOptions _options
 
 ---
 
-#### _udpSocket 
+{#_udpsocket}
+
+#### _udpSocket
 
 ```cpp
 net::SocketEmitter _udpSocket
@@ -1926,7 +3263,9 @@ net::SocketEmitter _udpSocket
 
 ---
 
-#### _tcpSocket 
+{#_tcpsocket}
+
+#### _tcpSocket
 
 ```cpp
 net::SocketEmitter _tcpSocket
@@ -1934,7 +3273,9 @@ net::SocketEmitter _tcpSocket
 
 ---
 
-#### _tcpSockets 
+{#_tcpsockets}
+
+#### _tcpSockets
 
 ```cpp
 std::vector< net::SocketEmitter > _tcpSockets
@@ -1942,7 +3283,29 @@ std::vector< net::SocketEmitter > _tcpSockets
 
 ---
 
-#### _allocations 
+{#_pendingreleasedtcpsockets}
+
+#### _pendingReleasedTCPSockets
+
+```cpp
+std::unordered_set< const net::Socket * > _pendingReleasedTCPSockets
+```
+
+---
+
+{#_tcpsocketreleasescheduled}
+
+#### _tcpSocketReleaseScheduled
+
+```cpp
+bool _tcpSocketReleaseScheduled {false}
+```
+
+---
+
+{#_allocations}
+
+#### _allocations
 
 ```cpp
 ServerAllocationMap _allocations
@@ -1950,139 +3313,241 @@ ServerAllocationMap _allocations
 
 ---
 
-#### _timer 
+{#_timer-2}
+
+#### _timer
 
 ```cpp
 Timer _timer
 ```
 
-## ServerAllocation 
+{#serverallocation}
 
-> **Extends:** `icy::turn::IAllocation`
-> **Subclasses:** `icy::turn::TCPAllocation`, `icy::turn::UDPAllocation`
-> **Defined in:** `serverallocation.h`
+## ServerAllocation
 
-### Members
+```cpp
+#include <serverallocation.h>
+```
 
-| Name | Description |
-|------|-------------|
-| [`ServerAllocation`](#group__turn_1ga84047d7fa94573c8b4c9e90d7b2ca35e) |  |
-| [`~ServerAllocation`](#group__turn_1ga5a72f2a758d972ead206cd52fcc47132) |  |
-| [`handleRequest`](#group__turn_1ga196225684548a5af62dbaf4536a40a6c) |  |
-| [`handleRefreshRequest`](#group__turn_1ga067a994e4f4b78f1208d946b526b7782) |  |
-| [`handleCreatePermission`](#group__turn_1ga123f3fce597db5b9303583eb95c830dc) |  |
-| [`onTimer`](#group__turn_1gae360050350229d817fda8d6317531862) | Asynchronous timer callback for updating the allocation permissions and state etc. If this call returns false the allocation will be deleted. |
-| [`timeRemaining`](#group__turn_1ga86f851d76c345f440db48a3b8cc373ea) |  |
-| [`maxTimeRemaining`](#group__turn_1gac32ad9173f59a4ee7fff11ae498a96f6) |  |
-| [`server`](#group__turn_1gac782e622e15da990801af994dbfa7bfa) |  |
-| [`print`](#group__turn_1ga7e83857083889f67c5f29a754a34aa24) |  |
-| [`refreshDeleteRequested`](#group__turn_1ga5872b7dd0f15d787034ef80180d54995) | Returns true if the refresh request set lifetime to 0, signaling the parent [Server](#classicy_1_1turn_1_1Server) to delete this allocation. |
-| [`ServerAllocation`](#group__turn_1gae436d8a65e9a1a8a6f22cdeb46967690) | NonCopyable and NonMovable. |
-| [`operator=`](#group__turn_1gafc5723b65e7b03176bd894f75717676c) |  |
-| [`_maxLifetime`](#group__turn_1gaffd29cbaf5c7b75d02f538b1f9535f97) |  |
-| [`_server`](#group__turn_1ga8c62f3c453e32f9c710ac172ad633aca) |  |
-| [`_refreshDeleteRequested`](#group__turn_1gaad617080bf2c8caf7d3843838aaeef87) |  |
+> **Inherits:** [`IAllocation`](#iallocation)
+> **Subclassed by:** [`TCPAllocation`](#tcpallocation), [`UDPAllocation`](#udpallocation)
+
+Server-side TURN allocation that tracks permissions, lifetime, and relay state. Handles Refresh and CreatePermission requests common to both UDP and TCP allocations. Subclassed by [UDPAllocation](#udpallocation) and [TCPAllocation](#tcpallocation) for transport-specific behaviour.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`ServerAllocation`](#serverallocation-1)  | #### Parameters |
+| `bool` | [`handleRequest`](#handlerequest-1) `virtual` | Dispatches incoming STUN requests to [handleCreatePermission()](#handlecreatepermission) or [handleRefreshRequest()](#handlerefreshrequest). Subclasses override to add transport-specific methods.  |
+| `void` | [`handleRefreshRequest`](#handlerefreshrequest) `virtual` | Processes a Refresh request; updates the lifetime or sets the delete flag if the requested lifetime is 0, then sends a success response.  |
+| `void` | [`handleCreatePermission`](#handlecreatepermission) `virtual` | Processes a CreatePermission request; installs or refreshes permissions for each XOR-PEER-ADDRESS attribute, then sends a success response.  |
+| `bool` | [`onTimer`](#ontimer-3)  | Periodic maintenance callback called by [Server::onTimer()](#ontimer-2). Removes expired permissions. Returns false to signal that this allocation should be destroyed.  |
+| `std::int64_t` | [`timeRemaining`](#timeremaining-1) `virtual` `const` | #### Returns |
+| `std::int64_t` | [`maxTimeRemaining`](#maxtimeremaining) `const` | #### Returns |
+| `bool` | [`hasPermission`](#haspermission-4) `virtual` | Checks permission, auto-granting local IPs if enabled in server options. |
+| `bool` | [`hasPermission`](#haspermission-5) `virtual` | Checks whether a permission exists for `peerAddress`. The port is ignored; TURN permissions are IP-only. |
+| `Server &` | [`server`](#server-8) `virtual` | #### Returns |
+| `void` | [`print`](#print-12) `virtual` `const` | Writes a detailed diagnostic dump of this allocation to `os`. |
+| `bool` | [`refreshDeleteRequested`](#refreshdeleterequested) `const` `inline` | Returns true if the refresh request set lifetime to 0, signaling the parent [Server](#server-6) to delete this allocation. |
 
 ---
 
-#### ServerAllocation 
+{#serverallocation-1}
+
+#### ServerAllocation
 
 ```cpp
 ServerAllocation(Server & server, const FiveTuple & tuple, const std::string & username, std::int64_t lifetime)
 ```
 
+#### Parameters
+* `server` Owning TURN server. 
+
+* `tuple` 5-tuple uniquely identifying this allocation. 
+
+* `username` Authenticated username from the Allocate request. 
+
+* `lifetime` Initial lifetime in seconds as negotiated with the client.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `server` | `Server &` |  |
-| `tuple` | `const FiveTuple &` |  |
+| `server` | `[Server](#server-6) &` |  |
+| `tuple` | `const [FiveTuple](#fivetuple) &` |  |
 | `username` | `const std::string &` |  |
 | `lifetime` | `std::int64_t` |  |
 
 ---
 
-#### ~ServerAllocation 
+{#handlerequest-1}
 
-```cpp
-virtual ~ServerAllocation()
-```
+#### handleRequest
 
----
-
-#### handleRequest 
+`virtual`
 
 ```cpp
 virtual bool handleRequest(Request & request)
 ```
 
+Dispatches incoming STUN requests to [handleCreatePermission()](#handlecreatepermission) or [handleRefreshRequest()](#handlerefreshrequest). Subclasses override to add transport-specific methods. 
+#### Parameters
+* `request` Incoming STUN request. 
+
+#### Returns
+true if the request was handled; false signals the server to respond with a 600 "Operation Not Supported" error.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `request` | `Request &` |  |
+| `request` | `[Request](#request-12) &` |  |
 
 ---
 
-#### handleRefreshRequest 
+{#handlerefreshrequest}
+
+#### handleRefreshRequest
+
+`virtual`
 
 ```cpp
 virtual void handleRefreshRequest(Request & request)
 ```
 
+Processes a Refresh request; updates the lifetime or sets the delete flag if the requested lifetime is 0, then sends a success response. 
+#### Parameters
+* `request` Incoming Refresh request.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `request` | `Request &` |  |
+| `request` | `[Request](#request-12) &` |  |
 
 ---
 
-#### handleCreatePermission 
+{#handlecreatepermission}
+
+#### handleCreatePermission
+
+`virtual`
 
 ```cpp
 virtual void handleCreatePermission(Request & request)
 ```
 
+Processes a CreatePermission request; installs or refreshes permissions for each XOR-PEER-ADDRESS attribute, then sends a success response. 
+#### Parameters
+* `request` Incoming CreatePermission request.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `request` | `Request &` |  |
+| `request` | `[Request](#request-12) &` |  |
 
 ---
 
-#### onTimer 
+{#ontimer-3}
+
+#### onTimer
 
 ```cpp
-virtual bool onTimer()
+bool onTimer()
 ```
 
-Asynchronous timer callback for updating the allocation permissions and state etc. If this call returns false the allocation will be deleted.
+Periodic maintenance callback called by [Server::onTimer()](#ontimer-2). Removes expired permissions. Returns false to signal that this allocation should be destroyed. 
+#### Returns
+true to keep the allocation alive; false to destroy it.
 
 ---
 
-#### timeRemaining 
+{#timeremaining-1}
+
+#### timeRemaining
+
+`virtual` `const`
 
 ```cpp
 virtual std::int64_t timeRemaining() const
 ```
 
+#### Returns
+The lesser of [IAllocation::timeRemaining()](#timeremaining) and [maxTimeRemaining()](#maxtimeremaining).
+
 ---
 
-#### maxTimeRemaining 
+{#maxtimeremaining}
+
+#### maxTimeRemaining
+
+`const`
 
 ```cpp
-virtual std::int64_t maxTimeRemaining() const
+std::int64_t maxTimeRemaining() const
 ```
+
+#### Returns
+Seconds remaining before the server-enforced maximum lifetime expires.
 
 ---
 
-#### server 
+{#haspermission-4}
+
+#### hasPermission
+
+`virtual`
+
+```cpp
+virtual bool hasPermission(const std::string & peerIP)
+```
+
+Checks permission, auto-granting local IPs if enabled in server options.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `peerIP` | `const std::string &` |  |
+
+---
+
+{#haspermission-5}
+
+#### hasPermission
+
+`virtual`
+
+```cpp
+virtual bool hasPermission(const net::Address & peerAddress)
+```
+
+Checks whether a permission exists for `peerAddress`. The port is ignored; TURN permissions are IP-only.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `peerAddress` | `const [net::Address](#address) &` |  |
+
+---
+
+{#server-8}
+
+#### server
+
+`virtual`
 
 ```cpp
 virtual Server & server()
 ```
 
+#### Returns
+Reference to the owning TURN server.
+
 ---
 
-#### print 
+{#print-12}
+
+#### print
+
+`virtual` `const`
 
 ```cpp
 virtual void print(std::ostream & os) const
 ```
+
+Writes a detailed diagnostic dump of this allocation to `os`.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -2090,17 +3555,79 @@ virtual void print(std::ostream & os) const
 
 ---
 
-#### refreshDeleteRequested 
+{#refreshdeleterequested}
+
+#### refreshDeleteRequested
+
+`const` `inline`
 
 ```cpp
 inline bool refreshDeleteRequested() const
 ```
 
-Returns true if the refresh request set lifetime to 0, signaling the parent [Server](#classicy_1_1turn_1_1Server) to delete this allocation.
+Returns true if the refresh request set lifetime to 0, signaling the parent [Server](#server-6) to delete this allocation.
+
+### Protected Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `uint32_t` | [`_maxLifetime`](#_maxlifetime)  |  |
+| `Server &` | [`_server`](#_server-1)  |  |
+| `PermissionPolicy` | [`_permissionPolicy`](#_permissionpolicy)  |  |
+| `bool` | [`_refreshDeleteRequested`](#_refreshdeleterequested)  |  |
 
 ---
 
-#### ServerAllocation 
+{#_maxlifetime}
+
+#### _maxLifetime
+
+```cpp
+uint32_t _maxLifetime
+```
+
+---
+
+{#_server-1}
+
+#### _server
+
+```cpp
+Server & _server
+```
+
+---
+
+{#_permissionpolicy}
+
+#### _permissionPolicy
+
+```cpp
+PermissionPolicy _permissionPolicy
+```
+
+---
+
+{#_refreshdeleterequested}
+
+#### _refreshDeleteRequested
+
+```cpp
+bool _refreshDeleteRequested = false
+```
+
+### Private Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`ServerAllocation`](#serverallocation-2)  | NonCopyable and NonMovable. |
+|  | [`ServerAllocation`](#serverallocation-3)  |  |
+
+---
+
+{#serverallocation-2}
+
+#### ServerAllocation
 
 ```cpp
 ServerAllocation(const ServerAllocation &) = delete
@@ -2110,214 +3637,280 @@ NonCopyable and NonMovable.
 
 ---
 
-#### operator= 
+{#serverallocation-3}
+
+#### ServerAllocation
 
 ```cpp
-ServerAllocation & operator=(const ServerAllocation &) = delete
+ServerAllocation(ServerAllocation &&) = delete
 ```
+
+{#tcpallocation}
+
+## TCPAllocation
+
+```cpp
+#include <tcpallocation.h>
+```
+
+> **Inherits:** [`ServerAllocation`](#serverallocation)
+
+Server-side TCP TURN allocation with connection pair management per RFC 6062. Maintains a control connection for STUN signalling and an acceptor socket for incoming peer TCP connections. Each peer connection is tracked as a [TCPConnectionPair](#tcpconnectionpair) and bridged to the client after a successful ConnectionBind.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`TCPAllocation`](#tcpallocation-1)  | #### Parameters |
+| `bool` | [`handleRequest`](#handlerequest-2) `virtual` | Extends the base handler with Connect and ConnectionBind methods.  |
+| `void` | [`handleConnectRequest`](#handleconnectrequest)  | Handles a Connect request; creates a [TCPConnectionPair](#tcpconnectionpair) and initiates a TCP connection to the peer address carried in XOR-PEER-ADDRESS.  |
+| `void` | [`handleConnectionBindRequest`](#handleconnectionbindrequest-1)  | Handles a ConnectionBind request; associates the incoming TCP data socket with the pending [TCPConnectionPair](#tcpconnectionpair) and activates the relay pipe.  |
+| `void` | [`sendPeerConnectResponse`](#sendpeerconnectresponse)  | Sends a Connect success or failure response to the control connection.  |
+| `int` | [`sendToControl`](#sendtocontrol)  | Sends a STUN message to the client over the control TCP connection.  |
+| `net::TCPSocket &` | [`control`](#control)  | #### Returns |
+| `net::Address` | [`relayedAddress`](#relayedaddress-2) `virtual` `const` | #### Returns |
+| `TCPConnectionPairMap &` | [`pairs`](#pairs)  | #### Returns |
+| `bool` | [`onTimer`](#ontimer-4)  | Periodic timer callback; removes expired or pending-delete connection pairs, then calls the base class timer.  |
+| `void` | [`onPeerAccept`](#onpeeraccept)  | Accepts incoming peer sockets on the relay acceptor socket. Checks permissions and sends a ConnectionAttempt indication to the control.  |
+| `bool` | [`onControlClosed`](#oncontrolclosed)  | Called when the control connection closes; marks the allocation for deletion.  |
 
 ---
 
-#### _maxLifetime 
+{#tcpallocation-1}
 
-```cpp
-uint32_t _maxLifetime
-```
-
----
-
-#### _server 
-
-```cpp
-Server & _server
-```
-
----
-
-#### _refreshDeleteRequested 
-
-```cpp
-bool _refreshDeleteRequested = false
-```
-
-## TCPAllocation 
-
-> **Extends:** `icy::turn::ServerAllocation`
-> **Defined in:** `tcpallocation.h`
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`TCPAllocation`](#group__turn_1ga530362865a2ac00cec08e42dc73403a9) |  |
-| [`~TCPAllocation`](#group__turn_1ga312379a655b3f96bcdb99e79fb689710) |  |
-| [`handleRequest`](#group__turn_1ga6c454d8d13f6c5a006731cf8e5d9b517) |  |
-| [`handleConnectRequest`](#group__turn_1ga581cc086264aaebb23867da082b69d08) |  |
-| [`handleConnectionBindRequest`](#group__turn_1ga90d0b7dc91442cd9b165f0bbd597130e) |  |
-| [`sendPeerConnectResponse`](#group__turn_1gadfc50816e7433c9290781b9f906499ca) | Sends a Connect request response to control. |
-| [`sendToControl`](#group__turn_1ga938af5d30b8c6f5d61812f8a241a0a0f) |  |
-| [`control`](#group__turn_1ga6b941622915a8607a4cedc7ee171437c) |  |
-| [`relayedAddress`](#group__turn_1ga7b3153537c0a9fd9453277443dcba25f) |  |
-| [`pairs`](#group__turn_1ga883345d6de7c95b47330a0b0daaeb19b) |  |
-| [`onTimer`](#group__turn_1ga263e247e447a7eaa989711bbd78a249a) | Asynchronous timer callback for updating the allocation permissions and state etc. If this call returns false the allocation will be deleted. |
-| [`onPeerAccept`](#group__turn_1ga9c6c658f89aa5c1ebc89a80f12d0a570) | Accepts incoming peer sockets for ConnectionBind requests. |
-| [`onControlClosed`](#group__turn_1gad7d9a3b524c3439fc19642ce621d306c) | Callback for handling controll connection destruction. The allocation will be deleted. |
-| [`_control`](#group__turn_1ga76a78eca6ac1212ddfbf6512213e6901) |  |
-| [`_acceptor`](#group__turn_1ga6ae65a9eaa6379fa513984c4a30522e4) |  |
-| [`_pairs`](#group__turn_1ga865b233b3ce8e50c49c91c9fccc27920) |  |
-
----
-
-#### TCPAllocation 
+#### TCPAllocation
 
 ```cpp
 TCPAllocation(Server & server, const net::Socket::Ptr & control, const FiveTuple & tuple, const std::string & username, const uint32_t & lifetime)
 ```
 
+#### Parameters
+* `server` Owning TURN server. 
+
+* `control` The accepted TCP socket used for STUN control messages. 
+
+* `tuple` 5-tuple identifying this allocation. 
+
+* `username` Authenticated username from the Allocate request. 
+
+* `lifetime` Initial lifetime in seconds.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `server` | `Server &` |  |
-| `control` | `const net::Socket::Ptr &` |  |
-| `tuple` | `const FiveTuple &` |  |
+| `server` | `[Server](#server-6) &` |  |
+| `control` | `const [net::Socket::Ptr](#ptr-4) &` |  |
+| `tuple` | `const [FiveTuple](#fivetuple) &` |  |
 | `username` | `const std::string &` |  |
 | `lifetime` | `const uint32_t &` |  |
 
 ---
 
-#### ~TCPAllocation 
+{#handlerequest-2}
 
-```cpp
-virtual ~TCPAllocation()
-```
+#### handleRequest
 
----
-
-#### handleRequest 
+`virtual`
 
 ```cpp
 virtual bool handleRequest(Request & request)
 ```
 
+Extends the base handler with Connect and ConnectionBind methods. 
+#### Parameters
+* `request` Incoming STUN request. 
+
+#### Returns
+true if handled.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `request` | `Request &` |  |
+| `request` | `[Request](#request-12) &` |  |
 
 ---
 
-#### handleConnectRequest 
+{#handleconnectrequest}
+
+#### handleConnectRequest
 
 ```cpp
 void handleConnectRequest(Request & request)
 ```
 
+Handles a Connect request; creates a [TCPConnectionPair](#tcpconnectionpair) and initiates a TCP connection to the peer address carried in XOR-PEER-ADDRESS. 
+#### Parameters
+* `request` Incoming Connect request.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `request` | `Request &` |  |
+| `request` | `[Request](#request-12) &` |  |
 
 ---
 
-#### handleConnectionBindRequest 
+{#handleconnectionbindrequest-1}
+
+#### handleConnectionBindRequest
 
 ```cpp
 void handleConnectionBindRequest(Request & request)
 ```
 
+Handles a ConnectionBind request; associates the incoming TCP data socket with the pending [TCPConnectionPair](#tcpconnectionpair) and activates the relay pipe. 
+#### Parameters
+* `request` Incoming ConnectionBind request.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `request` | `Request &` |  |
+| `request` | `[Request](#request-12) &` |  |
 
 ---
 
-#### sendPeerConnectResponse 
+{#sendpeerconnectresponse}
+
+#### sendPeerConnectResponse
 
 ```cpp
 void sendPeerConnectResponse(TCPConnectionPair * pair, bool success)
 ```
 
-Sends a Connect request response to control.
+Sends a Connect success or failure response to the control connection. 
+#### Parameters
+* `pair` The connection pair whose peer connection attempt completed. 
+
+* `success` true if the peer TCP connection succeeded.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `pair` | `TCPConnectionPair *` |  |
+| `pair` | `[TCPConnectionPair](#tcpconnectionpair) *` |  |
 | `success` | `bool` |  |
 
 ---
 
-#### sendToControl 
+{#sendtocontrol}
+
+#### sendToControl
 
 ```cpp
 int sendToControl(stun::Message & message)
 ```
 
+Sends a STUN message to the client over the control TCP connection. 
+#### Parameters
+* `message` Message to send. 
+
+#### Returns
+Number of bytes sent, or a negative value on error.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `message` | `stun::Message &` |  |
+| `message` | `[stun::Message](#message-5) &` |  |
 
 ---
 
-#### control 
+{#control}
+
+#### control
 
 ```cpp
 net::TCPSocket & control()
 ```
 
+#### Returns
+Reference to the TCP control socket.
+
 ---
 
-#### relayedAddress 
+{#relayedaddress-2}
+
+#### relayedAddress
+
+`virtual` `const`
 
 ```cpp
 virtual net::Address relayedAddress() const
 ```
 
+#### Returns
+The listen address of the peer acceptor socket (used as the relayed address).
+
 ---
 
-#### pairs 
+{#pairs}
+
+#### pairs
 
 ```cpp
 TCPConnectionPairMap & pairs()
 ```
 
+#### Returns
+Reference to the map of active TCPConnectionPairs keyed by connection ID.
+
 ---
 
-#### onTimer 
+{#ontimer-4}
+
+#### onTimer
 
 ```cpp
-virtual bool onTimer()
+bool onTimer()
 ```
 
-Asynchronous timer callback for updating the allocation permissions and state etc. If this call returns false the allocation will be deleted.
+Periodic timer callback; removes expired or pending-delete connection pairs, then calls the base class timer. 
+#### Returns
+false if the allocation should be destroyed.
 
 ---
 
-#### onPeerAccept 
+{#onpeeraccept}
+
+#### onPeerAccept
 
 ```cpp
 void onPeerAccept(const net::TCPSocket::Ptr & sock)
 ```
 
-Accepts incoming peer sockets for ConnectionBind requests.
+Accepts incoming peer sockets on the relay acceptor socket. Checks permissions and sends a ConnectionAttempt indication to the control. 
+#### Parameters
+* `sock` Newly accepted peer socket.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `sock` | `const net::TCPSocket::Ptr &` |  |
+| `sock` | `const [net::TCPSocket::Ptr](#ptr-9) &` |  |
 
 ---
 
-#### onControlClosed 
+{#oncontrolclosed}
+
+#### onControlClosed
 
 ```cpp
-void onControlClosed(net::Socket & socket)
+bool onControlClosed(net::Socket & socket)
 ```
 
-Callback for handling controll connection destruction. The allocation will be deleted.
+Called when the control connection closes; marks the allocation for deletion. 
+#### Parameters
+* `socket` The closed control socket. 
+
+#### Returns
+false (event propagation convention).
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `net::Socket &` |  |
+| `socket` | `[net::Socket](#socket) &` |  |
+
+### Protected Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `net::SocketEmitter` | [`_control`](#_control)  |  |
+| `net::SocketEmitter` | [`_acceptor`](#_acceptor)  |  |
+| `TCPConnectionPairMap` | [`_pairs`](#_pairs)  |  |
 
 ---
 
-#### _control 
+{#_control}
+
+#### _control
 
 ```cpp
 net::SocketEmitter _control
@@ -2325,7 +3918,9 @@ net::SocketEmitter _control
 
 ---
 
-#### _acceptor 
+{#_acceptor}
+
+#### _acceptor
 
 ```cpp
 net::SocketEmitter _acceptor
@@ -2333,238 +3928,499 @@ net::SocketEmitter _acceptor
 
 ---
 
-#### _pairs 
+{#_pairs}
+
+#### _pairs
 
 ```cpp
 TCPConnectionPairMap _pairs
 ```
 
-## TCPConnectionPair 
+{#tcpclient}
 
-> **Defined in:** `tcpconnectionpair.h`
+## TCPClient
 
-### Members
+```cpp
+#include <tcpclient.h>
+```
 
-| Name | Description |
-|------|-------------|
-| [`TCPConnectionPair`](#group__turn_1gaef6a16730e04ad6935b74d7688d434ff) |  |
-| [`~TCPConnectionPair`](#group__turn_1ga624ca19946f081cf19f75b0b185f88bd) |  |
-| [`doPeerConnect`](#group__turn_1ga5fa2395970db2f91d0c39b2344293b4a) | Initiates an outgoing TCP connection to the peer for Connect requests. |
-| [`makeDataConnection`](#group__turn_1ga9e9fa7894dcb1ba7aead4a9ce89ad2a8) | Binds the client <> peer relay pipe once the ConnectionBind request is successfull. |
-| [`setPeerSocket`](#group__turn_1gabb87674d00d60b47ec5799578c4303e8) |  |
-| [`setClientSocket`](#group__turn_1gabe1aec80b35fe3f161fc38515f139b00) |  |
-| [`onPeerConnectSuccess`](#group__turn_1ga5a5912bc68b1a4c405a1347ea8fb82bb) | Connection success callback for Connect request. |
-| [`onPeerConnectError`](#group__turn_1gabcbaa9d2da0811338030f6368c5eecea) | Connection error callback for Connect request. |
-| [`onClientDataReceived`](#group__turn_1ga7850f0162f9bdd3d1d7b853a59324ddd) |  |
-| [`onPeerDataReceived`](#group__turn_1gae93b12998cb75c2784b8b4a83b8ed78e) |  |
-| [`onConnectionClosed`](#group__turn_1ga4f90949f22078df17775d5907451fa47) | Callback for handing either client or peer connections which result in the destruction of the [TCPConnectionPair](#classicy_1_1turn_1_1TCPConnectionPair). |
-| [`startTimeout`](#group__turn_1ga36352c6ddc19d8bdfef9968df7dcc165) | Starts the ConnectionBind request timeout. |
-| [`requestDeletion`](#group__turn_1ga2ac9623b2eccd557b9a56fae2cd0beca) | Signals the parent allocation to handle deletion instead of destroying ourselves directly. |
-| [`expired`](#group__turn_1gae31259009aac3c03ea440ec0a4bb8ff7) | Return true if the peer `ConnectionBind` request timed out. |
-| [`TCPConnectionPair`](#group__turn_1ga051968b4d67df635b32673ba0241177e) | NonCopyable and NonMovable. |
-| [`operator=`](#group__turn_1gaac0eea313143b657b08277ed2aed266b) |  |
-| [`allocation`](#group__turn_1ga5f8ce0ee36a5bc87f55d76a95d4ffdc6) |  |
-| [`client`](#group__turn_1ga7299639b74d587a37787494d14674388) | The client socket, nullptr to start. |
-| [`peer`](#group__turn_1ga519217dcc39475da5dc9e616266fbbaf) | The client socket, nullptr to start. |
-| [`earlyPeerData`](#group__turn_1ga7d517bff868ad4aeb1a191abb6d440df) | Stores early peer > client data. |
-| [`connectionID`](#group__turn_1gae745074629773597cef0ea7c2ed059c7) | The unique connection ID. |
-| [`isDataConnection`](#group__turn_1gaa0975b408c5100d385ab97ab54492441) | True when p2p relay is flowing. |
-| [`pendingDelete`](#group__turn_1ga234ee6b25a6996fc2c61e3d05d6deef9) | True when this pair has been flagged for deletion. |
-| [`timeout`](#group__turn_1gad2382d7f6eabb79e3ddd8b5ae7fe17f1) | The ConnectionBind request timeout counter. |
-| [`transactionID`](#group__turn_1gaa13970f4c75250ead1dccdfb573c3af5) |  |
+> **Inherits:** [`Client`](#client-2)
+
+TCP transport TURN client with relay connection management per RFC 6062. Uses a single TCP control connection for STUN signalling and opens additional TCP relay connections for each peer via the Connect / ConnectionBind flow.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`TCPClient`](#tcpclient-1)  | #### Parameters |
+| `void` | [`initiate`](#initiate-1) `virtual` | Connects the socket to the TURN server and starts the allocation sequence. Permissions must be added via [addPermission()](#addpermission) before calling this. |
+| `void` | [`shutdown`](#shutdown-12) `virtual` | Shuts down the control connection, cancels all relay connections, and calls the base class shutdown. |
+| `void` | [`sendConnectRequest`](#sendconnectrequest) `virtual` | Sends a Connect request to the server asking it to open a TCP connection to `peerAddress` on the client's behalf (RFC 6062 section 4.3).  |
+| `void` | [`sendData`](#senddata-1) `virtual` | Sends raw data to `peerAddress` over the established relay connection. The peer must have an active permission and a bound relay connection.  |
+| `bool` | [`handleResponse`](#handleresponse-1) `virtual` | Extends the base handler with Connect, ConnectionBind, and ConnectionAttempt responses.  |
+| `void` | [`handleConnectResponse`](#handleconnectresponse) `virtual` | Processes a successful Connect response; extracts the connection ID and calls [createAndBindConnection()](#createandbindconnection).  |
+| `void` | [`handleConnectErrorResponse`](#handleconnecterrorresponse) `virtual` | Processes a Connect error response; notifies the observer that binding failed.  |
+| `void` | [`handleConnectionBindResponse`](#handleconnectionbindresponse) `virtual` | Processes a successful ConnectionBind response; arms the relay socket for data transfer and notifies the observer.  |
+| `void` | [`handleConnectionBindErrorResponse`](#handleconnectionbinderrorresponse) `virtual` | Processes a ConnectionBind error response; frees the failed connection.  |
+| `void` | [`handleConnectionAttemptIndication`](#handleconnectionattemptindication) `virtual` | Processes a ConnectionAttempt indication from the server; optionally accepts the incoming peer connection by calling [createAndBindConnection()](#createandbindconnection).  |
+| `bool` | [`createAndBindConnection`](#createandbindconnection) `virtual` | Opens a new TCP relay socket to the TURN server and sends a ConnectionBind request carrying `connectionID`.  |
+| `bool` | [`onRelayConnectionConnect`](#onrelayconnectionconnect) `virtual` | Relay socket connect callback; sends the ConnectionBind request.  |
+| `bool` | [`onRelayDataReceived`](#onrelaydatareceived) `virtual` | Relay socket receive callback; forwards data to the observer.  |
+| `bool` | [`onRelayConnectionError`](#onrelayconnectionerror) `virtual` | Relay socket error callback; notifies the observer of the error.  |
+| `bool` | [`onRelayConnectionClosed`](#onrelayconnectionclosed) `virtual` | Relay socket close callback; notifies the observer and frees the connection.  |
+| `void` | [`freeConnection`](#freeconnection)  | Removes the relay connection for `peerAddress`, unregisters its callbacks, and deletes the associated [RelayConnectionBinding](#relayconnectionbinding).  |
+| `int` | [`transportProtocol`](#transportprotocol-1) `virtual` | #### Returns |
+| `ConnectionManager &` | [`connections`](#connections)  | #### Returns |
+| `const char *` | [`className`](#classname-6) `virtual` `const` `inline` |  |
 
 ---
 
-#### TCPConnectionPair 
+{#tcpclient-1}
+
+#### TCPClient
 
 ```cpp
-TCPConnectionPair(TCPAllocation & allocation)
+TCPClient(TCPClientObserver & observer, const Client::Options & options)
 ```
+
+#### Parameters
+* `observer` Observer for TCP-specific relay events. 
+
+* `options` [Client](#client-2) configuration; defaults to loopback server, 5-min lifetime.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `allocation` | `TCPAllocation &` |  |
+| `observer` | `[TCPClientObserver](#tcpclientobserver) &` |  |
+| `options` | `const [Client::Options](#options-9) &` |  |
 
 ---
 
-#### ~TCPConnectionPair 
+{#initiate-1}
+
+#### initiate
+
+`virtual`
 
 ```cpp
-virtual ~TCPConnectionPair()
+virtual void initiate()
 ```
+
+Connects the socket to the TURN server and starts the allocation sequence. Permissions must be added via [addPermission()](#addpermission) before calling this.
 
 ---
 
-#### doPeerConnect 
+{#shutdown-12}
+
+#### shutdown
+
+`virtual`
 
 ```cpp
-bool doPeerConnect(const net::Address & peerAddr)
+virtual void shutdown()
 ```
 
-Initiates an outgoing TCP connection to the peer for Connect requests.
+Shuts down the control connection, cancels all relay connections, and calls the base class shutdown.
+
+---
+
+{#sendconnectrequest}
+
+#### sendConnectRequest
+
+`virtual`
+
+```cpp
+virtual void sendConnectRequest(const net::Address & peerAddress)
+```
+
+Sends a Connect request to the server asking it to open a TCP connection to `peerAddress` on the client's behalf (RFC 6062 section 4.3). 
+#### Parameters
+* `peerAddress` Target peer address.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `peerAddr` | `const net::Address &` |  |
+| `peerAddress` | `const [net::Address](#address) &` |  |
 
 ---
 
-#### makeDataConnection 
+{#senddata-1}
+
+#### sendData
+
+`virtual`
 
 ```cpp
-bool makeDataConnection()
+virtual void sendData(const char * data, size_t size, const net::Address & peerAddress)
 ```
 
-Binds the client <> peer relay pipe once the ConnectionBind request is successfull.
+Sends raw data to `peerAddress` over the established relay connection. The peer must have an active permission and a bound relay connection. 
+#### Parameters
+* `data` Payload bytes. 
 
----
+* `size` Number of bytes to send. 
 
-#### setPeerSocket 
-
-```cpp
-void setPeerSocket(const net::TCPSocket::Ptr & socket)
-```
+* `peerAddress` Destination peer (must have an entry in [connections()](#connections)).
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `const net::TCPSocket::Ptr &` |  |
+| `data` | `const char *` |  |
+| `size` | `size_t` |  |
+| `peerAddress` | `const [net::Address](#address) &` |  |
 
 ---
 
-#### setClientSocket 
+{#handleresponse-1}
+
+#### handleResponse
+
+`virtual`
 
 ```cpp
-void setClientSocket(const net::TCPSocket::Ptr & socket)
+virtual bool handleResponse(const stun::Message & response)
 ```
+
+Extends the base handler with Connect, ConnectionBind, and ConnectionAttempt responses. 
+#### Parameters
+* `response` Incoming STUN response. 
+
+#### Returns
+true if the message was handled.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `const net::TCPSocket::Ptr &` |  |
+| `response` | `const [stun::Message](#message-5) &` |  |
 
 ---
 
-#### onPeerConnectSuccess 
+{#handleconnectresponse}
+
+#### handleConnectResponse
+
+`virtual`
 
 ```cpp
-void onPeerConnectSuccess(net::Socket & socket)
+virtual void handleConnectResponse(const stun::Message & response)
 ```
 
-Connection success callback for Connect request.
+Processes a successful Connect response; extracts the connection ID and calls [createAndBindConnection()](#createandbindconnection). 
+#### Parameters
+* `response` Connect success response.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `net::Socket &` |  |
+| `response` | `const [stun::Message](#message-5) &` |  |
 
 ---
 
-#### onPeerConnectError 
+{#handleconnecterrorresponse}
+
+#### handleConnectErrorResponse
+
+`virtual`
 
 ```cpp
-void onPeerConnectError(net::Socket & socket, const Error & error)
+virtual void handleConnectErrorResponse(const stun::Message & response)
 ```
 
-Connection error callback for Connect request.
+Processes a Connect error response; notifies the observer that binding failed. 
+#### Parameters
+* `response` Connect error response.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `net::Socket &` |  |
-| `error` | `const Error &` |  |
+| `response` | `const [stun::Message](#message-5) &` |  |
 
 ---
 
-#### onClientDataReceived 
+{#handleconnectionbindresponse}
+
+#### handleConnectionBindResponse
+
+`virtual`
 
 ```cpp
-void onClientDataReceived(net::Socket & socket, const MutableBuffer & buffer, const net::Address & peerAddress)
+virtual void handleConnectionBindResponse(const stun::Message & response)
 ```
+
+Processes a successful ConnectionBind response; arms the relay socket for data transfer and notifies the observer. 
+#### Parameters
+* `response` ConnectionBind success response.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `net::Socket &` |  |
-| `buffer` | `const MutableBuffer &` |  |
-| `peerAddress` | `const net::Address &` |  |
+| `response` | `const [stun::Message](#message-5) &` |  |
 
 ---
 
-#### onPeerDataReceived 
+{#handleconnectionbinderrorresponse}
+
+#### handleConnectionBindErrorResponse
+
+`virtual`
 
 ```cpp
-void onPeerDataReceived(net::Socket & socket, const MutableBuffer & buffer, const net::Address & peerAddress)
+virtual void handleConnectionBindErrorResponse(const stun::Message & response)
 ```
+
+Processes a ConnectionBind error response; frees the failed connection. 
+#### Parameters
+* `response` ConnectionBind error response.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `net::Socket &` |  |
-| `buffer` | `const MutableBuffer &` |  |
-| `peerAddress` | `const net::Address &` |  |
+| `response` | `const [stun::Message](#message-5) &` |  |
 
 ---
 
-#### onConnectionClosed 
+{#handleconnectionattemptindication}
+
+#### handleConnectionAttemptIndication
+
+`virtual`
 
 ```cpp
-void onConnectionClosed(net::Socket & socket)
+virtual void handleConnectionAttemptIndication(const stun::Message & response)
 ```
 
-Callback for handing either client or peer connections which result in the destruction of the [TCPConnectionPair](#classicy_1_1turn_1_1TCPConnectionPair).
+Processes a ConnectionAttempt indication from the server; optionally accepts the incoming peer connection by calling [createAndBindConnection()](#createandbindconnection). 
+#### Parameters
+* `response` ConnectionAttempt indication message.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `net::Socket &` |  |
+| `response` | `const [stun::Message](#message-5) &` |  |
 
 ---
 
-#### startTimeout 
+{#createandbindconnection}
+
+#### createAndBindConnection
+
+`virtual`
 
 ```cpp
-void startTimeout()
+virtual bool createAndBindConnection(uint32_t connectionID, const net::Address & peerAddress)
 ```
 
-Starts the ConnectionBind request timeout.
+Opens a new TCP relay socket to the TURN server and sends a ConnectionBind request carrying `connectionID`. 
+#### Parameters
+* `connectionID` TURN CONNECTION-ID from the server. 
 
-If no ConnectionBind request associated with this peer data connection is received after 30 seconds, the peer data connection MUST be closed.
+* `peerAddress` Peer associated with this connection. 
+
+#### Returns
+true on success.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `connectionID` | `uint32_t` |  |
+| `peerAddress` | `const [net::Address](#address) &` |  |
 
 ---
 
-#### requestDeletion 
+{#onrelayconnectionconnect}
+
+#### onRelayConnectionConnect
+
+`virtual`
 
 ```cpp
-void requestDeletion()
+virtual bool onRelayConnectionConnect(net::Socket & socket)
 ```
 
-Signals the parent allocation to handle deletion instead of destroying ourselves directly.
+Relay socket connect callback; sends the ConnectionBind request. 
+#### Parameters
+* `socket` The relay socket that just connected.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `socket` | `[net::Socket](#socket) &` |  |
 
 ---
 
-#### expired 
+{#onrelaydatareceived}
+
+#### onRelayDataReceived
+
+`virtual`
 
 ```cpp
-bool expired() const
+virtual bool onRelayDataReceived(net::Socket & socket, const MutableBuffer & buffer, const net::Address & peerAddress)
 ```
 
-Return true if the peer `ConnectionBind` request timed out.
+Relay socket receive callback; forwards data to the observer. 
+#### Parameters
+* `socket` The receiving relay socket. 
+
+* `buffer` Received data. 
+
+* `peerAddress` Source address (populated by the socket layer).
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `socket` | `[net::Socket](#socket) &` |  |
+| `buffer` | `const [MutableBuffer](#classicy_1_1MutableBuffer) &` |  |
+| `peerAddress` | `const [net::Address](#address) &` |  |
 
 ---
 
-#### TCPConnectionPair 
+{#onrelayconnectionerror}
+
+#### onRelayConnectionError
+
+`virtual`
 
 ```cpp
-TCPConnectionPair(const TCPConnectionPair &) = delete
+virtual bool onRelayConnectionError(net::Socket & socket, const Error & error)
 ```
 
-NonCopyable and NonMovable.
+Relay socket error callback; notifies the observer of the error. 
+#### Parameters
+* `socket` The affected relay socket. 
+
+* `error` [Error](#structicy_1_1Error) descriptor.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `socket` | `[net::Socket](#socket) &` |  |
+| `error` | `const [Error](#structicy_1_1Error) &` |  |
 
 ---
 
-#### operator= 
+{#onrelayconnectionclosed}
+
+#### onRelayConnectionClosed
+
+`virtual`
 
 ```cpp
-TCPConnectionPair & operator=(const TCPConnectionPair &) = delete
+virtual bool onRelayConnectionClosed(net::Socket & socket)
+```
+
+Relay socket close callback; notifies the observer and frees the connection. 
+#### Parameters
+* `socket` The closed relay socket.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `socket` | `[net::Socket](#socket) &` |  |
+
+---
+
+{#freeconnection}
+
+#### freeConnection
+
+```cpp
+void freeConnection(const net::Address & peerAddress)
+```
+
+Removes the relay connection for `peerAddress`, unregisters its callbacks, and deletes the associated [RelayConnectionBinding](#relayconnectionbinding). 
+#### Parameters
+* `peerAddress` Peer whose connection to release.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `peerAddress` | `const [net::Address](#address) &` |  |
+
+---
+
+{#transportprotocol-1}
+
+#### transportProtocol
+
+`virtual`
+
+```cpp
+virtual int transportProtocol()
+```
+
+#### Returns
+kProtocolTCP (6).
+
+---
+
+{#connections}
+
+#### connections
+
+```cpp
+ConnectionManager & connections()
+```
+
+#### Returns
+Reference to the map of active relay connections keyed by peer address.
+
+---
+
+{#classname-6}
+
+#### className
+
+`virtual` `const` `inline`
+
+```cpp
+virtual inline const char * className() const
+```
+
+### Protected Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `TCPClientObserver &` | [`_observer`](#_observer-3)  |  |
+| `ConnectionManager` | [`_connections`](#_connections-2)  |  |
+
+---
+
+{#_observer-3}
+
+#### _observer
+
+```cpp
+TCPClientObserver & _observer
 ```
 
 ---
 
-#### allocation 
+{#_connections-2}
+
+#### _connections
+
+```cpp
+ConnectionManager _connections
+```
+
+{#tcpconnectionpair}
+
+## TCPConnectionPair
+
+```cpp
+#include <tcpconnectionpair.h>
+```
+
+> **Inherits:** [`RefCounted< TCPConnectionPair >`](#classicy_1_1RefCounted)
+
+Paired TCP connections forming a single TURN relay pipe between a client and a peer. Lifetime managed by [IntrusivePtr](#classicy_1_1IntrusivePtr); the owning [TCPAllocation](#tcpallocation) holds the Ptr in its pair map.
+
+### Public Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `TCPAllocation &` | [`allocation`](#allocation)  |  |
+| `net::SocketEmitter` | [`client`](#client-4)  |  |
+| `net::SocketEmitter` | [`peer`](#peer)  |  |
+| `Buffer` | [`earlyPeerData`](#earlypeerdata)  |  |
+| `uint32_t` | [`connectionID`](#connectionid)  |  |
+| `bool` | [`isDataConnection`](#isdataconnection)  |  |
+| `bool` | [`pendingDelete`](#pendingdelete)  |  |
+| `Timeout` | [`timeout`](#timeout-1)  |  |
+| `stun::TransactionID` | [`transactionID`](#transactionid)  |  |
+
+---
+
+{#allocation}
+
+#### allocation
 
 ```cpp
 TCPAllocation & allocation
@@ -2572,268 +4428,767 @@ TCPAllocation & allocation
 
 ---
 
-#### client 
+{#client-4}
+
+#### client
 
 ```cpp
 net::SocketEmitter client
 ```
 
-The client socket, nullptr to start.
-
 ---
 
-#### peer 
+{#peer}
+
+#### peer
 
 ```cpp
 net::SocketEmitter peer
 ```
 
-The client socket, nullptr to start.
-
 ---
 
-#### earlyPeerData 
+{#earlypeerdata}
+
+#### earlyPeerData
 
 ```cpp
 Buffer earlyPeerData
 ```
 
-Stores early peer > client data.
-
 ---
 
-#### connectionID 
+{#connectionid}
+
+#### connectionID
 
 ```cpp
 uint32_t connectionID
 ```
 
-The unique connection ID.
-
 ---
 
-#### isDataConnection 
+{#isdataconnection}
+
+#### isDataConnection
 
 ```cpp
 bool isDataConnection
 ```
 
-True when p2p relay is flowing.
-
 ---
 
-#### pendingDelete 
+{#pendingdelete}
+
+#### pendingDelete
 
 ```cpp
 bool pendingDelete = false
 ```
 
-True when this pair has been flagged for deletion.
-
 ---
 
-#### timeout 
+{#timeout-1}
+
+#### timeout
 
 ```cpp
 Timeout timeout
 ```
 
-The ConnectionBind request timeout counter.
-
 ---
 
-#### transactionID 
+{#transactionid}
+
+#### transactionID
 
 ```cpp
 stun::TransactionID transactionID
 ```
 
-## UDPAllocation 
+### Public Methods
 
-> **Extends:** `icy::turn::ServerAllocation`
-> **Defined in:** `udpallocation.h`
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`UDPAllocation`](#group__turn_1gad25035e1f05871ee31e609469e6f3e1c) |  |
-| [`~UDPAllocation`](#group__turn_1gacc331eb4c29175167d482de8fd682b2b) |  |
-| [`onPeerDataReceived`](#group__turn_1gaf3723305361367129ac0dbcaad73b8dd) |  |
-| [`handleRequest`](#group__turn_1gaadfa6b2dd671c0b9de943c687b4e507b) |  |
-| [`handleSendIndication`](#group__turn_1ga96ad3bfc1e1c63895c320c92f14462ee) |  |
-| [`send`](#group__turn_1ga1b4d823f104e4b9e324ade9497604b0f) |  |
-| [`relayedAddress`](#group__turn_1ga14647342910901c835819da6c0dfd7bc) |  |
-| [`_relaySocket`](#group__turn_1gabfed35bd8ab375ca916f357ddbf97595) |  |
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`TCPConnectionPair`](#tcpconnectionpair-1)  | Constructs a pair with a randomly assigned connection ID. The caller must add the pair to the allocation's pair map.  |
+| `bool` | [`doPeerConnect`](#dopeerconnect)  |  |
+| `bool` | [`makeDataConnection`](#makedataconnection)  |  |
+| `void` | [`setPeerSocket`](#setpeersocket)  |  |
+| `void` | [`setClientSocket`](#setclientsocket)  |  |
+| `bool` | [`onPeerConnectSuccess`](#onpeerconnectsuccess)  |  |
+| `bool` | [`onPeerConnectError`](#onpeerconnecterror)  |  |
+| `bool` | [`onClientDataReceived`](#onclientdatareceived)  |  |
+| `bool` | [`onPeerDataReceived`](#onpeerdatareceived)  |  |
+| `bool` | [`onConnectionClosed`](#onconnectionclosed)  |  |
+| `void` | [`startTimeout`](#starttimeout)  |  |
+| `void` | [`requestDeletion`](#requestdeletion)  |  |
+| `bool` | [`expired`](#expired-1) `const` |  |
 
 ---
 
-#### UDPAllocation 
+{#tcpconnectionpair-1}
+
+#### TCPConnectionPair
+
+```cpp
+TCPConnectionPair(TCPAllocation & allocation)
+```
+
+Constructs a pair with a randomly assigned connection ID. The caller must add the pair to the allocation's pair map. 
+#### Parameters
+* `allocation` The [TCPAllocation](#tcpallocation) that owns this pair.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `allocation` | `[TCPAllocation](#tcpallocation) &` |  |
+
+---
+
+{#dopeerconnect}
+
+#### doPeerConnect
+
+```cpp
+bool doPeerConnect(const net::Address & peerAddr)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `peerAddr` | `const [net::Address](#address) &` |  |
+
+---
+
+{#makedataconnection}
+
+#### makeDataConnection
+
+```cpp
+bool makeDataConnection()
+```
+
+---
+
+{#setpeersocket}
+
+#### setPeerSocket
+
+```cpp
+void setPeerSocket(const net::TCPSocket::Ptr & socket)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `socket` | `const [net::TCPSocket::Ptr](#ptr-9) &` |  |
+
+---
+
+{#setclientsocket}
+
+#### setClientSocket
+
+```cpp
+void setClientSocket(const net::TCPSocket::Ptr & socket)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `socket` | `const [net::TCPSocket::Ptr](#ptr-9) &` |  |
+
+---
+
+{#onpeerconnectsuccess}
+
+#### onPeerConnectSuccess
+
+```cpp
+bool onPeerConnectSuccess(net::Socket & socket)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `socket` | `[net::Socket](#socket) &` |  |
+
+---
+
+{#onpeerconnecterror}
+
+#### onPeerConnectError
+
+```cpp
+bool onPeerConnectError(net::Socket & socket, const Error & error)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `socket` | `[net::Socket](#socket) &` |  |
+| `error` | `const [Error](#structicy_1_1Error) &` |  |
+
+---
+
+{#onclientdatareceived}
+
+#### onClientDataReceived
+
+```cpp
+bool onClientDataReceived(net::Socket & socket, const MutableBuffer & buffer, const net::Address & peerAddress)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `socket` | `[net::Socket](#socket) &` |  |
+| `buffer` | `const [MutableBuffer](#classicy_1_1MutableBuffer) &` |  |
+| `peerAddress` | `const [net::Address](#address) &` |  |
+
+---
+
+{#onpeerdatareceived}
+
+#### onPeerDataReceived
+
+```cpp
+bool onPeerDataReceived(net::Socket & socket, const MutableBuffer & buffer, const net::Address & peerAddress)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `socket` | `[net::Socket](#socket) &` |  |
+| `buffer` | `const [MutableBuffer](#classicy_1_1MutableBuffer) &` |  |
+| `peerAddress` | `const [net::Address](#address) &` |  |
+
+---
+
+{#onconnectionclosed}
+
+#### onConnectionClosed
+
+```cpp
+bool onConnectionClosed(net::Socket & socket)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `socket` | `[net::Socket](#socket) &` |  |
+
+---
+
+{#starttimeout}
+
+#### startTimeout
+
+```cpp
+void startTimeout()
+```
+
+---
+
+{#requestdeletion}
+
+#### requestDeletion
+
+```cpp
+void requestDeletion()
+```
+
+---
+
+{#expired-1}
+
+#### expired
+
+`const`
+
+```cpp
+bool expired() const
+```
+
+### Public Types
+
+| Name | Description |
+|------|-------------|
+| [`Ptr`](#ptr-15)  |  |
+
+---
+
+{#ptr-15}
+
+#### Ptr
+
+```cpp
+IntrusivePtr< TCPConnectionPair > Ptr()
+```
+
+### Private Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`TCPConnectionPair`](#tcpconnectionpair-2)  |  |
+|  | [`TCPConnectionPair`](#tcpconnectionpair-3)  |  |
+
+---
+
+{#tcpconnectionpair-2}
+
+#### TCPConnectionPair
+
+```cpp
+TCPConnectionPair(const TCPConnectionPair &) = delete
+```
+
+---
+
+{#tcpconnectionpair-3}
+
+#### TCPConnectionPair
+
+```cpp
+TCPConnectionPair(TCPConnectionPair &&) = delete
+```
+
+{#udpallocation}
+
+## UDPAllocation
+
+```cpp
+#include <udpallocation.h>
+```
+
+> **Inherits:** [`ServerAllocation`](#serverallocation)
+
+Server-side UDP TURN allocation that relays datagrams to permitted peers. Binds a dedicated UDP relay socket for peer communication and forwards incoming datagrams to the client as Data Indications.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`UDPAllocation`](#udpallocation-1)  | Binds the relay UDP socket and registers the peer receive callback.  |
+| `bool` | [`onPeerDataReceived`](#onpeerdatareceived-1)  | Receive callback for the relay UDP socket; validates permissions, updates bandwidth usage, and forwards data to the client as a Data Indication.  |
+| `bool` | [`handleRequest`](#handlerequest-3) `virtual` | Extends the base handler with Send Indication support.  |
+| `void` | [`handleSendIndication`](#handlesendindication)  | Handles a Send Indication from the client; validates permissions and relays the DATA attribute payload to the peer via the relay socket. Silently discards on permission or attribute errors.  |
+| `ssize_t` | [`send`](#send-16)  | Sends raw data to `peerAddress` via the relay UDP socket. Updates bandwidth usage and returns -1 if the allocation is expired.  |
+| `net::Address` | [`relayedAddress`](#relayedaddress-3) `virtual` `const` | #### Returns |
+
+---
+
+{#udpallocation-1}
+
+#### UDPAllocation
 
 ```cpp
 UDPAllocation(Server & server, const FiveTuple & tuple, const std::string & username, const uint32_t & lifetime)
 ```
 
+Binds the relay UDP socket and registers the peer receive callback. 
+#### Parameters
+* `server` Owning TURN server. 
+
+* `tuple` 5-tuple identifying this allocation. 
+
+* `username` Authenticated username from the Allocate request. 
+
+* `lifetime` Initial lifetime in seconds.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `server` | `Server &` |  |
-| `tuple` | `const FiveTuple &` |  |
+| `server` | `[Server](#server-6) &` |  |
+| `tuple` | `const [FiveTuple](#fivetuple) &` |  |
 | `username` | `const std::string &` |  |
 | `lifetime` | `const uint32_t &` |  |
 
 ---
 
-#### ~UDPAllocation 
+{#onpeerdatareceived-1}
+
+#### onPeerDataReceived
 
 ```cpp
-virtual ~UDPAllocation()
+bool onPeerDataReceived(net::Socket & socket, const MutableBuffer & buffer, const net::Address & peerAddress)
 ```
 
----
+Receive callback for the relay UDP socket; validates permissions, updates bandwidth usage, and forwards data to the client as a Data Indication. 
+#### Parameters
+* `socket` The relay socket. 
 
-#### onPeerDataReceived 
+* `buffer` Received datagram. 
 
-```cpp
-void onPeerDataReceived(net::Socket & socket, const MutableBuffer & buffer, const net::Address & peerAddress)
-```
+* `peerAddress` Source address of the peer datagram.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `net::Socket &` |  |
-| `buffer` | `const MutableBuffer &` |  |
-| `peerAddress` | `const net::Address &` |  |
+| `socket` | `[net::Socket](#socket) &` |  |
+| `buffer` | `const [MutableBuffer](#classicy_1_1MutableBuffer) &` |  |
+| `peerAddress` | `const [net::Address](#address) &` |  |
 
 ---
 
-#### handleRequest 
+{#handlerequest-3}
+
+#### handleRequest
+
+`virtual`
 
 ```cpp
 virtual bool handleRequest(Request & request)
 ```
 
+Extends the base handler with Send Indication support. 
+#### Parameters
+* `request` Incoming STUN request or indication. 
+
+#### Returns
+true if handled.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `request` | `Request &` |  |
+| `request` | `[Request](#request-12) &` |  |
 
 ---
 
-#### handleSendIndication 
+{#handlesendindication}
+
+#### handleSendIndication
 
 ```cpp
 void handleSendIndication(Request & request)
 ```
 
+Handles a Send Indication from the client; validates permissions and relays the DATA attribute payload to the peer via the relay socket. Silently discards on permission or attribute errors. 
+#### Parameters
+* `request` Incoming Send Indication.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `request` | `Request &` |  |
+| `request` | `[Request](#request-12) &` |  |
 
 ---
 
-#### send 
+{#send-16}
+
+#### send
 
 ```cpp
 ssize_t send(const char * data, size_t size, const net::Address & peerAddress)
 ```
 
+Sends raw data to `peerAddress` via the relay UDP socket. Updates bandwidth usage and returns -1 if the allocation is expired. 
+#### Parameters
+* `data` Payload bytes to relay. 
+
+* `size` Number of bytes. 
+
+* `peerAddress` Destination peer address. 
+
+#### Returns
+Number of bytes sent, or -1 if the quota is exhausted.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `data` | `const char *` |  |
 | `size` | `size_t` |  |
-| `peerAddress` | `const net::Address &` |  |
+| `peerAddress` | `const [net::Address](#address) &` |  |
 
 ---
 
-#### relayedAddress 
+{#relayedaddress-3}
+
+#### relayedAddress
+
+`virtual` `const`
 
 ```cpp
 virtual net::Address relayedAddress() const
 ```
 
+#### Returns
+The bound address of the relay UDP socket.
+
+### Private Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `net::SocketEmitter` | [`_relaySocket`](#_relaysocket)  |  |
+
 ---
 
-#### _relaySocket 
+{#_relaysocket}
+
+#### _relaySocket
 
 ```cpp
 net::SocketEmitter _relaySocket
 ```
 
-## Request 
+{#udpclient}
 
-> **Extends:** `icy::stun::Message`
-> **Defined in:** `types.h`
+## UDPClient
 
-### Members
+```cpp
+#include <udpclient.h>
+```
 
-| Name | Description |
-|------|-------------|
-| [`Request`](#group__turn_1ga9449353e6e8218f409dc6cad8137bad1) |  |
-| [`transport`](#group__turn_1gad73229b9a0ed2c9766a35e6464921d83) |  |
-| [`localAddress`](#group__turn_1gaa5eaa3335646687346a79d16bf44d500) |  |
-| [`remoteAddress`](#group__turn_1ga063c2acad8fd94c729479e6ad8b3b9f7) |  |
-| [`hash`](#group__turn_1ga220ca9d82c58f5ade3bf21ab77250590) |  |
+> **Inherits:** [`Client`](#client-2)
+
+UDP transport TURN client for datagram-based relay allocations. Uses a single UDP socket for both STUN signalling and Send/Data Indications. All [Client](#client-2) methods apply; data is relayed via [sendData()](#senddata) using Send Indications.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`UDPClient`](#udpclient-1)  | #### Parameters |
 
 ---
 
-#### Request 
+{#udpclient-1}
+
+#### UDPClient
 
 ```cpp
-inline Request(const stun::Message & message, net::TransportType transport, const net::Address & localAddress, const net::Address & remoteAddress)
+UDPClient(ClientObserver & observer, const Options & options)
 ```
+
+#### Parameters
+* `observer` Observer for allocation lifecycle and data relay events. 
+
+* `options` [Client](#client-2) configuration; defaults to loopback server, 5-min lifetime.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `message` | `const stun::Message &` |  |
-| `transport` | `net::TransportType` |  |
-| `localAddress` | `const net::Address &` |  |
-| `remoteAddress` | `const net::Address &` |  |
+| `observer` | `[ClientObserver](#clientobserver) &` |  |
+| `options` | `const [Options](#options-9) &` |  |
+
+{#clientobserver}
+
+## ClientObserver
+
+```cpp
+#include <client.h>
+```
+
+> **Subclassed by:** [`TCPClientObserver`](#tcpclientobserver)
+
+Abstract observer interface for TURN client events. Callers subclass this to receive allocation lifecycle and data relay callbacks.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `void` | [`onClientStateChange`](#onclientstatechange)  | Called whenever the client's state machine transitions to a new state.  |
+| `void` | [`onRelayDataReceived`](#onrelaydatareceived-1)  | Called when relayed data is received from a peer via a Data Indication.  |
+| `void` | [`onAllocationFailed`](#onallocationfailed) `virtual` `inline` | Called when the server rejects an Allocate request with an error.  |
+| `void` | [`onAllocationDeleted`](#onallocationdeleted) `virtual` `inline` | Called when the server confirms deletion of the allocation.  |
+| `void` | [`onAllocationPermissionsCreated`](#onallocationpermissionscreated) `virtual` `inline` | Called after a CreatePermission request succeeds.  |
+| `void` | [`onTransactionResponse`](#ontransactionresponse) `virtual` `inline` | All received transaction responses will be routed here after local processing so the observer can easily implement extra functionality.  |
+| `void` | [`onTimer`](#ontimer-5) `virtual` `inline` | Fires after the client's internal timer callback. Handy for performing extra async cleanup tasks.  |
 
 ---
 
-#### transport 
+{#onclientstatechange}
+
+#### onClientStateChange
 
 ```cpp
-net::TransportType transport
+void onClientStateChange(Client & client, ClientState & state, const ClientState & oldState)
 ```
+
+Called whenever the client's state machine transitions to a new state. 
+#### Parameters
+* `client` The client that changed state. 
+
+* `state` The new state. 
+
+* `oldState` The previous state.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `client` | `[Client](#client-2) &` |  |
+| `state` | `[ClientState](#clientstate) &` |  |
+| `oldState` | `const [ClientState](#clientstate) &` |  |
 
 ---
 
-#### localAddress 
+{#onrelaydatareceived-1}
+
+#### onRelayDataReceived
 
 ```cpp
-net::Address localAddress
+void onRelayDataReceived(Client & client, const char * data, size_t size, const net::Address & peerAddress)
 ```
+
+Called when relayed data is received from a peer via a Data Indication. 
+#### Parameters
+* `client` The owning client. 
+
+* `data` Pointer to the received payload bytes. 
+
+* `size` Number of bytes in `data`. 
+
+* `peerAddress` Source address of the remote peer.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `client` | `[Client](#client-2) &` |  |
+| `data` | `const char *` |  |
+| `size` | `size_t` |  |
+| `peerAddress` | `const [net::Address](#address) &` |  |
 
 ---
 
-#### remoteAddress 
+{#onallocationfailed}
+
+#### onAllocationFailed
+
+`virtual` `inline`
 
 ```cpp
-net::Address remoteAddress
+virtual inline void onAllocationFailed(Client & client, int errorCode, const std::string & reason)
 ```
+
+Called when the server rejects an Allocate request with an error. 
+#### Parameters
+* `client` The owning client. 
+
+* `errorCode` STUN error code (e.g. 401, 438). 
+
+* `reason` Human-readable error reason string.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `client` | `[Client](#client-2) &` |  |
+| `errorCode` | `int` |  |
+| `reason` | `const std::string &` |  |
 
 ---
 
-#### hash 
+{#onallocationdeleted}
+
+#### onAllocationDeleted
+
+`virtual` `inline`
 
 ```cpp
-std::string hash
+virtual inline void onAllocationDeleted(Client & client, const stun::Transaction & transaction)
 ```
 
-## ClientState 
+Called when the server confirms deletion of the allocation. 
+#### Parameters
+* `client` The owning client. 
 
-> **Extends:** `icy::State`
-> **Defined in:** `client.h`
+* `transaction` The completed Refresh transaction (lifetime == 0).
 
-### Members
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `client` | `[Client](#client-2) &` |  |
+| `transaction` | `const [stun::Transaction](#transaction-2) &` |  |
+
+---
+
+{#onallocationpermissionscreated}
+
+#### onAllocationPermissionsCreated
+
+`virtual` `inline`
+
+```cpp
+virtual inline void onAllocationPermissionsCreated(Client & client, const PermissionList & permissions)
+```
+
+Called after a CreatePermission request succeeds. 
+#### Parameters
+* `client` The owning client. 
+
+* `permissions` The full list of active permissions after this update.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `client` | `[Client](#client-2) &` |  |
+| `permissions` | `const [PermissionList](#namespaceicy_1_1turn_1a3576b7add46f415c935f8b3af2fb49fc) &` |  |
+
+---
+
+{#ontransactionresponse}
+
+#### onTransactionResponse
+
+`virtual` `inline`
+
+```cpp
+virtual inline void onTransactionResponse(Client & client, const stun::Transaction & transaction)
+```
+
+All received transaction responses will be routed here after local processing so the observer can easily implement extra functionality. 
+#### Parameters
+* `client` The owning client. 
+
+* `transaction` The completed transaction (request + response accessible).
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `client` | `[Client](#client-2) &` |  |
+| `transaction` | `const [stun::Transaction](#transaction-2) &` |  |
+
+---
+
+{#ontimer-5}
+
+#### onTimer
+
+`virtual` `inline`
+
+```cpp
+virtual inline void onTimer(Client & client)
+```
+
+Fires after the client's internal timer callback. Handy for performing extra async cleanup tasks. 
+#### Parameters
+* `client` The owning client.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `client` | `[Client](#client-2) &` |  |
+
+{#clientstate}
+
+## ClientState
+
+```cpp
+#include <client.h>
+```
+
+> **Inherits:** [`State`](#classicy_1_1State)
+
+[State](#classicy_1_1State) machine states for the TURN client.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `std::string` | [`toString`](#tostring-7) `virtual` `const` `inline` | #### Returns |
+
+---
+
+{#tostring-7}
+
+#### toString
+
+`virtual` `const` `inline`
+
+```cpp
+virtual inline std::string toString() const
+```
+
+#### Returns
+Human-readable name for the current state.
+
+### Public Types
 
 | Name | Description |
 |------|-------------|
-| [`Type`](#group__turn_1ga969e50bad1780d036f55059904ac2a1e) |  |
-| [`toString`](#group__turn_1ga64488300060951e76776bd292ee76701) |  |
+| [`Type`](#type-13)  |  |
 
 ---
 
-#### Type 
+{#type-13}
+
+#### Type
 
 ```cpp
 enum Type
@@ -2847,343 +5202,85 @@ enum Type
 | `Success` |  |
 | `Failed` |  |
 
----
+{#permission}
 
-#### toString 
-
-```cpp
-virtual inline std::string toString() const
-```
-
-## ClientObserver 
-
-> **Subclasses:** `icy::turn::TCPClientObserver`
-> **Defined in:** `client.h`
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`onClientStateChange`](#group__turn_1ga2f8c99aadad178228ca800c56c66a53a) |  |
-| [`onRelayDataReceived`](#group__turn_1ga289952ed0e63f289511dcb4e89d8b993) |  |
-| [`onAllocationFailed`](#group__turn_1gaf843439ada68af5d0a8c44b9e6f84cef) |  |
-| [`onAllocationDeleted`](#group__turn_1ga2fa9e57662dbf68959503085fa781d02) |  |
-| [`onAllocationPermissionsCreated`](#group__turn_1ga26b4ea2e7a7f1a728218bda75b670c89) |  |
-| [`onTransactionResponse`](#group__turn_1ga0b96125a01852fdcd24ecdc7e9eba5af) | All received transaction responses will be routed here after local processing so the observer can easily implement extra functionality. |
-| [`onTimer`](#group__turn_1gac3b5b3eae27058463dc291d16883bbb6) | Fires after the client's internal timer callback. Handy for performing extra async cleanup tasks. |
-
----
-
-#### onClientStateChange 
+## Permission
 
 ```cpp
-void onClientStateChange(Client & client, ClientState & state, const ClientState & oldState)
+#include <permission.h>
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `client` | `Client &` |  |
-| `state` | `ClientState &` |  |
-| `oldState` | `const ClientState &` |  |
+A single TURN permission entry associating a peer IP with a 5-minute expiry timer. Per RFC 5766 section 8, permissions last exactly 300 seconds and must be refreshed via a new CreatePermission request before they expire.
+
+### Public Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `std::string` | [`ip`](#ip)  | IPv4 address string of the permitted peer. |
+| `Key` | [`key`](#key)  | Binary IP key for allocation hot-path comparisons. |
+| `Timeout` | [`timeout`](#timeout-2)  | Countdown timer; expires after PERMISSION_LIFETIME milliseconds. |
 
 ---
 
-#### onRelayDataReceived 
+{#ip}
+
+#### ip
 
 ```cpp
-void onRelayDataReceived(Client & client, const char * data, size_t size, const net::Address & peerAddress)
+std::string ip
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `client` | `Client &` |  |
-| `data` | `const char *` |  |
-| `size` | `size_t` |  |
-| `peerAddress` | `const net::Address &` |  |
+IPv4 address string of the permitted peer.
 
 ---
 
-#### onAllocationFailed 
+{#key}
+
+#### key
 
 ```cpp
-virtual inline void onAllocationFailed(Client & client, int errorCode, const std::string & reason)
+Key key
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `client` | `Client &` |  |
-| `errorCode` | `int` |  |
-| `reason` | `const std::string &` |  |
+Binary IP key for allocation hot-path comparisons.
 
 ---
 
-#### onAllocationDeleted 
+{#timeout-2}
+
+#### timeout
 
 ```cpp
-virtual inline void onAllocationDeleted(Client & client, const stun::Transaction & transaction)
+Timeout timeout
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `client` | `Client &` |  |
-| `transaction` | `const stun::Transaction &` |  |
+Countdown timer; expires after PERMISSION_LIFETIME milliseconds.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`Permission`](#permission-1) `inline` | Constructs a permission for `ip` and immediately starts the expiry timer.  |
+|  | [`Permission`](#permission-2) `inline` | Constructs a permission from a binary socket address.  |
+| `void` | [`refresh`](#refresh) `inline` | Resets the expiry timer, extending the permission lifetime by another 300 seconds. |
+| `bool` | [`operator==`](#operator-21) `const` `inline` | Equality comparison against an IP string.  |
+| `bool` | [`matches`](#matches) `const` `inline` | Binary IP comparison used on the TURN relay hot path. |
 
 ---
 
-#### onAllocationPermissionsCreated 
+{#permission-1}
 
-```cpp
-virtual inline void onAllocationPermissionsCreated(Client & client, const PermissionList & permissions)
-```
+#### Permission
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `client` | `Client &` |  |
-| `permissions` | `const PermissionList &` |  |
-
----
-
-#### onTransactionResponse 
-
-```cpp
-virtual inline void onTransactionResponse(Client & client, const stun::Transaction & transaction)
-```
-
-All received transaction responses will be routed here after local processing so the observer can easily implement extra functionality.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `client` | `Client &` |  |
-| `transaction` | `const stun::Transaction &` |  |
-
----
-
-#### onTimer 
-
-```cpp
-virtual inline void onTimer(Client & client)
-```
-
-Fires after the client's internal timer callback. Handy for performing extra async cleanup tasks.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `client` | `Client &` |  |
-
-## Options 
-
-> **Defined in:** `client.h`
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`Options`](#group__turn_1gae926546e19d8fd9a7fab86271b96a54f) |  |
-| [`software`](#group__turn_1ga5353220869e0f09239060488ecdb7fef) |  |
-| [`username`](#group__turn_1gac72217fb6b73d1d050c84379189354a5) |  |
-| [`password`](#group__turn_1ga90e75f93e08bd392b9def185c4f29ec1) |  |
-| [`timeout`](#group__turn_1ga3b36f9f68df1b465c1046b88529ccf69) |  |
-| [`lifetime`](#group__turn_1ga7dc6b1fc053f08ec22d0f2f97084d996) |  |
-| [`timerInterval`](#group__turn_1ga50b1abb4fea151715d0c93b5ac675f30) |  |
-| [`serverAddr`](#group__turn_1gaca69ae3e4cb351a623def3f8ca67a950) |  |
-
----
-
-#### Options 
-
-```cpp
-inline Options()
-```
-
----
-
-#### software 
-
-```cpp
-std::string software
-```
-
----
-
-#### username 
-
-```cpp
-std::string username
-```
-
----
-
-#### password 
-
-```cpp
-std::string password
-```
-
----
-
-#### timeout 
-
-```cpp
-long timeout
-```
-
----
-
-#### lifetime 
-
-```cpp
-std::int64_t lifetime
-```
-
----
-
-#### timerInterval 
-
-```cpp
-std::int64_t timerInterval
-```
-
----
-
-#### serverAddr 
-
-```cpp
-net::Address serverAddr
-```
-
-## TCPClientObserver 
-
-> **Extends:** `icy::turn::ClientObserver`
-> **Defined in:** `tcpclient.h`
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`onRelayConnectionCreated`](#group__turn_1ga9cadceec9bf3a4687f3b32ea67404e8f) |  |
-| [`onRelayConnectionError`](#group__turn_1ga37d33d68190c4578c19b0bf376ad8f63) |  |
-| [`onRelayConnectionClosed`](#group__turn_1gaa0e978e987f8b59662356bf9d51b4616) |  |
-| [`onRelayConnectionBindingFailed`](#group__turn_1ga31a9a774ee2e1b13ca87e108bf6cf76e) |  |
-| [`onPeerConnectionAttempt`](#group__turn_1gad6938fba6074bc0e1ca499cf90bb84ca) |  |
-
----
-
-#### onRelayConnectionCreated 
-
-```cpp
-void onRelayConnectionCreated(TCPClient & client, const net::TCPSocket::Ptr & socket, const net::Address & peerAddress)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `client` | `TCPClient &` |  |
-| `socket` | `const net::TCPSocket::Ptr &` |  |
-| `peerAddress` | `const net::Address &` |  |
-
----
-
-#### onRelayConnectionError 
-
-```cpp
-virtual inline void onRelayConnectionError(TCPClient & client, const net::TCPSocket::Ptr & socket, const net::Address & peerAddress)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `client` | `TCPClient &` |  |
-| `socket` | `const net::TCPSocket::Ptr &` |  |
-| `peerAddress` | `const net::Address &` |  |
-
----
-
-#### onRelayConnectionClosed 
-
-```cpp
-void onRelayConnectionClosed(TCPClient & client, const net::TCPSocket::Ptr & socket, const net::Address & peerAddress)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `client` | `TCPClient &` |  |
-| `socket` | `const net::TCPSocket::Ptr &` |  |
-| `peerAddress` | `const net::Address &` |  |
-
----
-
-#### onRelayConnectionBindingFailed 
-
-```cpp
-virtual inline void onRelayConnectionBindingFailed(TCPClient & client, const net::Address & peerAddress)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `client` | `TCPClient &` |  |
-| `peerAddress` | `const net::Address &` |  |
-
----
-
-#### onPeerConnectionAttempt 
-
-```cpp
-virtual inline bool onPeerConnectionAttempt(TCPClient & client, const net::Address & peerAddress)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `client` | `TCPClient &` |  |
-| `peerAddress` | `const net::Address &` |  |
-
-## RelayConnectionBinding 
-
-> **Defined in:** `tcpclient.h`
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`connectionID`](#group__turn_1ga2c6b83886801342cdf489851451f02cb) |  |
-| [`peerAddress`](#group__turn_1gab40590fa9feb9154fbd96678304cf5ce) |  |
-
----
-
-#### connectionID 
-
-```cpp
-uint32_t connectionID
-```
-
----
-
-#### peerAddress 
-
-```cpp
-net::Address peerAddress
-```
-
-## Permission 
-
-> **Defined in:** `permission.h`
-
-TURN permission for a user session.
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`Permission`](#group__turn_1ga1d84a2f95323c85990c9464c4a9d3256) |  |
-| [`refresh`](#group__turn_1ga0b8b830b544ab68a84f3214563347080) |  |
-| [`operator==`](#group__turn_1gabf7857f22a589a833b5aa79391b57830) |  |
-| [`ip`](#group__turn_1gac3d4b7db7da99f5df332df065c3bbeba) |  |
-| [`timeout`](#group__turn_1ga7f9706e123e06bacdfc229e9f2d4b503) |  |
-
----
-
-#### Permission 
+`inline`
 
 ```cpp
 inline Permission(const std::string & ip)
 ```
+
+Constructs a permission for `ip` and immediately starts the expiry timer. 
+#### Parameters
+* `ip` IPv4 address string of the permitted peer.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -3191,74 +5288,375 @@ inline Permission(const std::string & ip)
 
 ---
 
-#### refresh 
+{#permission-2}
+
+#### Permission
+
+`inline`
+
+```cpp
+inline Permission(const net::Address & address)
+```
+
+Constructs a permission from a binary socket address. 
+#### Parameters
+* `address` Peer IP address; port is ignored.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `address` | `const [net::Address](#address) &` |  |
+
+---
+
+{#refresh}
+
+#### refresh
+
+`inline`
 
 ```cpp
 inline void refresh()
 ```
 
+Resets the expiry timer, extending the permission lifetime by another 300 seconds.
+
 ---
 
-#### operator== 
+{#operator-21}
+
+#### operator==
+
+`const` `inline`
 
 ```cpp
-inline bool operator==(const std::string & r) const
+inline bool operator==(std::string_view r) const
+```
+
+Equality comparison against an IP string. 
+#### Parameters
+* `r` IPv4 address string to compare against. 
+
+#### Returns
+true if this permission's IP matches `r`.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `r` | `std::string_view` |  |
+
+---
+
+{#matches}
+
+#### matches
+
+`const` `inline`
+
+```cpp
+inline bool matches(const net::Address & address) const
+```
+
+Binary IP comparison used on the TURN relay hot path.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `address` | `const [net::Address](#address) &` |  |
+
+{#key-1}
+
+## Key
+
+```cpp
+#include <permission.h>
+```
+
+### Public Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `int` | [`af`](#af-1)  |  |
+| `std::array< uint8_t, 16 >` | [`bytes`](#bytes)  |  |
+| `uint8_t` | [`size`](#size-2)  |  |
+
+---
+
+{#af-1}
+
+#### af
+
+```cpp
+int af = AF_UNSPEC
+```
+
+---
+
+{#bytes}
+
+#### bytes
+
+```cpp
+std::array< uint8_t, 16 > bytes {}
+```
+
+---
+
+{#size-2}
+
+#### size
+
+```cpp
+uint8_t size = 0
+```
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `bool` | [`valid`](#valid-7) `const` `inline` |  |
+| `bool` | [`matches`](#matches-1) `const` `inline` |  |
+| `bool` | [`matches`](#matches-2) `const` `inline` |  |
+
+---
+
+{#valid-7}
+
+#### valid
+
+`const` `inline`
+
+```cpp
+inline bool valid() const
+```
+
+---
+
+{#matches-1}
+
+#### matches
+
+`const` `inline`
+
+```cpp
+inline bool matches(const net::Address & address) const
 ```
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `r` | `const std::string &` |  |
+| `address` | `const [net::Address](#address) &` |  |
 
 ---
 
-#### ip 
+{#matches-2}
+
+#### matches
+
+`const` `inline`
 
 ```cpp
-std::string ip
+inline bool matches(const Key & other) const
 ```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `other` | `const [Key](#key-1) &` |  |
+
+### Public Static Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `Key` | [`fromAddress`](#fromaddress) `static` `inline` |  |
+| `Key` | [`fromIP`](#fromip) `static` `inline` |  |
 
 ---
 
-#### timeout 
+{#fromaddress}
+
+#### fromAddress
+
+`static` `inline`
 
 ```cpp
-Timeout timeout
+static inline Key fromAddress(const net::Address & address)
 ```
 
-## ServerOptions 
-
-> **Defined in:** `server.h`
-
-[Configuration](./doc/api-base.md#classicy_1_1Configuration) options for the TURN server.
-
-### Members
-
-| Name | Description |
-|------|-------------|
-| [`ServerOptions`](#group__turn_1ga23b935569a27d3f3dcf0f78e8a5ca280) |  |
-| [`software`](#group__turn_1gac2291c280fe0980304bca18ab44f8731) |  |
-| [`realm`](#group__turn_1gaabb449fc0c3e896938868e9eba870ba4) |  |
-| [`allocationDefaultLifetime`](#group__turn_1ga8d82709c768778e902772af859826ee6) |  |
-| [`allocationMaxLifetime`](#group__turn_1ga7230b59c2f23a9a850a9a74c28a9114f) |  |
-| [`allocationMaxPermissions`](#group__turn_1gab877b8fafddc71ed3de320159ff614e5) |  |
-| [`timerInterval`](#group__turn_1ga30c595ee93bb3dfee3cd52faff6a4222) |  |
-| [`earlyMediaBufferSize`](#group__turn_1ga9122325d7162eb5b1f23888d63cd282d) |  |
-| [`listenAddr`](#group__turn_1gabd4aa0f66ce2fc218e80810f3c762d76) | The TCP and UDP bind() address. |
-| [`externalIP`](#group__turn_1ga88891ec27dede5dc6be7219ed26c9b2a) | The external public facing IP address of the server. |
-| [`enableTCP`](#group__turn_1ga1d0c462bf8701333710f2f1d4eb0f18a) |  |
-| [`enableUDP`](#group__turn_1gaf34f6a53ee1dd805c81af5556deecdb9) |  |
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `address` | `const [net::Address](#address) &` |  |
 
 ---
 
-#### ServerOptions 
+{#fromip}
+
+#### fromIP
+
+`static` `inline`
 
 ```cpp
-inline ServerOptions()
+static inline Key fromIP(const std::string & ip)
 ```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `ip` | `const std::string &` |  |
+
+{#relayconnectionbinding}
+
+## RelayConnectionBinding
+
+```cpp
+#include <tcpclient.h>
+```
+
+Binding metadata stored as socket opaque data during a ConnectionBind handshake. Associates a relay socket with its TURN connection ID and peer address.
+
+### Public Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `uint32_t` | [`connectionID`](#connectionid-1)  | TURN CONNECTION-ID attribute value from the server. |
+| `net::Address` | [`peerAddress`](#peeraddress-5)  | The peer address this binding targets. |
 
 ---
 
-#### software 
+{#connectionid-1}
+
+#### connectionID
+
+```cpp
+uint32_t connectionID
+```
+
+TURN CONNECTION-ID attribute value from the server.
+
+---
+
+{#peeraddress-5}
+
+#### peerAddress
+
+```cpp
+net::Address peerAddress
+```
+
+The peer address this binding targets.
+
+{#serverobserver}
+
+## ServerObserver
+
+```cpp
+#include <server.h>
+```
+
+Observer interface that the application must implement to participate in server-side allocation management and authentication.
+
+The observer is responsible for enforcing per-user allocation quotas and bandwidth limits. Implementations may perform authentication synchronously (returning Authorized/NotAuthorized immediately) or asynchronously (returning Authenticating and calling handleRequest() again later).
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `void` | [`onServerAllocationCreated`](#onserverallocationcreated)  | Called after a new allocation is successfully created.  |
+| `void` | [`onServerAllocationRemoved`](#onserverallocationremoved)  | Called just before an allocation is destroyed (expired, deleted, or server stopped).  |
+| `AuthenticationState` | [`authenticateRequest`](#authenticaterequest-1)  | Authenticates an incoming STUN request using the long-term credential mechanism (RFC 5389 section 10.2). Return Authorized to proceed, NotAuthorized to reject with a 401, QuotaReached to reject with a 486, or Authenticating to defer until the result is available asynchronously.  |
+
+---
+
+{#onserverallocationcreated}
+
+#### onServerAllocationCreated
+
+```cpp
+void onServerAllocationCreated(Server * server, IAllocation * alloc)
+```
+
+Called after a new allocation is successfully created. 
+#### Parameters
+* `server` The server that owns the allocation. 
+
+* `alloc` The newly created allocation (lifetime managed by the server).
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `server` | `[Server](#server-6) *` |  |
+| `alloc` | `[IAllocation](#iallocation) *` |  |
+
+---
+
+{#onserverallocationremoved}
+
+#### onServerAllocationRemoved
+
+```cpp
+void onServerAllocationRemoved(Server * server, IAllocation * alloc)
+```
+
+Called just before an allocation is destroyed (expired, deleted, or server stopped). 
+#### Parameters
+* `server` The server that owned the allocation. 
+
+* `alloc` The allocation being removed; do not delete this pointer.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `server` | `[Server](#server-6) *` |  |
+| `alloc` | `[IAllocation](#iallocation) *` |  |
+
+---
+
+{#authenticaterequest-1}
+
+#### authenticateRequest
+
+```cpp
+AuthenticationState authenticateRequest(Server * server, Request & request)
+```
+
+Authenticates an incoming STUN request using the long-term credential mechanism (RFC 5389 section 10.2). Return Authorized to proceed, NotAuthorized to reject with a 401, QuotaReached to reject with a 486, or Authenticating to defer until the result is available asynchronously. 
+#### Parameters
+* `server` The server receiving the request. 
+
+* `request` The STUN request to authenticate. 
+
+#### Returns
+An AuthenticationState indicating how to proceed.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `server` | `[Server](#server-6) *` |  |
+| `request` | `[Request](#request-12) &` |  |
+
+{#serveroptions}
+
+## ServerOptions
+
+```cpp
+#include <server.h>
+```
+
+[Configuration](#classicy_1_1Configuration) options for the TURN server.
+
+### Public Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `std::string` | [`software`](#software-1)  |  |
+| `std::string` | [`realm`](#realm)  |  |
+| `uint32_t` | [`allocationDefaultLifetime`](#allocationdefaultlifetime)  |  |
+| `uint32_t` | [`allocationMaxLifetime`](#allocationmaxlifetime)  |  |
+| `int` | [`allocationMaxPermissions`](#allocationmaxpermissions)  |  |
+| `int` | [`timerInterval`](#timerinterval-1)  |  |
+| `int` | [`earlyMediaBufferSize`](#earlymediabuffersize)  |  |
+| `net::Address` | [`listenAddr`](#listenaddr)  | The TCP and UDP bind() address. |
+| `std::string` | [`externalIP`](#externalip)  | The external public facing IP address of the server. |
+| `bool` | [`enableTCP`](#enabletcp)  |  |
+| `bool` | [`enableUDP`](#enableudp)  |  |
+| `bool` | [`enableLocalIPPermissions`](#enablelocalippermissions)  | Auto-grant permissions for RFC 1918/loopback addresses. |
+
+---
+
+{#software-1}
+
+#### software
 
 ```cpp
 std::string software
@@ -3266,7 +5664,9 @@ std::string software
 
 ---
 
-#### realm 
+{#realm}
+
+#### realm
 
 ```cpp
 std::string realm
@@ -3274,7 +5674,9 @@ std::string realm
 
 ---
 
-#### allocationDefaultLifetime 
+{#allocationdefaultlifetime}
+
+#### allocationDefaultLifetime
 
 ```cpp
 uint32_t allocationDefaultLifetime
@@ -3282,7 +5684,9 @@ uint32_t allocationDefaultLifetime
 
 ---
 
-#### allocationMaxLifetime 
+{#allocationmaxlifetime}
+
+#### allocationMaxLifetime
 
 ```cpp
 uint32_t allocationMaxLifetime
@@ -3290,7 +5694,9 @@ uint32_t allocationMaxLifetime
 
 ---
 
-#### allocationMaxPermissions 
+{#allocationmaxpermissions}
+
+#### allocationMaxPermissions
 
 ```cpp
 int allocationMaxPermissions
@@ -3298,7 +5704,9 @@ int allocationMaxPermissions
 
 ---
 
-#### timerInterval 
+{#timerinterval-1}
+
+#### timerInterval
 
 ```cpp
 int timerInterval
@@ -3306,7 +5714,9 @@ int timerInterval
 
 ---
 
-#### earlyMediaBufferSize 
+{#earlymediabuffersize}
+
+#### earlyMediaBufferSize
 
 ```cpp
 int earlyMediaBufferSize
@@ -3314,7 +5724,9 @@ int earlyMediaBufferSize
 
 ---
 
-#### listenAddr 
+{#listenaddr}
+
+#### listenAddr
 
 ```cpp
 net::Address listenAddr
@@ -3324,7 +5736,9 @@ The TCP and UDP bind() address.
 
 ---
 
-#### externalIP 
+{#externalip}
+
+#### externalIP
 
 ```cpp
 std::string externalIP
@@ -3334,7 +5748,9 @@ The external public facing IP address of the server.
 
 ---
 
-#### enableTCP 
+{#enabletcp}
+
+#### enableTCP
 
 ```cpp
 bool enableTCP
@@ -3342,66 +5758,186 @@ bool enableTCP
 
 ---
 
-#### enableUDP 
+{#enableudp}
+
+#### enableUDP
 
 ```cpp
 bool enableUDP
 ```
 
-## ServerObserver 
+---
 
-> **Defined in:** `server.h`
+{#enablelocalippermissions}
 
-The [ServerObserver](#structicy_1_1turn_1_1ServerObserver) receives callbacks for and is responsible for managing allocation and bandwidth quotas, authentication methods and authentication.
+#### enableLocalIPPermissions
 
-### Members
+```cpp
+bool enableLocalIPPermissions
+```
 
-| Name | Description |
-|------|-------------|
-| [`onServerAllocationCreated`](#group__turn_1gae40bc9446a48541dcbd436ed8fb6e1ff) |  |
-| [`onServerAllocationRemoved`](#group__turn_1ga080fc643212385979ab6b66210bc15c1) |  |
-| [`authenticateRequest`](#group__turn_1ga36ad126902d380f3b569e6a7c70837a1) | The observer class can implement authentication using the long-term credential mechanism of [RFC5389]. The class design is such that authentication can be preformed asynchronously against a remote database, or locally. The default implementation returns true to all requests. |
+Auto-grant permissions for RFC 1918/loopback addresses.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`ServerOptions`](#serveroptions-1) `inline` |  |
 
 ---
 
-#### onServerAllocationCreated 
+{#serveroptions-1}
+
+#### ServerOptions
+
+`inline`
 
 ```cpp
-void onServerAllocationCreated(Server * server, IAllocation * alloc)
+inline ServerOptions()
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `server` | `Server *` |  |
-| `alloc` | `IAllocation *` |  |
+{#tcpclientobserver}
+
+## TCPClientObserver
+
+```cpp
+#include <tcpclient.h>
+```
+
+> **Inherits:** [`ClientObserver`](#clientobserver)
+
+Observer interface for TCP TURN client events (RFC 6062). Extends [ClientObserver](#clientobserver) with callbacks specific to TCP relay connections.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `void` | [`onRelayConnectionCreated`](#onrelayconnectioncreated)  | Called when a ConnectionBind succeeds and the relay pipe is live.  |
+| `void` | [`onRelayConnectionError`](#onrelayconnectionerror-1) `virtual` `inline` | Called when an error occurs on a relay connection socket.  |
+| `void` | [`onRelayConnectionClosed`](#onrelayconnectionclosed-1)  | Called when a relay connection socket is closed.  |
+| `void` | [`onRelayConnectionBindingFailed`](#onrelayconnectionbindingfailed) `virtual` `inline` | Called when a Connect request (client-initiated) or a ConnectionBind handshake fails for the given peer.  |
+| `bool` | [`onPeerConnectionAttempt`](#onpeerconnectionattempt) `virtual` `inline` | Called when the server sends a ConnectionAttempt indication indicating that a remote peer wants to connect. Return true to accept the connection (proceeds with ConnectionBind), or false to reject it.  |
 
 ---
 
-#### onServerAllocationRemoved 
+{#onrelayconnectioncreated}
+
+#### onRelayConnectionCreated
 
 ```cpp
-void onServerAllocationRemoved(Server * server, IAllocation * alloc)
+void onRelayConnectionCreated(TCPClient & client, const net::TCPSocket::Ptr & socket, const net::Address & peerAddress)
 ```
+
+Called when a ConnectionBind succeeds and the relay pipe is live. 
+#### Parameters
+* `client` The owning TCP client. 
+
+* `socket` The TCP socket that is now connected to the TURN server and ready for direct data transfer to/from the peer. 
+
+* `peerAddress` The remote peer address associated with this connection.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `server` | `Server *` |  |
-| `alloc` | `IAllocation *` |  |
+| `client` | `[TCPClient](#tcpclient) &` |  |
+| `socket` | `const [net::TCPSocket::Ptr](#ptr-9) &` |  |
+| `peerAddress` | `const [net::Address](#address) &` |  |
 
 ---
 
-#### authenticateRequest 
+{#onrelayconnectionerror-1}
+
+#### onRelayConnectionError
+
+`virtual` `inline`
 
 ```cpp
-AuthenticationState authenticateRequest(Server * server, Request & request)
+virtual inline void onRelayConnectionError(TCPClient & client, const net::TCPSocket::Ptr & socket, const net::Address & peerAddress)
 ```
 
-The observer class can implement authentication using the long-term credential mechanism of [RFC5389]. The class design is such that authentication can be preformed asynchronously against a remote database, or locally. The default implementation returns true to all requests.
+Called when an error occurs on a relay connection socket. 
+#### Parameters
+* `client` The owning TCP client. 
 
-To mitigate either intentional or unintentional denial-of-service attacks against the server by clients with valid usernames and passwords, it is RECOMMENDED that the server impose limits on both the number of allocations active at one time for a given username and on the amount of bandwidth those allocations can use. The server should reject new allocations that would exceed the limit on the allowed number of allocations active at one time with a 486 (Allocation Quota Exceeded) (see Section 6.2), and should discard application data traffic that exceeds the bandwidth quota.
+* `socket` The affected socket. 
+
+* `peerAddress` The remote peer address for this connection.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `server` | `Server *` |  |
-| `request` | `Request &` |  |
+| `client` | `[TCPClient](#tcpclient) &` |  |
+| `socket` | `const [net::TCPSocket::Ptr](#ptr-9) &` |  |
+| `peerAddress` | `const [net::Address](#address) &` |  |
+
+---
+
+{#onrelayconnectionclosed-1}
+
+#### onRelayConnectionClosed
+
+```cpp
+void onRelayConnectionClosed(TCPClient & client, const net::TCPSocket::Ptr & socket, const net::Address & peerAddress)
+```
+
+Called when a relay connection socket is closed. 
+#### Parameters
+* `client` The owning TCP client. 
+
+* `socket` The closed socket. 
+
+* `peerAddress` The remote peer address for this connection.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `client` | `[TCPClient](#tcpclient) &` |  |
+| `socket` | `const [net::TCPSocket::Ptr](#ptr-9) &` |  |
+| `peerAddress` | `const [net::Address](#address) &` |  |
+
+---
+
+{#onrelayconnectionbindingfailed}
+
+#### onRelayConnectionBindingFailed
+
+`virtual` `inline`
+
+```cpp
+virtual inline void onRelayConnectionBindingFailed(TCPClient & client, const net::Address & peerAddress)
+```
+
+Called when a Connect request (client-initiated) or a ConnectionBind handshake fails for the given peer. 
+#### Parameters
+* `client` The owning TCP client. 
+
+* `peerAddress` The peer address whose binding failed.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `client` | `[TCPClient](#tcpclient) &` |  |
+| `peerAddress` | `const [net::Address](#address) &` |  |
+
+---
+
+{#onpeerconnectionattempt}
+
+#### onPeerConnectionAttempt
+
+`virtual` `inline`
+
+```cpp
+virtual inline bool onPeerConnectionAttempt(TCPClient & client, const net::Address & peerAddress)
+```
+
+Called when the server sends a ConnectionAttempt indication indicating that a remote peer wants to connect. Return true to accept the connection (proceeds with ConnectionBind), or false to reject it. 
+#### Parameters
+* `client` The owning TCP client. 
+
+* `peerAddress` The address of the connecting peer. 
+
+#### Returns
+true to accept and bind, false to ignore.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `client` | `[TCPClient](#tcpclient) &` |  |
+| `peerAddress` | `const [net::Address](#address) &` |  |
 

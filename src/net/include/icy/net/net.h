@@ -17,8 +17,9 @@
 #include "icy/base.h"
 
 
+/// @cond INTERNAL
 //
-/// Windows
+// Windows
 
 #ifdef ICY_WIN
 #include <winsock2.h>
@@ -36,7 +37,7 @@ using socklen_t = int;
 
 
 //
-/// Linux
+// Linux
 
 #ifdef ICY_LINUX
 #include <linux/version.h>
@@ -77,6 +78,7 @@ using socklen_t = int;
 #else
 #define Net_API // nothing
 #endif
+/// @endcond
 
 
 namespace icy {
