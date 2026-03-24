@@ -56,7 +56,7 @@ public:
         , _stream("mjpeg")
     {
         // Bypass default HTTP headers; the multipart adapter sends its own
-        conn.shouldSendHeader(false);
+        conn.setHeaderAutoSendEnabled(false);
 
         // All connections share the same capture instance
         _stream.attachSource(gCapture.get(), false, true);

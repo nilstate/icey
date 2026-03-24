@@ -15,6 +15,7 @@
 #include "icy/net/net.h"
 #include <memory>
 #include <string>
+#include <string_view>
 
 
 namespace icy {
@@ -112,7 +113,7 @@ public:
     /// Returns true if the given string is a valid IPv4 or IPv6 address.
     /// @param address The string to validate.
     /// @return true if the address parses as a valid IP address, false otherwise.
-    static bool validateIP(const std::string& address);
+    static bool validateIP(std::string_view address);
 
     /// Compares two addresses for ordering (by family then port).
     /// @param addr The address to compare against.

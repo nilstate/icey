@@ -300,7 +300,7 @@ int main(int argc, char** argv)
             complete = true;
         };
         conn->request().setKeepAlive(false);
-        conn->send();
+        conn->submit();
 
         expect(test::waitFor([&] { return complete; }));
         expect(headersReceived);
@@ -356,7 +356,7 @@ int main(int argc, char** argv)
                 numComplete++;
             };
             conn->request().setKeepAlive(false);
-            conn->send();
+            conn->submit();
         }
 
         expect(test::waitFor([&] { return numComplete == numRequests; }));
@@ -375,7 +375,7 @@ int main(int argc, char** argv)
             closed = true;
         };
         conn->request().setKeepAlive(false);
-        conn->send();
+        conn->submit();
 
         expect(test::waitFor([&] { return closed; }));
         expect(conn->closed());
@@ -460,7 +460,7 @@ int main(int argc, char** argv)
         };
         conn.request().setKeepAlive(false);
         conn.setReadStream(new std::stringstream);
-        conn.send();
+        conn.submit();
 
         expect(test::waitFor([&] { return complete; }));
         expect(!conn.error().any());
@@ -507,7 +507,7 @@ int main(int argc, char** argv)
 
         conn->replaceAdapter(std::make_unique<http::ConnectionAdapter>(conn.get(), HTTP_RESPONSE));
         conn->request().setKeepAlive(false);
-        conn->send();
+        conn->submit();
 
         expect(test::waitFor([&] { return conn->closed(); }));
         expect(headersReceived);
@@ -537,7 +537,7 @@ int main(int argc, char** argv)
         conn->Complete += [&](const http::Response&) { complete = true; };
         conn->Close += [&](http::Connection&) { closed = true; };
         conn->request().setKeepAlive(true);
-        conn->send();
+        conn->submit();
 
         expect(test::waitFor([&] { return complete && serverConn != nullptr; }, 5000));
         expect(serverConn->state() == http::ServerConnectionState::ReceivingHeaders);
@@ -571,7 +571,7 @@ int main(int argc, char** argv)
         conn->Headers += [&](http::Response&) { headers = true; };
         conn->Close += [&](http::Connection&) { closed = true; };
         conn->request().setKeepAlive(true);
-        conn->send();
+        conn->submit();
 
         expect(test::waitFor([&] { return headers && serverConn != nullptr; }, 5000));
         expect(serverConn->state() == http::ServerConnectionState::Streaming);

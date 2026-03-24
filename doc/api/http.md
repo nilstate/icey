@@ -501,8 +501,8 @@ BasicAuthenticator(const [BasicAuthenticator](#classicy_1_1http_1_1BasicAuthenti
 | [`close`](#classicy_1_1http_1_1Connection_1a7c40813c43b7e09e0b52ec8f33378dc9) | Close the connection and schedule the object for deferred deletion. |
 | [`closed`](#classicy_1_1http_1_1Connection_1aeaf613f9c94f3e93b981b4929f5a2406) | Return true if the connection is closed. |
 | [`error`](#classicy_1_1http_1_1Connection_1ae097a4b0be0ce96f55adb7f099eb21d4) | Return the error object if any. |
-| [`shouldSendHeader`](#classicy_1_1http_1_1Connection_1a38cfd15a7f82a369eaebddf5e4d5bc0c) | Return true if headers should be automatically sent. |
-| [`shouldSendHeader`](#classicy_1_1http_1_1Connection_1ad8e7071bd3cd8162ddfa739ed4a30f94) | Set true to prevent auto-sending HTTP headers. |
+| [`headerAutoSendEnabled`](#classicy_1_1http_1_1Connection_1a38cfd15a7f82a369eaebddf5e4d5bc0c) | Return true if headers should be automatically sent. |
+| [`setHeaderAutoSendEnabled`](#classicy_1_1http_1_1Connection_1ad8e7071bd3cd8162ddfa739ed4a30f94) | Enable or disable automatic header emission for the next outgoing send path. |
 | [`replaceAdapter`](#classicy_1_1http_1_1Connection_1a0eb7c6200dd3c7e6d78a96f0100b1d9c) | Assign the new [ConnectionAdapter](#classicy_1_1http_1_1ConnectionAdapter) and setup the chain The flow is: [Connection](#classicy_1_1http_1_1Connection) <-> [ConnectionAdapter](#classicy_1_1http_1_1ConnectionAdapter) <-> Socket |
 | [`secure`](#classicy_1_1http_1_1Connection_1a48910a2f80c7b8a69c9507085fee7849) | Return true if the connection uses TLS/SSL. |
 | [`socket`](#classicy_1_1http_1_1Connection_1a3394e7681197ee4ba5e481a6a5b24d7b) | Return the underlying socket pointer. |
@@ -635,27 +635,27 @@ Return the error object if any.
 
 ---
 
-#### shouldSendHeader 
+#### headerAutoSendEnabled
 
 ```cpp
-bool shouldSendHeader() const
+bool headerAutoSendEnabled() const
 ```
 
 Return true if headers should be automatically sent.
 
 ---
 
-#### shouldSendHeader 
+#### setHeaderAutoSendEnabled
 
 ```cpp
-void shouldSendHeader(bool flag)
+void setHeaderAutoSendEnabled(bool enabled)
 ```
 
-Set true to prevent auto-sending HTTP headers.
+Enable or disable automatic header emission for the next outgoing send path.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `flag` | `bool` |  |
+| `enabled` | `bool` |  |
 
 ---
 
@@ -3784,4 +3784,3 @@ void onError(llhttp_errno_t errnum, const std::string & message)
 |-----------|------|-------------|
 | `errnum` | `llhttp_errno_t` |  |
 | `message` | `const std::string &` |  |
-

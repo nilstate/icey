@@ -24,6 +24,7 @@
 
 #include <any>
 #include <stdexcept>
+#include <string_view>
 
 
 namespace icy {
@@ -70,7 +71,7 @@ public:
     /// Throws an Exception if the host is malformed.
     /// Since the DNS callback is asynchronous implementations need
     /// to listen for the Error signal for handling connection errors.
-    virtual void connect(const std::string& host, uint16_t port) = 0;
+    virtual void connect(std::string_view host, uint16_t port) = 0;
 
     /// Bind a local address to the socket.
     /// The address may be IPv4 or IPv6 (if supported).

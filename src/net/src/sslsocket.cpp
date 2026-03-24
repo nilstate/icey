@@ -57,7 +57,7 @@ SSLSocket::~SSLSocket() noexcept
 }
 
 
-void SSLSocket::setHostname(const std::string& hostname)
+void SSLSocket::setHostname(std::string_view hostname)
 {
     _sslAdapter.setHostname(hostname);
 }
@@ -69,7 +69,7 @@ void SSLSocket::connect(const Address& peerAddress)
 }
 
 
-void SSLSocket::connect(const std::string& host, uint16_t port)
+void SSLSocket::connect(std::string_view host, uint16_t port)
 {
     // Capture the hostname for SNI and certificate verification
     _sslAdapter.setHostname(host);

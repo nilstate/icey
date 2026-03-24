@@ -37,7 +37,7 @@ libdatachannel gives you the WebRTC transport pipe. Icey gives you the pipe, the
 
 ## Architecture
 
-Everything flows through `PacketStream`. Plug in a source, chain processors, attach a sink. The pipeline handles backpressure, frame dropping, and teardown so you don't. Nothing runs that you didn't ask for.
+Everything flows through `PacketStream`. Plug in a source, chain processors, attach a sink. Borrowed packets stay zero-copy until the first queue or retained adapter; that boundary is explicit in the graph. The pipeline handles backpressure, frame dropping, and teardown so you don't. Nothing runs that you didn't ask for.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐

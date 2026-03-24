@@ -147,9 +147,9 @@ int SSLAdapter::available() const
 }
 
 
-void SSLAdapter::setHostname(const std::string& hostname)
+void SSLAdapter::setHostname(std::string_view hostname)
 {
-    _hostname = hostname;
+    _hostname.assign(hostname);
 }
 
 

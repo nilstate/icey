@@ -62,7 +62,7 @@ int main(int argc, char** argv)
     };
 
     // Send the GET request
-    conn->send();
+    conn->submit();
 
     std::cout << "GET " << url << '\n';
 

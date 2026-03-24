@@ -109,7 +109,7 @@ void Client::doConnect()
 
     // Initiate the WebSocket connection.
     // TCP connect -> WS handshake -> Connect signal -> auth sent.
-    _ws->send();
+    _ws->submit();
 }
 
 

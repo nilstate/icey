@@ -606,7 +606,7 @@ ConnectionAdapter::ConnectionAdapter(Connection* connection, ws::Mode mode)
 {
     // Don't send the default header as the websocket upgrade will
     // be sent via WebSocketAdapter::onSocketConnect()
-    _connection->shouldSendHeader(false);
+    _connection->setHeaderAutoSendEnabled(false);
 }
 
 

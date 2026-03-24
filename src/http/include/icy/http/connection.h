@@ -91,10 +91,10 @@ public:
     [[nodiscard]] icy::Error error() const;
 
     /// Return true if headers should be automatically sent.
-    [[nodiscard]] bool shouldSendHeader() const;
+    [[nodiscard]] bool headerAutoSendEnabled() const;
 
-    /// Set true to prevent auto-sending HTTP headers.
-    void shouldSendHeader(bool flag);
+    /// Enable or disable automatic header emission for the next outgoing send path.
+    void setHeaderAutoSendEnabled(bool enabled);
 
     /// Assign the new ConnectionAdapter and setup the chain.
     /// The flow is: Connection <-> ConnectionAdapter <-> Socket.

@@ -103,12 +103,12 @@ void TCPSocket::connect(const net::Address& peerAddress)
 }
 
 
-void TCPSocket::connect(const std::string& host, uint16_t port)
+void TCPSocket::connect(std::string_view host, uint16_t port)
 {
     // LTrace("Connecting to", peerAddress);
 
     if (Address::validateIP(host)) {
-        connect(Address(host, port));
+        connect(Address(std::string(host), port));
     } else if (host == "localhost") {
         // Resolve localhost directly to loopback: some systems' getaddrinfo
         // returns 0.0.0.0 for "localhost" which causes connection failure.
@@ -116,7 +116,7 @@ void TCPSocket::connect(const std::string& host, uint16_t port)
     } else {
         init();
 
-        net::dns::resolve(host, port, uv::withHandleContext(*this,
+        net::dns::resolve(std::string(host), port, uv::withHandleContext(*this,
             [](TCPSocket& handle, int err, const net::Address& addr) {
                 if (err)
                     handle.setUVError(err, "DNS failed to resolve");

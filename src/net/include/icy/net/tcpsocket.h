@@ -19,6 +19,8 @@
 #include "icy/net/tcpsocket.h"
 #include "icy/stream.h"
 
+#include <string_view>
+
 
 namespace icy {
 namespace net {
@@ -57,7 +59,7 @@ public:
     /// Resolves @p host via DNS (or maps "localhost"), then connects.
     /// @param host Hostname or IP address string.
     /// @param port Destination port.
-    virtual void connect(const std::string& host, uint16_t port) override;
+    virtual void connect(std::string_view host, uint16_t port) override;
 
     /// Writes @p len bytes to the connected peer.
     /// @param data  Pointer to the data to send.

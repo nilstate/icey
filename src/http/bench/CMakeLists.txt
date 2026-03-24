@@ -19,3 +19,6 @@ if(ENABLE_SOLUTION_FOLDERS)
 endif()
 
 set(Icey_BUILD_BENCHMARKS ${Icey_BUILD_BENCHMARKS} httpbench CACHE INTERNAL "")
+
+icy_add_benchmark(httpparsebench DEPENDS base net http)
+icy_add_benchmark(wsbench DEPENDS base net http)

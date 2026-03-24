@@ -50,19 +50,19 @@ ClientConnection::~ClientConnection()
 }
 
 
-void ClientConnection::send()
+void ClientConnection::submit()
 {
     if (_connect) {
-        throw std::runtime_error("ClientConnection::send: already connecting");
+        throw std::runtime_error("ClientConnection::submit: already connecting");
     }
     connect();
 }
 
 
-void ClientConnection::send(http::Request& req)
+void ClientConnection::submit(http::Request& req)
 {
     if (_connect) {
-        throw std::runtime_error("ClientConnection::send: already connecting");
+        throw std::runtime_error("ClientConnection::submit: already connecting");
     }
     _request = req;
     connect();

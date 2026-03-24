@@ -76,7 +76,7 @@ public:
 
     /// Set the expected peer hostname for certificate verification.
     /// Must be called before initClient() to enable hostname verification.
-    void setHostname(const std::string& hostname);
+    void setHostname(std::string_view hostname);
 
     /// Feeds encrypted data received from the network into the SSL read BIO.
     /// Triggers a flush, which drives the handshake or decrypts and delivers

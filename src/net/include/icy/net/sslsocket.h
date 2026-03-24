@@ -19,6 +19,8 @@
 #include "icy/net/sslsession.h"
 #include "icy/net/tcpsocket.h"
 
+#include <string_view>
+
 
 namespace icy {
 namespace net {
@@ -64,7 +66,7 @@ public:
     /// before resolving and connecting.
     /// @param host Hostname or IP address string.
     /// @param port Destination port.
-    virtual void connect(const std::string& host, uint16_t port) override;
+    virtual void connect(std::string_view host, uint16_t port) override;
 
     /// Binds the socket to @p address for server-side use.
     /// Throws std::logic_error if the context is not a server context.
@@ -106,7 +108,7 @@ public:
 
     /// Set the expected peer hostname for certificate verification and SNI.
     /// Must be called before connect() to enable hostname verification.
-    void setHostname(const std::string& hostname);
+    void setHostname(std::string_view hostname);
 
     /// Use the given SSL context for this socket.
     void useContext(SSLContext::Ptr context);

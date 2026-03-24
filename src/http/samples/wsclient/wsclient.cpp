@@ -63,7 +63,7 @@ int main(int argc, char** argv)
     };
 
     // Initiate the WebSocket handshake
-    conn->send();
+    conn->submit();
 
     std::cout << "Connecting to " << url << "..." << '\n';
 

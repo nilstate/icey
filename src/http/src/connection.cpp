@@ -197,15 +197,15 @@ icy::Error Connection::error() const
 }
 
 
-bool Connection::shouldSendHeader() const
+bool Connection::headerAutoSendEnabled() const
 {
     return _shouldSendHeader;
 }
 
 
-void Connection::shouldSendHeader(bool flag)
+void Connection::setHeaderAutoSendEnabled(bool enabled)
 {
-    _shouldSendHeader = flag;
+    _shouldSendHeader = enabled;
 }
 
 
@@ -255,7 +255,7 @@ ssize_t ConnectionAdapter::send(const char* data, size_t len, int flags)
 {
     // Send headers on initial send
     if (_connection &&
-        _connection->shouldSendHeader()) {
+        _connection->headerAutoSendEnabled()) {
         ssize_t res = _connection->sendHeader();
 
         // The initial packet may be empty to push the headers through
@@ -276,7 +276,7 @@ ssize_t ConnectionAdapter::send(const char* data, size_t len, int flags)
 ssize_t ConnectionAdapter::sendOwned(Buffer&& buffer, int flags)
 {
     if (_connection &&
-        _connection->shouldSendHeader()) {
+        _connection->headerAutoSendEnabled()) {
         ssize_t res = _connection->sendHeader();
         if (buffer.empty())
             return res;

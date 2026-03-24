@@ -43,20 +43,20 @@ public:
 
     virtual ~ClientConnection();
 
-    /// Sends the internal HTTP request.
+    /// Submits the internal HTTP request.
     ///
     /// Calls connect() internally if the socket is not already connecting
     /// or connected. The actual request will be sent when the socket is connected.
     /// @throws std::runtime_error if already connecting.
-    virtual void send();
+    virtual void submit();
 
-    /// Sends the given HTTP request, replacing the internal request object.
+    /// Submits the given HTTP request, replacing the internal request object.
     ///
     /// Calls connect() internally if the socket is not already connecting
     /// or connected. The actual request will be sent when the socket is connected.
     /// @param req The HTTP request to send. Replaces the internal request.
     /// @throws std::runtime_error if already connecting.
-    virtual void send(http::Request& req);
+    virtual void submit(http::Request& req);
 
     /// Sends raw data to the peer, initiating a connection first if needed.
     /// Data is buffered internally until the connection is established.
@@ -68,7 +68,7 @@ public:
 
     /// Sets the output stream to which incoming response body data is written.
     /// The stream pointer is owned by the connection and freed with it.
-    /// Must be called before send().
+    /// Must be called before submit().
     /// @param os Pointer to the output stream. Takes ownership.
     /// @throws std::runtime_error if already connecting.
     virtual void setReadStream(std::ostream* os);

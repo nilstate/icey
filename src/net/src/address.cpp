@@ -359,12 +359,13 @@ void Address::swap(Address& addr)
 //
 
 
-bool Address::validateIP(const std::string& addr)
+bool Address::validateIP(std::string_view addr)
 {
+    std::string owned(addr);
     char ia[sizeof(struct in6_addr)];
-    if (uv_inet_pton(AF_INET, addr.c_str(), &ia) == 0)
+    if (uv_inet_pton(AF_INET, owned.c_str(), &ia) == 0)
         return true;
-    else if (uv_inet_pton(AF_INET6, addr.c_str(), &ia) == 0)
+    else if (uv_inet_pton(AF_INET6, owned.c_str(), &ia) == 0)
         return true;
     return false;
 }

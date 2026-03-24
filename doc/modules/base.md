@@ -278,12 +278,20 @@ The `rawPacket()` factory functions create `RawPacket` values from buffers and r
 char buf[1024];
 size_t n = fillBuffer(buf, sizeof(buf));
 
-// Borrowed (zero-copy): caller keeps buf alive.
+// Borrowed (zero-copy): caller keeps buf alive until the stream crosses a
+// Cloned/Retained boundary, or until write()/emit() returns in a fully
+// synchronous graph.
 auto pkt = rawPacket(buf, n);
 
 // Owned copy: safe to discard buf after this line.
 auto owned = rawPacket(static_cast<const char*>(buf), n);
 ```
+
+**Retention boundary rule:**
+
+- `PacketRetention::Borrowed` means the adapter only touches the packet during the current synchronous call chain.
+- `PacketRetention::Cloned` and `PacketRetention::Retained` are explicit ownership boundaries.
+- `SyncPacketQueue` and `AsyncPacketQueue` are clone boundaries: upstream code may reuse or free borrowed packet storage after the packet enters one of those queues.
 
 **Writing sources:**
 
@@ -392,13 +400,15 @@ downstream.attachSource(upstream.emitter);
 
 **Synchronizing output to the event loop:**
 
-When a source runs on a background thread but sinks must run on the libuv event loop (the common case for network sends), call `synchronizeOutput()` before `start()`. This inserts a `SyncPacketQueue` at order 101 that re-dispatches packets from the loop thread:
+When a source runs on a background thread but sinks must run on the libuv event loop (the common case for network sends), call `synchronizeOutput()` before `start()`. This inserts a `SyncPacketQueue` at order 101. That queue is both the thread hop and the explicit clone boundary for borrowed packets:
 
 ```cpp
 stream.synchronizeOutput(uv::defaultLoop());
 stream.start();
 // stream.emitter now always fires on the loop thread
 ```
+
+Use `AsyncPacketQueue` the same way when you need a worker-thread boundary before expensive processing. The queue clones first, then defers.
 
 **PacketStream lifecycle states:**
 

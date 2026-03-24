@@ -290,7 +290,7 @@ for (auto& t : threads) t->join();
 
 ### HTTP Client
 
-`ClientConnection` manages a single outgoing request. Call `send()` to initiate the TCP connection; data is buffered internally until the socket is ready.
+`ClientConnection` manages a single outgoing request. Call `submit()` to initiate the TCP connection; payload written with `send()` is buffered internally until the socket is ready.
 
 ```cpp
 #include "icy/http/client.h"
@@ -319,7 +319,7 @@ conn->Close += [](http::Connection&) {
     uv_stop(uv::defaultLoop());
 };
 
-conn->send(); // connect + send GET
+conn->submit(); // connect + submit GET
 uv_run(uv::defaultLoop(), UV_RUN_DEFAULT);
 ```
 
@@ -357,7 +357,7 @@ auto conn = http::createConnectionT<http::ClientConnection>(
 
 #### Custom request
 
-Replace the default GET by constructing a `Request` and calling the `send(Request&)` overload:
+Replace the default GET by constructing a `Request` and calling the `submit(Request&)` overload:
 
 ```cpp
 http::Request req(http::Method::Post, "/upload");
@@ -366,18 +366,18 @@ req.setContentType("application/json");
 std::string body = R"({"key":"value"})";
 req.setContentLength(body.size());
 
-conn->send(req);
+conn->submit(req);
 conn->send(body.c_str(), body.size());
 ```
 
 #### Streaming response to a file
 
-Call `setReadStream()` before `send()` to pipe the response body directly into any `std::ostream`. The connection takes ownership.
+Call `setReadStream()` before `submit()` to pipe the response body directly into any `std::ostream`. The connection takes ownership.
 
 ```cpp
 auto* fs = new std::ofstream("/tmp/download.bin", std::ios::binary);
 conn->setReadStream(fs);
-conn->send();
+conn->submit();
 ```
 
 Retrieve the stream later with the typed accessor:
@@ -393,7 +393,7 @@ auto& file = conn->readStream<std::ofstream>();
 ```cpp
 auto& client = http::Client::instance();
 auto conn = client.createConnection(http::URL("http://example.com"));
-conn->send();
+conn->submit();
 
 // on shutdown:
 http::Client::destroy();
@@ -430,7 +430,7 @@ conn->Close += [](http::Connection&) {
     uv_stop(uv::defaultLoop());
 };
 
-conn->send(); // TCP connect + WebSocket handshake
+conn->submit(); // TCP connect + WebSocket handshake
 uv_run(uv::defaultLoop(), UV_RUN_DEFAULT);
 ```
 
@@ -601,7 +601,7 @@ form->set("message", "hello world");
 
 form->prepareSubmit(); // sets Content-Type and Content-Length on the request
 form->start();         // starts the background writer thread
-conn->send();
+conn->submit();
 ```
 
 #### Multipart form with file upload
@@ -623,7 +623,7 @@ form->addPart("thumbnail",
 
 form->prepareSubmit();
 form->start();
-conn->send();
+conn->submit();
 ```
 
 `FilePart` streams the file in chunks. `StringPart` sends an in-memory buffer in a single pass. Upload progress is available via `ConnectionStream::OutgoingProgress`.
@@ -649,7 +649,7 @@ Client side: add `Authorization: Basic ...` to an outgoing request.
 
 http::BasicAuthenticator auth("alice", "s3cr3t");
 auth.authenticate(conn->request());
-conn->send();
+conn->submit();
 ```
 
 Server side: extract credentials from an incoming request.
@@ -984,7 +984,7 @@ conn->Close += [](http::Connection&) {
     uv_stop(uv::defaultLoop());
 };
 
-conn->send();
+conn->submit();
 uv_run(uv::defaultLoop(), UV_RUN_DEFAULT);
 ```
 
@@ -1019,7 +1019,7 @@ conn->Close += [](http::Connection&) {
     uv_stop(uv::defaultLoop());
 };
 
-conn->send(); // TCP connect + WebSocket handshake
+conn->submit(); // TCP connect + WebSocket handshake
 
 waitForShutdown([&](void*) { conn->close(); });
 ```

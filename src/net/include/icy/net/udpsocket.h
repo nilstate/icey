@@ -17,6 +17,8 @@
 #include "icy/net/net.h"
 #include "icy/net/socket.h"
 
+#include <string_view>
+
 
 namespace icy {
 namespace net {
@@ -48,7 +50,7 @@ public:
     /// Resolves @p host via DNS (or maps "localhost"), then calls connect(Address).
     /// @param host Hostname or IP address string.
     /// @param port Destination port.
-    virtual void connect(const std::string& host, uint16_t port) override;
+    virtual void connect(std::string_view host, uint16_t port) override;
 
     /// Stops receiving and closes the underlying UDP handle.
     virtual void close() override;
