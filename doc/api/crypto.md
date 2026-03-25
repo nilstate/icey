@@ -28,9 +28,9 @@ Cryptographic primitives, key helpers, and certificate utilities backed by OpenS
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `std::unique_ptr< EVP_CIPHER_CTX, decltype(&EVP_CIPHER_CTX_free)>` | [`EvpCipherCtxPtr`](#evpcipherctxptr)  |  |
+| `std::unique_ptr< EVP_CIPHER_CTX, decltype(&EVP_CIPHER_CTX_free)>` | [`EvpCipherCtxPtr`](#evpcipherctxptr)  | Owning OpenSSL cipher context handle with automatic `EVP_CIPHER_CTX_free`. |
 | `std::vector< unsigned char >` | [`ByteVec`](#bytevec)  | Generic storage container for storing cryptographic binary data. |
-| `std::unique_ptr< EVP_MD_CTX, decltype(&EVP_MD_CTX_free)>` | [`EvpMdCtxPtr`](#evpmdctxptr)  |  |
+| `std::unique_ptr< EVP_MD_CTX, decltype(&EVP_MD_CTX_free)>` | [`EvpMdCtxPtr`](#evpmdctxptr)  | Owning OpenSSL digest context handle with automatic `EVP_MD_CTX_free`. |
 | `::RSA` | [`RSAKey`](#rsakey)  | Alias for the OpenSSL RSA key type, brought into the [icy::crypto](#crypto) namespace. |
 | `std::unique_ptr< X509, decltype(&X509_free)>` | [`X509Ptr`](#x509ptr)  | RAII pointer alias for OpenSSL `X509*` values. |
 
@@ -43,6 +43,8 @@ Cryptographic primitives, key helpers, and certificate utilities backed by OpenS
 ```cpp
 std::unique_ptr< EVP_CIPHER_CTX, decltype(&EVP_CIPHER_CTX_free)> EvpCipherCtxPtr()
 ```
+
+Owning OpenSSL cipher context handle with automatic `EVP_CIPHER_CTX_free`.
 
 ---
 
@@ -65,6 +67,8 @@ Generic storage container for storing cryptographic binary data.
 ```cpp
 std::unique_ptr< EVP_MD_CTX, decltype(&EVP_MD_CTX_free)> EvpMdCtxPtr()
 ```
+
+Owning OpenSSL digest context handle with automatic `EVP_MD_CTX_free`.
 
 ---
 

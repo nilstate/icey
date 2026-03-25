@@ -30,6 +30,7 @@ namespace icy {
 namespace crypto {
 
 
+/// Owning OpenSSL cipher context handle with automatic `EVP_CIPHER_CTX_free`.
 using EvpCipherCtxPtr = std::unique_ptr<EVP_CIPHER_CTX, decltype(&EVP_CIPHER_CTX_free)>;
 
 

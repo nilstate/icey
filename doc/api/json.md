@@ -27,7 +27,7 @@ JSON value aliases, serialization helpers, and file utilities built on nlohmann/
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `nlohmann::json` | [`Value`](#value)  |  |
+| `nlohmann::json` | [`Value`](#value)  | Primary JSON value type used throughout the library. |
 
 ---
 
@@ -38,6 +38,8 @@ JSON value aliases, serialization helpers, and file utilities built on nlohmann/
 ```cpp
 nlohmann::json Value()
 ```
+
+Primary JSON value type used throughout the library.
 
 ### Functions
 

@@ -25,6 +25,7 @@ namespace icy {
 namespace crypto {
 
 
+/// Owning OpenSSL digest context handle with automatic `EVP_MD_CTX_free`.
 using EvpMdCtxPtr = std::unique_ptr<EVP_MD_CTX, decltype(&EVP_MD_CTX_free)>;
 
 

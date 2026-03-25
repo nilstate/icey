@@ -40,6 +40,7 @@ namespace icy {
 namespace json {
 
 
+/// Primary JSON value type used throughout the library.
 using Value = nlohmann::json;
 
 

@@ -1,4 +1,4 @@
-.PHONY: docs docs-install docs-xml docs-api-md docs-site docs-dev docs-docker clean-docs
+.PHONY: docs docs-install docs-xml docs-api-md docs-site docs-check docs-dev docs-docker clean-docs
 
 DOCS_NPM = npm --prefix doc
 DOCS_RUN = $(DOCS_NPM) run
@@ -23,6 +23,11 @@ docs-api-md: docs-install docs-xml
 ## Build Sourcey static site
 docs-site: docs-install docs-xml
 	$(DOCS_RUN) site:build
+
+## Regenerate markdown, build the site, and validate overview quality
+docs-check: docs-api-md
+	$(DOCS_RUN) site:build
+	node doc/scripts/check-api-quality.mjs
 
 ## Dev server with live reload
 docs-dev: docs-install docs-xml
