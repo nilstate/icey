@@ -18,8 +18,24 @@ JSON serialization using nlohmann/json.
 
 | Name | Description |
 |------|-------------|
-| [`Configuration`](#configuration) | JSON configuration file |
+| [`Configuration`](#configuration-1) | JSON configuration file |
 | [`ISerializable`](#iserializable) | Abstract interface for JSON-serializable objects. |
+
+### Typedefs
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `nlohmann::json` | [`Value`](#value)  |  |
+
+---
+
+{#value}
+
+#### Value
+
+```cpp
+nlohmann::json Value()
+```
 
 ### Functions
 
@@ -103,7 +119,7 @@ Load a JSON file into a value. Throws on missing file or parse error.
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `path` | `const std::string &` |  |
-| `root` | `[json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
+| `root` | `[json::Value](#value) &` |  |
 
 ---
 
@@ -122,7 +138,7 @@ Save a JSON value to a file. Throws on write error.
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `path` | `const std::string &` |  |
-| `root` | `const [json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
+| `root` | `const [json::Value](#value) &` |  |
 | `indent` | `int` |  |
 
 ---
@@ -141,7 +157,7 @@ Assert that a required member exists. Throws if missing.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `root` | `const [json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
+| `root` | `const [json::Value](#value) &` |  |
 | `name` | `const std::string &` |  |
 
 ---
@@ -160,7 +176,7 @@ Count how many nested objects contain the given key.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `root` | `const [json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
+| `root` | `const [json::Value](#value) &` |  |
 | `key` | `const std::string &` |  |
 | `count` | `int &` |  |
 
@@ -180,7 +196,7 @@ Return true if any nested object contains the given key.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `root` | `const [json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
+| `root` | `const [json::Value](#value) &` |  |
 | `key` | `const std::string &` |  |
 
 ---
@@ -203,14 +219,14 @@ Returns true if found, with result pointing to the matching object.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `root` | `[json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
-| `result` | `[json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) *&` |  |
+| `root` | `[json::Value](#value) &` |  |
+| `result` | `[json::Value](#value) *&` |  |
 | `key` | `std::string_view` |  |
 | `value` | `std::string_view` |  |
 | `partial` | `bool` |  |
 | `index` | `int` |  |
 
-{#configuration}
+{#configuration-1}
 
 ## Configuration
 
@@ -218,11 +234,11 @@ Returns true if found, with result pointing to the matching object.
 #include <configuration.h>
 ```
 
-> **Inherits:** [`Configuration`](#classicy_1_1Configuration)
+> **Inherits:** [`Configuration`](base.md#configuration)
 
 JSON configuration file
 
-See base [Configuration](#configuration) for all accessors
+See base [Configuration](#configuration-1) for all accessors
 
 ### Public Attributes
 
@@ -244,8 +260,8 @@ json::Value root
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`Configuration`](#configuration-1)  |  |
-|  | [`~Configuration`](#configuration-2) `virtual` | Destroys the [Configuration](#configuration). |
+|  | [`Configuration`](#configuration-2)  |  |
+|  | [`~Configuration`](#configuration-3) `virtual` | Destroys the [Configuration](#configuration-1). |
 | `void` | [`load`](#load) `virtual` | Sets the file path and loads the configuration.  |
 | `void` | [`load`](#load-1) `virtual` | Reloads the configuration from the previously set path. Silently ignores parse errors (e.g. empty file).  |
 | `void` | [`save`](#save) `virtual` | Writes the current JSON root to the file at the stored path.  |
@@ -259,7 +275,7 @@ json::Value root
 
 ---
 
-{#configuration-1}
+{#configuration-2}
 
 #### Configuration
 
@@ -269,7 +285,7 @@ Configuration()
 
 ---
 
-{#configuration-2}
+{#configuration-3}
 
 #### ~Configuration
 
@@ -279,7 +295,7 @@ Configuration()
 virtual ~Configuration()
 ```
 
-Destroys the [Configuration](#configuration).
+Destroys the [Configuration](#configuration-1).
 
 ---
 
@@ -585,7 +601,7 @@ Stores `value` under `key` in the JSON root and emits PropertyChanged.
 #include <iserializable.h>
 ```
 
-> **Subclassed by:** [`Scheduler`](#scheduler), [`Task`](#task), [`Trigger`](#trigger-1)
+> **Subclassed by:** [`Scheduler`](sched.md#scheduler), [`Task`](sched.md#task-1), [`Trigger`](sched.md#trigger-1)
 
 Abstract interface for JSON-serializable objects.
 
@@ -612,7 +628,7 @@ Serializes this object's state into `root`.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `root` | `[json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
+| `root` | `[json::Value](#value) &` |  |
 
 ---
 
@@ -630,5 +646,5 @@ Populates this object's state from `root`.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `root` | `[json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
+| `root` | `[json::Value](#value) &` |  |
 

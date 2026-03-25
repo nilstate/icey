@@ -43,7 +43,7 @@ Attribute macros.
 | [`Message`](#message-5) | STUN/TURN protocol message with method, class, transaction ID, and attributes. |
 | [`MessageIntegrity`](#messageintegrity) | Implements the STUN MESSAGE-INTEGRITY attribute (RFC 5389 section 15.4). On write, computes an HMAC-SHA1 over the message bytes preceding this attribute when a key is set. On read, captures the raw HMAC bytes and the input bytes needed to verify them later via [verifyHmac()](#verifyhmac). |
 | [`StringAttribute`](#stringattribute) | Implements a STUN/TURN attribute that holds an arbitrary byte string. Used for Username, Password, Realm, Nonce, Software, Data, and similar attributes. |
-| [`Transaction`](#transaction-2) | STUN request/response transaction with timeout and retry logic. Extends the generic [net::Transaction](#transaction) with STUN-specific transaction ID matching and response class inference (Success, [Error](#structicy_1_1Error), or Indication). |
+| [`Transaction`](#transaction-2) | STUN request/response transaction with timeout and retry logic. Extends the generic [net::Transaction](net.md#transaction) with STUN-specific transaction ID matching and response class inference (Success, [Error](base.md#error), or Indication). |
 | [`UInt16ListAttribute`](#uint16listattribute) | Implements a STUN/TURN attribute that holds a list of attribute type codes. Used by the UNKNOWN-ATTRIBUTES attribute (RFC 5389 section 15.9). |
 | [`UInt32Attribute`](#uint32attribute) | Implements a STUN/TURN attribute that holds a 32-bit integer. |
 | [`UInt64Attribute`](#uint64attribute) | Implements a STUN/TURN attribute that holds a 64-bit integer. |
@@ -72,6 +72,22 @@ STUN address types as defined in RFC 5389. NB: Undefined is not part of the STUN
 | `Undefined` |  |
 | `IPv4` |  |
 | `IPv6` |  |
+
+### Typedefs
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `std::string` | [`TransactionID`](#transactionid-1)  |  |
+
+---
+
+{#transactionid-1}
+
+#### TransactionID
+
+```cpp
+std::string TransactionID()
+```
 
 ### Functions
 
@@ -295,7 +311,7 @@ Reads the body (not the type or size) for this type of attribute from the given 
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `reader` | `[BitReader](#classicy_1_1BitReader) &` |  |
+| `reader` | `[BitReader](base.md#bitreader) &` |  |
 
 ---
 
@@ -315,7 +331,7 @@ Writes the body (not the type or size) to the given buffer.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `writer` | `[BitWriter](#classicy_1_1BitWriter) &` |  |
+| `writer` | `[BitWriter](base.md#bitwriter) &` |  |
 
 ---
 
@@ -335,7 +351,7 @@ Sets the address to encode into this attribute.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `addr` | `const [net::Address](#address) &` |  |
+| `addr` | `const [net::Address](net.md#address) &` |  |
 
 ---
 
@@ -454,7 +470,7 @@ Reads the body (not the type or size) for this type of attribute from the given 
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `reader` | `[BitReader](#classicy_1_1BitReader) &` |  |
+| `reader` | `[BitReader](base.md#bitreader) &` |  |
 
 ---
 
@@ -474,7 +490,7 @@ Writes the body (not the type or size) to the given buffer.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `writer` | `[BitWriter](#classicy_1_1BitWriter) &` |  |
+| `writer` | `[BitWriter](base.md#bitwriter) &` |  |
 
 ---
 
@@ -554,7 +570,7 @@ Advances the reader past any 4-byte alignment padding that follows this attribut
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `reader` | `[BitReader](#classicy_1_1BitReader) &` |  |
+| `reader` | `[BitReader](base.md#bitreader) &` |  |
 
 ---
 
@@ -574,7 +590,7 @@ Writes zero-fill padding bytes to align this attribute to a 4-byte boundary.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `writer` | `[BitWriter](#classicy_1_1BitWriter) &` |  |
+| `writer` | `[BitWriter](base.md#bitwriter) &` |  |
 
 ---
 
@@ -1016,7 +1032,7 @@ Reads the body (not the type or size) for this type of attribute from the given 
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `reader` | `[BitReader](#classicy_1_1BitReader) &` |  |
+| `reader` | `[BitReader](base.md#bitreader) &` |  |
 
 ---
 
@@ -1036,7 +1052,7 @@ Writes the body (not the type or size) to the given buffer.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `writer` | `[BitWriter](#classicy_1_1BitWriter) &` |  |
+| `writer` | `[BitWriter](base.md#bitwriter) &` |  |
 
 ### Public Static Attributes
 
@@ -1215,8 +1231,8 @@ constexpr uint16_t Size = 0
 #include <message.h>
 ```
 
-> **Inherits:** [`IPacket`](#classicy_1_1IPacket)
-> **Subclassed by:** [`Request`](#request-12)
+> **Inherits:** [`IPacket`](base.md#ipacket)
+> **Subclassed by:** [`Request`](turn.md#request-12)
 
 STUN/TURN protocol message with method, class, transaction ID, and attributes.
 
@@ -1228,15 +1244,15 @@ STUN/TURN protocol message with method, class, transaction ID, and attributes.
 |  | [`Message`](#message-7)  | Constructs a message with explicit class and method.  |
 |  | [`Message`](#message-8)  | Deep-copy constructor; clones all attributes. |
 |  | [`Message`](#message-9)  | Move constructor. |
-| `Message &` | [`operator=`](#operator-22)  | Deep-copy assignment; clones all attributes from `that`. |
-| `Message &` | [`operator=`](#operator-23)  | Move assignment. |
+| `Message &` | [`operator=`](#operator-23)  | Deep-copy assignment; clones all attributes from `that`. |
+| `Message &` | [`operator=`](#operator-24)  | Move assignment. |
 | `std::unique_ptr< IPacket >` | [`clone`](#clone-11) `virtual` `const` | #### Returns |
 | `void` | [`setClass`](#setclass)  | Sets the message class field.  |
 | `void` | [`setMethod`](#setmethod-1)  | Sets the message method field.  |
 | `void` | [`setTransactionID`](#settransactionid)  | Sets the 12-byte transaction ID.  |
 | `ClassType` | [`classType`](#classtype) `const` | #### Returns |
 | `MethodType` | [`methodType`](#methodtype) `const` | #### Returns |
-| `const TransactionID &` | [`transactionID`](#transactionid-1) `const` `inline` | #### Returns |
+| `const TransactionID &` | [`transactionID`](#transactionid-2) `const` `inline` | #### Returns |
 | `size_t` | [`size`](#size-5) `virtual` `const` `inline` | #### Returns |
 | `std::string` | [`methodString`](#methodstring) `const` | #### Returns |
 | `std::string` | [`classString`](#classstring) `const` | #### Returns |
@@ -1318,7 +1334,7 @@ Move constructor.
 
 ---
 
-{#operator-22}
+{#operator-23}
 
 #### operator=
 
@@ -1334,7 +1350,7 @@ Deep-copy assignment; clones all attributes from `that`.
 
 ---
 
-{#operator-23}
+{#operator-24}
 
 #### operator=
 
@@ -1449,7 +1465,7 @@ The message method.
 
 ---
 
-{#transactionid-1}
+{#transactionid-2}
 
 #### transactionID
 
@@ -1640,7 +1656,7 @@ Number of bytes consumed, or 0 on parse failure.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `buf` | `const [ConstBuffer](#classicy_1_1ConstBuffer) &` |  |
+| `buf` | `const [ConstBuffer](base.md#constbuffer) &` |  |
 
 ---
 
@@ -1660,7 +1676,7 @@ Serialises this message into a STUN/TURN wire-format packet.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `buf` | `[Buffer](#namespaceicy_1a9c464c811f03ea41ea100ed65a0580d3) &` |  |
+| `buf` | `[Buffer](base.md#buffer-2) &` |  |
 
 ---
 
@@ -2088,7 +2104,7 @@ Reads the body (not the type or size) for this type of attribute from the given 
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `reader` | `[BitReader](#classicy_1_1BitReader) &` |  |
+| `reader` | `[BitReader](base.md#bitreader) &` |  |
 
 ---
 
@@ -2108,7 +2124,7 @@ Writes the body (not the type or size) to the given buffer.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `writer` | `[BitWriter](#classicy_1_1BitWriter) &` |  |
+| `writer` | `[BitWriter](base.md#bitwriter) &` |  |
 
 ### Public Static Attributes
 
@@ -2412,7 +2428,7 @@ Reads the body (not the type or size) for this type of attribute from the given 
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `reader` | `[BitReader](#classicy_1_1BitReader) &` |  |
+| `reader` | `[BitReader](base.md#bitreader) &` |  |
 
 ---
 
@@ -2432,7 +2448,7 @@ Writes the body (not the type or size) to the given buffer.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `writer` | `[BitWriter](#classicy_1_1BitWriter) &` |  |
+| `writer` | `[BitWriter](base.md#bitwriter) &` |  |
 
 ### Private Attributes
 
@@ -2458,11 +2474,11 @@ std::vector< char > _bytes
 #include <transaction.h>
 ```
 
-> **Inherits:** [`Transaction< Message >`](#transaction)
+> **Inherits:** [`Transaction< Message >`](net.md#transaction)
 
-STUN request/response transaction with timeout and retry logic. Extends the generic [net::Transaction](#transaction) with STUN-specific transaction ID matching and response class inference (Success, [Error](#structicy_1_1Error), or Indication).
+STUN request/response transaction with timeout and retry logic. Extends the generic [net::Transaction](net.md#transaction) with STUN-specific transaction ID matching and response class inference (Success, [Error](base.md#error), or Indication).
 
-Lifetime is managed by [IntrusivePtr](#classicy_1_1IntrusivePtr). Create via makeIntrusive or wrap in [IntrusivePtr](#classicy_1_1IntrusivePtr) immediately after construction.
+Lifetime is managed by [IntrusivePtr](base.md#intrusiveptr). Create via makeIntrusive or wrap in [IntrusivePtr](base.md#intrusiveptr) immediately after construction.
 
 ### Public Methods
 
@@ -2494,8 +2510,8 @@ Constructs a STUN transaction bound to a specific socket and peer.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `const [net::Socket::Ptr](#ptr-4) &` |  |
-| `peerAddress` | `const [net::Address](#address) &` |  |
+| `socket` | `const [net::Socket::Ptr](net.md#ptr-4) &` |  |
+| `peerAddress` | `const [net::Address](net.md#address) &` |  |
 | `timeout` | `long` |  |
 | `retries` | `int` |  |
 
@@ -2721,7 +2737,7 @@ Reads the body (not the type or size) for this type of attribute from the given 
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `reader` | `[BitReader](#classicy_1_1BitReader) &` |  |
+| `reader` | `[BitReader](base.md#bitreader) &` |  |
 
 ---
 
@@ -2741,7 +2757,7 @@ Writes the body (not the type or size) to the given buffer.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `writer` | `[BitWriter](#classicy_1_1BitWriter) &` |  |
+| `writer` | `[BitWriter](base.md#bitwriter) &` |  |
 
 ### Private Attributes
 
@@ -2778,7 +2794,7 @@ Implements a STUN/TURN attribute that holds a 32-bit integer.
 |  | [`UInt32Attribute`](#uint32attribute-1)  | #### Parameters |
 |  | [`UInt32Attribute`](#uint32attribute-2)  | Copy constructor. |
 | `std::unique_ptr< Attribute >` | [`clone`](#clone-15) `virtual` | Returns a deep copy of this attribute. |
-| `uint32_t` | [`value`](#value) `const` `inline` | #### Returns |
+| `uint32_t` | [`value`](#value-1) `const` `inline` | #### Returns |
 | `void` | [`setValue`](#setvalue-1) `inline` | Sets the stored 32-bit value.  |
 | `bool` | [`getBit`](#getbit) `const` | Returns the state of a single bit within the stored word.  |
 | `void` | [`setBit`](#setbit)  | Sets or clears a single bit within the stored word.  |
@@ -2834,7 +2850,7 @@ Returns a deep copy of this attribute.
 
 ---
 
-{#value}
+{#value-1}
 
 #### value
 
@@ -2929,7 +2945,7 @@ Reads the body (not the type or size) for this type of attribute from the given 
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `reader` | `[BitReader](#classicy_1_1BitReader) &` |  |
+| `reader` | `[BitReader](base.md#bitreader) &` |  |
 
 ---
 
@@ -2949,7 +2965,7 @@ Writes the body (not the type or size) to the given buffer.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `writer` | `[BitWriter](#classicy_1_1BitWriter) &` |  |
+| `writer` | `[BitWriter](base.md#bitwriter) &` |  |
 
 ### Public Static Attributes
 
@@ -3004,7 +3020,7 @@ Implements a STUN/TURN attribute that holds a 64-bit integer.
 |  | [`UInt64Attribute`](#uint64attribute-1)  | #### Parameters |
 |  | [`UInt64Attribute`](#uint64attribute-2)  | Copy constructor. |
 | `std::unique_ptr< Attribute >` | [`clone`](#clone-16) `virtual` | Returns a deep copy of this attribute. |
-| `uint64_t` | [`value`](#value-1) `const` `inline` | #### Returns |
+| `uint64_t` | [`value`](#value-2) `const` `inline` | #### Returns |
 | `void` | [`setValue`](#setvalue-2) `inline` | Sets the stored 64-bit value.  |
 | `bool` | [`getBit`](#getbit-1) `const` | Returns the state of a single bit within the stored quad-word.  |
 | `void` | [`setBit`](#setbit-1)  | Sets or clears a single bit within the stored quad-word.  |
@@ -3060,7 +3076,7 @@ Returns a deep copy of this attribute.
 
 ---
 
-{#value-1}
+{#value-2}
 
 #### value
 
@@ -3155,7 +3171,7 @@ Reads the body (not the type or size) for this type of attribute from the given 
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `reader` | `[BitReader](#classicy_1_1BitReader) &` |  |
+| `reader` | `[BitReader](base.md#bitreader) &` |  |
 
 ---
 
@@ -3175,7 +3191,7 @@ Writes the body (not the type or size) to the given buffer.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `writer` | `[BitWriter](#classicy_1_1BitWriter) &` |  |
+| `writer` | `[BitWriter](base.md#bitwriter) &` |  |
 
 ### Public Static Attributes
 
@@ -3230,7 +3246,7 @@ Implements a STUN/TURN attribute that holds an 8-bit integer.
 |  | [`UInt8Attribute`](#uint8attribute-1)  | #### Parameters |
 |  | [`UInt8Attribute`](#uint8attribute-2)  | Copy constructor. |
 | `std::unique_ptr< Attribute >` | [`clone`](#clone-17) `virtual` | Returns a deep copy of this attribute. |
-| `uint8_t` | [`value`](#value-2) `const` `inline` | #### Returns |
+| `uint8_t` | [`value`](#value-3) `const` `inline` | #### Returns |
 | `void` | [`setValue`](#setvalue-3) `inline` | Sets the stored 8-bit value.  |
 | `bool` | [`getBit`](#getbit-2) `const` | Returns the state of a single bit within the stored byte.  |
 | `void` | [`setBit`](#setbit-2)  | Sets or clears a single bit within the stored byte.  |
@@ -3286,7 +3302,7 @@ Returns a deep copy of this attribute.
 
 ---
 
-{#value-2}
+{#value-3}
 
 #### value
 
@@ -3381,7 +3397,7 @@ Reads the body (not the type or size) for this type of attribute from the given 
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `reader` | `[BitReader](#classicy_1_1BitReader) &` |  |
+| `reader` | `[BitReader](base.md#bitreader) &` |  |
 
 ---
 
@@ -3401,7 +3417,7 @@ Writes the body (not the type or size) to the given buffer.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `writer` | `[BitWriter](#classicy_1_1BitWriter) &` |  |
+| `writer` | `[BitWriter](base.md#bitwriter) &` |  |
 
 ### Public Static Attributes
 

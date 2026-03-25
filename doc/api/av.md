@@ -57,21 +57,21 @@ MAX_ENCODE_DURATION()
 |------|-------------|
 | [`AppleDeviceWatcher`](#appledevicewatcher) | Monitors device add/remove events via AVFoundation notifications and CoreAudio property listeners. |
 | [`AudioCapture`](#audiocapture) | This class implements a cross platform audio capturer. |
-| [`AudioPacketEncoder`](#audiopacketencoder) | [PacketProcessor](#classicy_1_1PacketProcessor) that encodes raw audio samples ([PlanarAudioPacket](#planaraudiopacket) or [AudioPacket](#audiopacket)) into compressed packets via [AudioEncoder](#audioencoder). |
+| [`AudioPacketEncoder`](#audiopacketencoder) | [PacketProcessor](base.md#packetprocessor) that encodes raw audio samples ([PlanarAudioPacket](#planaraudiopacket) or [AudioPacket](#audiopacket)) into compressed packets via [AudioEncoder](#audioencoder). |
 | [`DeviceManager`](#devicemanager) | Enumerates and manages system audio and video devices. |
 | [`DeviceWatcher`](#devicewatcher) | Base class for platform-specific device change monitors. |
-| [`FormatRegistry`](#formatregistry) | [Singleton](#classicy_1_1Singleton) registry of available media container formats for encoding and decoding. |
+| [`FormatRegistry`](#formatregistry) | [Singleton](base.md#singleton) registry of available media container formats for encoding and decoding. |
 | [`FPSCounter`](#fpscounter) | FPS counter based on the simple moving average (SMA) algorithm. |
-| [`FPSLimiter`](#fpslimiter) | This class limits the throughput rate of IPackets in a [PacketStream](#classicy_1_1PacketStream). If the throughput rate exceeds the max specified FPS then packets will be dropped. |
+| [`FPSLimiter`](#fpslimiter) | This class limits the throughput rate of IPackets in a [PacketStream](base.md#packetstream). If the throughput rate exceeds the max specified FPS then packets will be dropped. |
 | [`ICapture`](#icapture) | Abstract interface for audio and video capture devices. |
 | [`IEncoder`](#iencoder) | This is the abstract class for all encoders. |
 | [`LinuxDeviceWatcher`](#linuxdevicewatcher) | Monitors device add/remove events via libudev. |
 | [`MediaCapture`](#mediacapture) | This class implements a cross platform audio, video, screen and video file capturer. |
 | [`MultiplexEncoder`](#multiplexencoder) | This class implements a multiplex audio and video encoder. |
 | [`MultiplexPacketEncoder`](#multiplexpacketencoder) | Encodes and multiplexes a realtime video stream form audio / video capture sources. FFmpeg is used for encoding. |
-| [`RealtimePacketQueue`](#realtimepacketqueue) | [Queue](#classicy_1_1Queue) that emits media packets in presentation-timestamp order relative to a realtime clock. |
+| [`RealtimePacketQueue`](#realtimepacketqueue) | [Queue](base.md#queue) that emits media packets in presentation-timestamp order relative to a realtime clock. |
 | [`VideoCapture`](#videocapture) | Cross-platform video device capturer backed by FFmpeg avdevice. |
-| [`VideoPacketEncoder`](#videopacketencoder) | [PacketProcessor](#classicy_1_1PacketProcessor) that encodes raw video frames ([PlanarVideoPacket](#planarvideopacket) or [VideoPacket](#videopacket)) into compressed packets via [VideoEncoder](#videoencoder). |
+| [`VideoPacketEncoder`](#videopacketencoder) | [PacketProcessor](base.md#packetprocessor) that encodes raw video frames ([PlanarVideoPacket](#planarvideopacket) or [VideoPacket](#videopacket)) into compressed packets via [VideoEncoder](#videoencoder). |
 | [`WindowsDeviceWatcher`](#windowsdevicewatcher) | Monitors device add/remove events via IMMNotificationClient (audio) and RegisterDeviceNotification (video). |
 | [`AudioBuffer`](#audiobuffer) | FIFO buffer for queuing audio samples between encoding stages. |
 | [`AudioCodec`](#audiocodec) | Audio codec parameters including channels, sample rate, and sample format. |
@@ -81,11 +81,11 @@ MAX_ENCODE_DURATION()
 | [`AudioPacket`](#audiopacket) | Audio packet for interleaved formats. |
 | [`AudioResampler`](#audioresampler) | Converts audio samples between different formats, sample rates, and channel layouts. |
 | [`Codec`](#codec-1) | [Codec](#codec-1) for encoding/decoding media. |
-| [`Deleter`](#deleter) | Utilites for RAII: |
-| [`Deleterp`](#deleterp) | [Deleter](#deleter) adaptor for functions like av_freep that take a pointer to a pointer. |
+| [`Deleter`](#deleter-1) | Utilites for RAII: |
+| [`Deleterp`](#deleterp) | [Deleter](#deleter-1) adaptor for functions like av_freep that take a pointer to a pointer. |
 | [`Device`](#device) | Represents a system audio, video or render device. |
-| [`EncoderOptions`](#encoderoptions) | [Configuration](#classicy_1_1Configuration) options for audio and video encoders. |
-| [`EncoderState`](#encoderstate) | [State](#classicy_1_1State) machine states for the encoder pipeline. |
+| [`EncoderOptions`](#encoderoptions) | [Configuration](base.md#configuration) options for audio and video encoders. |
+| [`EncoderState`](#encoderstate) | [State](base.md#state) machine states for the encoder pipeline. |
 | [`Format`](#format-1) | Defines a media container format which is available through the [Format](#format-1) Registry for encoding/decoding. A format defined preferred default values for each codec. |
 | [`MediaPacket`](#mediapacket) | Timestamped media packet carrying raw audio or video data. |
 | [`PlanarAudioPacket`](#planaraudiopacket) | Audio packet for planar formats. |
@@ -121,6 +121,123 @@ Bitmask of media capabilities detected on this system.
 | `AUDIO_SEND` |  |
 | `VIDEO_RECV` |  |
 | `VIDEO_SEND` |  |
+
+### Typedefs
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `std::list< Codec >` | [`CodecList`](#codeclist)  |  |
+| `std::list< Codec * >` | [`CodecPList`](#codecplist)  |  |
+| `std::unique_ptr< AVFrame, Deleterp< AVFrame, void, av_frame_free > >` | [`AVFrameHolder`](#avframeholder)  |  |
+| `std::unique_ptr< AVFormatContext, Deleter< AVFormatContext, void, avformat_free_context > >` | [`AVFormatContextHolder`](#avformatcontextholder)  |  |
+| `std::unique_ptr< AVCodecContext, Deleterp< AVCodecContext, void, avcodec_free_context > >` | [`AVCodecContextHolder`](#avcodeccontextholder)  |  |
+| `std::unique_ptr< AVDictionary *, Deleter< AVDictionary *, void, av_dict_free > >` | [`AVDictionaryCleanup`](#avdictionarycleanup)  |  |
+| `std::unique_ptr< AVPacket, Deleterp< AVPacket, void, av_packet_free > >` | [`AVPacketHolder`](#avpacketholder)  |  |
+| `std::vector< Format >` | [`FormatList`](#formatlist)  |  |
+| `std::vector< Format * >` | [`FormatPList`](#formatplist)  |  |
+| `IEncoder` | [`IPacketEncoder`](#ipacketencoder)  | 0.8.x compatibility |
+
+---
+
+{#codeclist}
+
+#### CodecList
+
+```cpp
+std::list< Codec > CodecList()
+```
+
+---
+
+{#codecplist}
+
+#### CodecPList
+
+```cpp
+std::list< Codec * > CodecPList()
+```
+
+---
+
+{#avframeholder}
+
+#### AVFrameHolder
+
+```cpp
+std::unique_ptr< AVFrame, Deleterp< AVFrame, void, av_frame_free > > AVFrameHolder()
+```
+
+---
+
+{#avformatcontextholder}
+
+#### AVFormatContextHolder
+
+```cpp
+std::unique_ptr< AVFormatContext, Deleter< AVFormatContext, void, avformat_free_context > > AVFormatContextHolder()
+```
+
+---
+
+{#avcodeccontextholder}
+
+#### AVCodecContextHolder
+
+```cpp
+std::unique_ptr< AVCodecContext, Deleterp< AVCodecContext, void, avcodec_free_context > > AVCodecContextHolder()
+```
+
+---
+
+{#avdictionarycleanup}
+
+#### AVDictionaryCleanup
+
+```cpp
+std::unique_ptr< AVDictionary *, Deleter< AVDictionary *, void, av_dict_free > > AVDictionaryCleanup()
+```
+
+---
+
+{#avpacketholder}
+
+#### AVPacketHolder
+
+```cpp
+std::unique_ptr< AVPacket, Deleterp< AVPacket, void, av_packet_free > > AVPacketHolder()
+```
+
+---
+
+{#formatlist}
+
+#### FormatList
+
+```cpp
+std::vector< Format > FormatList()
+```
+
+---
+
+{#formatplist}
+
+#### FormatPList
+
+```cpp
+std::vector< Format * > FormatPList()
+```
+
+---
+
+{#ipacketencoder}
+
+#### IPacketEncoder
+
+```cpp
+IEncoder IPacketEncoder()
+```
+
+0.8.x compatibility
 
 ### Functions
 
@@ -772,17 +889,17 @@ std::shared_ptr< AudioCapture > Ptr()
 #include <audiopacketencoder.h>
 ```
 
-> **Inherits:** [`AudioEncoder`](#audioencoder), [`PacketProcessor`](#classicy_1_1PacketProcessor)
+> **Inherits:** [`AudioEncoder`](#audioencoder), [`PacketProcessor`](base.md#packetprocessor)
 
-[PacketProcessor](#classicy_1_1PacketProcessor) that encodes raw audio samples ([PlanarAudioPacket](#planaraudiopacket) or [AudioPacket](#audiopacket)) into compressed packets via [AudioEncoder](#audioencoder).
+[PacketProcessor](base.md#packetprocessor) that encodes raw audio samples ([PlanarAudioPacket](#planaraudiopacket) or [AudioPacket](#audiopacket)) into compressed packets via [AudioEncoder](#audioencoder).
 
-Drop this into a [PacketStream](#classicy_1_1PacketStream) between a source that emits raw audio (e.g. [MediaCapture](#mediacapture)) and a sink that expects encoded data (e.g. WebRtcTrackSender or [MultiplexPacketEncoder](#multiplexpacketencoder)).
+Drop this into a [PacketStream](base.md#packetstream) between a source that emits raw audio (e.g. [MediaCapture](#mediacapture)) and a sink that expects encoded data (e.g. WebRtcTrackSender or [MultiplexPacketEncoder](#multiplexpacketencoder)).
 
 Example:
 
 auto encoder = std::make_shared<av::AudioPacketEncoder>(); encoder->oparams = [av::AudioCodec](#audiocodec)("opus", "libopus", 2, 48000);
 
-[PacketStream](#classicy_1_1PacketStream) stream; stream.attachSource(capture); stream.attach(encoder, 1, true); stream.attach(&webrtcSender, 5, false); stream.start();
+[PacketStream](base.md#packetstream) stream; stream.attachSource(capture); stream.attach(encoder, 1, true); stream.attach(&webrtcSender, 5, false); stream.start();
 
 ### Public Methods
 
@@ -790,7 +907,7 @@ auto encoder = std::make_shared<av::AudioPacketEncoder>(); encoder->oparams = [a
 |--------|------|-------------|
 |  | [`AudioPacketEncoder`](#audiopacketencoder-1)  |  |
 |  | [`AudioPacketEncoder`](#audiopacketencoder-2)  |  |
-| `void` | [`process`](#process) `virtual` | [Process](#classicy_1_1Process) an [AudioPacket](#audiopacket) or [PlanarAudioPacket](#planaraudiopacket) from the stream. Encodes the samples and emits the resulting compressed packet. |
+| `void` | [`process`](#process-1) `virtual` | [Process](base.md#process) an [AudioPacket](#audiopacket) or [PlanarAudioPacket](#planaraudiopacket) from the stream. Encodes the samples and emits the resulting compressed packet. |
 | `bool` | [`accepts`](#accepts) `virtual` | Accept [AudioPacket](#audiopacket) and [PlanarAudioPacket](#planaraudiopacket) types. |
 
 ---
@@ -819,7 +936,7 @@ AudioPacketEncoder(const AudioPacketEncoder &) = delete
 
 ---
 
-{#process}
+{#process-1}
 
 #### process
 
@@ -829,11 +946,11 @@ AudioPacketEncoder(const AudioPacketEncoder &) = delete
 virtual void process(IPacket & packet)
 ```
 
-[Process](#classicy_1_1Process) an [AudioPacket](#audiopacket) or [PlanarAudioPacket](#planaraudiopacket) from the stream. Encodes the samples and emits the resulting compressed packet.
+[Process](base.md#process) an [AudioPacket](#audiopacket) or [PlanarAudioPacket](#planaraudiopacket) from the stream. Encodes the samples and emits the resulting compressed packet.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `packet` | `[IPacket](#classicy_1_1IPacket) &` |  |
+| `packet` | `[IPacket](base.md#ipacket) &` |  |
 
 ---
 
@@ -851,7 +968,7 @@ Accept [AudioPacket](#audiopacket) and [PlanarAudioPacket](#planaraudiopacket) t
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `packet` | `[IPacket](#classicy_1_1IPacket) *` |  |
+| `packet` | `[IPacket](base.md#ipacket) *` |  |
 
 ### Protected Attributes
 
@@ -884,7 +1001,7 @@ std::mutex _mutex
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `void` | [`onStreamStateChange`](#onstreamstatechange) `virtual` | Called by the [PacketStream](#classicy_1_1PacketStream) to notify when the internal [Stream](#classicy_1_1Stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios. |
+| `void` | [`onStreamStateChange`](#onstreamstatechange) `virtual` | Called by the [PacketStream](base.md#packetstream) to notify when the internal [Stream](base.md#stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios. |
 
 ---
 
@@ -898,7 +1015,7 @@ std::mutex _mutex
 virtual void onStreamStateChange(const PacketStreamState &)
 ```
 
-Called by the [PacketStream](#classicy_1_1PacketStream) to notify when the internal [Stream](#classicy_1_1Stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios.
+Called by the [PacketStream](base.md#packetstream) to notify when the internal [Stream](base.md#stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios.
 
 {#devicemanager}
 
@@ -948,7 +1065,7 @@ NOTE: This signal may be emitted from a background thread (e.g. inotify thread o
 | `int` | [`getCapabilities`](#getcapabilities) `const` | #### Returns |
 | `void` | [`setWatcher`](#setwatcher)  | Replace the active device watcher. Takes ownership.  |
 | `DeviceWatcher *` | [`watcher`](#watcher) `const` | #### Returns |
-| `void` | [`print`](#print) `const` | Print all devices to the output stream. |
+| `void` | [`print`](#print-3) `const` | Print all devices to the output stream. |
 | `std::vector< HardwareCodec >` | [`getHardwareCodecs`](#gethardwarecodecs) `const` | Detect available hardware-accelerated codecs via FFmpeg. |
 | `std::optional< std::pair< Device, Device::VideoCapability > >` | [`negotiateVideoCapture`](#negotiatevideocapture) `const` | Resolve the best video capture parameters for a device. |
 | `std::optional< std::pair< Device, Device::AudioCapability > >` | [`negotiateAudioCapture`](#negotiateaudiocapture) `const` | Resolve the best audio capture parameters for a device. Returns std::nullopt if no microphone is available. |
@@ -1204,7 +1321,7 @@ True if enumeration succeeded.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `type` | `[Device::Type](#type-3)` |  |
+| `type` | `[Device::Type](#type-1)` |  |
 | `devices` | `std::vector< [av::Device](#device) > &` |  |
 
 ---
@@ -1257,7 +1374,7 @@ The currently active [DeviceWatcher](#devicewatcher), or nullptr if none has bee
 
 ---
 
-{#print}
+{#print-3}
 
 #### print
 
@@ -1423,12 +1540,12 @@ Hardware codec descriptor.
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `std::string` | [`name`](#name)  |  |
-| `std::string` | [`type`](#type)  |  |
+| `std::string` | [`name`](#name-2)  |  |
+| `std::string` | [`type`](#type-2)  |  |
 
 ---
 
-{#name}
+{#name-2}
 
 #### name
 
@@ -1438,7 +1555,7 @@ std::string name
 
 ---
 
-{#type}
+{#type-2}
 
 #### type
 
@@ -1512,7 +1629,7 @@ virtual inline void stop()
 #include <formatregistry.h>
 ```
 
-[Singleton](#classicy_1_1Singleton) registry of available media container formats for encoding and decoding.
+[Singleton](base.md#singleton) registry of available media container formats for encoding and decoding.
 
 ### Public Methods
 
@@ -1872,7 +1989,7 @@ int64_t frames
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`FPSCounter`](#fpscounter-1) `inline` | Initialise the counter with all zeroes. |
-| `void` | [`reset`](#reset) `inline` | Reset all counters and the SMA window to zero. |
+| `void` | [`reset`](#reset-1) `inline` | Reset all counters and the SMA window to zero. |
 | `void` | [`tick`](#tick) `inline` | Record a new frame and update the FPS estimate. Must be called once per frame. Updates `fps` and increments `frames`. |
 
 ---
@@ -1891,7 +2008,7 @@ Initialise the counter with all zeroes.
 
 ---
 
-{#reset}
+{#reset-1}
 
 #### reset
 
@@ -1996,9 +2113,9 @@ inline double updateAvg(clock_t newTick)
 #include <fpscounter.h>
 ```
 
-> **Inherits:** [`PacketProcessor`](#classicy_1_1PacketProcessor)
+> **Inherits:** [`PacketProcessor`](base.md#packetprocessor)
 
-This class limits the throughput rate of IPackets in a [PacketStream](#classicy_1_1PacketStream). If the throughput rate exceeds the max specified FPS then packets will be dropped.
+This class limits the throughput rate of IPackets in a [PacketStream](base.md#packetstream). If the throughput rate exceeds the max specified FPS then packets will be dropped.
 
 Note that revious processors must not fragment packets otherwise this class will not be accurate, and the packet drop rate will be too high.
 
@@ -2006,11 +2123,11 @@ Note that revious processors must not fragment packets otherwise this class will
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `PacketSignal` | [`emitter`](#emitter)  |  |
+| `PacketSignal` | [`emitter`](#emitter-1)  |  |
 
 ---
 
-{#emitter}
+{#emitter-1}
 
 #### emitter
 
@@ -2023,7 +2140,7 @@ PacketSignal emitter
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`FPSLimiter`](#fpslimiter-1) `inline` | Construct the limiter.  |
-| `void` | [`process`](#process-1) `virtual` `inline` | [Process](#classicy_1_1Process) a packet: forward it if within the rate limit, drop it otherwise.  |
+| `void` | [`process`](#process-2) `virtual` `inline` | [Process](base.md#process) a packet: forward it if within the rate limit, drop it otherwise.  |
 | `void` | [`onStreamStateChange`](#onstreamstatechange-1) `virtual` `inline` | Reset the FPS counter when the stream state changes. |
 
 ---
@@ -2051,7 +2168,7 @@ Construct the limiter.
 
 ---
 
-{#process-1}
+{#process-2}
 
 #### process
 
@@ -2061,13 +2178,13 @@ Construct the limiter.
 virtual inline void process(IPacket & packet)
 ```
 
-[Process](#classicy_1_1Process) a packet: forward it if within the rate limit, drop it otherwise. 
+[Process](base.md#process) a packet: forward it if within the rate limit, drop it otherwise. 
 #### Parameters
 * `packet` The incoming packet to evaluate.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `packet` | `[IPacket](#classicy_1_1IPacket) &` |  |
+| `packet` | `[IPacket](base.md#ipacket) &` |  |
 
 ---
 
@@ -2129,7 +2246,7 @@ legacy::FPSCounter _counter
 #include <icapture.h>
 ```
 
-> **Inherits:** [`PacketStreamAdapter`](#classicy_1_1PacketStreamAdapter), [`Startable`](#startable)
+> **Inherits:** [`PacketStreamAdapter`](base.md#packetstreamadapter), [`Startable`](base.md#startable)
 > **Subclassed by:** [`MediaCapture`](#mediacapture)
 
 Abstract interface for audio and video capture devices.
@@ -2138,11 +2255,11 @@ Abstract interface for audio and video capture devices.
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `PacketSignal` | [`emitter`](#emitter-1)  |  |
+| `PacketSignal` | [`emitter`](#emitter-2)  |  |
 
 ---
 
-{#emitter-1}
+{#emitter-2}
 
 #### emitter
 
@@ -2158,13 +2275,13 @@ PacketSignal emitter
 | `void` | [`start`](#start-2)  | Start capturing and emitting packets. |
 | `void` | [`stop`](#stop-2)  | Stop capturing and release device resources. |
 | `void` | [`openFile`](#openfile) `virtual` `inline` | Open a media file as the capture source.  |
-| `void` | [`close`](#close) `virtual` `inline` | Release the capture source and any associated resources. |
+| `void` | [`close`](#close-5) `virtual` `inline` | Release the capture source and any associated resources. |
 | `void` | [`getEncoderFormat`](#getencoderformat)  | Populate `iformat` with the encoder-ready format derived from this capture source.  |
 | `void` | [`getEncoderAudioCodec`](#getencoderaudiocodec) `virtual` `inline` | Populate `params` with the encoder-ready audio codec parameters.  |
 | `void` | [`getEncoderVideoCodec`](#getencodervideocodec) `virtual` `inline` | Populate `params` with the encoder-ready video codec parameters.  |
 | `void` | [`openAudio`](#openaudio-2) `virtual` `inline` | Open an audio capture device with the given parameters.  |
 | `void` | [`openVideo`](#openvideo) `virtual` `inline` | Open a video capture device with the given parameters.  |
-| `void` | [`onStreamStateChange`](#onstreamstatechange-2) `virtual` `inline` | React to [PacketStream](#classicy_1_1PacketStream) state transitions by starting or stopping capture. |
+| `void` | [`onStreamStateChange`](#onstreamstatechange-2) `virtual` `inline` | React to [PacketStream](base.md#packetstream) state transitions by starting or stopping capture. |
 
 ---
 
@@ -2224,7 +2341,7 @@ Open a media file as the capture source.
 
 ---
 
-{#close}
+{#close-5}
 
 #### close
 
@@ -2352,11 +2469,11 @@ Open a video capture device with the given parameters.
 virtual inline void onStreamStateChange(const PacketStreamState & state)
 ```
 
-React to [PacketStream](#classicy_1_1PacketStream) state transitions by starting or stopping capture.
+React to [PacketStream](base.md#packetstream) state transitions by starting or stopping capture.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `state` | `const [PacketStreamState](#structicy_1_1PacketStreamState) &` |  |
+| `state` | `const [PacketStreamState](base.md#packetstreamstate) &` |  |
 
 ### Protected Methods
 
@@ -2390,7 +2507,7 @@ virtual inline void openStream(const std::string & filename, const AVInputFormat
 #include <iencoder.h>
 ```
 
-> **Inherits:** [`Stateful< EncoderState >`](#classicy_1_1Stateful)
+> **Inherits:** [`Stateful< EncoderState >`](base.md#stateful)
 > **Subclassed by:** [`MultiplexEncoder`](#multiplexencoder)
 
 This is the abstract class for all encoders.
@@ -2402,13 +2519,13 @@ This is the abstract class for all encoders.
 | `void` | [`init`](#init)  | Initialise the encoder, open codec contexts, and transition to Ready or Encoding state. |
 | `void` | [`uninit`](#uninit)  | Flush remaining packets, close codec contexts, and release all encoder resources. |
 | `void` | [`cleanup`](#cleanup) `virtual` `inline` | Perform any additional cleanup after [uninit()](#uninit). Default is a no-op. |
-| `EncoderOptions &` | [`options`](#options)  | #### Returns |
+| `EncoderOptions &` | [`options`](#options-1)  | #### Returns |
 | `void` | [`createVideo`](#createvideo) `virtual` `inline` | Initialise the video codec context and stream. |
 | `void` | [`freeVideo`](#freevideo) `virtual` `inline` | Free the video codec context and stream. |
 | `bool` | [`encodeVideo`](#encodevideo) `virtual` `inline` | Encode a single AVFrame of video.  |
 | `void` | [`createAudio`](#createaudio) `virtual` `inline` | Initialise the audio codec context and stream. |
 | `void` | [`freeAudio`](#freeaudio) `virtual` `inline` | Free the audio codec context and stream. |
-| `void` | [`flush`](#flush) `virtual` `inline` | Flush any internally buffered packets to the output. |
+| `void` | [`flush`](#flush-3) `virtual` `inline` | Flush any internally buffered packets to the output. |
 | `bool` | [`isNone`](#isnone) `const` `inline` | #### Returns |
 | `bool` | [`isReady`](#isready) `const` `inline` | #### Returns |
 | `bool` | [`isEncoding`](#isencoding) `virtual` `const` `inline` | #### Returns |
@@ -2456,7 +2573,7 @@ Perform any additional cleanup after [uninit()](#uninit). Default is a no-op.
 
 ---
 
-{#options}
+{#options-1}
 
 #### options
 
@@ -2548,7 +2665,7 @@ Free the audio codec context and stream.
 
 ---
 
-{#flush}
+{#flush-3}
 
 #### flush
 
@@ -2654,11 +2771,11 @@ True if the encoder is in an error state.
 
 | Name | Description |
 |------|-------------|
-| [`Type`](#type-1)  |  |
+| [`Type`](#type-6)  |  |
 
 ---
 
-{#type-1}
+{#type-6}
 
 #### Type
 
@@ -2777,7 +2894,7 @@ DeviceManager * _manager
 #include <mediacapture.h>
 ```
 
-> **Inherits:** [`ICapture`](#icapture), [`Runnable`](#runnable)
+> **Inherits:** [`ICapture`](#icapture), [`Runnable`](base.md#runnable)
 > **Subclassed by:** [`AudioCapture`](#audiocapture), [`VideoCapture`](#videocapture)
 
 This class implements a cross platform audio, video, screen and video file capturer.
@@ -2808,9 +2925,9 @@ Signals that the capture thread is closing. Careful, this signal is emitted from
 |  | [`MediaCapture`](#mediacapture-2)  |  |
 |  | [`MediaCapture`](#mediacapture-3)  |  |
 | `void` | [`openFile`](#openfile-1) `virtual` | Open a media file for decoding. Automatically detects video and audio streams.  |
-| `void` | [`close`](#close-1) `virtual` | Stop the capture thread and close the media stream and all decoders. |
+| `void` | [`close`](#close-6) `virtual` | Stop the capture thread and close the media stream and all decoders. |
 | `void` | [`start`](#start-4) `virtual` | Start the background capture and decode thread. Throws std::runtime_error if no media streams have been opened. |
-| `void` | [`stop`](#stop-4) `virtual` | [Signal](#classicy_1_1Signal) the capture thread to stop and join it before returning. |
+| `void` | [`stop`](#stop-4) `virtual` | [Signal](base.md#signal) the capture thread to stop and join it before returning. |
 | `void` | [`run`](#run) `virtual` | Entry point for the background capture thread. Reads and decodes packets from the format context until EOF or [stop()](#stop-4) is called. |
 | `void` | [`getEncoderFormat`](#getencoderformat-1) `virtual` | Fill `format` with the combined encoder-ready video and audio codec parameters.  |
 | `void` | [`getEncoderAudioCodec`](#getencoderaudiocodec-1) `virtual` | Fill `params` with the decoder's output audio codec parameters. Throws std::runtime_error if audio parameters have not been initialised.  |
@@ -2819,10 +2936,10 @@ Signals that the capture thread is closing. Careful, this signal is emitted from
 | `void` | [`setLimitFramerate`](#setlimitframerate)  | Limit playback to video FPS. |
 | `void` | [`setRealtimePTS`](#setrealtimepts)  | Set to use realtime PTS calculation. This is preferred when sing live captures as FFmpeg provided values are not always reliable. |
 | `AVFormatContext *` | [`formatCtx`](#formatctx) `const` | #### Returns |
-| `VideoDecoder *` | [`video`](#video) `const` | #### Returns |
-| `AudioDecoder *` | [`audio`](#audio) `const` | #### Returns |
+| `VideoDecoder *` | [`video`](#video-1) `const` | #### Returns |
+| `AudioDecoder *` | [`audio`](#audio-1) `const` | #### Returns |
 | `bool` | [`stopping`](#stopping) `const` | #### Returns |
-| `std::string` | [`error`](#error) `const` | #### Returns |
+| `std::string` | [`error`](#error-2) `const` | #### Returns |
 
 ---
 
@@ -2876,7 +2993,7 @@ Open a media file for decoding. Automatically detects video and audio streams.
 
 ---
 
-{#close-1}
+{#close-6}
 
 #### close
 
@@ -2914,7 +3031,7 @@ Start the background capture and decode thread. Throws std::runtime_error if no 
 virtual void stop()
 ```
 
-[Signal](#classicy_1_1Signal) the capture thread to stop and join it before returning.
+[Signal](base.md#signal) the capture thread to stop and join it before returning.
 
 ---
 
@@ -3055,7 +3172,7 @@ The underlying AVFormatContext (thread-safe, mutex-protected).
 
 ---
 
-{#video}
+{#video-1}
 
 #### video
 
@@ -3070,7 +3187,7 @@ The active [VideoDecoder](#videodecoder), or nullptr if no video stream was open
 
 ---
 
-{#audio}
+{#audio-1}
 
 #### audio
 
@@ -3100,7 +3217,7 @@ True if the capture thread has been asked to stop.
 
 ---
 
-{#error}
+{#error-2}
 
 #### error
 
@@ -3280,7 +3397,7 @@ Emit an existing packet directly onto the outgoing signal.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `packet` | `[IPacket](#classicy_1_1IPacket) &` |  |
+| `packet` | `[IPacket](base.md#ipacket) &` |  |
 
 ### Public Types
 
@@ -3315,11 +3432,11 @@ This class implements a multiplex audio and video encoder.
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `PacketSignal` | [`emitter`](#emitter-2)  |  |
+| `PacketSignal` | [`emitter`](#emitter-3)  |  |
 
 ---
 
-{#emitter-2}
+{#emitter-3}
 
 #### emitter
 
@@ -3346,10 +3463,10 @@ PacketSignal emitter
 | `void` | [`freeAudio`](#freeaudio-1) `virtual` | Flush and free the audio encoder and its stream. |
 | `bool` | [`encodeAudio`](#encodeaudio) `virtual` | Encode a single interleaved audio frame. |
 | `bool` | [`encodeAudio`](#encodeaudio-1) `virtual` | Encode a single planar audio frame. |
-| `void` | [`flush`](#flush-1) `virtual` | Flush any buffered or queued packets to the output container. |
-| `EncoderOptions &` | [`options`](#options-1) `virtual` | #### Returns |
-| `VideoEncoder *` | [`video`](#video-1)  | #### Returns |
-| `AudioEncoder *` | [`audio`](#audio-1)  | #### Returns |
+| `void` | [`flush`](#flush-4) `virtual` | Flush any buffered or queued packets to the output container. |
+| `EncoderOptions &` | [`options`](#options-2) `virtual` | #### Returns |
+| `VideoEncoder *` | [`video`](#video-2)  | #### Returns |
+| `AudioEncoder *` | [`audio`](#audio-2)  | #### Returns |
 
 ---
 
@@ -3627,7 +3744,7 @@ Encode a single planar audio frame.
 
 ---
 
-{#flush-1}
+{#flush-4}
 
 #### flush
 
@@ -3641,7 +3758,7 @@ Flush any buffered or queued packets to the output container.
 
 ---
 
-{#options-1}
+{#options-2}
 
 #### options
 
@@ -3656,7 +3773,7 @@ A reference to the encoder's configuration options.
 
 ---
 
-{#video-1}
+{#video-2}
 
 #### video
 
@@ -3669,7 +3786,7 @@ The active [VideoEncoder](#videoencoder), or nullptr if video has not been creat
 
 ---
 
-{#audio-1}
+{#audio-2}
 
 #### audio
 
@@ -3854,7 +3971,7 @@ void onAudioEncoded(av::AudioPacket & packet)
 #include <multiplexpacketencoder.h>
 ```
 
-> **Inherits:** [`MultiplexEncoder`](#multiplexencoder), [`PacketProcessor`](#classicy_1_1PacketProcessor)
+> **Inherits:** [`MultiplexEncoder`](#multiplexencoder), [`PacketProcessor`](base.md#packetprocessor)
 
 Encodes and multiplexes a realtime video stream form audio / video capture sources. FFmpeg is used for encoding.
 
@@ -3865,10 +3982,10 @@ Encodes and multiplexes a realtime video stream form audio / video capture sourc
 |  | [`MultiplexPacketEncoder`](#multiplexpacketencoder-1)  | Construct the encoder with the given options.  |
 |  | [`MultiplexPacketEncoder`](#multiplexpacketencoder-2)  |  |
 |  | [`MultiplexPacketEncoder`](#multiplexpacketencoder-3)  |  |
-| `void` | [`encode`](#encode) `virtual` | Encode a [VideoPacket](#videopacket), dispatching to the planar or interleaved encode path as appropriate.  |
-| `void` | [`encode`](#encode-1) `virtual` | Encode an [AudioPacket](#audiopacket), dispatching to the planar or interleaved encode path as appropriate.  |
+| `void` | [`encode`](#encode-6) `virtual` | Encode a [VideoPacket](#videopacket), dispatching to the planar or interleaved encode path as appropriate.  |
+| `void` | [`encode`](#encode-7) `virtual` | Encode an [AudioPacket](#audiopacket), dispatching to the planar or interleaved encode path as appropriate.  |
 | `bool` | [`accepts`](#accepts-1) `virtual` | #### Returns |
-| `void` | [`process`](#process-2) `virtual` | Dispatch the incoming packet to [encode(VideoPacket&)](#encode) or [encode(AudioPacket&)](#encode-1). Throws std::invalid_argument if the packet type is unrecognised.  |
+| `void` | [`process`](#process-3) `virtual` | Dispatch the incoming packet to [encode(VideoPacket&)](#encode-6) or [encode(AudioPacket&)](#encode-7). Throws std::invalid_argument if the packet type is unrecognised.  |
 
 ---
 
@@ -3910,7 +4027,7 @@ MultiplexPacketEncoder(MultiplexPacketEncoder &&) = delete
 
 ---
 
-{#encode}
+{#encode-6}
 
 #### encode
 
@@ -3930,7 +4047,7 @@ Encode a [VideoPacket](#videopacket), dispatching to the planar or interleaved e
 
 ---
 
-{#encode-1}
+{#encode-7}
 
 #### encode
 
@@ -3965,11 +4082,11 @@ True if the packet is an [av::MediaPacket](#mediapacket) (audio or video).
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `packet` | `[IPacket](#classicy_1_1IPacket) *` |  |
+| `packet` | `[IPacket](base.md#ipacket) *` |  |
 
 ---
 
-{#process-2}
+{#process-3}
 
 #### process
 
@@ -3979,13 +4096,13 @@ True if the packet is an [av::MediaPacket](#mediapacket) (audio or video).
 virtual void process(IPacket & packet)
 ```
 
-Dispatch the incoming packet to [encode(VideoPacket&)](#encode) or [encode(AudioPacket&)](#encode-1). Throws std::invalid_argument if the packet type is unrecognised. 
+Dispatch the incoming packet to [encode(VideoPacket&)](#encode-6) or [encode(AudioPacket&)](#encode-7). Throws std::invalid_argument if the packet type is unrecognised. 
 #### Parameters
 * `packet` The incoming media packet.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `packet` | `[IPacket](#classicy_1_1IPacket) &` |  |
+| `packet` | `[IPacket](base.md#ipacket) &` |  |
 
 ### Protected Attributes
 
@@ -4007,7 +4124,7 @@ std::mutex _mutex
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `void` | [`onStreamStateChange`](#onstreamstatechange-3) `virtual` | Called by the [PacketStream](#classicy_1_1PacketStream) to notify when the internal [Stream](#classicy_1_1Stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios. |
+| `void` | [`onStreamStateChange`](#onstreamstatechange-3) `virtual` | Called by the [PacketStream](base.md#packetstream) to notify when the internal [Stream](base.md#stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios. |
 
 ---
 
@@ -4021,7 +4138,7 @@ std::mutex _mutex
 virtual void onStreamStateChange(const PacketStreamState &)
 ```
 
-Called by the [PacketStream](#classicy_1_1PacketStream) to notify when the internal [Stream](#classicy_1_1Stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios.
+Called by the [PacketStream](base.md#packetstream) to notify when the internal [Stream](base.md#stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios.
 
 {#realtimepacketqueue}
 
@@ -4031,9 +4148,9 @@ Called by the [PacketStream](#classicy_1_1PacketStream) to notify when the inter
 #include <realtimepacketqueue.h>
 ```
 
-> **Inherits:** [`AsyncPacketQueue< PacketT >`](#classicy_1_1AsyncPacketQueue)
+> **Inherits:** [`AsyncPacketQueue< PacketT >`](base.md#asyncpacketqueue)
 
-[Queue](#classicy_1_1Queue) that emits media packets in presentation-timestamp order relative to a realtime clock.
+[Queue](base.md#queue) that emits media packets in presentation-timestamp order relative to a realtime clock.
 
 Packets are sorted by their `time` field on insertion. On each pop attempt the queue checks whether the wall-clock time since stream activation has reached the next packet's timestamp; if not, the packet is held back. This provides a soft realtime playback scheduler.
 
@@ -4152,7 +4269,7 @@ Record the stream start time when the stream becomes active.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `state` | `const [PacketStreamState](#structicy_1_1PacketStreamState) &` |  |
+| `state` | `const [PacketStreamState](base.md#packetstreamstate) &` |  |
 
 ### Public Types
 
@@ -4184,11 +4301,11 @@ Comparator for ordering media packets by presentation timestamp.
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `bool` | [`operator()`](#operator) `inline` |  |
+| `bool` | [`operator()`](#operator-3) `inline` |  |
 
 ---
 
-{#operator}
+{#operator-3}
 
 #### operator()
 
@@ -4367,17 +4484,17 @@ std::shared_ptr< VideoCapture > Ptr()
 #include <videopacketencoder.h>
 ```
 
-> **Inherits:** [`VideoEncoder`](#videoencoder), [`PacketProcessor`](#classicy_1_1PacketProcessor)
+> **Inherits:** [`VideoEncoder`](#videoencoder), [`PacketProcessor`](base.md#packetprocessor)
 
-[PacketProcessor](#classicy_1_1PacketProcessor) that encodes raw video frames ([PlanarVideoPacket](#planarvideopacket) or [VideoPacket](#videopacket)) into compressed packets via [VideoEncoder](#videoencoder).
+[PacketProcessor](base.md#packetprocessor) that encodes raw video frames ([PlanarVideoPacket](#planarvideopacket) or [VideoPacket](#videopacket)) into compressed packets via [VideoEncoder](#videoencoder).
 
-Drop this into a [PacketStream](#classicy_1_1PacketStream) between a source that emits raw frames (e.g. [MediaCapture](#mediacapture)) and a sink that expects encoded data (e.g. WebRtcTrackSender or [MultiplexPacketEncoder](#multiplexpacketencoder)).
+Drop this into a [PacketStream](base.md#packetstream) between a source that emits raw frames (e.g. [MediaCapture](#mediacapture)) and a sink that expects encoded data (e.g. WebRtcTrackSender or [MultiplexPacketEncoder](#multiplexpacketencoder)).
 
 Example:
 
 auto encoder = std::make_shared<av::VideoPacketEncoder>(); encoder->iparams = capture->videoCodec(); // decoded format encoder->oparams = [av::VideoCodec](#videocodec)("H264", "libx264", 640, 480, 30);
 
-[PacketStream](#classicy_1_1PacketStream) stream; stream.attachSource(capture); stream.attach(encoder, 1, true); stream.attach(&webrtcSender, 5, false); stream.start();
+[PacketStream](base.md#packetstream) stream; stream.attachSource(capture); stream.attach(encoder, 1, true); stream.attach(&webrtcSender, 5, false); stream.start();
 
 ### Public Methods
 
@@ -4385,7 +4502,7 @@ auto encoder = std::make_shared<av::VideoPacketEncoder>(); encoder->iparams = ca
 |--------|------|-------------|
 |  | [`VideoPacketEncoder`](#videopacketencoder-1)  |  |
 |  | [`VideoPacketEncoder`](#videopacketencoder-2)  |  |
-| `void` | [`process`](#process-3) `virtual` | [Process](#classicy_1_1Process) a [VideoPacket](#videopacket) or [PlanarVideoPacket](#planarvideopacket) from the stream. Encodes the frame and emits the resulting compressed packet. |
+| `void` | [`process`](#process-4) `virtual` | [Process](base.md#process) a [VideoPacket](#videopacket) or [PlanarVideoPacket](#planarvideopacket) from the stream. Encodes the frame and emits the resulting compressed packet. |
 | `bool` | [`accepts`](#accepts-2) `virtual` | Accept [VideoPacket](#videopacket) and [PlanarVideoPacket](#planarvideopacket) types. |
 
 ---
@@ -4414,7 +4531,7 @@ VideoPacketEncoder(const VideoPacketEncoder &) = delete
 
 ---
 
-{#process-3}
+{#process-4}
 
 #### process
 
@@ -4424,11 +4541,11 @@ VideoPacketEncoder(const VideoPacketEncoder &) = delete
 virtual void process(IPacket & packet)
 ```
 
-[Process](#classicy_1_1Process) a [VideoPacket](#videopacket) or [PlanarVideoPacket](#planarvideopacket) from the stream. Encodes the frame and emits the resulting compressed packet.
+[Process](base.md#process) a [VideoPacket](#videopacket) or [PlanarVideoPacket](#planarvideopacket) from the stream. Encodes the frame and emits the resulting compressed packet.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `packet` | `[IPacket](#classicy_1_1IPacket) &` |  |
+| `packet` | `[IPacket](base.md#ipacket) &` |  |
 
 ---
 
@@ -4446,7 +4563,7 @@ Accept [VideoPacket](#videopacket) and [PlanarVideoPacket](#planarvideopacket) t
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `packet` | `[IPacket](#classicy_1_1IPacket) *` |  |
+| `packet` | `[IPacket](base.md#ipacket) *` |  |
 
 ### Protected Attributes
 
@@ -4479,7 +4596,7 @@ std::mutex _mutex
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `void` | [`onStreamStateChange`](#onstreamstatechange-5) `virtual` | Called by the [PacketStream](#classicy_1_1PacketStream) to notify when the internal [Stream](#classicy_1_1Stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios. |
+| `void` | [`onStreamStateChange`](#onstreamstatechange-5) `virtual` | Called by the [PacketStream](base.md#packetstream) to notify when the internal [Stream](base.md#stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios. |
 
 ---
 
@@ -4493,7 +4610,7 @@ std::mutex _mutex
 virtual void onStreamStateChange(const PacketStreamState &)
 ```
 
-Called by the [PacketStream](#classicy_1_1PacketStream) to notify when the internal [Stream](#classicy_1_1Stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios.
+Called by the [PacketStream](base.md#packetstream) to notify when the internal [Stream](base.md#stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios.
 
 {#windowsdevicewatcher}
 
@@ -4627,8 +4744,8 @@ Underlying FFmpeg audio FIFO handle.
 |  | [`AudioBuffer`](#audiobuffer-2)  |  |
 |  | [`AudioBuffer`](#audiobuffer-3)  |  |
 | `void` | [`alloc`](#alloc)  | Allocate the audio FIFO buffer. |
-| `void` | [`reset`](#reset-1)  | Discard all samples currently held in the FIFO without freeing the buffer. |
-| `void` | [`close`](#close-2)  | Free the underlying AVAudioFifo buffer. |
+| `void` | [`reset`](#reset)  | Discard all samples currently held in the FIFO without freeing the buffer. |
+| `void` | [`close`](#close)  | Free the underlying AVAudioFifo buffer. |
 | `void` | [`write`](#write)  | Write samples into the FIFO buffer. |
 | `bool` | [`read`](#read)  | Read samples from the FIFO buffer. |
 | `int` | [`available`](#available) `const` | Return the number of samples per channel currently available in the FIFO.  |
@@ -4690,7 +4807,7 @@ Allocate the audio FIFO buffer.
 
 ---
 
-{#reset-1}
+{#reset}
 
 #### reset
 
@@ -4702,7 +4819,7 @@ Discard all samples currently held in the FIFO without freeing the buffer.
 
 ---
 
-{#close-2}
+{#close}
 
 #### close
 
@@ -4825,7 +4942,7 @@ One of: u8, s16, s32, flt, dbl, u8p, s16p, s32p, fltp, dblp.
 |  | [`AudioCodec`](#audiocodec-3)  | Construct a named audio codec.  |
 |  | [`AudioCodec`](#audiocodec-4)  | Construct a named audio codec with an explicit FFmpeg encoder name.  |
 | `std::string` | [`toString`](#tostring) `virtual` `const` | #### Returns |
-| `void` | [`print`](#print-1) `virtual` | Print a multi-line human-readable description to the given stream.  |
+| `void` | [`print`](#print) `virtual` | Print a multi-line human-readable description to the given stream.  |
 
 ---
 
@@ -4946,7 +5063,7 @@ A string in the form "AudioCodec[name:encoder:sampleRate:bitRate:channels:sample
 
 ---
 
-{#print-1}
+{#print}
 
 #### print
 
@@ -4980,10 +5097,10 @@ Base context for audio encoding and decoding via FFmpeg.
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `PacketSignal` | [`emitter`](#emitter-3)  |  |
+| `PacketSignal` | [`emitter`](#emitter)  |  |
 | `AudioCodec` | [`iparams`](#iparams)  | input parameters |
 | `AudioCodec` | [`oparams`](#oparams)  | output parameters |
-| `AVStream *` | [`stream`](#stream)  | encoder or decoder stream |
+| `AVStream *` | [`stream`](#stream-1)  | encoder or decoder stream |
 | `AVCodecContext *` | [`ctx`](#ctx)  | encoder or decoder context |
 | `const AVCodec *` | [`codec`](#codec)  | encoder or decoder codec |
 | `AVFrame *` | [`frame`](#frame)  | last encoded or decoded frame |
@@ -4996,7 +5113,7 @@ Base context for audio encoding and decoding via FFmpeg.
 
 ---
 
-{#emitter-3}
+{#emitter}
 
 #### emitter
 
@@ -5030,7 +5147,7 @@ output parameters
 
 ---
 
-{#stream}
+{#stream-1}
 
 #### stream
 
@@ -5157,12 +5274,12 @@ error message
 |  | [`AudioContext`](#audiocontext-3)  |  |
 | `void` | [`create`](#create)  | Initialise the AVCodecContext with codec-specific defaults. Implemented by [AudioEncoder](#audioencoder) and [AudioDecoder](#audiodecoder). |
 | `void` | [`open`](#open) `virtual` | Open the codec and create the resampler if input/output parameters differ. Throws std::runtime_error if the codec context has not been created. |
-| `void` | [`close`](#close-3) `virtual` | Close the codec context, free the frame, and reset timestamps. |
+| `void` | [`close`](#close-1) `virtual` | Close the codec context, free the frame, and reset timestamps. |
 | `bool` | [`decode`](#decode) `virtual` | Decode a compressed audio packet and emit the resulting samples.  |
-| `bool` | [`encode`](#encode-2) `virtual` | Encode a buffer of interleaved audio samples.  |
-| `bool` | [`encode`](#encode-3) `virtual` | Encode a buffer of planar audio samples.  |
-| `bool` | [`encode`](#encode-4) `virtual` | Encode a single AVFrame.  |
-| `void` | [`flush`](#flush-2) `virtual` | Flush any frames buffered inside the codec and emit remaining output. |
+| `bool` | [`encode`](#encode) `virtual` | Encode a buffer of interleaved audio samples.  |
+| `bool` | [`encode`](#encode-1) `virtual` | Encode a buffer of planar audio samples.  |
+| `bool` | [`encode`](#encode-2) `virtual` | Encode a single AVFrame.  |
+| `void` | [`flush`](#flush) `virtual` | Flush any frames buffered inside the codec and emit remaining output. |
 | `bool` | [`recreateResampler`](#recreateresampler) `virtual` | Recreate the [AudioResampler](#audioresampler) using the current iparams and oparams. Called automatically by [open()](#open) when format conversion is required.  |
 
 ---
@@ -5223,7 +5340,7 @@ Open the codec and create the resampler if input/output parameters differ. Throw
 
 ---
 
-{#close-3}
+{#close-1}
 
 #### close
 
@@ -5260,7 +5377,7 @@ True if one or more decoded frames were emitted, false otherwise.
 
 ---
 
-{#encode-2}
+{#encode}
 
 #### encode
 
@@ -5289,7 +5406,7 @@ True if an encoded packet was produced and emitted.
 
 ---
 
-{#encode-3}
+{#encode-1}
 
 #### encode
 
@@ -5318,7 +5435,7 @@ True if an encoded packet was produced and emitted.
 
 ---
 
-{#encode-4}
+{#encode-2}
 
 #### encode
 
@@ -5341,7 +5458,7 @@ True if an encoded packet was produced and emitted.
 
 ---
 
-{#flush-2}
+{#flush}
 
 #### flush
 
@@ -5387,9 +5504,9 @@ Decodes compressed audio packets into raw sample frames.
 |--------|------|-------------|
 |  | [`AudioDecoder`](#audiodecoder-1)  | Construct a decoder for the given stream. The codec parameters are read from the stream's codecpar.  |
 | `void` | [`create`](#create-1) `virtual` | Initialise the AVCodecContext from the stream's codec parameters. |
-| `void` | [`close`](#close-4) `virtual` | Close and free the AVCodecContext and associated resources. |
+| `void` | [`close`](#close-2) `virtual` | Close and free the AVCodecContext and associated resources. |
 | `bool` | [`decode`](#decode-1) `virtual` | Decode the given compressed audio packet and emit the decoded samples.  |
-| `void` | [`flush`](#flush-3) `virtual` | Flush any frames buffered inside the decoder. Call this after the last packet to retrieve all remaining decoded output. |
+| `void` | [`flush`](#flush-1) `virtual` | Flush any frames buffered inside the decoder. Call this after the last packet to retrieve all remaining decoded output. |
 
 ---
 
@@ -5425,7 +5542,7 @@ Initialise the AVCodecContext from the stream's codec parameters.
 
 ---
 
-{#close-4}
+{#close-2}
 
 #### close
 
@@ -5462,7 +5579,7 @@ True if one or more output frames were decoded and emitted, false otherwise.
 
 ---
 
-{#flush-3}
+{#flush-1}
 
 #### flush
 
@@ -5520,11 +5637,11 @@ AVFormatContext * format
 |--------|------|-------------|
 |  | [`AudioEncoder`](#audioencoder-1)  | Construct an encoder, optionally tied to an existing muxer context.  |
 | `void` | [`create`](#create-2) `virtual` | Initialise the AVCodecContext using oparams. Adds an audio stream to `format` if one was provided at construction. |
-| `void` | [`close`](#close-5) `virtual` | Close and free the AVCodecContext, FIFO buffer, and associated resources. |
-| `bool` | [`encode`](#encode-5) `virtual` | Encode interleaved audio samples. |
-| `bool` | [`encode`](#encode-6) `virtual` | Encode planar audio samples. |
-| `bool` | [`encode`](#encode-7) `virtual` | Encode a single AVFrame (typically from a decoder or resampler).  |
-| `void` | [`flush`](#flush-4) `virtual` | Flush remaining packets to be encoded. This method should be called once before stream closure. |
+| `void` | [`close`](#close-3) `virtual` | Close and free the AVCodecContext, FIFO buffer, and associated resources. |
+| `bool` | [`encode`](#encode-3) `virtual` | Encode interleaved audio samples. |
+| `bool` | [`encode`](#encode-4) `virtual` | Encode planar audio samples. |
+| `bool` | [`encode`](#encode-5) `virtual` | Encode a single AVFrame (typically from a decoder or resampler).  |
+| `void` | [`flush`](#flush-2) `virtual` | Flush remaining packets to be encoded. This method should be called once before stream closure. |
 
 ---
 
@@ -5560,7 +5677,7 @@ Initialise the AVCodecContext using oparams. Adds an audio stream to `format` if
 
 ---
 
-{#close-5}
+{#close-3}
 
 #### close
 
@@ -5574,7 +5691,7 @@ Close and free the AVCodecContext, FIFO buffer, and associated resources.
 
 ---
 
-{#encode-5}
+{#encode-3}
 
 #### encode
 
@@ -5601,7 +5718,7 @@ Encode interleaved audio samples.
 
 ---
 
-{#encode-6}
+{#encode-4}
 
 #### encode
 
@@ -5628,7 +5745,7 @@ Encode planar audio samples.
 
 ---
 
-{#encode-7}
+{#encode-5}
 
 #### encode
 
@@ -5651,7 +5768,7 @@ True if an encoded packet was produced and emitted.
 
 ---
 
-{#flush-4}
+{#flush-2}
 
 #### flush
 
@@ -5929,7 +6046,7 @@ output sample format
 |  | [`AudioResampler`](#audioresampler-2)  |  |
 |  | [`AudioResampler`](#audioresampler-3)  |  |
 | `void` | [`open`](#open-1)  | Initialise the libswresample context using iparams and oparams. Throws std::runtime_error if the context is already open or if required parameters (channels, sample rate, format) are missing. |
-| `void` | [`close`](#close-6)  | Free the libswresample context and release the output sample buffer. |
+| `void` | [`close`](#close-4)  | Free the libswresample context and release the output sample buffer. |
 | `int` | [`resample`](#resample)  | Convert the input samples to the output format. NOTE: Input buffers must be contiguous, therefore only interleaved input formats are accepted at this point. |
 
 ---
@@ -5981,7 +6098,7 @@ Initialise the libswresample context using iparams and oparams. Throws std::runt
 
 ---
 
-{#close-6}
+{#close-4}
 
 #### close
 
@@ -6034,18 +6151,18 @@ The number of converted samples, or zero if samples were internally buffered.
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `std::string` | [`name`](#name-1)  | The display name for this codec. |
+| `std::string` | [`name`](#name)  | The display name for this codec. |
 | `std::string` | [`encoder`](#encoder)  | The encoder name for FFmpeg. |
 | `int` | [`sampleRate`](#samplerate)  | The sampling rate or RTP clock rate. |
 | `int` | [`bitRate`](#bitrate)  | The bit rate to encode at. |
 | `int` | [`quality`](#quality)  | Optional quality value, variable range depending on codec. |
 | `int` | [`compliance`](#compliance)  | FFmpeg strict_std_compliance level (default: FF_COMPLIANCE_EXPERIMENTAL). |
 | `bool` | [`enabled`](#enabled)  | Weather or not the codec is available for use. |
-| `std::map< std::string, std::string >` | [`options`](#options-2)  | Arbitrary encoder options passed to FFmpeg via av_opt_set(). Keys are FFmpeg option names (e.g. "preset", "tune", "profile"). Applied after codec-specific defaults, so they override everything. |
+| `std::map< std::string, std::string >` | [`options`](#options)  | Arbitrary encoder options passed to FFmpeg via av_opt_set(). Keys are FFmpeg option names (e.g. "preset", "tune", "profile"). Applied after codec-specific defaults, so they override everything. |
 
 ---
 
-{#name-1}
+{#name}
 
 #### name
 
@@ -6129,7 +6246,7 @@ Weather or not the codec is available for use.
 
 ---
 
-{#options-2}
+{#options}
 
 #### options
 
@@ -6149,7 +6266,7 @@ Arbitrary encoder options passed to FFmpeg via av_opt_set(). Keys are FFmpeg opt
 |  | [`~Codec`](#codec-5) `virtual` | Codec(const Codec& r);. |
 | `std::string` | [`toString`](#tostring-1) `virtual` `const` | Return a compact string representation of this codec.  |
 | `bool` | [`specified`](#specified) `const` | Returns true when this codec explicitly names either an RTP/media codec or an FFmpeg encoder and is enabled for use. |
-| `void` | [`print`](#print-2) `virtual` | Print a multi-line human-readable description to the given stream.  |
+| `void` | [`print`](#print-1) `virtual` | Print a multi-line human-readable description to the given stream.  |
 
 ---
 
@@ -6266,7 +6383,7 @@ Returns true when this codec explicitly names either an RTP/media codec or an FF
 
 ---
 
-{#print-2}
+{#print-1}
 
 #### print
 
@@ -6284,7 +6401,7 @@ Print a multi-line human-readable description to the given stream.
 |-----------|------|-------------|
 | `ost` | `std::ostream &` |  |
 
-{#deleter}
+{#deleter-1}
 
 ## Deleter
 
@@ -6294,17 +6411,17 @@ Print a multi-line human-readable description to the given stream.
 
 Utilites for RAII:
 
-[Deleter](#deleter) adaptor for functions like av_free that take a pointer.
+[Deleter](#deleter-1) adaptor for functions like av_free that take a pointer.
 
 ### Public Methods
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `void` | [`operator()`](#operator-1) `const` `inline` |  |
+| `void` | [`operator()`](#operator) `const` `inline` |  |
 
 ---
 
-{#operator-1}
+{#operator}
 
 #### operator()
 
@@ -6326,17 +6443,17 @@ inline void operator()(T * p) const
 #include <ffmpeg.h>
 ```
 
-[Deleter](#deleter) adaptor for functions like av_freep that take a pointer to a pointer.
+[Deleter](#deleter-1) adaptor for functions like av_freep that take a pointer to a pointer.
 
 ### Public Methods
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `void` | [`operator()`](#operator-2) `const` `inline` |  |
+| `void` | [`operator()`](#operator-1) `const` `inline` |  |
 
 ---
 
-{#operator-2}
+{#operator-1}
 
 #### operator()
 
@@ -6364,9 +6481,9 @@ Represents a system audio, video or render device.
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `Type` | [`type`](#type-2)  |  |
+| `Type` | [`type`](#type)  |  |
 | `std::string` | [`id`](#id)  |  |
-| `std::string` | [`name`](#name-2)  |  |
+| `std::string` | [`name`](#name-1)  |  |
 | `bool` | [`isDefault`](#isdefault)  |  |
 | `bool` | [`isConnected`](#isconnected)  |  |
 | `bool` | [`isInUse`](#isinuse)  |  |
@@ -6375,7 +6492,7 @@ Represents a system audio, video or render device.
 
 ---
 
-{#type-2}
+{#type}
 
 #### type
 
@@ -6395,7 +6512,7 @@ std::string id
 
 ---
 
-{#name-2}
+{#name-1}
 
 #### name
 
@@ -6459,8 +6576,8 @@ std::vector< AudioCapability > audioCapabilities
 |--------|------|-------------|
 |  | [`Device`](#device-1)  | Construct a device with Unknown type and empty fields. |
 |  | [`Device`](#device-2)  | Construct a device with explicit fields.  |
-| `void` | [`print`](#print-3) `const` | Print device details (type, id, name, capabilities) to the given stream.  |
-| `bool` | [`operator==`](#operator-3) `const` `inline` | Equality based on type, id, and name. |
+| `void` | [`print`](#print-2) `const` | Print device details (type, id, name, capabilities) to the given stream.  |
+| `bool` | [`operator==`](#operator-2) `const` `inline` | Equality based on type, id, and name. |
 | `VideoCapability` | [`bestVideoCapability`](#bestvideocapability) `const` `inline` | Find the video capability closest to the requested parameters. |
 | `AudioCapability` | [`bestAudioCapability`](#bestaudiocapability) `const` `inline` | Find the audio capability closest to the requested parameters. |
 
@@ -6498,14 +6615,14 @@ Construct a device with explicit fields.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `type` | `[Type](#type-3)` |  |
+| `type` | `[Type](#type-1)` |  |
 | `id` | `const std::string &` |  |
 | `name` | `const std::string &` |  |
 | `isDefault` | `bool` |  |
 
 ---
 
-{#print-3}
+{#print-2}
 
 #### print
 
@@ -6525,7 +6642,7 @@ Print device details (type, id, name, capabilities) to the given stream.
 
 ---
 
-{#operator-3}
+{#operator-2}
 
 #### operator==
 
@@ -6592,11 +6709,11 @@ Returns a default capability with the requested values if none are available.
 
 | Name | Description |
 |------|-------------|
-| [`Type`](#type-3)  |  |
+| [`Type`](#type-1)  |  |
 
 ---
 
-{#type-3}
+{#type-1}
 
 #### Type
 
@@ -6738,7 +6855,7 @@ std::string pixelFormat
 #include <iencoder.h>
 ```
 
-[Configuration](#classicy_1_1Configuration) options for audio and video encoders.
+[Configuration](base.md#configuration) options for audio and video encoders.
 
 ### Public Attributes
 
@@ -6844,9 +6961,9 @@ inline EncoderOptions(const Format & iformat, const Format & oformat, const std:
 #include <iencoder.h>
 ```
 
-> **Inherits:** [`State`](#classicy_1_1State)
+> **Inherits:** [`State`](base.md#state)
 
-[State](#classicy_1_1State) machine states for the encoder pipeline.
+[State](base.md#state) machine states for the encoder pipeline.
 
 ### Public Methods
 
@@ -6874,11 +6991,11 @@ inline std::string str(unsigned int id) const
 
 | Name | Description |
 |------|-------------|
-| [`Type`](#type-4)  |  |
+| [`Type`](#type-3)  |  |
 
 ---
 
-{#type-4}
+{#type-3}
 
 #### Type
 
@@ -6910,8 +7027,8 @@ Defines a media container format which is available through the [Format](#format
 |--------|------|-------------|
 | `std::string` | [`name`](#name-3)  | Base [Format](#format-1) Variables. |
 | `std::string` | [`id`](#id-1)  | The short name of this format. |
-| `VideoCodec` | [`video`](#video-2)  | The video codec. |
-| `AudioCodec` | [`audio`](#audio-2)  | The audio codec. |
+| `VideoCodec` | [`video`](#video)  | The video codec. |
+| `AudioCodec` | [`audio`](#audio)  | The audio codec. |
 | `int` | [`priority`](#priority)  | The priority this format will be displayed on the list. |
 
 ---
@@ -6942,7 +7059,7 @@ The short name of this format.
 
 ---
 
-{#video-2}
+{#video}
 
 #### video
 
@@ -6954,7 +7071,7 @@ The video codec.
 
 ---
 
-{#audio-2}
+{#audio}
 
 #### audio
 
@@ -6985,7 +7102,7 @@ The priority this format will be displayed on the list.
 |  | [`Format`](#format-4)  | Construct a video-only format.  |
 |  | [`Format`](#format-5)  | Construct an audio-only format.  |
 |  | [`Format`](#format-6)  |  |
-| `Type` | [`type`](#type-5) `const` | Return the media type (None, Video, Audio, or Multiplex) derived from which codecs are enabled. |
+| `Type` | [`type`](#type-4) `const` | Return the media type (None, Video, Audio, or Multiplex) derived from which codecs are enabled. |
 | `std::string` | [`toString`](#tostring-2) `virtual` `const` | #### Returns |
 | `void` | [`print`](#print-4) `virtual` | Print a multi-line human-readable description to the given stream.  |
 
@@ -7103,7 +7220,7 @@ Format(const Format & r)
 
 ---
 
-{#type-5}
+{#type-4}
 
 #### type
 
@@ -7186,11 +7303,11 @@ True if first.priority > second.priority.
 
 | Name | Description |
 |------|-------------|
-| [`Type`](#type-6)  |  |
+| [`Type`](#type-5)  |  |
 
 ---
 
-{#type-6}
+{#type-5}
 
 #### Type
 
@@ -7213,7 +7330,7 @@ enum Type
 #include <packet.h>
 ```
 
-> **Inherits:** [`RawPacket`](#classicy_1_1RawPacket)
+> **Inherits:** [`RawPacket`](base.md#rawpacket)
 > **Subclassed by:** [`AudioPacket`](#audiopacket), [`VideoPacket`](#videopacket)
 
 Timestamped media packet carrying raw audio or video data.
@@ -7947,7 +8064,7 @@ Base video context from which all video encoders and decoders derive.
 | `PacketSignal` | [`emitter`](#emitter-4)  |  |
 | `VideoCodec` | [`iparams`](#iparams-2)  | input parameters |
 | `VideoCodec` | [`oparams`](#oparams-2)  | output parameters |
-| `AVStream *` | [`stream`](#stream-1)  | encoder or decoder stream |
+| `AVStream *` | [`stream`](#stream-2)  | encoder or decoder stream |
 | `AVCodecContext *` | [`ctx`](#ctx-2)  | encoder or decoder context |
 | `const AVCodec *` | [`codec`](#codec-6)  | encoder or decoder codec |
 | `AVFrame *` | [`frame`](#frame-1)  | encoder or decoder frame |
@@ -7955,7 +8072,7 @@ Base video context from which all video encoders and decoders derive.
 | `int64_t` | [`time`](#time-2)  | stream time in codec time base |
 | `int64_t` | [`pts`](#pts-1)  | last packet pts value |
 | `double` | [`seconds`](#seconds-1)  | video time in seconds |
-| `std::string` | [`error`](#error-2)  | error message |
+| `std::string` | [`error`](#error-3)  | error message |
 
 ---
 
@@ -7993,7 +8110,7 @@ output parameters
 
 ---
 
-{#stream-1}
+{#stream-2}
 
 #### stream
 
@@ -8089,7 +8206,7 @@ video time in seconds
 
 ---
 
-{#error-2}
+{#error-3}
 
 #### error
 
@@ -8989,7 +9106,7 @@ True if enumeration succeeded.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `type` | `[Device::Type](#type-3)` |  |
+| `type` | `[Device::Type](#type-1)` |  |
 | `devices` | `std::vector< [av::Device](#device) > &` |  |
 
 {#coreaudio}
@@ -9023,7 +9140,7 @@ True if enumeration succeeded.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `type` | `[Device::Type](#type-3)` |  |
+| `type` | `[Device::Type](#type-1)` |  |
 | `devices` | `std::vector< [av::Device](#device) > &` |  |
 
 {#legacy}
@@ -9233,7 +9350,7 @@ True if enumeration succeeded.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `type` | `[Device::Type](#type-3)` |  |
+| `type` | `[Device::Type](#type-1)` |  |
 | `devices` | `std::vector< [av::Device](#device) > &` |  |
 
 {#mediafoundation}
@@ -9267,7 +9384,7 @@ True if enumeration succeeded.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `type` | `[Device::Type](#type-3)` |  |
+| `type` | `[Device::Type](#type-1)` |  |
 | `devices` | `std::vector< [av::Device](#device) > &` |  |
 
 {#wasapi}
@@ -9301,6 +9418,6 @@ True if enumeration succeeded.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `type` | `[Device::Type](#type-3)` |  |
+| `type` | `[Device::Type](#type-1)` |  |
 | `devices` | `std::vector< [av::Device](#device) > &` |  |
 

@@ -45,8 +45,8 @@ HTTP client/server, WebSocket support, form handling, cookies, URL parsing.
 | [`ServerResponder`](#serverresponder) | The abstract base class for HTTP ServerResponders created by HTTP [Server](#server). |
 | [`StringPart`](#stringpart) | An implementation of [StringPart](#stringpart) for plain files. |
 | [`URL`](#url) | An RFC 3986 based [URL](#url) parser. Constructors and assignment operators will throw a SyntaxException if the [URL](#url) is invalid. |
-| [`DateCache`](#datecache-1) | Caches the formatted Date header, updated once per second. Avoids per-request time formatting and string allocation. |
-| [`Method`](#method-1) | HTTP request methods. |
+| [`DateCache`](#datecache) | Caches the formatted Date header, updated once per second. Avoids per-request time formatting and string allocation. |
+| [`Method`](#method) | HTTP request methods. |
 
 ### Enumerations
 
@@ -147,6 +147,22 @@ enum ServerConnectionMode
 |-------|-------------|
 | `Http` |  |
 | `Upgraded` |  |
+
+### Typedefs
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `std::vector< ClientConnection::Ptr >` | [`ClientConnectionPtrVec`](#clientconnectionptrvec)  |  |
+
+---
+
+{#clientconnectionptrvec}
+
+#### ClientConnectionPtrVec
+
+```cpp
+std::vector< ClientConnection::Ptr > ClientConnectionPtrVec()
+```
 
 ### Functions
 
@@ -366,7 +382,7 @@ Shared pointer to the created connection.
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `url` | `const [URL](#url) &` |  |
-| `loop` | `[uv::Loop](#namespaceicy_1_1uv_1a8bfd153231f95de982e16db911389619) *` |  |
+| `loop` | `[uv::Loop](uv.md#loop) *` |  |
 
 ---
 
@@ -395,7 +411,7 @@ Shared pointer to the created connection.
 |-----------|------|-------------|
 | `url` | `const [URL](#url) &` |  |
 | `client` | `[http::Client](#client) *` |  |
-| `loop` | `[uv::Loop](#namespaceicy_1_1uv_1a8bfd153231f95de982e16db911389619) *` |  |
+| `loop` | `[uv::Loop](uv.md#loop) *` |  |
 
 ---
 
@@ -530,7 +546,7 @@ true if at least one parameter was parsed; false otherwise.
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `uri` | `std::string_view` |  |
-| `out` | `[NVCollection](#classicy_1_1NVCollection) &` |  |
+| `out` | `[NVCollection](base.md#nvcollection) &` |  |
 
 ---
 
@@ -557,7 +573,7 @@ Example input: "multipart/mixed; boundary=\"boundary-01234567\"" Output value: "
 |-----------|------|-------------|
 | `s` | `const std::string &` |  |
 | `value` | `std::string &` |  |
-| `parameters` | `[NVCollection](#classicy_1_1NVCollection) &` |  |
+| `parameters` | `[NVCollection](base.md#nvcollection) &` |  |
 
 ---
 
@@ -581,7 +597,7 @@ Splits a substring (defined by iterators) into named attributes. Attributes are 
 |-----------|------|-------------|
 | `begin` | `const std::string::const_iterator &` |  |
 | `end` | `const std::string::const_iterator &` |  |
-| `parameters` | `[NVCollection](#classicy_1_1NVCollection) &` |  |
+| `parameters` | `[NVCollection](base.md#nvcollection) &` |  |
 
 {#authenticator}
 
@@ -1129,7 +1145,7 @@ BasicAuthenticator(const BasicAuthenticator &) = delete
 #include <packetizers.h>
 ```
 
-> **Inherits:** [`PacketProcessor`](#classicy_1_1PacketProcessor)
+> **Inherits:** [`PacketProcessor`](base.md#packetprocessor)
 
 HTTP chunked transfer encoding adapter for streaming responses.
 
@@ -1221,7 +1237,7 @@ PacketSignal emitter
 |  | [`ChunkedAdapter`](#chunkedadapter-1) `inline` | Creates a [ChunkedAdapter](#chunkedadapter) that sends its initial response header through the given connection. The content type is read from the connection's outgoing header.  |
 |  | [`ChunkedAdapter`](#chunkedadapter-2) `inline` | Creates a [ChunkedAdapter](#chunkedadapter) that emits its own raw HTTP/1.1 200 response header. Use this when no [Connection](#connection-1) object is available.  |
 | `void` | [`emitHeader`](#emitheader) `virtual` `inline` | Emits the initial HTTP/1.1 200 OK response headers with chunked transfer encoding. If a connection is set, headers are written through it; otherwise a raw response string is emitted via the packet signal. |
-| `void` | [`process`](#process-4) `virtual` `inline` | Encodes an incoming packet as a chunked transfer encoding chunk and emits it. Emits the HTTP response headers on the first call.  |
+| `void` | [`process`](#process-5) `virtual` `inline` | Encodes an incoming packet as a chunked transfer encoding chunk and emits it. Emits the HTTP response headers on the first call.  |
 
 ---
 
@@ -1291,7 +1307,7 @@ Emits the initial HTTP/1.1 200 OK response headers with chunked transfer encodin
 
 ---
 
-{#process-4}
+{#process-5}
 
 #### process
 
@@ -1310,7 +1326,7 @@ Encodes an incoming packet as a chunked transfer encoding chunk and emits it. Em
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `packet` | `[IPacket](#classicy_1_1IPacket) &` |  |
+| `packet` | `[IPacket](base.md#ipacket) &` |  |
 
 {#client}
 
@@ -1398,7 +1414,7 @@ Shared pointer to the created connection.
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `url` | `const [URL](#url) &` |  |
-| `loop` | `[uv::Loop](#namespaceicy_1_1uv_1a8bfd153231f95de982e16db911389619) *` |  |
+| `loop` | `[uv::Loop](uv.md#loop) *` |  |
 
 ---
 
@@ -1424,7 +1440,7 @@ Shared pointer to the created connection.
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `url` | `const [URL](#url) &` |  |
-| `loop` | `[uv::Loop](#namespaceicy_1_1uv_1a8bfd153231f95de982e16db911389619) *` |  |
+| `loop` | `[uv::Loop](uv.md#loop) *` |  |
 
 ---
 
@@ -1680,7 +1696,7 @@ Creates a [ClientConnection](#clientconnection) to the given [URL](#url), pre-po
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `url` | `const [URL](#url) &` |  |
-| `socket` | `const [net::TCPSocket::Ptr](#ptr-9) &` |  |
+| `socket` | `const [net::TCPSocket::Ptr](net.md#ptr-9) &` |  |
 
 ---
 
@@ -1879,7 +1895,7 @@ std::unique_ptr< std::ostream > _readStream
 | `void` | [`connect`](#connect-12) `virtual` | Connects to the server endpoint. All sent data is buffered until the connection is made. |
 | `http::Message *` | [`incomingHeader`](#incomingheader) `virtual` | Returns the incoming HTTP message header (request or response depending on role). |
 | `http::Message *` | [`outgoingHeader`](#outgoingheader) `virtual` | Returns the outgoing HTTP message header (request or response depending on role). |
-| `bool` | [`onSocketConnect`](#onsocketconnect-2) `virtual` | [net::SocketAdapter](#socketadapter) interface |
+| `bool` | [`onSocketConnect`](#onsocketconnect-2) `virtual` | [net::SocketAdapter](net.md#socketadapter) interface |
 
 ---
 
@@ -1935,11 +1951,11 @@ Returns the outgoing HTTP message header (request or response depending on role)
 virtual bool onSocketConnect(net::Socket & socket)
 ```
 
-[net::SocketAdapter](#socketadapter) interface
+[net::SocketAdapter](net.md#socketadapter) interface
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `[net::Socket](#socket) &` |  |
+| `socket` | `[net::Socket](net.md#socket-1) &` |  |
 
 ### Public Types
 
@@ -1998,7 +2014,7 @@ Called for each chunk of incoming response body data.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `buffer` | `const [MutableBuffer](#classicy_1_1MutableBuffer) &` |  |
+| `buffer` | `const [MutableBuffer](base.md#mutablebuffer) &` |  |
 
 ---
 
@@ -2071,7 +2087,7 @@ int flags = 0
 #include <connection.h>
 ```
 
-> **Inherits:** [`SocketAdapter`](#socketadapter)
+> **Inherits:** [`SocketAdapter`](net.md#socketadapter)
 > **Subclassed by:** [`ClientConnection`](#clientconnection), [`ServerConnection`](#serverconnection)
 
 Base HTTP connection managing socket I/O and message lifecycle
@@ -2093,7 +2109,7 @@ Base HTTP connection managing socket I/O and message lifecycle
 | `void` | [`beginStreaming`](#beginstreaming) `virtual` `inline` | Explicitly enter long-lived streaming mode. Base connections ignore this; server connections use it to disable keep-alive idle reaping while a response stream is active. |
 | `void` | [`endStreaming`](#endstreaming) `virtual` `inline` | Exit long-lived streaming mode. |
 | `bool` | [`closed`](#closed-4) `const` | Return true if the connection is closed. |
-| `icy::Error` | [`error`](#error-8) `const` | Return the error object if any. |
+| `icy::Error` | [`error`](#error-9) `const` | Return the error object if any. |
 | `bool` | [`headerAutoSendEnabled`](#headerautosendenabled) `const` | Return true if headers should be automatically sent. |
 | `void` | [`setHeaderAutoSendEnabled`](#setheaderautosendenabled)  | Enable or disable automatic header emission for the next outgoing send path. |
 | `void` | [`replaceAdapter`](#replaceadapter) `virtual` | Assign the new [ConnectionAdapter](#connectionadapter) and setup the chain. The flow is: [Connection](#connection-1) <-> [ConnectionAdapter](#connectionadapter) <-> Socket. Takes ownership of the adapter (deferred deletion via uv loop). |
@@ -2122,7 +2138,7 @@ Creates a [Connection](#connection-1) using the given TCP socket.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `const [net::TCPSocket::Ptr](#ptr-9) &` |  |
+| `socket` | `const [net::TCPSocket::Ptr](net.md#ptr-9) &` |  |
 
 ---
 
@@ -2152,7 +2168,7 @@ Called for each chunk of incoming body data after headers are complete.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `buffer` | `const [MutableBuffer](#classicy_1_1MutableBuffer) &` |  |
+| `buffer` | `const [MutableBuffer](base.md#mutablebuffer) &` |  |
 
 ---
 
@@ -2218,7 +2234,7 @@ Use this when the payload does not naturally outlive the current scope.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `buffer` | `[Buffer](#namespaceicy_1a9c464c811f03ea41ea100ed65a0580d3) &&` |  |
+| `buffer` | `[Buffer](base.md#buffer-2) &&` |  |
 | `flags` | `int` |  |
 
 ---
@@ -2307,7 +2323,7 @@ Return true if the connection is closed.
 
 ---
 
-{#error-8}
+{#error-9}
 
 #### error
 
@@ -2365,7 +2381,7 @@ Assign the new [ConnectionAdapter](#connectionadapter) and setup the chain. The 
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `adapter` | `std::unique_ptr< [net::SocketAdapter](#socketadapter) >` |  |
+| `adapter` | `std::unique_ptr< [net::SocketAdapter](net.md#socketadapter) >` |  |
 
 ---
 
@@ -2556,7 +2572,7 @@ bool _shouldSendHeader
 | Return | Name | Description |
 |--------|------|-------------|
 | `void` | [`setError`](#seterror-4) `virtual` | Set the internal error. Note: Setting the error does not `[close()](#close-20)` the connection. |
-| `bool` | [`onSocketConnect`](#onsocketconnect-3) `virtual` | [net::SocketAdapter](#socketadapter) interface |
+| `bool` | [`onSocketConnect`](#onsocketconnect-3) `virtual` | [net::SocketAdapter](net.md#socketadapter) interface |
 | `bool` | [`onSocketRecv`](#onsocketrecv-3) `virtual` | Called when data is received from the socket. Forwards the event to all registered receivers in priority order.  |
 | `bool` | [`onSocketError`](#onsocketerror-2) `virtual` | Called when the socket encounters an error. Forwards the event to all registered receivers in priority order.  |
 | `bool` | [`onSocketClose`](#onsocketclose-2) `virtual` | Called when the socket is closed. Forwards the event to all registered receivers in priority order.  |
@@ -2577,7 +2593,7 @@ Set the internal error. Note: Setting the error does not `[close()](#close-20)` 
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `err` | `const [icy::Error](#structicy_1_1Error) &` |  |
+| `err` | `const [icy::Error](base.md#error) &` |  |
 
 ---
 
@@ -2591,11 +2607,11 @@ Set the internal error. Note: Setting the error does not `[close()](#close-20)` 
 virtual bool onSocketConnect(net::Socket & socket)
 ```
 
-[net::SocketAdapter](#socketadapter) interface
+[net::SocketAdapter](net.md#socketadapter) interface
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `[net::Socket](#socket) &` |  |
+| `socket` | `[net::Socket](net.md#socket-1) &` |  |
 
 ---
 
@@ -2622,9 +2638,9 @@ true to stop propagation to subsequent receivers.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `[net::Socket](#socket) &` |  |
-| `buffer` | `const [MutableBuffer](#classicy_1_1MutableBuffer) &` |  |
-| `peerAddress` | `const [net::Address](#address) &` |  |
+| `socket` | `[net::Socket](net.md#socket-1) &` |  |
+| `buffer` | `const [MutableBuffer](base.md#mutablebuffer) &` |  |
+| `peerAddress` | `const [net::Address](net.md#address) &` |  |
 
 ---
 
@@ -2642,15 +2658,15 @@ Called when the socket encounters an error. Forwards the event to all registered
 #### Parameters
 * `socket` The socket that encountered the error. 
 
-* `error` [Error](#structicy_1_1Error) details. 
+* `error` [Error](base.md#error) details. 
 
 #### Returns
 true to stop propagation to subsequent receivers.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `[net::Socket](#socket) &` |  |
-| `error` | `const [icy::Error](#structicy_1_1Error) &` |  |
+| `socket` | `[net::Socket](net.md#socket-1) &` |  |
+| `error` | `const [icy::Error](base.md#error) &` |  |
 
 ---
 
@@ -2673,7 +2689,7 @@ true to stop propagation to subsequent receivers.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `[net::Socket](#socket) &` |  |
+| `socket` | `[net::Socket](net.md#socket-1) &` |  |
 
 ### Public Types
 
@@ -2699,7 +2715,7 @@ std::shared_ptr< Connection > Ptr()
 #include <connection.h>
 ```
 
-> **Inherits:** [`ParserObserver`](#parserobserver), [`SocketAdapter`](#socketadapter)
+> **Inherits:** [`ParserObserver`](#parserobserver), [`SocketAdapter`](net.md#socketadapter)
 
 Default HTTP socket adapter for reading and writing HTTP messages
 
@@ -2783,7 +2799,7 @@ The buffer is moved through the adapter chain and retained by the transport laye
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `buffer` | `[Buffer](#namespaceicy_1a9c464c811f03ea41ea100ed65a0580d3) &&` |  |
+| `buffer` | `[Buffer](base.md#buffer-2) &&` |  |
 | `flags` | `int` |  |
 
 ---
@@ -2802,7 +2818,7 @@ By default this function does nothing unless the given receiver matches the curr
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `adapter` | `[SocketAdapter](#socketadapter-1) *` |  |
+| `adapter` | `[SocketAdapter](net.md#socketadapter-1) *` |  |
 
 ---
 
@@ -2846,7 +2862,7 @@ Resets the adapter for reuse with a new socket and request. Clears the parser st
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `sender` | `[net::SocketAdapter](#socketadapter) *` |  |
+| `sender` | `[net::SocketAdapter](net.md#socketadapter) *` |  |
 | `request` | `[http::Request](#request-4) *` |  |
 
 ### Protected Attributes
@@ -2903,9 +2919,9 @@ SocketAdapter interface.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `[net::Socket](#socket) &` |  |
-| `buffer` | `const [MutableBuffer](#classicy_1_1MutableBuffer) &` |  |
-| `peerAddress` | `const [net::Address](#address) &` |  |
+| `socket` | `[net::Socket](net.md#socket-1) &` |  |
+| `buffer` | `const [MutableBuffer](base.md#mutablebuffer) &` |  |
+| `peerAddress` | `const [net::Address](net.md#address) &` |  |
 
 ---
 
@@ -2983,11 +2999,11 @@ virtual void onParserError(const icy::Error & err)
 
 Called when a parse error occurs. 
 #### Parameters
-* `err` [Error](#structicy_1_1Error) details from llhttp.
+* `err` [Error](base.md#error) details from llhttp.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `err` | `const [icy::Error](#structicy_1_1Error) &` |  |
+| `err` | `const [icy::Error](base.md#error) &` |  |
 
 ---
 
@@ -3130,7 +3146,7 @@ size_t _maxSize = 128
 #include <connection.h>
 ```
 
-> **Inherits:** [`SocketAdapter`](#socketadapter)
+> **Inherits:** [`SocketAdapter`](net.md#socketadapter)
 
 Packet stream wrapper for a HTTP connection.
 
@@ -3298,9 +3314,9 @@ true to stop propagation to subsequent receivers.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `[net::Socket](#socket) &` |  |
-| `buffer` | `const [MutableBuffer](#classicy_1_1MutableBuffer) &` |  |
-| `peerAddress` | `const [net::Address](#address) &` |  |
+| `socket` | `[net::Socket](net.md#socket-1) &` |  |
+| `buffer` | `const [MutableBuffer](base.md#mutablebuffer) &` |  |
+| `peerAddress` | `const [net::Address](net.md#address) &` |  |
 
 {#cookie}
 
@@ -3324,11 +3340,11 @@ This class supports both the Version 0 (by Netscape) and Version 1 (by RFC 2109)
 |--------|------|-------------|
 |  | [`Cookie`](#cookie-1)  | Creates an empty [Cookie](#cookie). |
 |  | [`Cookie`](#cookie-2) `explicit` | Creates a cookie with the given name. The cookie never expires. |
-|  | [`Cookie`](#cookie-3) `explicit` | Creates a cookie from the given [NVCollection](#classicy_1_1NVCollection). |
+|  | [`Cookie`](#cookie-3) `explicit` | Creates a cookie from the given [NVCollection](base.md#nvcollection). |
 |  | [`Cookie`](#cookie-4)  | Creates a cookie with the given name and value. The cookie never expires. |
 |  | [`Cookie`](#cookie-5)  | Creates the [Cookie](#cookie) by copying another one. |
 |  | [`~Cookie`](#cookie-6)  | Destroys the [Cookie](#cookie). |
-| `Cookie &` | [`operator=`](#operator-13)  | Assigns a cookie. |
+| `Cookie &` | [`operator=`](#operator-14)  | Assigns a cookie. |
 | `void` | [`setVersion`](#setversion)  | Sets the version of the cookie. |
 | `int` | [`getVersion`](#getversion) `const` `inline` | Returns the version of the cookie, which is either 0 or 1. |
 | `void` | [`setName`](#setname)  | Sets the name of the cookie. |
@@ -3391,11 +3407,11 @@ Creates a cookie with the given name. The cookie never expires.
 explicit Cookie(const NVCollection & nvc)
 ```
 
-Creates a cookie from the given [NVCollection](#classicy_1_1NVCollection).
+Creates a cookie from the given [NVCollection](base.md#nvcollection).
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `nvc` | `const [NVCollection](#classicy_1_1NVCollection) &` |  |
+| `nvc` | `const [NVCollection](base.md#nvcollection) &` |  |
 
 ---
 
@@ -3446,7 +3462,7 @@ Destroys the [Cookie](#cookie).
 
 ---
 
-{#operator-13}
+{#operator-14}
 
 #### operator=
 
@@ -3929,7 +3945,7 @@ An implementation of [FilePart](#filepart) for plain files.
 | `void` | [`write`](#write-2) `virtual` | Writes the entire file content to the [FormWriter](#formwriter).  |
 | `void` | [`write`](#write-3) `virtual` | Writes the entire file content to an output stream (used for content-length calculation).  |
 | `const std::string &` | [`filename`](#filename-1) `const` | Returns the filename component of the file path (not the full path). |
-| `std::ifstream &` | [`stream`](#stream-2)  | Returns a reference to the underlying file input stream. |
+| `std::ifstream &` | [`stream`](#stream-3)  | Returns a reference to the underlying file input stream. |
 | `uint64_t` | [`length`](#length-1) `virtual` `const` | Returns the total file size in bytes. |
 
 ---
@@ -4114,7 +4130,7 @@ Returns the filename component of the file path (not the full path).
 
 ---
 
-{#stream-2}
+{#stream-3}
 
 #### stream
 
@@ -4143,7 +4159,7 @@ Returns the total file size in bytes.
 | Return | Name | Description |
 |--------|------|-------------|
 | `std::string` | [`_path`](#_path-1)  |  |
-| `std::string` | [`_filename`](#_filename)  |  |
+| `std::string` | [`_filename`](#_filename-1)  |  |
 | `std::ifstream` | [`_istr`](#_istr)  |  |
 | `uint64_t` | [`_fileSize`](#_filesize)  |  |
 
@@ -4159,7 +4175,7 @@ std::string _path
 
 ---
 
-{#_filename}
+{#_filename-1}
 
 #### _filename
 
@@ -4428,7 +4444,7 @@ bool _initialWrite
 #include <form.h>
 ```
 
-> **Inherits:** [`NVCollection`](#classicy_1_1NVCollection), [`PacketStreamAdapter`](#classicy_1_1PacketStreamAdapter), [`Startable`](#startable)
+> **Inherits:** [`NVCollection`](base.md#nvcollection), [`PacketStreamAdapter`](base.md#packetstreamadapter), [`Startable`](base.md#startable)
 
 [FormWriter](#formwriter) is a HTTP client connection adapter for writing HTML forms.
 
@@ -4464,9 +4480,9 @@ The outgoing packet emitter.
 | `bool` | [`cancelled`](#cancelled-1) `const` | Returns true if the request is cancelled. |
 | `void` | [`prepareSubmit`](#preparesubmit)  | Prepares the outgoing HTTP request object for submitting the form. |
 | `uint64_t` | [`calculateMultipartContentLength`](#calculatemultipartcontentlength)  | Processes the entire form body and computes its total byte length. Only meaningful for multipart/form-data when not using chunked encoding.  |
-| `void` | [`writeUrl`](#writeurl)  | Writes the complete "application/x-www-form-urlencoded" encoded body to `ostr`. All key-value pairs from the [NVCollection](#classicy_1_1NVCollection) base are percent-encoded and joined with '&'.  |
+| `void` | [`writeUrl`](#writeurl)  | Writes the complete "application/x-www-form-urlencoded" encoded body to `ostr`. All key-value pairs from the [NVCollection](base.md#nvcollection) base are percent-encoded and joined with '&'.  |
 | `void` | [`writeMultipartChunk`](#writemultipartchunk)  | Writes the next pending multipart chunk to the connection. Non-blocking; intended to be called repeatedly from the event loop until all parts have been sent. |
-| `void` | [`writeAsync`](#writeasync)  | Writes the next message chunk from the background runner thread. Called by the [Runner](#classicy_1_1Runner); do not call directly. |
+| `void` | [`writeAsync`](#writeasync)  | Writes the next message chunk from the background runner thread. Called by the [Runner](base.md#runner); do not call directly. |
 | `void` | [`setEncoding`](#setencoding)  | Sets the MIME encoding used for submitting the form. Must be set before [prepareSubmit()](#preparesubmit) is called.  |
 | `const std::string &` | [`encoding`](#encoding) `const` | Returns the encoding used for posting the form. |
 | `void` | [`setBoundary`](#setboundary)  | Sets the MIME boundary string used to delimit multipart form parts. If not set, a random boundary is generated by [prepareSubmit()](#preparesubmit). Must be set before [prepareSubmit()](#preparesubmit) is called.  |
@@ -4602,7 +4618,7 @@ Total content length in bytes.
 void writeUrl(std::ostream & ostr)
 ```
 
-Writes the complete "application/x-www-form-urlencoded" encoded body to `ostr`. All key-value pairs from the [NVCollection](#classicy_1_1NVCollection) base are percent-encoded and joined with '&'. 
+Writes the complete "application/x-www-form-urlencoded" encoded body to `ostr`. All key-value pairs from the [NVCollection](base.md#nvcollection) base are percent-encoded and joined with '&'. 
 #### Parameters
 * `ostr` Output stream to write to.
 
@@ -4632,7 +4648,7 @@ Writes the next pending multipart chunk to the connection. Non-blocking; intende
 void writeAsync()
 ```
 
-Writes the next message chunk from the background runner thread. Called by the [Runner](#classicy_1_1Runner); do not call directly.
+Writes the next message chunk from the background runner thread. Called by the [Runner](base.md#runner); do not call directly.
 
 ---
 
@@ -4924,7 +4940,7 @@ Creates the [FormWriter](#formwriter) that uses the given encoding.
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `conn` | `[ConnectionStream](#connectionstream) &` |  |
-| `runner` | `std::shared_ptr< [Runner](#classicy_1_1Runner) >` |  |
+| `runner` | `std::shared_ptr< [Runner](base.md#runner) >` |  |
 | `encoding` | `const std::string &` |  |
 
 ---
@@ -4961,7 +4977,7 @@ Writes the message boundary std::string, followed by the message header to the o
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `header` | `const [NVCollection](#classicy_1_1NVCollection) &` |  |
+| `header` | `const [NVCollection](base.md#nvcollection) &` |  |
 | `ostr` | `std::ostream &` |  |
 
 ---
@@ -5043,7 +5059,7 @@ std::unique_ptr< FormPart > part
 #include <message.h>
 ```
 
-> **Inherits:** [`NVCollection`](#classicy_1_1NVCollection)
+> **Inherits:** [`NVCollection`](base.md#nvcollection)
 > **Subclassed by:** [`Request`](#request-4), [`Response`](#response-1)
 
 The base class for [Request](#request-4) and [Response](#response-1).
@@ -5335,7 +5351,7 @@ Writes the message header directly into a byte buffer.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `buf` | `[Buffer](#namespaceicy_1a9c464c811f03ea41ea100ed65a0580d3) &` |  |
+| `buf` | `[Buffer](base.md#buffer-2) &` |  |
 
 ### Public Static Attributes
 
@@ -5585,7 +5601,7 @@ Destroys the [Message](#message).
 #include <packetizers.h>
 ```
 
-> **Inherits:** [`PacketProcessor`](#classicy_1_1PacketProcessor)
+> **Inherits:** [`PacketProcessor`](base.md#packetprocessor)
 
 HTTP multipart encoding adapter for multipart/x-mixed-replace streaming.
 
@@ -5665,7 +5681,7 @@ PacketSignal emitter
 |  | [`MultipartAdapter`](#multipartadapter-2) `inline` | Creates a [MultipartAdapter](#multipartadapter) that emits its own raw HTTP/1.1 200 response header. Use this when no [Connection](#connection-1) object is available.  |
 | `void` | [`emitHeader`](#emitheader-1) `virtual` `inline` | Emits the initial HTTP/1.1 200 OK response with Content-Type multipart/x-mixed-replace. If a connection is set, headers are written through it; otherwise a raw response string is emitted. |
 | `void` | [`emitChunkHeader`](#emitchunkheader) `virtual` `inline` | Emits the MIME boundary and per-part headers (Content-Type, optionally Content-Transfer-Encoding) for the next multipart chunk. |
-| `void` | [`process`](#process-5) `virtual` `inline` | Wraps the incoming packet as a multipart chunk and emits it downstream. Emits the multipart HTTP response headers on the first call.  |
+| `void` | [`process`](#process-6) `virtual` `inline` | Wraps the incoming packet as a multipart chunk and emits it downstream. Emits the multipart HTTP response headers on the first call.  |
 
 ---
 
@@ -5683,7 +5699,7 @@ Creates a [MultipartAdapter](#multipartadapter) that sends headers through the g
 #### Parameters
 * `connection` HTTP connection to use for sending the initial multipart header. 
 
-* `[base64](#base64)` If true, indicates parts are base64-encoded.
+* `[base64](base.md#base64)` If true, indicates parts are base64-encoded.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -5706,7 +5722,7 @@ Creates a [MultipartAdapter](#multipartadapter) that emits its own raw HTTP/1.1 
 #### Parameters
 * `contentType` Content-Type for each multipart part. 
 
-* `[base64](#base64)` If true, indicates parts are base64-encoded.
+* `[base64](base.md#base64)` If true, indicates parts are base64-encoded.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -5743,7 +5759,7 @@ Emits the MIME boundary and per-part headers (Content-Type, optionally Content-T
 
 ---
 
-{#process-5}
+{#process-6}
 
 #### process
 
@@ -5759,7 +5775,7 @@ Wraps the incoming packet as a multipart chunk and emits it downstream. Emits th
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `packet` | `[IPacket](#classicy_1_1IPacket) &` |  |
+| `packet` | `[IPacket](base.md#ipacket) &` |  |
 
 {#parser-1}
 
@@ -6360,7 +6376,7 @@ void onError(llhttp_errno_t errnum, const std::string & message)
 | Return | Name | Description |
 |--------|------|-------------|
 | `std::string` | [`version`](#version-2)  |  |
-| `std::string` | [`method`](#method)  |  |
+| `std::string` | [`method`](#method-1)  |  |
 | `std::string` | [`uri`](#uri)  |  |
 | `std::string` | [`reason`](#reason)  |  |
 | `http::StatusCode` | [`status`](#status-2)  |  |
@@ -6378,7 +6394,7 @@ std::string version
 
 ---
 
-{#method}
+{#method-1}
 
 #### method
 
@@ -6459,7 +6475,7 @@ inline void reset()
 | `size_t` | [`bytesConsumed`](#bytesconsumed)  |  |
 | `bool` | [`messageComplete`](#messagecomplete)  |  |
 | `bool` | [`upgrade`](#upgrade-1)  |  |
-| `Error` | [`error`](#error-9)  |  |
+| `Error` | [`error`](#error-10)  |  |
 
 ---
 
@@ -6493,7 +6509,7 @@ bool upgrade = false
 
 ---
 
-{#error-9}
+{#error-10}
 
 #### error
 
@@ -6625,11 +6641,11 @@ void onParserError(const Error & err)
 
 Called when a parse error occurs. 
 #### Parameters
-* `err` [Error](#structicy_1_1Error) details from llhttp.
+* `err` [Error](base.md#error) details from llhttp.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `err` | `const [Error](#structicy_1_1Error) &` |  |
+| `err` | `const [Error](base.md#error) &` |  |
 
 {#progresssignal}
 
@@ -6639,11 +6655,11 @@ Called when a parse error occurs.
 #include <connection.h>
 ```
 
-> **Inherits:** [`Signal< void(const double &)>`](#classicy_1_1Signal)
+> **Inherits:** [`Signal< void(const double &)>`](base.md#signal)
 
 HTTP progress signal for upload and download progress notifications.
 
-Emits a double in the range [0, 100] as data is transferred. Set `total` to the expected byte count before calling `[update()](#update)`.
+Emits a double in the range [0, 100] as data is transferred. Set `total` to the expected byte count before calling `[update()](#update-1)`.
 
 ### Public Attributes
 
@@ -6695,7 +6711,7 @@ Total expected bytes (from Content-Length).
 |--------|------|-------------|
 |  | [`ProgressSignal`](#progresssignal-1) `inline` |  |
 | `double` | [`progress`](#progress) `const` `inline` | Returns the current transfer progress as a percentage (0-100). |
-| `void` | [`update`](#update) `inline` | Advances the progress counter by `nread` bytes and emits the updated percentage.  |
+| `void` | [`update`](#update-1) `inline` | Advances the progress counter by `nread` bytes and emits the updated percentage.  |
 
 ---
 
@@ -6725,7 +6741,7 @@ Returns the current transfer progress as a percentage (0-100).
 
 ---
 
-{#update}
+{#update-1}
 
 #### update
 
@@ -7008,7 +7024,7 @@ Adds a [Cookie](#cookie) header with the names and values from cookies.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `cookies` | `const [NVCollection](#classicy_1_1NVCollection) &` |  |
+| `cookies` | `const [NVCollection](base.md#nvcollection) &` |  |
 
 ---
 
@@ -7026,7 +7042,7 @@ Fills cookies with the cookies extracted from the [Cookie](#cookie) headers in t
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `cookies` | `[NVCollection](#classicy_1_1NVCollection) &` |  |
+| `cookies` | `[NVCollection](base.md#nvcollection) &` |  |
 
 ---
 
@@ -7044,7 +7060,7 @@ Returns the request URI parameters.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `params` | `[NVCollection](#classicy_1_1NVCollection) &` |  |
+| `params` | `[NVCollection](base.md#nvcollection) &` |  |
 
 ---
 
@@ -7202,7 +7218,7 @@ Writes the HTTP request directly into a byte buffer.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `buf` | `[Buffer](#namespaceicy_1a9c464c811f03ea41ea100ed65a0580d3) &` |  |
+| `buf` | `[Buffer](base.md#buffer-2) &` |  |
 
 ### Protected Methods
 
@@ -7501,7 +7517,7 @@ Sets the Date header to the given date/time value.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `dateTime` | `const [Timestamp](#classicy_1_1Timestamp) &` |  |
+| `dateTime` | `const [Timestamp](base.md#timestamp) &` |  |
 
 ---
 
@@ -7605,7 +7621,7 @@ Writes the HTTP response headers directly into a byte buffer.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `buf` | `[Buffer](#namespaceicy_1a9c464c811f03ea41ea100ed65a0580d3) &` |  |
+| `buf` | `[Buffer](base.md#buffer-2) &` |  |
 
 ---
 
@@ -7656,7 +7672,7 @@ std::string _reason
 #include <server.h>
 ```
 
-> **Inherits:** [`SocketAdapter`](#socketadapter)
+> **Inherits:** [`SocketAdapter`](net.md#socketadapter)
 
 HTTP server implementation.
 
@@ -7708,7 +7724,7 @@ Signals when the server is shutting down.
 | `void` | [`setKeepAliveTimeout`](#setkeepalivetimeout) `inline` | Set the keep-alive idle timeout in seconds (default 30). Connections idle longer than this are closed by the timer. Set to 0 to disable idle timeout. |
 | `size_t` | [`connectionCount`](#connectioncount) `const` `inline` | Return the number of active connections (all states). |
 | `net::Address &` | [`address`](#address-11)  | Return the server bind address. |
-| `const DateCache &` | [`dateCache`](#datecache) `const` `inline` | Return the cached Date header for use in responses. |
+| `const DateCache &` | [`dateCache`](#datecache-1) `const` `inline` | Return the cached Date header for use in responses. |
 
 ---
 
@@ -7734,7 +7750,7 @@ Constructs an HTTP server on the given host and port using an internally created
 |-----------|------|-------------|
 | `host` | `const std::string &` |  |
 | `port` | `short` |  |
-| `loop` | `[uv::Loop](#namespaceicy_1_1uv_1a8bfd153231f95de982e16db911389619) *` |  |
+| `loop` | `[uv::Loop](uv.md#loop) *` |  |
 | `factory` | `std::unique_ptr< [ServerConnectionFactory](#serverconnectionfactory) >` |  |
 
 ---
@@ -7757,8 +7773,8 @@ Constructs an HTTP server on the given address using an internally created TCP s
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `address` | `const [net::Address](#address) &` |  |
-| `loop` | `[uv::Loop](#namespaceicy_1_1uv_1a8bfd153231f95de982e16db911389619) *` |  |
+| `address` | `const [net::Address](net.md#address) &` |  |
+| `loop` | `[uv::Loop](uv.md#loop) *` |  |
 | `factory` | `std::unique_ptr< [ServerConnectionFactory](#serverconnectionfactory) >` |  |
 
 ---
@@ -7785,7 +7801,7 @@ Constructs an HTTP server on the given host and port using a caller-supplied soc
 |-----------|------|-------------|
 | `host` | `const std::string &` |  |
 | `port` | `short` |  |
-| `socket` | `[net::TCPSocket::Ptr](#ptr-9)` |  |
+| `socket` | `[net::TCPSocket::Ptr](net.md#ptr-9)` |  |
 | `factory` | `std::unique_ptr< [ServerConnectionFactory](#serverconnectionfactory) >` |  |
 
 ---
@@ -7808,8 +7824,8 @@ Constructs an HTTP server on the given address using a caller-supplied socket. T
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `address` | `const [net::Address](#address) &` |  |
-| `socket` | `[net::TCPSocket::Ptr](#ptr-9)` |  |
+| `address` | `const [net::Address](net.md#address) &` |  |
+| `socket` | `[net::TCPSocket::Ptr](net.md#ptr-9)` |  |
 | `factory` | `std::unique_ptr< [ServerConnectionFactory](#serverconnectionfactory) >` |  |
 
 ---
@@ -7918,7 +7934,7 @@ Return the server bind address.
 
 ---
 
-{#datecache}
+{#datecache-1}
 
 #### dateCache
 
@@ -8055,7 +8071,7 @@ bool _reusePort {false}
 | `void` | [`onConnectionClose`](#onconnectionclose-1)  |  |
 | `bool` | [`onSocketClose`](#onsocketclose-3) `virtual` | Called when the socket is closed. Forwards the event to all registered receivers in priority order.  |
 | `void` | [`onTimer`](#ontimer)  |  |
-| `uv::Loop *` | [`loop`](#loop-5) `const` `inline` | Return the event loop this server runs on. |
+| `uv::Loop *` | [`loop`](#loop-6) `const` `inline` | Return the event loop this server runs on. |
 
 ---
 
@@ -8083,7 +8099,7 @@ void onClientSocketAccept(const net::TCPSocket::Ptr & socket)
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `const [net::TCPSocket::Ptr](#ptr-9) &` |  |
+| `socket` | `const [net::TCPSocket::Ptr](net.md#ptr-9) &` |  |
 
 ---
 
@@ -8134,7 +8150,7 @@ true to stop propagation to subsequent receivers.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `[net::Socket](#socket) &` |  |
+| `socket` | `[net::Socket](net.md#socket-1) &` |  |
 
 ---
 
@@ -8148,7 +8164,7 @@ void onTimer()
 
 ---
 
-{#loop-5}
+{#loop-6}
 
 #### loop
 
@@ -8209,7 +8225,7 @@ Signals when the connection is closed.
 |--------|------|-------------|
 |  | [`ServerConnection`](#serverconnection-1)  | Creates a [ServerConnection](#serverconnection) attached to the given server and socket.  |
 | `Server &` | [`server`](#server-5)  | Returns the owning [Server](#server) instance. |
-| `ServerConnectionState` | [`state`](#state) `const` `inline` | Returns the current server-side connection state. |
+| `ServerConnectionState` | [`state`](#state-1) `const` `inline` | Returns the current server-side connection state. |
 | `ServerConnectionMode` | [`mode`](#mode-1) `const` `inline` | Returns the current transport mode. |
 | `bool` | [`upgraded`](#upgraded) `const` `inline` | Returns true if the connection has been upgraded (e.g. to WebSocket). |
 | `bool` | [`streaming`](#streaming) `const` `inline` | Returns true if the connection is in long-lived streaming mode. |
@@ -8244,7 +8260,7 @@ Creates a [ServerConnection](#serverconnection) attached to the given server and
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `server` | `[Server](#server) &` |  |
-| `socket` | `[net::TCPSocket::Ptr](#ptr-9)` |  |
+| `socket` | `[net::TCPSocket::Ptr](net.md#ptr-9)` |  |
 
 ---
 
@@ -8260,7 +8276,7 @@ Returns the owning [Server](#server) instance.
 
 ---
 
-{#state}
+{#state-1}
 
 #### state
 
@@ -8370,7 +8386,7 @@ Reset this connection for reuse with a new socket. Called by the connection pool
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `[net::TCPSocket::Ptr](#ptr-9)` |  |
+| `socket` | `[net::TCPSocket::Ptr](net.md#ptr-9)` |  |
 
 ---
 
@@ -8576,7 +8592,7 @@ Called for each chunk of incoming body data after headers are complete.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `buffer` | `const [MutableBuffer](#classicy_1_1MutableBuffer) &` |  |
+| `buffer` | `const [MutableBuffer](base.md#mutablebuffer) &` |  |
 
 ---
 
@@ -8733,7 +8749,7 @@ Factory method for instantiating the [ServerConnection](#serverconnection) insta
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `server` | `[Server](#server) &` |  |
-| `socket` | `const [net::TCPSocket::Ptr](#ptr-9) &` |  |
+| `socket` | `const [net::TCPSocket::Ptr](net.md#ptr-9) &` |  |
 
 ---
 
@@ -8838,7 +8854,7 @@ Called for each chunk of incoming request body data.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `body` | `const [MutableBuffer](#classicy_1_1MutableBuffer) &` |  |
+| `body` | `const [MutableBuffer](base.md#mutablebuffer) &` |  |
 
 ---
 
@@ -9142,9 +9158,9 @@ An RFC 3986 based [URL](#url) parser. Constructors and assignment operators will
 |  | [`URL`](#url-5)  | Constructs a [URL](#url) from scheme, authority, and path+query+fragment.  |
 |  | [`URL`](#url-6)  | Constructs a [URL](#url) from individual components.  |
 |  | [`URL`](#url-7)  |  |
-| `URL &` | [`operator=`](#operator-14)  | Assigns a [URL](#url) from another [URL](#url) instance.  |
-| `URL &` | [`operator=`](#operator-15)  | Assigns a [URL](#url) from a null-terminated string.  |
-| `URL &` | [`operator=`](#operator-16)  | Assigns a [URL](#url) from a std::string.  |
+| `URL &` | [`operator=`](#operator-15)  | Assigns a [URL](#url) from another [URL](#url) instance.  |
+| `URL &` | [`operator=`](#operator-16)  | Assigns a [URL](#url) from a null-terminated string.  |
+| `URL &` | [`operator=`](#operator-17)  | Assigns a [URL](#url) from a std::string.  |
 | `bool` | [`parse`](#parse-1)  | Parses and assigns a [URL](#url) from the given string view, resetting all components first.  |
 | `std::string` | [`scheme`](#scheme) `const` | Returns the [URL](#url) scheme (e.g. "http", "https", "ws"). Always lowercase. |
 | `std::string` | [`userInfo`](#userinfo) `const` | Returns the user info component (e.g. "user:pass" from "http://user:pass@host/"). Returns an empty string if not present. |
@@ -9300,7 +9316,7 @@ URL(const URL &) = default
 
 ---
 
-{#operator-14}
+{#operator-15}
 
 #### operator=
 
@@ -9321,7 +9337,7 @@ Reference to this [URL](#url).
 
 ---
 
-{#operator-15}
+{#operator-16}
 
 #### operator=
 
@@ -9342,7 +9358,7 @@ Reference to this [URL](#url).
 
 ---
 
-{#operator-16}
+{#operator-17}
 
 #### operator=
 
@@ -9794,7 +9810,7 @@ std::string _fragment
 bool _hasPort
 ```
 
-{#datecache-1}
+{#datecache}
 
 ## DateCache
 
@@ -9846,13 +9862,13 @@ std::time_t lastSecond = 0
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `void` | [`update`](#update-1) `inline` | Refreshes the cached Date header string if the current second has changed. No-op if called multiple times within the same second. |
+| `void` | [`update`](#update) `inline` | Refreshes the cached Date header string if the current second has changed. No-op if called multiple times within the same second. |
 | `const char *` | [`data`](#data-2) `const` `inline` | Returns a pointer to the formatted "Date: ...\r\n" header string. |
 | `size_t` | [`size`](#size-1) `const` `inline` | Returns the byte length of the formatted Date header string. |
 
 ---
 
-{#update-1}
+{#update}
 
 #### update
 
@@ -9892,7 +9908,7 @@ inline size_t size() const
 
 Returns the byte length of the formatted Date header string.
 
-{#method-1}
+{#method}
 
 ## Method
 
@@ -10343,7 +10359,7 @@ Creates the [WebSocket](#websocket) with the given Socket. The Socket should be 
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `const [net::Socket::Ptr](#ptr-4) &` |  |
+| `socket` | `const [net::Socket::Ptr](net.md#ptr-4) &` |  |
 
 ---
 
@@ -10420,7 +10436,7 @@ std::vector< WebSocket > Vec()
 #include <websocket.h>
 ```
 
-> **Inherits:** [`SocketEmitter`](#socketemitter)
+> **Inherits:** [`SocketEmitter`](net.md#socketemitter)
 > **Subclassed by:** [`ConnectionAdapter`](#connectionadapter-2), [`WebSocket`](#websocket)
 
 [WebSocket](#websocket) protocol adapter for both client and server endpoints.
@@ -10480,7 +10496,7 @@ Creates a [WebSocketAdapter](#websocketadapter) using the given socket, mode and
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `const [net::Socket::Ptr](#ptr-4) &` |  |
+| `socket` | `const [net::Socket::Ptr](net.md#ptr-4) &` |  |
 | `mode` | `[ws::Mode](#mode-2)` |  |
 | `request` | `[http::Request](#request-4) &` |  |
 | `response` | `[http::Response](#response-1) &` |  |
@@ -10543,7 +10559,7 @@ Number of bytes sent, or -1 on error.
 |-----------|------|-------------|
 | `data` | `const char *` |  |
 | `len` | `size_t` |  |
-| `peerAddr` | `const [net::Address](#address) &` |  |
+| `peerAddr` | `const [net::Address](net.md#address) &` |  |
 | `flags` | `int` |  |
 
 ---
@@ -10564,7 +10580,7 @@ The buffer is moved through the adapter chain and retained by the transport laye
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `buffer` | `[Buffer](#namespaceicy_1a9c464c811f03ea41ea100ed65a0580d3) &&` |  |
+| `buffer` | `[Buffer](base.md#buffer-2) &&` |  |
 | `flags` | `int` |  |
 
 ---
@@ -10581,8 +10597,8 @@ virtual ssize_t sendOwned(Buffer && buffer, const net::Address & peerAddr, int f
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `buffer` | `[Buffer](#namespaceicy_1a9c464c811f03ea41ea100ed65a0580d3) &&` |  |
-| `peerAddr` | `const [net::Address](#address) &` |  |
+| `buffer` | `[Buffer](base.md#buffer-2) &&` |  |
+| `peerAddr` | `const [net::Address](net.md#address) &` |  |
 | `flags` | `int` |  |
 
 ---
@@ -10647,8 +10663,8 @@ Parses the server's HTTP upgrade response and completes the handshake. Any data 
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `buffer` | `const [MutableBuffer](#classicy_1_1MutableBuffer) &` |  |
-| `peerAddr` | `const [net::Address](#address) &` |  |
+| `buffer` | `const [MutableBuffer](base.md#mutablebuffer) &` |  |
+| `peerAddr` | `const [net::Address](net.md#address) &` |  |
 
 ---
 
@@ -10672,8 +10688,8 @@ Parses the client's HTTP upgrade request and sends the 101 response.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `buffer` | `const [MutableBuffer](#classicy_1_1MutableBuffer) &` |  |
-| `peerAddr` | `const [net::Address](#address) &` |  |
+| `buffer` | `const [MutableBuffer](base.md#mutablebuffer) &` |  |
+| `peerAddr` | `const [net::Address](net.md#address) &` |  |
 
 ---
 
@@ -10760,7 +10776,7 @@ bool sendControlFrame(ws::Opcode opcode, const char * payload, size_t payloadLen
 | `opcode` | `[ws::Opcode](#opcode)` |  |
 | `payload` | `const char *` |  |
 | `payloadLen` | `size_t` |  |
-| `peerAddr` | `const [net::Address](#address) &` |  |
+| `peerAddr` | `const [net::Address](net.md#address) &` |  |
 
 ---
 
@@ -10796,7 +10812,7 @@ Called by the socket on connect; initiates the client handshake.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `[net::Socket](#socket) &` |  |
+| `socket` | `[net::Socket](net.md#socket-1) &` |  |
 
 ---
 
@@ -10814,9 +10830,9 @@ Called by the socket on each received buffer; handles handshake or frame parsing
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `[net::Socket](#socket) &` |  |
-| `buffer` | `const [MutableBuffer](#classicy_1_1MutableBuffer) &` |  |
-| `peerAddress` | `const [net::Address](#address) &` |  |
+| `socket` | `[net::Socket](net.md#socket-1) &` |  |
+| `buffer` | `const [MutableBuffer](base.md#mutablebuffer) &` |  |
+| `peerAddress` | `const [net::Address](net.md#address) &` |  |
 
 ---
 
@@ -10834,7 +10850,7 @@ Called by the socket on close; resets framer state.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `[net::Socket](#socket) &` |  |
+| `socket` | `[net::Socket](net.md#socket-1) &` |  |
 
 {#websocketexception}
 
@@ -10997,7 +11013,7 @@ Encodes `data` into a [WebSocket](#websocket) frame and writes it to `frame`.
 
 * `flags` Frame flags: [ws::SendFlags::Text](#namespaceicy_1_1http_1_1ws_1a366b9e6ee51be48df27ea06f8d20e7a2afdf2a2c6b74320a613fe71490a96e2ae), [ws::SendFlags::Binary](#namespaceicy_1_1http_1_1ws_1a366b9e6ee51be48df27ea06f8d20e7a2a0ca55f2c2a2e576e0aa1c08a4e845ed7), or a control frame opcode combined with [FrameFlags::Fin](#namespaceicy_1_1http_1_1ws_1a4317f7f44088d3ab553950bab6b16ab8a0475def81fbd4e70bf7cd07ee307793a). 
 
-* `frame` [BitWriter](#classicy_1_1BitWriter) to write the encoded frame into. 
+* `frame` [BitWriter](base.md#bitwriter) to write the encoded frame into. 
 
 #### Returns
 Total number of bytes written to the frame buffer (header + payload).
@@ -11007,7 +11023,7 @@ Total number of bytes written to the frame buffer (header + payload).
 | `data` | `const char *` |  |
 | `len` | `size_t` |  |
 | `flags` | `int` |  |
-| `frame` | `[BitWriter](#classicy_1_1BitWriter) &` |  |
+| `frame` | `[BitWriter](base.md#bitwriter) &` |  |
 
 ---
 
@@ -11026,7 +11042,7 @@ Decodes a single [WebSocket](#websocket) frame from `frame`.
 The payload is unmasked in-place in the source buffer; no copy is made. `payload` is set to point at the start of the payload within `frame`'s buffer.
 
 #### Parameters
-* `frame` [BitReader](#classicy_1_1BitReader) positioned at the start of a frame. 
+* `frame` [BitReader](base.md#bitreader) positioned at the start of a frame. 
 
 * `payload` Set to point at the start of the decoded payload. Not null-terminated. 
 
@@ -11038,7 +11054,7 @@ Payload length in bytes.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `frame` | `[BitReader](#classicy_1_1BitReader) &` |  |
+| `frame` | `[BitReader](base.md#bitreader) &` |  |
 | `payload` | `char *&` |  |
 
 ---

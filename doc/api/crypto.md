@@ -22,6 +22,74 @@ Cryptographic operations; hashing, HMAC, RSA, X509 certificates.
 | [`Hash`](#hash-3) | Incremental cryptographic hash engine wrapping OpenSSL EVP digest functions. |
 | [`X509Certificate`](#x509certificate) | RAII wrapper for an OpenSSL X509 certificate with PEM loading and inspection. |
 
+### Typedefs
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `std::unique_ptr< EVP_CIPHER_CTX, decltype(&EVP_CIPHER_CTX_free)>` | [`EvpCipherCtxPtr`](#evpcipherctxptr)  |  |
+| `std::vector< unsigned char >` | [`ByteVec`](#bytevec)  | Generic storage container for storing cryptographic binary data. |
+| `std::unique_ptr< EVP_MD_CTX, decltype(&EVP_MD_CTX_free)>` | [`EvpMdCtxPtr`](#evpmdctxptr)  |  |
+| `::RSA` | [`RSAKey`](#rsakey)  | Alias for the OpenSSL RSA key type, brought into the [icy::crypto](#crypto) namespace. |
+| `std::unique_ptr< X509, decltype(&X509_free)>` | [`X509Ptr`](#x509ptr)  | This class represents a X509 Certificate. RAII wrapper for OpenSSL X509 pointers. |
+
+---
+
+{#evpcipherctxptr}
+
+#### EvpCipherCtxPtr
+
+```cpp
+std::unique_ptr< EVP_CIPHER_CTX, decltype(&EVP_CIPHER_CTX_free)> EvpCipherCtxPtr()
+```
+
+---
+
+{#bytevec}
+
+#### ByteVec
+
+```cpp
+std::vector< unsigned char > ByteVec()
+```
+
+Generic storage container for storing cryptographic binary data.
+
+---
+
+{#evpmdctxptr}
+
+#### EvpMdCtxPtr
+
+```cpp
+std::unique_ptr< EVP_MD_CTX, decltype(&EVP_MD_CTX_free)> EvpMdCtxPtr()
+```
+
+---
+
+{#rsakey}
+
+#### RSAKey
+
+```cpp
+::RSA RSAKey()
+```
+
+Alias for the OpenSSL RSA key type, brought into the [icy::crypto](#crypto) namespace.
+
+Currently a transparent alias for the OpenSSL RSA struct. Use OpenSSL RSA_* functions directly to create, populate, and free RSAKey objects. This alias exists as a stable forward-declaration point; a higher-level RAII wrapper may replace it in a future version.
+
+---
+
+{#x509ptr}
+
+#### X509Ptr
+
+```cpp
+std::unique_ptr< X509, decltype(&X509_free)> X509Ptr()
+```
+
+This class represents a X509 Certificate. RAII wrapper for OpenSSL X509 pointers.
+
 ### Functions
 
 | Return | Name | Description |
@@ -352,8 +420,8 @@ Constructs a [Cipher](#cipher) with an explicit key and initialization vector.
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `name` | `const std::string &` |  |
-| `key` | `const [ByteVec](#namespaceicy_1_1crypto_1a5d8aa45f318cae337c15a195dbec260b) &` |  |
-| `iv` | `const [ByteVec](#namespaceicy_1_1crypto_1a5d8aa45f318cae337c15a195dbec260b) &` |  |
+| `key` | `const [ByteVec](#bytevec) &` |  |
+| `iv` | `const [ByteVec](#bytevec) &` |  |
 
 ---
 
@@ -1170,7 +1238,7 @@ Construct with an algorithm name recognized by OpenSSL (e.g. "sha256", "md5"). F
 | `void` | [`update`](#update-10)  | Feeds a string view into the digest computation. |
 | `void` | [`update`](#update-11)  | Feeds a raw memory buffer into the digest computation. |
 | `const ByteVec &` | [`digest`](#digest)  | Finalizes the digest computation and returns the raw binary result. |
-| `std::string` | [`digestStr`](#digeststr)  | Finalizes the digest computation and returns the result as a raw binary string (not hex-encoded). Use [icy::hex::encode()](#encode-14) on [digest()](#digest) if you need a printable representation. |
+| `std::string` | [`digestStr`](#digeststr)  | Finalizes the digest computation and returns the result as a raw binary string (not hex-encoded). Use [icy::hex::encode()](base.md#encode-14) on [digest()](#digest) if you need a printable representation. |
 | `void` | [`reset`](#reset-13)  | Resets the digest context and clears the cached result, allowing the engine to be reused for a new computation with the same algorithm. |
 | `const std::string &` | [`algorithm`](#algorithm) `const` | Returns the algorithm name this engine was constructed with. |
 
@@ -1297,7 +1365,7 @@ Reference to the internal byte vector containing the digest.
 std::string digestStr()
 ```
 
-Finalizes the digest computation and returns the result as a raw binary string (not hex-encoded). Use [icy::hex::encode()](#encode-14) on [digest()](#digest) if you need a printable representation.
+Finalizes the digest computation and returns the result as a raw binary string (not hex-encoded). Use [icy::hex::encode()](base.md#encode-14) on [digest()](#digest) if you need a printable representation.
 
 #### Returns
 Binary digest as a std::string.
@@ -1400,9 +1468,9 @@ RAII wrapper for an OpenSSL X509 certificate with PEM loading and inspection.
 |  | [`X509Certificate`](#x509certificate-4)  | Constructs an [X509Certificate](#x509certificate) from an existing OpenSSL X509 object, optionally sharing ownership via reference count increment. |
 |  | [`X509Certificate`](#x509certificate-5)  | Copy-constructs an [X509Certificate](#x509certificate) by duplicating the underlying X509 object. |
 |  | [`X509Certificate`](#x509certificate-6)  | Move-constructs an [X509Certificate](#x509certificate), transferring ownership from `cert`. |
-| `X509Certificate &` | [`operator=`](#operator-24)  | Copy-assigns a certificate, duplicating the underlying X509 object. |
-| `X509Certificate &` | [`operator=`](#operator-25)  | Move-assigns a certificate, transferring ownership from `cert`. |
-| `void` | [`swap`](#swap-2)  | Swaps this certificate with `cert`. |
+| `X509Certificate &` | [`operator=`](#operator-25)  | Copy-assigns a certificate, duplicating the underlying X509 object. |
+| `X509Certificate &` | [`operator=`](#operator-26)  | Move-assigns a certificate, transferring ownership from `cert`. |
+| `void` | [`swap`](#swap-6)  | Swaps this certificate with `cert`. |
 |  | [`~X509Certificate`](#x509certificate-7)  | Destroys the [X509Certificate](#x509certificate) and releases the underlying OpenSSL X509 object. |
 | `const std::string &` | [`issuerName`](#issuername) `const` | Returns the full distinguished name of the certificate issuer. |
 | `std::string` | [`issuerName`](#issuername-1) `const` | Extracts a single field from the certificate issuer's distinguished name. |
@@ -1558,7 +1626,7 @@ Move-constructs an [X509Certificate](#x509certificate), transferring ownership f
 
 ---
 
-{#operator-24}
+{#operator-25}
 
 #### operator=
 
@@ -1580,7 +1648,7 @@ Reference to this object.
 
 ---
 
-{#operator-25}
+{#operator-26}
 
 #### operator=
 
@@ -1602,7 +1670,7 @@ Reference to this object.
 
 ---
 
-{#swap-2}
+{#swap-6}
 
 #### swap
 
@@ -1775,7 +1843,7 @@ Returns the date and time from which the certificate is valid.
 Parsed from the X509 notBefore field.
 
 #### Returns
-UTC [DateTime](#classicy_1_1DateTime) representing the start of the validity period.
+UTC [DateTime](base.md#datetime) representing the start of the validity period.
 
 ---
 
@@ -1794,7 +1862,7 @@ Returns the date and time at which the certificate expires.
 Parsed from the X509 notAfter field.
 
 #### Returns
-UTC [DateTime](#classicy_1_1DateTime) representing the end of the validity period.
+UTC [DateTime](base.md#datetime) representing the end of the validity period.
 
 ---
 
@@ -2003,7 +2071,7 @@ Values correspond to OpenSSL NID constants used with X509_NAME_get_text_by_NID.
 | `NID_COMMON_NAME` | Common name (CN field). |
 | `NID_COUNTRY` | Country code (C field). |
 | `NID_LOCALITY_NAME` | Locality / city (L field). |
-| `NID_STATE_OR_PROVINCE` | [State](#classicy_1_1State) or province (ST field). |
+| `NID_STATE_OR_PROVINCE` | [State](base.md#state) or province (ST field). |
 | `NID_ORGANIZATION_NAME` | Organization name (O field). |
 | `NID_ORGANIZATION_UNIT_NAME` | Organizational unit (OU field). |
 

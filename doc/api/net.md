@@ -20,9 +20,9 @@ TCP/SSL/UDP networking, socket adapters, DNS resolution.
 | Name | Description |
 |------|-------------|
 | [`Address`](#address) | Represents an IPv4 or IPv6 socket address with host and port. |
-| [`PacketSocketEmitter`](#packetsocketemitter) | [Socket](#socket) adapter that emits received data as packets. |
-| [`Socket`](#socket) | Base socket implementation from which all sockets derive. |
-| [`SocketAdapter`](#socketadapter) | [SocketAdapter](#socketadapter) is the abstract interface for all socket classes. A [SocketAdapter](#socketadapter) can also be attached to a [Socket](#socket) in order to override default [Socket](#socket) callbacks and behaviour, while still maintaining the default [Socket](#socket) interface (see Socket::setAdapter). |
+| [`PacketSocketEmitter`](#packetsocketemitter) | [Socket](#socket-1) adapter that emits received data as packets. |
+| [`Socket`](#socket-1) | Base socket implementation from which all sockets derive. |
+| [`SocketAdapter`](#socketadapter) | [SocketAdapter](#socketadapter) is the abstract interface for all socket classes. A [SocketAdapter](#socketadapter) can also be attached to a [Socket](#socket-1) in order to override default [Socket](#socket-1) callbacks and behaviour, while still maintaining the default [Socket](#socket-1) interface (see Socket::setAdapter). |
 | [`SocketEmitter`](#socketemitter) | [SocketAdapter](#socketadapter) class that adds signal callbacks for sockets. Asde from adding a signal interface the class works as a wrapper for the socket instance, and is designed to be used the same way as a `std::unique_ptr` by overriding the ->() operator. |
 | [`SocketPacket`](#socketpacket) | [SocketPacket](#socketpacket) is the default packet type emitted by sockets. [SocketPacket](#socketpacket) provides peer address information and a buffer reference for nocopy binary operations. |
 | [`SSLAdapter`](#ssladapter) | Manages the OpenSSL context and BIO buffers for an SSL socket connection. |
@@ -31,10 +31,10 @@ TCP/SSL/UDP networking, socket adapters, DNS resolution.
 | [`SSLSession`](#sslsession) | This class encapsulates a SSL session object used with session caching on the client side. |
 | [`SSLSocket`](#sslsocket) | SSL socket implementation. |
 | [`TCPSocket`](#tcpsocket) | TCP socket implementation. |
-| [`Transaction`](#transaction) | This class provides request/response functionality for [IPacket](#classicy_1_1IPacket) types emitted from a [Socket](#socket). |
+| [`Transaction`](#transaction) | This class provides request/response functionality for [IPacket](base.md#ipacket) types emitted from a [Socket](#socket-1). |
 | [`UDPSocket`](#udpsocket) | UDP socket implementation. |
 | [`VerificationErrorDetails`](#verificationerrordetails) | A utility class for certificate error handling. |
-| [`PacketInfo`](#packetinfo-1) | Provides information about packets emitted from a socket. See [SocketPacket](#socketpacket). |
+| [`PacketInfo`](#packetinfo) | Provides information about packets emitted from a socket. See [SocketPacket](#socketpacket). |
 
 ### Enumerations
 
@@ -117,7 +117,7 @@ A shared_ptr owning the newly created socket.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `loop` | `[uv::Loop](#namespaceicy_1_1uv_1a8bfd153231f95de982e16db911389619) *` |  |
+| `loop` | `[uv::Loop](uv.md#loop) *` |  |
 
 ---
 
@@ -227,7 +227,7 @@ The send buffer size, or a libuv error code on failure.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `handle` | `[uv::Handle](#handle)< T > &` |  |
+| `handle` | `[uv::Handle](uv.md#handle-2)< T > &` |  |
 
 ---
 
@@ -251,7 +251,7 @@ The receive buffer size, or a libuv error code on failure.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `handle` | `[uv::Handle](#handle)< T > &` |  |
+| `handle` | `[uv::Handle](uv.md#handle-2)< T > &` |  |
 
 ---
 
@@ -277,7 +277,7 @@ Sets the send buffer size for a socket handle.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `handle` | `[uv::Handle](#handle)< T > &` |  |
+| `handle` | `[uv::Handle](uv.md#handle-2)< T > &` |  |
 | `size` | `int` |  |
 
 ---
@@ -304,7 +304,7 @@ Sets the receive buffer size for a socket handle.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `handle` | `[uv::Handle](#handle)< T > &` |  |
+| `handle` | `[uv::Handle](uv.md#handle-2)< T > &` |  |
 | `size` | `int` |  |
 
 ### Variables
@@ -820,10 +820,10 @@ std::shared_ptr< AddressBase > _base
 #include <packetsocket.h>
 ```
 
-> **Inherits:** [`SocketEmitter`](#socketemitter), [`Signal< void(IPacket &)>`](#classicy_1_1Signal)
+> **Inherits:** [`SocketEmitter`](#socketemitter), [`Signal< void(IPacket &)>`](base.md#signal)
 > **Subclassed by:** [`Transaction< Message >`](#transaction), [`Transaction< PacketT >`](#transaction)
 
-[Socket](#socket) adapter that emits received data as packets.
+[Socket](#socket-1) adapter that emits received data as packets.
 
 ### Public Attributes
 
@@ -849,7 +849,7 @@ The packet factory.
 |--------|------|-------------|
 |  | [`PacketSocketEmitter`](#packetsocketemitter-1)  | Creates the [PacketSocketEmitter](#packetsocketemitter) and attaches it to the given socket. |
 | `bool` | [`onSocketRecv`](#onsocketrecv) `virtual` | Parses raw received data into packets via the factory and forwards each parsed packet to [onPacket()](#onpacket). Returns true if propagation should stop.  |
-| `bool` | [`onPacket`](#onpacket) `virtual` | [Process](#classicy_1_1Process) a parsed packet. Returns true to stop propagation. |
+| `bool` | [`onPacket`](#onpacket) `virtual` | [Process](base.md#process) a parsed packet. Returns true to stop propagation. |
 
 ---
 
@@ -896,8 +896,8 @@ true if the event was consumed and should not propagate further.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `[Socket](#socket) &` |  |
-| `buffer` | `const [MutableBuffer](#classicy_1_1MutableBuffer) &` |  |
+| `socket` | `[Socket](#socket-1) &` |  |
+| `buffer` | `const [MutableBuffer](base.md#mutablebuffer) &` |  |
 | `peerAddress` | `const [Address](#address) &` |  |
 
 ---
@@ -912,13 +912,13 @@ true if the event was consumed and should not propagate further.
 virtual bool onPacket(IPacket & pkt)
 ```
 
-[Process](#classicy_1_1Process) a parsed packet. Returns true to stop propagation.
+[Process](base.md#process) a parsed packet. Returns true to stop propagation.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `pkt` | `[IPacket](#classicy_1_1IPacket) &` |  |
+| `pkt` | `[IPacket](base.md#ipacket) &` |  |
 
-{#socket}
+{#socket-1}
 
 ## Socket
 
@@ -955,9 +955,9 @@ The value is empty on initialization.
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`Socket`](#socket-1)  |  |
 |  | [`Socket`](#socket-2)  |  |
 |  | [`Socket`](#socket-3)  |  |
+|  | [`Socket`](#socket-4)  |  |
 | `void` | [`connect`](#connect-2)  | Connects to the given peer IP address. |
 | `void` | [`connect`](#connect-3)  | Resolves and connects to the given host address. |
 | `void` | [`bind`](#bind)  | Bind a local address to the socket. The address may be IPv4 or IPv6 (if supported). |
@@ -967,16 +967,16 @@ The value is empty on initialization.
 | `ssize_t` | [`sendOwned`](#sendowned-1)  |  |
 | `void` | [`close`](#close-12)  | Closes the underlying socket. |
 | `Address` | [`address`](#address-8) `const` | The locally bound address. |
-| `Address` | [`peerAddress`](#peeraddress) `const` | The connected peer address. |
+| `Address` | [`peerAddress`](#peeraddress-1) `const` | The connected peer address. |
 | `net::TransportType` | [`transport`](#transport) `const` | The transport protocol: TCP, UDP or SSLTCP. |
 | `void` | [`setError`](#seterror-1)  | Sets the socket error. |
-| `const icy::Error &` | [`error`](#error-4) `const` | Return the socket error if any. |
+| `const icy::Error &` | [`error`](#error-5) `const` | Return the socket error if any. |
 | `bool` | [`closed`](#closed-1) `const` | Returns true if the native socket handle is closed. |
-| `uv::Loop *` | [`loop`](#loop-2) `const` | Returns the socket event loop. |
+| `uv::Loop *` | [`loop`](#loop-3) `const` | Returns the socket event loop. |
 
 ---
 
-{#socket-1}
+{#socket-2}
 
 #### Socket
 
@@ -986,7 +986,7 @@ Socket() = default
 
 ---
 
-{#socket-2}
+{#socket-3}
 
 #### Socket
 
@@ -996,7 +996,7 @@ Socket(const Socket &) = delete
 
 ---
 
-{#socket-3}
+{#socket-4}
 
 #### Socket
 
@@ -1016,7 +1016,7 @@ void connect(const Address & address)
 
 Connects to the given peer IP address.
 
-Throws an exception if the address is malformed. Connection errors can be handled via the [Error](#structicy_1_1Error) signal.
+Throws an exception if the address is malformed. Connection errors can be handled via the [Error](base.md#error) signal.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -1034,7 +1034,7 @@ void connect(std::string_view host, uint16_t port)
 
 Resolves and connects to the given host address.
 
-Throws an Exception if the host is malformed. Since the DNS callback is asynchronous implementations need to listen for the [Error](#structicy_1_1Error) signal for handling connection errors.
+Throws an Exception if the host is malformed. Since the DNS callback is asynchronous implementations need to listen for the [Error](base.md#error) signal for handling connection errors.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -1108,7 +1108,7 @@ Sends an owned payload buffer to the connected peer.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `buffer` | `[Buffer](#namespaceicy_1a9c464c811f03ea41ea100ed65a0580d3) &&` |  |
+| `buffer` | `[Buffer](base.md#buffer-2) &&` |  |
 | `flags` | `int` |  |
 
 ---
@@ -1123,7 +1123,7 @@ ssize_t sendOwned(Buffer && buffer, const Address & peerAddress, int flags)
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `buffer` | `[Buffer](#namespaceicy_1a9c464c811f03ea41ea100ed65a0580d3) &&` |  |
+| `buffer` | `[Buffer](base.md#buffer-2) &&` |  |
 | `peerAddress` | `const [Address](#address) &` |  |
 | `flags` | `int` |  |
 
@@ -1157,7 +1157,7 @@ This function will not throw. A Wildcard 0.0.0.0:0 address is returned if the so
 
 ---
 
-{#peeraddress}
+{#peeraddress-1}
 
 #### peerAddress
 
@@ -1201,11 +1201,11 @@ Setting the error will result in socket closure.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `err` | `const [icy::Error](#structicy_1_1Error) &` |  |
+| `err` | `const [icy::Error](base.md#error) &` |  |
 
 ---
 
-{#error-4}
+{#error-5}
 
 #### error
 
@@ -1233,7 +1233,7 @@ Returns true if the native socket handle is closed.
 
 ---
 
-{#loop-2}
+{#loop-3}
 
 #### loop
 
@@ -1327,9 +1327,9 @@ std::vector< Ptr > Vec()
 #include <socketadapter.h>
 ```
 
-> **Subclassed by:** [`Connection`](#connection-1), [`ConnectionAdapter`](#connectionadapter), [`ConnectionStream`](#connectionstream), [`Server`](#server), [`Socket`](#socket), [`SocketEmitter`](#socketemitter)
+> **Subclassed by:** [`Connection`](http.md#connection-1), [`ConnectionAdapter`](http.md#connectionadapter), [`ConnectionStream`](http.md#connectionstream), [`Server`](http.md#server), [`Socket`](#socket-1), [`SocketEmitter`](#socketemitter)
 
-[SocketAdapter](#socketadapter) is the abstract interface for all socket classes. A [SocketAdapter](#socketadapter) can also be attached to a [Socket](#socket) in order to override default [Socket](#socket) callbacks and behaviour, while still maintaining the default [Socket](#socket) interface (see Socket::setAdapter).
+[SocketAdapter](#socketadapter) is the abstract interface for all socket classes. A [SocketAdapter](#socketadapter) can also be attached to a [Socket](#socket-1) in order to override default [Socket](#socket-1) callbacks and behaviour, while still maintaining the default [Socket](#socket-1) interface (see Socket::setAdapter).
 
 This class also be extended to implement custom processing for received socket data before it is dispatched to the application (see [PacketSocketEmitter](#packetsocketemitter) and [Transaction](#transaction) classes).
 
@@ -1462,7 +1462,7 @@ The buffer is moved through the adapter chain and retained by the transport laye
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `buffer` | `[Buffer](#namespaceicy_1a9c464c811f03ea41ea100ed65a0580d3) &&` |  |
+| `buffer` | `[Buffer](base.md#buffer-2) &&` |  |
 | `flags` | `int` |  |
 
 ---
@@ -1479,7 +1479,7 @@ virtual ssize_t sendOwned(Buffer && buffer, const Address & peerAddress, int fla
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `buffer` | `[Buffer](#namespaceicy_1a9c464c811f03ea41ea100ed65a0580d3) &&` |  |
+| `buffer` | `[Buffer](base.md#buffer-2) &&` |  |
 | `peerAddress` | `const [Address](#address) &` |  |
 | `flags` | `int` |  |
 
@@ -1499,7 +1499,7 @@ Sends the given packet to the connected peer. Returns the number of bytes sent o
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `packet` | `const [IPacket](#classicy_1_1IPacket) &` |  |
+| `packet` | `const [IPacket](base.md#ipacket) &` |  |
 | `flags` | `int` |  |
 
 ---
@@ -1516,7 +1516,7 @@ virtual ssize_t sendPacket(const IPacket & packet, const Address & peerAddress, 
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `packet` | `const [IPacket](#classicy_1_1IPacket) &` |  |
+| `packet` | `const [IPacket](base.md#ipacket) &` |  |
 | `peerAddress` | `const [Address](#address) &` |  |
 | `flags` | `int` |  |
 
@@ -1536,7 +1536,7 @@ Sends the given packet to the connected peer. This method provides delegate comp
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `packet` | `[IPacket](#classicy_1_1IPacket) &` |  |
+| `packet` | `[IPacket](base.md#ipacket) &` |  |
 
 ---
 
@@ -1657,7 +1657,7 @@ true to stop propagation to subsequent receivers.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `[Socket](#socket) &` |  |
+| `socket` | `[Socket](#socket-1) &` |  |
 
 ---
 
@@ -1684,8 +1684,8 @@ true to stop propagation to subsequent receivers.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `[Socket](#socket) &` |  |
-| `buffer` | `const [MutableBuffer](#classicy_1_1MutableBuffer) &` |  |
+| `socket` | `[Socket](#socket-1) &` |  |
+| `buffer` | `const [MutableBuffer](base.md#mutablebuffer) &` |  |
 | `peerAddress` | `const [Address](#address) &` |  |
 
 ---
@@ -1704,15 +1704,15 @@ Called when the socket encounters an error. Forwards the event to all registered
 #### Parameters
 * `socket` The socket that encountered the error. 
 
-* `error` [Error](#structicy_1_1Error) details. 
+* `error` [Error](base.md#error) details. 
 
 #### Returns
 true to stop propagation to subsequent receivers.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `[Socket](#socket) &` |  |
-| `error` | `const [Error](#structicy_1_1Error) &` |  |
+| `socket` | `[Socket](#socket-1) &` |  |
+| `error` | `const [Error](base.md#error) &` |  |
 
 ---
 
@@ -1735,7 +1735,7 @@ true to stop propagation to subsequent receivers.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `[Socket](#socket) &` |  |
+| `socket` | `[Socket](#socket-1) &` |  |
 
 ### Protected Attributes
 
@@ -1839,7 +1839,7 @@ bool alive
 ```
 
 > **Inherits:** [`SocketAdapter`](#socketadapter)
-> **Subclassed by:** [`WebSocketAdapter`](#websocketadapter), [`PacketSocketEmitter`](#packetsocketemitter)
+> **Subclassed by:** [`WebSocketAdapter`](http.md#websocketadapter), [`PacketSocketEmitter`](#packetsocketemitter)
 
 [SocketAdapter](#socketadapter) class that adds signal callbacks for sockets. Asde from adding a signal interface the class works as a wrapper for the socket instance, and is designed to be used the same way as a `std::unique_ptr` by overriding the ->() operator.
 
@@ -1849,7 +1849,7 @@ bool alive
 |--------|------|-------------|
 | `LocalSignal< bool(Socket &)>` | [`Connect`](#connect-4)  | Signals that the socket is connected. |
 | `LocalSignal< bool(Socket &, const MutableBuffer &, const Address &)>` | [`Recv`](#recv)  | Signals when data is received by the socket. |
-| `LocalSignal< bool(Socket &, const icy::Error &)>` | [`Error`](#error-5)  | Signals that the socket is closed in error. This signal will be sent just before the Closed signal. |
+| `LocalSignal< bool(Socket &, const icy::Error &)>` | [`Error`](#error-6)  | Signals that the socket is closed in error. This signal will be sent just before the Closed signal. |
 | `LocalSignal< bool(Socket &)>` | [`Close`](#close-13)  | Signals that the underlying socket is closed. |
 | `Socket::Ptr` | [`impl`](#impl)  | Pointer to the underlying socket. Sent data will be proxied to this socket. |
 
@@ -1879,7 +1879,7 @@ Signals when data is received by the socket.
 
 ---
 
-{#error-5}
+{#error-6}
 
 #### Error
 
@@ -2079,7 +2079,7 @@ Raw pointer to the socket (never null if a socket was attached).
 |--------|------|-------------|
 | `bool` | [`onSocketConnect`](#onsocketconnect-1) `virtual` | Forwards the connect event to chained adapters, then fires the Connect signal. |
 | `bool` | [`onSocketRecv`](#onsocketrecv-2) `virtual` | Forwards the recv event to chained adapters, then fires the Recv signal. |
-| `bool` | [`onSocketError`](#onsocketerror-1) `virtual` | Forwards the error event to chained adapters, then fires the [Error](#structicy_1_1Error) signal. |
+| `bool` | [`onSocketError`](#onsocketerror-1) `virtual` | Forwards the error event to chained adapters, then fires the [Error](base.md#error) signal. |
 | `bool` | [`onSocketClose`](#onsocketclose-1) `virtual` | Forwards the close event to chained adapters, then fires the Close signal. |
 
 ---
@@ -2098,7 +2098,7 @@ Forwards the connect event to chained adapters, then fires the Connect signal.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `[Socket](#socket) &` |  |
+| `socket` | `[Socket](#socket-1) &` |  |
 
 ---
 
@@ -2116,8 +2116,8 @@ Forwards the recv event to chained adapters, then fires the Recv signal.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `[Socket](#socket) &` |  |
-| `buffer` | `const [MutableBuffer](#classicy_1_1MutableBuffer) &` |  |
+| `socket` | `[Socket](#socket-1) &` |  |
+| `buffer` | `const [MutableBuffer](base.md#mutablebuffer) &` |  |
 | `peerAddress` | `const [Address](#address) &` |  |
 
 ---
@@ -2132,12 +2132,12 @@ Forwards the recv event to chained adapters, then fires the Recv signal.
 virtual bool onSocketError(Socket & socket, const icy::Error & error)
 ```
 
-Forwards the error event to chained adapters, then fires the [Error](#structicy_1_1Error) signal.
+Forwards the error event to chained adapters, then fires the [Error](base.md#error) signal.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `[Socket](#socket) &` |  |
-| `error` | `const [icy::Error](#structicy_1_1Error) &` |  |
+| `socket` | `[Socket](#socket-1) &` |  |
+| `error` | `const [icy::Error](base.md#error) &` |  |
 
 ---
 
@@ -2155,7 +2155,7 @@ Forwards the close event to chained adapters, then fires the Close signal.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `socket` | `[Socket](#socket) &` |  |
+| `socket` | `[Socket](#socket-1) &` |  |
 
 {#socketpacket}
 
@@ -2165,7 +2165,7 @@ Forwards the close event to chained adapters, then fires the Close signal.
 #include <socket.h>
 ```
 
-> **Inherits:** [`RawPacket`](#classicy_1_1RawPacket)
+> **Inherits:** [`RawPacket`](base.md#rawpacket)
 
 [SocketPacket](#socketpacket) is the default packet type emitted by sockets. [SocketPacket](#socketpacket) provides peer address information and a buffer reference for nocopy binary operations.
 
@@ -2177,9 +2177,9 @@ The referenced packet buffer lifetime is only guaranteed for the duration of the
 |--------|------|-------------|
 |  | [`SocketPacket`](#socketpacket-1) `inline` | Constructs a [SocketPacket](#socketpacket) wrapping the received buffer. |
 |  | [`SocketPacket`](#socketpacket-2) `inline` | Copy constructor; shares the underlying buffer reference.  |
-| `PacketInfo *` | [`packetInfo`](#packetinfo) `const` `inline` | Returns the [PacketInfo](#packetinfo-1) for this socket packet.  |
+| `PacketInfo *` | [`packetInfo`](#packetinfo-3) `const` `inline` | Returns the [PacketInfo](#packetinfo) for this socket packet.  |
 | `void` | [`print`](#print-6) `virtual` `const` `inline` | Prints a one-line description of the packet to `os`.  |
-| `std::unique_ptr< IPacket >` | [`clone`](#clone-5) `virtual` `const` `inline` | Returns a heap-allocated copy of this [SocketPacket](#socketpacket). |
+| `std::unique_ptr< IPacket >` | [`clone`](#clone-6) `virtual` `const` `inline` | Returns a heap-allocated copy of this [SocketPacket](#socketpacket). |
 | `ssize_t` | [`read`](#read-1) `virtual` `inline` | Not supported; always throws std::logic_error. |
 | `void` | [`write`](#write-1) `virtual` `const` `inline` | Appends the packet payload to `buf`.  |
 | `const char *` | [`className`](#classname-5) `virtual` `const` `inline` | #### Returns |
@@ -2209,7 +2209,7 @@ The buffer data pointer remains valid only for the duration of the enclosing rec
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `socket` | `const [Socket::Ptr](#ptr-4) &` |  |
-| `buffer` | `const [MutableBuffer](#classicy_1_1MutableBuffer) &` |  |
+| `buffer` | `const [MutableBuffer](base.md#mutablebuffer) &` |  |
 | `peerAddress` | `const [Address](#address) &` |  |
 
 ---
@@ -2234,7 +2234,7 @@ Copy constructor; shares the underlying buffer reference.
 
 ---
 
-{#packetinfo}
+{#packetinfo-3}
 
 #### packetInfo
 
@@ -2244,9 +2244,9 @@ Copy constructor; shares the underlying buffer reference.
 inline PacketInfo * packetInfo() const
 ```
 
-Returns the [PacketInfo](#packetinfo-1) for this socket packet. 
+Returns the [PacketInfo](#packetinfo) for this socket packet. 
 #### Returns
-Pointer to the associated [PacketInfo](#packetinfo-1) (never null for a valid packet).
+Pointer to the associated [PacketInfo](#packetinfo) (never null for a valid packet).
 
 ---
 
@@ -2270,7 +2270,7 @@ Prints a one-line description of the packet to `os`.
 
 ---
 
-{#clone-5}
+{#clone-6}
 
 #### clone
 
@@ -2314,7 +2314,7 @@ Appends the packet payload to `buf`.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `buf` | `[Buffer](#namespaceicy_1a9c464c811f03ea41ea100ed65a0580d3) &` |  |
+| `buf` | `[Buffer](base.md#buffer-2) &` |  |
 
 ---
 
@@ -2592,7 +2592,7 @@ Moves plaintext data into the pending write buffer when possible.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `data` | `[Buffer](#namespaceicy_1a9c464c811f03ea41ea100ed65a0580d3) &&` |  |
+| `data` | `[Buffer](base.md#buffer-2) &&` |  |
 
 ### Protected Attributes
 
@@ -2860,7 +2860,7 @@ Note that [useCertificate()](#usecertificate) must always be called before usePr
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `certificate` | `[crypto::X509Certificate](#x509certificate) &` |  |
+| `certificate` | `[crypto::X509Certificate](crypto.md#x509certificate) &` |  |
 
 ---
 
@@ -2876,7 +2876,7 @@ Adds a certificate for certificate chain validation.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `certificate` | `[crypto::X509Certificate](#x509certificate) &` |  |
+| `certificate` | `[crypto::X509Certificate](crypto.md#x509certificate) &` |  |
 
 ---
 
@@ -2896,7 +2896,7 @@ Note: If the private key is protected by a passphrase, a PrivateKeyPassphraseHan
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `certificate` | `[crypto::X509Certificate](#x509certificate) &` |  |
+| `certificate` | `[crypto::X509Certificate](crypto.md#x509certificate) &` |  |
 
 ---
 
@@ -3789,7 +3789,7 @@ SSL socket implementation.
 | `ssize_t` | [`sendOwned`](#sendowned-5) `virtual` |  |
 | `void` | [`setHostname`](#sethostname-1)  | Set the expected peer hostname for certificate verification and SNI. Must be called before [connect()](#connect-5) to enable hostname verification. |
 | `void` | [`useContext`](#usecontext)  | Use the given SSL context for this socket. |
-| `SSLContext::Ptr` | [`context`](#context-3) `const` | Returns the SSL context used for this socket. |
+| `SSLContext::Ptr` | [`context`](#context-4) `const` | Returns the SSL context used for this socket. |
 | `void` | [`useSession`](#usesession)  | Sets the SSL session to use for the next connection. Setting a previously saved Session object is necessary to enable session caching. |
 | `SSLSession::Ptr` | [`currentSession`](#currentsession)  | Returns the SSL session of the current connection, for reuse in a future connection (if session caching is enabled). |
 | `bool` | [`sessionWasReused`](#sessionwasreused)  | Returns true if a reused session was negotiated during the handshake. |
@@ -3816,7 +3816,7 @@ Constructs an [SSLSocket](#sslsocket) that acquires its context from [SSLManager
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `loop` | `[uv::Loop](#namespaceicy_1_1uv_1a8bfd153231f95de982e16db911389619) *` |  |
+| `loop` | `[uv::Loop](uv.md#loop) *` |  |
 
 ---
 
@@ -3837,7 +3837,7 @@ Constructs an [SSLSocket](#sslsocket) with an explicit SSL context.
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `sslContext` | `[SSLContext::Ptr](#ptr-6)` |  |
-| `loop` | `[uv::Loop](#namespaceicy_1_1uv_1a8bfd153231f95de982e16db911389619) *` |  |
+| `loop` | `[uv::Loop](uv.md#loop) *` |  |
 
 ---
 
@@ -3861,7 +3861,7 @@ Constructs an [SSLSocket](#sslsocket) with an explicit context and a prior sessi
 |-----------|------|-------------|
 | `sslContext` | `[SSLContext::Ptr](#ptr-6)` |  |
 | `session` | `[SSLSession::Ptr](#ptr-7)` |  |
-| `loop` | `[uv::Loop](#namespaceicy_1_1uv_1a8bfd153231f95de982e16db911389619) *` |  |
+| `loop` | `[uv::Loop](uv.md#loop) *` |  |
 
 ---
 
@@ -4028,7 +4028,7 @@ Sends an owned payload buffer to the connected peer.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `buffer` | `[Buffer](#namespaceicy_1a9c464c811f03ea41ea100ed65a0580d3) &&` |  |
+| `buffer` | `[Buffer](base.md#buffer-2) &&` |  |
 | `flags` | `int` |  |
 
 ---
@@ -4077,7 +4077,7 @@ virtual ssize_t sendOwned(Buffer && buffer, const net::Address & peerAddress, in
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `buffer` | `[Buffer](#namespaceicy_1a9c464c811f03ea41ea100ed65a0580d3) &&` |  |
+| `buffer` | `[Buffer](base.md#buffer-2) &&` |  |
 | `peerAddress` | `const [net::Address](#address) &` |  |
 | `flags` | `int` |  |
 
@@ -4115,7 +4115,7 @@ Use the given SSL context for this socket.
 
 ---
 
-{#context-3}
+{#context-4}
 
 #### context
 
@@ -4339,7 +4339,7 @@ std::vector< Ptr > Vec()
 #include <tcpsocket.h>
 ```
 
-> **Inherits:** [`Stream< uv_tcp_t >`](#classicy_1_1Stream), [`Socket`](#socket)
+> **Inherits:** [`Stream< uv_tcp_t >`](base.md#stream), [`Socket`](#socket-1)
 > **Subclassed by:** [`SSLSocket`](#sslsocket)
 
 TCP socket implementation.
@@ -4371,7 +4371,7 @@ Fired when a new client connection is accepted; carries a shared_ptr to the new 
 |  | [`TCPSocket`](#tcpsocket-3)  |  |
 | `bool` | [`shutdown`](#shutdown-5) `virtual` | Sends a TCP shutdown request; the socket closes after the peer acknowledges.  |
 | `void` | [`close`](#close-15) `virtual` | Closes the socket immediately, releasing all associated resources. |
-| `void` | [`connect`](#connect-7) `virtual` | Connects to `peerAddress` using a libuv connect request. On success, calls [onConnect()](#onconnect-1); on failure, calls [setUVError()](#setuverror).  |
+| `void` | [`connect`](#connect-7) `virtual` | Connects to `peerAddress` using a libuv connect request. On success, calls [onConnect()](#onconnect-1); on failure, calls [setUVError()](uv.md#setuverror).  |
 | `void` | [`connect`](#connect-8) `virtual` | Resolves `host` via DNS (or maps "localhost"), then connects.  |
 | `ssize_t` | [`send`](#send-4) `virtual` | Writes `len` bytes to the connected peer.  |
 | `ssize_t` | [`sendOwned`](#sendowned-6) `virtual` | Sends an owned payload buffer to the connected peer. |
@@ -4387,14 +4387,14 @@ Fired when a new client connection is accepted; carries a shared_ptr to the new 
 | `void` | [`setMode`](#setmode)  | Sets the socket mode (ServerSide or ClientSide).  |
 | `SocketMode` | [`mode`](#mode) `const` | Returns the current socket mode. |
 | `void` | [`setError`](#seterror-2) `virtual` | Sets the socket error; ignores the call if an error is already recorded. Setting an error causes the socket to close.  |
-| `const icy::Error &` | [`error`](#error-6) `virtual` `const` | Returns the current socket error, if any. |
+| `const icy::Error &` | [`error`](#error-7) `virtual` `const` | Returns the current socket error, if any. |
 | `bool` | [`closed`](#closed-2) `virtual` `const` | Returns true if the native socket handle is closed. |
 | `net::Address` | [`address`](#address-9) `virtual` `const` | Returns the IP address and port number of the socket. A wildcard address is returned if the socket is not connected. |
-| `net::Address` | [`peerAddress`](#peeraddress-1) `virtual` `const` | Returns the IP address and port number of the peer socket. A wildcard address is returned if the socket is not connected. |
+| `net::Address` | [`peerAddress`](#peeraddress-2) `virtual` `const` | Returns the IP address and port number of the peer socket. A wildcard address is returned if the socket is not connected. |
 | `net::TransportType` | [`transport`](#transport-2) `virtual` `const` | Returns the TCP transport protocol. |
-| `uv::Loop *` | [`loop`](#loop-3) `virtual` `const` | Returns the event loop associated with this socket. |
+| `uv::Loop *` | [`loop`](#loop-4) `virtual` `const` | Returns the event loop associated with this socket. |
 | `void` | [`onConnect`](#onconnect-1) `virtual` | Called by the stream layer when the TCP connection is established. |
-| `void` | [`onRead`](#onread-1) `virtual` | Called by the stream layer with raw received bytes; wraps them in a [MutableBuffer](#classicy_1_1MutableBuffer).  |
+| `void` | [`onRead`](#onread-1) `virtual` | Called by the stream layer with raw received bytes; wraps them in a [MutableBuffer](base.md#mutablebuffer).  |
 | `void` | [`onRecv`](#onrecv) `virtual` | Dispatches a received buffer to all socket adapters via onSocketRecv.  |
 | `void` | [`onError`](#onerror-1) `virtual` | Dispatches the error to adapters and closes the socket.  |
 | `void` | [`onClose`](#onclose-1) `virtual` | Dispatches the close event to all socket adapters. |
@@ -4415,7 +4415,7 @@ Constructs the [TCPSocket](#tcpsocket) and initializes the underlying libuv hand
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `loop` | `[uv::Loop](#namespaceicy_1_1uv_1a8bfd153231f95de982e16db911389619) *` |  |
+| `loop` | `[uv::Loop](uv.md#loop) *` |  |
 
 ---
 
@@ -4479,7 +4479,7 @@ Closes the socket immediately, releasing all associated resources.
 virtual void connect(const net::Address & peerAddress)
 ```
 
-Connects to `peerAddress` using a libuv connect request. On success, calls [onConnect()](#onconnect-1); on failure, calls [setUVError()](#setuverror). 
+Connects to `peerAddress` using a libuv connect request. On success, calls [onConnect()](#onconnect-1); on failure, calls [setUVError()](uv.md#setuverror). 
 #### Parameters
 * `peerAddress` The remote address to connect to.
 
@@ -4555,7 +4555,7 @@ Sends an owned payload buffer to the connected peer.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `buffer` | `[Buffer](#namespaceicy_1a9c464c811f03ea41ea100ed65a0580d3) &&` |  |
+| `buffer` | `[Buffer](base.md#buffer-2) &&` |  |
 | `flags` | `int` |  |
 
 ---
@@ -4604,7 +4604,7 @@ virtual ssize_t sendOwned(Buffer && buffer, const net::Address & peerAddress, in
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `buffer` | `[Buffer](#namespaceicy_1a9c464c811f03ea41ea100ed65a0580d3) &&` |  |
+| `buffer` | `[Buffer](base.md#buffer-2) &&` |  |
 | `peerAddress` | `const [net::Address](#address) &` |  |
 | `flags` | `int` |  |
 
@@ -4795,11 +4795,11 @@ Sets the socket error; ignores the call if an error is already recorded. Setting
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `err` | `const [icy::Error](#structicy_1_1Error) &` |  |
+| `err` | `const [icy::Error](base.md#error) &` |  |
 
 ---
 
-{#error-6}
+{#error-7}
 
 #### error
 
@@ -4841,7 +4841,7 @@ Returns the IP address and port number of the socket. A wildcard address is retu
 
 ---
 
-{#peeraddress-1}
+{#peeraddress-2}
 
 #### peerAddress
 
@@ -4869,7 +4869,7 @@ Returns the TCP transport protocol.
 
 ---
 
-{#loop-3}
+{#loop-4}
 
 #### loop
 
@@ -4907,7 +4907,7 @@ Called by the stream layer when the TCP connection is established.
 virtual void onRead(const char * data, size_t len)
 ```
 
-Called by the stream layer with raw received bytes; wraps them in a [MutableBuffer](#classicy_1_1MutableBuffer). 
+Called by the stream layer with raw received bytes; wraps them in a [MutableBuffer](base.md#mutablebuffer). 
 #### Parameters
 * `data` Pointer to received bytes. 
 
@@ -4936,7 +4936,7 @@ Dispatches a received buffer to all socket adapters via onSocketRecv.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `buf` | `const [MutableBuffer](#classicy_1_1MutableBuffer) &` |  |
+| `buf` | `const [MutableBuffer](base.md#mutablebuffer) &` |  |
 
 ---
 
@@ -4956,7 +4956,7 @@ Dispatches the error to adapters and closes the socket.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `error` | `const [icy::Error](#structicy_1_1Error) &` |  |
+| `error` | `const [icy::Error](base.md#error) &` |  |
 
 ---
 
@@ -5071,9 +5071,9 @@ std::vector< Ptr > Vec()
 #include <transaction.h>
 ```
 
-> **Inherits:** [`PacketTransaction< PacketT >`](#classicy_1_1PacketTransaction), [`PacketSocketEmitter`](#packetsocketemitter)
+> **Inherits:** [`PacketTransaction< PacketT >`](base.md#packettransaction), [`PacketSocketEmitter`](#packetsocketemitter)
 
-This class provides request/response functionality for [IPacket](#classicy_1_1IPacket) types emitted from a [Socket](#socket).
+This class provides request/response functionality for [IPacket](base.md#ipacket) types emitted from a [Socket](#socket-1).
 
 ### Public Methods
 
@@ -5083,7 +5083,7 @@ This class provides request/response functionality for [IPacket](#classicy_1_1IP
 | `bool` | [`send`](#send-6) `virtual` `inline` | Sends the request packet to the peer address and starts the timeout timer. Sets state to Failed and returns false if the packet could not be sent.  |
 | `void` | [`cancel`](#cancel) `virtual` `inline` | Cancels the transaction and stops the timeout timer. |
 | `void` | [`dispose`](#dispose) `virtual` `inline` | Stops the timer and unregisters callbacks. |
-| `Address` | [`peerAddress`](#peeraddress-2) `const` `inline` | Returns the remote peer address used for this transaction. |
+| `Address` | [`peerAddress`](#peeraddress-3) `const` `inline` | Returns the remote peer address used for this transaction. |
 
 ---
 
@@ -5160,7 +5160,7 @@ Stops the timer and unregisters callbacks.
 
 ---
 
-{#peeraddress-2}
+{#peeraddress-3}
 
 #### peerAddress
 
@@ -5217,7 +5217,7 @@ true to stop further propagation of the socket data event.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `packet` | `[IPacket](#classicy_1_1IPacket) &` |  |
+| `packet` | `[IPacket](base.md#ipacket) &` |  |
 
 ---
 
@@ -5247,7 +5247,7 @@ virtual inline bool checkResponse(const PacketT & packet)
 
 Returns true if `packet` is a valid response for this transaction.
 
-The base implementation matches the local socket address against the [PacketInfo](#packetinfo-1) socket address and the stored peer address against the [PacketInfo](#packetinfo-1) peer address. Subclasses may override for stricter matching. 
+The base implementation matches the local socket address against the [PacketInfo](#packetinfo) socket address and the stored peer address against the [PacketInfo](#packetinfo) peer address. Subclasses may override for stricter matching. 
 #### Parameters
 * `packet` The candidate response packet. 
 
@@ -5282,7 +5282,7 @@ PacketTransaction< PacketT > BaseT()
 #include <udpsocket.h>
 ```
 
-> **Inherits:** [`Handle< uv_udp_t >`](#handle), [`Socket`](#socket)
+> **Inherits:** [`Handle< uv_udp_t >`](uv.md#handle-2), [`Socket`](#socket-1)
 
 UDP socket implementation.
 
@@ -5305,12 +5305,12 @@ UDP socket implementation.
 | `bool` | [`setMulticastLoop`](#setmulticastloop)  | Enables or disables IP multicast loopback.  |
 | `bool` | [`setMulticastTTL`](#setmulticastttl)  | Sets the IP multicast time-to-live (hop limit).  |
 | `net::Address` | [`address`](#address-10) `virtual` `const` | Returns the locally bound address, or a wildcard address if unbound. |
-| `net::Address` | [`peerAddress`](#peeraddress-3) `virtual` `const` | Returns the connected peer address set by [connect()](#connect-9), or a wildcard address if unconnected. |
+| `net::Address` | [`peerAddress`](#peeraddress-4) `virtual` `const` | Returns the connected peer address set by [connect()](#connect-9), or a wildcard address if unconnected. |
 | `net::TransportType` | [`transport`](#transport-3) `virtual` `const` | Returns the UDP transport protocol. |
 | `void` | [`setError`](#seterror-3) `virtual` | Sets the socket error and triggers close.  |
-| `const icy::Error &` | [`error`](#error-7) `virtual` `const` | Returns the current socket error, if any. |
+| `const icy::Error &` | [`error`](#error-8) `virtual` `const` | Returns the current socket error, if any. |
 | `bool` | [`closed`](#closed-3) `virtual` `const` | Returns true if the native socket handle is closed. |
-| `uv::Loop *` | [`loop`](#loop-4) `virtual` `const` | Returns the event loop associated with this socket. |
+| `uv::Loop *` | [`loop`](#loop-5) `virtual` `const` | Returns the event loop associated with this socket. |
 | `void` | [`onRecv`](#onrecv-1) `virtual` | Dispatches a received datagram to all socket adapters via onSocketRecv.  |
 
 ---
@@ -5329,7 +5329,7 @@ Constructs the [UDPSocket](#udpsocket) and initializes the underlying libuv hand
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `loop` | `[uv::Loop](#namespaceicy_1_1uv_1a8bfd153231f95de982e16db911389619) *` |  |
+| `loop` | `[uv::Loop](uv.md#loop) *` |  |
 
 ---
 
@@ -5476,7 +5476,7 @@ Sends an owned payload buffer to the connected peer.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `buffer` | `[Buffer](#namespaceicy_1a9c464c811f03ea41ea100ed65a0580d3) &&` |  |
+| `buffer` | `[Buffer](base.md#buffer-2) &&` |  |
 | `flags` | `int` |  |
 
 ---
@@ -5525,7 +5525,7 @@ virtual ssize_t sendOwned(Buffer && buffer, const net::Address & peerAddress, in
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `buffer` | `[Buffer](#namespaceicy_1a9c464c811f03ea41ea100ed65a0580d3) &&` |  |
+| `buffer` | `[Buffer](base.md#buffer-2) &&` |  |
 | `peerAddress` | `const [net::Address](#address) &` |  |
 | `flags` | `int` |  |
 
@@ -5611,7 +5611,7 @@ Returns the locally bound address, or a wildcard address if unbound.
 
 ---
 
-{#peeraddress-3}
+{#peeraddress-4}
 
 #### peerAddress
 
@@ -5655,11 +5655,11 @@ Sets the socket error and triggers close.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `err` | `const [icy::Error](#structicy_1_1Error) &` |  |
+| `err` | `const [icy::Error](base.md#error) &` |  |
 
 ---
 
-{#error-7}
+{#error-8}
 
 #### error
 
@@ -5687,7 +5687,7 @@ Returns true if the native socket handle is closed.
 
 ---
 
-{#loop-4}
+{#loop-5}
 
 #### loop
 
@@ -5719,7 +5719,7 @@ Dispatches a received datagram to all socket adapters via onSocketRecv.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `buf` | `const [MutableBuffer](#classicy_1_1MutableBuffer) &` |  |
+| `buf` | `const [MutableBuffer](base.md#mutablebuffer) &` |  |
 | `address` | `const [net::Address](#address) &` |  |
 
 ### Protected Attributes
@@ -5809,7 +5809,7 @@ Override to react to errors. The default implementation is a no-op.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `error` | `const [icy::Error](#structicy_1_1Error) &` |  |
+| `error` | `const [icy::Error](base.md#error) &` |  |
 
 ---
 
@@ -5915,7 +5915,7 @@ Creates the [VerificationErrorDetails](#verificationerrordetails). _ignoreError 
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `cert` | `const [crypto::X509Certificate](#x509certificate) &` |  |
+| `cert` | `const [crypto::X509Certificate](crypto.md#x509certificate) &` |  |
 | `errDepth` | `int` |  |
 | `errNum` | `int` |  |
 | `errMsg` | `const std::string &` |  |
@@ -6080,7 +6080,7 @@ std::string _errorMessage
 bool _ignoreError
 ```
 
-{#packetinfo-1}
+{#packetinfo}
 
 ## PacketInfo
 
@@ -6088,7 +6088,7 @@ bool _ignoreError
 #include <socket.h>
 ```
 
-> **Inherits:** [`IPacketInfo`](#structicy_1_1IPacketInfo)
+> **Inherits:** [`IPacketInfo`](base.md#ipacketinfo)
 
 Provides information about packets emitted from a socket. See [SocketPacket](#socketpacket).
 
@@ -6096,12 +6096,12 @@ Provides information about packets emitted from a socket. See [SocketPacket](#so
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `Socket::Ptr` | [`socket`](#socket-4)  | The source socket. |
-| `Address` | [`peerAddress`](#peeraddress-4)  | The originating peer address. For TCP this will always be connected address. |
+| `Socket::Ptr` | [`socket`](#socket)  | The source socket. |
+| `Address` | [`peerAddress`](#peeraddress)  | The originating peer address. For TCP this will always be connected address. |
 
 ---
 
-{#socket-4}
+{#socket}
 
 #### socket
 
@@ -6113,7 +6113,7 @@ The source socket.
 
 ---
 
-{#peeraddress-4}
+{#peeraddress}
 
 #### peerAddress
 
@@ -6127,13 +6127,13 @@ The originating peer address. For TCP this will always be connected address.
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`PacketInfo`](#packetinfo-2) `inline` | Constructs [PacketInfo](#packetinfo-1) with the originating socket and peer address.  |
-|  | [`PacketInfo`](#packetinfo-3) `inline` | Copy constructor.  |
-| `std::unique_ptr< IPacketInfo >` | [`clone`](#clone-6) `virtual` `const` `inline` | Returns a heap-allocated copy of this [PacketInfo](#packetinfo-1). |
+|  | [`PacketInfo`](#packetinfo-1) `inline` | Constructs [PacketInfo](#packetinfo) with the originating socket and peer address.  |
+|  | [`PacketInfo`](#packetinfo-2) `inline` | Copy constructor.  |
+| `std::unique_ptr< IPacketInfo >` | [`clone`](#clone-5) `virtual` `const` `inline` | Returns a heap-allocated copy of this [PacketInfo](#packetinfo). |
 
 ---
 
-{#packetinfo-2}
+{#packetinfo-1}
 
 #### PacketInfo
 
@@ -6143,7 +6143,7 @@ The originating peer address. For TCP this will always be connected address.
 inline PacketInfo(const Socket::Ptr & socket, const Address & peerAddress)
 ```
 
-Constructs [PacketInfo](#packetinfo-1) with the originating socket and peer address. 
+Constructs [PacketInfo](#packetinfo) with the originating socket and peer address. 
 #### Parameters
 * `socket` Shared pointer to the socket that received the packet. 
 
@@ -6156,7 +6156,7 @@ Constructs [PacketInfo](#packetinfo-1) with the originating socket and peer addr
 
 ---
 
-{#packetinfo-3}
+{#packetinfo-2}
 
 #### PacketInfo
 
@@ -6168,15 +6168,15 @@ inline PacketInfo(const PacketInfo & r)
 
 Copy constructor. 
 #### Parameters
-* `r` Source [PacketInfo](#packetinfo-1) to copy from.
+* `r` Source [PacketInfo](#packetinfo) to copy from.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `r` | `const [PacketInfo](#packetinfo-1) &` |  |
+| `r` | `const [PacketInfo](#packetinfo) &` |  |
 
 ---
 
-{#clone-6}
+{#clone-5}
 
 #### clone
 
@@ -6186,7 +6186,7 @@ Copy constructor.
 virtual inline std::unique_ptr< IPacketInfo > clone() const
 ```
 
-Returns a heap-allocated copy of this [PacketInfo](#packetinfo-1).
+Returns a heap-allocated copy of this [PacketInfo](#packetinfo).
 
 {#dns}
 
@@ -6232,5 +6232,5 @@ A request handle whose lifetime controls the in-flight DNS query.
 | `host` | `const std::string &` |  |
 | `port` | `int` |  |
 | `callback` | `std::function< void(int, const [net::Address](#address) &)>` |  |
-| `loop` | `[uv::Loop](#namespaceicy_1_1uv_1a8bfd153231f95de982e16db911389619) *` |  |
+| `loop` | `[uv::Loop](uv.md#loop) *` |  |
 

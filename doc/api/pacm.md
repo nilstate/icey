@@ -21,12 +21,83 @@ Package manager for distributing and installing plugins.
 | [`InstallMonitor`](#installmonitor) | Progress monitor for package installation operations. |
 | [`InstallTask`](#installtask) | This class implements the package installation procedure. |
 | [`PackageManager`](#packagemanager) | The [Package](#package) Manager provides an interface for managing, installing, updating and uninstalling Pacm packages. |
-| [`InstallationState`](#installationstate) | [State](#classicy_1_1State) machine states for package installation. |
+| [`InstallationState`](#installationstate) | [State](base.md#state) machine states for package installation. |
 | [`InstallOptions`](#installoptions) | [Package](#package) installation options. |
 | [`LocalPackage`](#localpackage) | This class is a JSON representation of an installed local package that exists on the file system. |
 | [`Package`](#package) | This class is a JSON representation of an package belonging to the [PackageManager](#packagemanager). |
 | [`PackagePair`](#packagepair) | This class provides pairing of a local and a remote package. |
 | [`RemotePackage`](#remotepackage) | This class is a JSON representation of an package existing on the remote server that may be downloaded and installed. |
+
+### Typedefs
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `std::vector< LocalPackage * >` | [`LocalPackageVec`](#localpackagevec)  |  |
+| `std::vector< InstallTask * >` | [`InstallTaskVec`](#installtaskvec)  |  |
+| `std::vector< InstallTask::Ptr >` | [`InstallTaskPtrVec`](#installtaskptrvec)  |  |
+| `std::vector< PackagePair >` | [`PackagePairVec`](#packagepairvec)  |  |
+| `KeyedStore< std::string, LocalPackage >` | [`LocalPackageStore`](#localpackagestore)  |  |
+| `KeyedStore< std::string, RemotePackage >` | [`RemotePackageStore`](#remotepackagestore)  |  |
+
+---
+
+{#localpackagevec}
+
+#### LocalPackageVec
+
+```cpp
+std::vector< LocalPackage * > LocalPackageVec()
+```
+
+---
+
+{#installtaskvec}
+
+#### InstallTaskVec
+
+```cpp
+std::vector< InstallTask * > InstallTaskVec()
+```
+
+---
+
+{#installtaskptrvec}
+
+#### InstallTaskPtrVec
+
+```cpp
+std::vector< InstallTask::Ptr > InstallTaskPtrVec()
+```
+
+---
+
+{#packagepairvec}
+
+#### PackagePairVec
+
+```cpp
+std::vector< PackagePair > PackagePairVec()
+```
+
+---
+
+{#localpackagestore}
+
+#### LocalPackageStore
+
+```cpp
+KeyedStore< std::string, LocalPackage > LocalPackageStore()
+```
+
+---
+
+{#remotepackagestore}
+
+#### RemotePackageStore
+
+```cpp
+KeyedStore< std::string, RemotePackage > RemotePackageStore()
+```
 
 ### Functions
 
@@ -56,7 +127,7 @@ Comma-separated name string, e.g. "PluginA, PluginB".
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `packages` | `[LocalPackageVec](#namespaceicy_1_1pacm_1aba9a88a72b1922e9abd5cb5e183507b2) &` |  |
+| `packages` | `[LocalPackageVec](#localpackagevec) &` |  |
 
 ---
 
@@ -398,7 +469,7 @@ virtual void setProgress(int value)
 #include <installtask.h>
 ```
 
-> **Inherits:** [`Runnable`](#runnable), [`Stateful< InstallationState >`](#classicy_1_1Stateful)
+> **Inherits:** [`Runnable`](base.md#runnable), [`Stateful< InstallationState >`](base.md#stateful)
 
 This class implements the package installation procedure.
 
@@ -450,7 +521,7 @@ Signals on task completion for both success and failure cases.
 | `LocalPackage *` | [`local`](#local) `virtual` `const` | Returns a pointer to the local package record. |
 | `RemotePackage *` | [`remote`](#remote) `virtual` `const` | Returns a pointer to the remote package record. |
 | `InstallOptions &` | [`options`](#options-4) `virtual` | Returns a reference to the installation options for this task. |
-| `uv::Loop *` | [`loop`](#loop-6) `virtual` `const` | Returns the libuv event loop used for async operations. |
+| `uv::Loop *` | [`loop`](#loop-7) `virtual` `const` | Returns the libuv event loop used for async operations. |
 | `bool` | [`valid`](#valid-2) `virtual` `const` | Returns true if the task is not in a Failed state and both local and remote (if set) packages are valid. |
 | `bool` | [`cancelled`](#cancelled-2) `virtual` `const` | Returns true if the task is in the Cancelled state. |
 | `bool` | [`failed`](#failed) `virtual` `const` | Returns true if the task is in the Failed state. |
@@ -488,7 +559,7 @@ InstallTask(PackageManager & manager, LocalPackage * local, RemotePackage * remo
 | `local` | `[LocalPackage](#localpackage) *` |  |
 | `remote` | `[RemotePackage](#remotepackage) *` |  |
 | `options` | `const [InstallOptions](#installoptions) &` |  |
-| `loop` | `[uv::Loop](#namespaceicy_1_1uv_1a8bfd153231f95de982e16db911389619) *` |  |
+| `loop` | `[uv::Loop](uv.md#loop) *` |  |
 
 ---
 
@@ -654,7 +725,7 @@ Returns a reference to the installation options for this task.
 
 ---
 
-{#loop-6}
+{#loop-7}
 
 #### loop
 
@@ -947,7 +1018,7 @@ virtual void onDownloadComplete(const http::Response & response)
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `response` | `const [http::Response](#response-1) &` |  |
+| `response` | `const [http::Response](http.md#response-1) &` |  |
 
 ---
 
@@ -1076,7 +1147,7 @@ Signals when a package installation tasks completes, either successfully or in e
 | `bool` | [`uninstallPackage`](#uninstallpackage) `virtual` | Uninstalls a single package. |
 | `bool` | [`hasUnfinalizedPackages`](#hasunfinalizedpackages) `virtual` | Returns true if there are updates available that have not yet been finalized. Packages may be unfinalized if there were files in use at the time of installation. |
 | `bool` | [`finalizeInstallations`](#finalizeinstallations) `virtual` | Finalizes active installations by moving all package files to their target destination. If files are to be overwritten they must not be in use or finalization will fail. |
-| `InstallTask::Ptr` | [`getInstallTask`](#getinstalltask) `virtual` `const` | [Task](#classicy_1_1Task) Helper Methods. |
+| `InstallTask::Ptr` | [`getInstallTask`](#getinstalltask) `virtual` `const` | [Task](base.md#task) Helper Methods. |
 | `InstallTaskPtrVec` | [`tasks`](#tasks-1) `virtual` `const` | Returns a list of all tasks. |
 | `void` | [`cancelAllTasks`](#cancelalltasks) `virtual` | Aborts all package installation tasks. All tasks must be aborted before clearing local or remote manifests. |
 | `PackagePairVec` | [`getPackagePairs`](#getpackagepairs) `virtual` `const` | [Package](#package) Helper Methods. |
@@ -1109,7 +1180,7 @@ PackageManager(const Options & options)
 ```
 
 #### Parameters
-* `options` [Configuration](#classicy_1_1Configuration) for directories, endpoints, and credentials.
+* `options` [Configuration](base.md#configuration) for directories, endpoints, and credentials.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -1336,7 +1407,7 @@ Installs multiple packages. The same options will be passed to each task. If a [
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `ids` | `const [StringVec](#namespaceicy_1ab17ebb0adb78e2788b54863f69f5e74c) &` |  |
+| `ids` | `const [StringVec](base.md#stringvec) &` |  |
 | `options` | `const [InstallOptions](#installoptions) &` |  |
 | `monitor` | `[InstallMonitor](#installmonitor) *` |  |
 | `whiny` | `bool` |  |
@@ -1376,7 +1447,7 @@ Updates multiple packages. Throws an exception if the package does not exist. If
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `ids` | `const [StringVec](#namespaceicy_1ab17ebb0adb78e2788b54863f69f5e74c) &` |  |
+| `ids` | `const [StringVec](base.md#stringvec) &` |  |
 | `options` | `const [InstallOptions](#installoptions) &` |  |
 | `monitor` | `[InstallMonitor](#installmonitor) *` |  |
 | `whiny` | `bool` |  |
@@ -1415,7 +1486,7 @@ Uninstalls multiple packages.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `ids` | `const [StringVec](#namespaceicy_1ab17ebb0adb78e2788b54863f69f5e74c) &` |  |
+| `ids` | `const [StringVec](base.md#stringvec) &` |  |
 | `whiny` | `bool` |  |
 
 ---
@@ -1481,7 +1552,7 @@ Finalizes active installations by moving all package files to their target desti
 virtual InstallTask::Ptr getInstallTask(const std::string & id) const
 ```
 
-[Task](#classicy_1_1Task) Helper Methods.
+[Task](base.md#task) Helper Methods.
 
 Gets the install task for the given package ID.
 
@@ -1916,7 +1987,7 @@ Callbacks.
 | `std::string` | [`httpOAuthToken`](#httpoauthtoken)  | Will be used instead of HTTP basic if provided. |
 | `std::string` | [`tempDir`](#tempdir)  | Directory where package files will be downloaded and extracted. |
 | `std::string` | [`dataDir`](#datadir)  | Directory where package manifests will be kept. |
-| `std::string` | [`installDir`](#installdir)  | Directory where packages will be installed. |
+| `std::string` | [`installDir`](#installdir-2)  | Directory where packages will be installed. |
 | `std::string` | [`platform`](#platform)  | Platform (win32, linux, mac) |
 | `std::string` | [`checksumAlgorithm`](#checksumalgorithm)  | Checksum algorithm (MDS/SHA1) |
 | `bool` | [`clearFailedCache`](#clearfailedcache)  | This flag tells the package manager weather or not to clear the package cache if installation fails. |
@@ -2007,7 +2078,7 @@ Directory where package manifests will be kept.
 
 ---
 
-{#installdir}
+{#installdir-2}
 
 #### installDir
 
@@ -2083,9 +2154,9 @@ inline Options(const std::string & root)
 #include <installtask.h>
 ```
 
-> **Inherits:** [`State`](#classicy_1_1State)
+> **Inherits:** [`State`](base.md#state)
 
-[State](#classicy_1_1State) machine states for package installation.
+[State](base.md#state) machine states for package installation.
 
 ### Public Methods
 
@@ -2158,7 +2229,7 @@ enum Type
 |--------|------|-------------|
 | `std::string` | [`version`](#version-3)  | If set then the given package version will be installed. |
 | `std::string` | [`sdkVersion`](#sdkversion)  | If set then the latest package version for given SDK version will be installed. |
-| `std::string` | [`installDir`](#installdir-1)  | Install to the given location, otherwise the manager default `installDir` will be used. |
+| `std::string` | [`installDir`](#installdir)  | Install to the given location, otherwise the manager default `installDir` will be used. |
 
 ---
 
@@ -2186,7 +2257,7 @@ If set then the latest package version for given SDK version will be installed.
 
 ---
 
-{#installdir-1}
+{#installdir}
 
 #### installDir
 
@@ -2241,9 +2312,9 @@ This class is a JSON representation of an installed local package that exists on
 | `void` | [`setVersionLock`](#setversionlock) `virtual` | Locks the package at the given version. Once set this package will not be updated past the given version. Pass an empty string to remove the lock. |
 | `void` | [`setSDKVersionLock`](#setsdkversionlock) `virtual` | Locks the package at the given SDK version. Once set this package will only update to the most recent version with given SDK version. Pass an empty string to remove the lock. |
 | `std::string` | [`version`](#version-4) `virtual` `const` | Returns the installed package version. |
-| `std::string` | [`state`](#state-1) `virtual` `const` | Returns the current state of this package. |
+| `std::string` | [`state`](#state-2) `virtual` `const` | Returns the current state of this package. |
 | `std::string` | [`installState`](#installstate) `virtual` `const` | Returns the installation state of this package. |
-| `std::string` | [`installDir`](#installdir-2) `virtual` `const` | Returns the installation directory for this package. |
+| `std::string` | [`installDir`](#installdir-1) `virtual` `const` | Returns the installation directory for this package. |
 | `std::string` | [`versionLock`](#versionlock) `virtual` `const` | Returns the pinned version string, or empty if no lock is set. |
 | `std::string` | [`sdkLockedVersion`](#sdklockedversion) `virtual` `const` | Returns the pinned SDK version string, or empty if no lock is set. |
 | `Asset` | [`asset`](#asset) `virtual` | Returns the currently installed asset, if any. If none, the returned asset will be empty(). |
@@ -2286,7 +2357,7 @@ Constructs a local package from an existing JSON value.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `src` | `const [json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
+| `src` | `const [json::Value](json.md#value) &` |  |
 
 ---
 
@@ -2446,7 +2517,7 @@ Returns the installed package version.
 
 ---
 
-{#state-1}
+{#state-2}
 
 #### state
 
@@ -2474,7 +2545,7 @@ Returns the installation state of this package.
 
 ---
 
-{#installdir-2}
+{#installdir-1}
 
 #### installDir
 
@@ -2633,7 +2704,7 @@ virtual void addError(const std::string & message)
 
 Appends `message` to the errors array. 
 #### Parameters
-* `message` [Error](#structicy_1_1Error) description to record.
+* `message` [Error](base.md#error) description to record.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -2730,7 +2801,7 @@ Manifest(json::Value & src)
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `src` | `[json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
+| `src` | `[json::Value](json.md#value) &` |  |
 
 ---
 
@@ -2822,7 +2893,7 @@ Constructs a package from an existing JSON value.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `src` | `const [json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
+| `src` | `const [json::Value](json.md#value) &` |  |
 
 ---
 
@@ -2982,8 +3053,8 @@ json::Value & root
 | `int` | [`fileSize`](#filesize-1) `virtual` `const` | Returns the uncompressed file size in bytes, or 0 if not set. |
 | `bool` | [`valid`](#valid-5) `virtual` `const` | Returns true if the asset has the minimum required fields (file-name, version, mirrors). |
 | `void` | [`print`](#print-10) `virtual` `const` | Writes the raw JSON of this asset to `ost`.  |
-| `Asset &` | [`operator=`](#operator-17) `virtual` | Copies the backing JSON node from `r`.  |
-| `bool` | [`operator==`](#operator-18) `virtual` `const` | Returns true if file name, version and checksum all match `r`. |
+| `Asset &` | [`operator=`](#operator-18) `virtual` | Copies the backing JSON node from `r`.  |
+| `bool` | [`operator==`](#operator-19) `virtual` `const` | Returns true if file name, version and checksum all match `r`. |
 
 ---
 
@@ -3000,7 +3071,7 @@ Asset(json::Value & src)
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `src` | `[json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
+| `src` | `[json::Value](json.md#value) &` |  |
 
 ---
 
@@ -3138,7 +3209,7 @@ Writes the raw JSON of this asset to `ost`.
 
 ---
 
-{#operator-17}
+{#operator-18}
 
 #### operator=
 
@@ -3158,7 +3229,7 @@ Copies the backing JSON node from `r`.
 
 ---
 
-{#operator-18}
+{#operator-19}
 
 #### operator==
 
@@ -3365,7 +3436,7 @@ Constructs a remote package from an existing JSON value.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `src` | `const [json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
+| `src` | `const [json::Value](json.md#value) &` |  |
 
 ---
 

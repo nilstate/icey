@@ -19,11 +19,11 @@ WebRTC media transport via libdatachannel; peer sessions, media bridge, codec ne
 | Name | Description |
 |------|-------------|
 | [`CodecNegotiator`](#codecnegotiator) | Maps RTP codec names to FFmpeg encoders and queries FFmpeg at runtime to determine what codecs are available. |
-| [`MediaBridge`](#mediabridge) | Convenience wrapper that creates WebRTC tracks on a PeerConnection and exposes per-track sender/receiver adapters for [PacketStream](#classicy_1_1PacketStream) integration. |
+| [`MediaBridge`](#mediabridge) | Convenience wrapper that creates WebRTC tracks on a PeerConnection and exposes per-track sender/receiver adapters for [PacketStream](base.md#packetstream) integration. |
 | [`PeerSession`](#peersession) | Manages a WebRTC peer connection lifecycle over any signalling transport that implements [SignallingInterface](#signallinginterface). |
 | [`SignallingInterface`](#signallinginterface) | Transport-agnostic signalling interface for WebRTC session setup. |
-| [`WebRtcTrackReceiver`](#webrtctrackreceiver) | [PacketStreamAdapter](#classicy_1_1PacketStreamAdapter) that receives depacketized frames from a single remote libdatachannel Track and emits them as VideoPacket or AudioPacket into a [PacketStream](#classicy_1_1PacketStream). |
-| [`WebRtcTrackSender`](#webrtctracksender) | [PacketProcessor](#classicy_1_1PacketProcessor) that sends encoded media to a single libdatachannel Track via sendFrame(). |
+| [`WebRtcTrackReceiver`](#webrtctrackreceiver) | [PacketStreamAdapter](base.md#packetstreamadapter) that receives depacketized frames from a single remote libdatachannel Track and emits them as VideoPacket or AudioPacket into a [PacketStream](base.md#packetstream). |
+| [`WebRtcTrackSender`](#webrtctracksender) | [PacketProcessor](base.md#packetprocessor) that sends encoded media to a single libdatachannel Track via sendFrame(). |
 | [`CodecSpec`](#codecspec) |  |
 | [`NegotiatedCodec`](#negotiatedcodec) | Result of codec negotiation between a remote SDP offer and the local FFmpeg codec inventory. |
 | [`TrackHandle`](#trackhandle) | Result of creating a track: the track itself plus its RTP config. Keep the config around - you need it for [WebRtcTrackSender](#webrtctracksender). |
@@ -78,7 +78,7 @@ enum CodecId
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `const char *` | [`stateToString`](#statetostring)  | Convert a [PeerSession::State](#state-3) to a lowercase C string for logging.  |
+| `const char *` | [`stateToString`](#statetostring)  | Convert a [PeerSession::State](#state-4) to a lowercase C string for logging.  |
 | `TrackHandle` | [`createVideoTrack`](#createvideotrack)  | Create a video send track on a PeerConnection. |
 | `TrackHandle` | [`createAudioTrack`](#createaudiotrack)  | Create an audio send track on a PeerConnection. |
 | `bool` | [`setupReceiveTrack`](#setupreceivetrack)  | Set up the receive-side media handler chain on a remote track. |
@@ -94,16 +94,16 @@ enum CodecId
 const char * stateToString(PeerSession::State state)
 ```
 
-Convert a [PeerSession::State](#state-3) to a lowercase C string for logging. 
+Convert a [PeerSession::State](#state-4) to a lowercase C string for logging. 
 #### Parameters
-* `state` [State](#classicy_1_1State) value to convert. 
+* `state` [State](base.md#state) value to convert. 
 
 #### Returns
 One of: "idle", "outgoing-init", "incoming-init", "negotiating", "active", "ending", "ended".
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `state` | `[PeerSession::State](#state-3)` |  |
+| `state` | `[PeerSession::State](#state-4)` |  |
 
 ---
 
@@ -142,7 +142,7 @@ The packetizer is selected based on the codec: H264 → H264RtpPacketizer (Annex
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `pc` | `std::shared_ptr< rtc::PeerConnection >` |  |
-| `codec` | `const [av::VideoCodec](#videocodec) &` |  |
+| `codec` | `const [av::VideoCodec](av.md#videocodec) &` |  |
 | `ssrc` | `uint32_t` |  |
 | `cname` | `const std::string &` |  |
 | `nackBuffer` | `unsigned` |  |
@@ -180,7 +180,7 @@ The packetizer clock rate is selected based on codec: opus → 48kHz, PCMU/PCMA 
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `pc` | `std::shared_ptr< rtc::PeerConnection >` |  |
-| `codec` | `const [av::AudioCodec](#audiocodec) &` |  |
+| `codec` | `const [av::AudioCodec](av.md#audiocodec) &` |  |
 | `ssrc` | `uint32_t` |  |
 | `cname` | `const std::string &` |  |
 
@@ -435,7 +435,7 @@ Resolve the canonical codec spec from an explicit video codec config. Prefers th
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `codec` | `const [av::VideoCodec](#videocodec) &` |  |
+| `codec` | `const [av::VideoCodec](av.md#videocodec) &` |  |
 
 ---
 
@@ -453,7 +453,7 @@ Resolve the canonical codec spec from an explicit audio codec config. Prefers th
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `codec` | `const [av::AudioCodec](#audiocodec) &` |  |
+| `codec` | `const [av::AudioCodec](av.md#audiocodec) &` |  |
 
 ---
 
@@ -471,7 +471,7 @@ Resolve a strict canonical video codec spec or throw.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `codec` | `const [av::VideoCodec](#videocodec) &` |  |
+| `codec` | `const [av::VideoCodec](av.md#videocodec) &` |  |
 
 ---
 
@@ -489,7 +489,7 @@ Resolve a strict canonical audio codec spec or throw.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `codec` | `const [av::AudioCodec](#audiocodec) &` |  |
+| `codec` | `const [av::AudioCodec](av.md#audiocodec) &` |  |
 
 ---
 
@@ -507,7 +507,7 @@ Resolve a browser-safe WebRTC video codec config from an explicit codec.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `codec` | `const [av::VideoCodec](#videocodec) &` |  |
+| `codec` | `const [av::VideoCodec](av.md#videocodec) &` |  |
 
 ---
 
@@ -525,7 +525,7 @@ Resolve a browser-safe WebRTC audio codec config from an explicit codec.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `codec` | `const [av::AudioCodec](#audiocodec) &` |  |
+| `codec` | `const [av::AudioCodec](av.md#audiocodec) &` |  |
 
 ---
 
@@ -554,7 +554,7 @@ Detect the first known codec present in an SDP snippet for the given media type.
 #include <mediabridge.h>
 ```
 
-Convenience wrapper that creates WebRTC tracks on a PeerConnection and exposes per-track sender/receiver adapters for [PacketStream](#classicy_1_1PacketStream) integration.
+Convenience wrapper that creates WebRTC tracks on a PeerConnection and exposes per-track sender/receiver adapters for [PacketStream](base.md#packetstream) integration.
 
 For video-only, leave audioCodec default (disabled). For audio-only, leave videoCodec default (disabled). For data-channel-only, don't create a [MediaBridge](#mediabridge) at all.
 
@@ -566,7 +566,7 @@ Example - send camera to browser:
 
 [MediaBridge](#mediabridge) bridge; bridge.attach(pc, {.videoCodec = {"H264", "libx264", 1280, 720, 30}});
 
-[PacketStream](#classicy_1_1PacketStream) stream; stream.attachSource(capture); stream.attach(encoder, 1, true); stream.attach(&bridge.videoSender(), 5, false); stream.start();
+[PacketStream](base.md#packetstream) stream; stream.attachSource(capture); stream.attach(encoder, 1, true); stream.attach(&bridge.videoSender(), 5, false); stream.start();
 
 Example - receive from browser and record:
 
@@ -615,10 +615,10 @@ Remote peer reports estimated bandwidth (bits/sec).
 | `void` | [`detach`](#detach)  | Detach all tracks and adapters. |
 | `void` | [`requestKeyframe`](#requestkeyframe)  | Request an immediate keyframe (IDR) from the remote sender. Sends a PLI (Picture Loss Indication) RTCP message on the video track. No-op if no video track is attached. |
 | `void` | [`requestBitrate`](#requestbitrate)  | Request that the remote sender reduce to a target bitrate. Sends a TMMBR RTCP message on the video track.  |
-| `WebRtcTrackSender &` | [`videoSender`](#videosender)  | Video send processor. Attach to a [PacketStream](#classicy_1_1PacketStream) after a VideoEncoder. Throws if no video track was created. |
-| `WebRtcTrackSender &` | [`audioSender`](#audiosender)  | Audio send processor. Attach to a [PacketStream](#classicy_1_1PacketStream) after an AudioEncoder. Throws if no audio track was created. |
-| `WebRtcTrackReceiver &` | [`videoReceiver`](#videoreceiver)  | Video receive adapter. Attach as a [PacketStream](#classicy_1_1PacketStream) source. Only valid after a remote video track arrives. |
-| `WebRtcTrackReceiver &` | [`audioReceiver`](#audioreceiver)  | Audio receive adapter. Attach as a [PacketStream](#classicy_1_1PacketStream) source. Only valid after a remote audio track arrives. |
+| `WebRtcTrackSender &` | [`videoSender`](#videosender)  | Video send processor. Attach to a [PacketStream](base.md#packetstream) after a VideoEncoder. Throws if no video track was created. |
+| `WebRtcTrackSender &` | [`audioSender`](#audiosender)  | Audio send processor. Attach to a [PacketStream](base.md#packetstream) after an AudioEncoder. Throws if no audio track was created. |
+| `WebRtcTrackReceiver &` | [`videoReceiver`](#videoreceiver)  | Video receive adapter. Attach as a [PacketStream](base.md#packetstream) source. Only valid after a remote video track arrives. |
+| `WebRtcTrackReceiver &` | [`audioReceiver`](#audioreceiver)  | Audio receive adapter. Attach as a [PacketStream](base.md#packetstream) source. Only valid after a remote audio track arrives. |
 | `std::shared_ptr< rtc::Track >` | [`videoTrack`](#videotrack) `const` | The underlying libdatachannel video track, or nullptr if none was created. |
 | `std::shared_ptr< rtc::Track >` | [`audioTrack`](#audiotrack) `const` | The underlying libdatachannel audio track, or nullptr if none was created. |
 | `bool` | [`hasVideo`](#hasvideo) `const` | True if a video track was created at [attach()](#attach). |
@@ -714,7 +714,7 @@ Request that the remote sender reduce to a target bitrate. Sends a TMMBR RTCP me
 WebRtcTrackSender & videoSender()
 ```
 
-Video send processor. Attach to a [PacketStream](#classicy_1_1PacketStream) after a VideoEncoder. Throws if no video track was created.
+Video send processor. Attach to a [PacketStream](base.md#packetstream) after a VideoEncoder. Throws if no video track was created.
 
 ---
 
@@ -726,7 +726,7 @@ Video send processor. Attach to a [PacketStream](#classicy_1_1PacketStream) afte
 WebRtcTrackSender & audioSender()
 ```
 
-Audio send processor. Attach to a [PacketStream](#classicy_1_1PacketStream) after an AudioEncoder. Throws if no audio track was created.
+Audio send processor. Attach to a [PacketStream](base.md#packetstream) after an AudioEncoder. Throws if no audio track was created.
 
 ---
 
@@ -738,7 +738,7 @@ Audio send processor. Attach to a [PacketStream](#classicy_1_1PacketStream) afte
 WebRtcTrackReceiver & videoReceiver()
 ```
 
-Video receive adapter. Attach as a [PacketStream](#classicy_1_1PacketStream) source. Only valid after a remote video track arrives.
+Video receive adapter. Attach as a [PacketStream](base.md#packetstream) source. Only valid after a remote video track arrives.
 
 ---
 
@@ -750,7 +750,7 @@ Video receive adapter. Attach as a [PacketStream](#classicy_1_1PacketStream) sou
 WebRtcTrackReceiver & audioReceiver()
 ```
 
-Audio receive adapter. Attach as a [PacketStream](#classicy_1_1PacketStream) source. Only valid after a remote audio track arrives.
+Audio receive adapter. Attach as a [PacketStream](base.md#packetstream) source. Only valid after a remote audio track arrives.
 
 ---
 
@@ -923,7 +923,7 @@ std::mutex _mutex
 #include <mediabridge.h>
 ```
 
-[Configuration](#classicy_1_1Configuration) options for the WebRTC media bridge.
+[Configuration](base.md#configuration) options for the WebRTC media bridge.
 
 ### Public Attributes
 
@@ -1024,7 +1024,7 @@ Media is optional. Set mediaOpts codecs to enable tracks. Leave codec encoders e
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `ThreadSignal< void(State)>` | [`StateChanged`](#statechanged)  | Emitted whenever the session state changes. Parameter: new [State](#classicy_1_1State) value. |
+| `ThreadSignal< void(State)>` | [`StateChanged`](#statechanged)  | Emitted whenever the session state changes. Parameter: new [State](base.md#state) value. |
 | `ThreadSignal< void(const std::string &)>` | [`IncomingCall`](#incomingcall)  | Emitted when a remote peer initiates a call (state transitions to IncomingInit). Parameter: remote peer identifier. |
 | `ThreadSignal< void(rtc::message_variant)>` | [`DataReceived`](#datareceived)  | Emitted when a message arrives on the data channel. Parameter: rtc::message_variant (string or binary). |
 
@@ -1038,7 +1038,7 @@ Media is optional. Set mediaOpts codecs to enable tracks. Leave codec encoders e
 ThreadSignal< void(State)> StateChanged
 ```
 
-Emitted whenever the session state changes. Parameter: new [State](#classicy_1_1State) value.
+Emitted whenever the session state changes. Parameter: new [State](base.md#state) value.
 
 ---
 
@@ -1076,7 +1076,7 @@ Emitted when a message arrives on the data channel. Parameter: rtc::message_vari
 | `void` | [`hangup`](#hangup)  | Terminate any non-idle call phase. Sends a "hangup" control message, closes the PeerConnection, and transitions to Ended. Safe to call from any non-Idle/Ended state.  |
 | `void` | [`sendData`](#senddata-2)  | Send a UTF-8 string message over the data channel. Silently dropped if the data channel is not open.  |
 | `void` | [`sendData`](#senddata-3)  | Send raw binary data over the data channel. Silently dropped if the data channel is not open.  |
-| `State` | [`state`](#state-2) `const` | Current session state. Thread-safe. |
+| `State` | [`state`](#state-3) `const` | Current session state. Thread-safe. |
 | `std::string` | [`remotePeerId`](#remotepeerid) `const` | Identifier of the remote peer for the current or most recent call. Empty when Idle. |
 | `MediaBridge &` | [`media`](#media)  | Media bridge for this session. Valid for the lifetime of the [PeerSession](#peersession). |
 | `const MediaBridge &` | [`media`](#media-1) `const` | Media bridge for this session. Valid for the lifetime of the [PeerSession](#peersession). |
@@ -1225,7 +1225,7 @@ Send raw binary data over the data channel. Silently dropped if the data channel
 
 ---
 
-{#state-2}
+{#state-3}
 
 #### state
 
@@ -1305,11 +1305,11 @@ The data channel, or nullptr if none is open.
 
 | Name | Description |
 |------|-------------|
-| [`State`](#state-3)  |  |
+| [`State`](#state-4)  |  |
 
 ---
 
-{#state-3}
+{#state-4}
 
 #### State
 
@@ -1606,7 +1606,7 @@ std::atomic< bool > alive {true}
 #include <peersession.h>
 ```
 
-[Configuration](#classicy_1_1Configuration) for WebRTC peer session establishment.
+[Configuration](base.md#configuration) for WebRTC peer session establishment.
 
 ### Public Attributes
 
@@ -1842,9 +1842,9 @@ Send a control message to the remote peer.
 #include <trackreceiver.h>
 ```
 
-> **Inherits:** [`PacketStreamAdapter`](#classicy_1_1PacketStreamAdapter)
+> **Inherits:** [`PacketStreamAdapter`](base.md#packetstreamadapter)
 
-[PacketStreamAdapter](#classicy_1_1PacketStreamAdapter) that receives depacketized frames from a single remote libdatachannel Track and emits them as VideoPacket or AudioPacket into a [PacketStream](#classicy_1_1PacketStream).
+[PacketStreamAdapter](base.md#packetstreamadapter) that receives depacketized frames from a single remote libdatachannel Track and emits them as VideoPacket or AudioPacket into a [PacketStream](base.md#packetstream).
 
 Call [setupReceiveTrack()](#setupreceivetrack) on the track first to install the correct depacketizer, then bind this receiver to it.
 
@@ -1877,7 +1877,7 @@ PacketSignal emitter
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`WebRtcTrackReceiver`](#webrtctrackreceiver-1)  | Construct an unbound receiver. Call [bind()](#bind-5) to attach a remote track. |
-| `void` | [`bind`](#bind-5)  | Bind to a remote track. Must be called after [setupReceiveTrack()](#setupreceivetrack) returned true. Installs an onFrame callback that converts each depacketized frame to a VideoPacket or AudioPacket and emits it on the [PacketStream](#classicy_1_1PacketStream). The track type (video/audio) is detected from the SDP description.  |
+| `void` | [`bind`](#bind-5)  | Bind to a remote track. Must be called after [setupReceiveTrack()](#setupreceivetrack) returned true. Installs an onFrame callback that converts each depacketized frame to a VideoPacket or AudioPacket and emits it on the [PacketStream](base.md#packetstream). The track type (video/audio) is detected from the SDP description.  |
 
 ---
 
@@ -1901,7 +1901,7 @@ Construct an unbound receiver. Call [bind()](#bind-5) to attach a remote track.
 void bind(std::shared_ptr< rtc::Track > track)
 ```
 
-Bind to a remote track. Must be called after [setupReceiveTrack()](#setupreceivetrack) returned true. Installs an onFrame callback that converts each depacketized frame to a VideoPacket or AudioPacket and emits it on the [PacketStream](#classicy_1_1PacketStream). The track type (video/audio) is detected from the SDP description. 
+Bind to a remote track. Must be called after [setupReceiveTrack()](#setupreceivetrack) returned true. Installs an onFrame callback that converts each depacketized frame to a VideoPacket or AudioPacket and emits it on the [PacketStream](base.md#packetstream). The track type (video/audio) is detected from the SDP description. 
 #### Parameters
 * `track` Remote track from the PeerConnection::onTrack callback.
 
@@ -1917,15 +1917,15 @@ Bind to a remote track. Must be called after [setupReceiveTrack()](#setupreceive
 #include <tracksender.h>
 ```
 
-> **Inherits:** [`PacketProcessor`](#classicy_1_1PacketProcessor)
+> **Inherits:** [`PacketProcessor`](base.md#packetprocessor)
 
-[PacketProcessor](#classicy_1_1PacketProcessor) that sends encoded media to a single libdatachannel Track via sendFrame().
+[PacketProcessor](base.md#packetprocessor) that sends encoded media to a single libdatachannel Track via sendFrame().
 
-Bind to one track (video or audio). Accepts the corresponding packet type from the [PacketStream](#classicy_1_1PacketStream) and converts timestamps from FFmpeg microseconds to the track's RTP clock rate.
+Bind to one track (video or audio). Accepts the corresponding packet type from the [PacketStream](base.md#packetstream) and converts timestamps from FFmpeg microseconds to the track's RTP clock rate.
 
 Usage: auto vh = createVideoTrack(pc, codec); [WebRtcTrackSender](#webrtctracksender) videoSender(vh);
 
-[PacketStream](#classicy_1_1PacketStream) stream; stream.attachSource(capture); stream.attach(encoder, 1, true); stream.attach(&videoSender, 5, false); stream.start();
+[PacketStream](base.md#packetstream) stream; stream.attachSource(capture); stream.attach(encoder, 1, true); stream.attach(&videoSender, 5, false); stream.start();
 
 Only emits the packet downstream on successful send, so a chained recorder won't record frames that failed to transmit.
 
@@ -1955,9 +1955,9 @@ PacketSignal emitter
 |  | [`WebRtcTrackSender`](#webrtctracksender-2) `explicit` | Construct bound to a track handle from [createVideoTrack()](#createvideotrack) or [createAudioTrack()](#createaudiotrack). |
 | `void` | [`bind`](#bind-6)  | Bind to a track. Can be called to rebind to a different track. |
 | `void` | [`unbind`](#unbind-1)  | Unbind from the current track. |
-| `void` | [`process`](#process-6) `virtual` | Send an encoded media frame to the bound WebRTC track. Converts the FFmpeg microsecond timestamp to an RTP timestamp using the track's clock rate, then calls rtc::Track::sendFrame(). Only forwards the packet downstream on a successful send.  |
-| `bool` | [`accepts`](#accepts-3) `virtual` | Return true if packet is an [av::MediaPacket](#mediapacket) (VideoPacket or AudioPacket).  |
-| `void` | [`onStreamStateChange`](#onstreamstatechange-6) `virtual` | Called by the [PacketStream](#classicy_1_1PacketStream) when stream state changes. Logs when the stream is stopping; no other action is taken.  |
+| `void` | [`process`](#process-7) `virtual` | Send an encoded media frame to the bound WebRTC track. Converts the FFmpeg microsecond timestamp to an RTP timestamp using the track's clock rate, then calls rtc::Track::sendFrame(). Only forwards the packet downstream on a successful send.  |
+| `bool` | [`accepts`](#accepts-3) `virtual` | Return true if packet is an [av::MediaPacket](av.md#mediapacket) (VideoPacket or AudioPacket).  |
+| `void` | [`onStreamStateChange`](#onstreamstatechange-6) `virtual` | Called by the [PacketStream](base.md#packetstream) when stream state changes. Logs when the stream is stopping; no other action is taken.  |
 | `bool` | [`isVideo`](#isvideo) `const` | True if this sender is bound to a video track. |
 | `bool` | [`bound`](#bound) `const` | True if bound to any track. |
 
@@ -2021,7 +2021,7 @@ Unbind from the current track.
 
 ---
 
-{#process-6}
+{#process-7}
 
 #### process
 
@@ -2033,11 +2033,11 @@ virtual void process(IPacket & packet)
 
 Send an encoded media frame to the bound WebRTC track. Converts the FFmpeg microsecond timestamp to an RTP timestamp using the track's clock rate, then calls rtc::Track::sendFrame(). Only forwards the packet downstream on a successful send. 
 #### Parameters
-* `packet` An [av::VideoPacket](#videopacket) or [av::AudioPacket](#audiopacket) carrying the encoded frame data and a microsecond timestamp.
+* `packet` An [av::VideoPacket](av.md#videopacket) or [av::AudioPacket](av.md#audiopacket) carrying the encoded frame data and a microsecond timestamp.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `packet` | `[IPacket](#classicy_1_1IPacket) &` |  |
+| `packet` | `[IPacket](base.md#ipacket) &` |  |
 
 ---
 
@@ -2051,7 +2051,7 @@ Send an encoded media frame to the bound WebRTC track. Converts the FFmpeg micro
 virtual bool accepts(IPacket * packet)
 ```
 
-Return true if packet is an [av::MediaPacket](#mediapacket) (VideoPacket or AudioPacket). 
+Return true if packet is an [av::MediaPacket](av.md#mediapacket) (VideoPacket or AudioPacket). 
 #### Parameters
 * `packet` Packet to test. May be nullptr. 
 
@@ -2060,7 +2060,7 @@ True if the packet can be processed by this sender.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `packet` | `[IPacket](#classicy_1_1IPacket) *` |  |
+| `packet` | `[IPacket](base.md#ipacket) *` |  |
 
 ---
 
@@ -2074,13 +2074,13 @@ True if the packet can be processed by this sender.
 virtual void onStreamStateChange(const PacketStreamState & state)
 ```
 
-Called by the [PacketStream](#classicy_1_1PacketStream) when stream state changes. Logs when the stream is stopping; no other action is taken. 
+Called by the [PacketStream](base.md#packetstream) when stream state changes. Logs when the stream is stopping; no other action is taken. 
 #### Parameters
-* `state` New [PacketStream](#classicy_1_1PacketStream) state.
+* `state` New [PacketStream](base.md#packetstream) state.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `state` | `const [PacketStreamState](#structicy_1_1PacketStreamState) &` |  |
+| `state` | `const [PacketStreamState](base.md#packetstreamstate) &` |  |
 
 ---
 
@@ -2351,10 +2351,10 @@ Format parameters (e.g. "profile-level-id=42e01f")
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `av::VideoCodec` | [`toVideoCodec`](#tovideocodec) `const` | Create an [av::VideoCodec](#videocodec) from this negotiation result. Width, height, fps default to 0 (caller should set these). |
-| `av::VideoCodec` | [`toWebRtcVideoCodec`](#towebrtcvideocodec) `const` | Create an [av::VideoCodec](#videocodec) configured for WebRTC browser playback. Sets low-latency options: ultrafast preset, zerolatency tune, constrained baseline profile for H.264, and appropriate defaults for VP8/VP9/AV1. |
-| `av::AudioCodec` | [`toAudioCodec`](#toaudiocodec) `const` | Create an [av::AudioCodec](#audiocodec) from this negotiation result. Channels default to 2, sampleRate to the RTP clock rate. |
-| `av::AudioCodec` | [`toWebRtcAudioCodec`](#towebrtcaudiocodec) `const` | Create an [av::AudioCodec](#audiocodec) configured for WebRTC browser playback. Forces 48000 Hz for Opus, sets appropriate options. |
+| `av::VideoCodec` | [`toVideoCodec`](#tovideocodec) `const` | Create an [av::VideoCodec](av.md#videocodec) from this negotiation result. Width, height, fps default to 0 (caller should set these). |
+| `av::VideoCodec` | [`toWebRtcVideoCodec`](#towebrtcvideocodec) `const` | Create an [av::VideoCodec](av.md#videocodec) configured for WebRTC browser playback. Sets low-latency options: ultrafast preset, zerolatency tune, constrained baseline profile for H.264, and appropriate defaults for VP8/VP9/AV1. |
+| `av::AudioCodec` | [`toAudioCodec`](#toaudiocodec) `const` | Create an [av::AudioCodec](av.md#audiocodec) from this negotiation result. Channels default to 2, sampleRate to the RTP clock rate. |
+| `av::AudioCodec` | [`toWebRtcAudioCodec`](#towebrtcaudiocodec) `const` | Create an [av::AudioCodec](av.md#audiocodec) configured for WebRTC browser playback. Forces 48000 Hz for Opus, sets appropriate options. |
 
 ---
 
@@ -2368,7 +2368,7 @@ Format parameters (e.g. "profile-level-id=42e01f")
 av::VideoCodec toVideoCodec(int width, int height, double fps) const
 ```
 
-Create an [av::VideoCodec](#videocodec) from this negotiation result. Width, height, fps default to 0 (caller should set these).
+Create an [av::VideoCodec](av.md#videocodec) from this negotiation result. Width, height, fps default to 0 (caller should set these).
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -2388,7 +2388,7 @@ Create an [av::VideoCodec](#videocodec) from this negotiation result. Width, hei
 av::VideoCodec toWebRtcVideoCodec(int width, int height, double fps) const
 ```
 
-Create an [av::VideoCodec](#videocodec) configured for WebRTC browser playback. Sets low-latency options: ultrafast preset, zerolatency tune, constrained baseline profile for H.264, and appropriate defaults for VP8/VP9/AV1.
+Create an [av::VideoCodec](av.md#videocodec) configured for WebRTC browser playback. Sets low-latency options: ultrafast preset, zerolatency tune, constrained baseline profile for H.264, and appropriate defaults for VP8/VP9/AV1.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -2408,7 +2408,7 @@ Create an [av::VideoCodec](#videocodec) configured for WebRTC browser playback. 
 av::AudioCodec toAudioCodec(int channels, int sampleRate) const
 ```
 
-Create an [av::AudioCodec](#audiocodec) from this negotiation result. Channels default to 2, sampleRate to the RTP clock rate.
+Create an [av::AudioCodec](av.md#audiocodec) from this negotiation result. Channels default to 2, sampleRate to the RTP clock rate.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -2427,7 +2427,7 @@ Create an [av::AudioCodec](#audiocodec) from this negotiation result. Channels d
 av::AudioCodec toWebRtcAudioCodec(int channels) const
 ```
 
-Create an [av::AudioCodec](#audiocodec) configured for WebRTC browser playback. Forces 48000 Hz for Opus, sets appropriate options.
+Create an [av::AudioCodec](av.md#audiocodec) configured for WebRTC browser playback. Forces 48000 Hz for Opus, sets appropriate options.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|

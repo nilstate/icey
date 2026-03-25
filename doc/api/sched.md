@@ -19,8 +19,8 @@ Task scheduler for deferred and periodic jobs.
 | Name | Description |
 |------|-------------|
 | [`Scheduler`](#scheduler) | The [Scheduler](#scheduler) manages and runs tasks that need to be executed at specific times. |
-| [`Task`](#task) | This class extends the [Task](#task) class to implement scheduling capabilities. |
-| [`TaskFactory`](#taskfactory) | The [TaskFactory](#taskfactory) can dynamically instantiate registered [sched::Task](#task) and [sched::Trigger](#trigger-1) classes from named strings. |
+| [`Task`](#task-1) | This class extends the [Task](#task-1) class to implement scheduling capabilities. |
+| [`TaskFactory`](#taskfactory) | The [TaskFactory](#taskfactory) can dynamically instantiate registered [sched::Task](#task-1) and [sched::Trigger](#trigger-1) classes from named strings. |
 | [`DailyTrigger`](#dailytrigger) | [Trigger](#trigger-1) that fires once per day at a configured time, with optional day-of-week exclusions. |
 | [`IntervalTrigger`](#intervaltrigger) | [Trigger](#trigger-1) that fires repeatedly at a fixed time interval. |
 | [`OnceOnlyTrigger`](#onceonlytrigger) | [Trigger](#trigger-1) that fires exactly once at the scheduled time and then expires. |
@@ -82,6 +82,22 @@ Months of the year.
 | `November` |  |
 | `December` |  |
 
+### Typedefs
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `std::vector< sched::Task * >` | [`TaskList`](#tasklist)  |  |
+
+---
+
+{#tasklist}
+
+#### TaskList
+
+```cpp
+std::vector< sched::Task * > TaskList()
+```
+
 ### Functions
 
 | Return | Name | Description |
@@ -117,7 +133,7 @@ template<typename T> std::unique_ptr< sched::Trigger > instantiateTrigger()
 #include <scheduler.h>
 ```
 
-> **Inherits:** [`TaskRunner`](#classicy_1_1TaskRunner), [`ISerializable`](#iserializable)
+> **Inherits:** [`TaskRunner`](base.md#taskrunner), [`ISerializable`](json.md#iserializable)
 
 The [Scheduler](#scheduler) manages and runs tasks that need to be executed at specific times.
 
@@ -129,8 +145,8 @@ The [Scheduler](#scheduler) manages and runs tasks that need to be executed at s
 | `void` | [`schedule`](#schedule) `virtual` | Adds `task` to the scheduler and starts running it on its configured trigger. The scheduler takes ownership of the task.  |
 | `void` | [`cancel`](#cancel-4) `virtual` | Removes `task` from the scheduler and cancels any pending execution.  |
 | `void` | [`clear`](#clear-2) `virtual` | Removes all scheduled tasks. |
-| `void` | [`serialize`](#serialize-2) `virtual` | Serializes all scheduled tasks and their triggers to `root`.  |
-| `void` | [`deserialize`](#deserialize-2) `virtual` | Reconstructs the task list from `root` using the [TaskFactory](#taskfactory). Skips entries that fail to deserialize and logs the error.  |
+| `void` | [`serialize`](#serialize-3) `virtual` | Serializes all scheduled tasks and their triggers to `root`.  |
+| `void` | [`deserialize`](#deserialize-3) `virtual` | Reconstructs the task list from `root` using the [TaskFactory](#taskfactory). Skips entries that fail to deserialize and logs the error.  |
 | `void` | [`print`](#print-14) `virtual` | Writes a pretty-printed JSON representation of all tasks to `ost`.  |
 | `bool` | [`cancel`](#cancel-5)  | Cancels a task. |
 
@@ -158,11 +174,11 @@ virtual void schedule(sched::Task * task)
 
 Adds `task` to the scheduler and starts running it on its configured trigger. The scheduler takes ownership of the task. 
 #### Parameters
-* `task` [Task](#task) to schedule; must have a trigger set.
+* `task` [Task](#task-1) to schedule; must have a trigger set.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `task` | `[sched::Task](#task) *` |  |
+| `task` | `[sched::Task](#task-1) *` |  |
 
 ---
 
@@ -178,11 +194,11 @@ virtual void cancel(sched::Task * task)
 
 Removes `task` from the scheduler and cancels any pending execution. 
 #### Parameters
-* `task` [Task](#task) to cancel.
+* `task` [Task](#task-1) to cancel.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `task` | `[sched::Task](#task) *` |  |
+| `task` | `[sched::Task](#task-1) *` |  |
 
 ---
 
@@ -200,7 +216,7 @@ Removes all scheduled tasks.
 
 ---
 
-{#serialize-2}
+{#serialize-3}
 
 #### serialize
 
@@ -216,11 +232,11 @@ Serializes all scheduled tasks and their triggers to `root`.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `root` | `[json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
+| `root` | `[json::Value](json.md#value) &` |  |
 
 ---
 
-{#deserialize-2}
+{#deserialize-3}
 
 #### deserialize
 
@@ -232,11 +248,11 @@ virtual void deserialize(json::Value & root)
 
 Reconstructs the task list from `root` using the [TaskFactory](#taskfactory). Skips entries that fail to deserialize and logs the error. 
 #### Parameters
-* `root` JSON array previously produced by [serialize()](#serialize-2).
+* `root` JSON array previously produced by [serialize()](#serialize-3).
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `root` | `[json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
+| `root` | `[json::Value](json.md#value) &` |  |
 
 ---
 
@@ -270,11 +286,11 @@ bool cancel(Task * task)
 
 Cancels a task.
 
-The task reference will be managed the [TaskRunner](#classicy_1_1TaskRunner) until the task is destroyed.
+The task reference will be managed the [TaskRunner](base.md#taskrunner) until the task is destroyed.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `task` | `[Task](#task) *` |  |
+| `task` | `[Task](#task-1) *` |  |
 
 ### Public Static Methods
 
@@ -316,7 +332,7 @@ Returns the [TaskFactory](#taskfactory) singleton.
 | Return | Name | Description |
 |--------|------|-------------|
 | `void` | [`run`](#run-6) `virtual` | The run method will be called by the asynchronous context. |
-| `void` | [`update`](#update-2) `virtual` |  |
+| `void` | [`update`](#update-5) `virtual` |  |
 
 ---
 
@@ -334,7 +350,7 @@ The run method will be called by the asynchronous context.
 
 ---
 
-{#update-2}
+{#update-5}
 
 #### update
 
@@ -344,7 +360,7 @@ The run method will be called by the asynchronous context.
 virtual void update()
 ```
 
-{#task}
+{#task-1}
 
 ## Task
 
@@ -352,18 +368,18 @@ virtual void update()
 #include <task.h>
 ```
 
-> **Inherits:** [`Task`](#classicy_1_1Task), [`ISerializable`](#iserializable)
+> **Inherits:** [`Task`](base.md#task), [`ISerializable`](json.md#iserializable)
 
-This class extends the [Task](#task) class to implement scheduling capabilities.
+This class extends the [Task](#task-1) class to implement scheduling capabilities.
 
 ### Public Methods
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`Task`](#task-1)  | Constructs a detached task without an associated scheduler. A trigger must be set before scheduling.  |
-|  | [`Task`](#task-2)  | Constructs a task associated with the given scheduler.  |
-| `void` | [`serialize`](#serialize-3) `virtual` | Serializes the task to JSON. |
-| `void` | [`deserialize`](#deserialize-3) `virtual` | Deserializes the task from JSON. |
+|  | [`Task`](#task-2)  | Constructs a detached task without an associated scheduler. A trigger must be set before scheduling.  |
+|  | [`Task`](#task-3)  | Constructs a task associated with the given scheduler.  |
+| `void` | [`serialize`](#serialize-4) `virtual` | Serializes the task to JSON. |
+| `void` | [`deserialize`](#deserialize-4) `virtual` | Deserializes the task from JSON. |
 | `T *` | [`createTrigger`](#createtrigger) `inline` | Creates a trigger of type T, attaches it to this task, and returns a raw pointer to it. Ownership of the trigger is transferred to this task.  |
 | `void` | [`setTrigger`](#settrigger)  | Replaces the current trigger with `trigger`.  |
 | `sched::Trigger &` | [`trigger`](#trigger)  | Returns a reference to the associated [sched::Trigger](#trigger-1) or throws an exception. |
@@ -375,7 +391,7 @@ This class extends the [Task](#task) class to implement scheduling capabilities.
 
 ---
 
-{#task-1}
+{#task-2}
 
 #### Task
 
@@ -396,7 +412,7 @@ Constructs a detached task without an associated scheduler. A trigger must be se
 
 ---
 
-{#task-2}
+{#task-3}
 
 #### Task
 
@@ -420,7 +436,7 @@ Constructs a task associated with the given scheduler.
 
 ---
 
-{#serialize-3}
+{#serialize-4}
 
 #### serialize
 
@@ -434,11 +450,11 @@ Serializes the task to JSON.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `root` | `[json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
+| `root` | `[json::Value](json.md#value) &` |  |
 
 ---
 
-{#deserialize-3}
+{#deserialize-4}
 
 #### deserialize
 
@@ -452,7 +468,7 @@ Deserializes the task from JSON.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `root` | `[json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
+| `root` | `[json::Value](json.md#value) &` |  |
 
 ---
 
@@ -640,7 +656,7 @@ std::mutex _mutex
 | Return | Name | Description |
 |--------|------|-------------|
 | `bool` | [`beforeRun`](#beforerun) `virtual` |  |
-| `void` | [`run`](#run-7)  | Called by the [TaskRunner](#classicy_1_1TaskRunner) to run the task. Override this method to implement task action. Returning true means the true should be called again, and false will cause the task to be destroyed. The task will similarly be destroyed id [destroy()](#classicy_1_1Task_1a639abe7ed51fd9294d6210e1d8264814) was called during the current task iteration. |
+| `void` | [`run`](#run-7)  | Called by the [TaskRunner](base.md#taskrunner) to run the task. Override this method to implement task action. Returning true means the true should be called again, and false will cause the task to be destroyed. The task will similarly be destroyed id [destroy()](base.md#classicy_1_1Task_1a639abe7ed51fd9294d6210e1d8264814) was called during the current task iteration. |
 | `bool` | [`afterRun`](#afterrun) `virtual` |  |
 
 ---
@@ -665,7 +681,7 @@ virtual bool beforeRun()
 void run()
 ```
 
-Called by the [TaskRunner](#classicy_1_1TaskRunner) to run the task. Override this method to implement task action. Returning true means the true should be called again, and false will cause the task to be destroyed. The task will similarly be destroyed id [destroy()](#classicy_1_1Task_1a639abe7ed51fd9294d6210e1d8264814) was called during the current task iteration.
+Called by the [TaskRunner](base.md#taskrunner) to run the task. Override this method to implement task action. Returning true means the true should be called again, and false will cause the task to be destroyed. The task will similarly be destroyed id [destroy()](base.md#classicy_1_1Task_1a639abe7ed51fd9294d6210e1d8264814) was called during the current task iteration.
 
 ---
 
@@ -687,7 +703,7 @@ virtual bool afterRun()
 #include <taskfactory.h>
 ```
 
-The [TaskFactory](#taskfactory) can dynamically instantiate registered [sched::Task](#task) and [sched::Trigger](#trigger-1) classes from named strings.
+The [TaskFactory](#taskfactory) can dynamically instantiate registered [sched::Task](#task-1) and [sched::Trigger](#trigger-1) classes from named strings.
 
 ### Public Methods
 
@@ -742,7 +758,7 @@ template<typename T> inline void registerTask(const std::string & type)
 
 Registers a task type T under the given name. Subsequent calls to [createTask()](#createtask) with this `type` will return a T instance. 
 #### Parameters
-* `T` Concrete subclass of [sched::Task](#task) with a default constructor. 
+* `T` Concrete subclass of [sched::Task](#task-1) with a default constructor. 
 
 #### Parameters
 * `type` Type name string to register.
@@ -1005,7 +1021,7 @@ Days of the week can be excluded by adding the appropriate bit flag here.
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`DailyTrigger`](#dailytrigger-1)  | Constructs the trigger with type "DailyTrigger". |
-| `void` | [`update`](#update-3) `virtual` | Computes the next scheduleAt value by advancing to the next non-excluded weekday at the configured timeOfDay. |
+| `void` | [`update`](#update-2) `virtual` | Computes the next scheduleAt value by advancing to the next non-excluded weekday at the configured timeOfDay. |
 
 ---
 
@@ -1021,7 +1037,7 @@ Constructs the trigger with type "DailyTrigger".
 
 ---
 
-{#update-3}
+{#update-2}
 
 #### update
 
@@ -1081,10 +1097,10 @@ The maximum number of times the task will be run before it is destroyed. 0 for n
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`IntervalTrigger`](#intervaltrigger-1)  | Constructs the trigger with type "IntervalTrigger" and maxTimes = 0 (unlimited). |
-| `void` | [`update`](#update-4) `virtual` | Advances scheduleAt by one `interval` period. |
+| `void` | [`update`](#update-3) `virtual` | Advances scheduleAt by one `interval` period. |
 | `bool` | [`expired`](#expired-2) `virtual` | Returns true when maxTimes > 0 and timesRun >= maxTimes. |
-| `void` | [`serialize`](#serialize-4) `virtual` | Serializes interval fields (days, hours, minutes, seconds) in addition to base fields.  |
-| `void` | [`deserialize`](#deserialize-4) `virtual` | Deserializes interval fields from `root`. Throws if the resulting interval is zero.  |
+| `void` | [`serialize`](#serialize-2) `virtual` | Serializes interval fields (days, hours, minutes, seconds) in addition to base fields.  |
+| `void` | [`deserialize`](#deserialize-2) `virtual` | Deserializes interval fields from `root`. Throws if the resulting interval is zero.  |
 
 ---
 
@@ -1100,7 +1116,7 @@ Constructs the trigger with type "IntervalTrigger" and maxTimes = 0 (unlimited).
 
 ---
 
-{#update-4}
+{#update-3}
 
 #### update
 
@@ -1128,7 +1144,7 @@ Returns true when maxTimes > 0 and timesRun >= maxTimes.
 
 ---
 
-{#serialize-4}
+{#serialize-2}
 
 #### serialize
 
@@ -1144,11 +1160,11 @@ Serializes interval fields (days, hours, minutes, seconds) in addition to base f
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `root` | `[json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
+| `root` | `[json::Value](json.md#value) &` |  |
 
 ---
 
-{#deserialize-4}
+{#deserialize-2}
 
 #### deserialize
 
@@ -1160,11 +1176,11 @@ virtual void deserialize(json::Value & root)
 
 Deserializes interval fields from `root`. Throws if the resulting interval is zero. 
 #### Parameters
-* `root` JSON object previously produced by [serialize()](#serialize-4).
+* `root` JSON object previously produced by [serialize()](#serialize-2).
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `root` | `[json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
+| `root` | `[json::Value](json.md#value) &` |  |
 
 {#onceonlytrigger}
 
@@ -1183,7 +1199,7 @@ Deserializes interval fields from `root`. Throws if the resulting interval is ze
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`OnceOnlyTrigger`](#onceonlytrigger-1)  | Constructs the trigger with type "OnceOnlyTrigger". |
-| `void` | [`update`](#update-5) `virtual` `inline` | No-op; scheduleAt is set once at construction and never advanced. |
+| `void` | [`update`](#update-4) `virtual` `inline` | No-op; scheduleAt is set once at construction and never advanced. |
 | `bool` | [`expired`](#expired-3) `virtual` | Returns true after the task has run at least once. |
 
 ---
@@ -1200,7 +1216,7 @@ Constructs the trigger with type "OnceOnlyTrigger".
 
 ---
 
-{#update-5}
+{#update-4}
 
 #### update
 
@@ -1234,7 +1250,7 @@ Returns true after the task has run at least once.
 #include <trigger.h>
 ```
 
-> **Inherits:** [`ISerializable`](#iserializable)
+> **Inherits:** [`ISerializable`](json.md#iserializable)
 > **Subclassed by:** [`DailyTrigger`](#dailytrigger), [`IntervalTrigger`](#intervaltrigger), [`OnceOnlyTrigger`](#onceonlytrigger)
 
 Base class for scheduled task triggers that determine when a task should run.
@@ -1329,7 +1345,7 @@ The time the task was last run.
 |  | [`Trigger`](#trigger-2)  | #### Parameters |
 | `void` | [`update`](#update-6)  | Updates the scheduleAt value to the next scheduled time. |
 | `std::int64_t` | [`remaining`](#remaining-1) `virtual` | Returns the milliseconds remaining until the next scheduled timeout. |
-| `bool` | [`timeout`](#timeout-3) `virtual` | Returns true if the task is ready to be run, false otherwise. |
+| `bool` | [`timeout`](#timeout-4) `virtual` | Returns true if the task is ready to be run, false otherwise. |
 | `bool` | [`expired`](#expired-4) `virtual` | Returns true if the task is expired and should be destroyed. Returns false by default. |
 | `void` | [`serialize`](#serialize-5) `virtual` | Serializes timing state (type, name, createdAt, scheduleAt, lastRunAt, timesRun) to `root`.  |
 | `void` | [`deserialize`](#deserialize-5) `virtual` | Deserializes timing state from `root`.  |
@@ -1382,7 +1398,7 @@ Returns the milliseconds remaining until the next scheduled timeout.
 
 ---
 
-{#timeout-3}
+{#timeout-4}
 
 #### timeout
 
@@ -1426,7 +1442,7 @@ Serializes timing state (type, name, createdAt, scheduleAt, lastRunAt, timesRun)
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `root` | `[json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
+| `root` | `[json::Value](json.md#value) &` |  |
 
 ---
 
@@ -1446,5 +1462,5 @@ Deserializes timing state from `root`.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `root` | `[json::Value](#namespaceicy_1_1json_1aa135089611ee3a7336819d2ba98e519e) &` |  |
+| `root` | `[json::Value](json.md#value) &` |  |
 

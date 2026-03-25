@@ -8,7 +8,7 @@
     "site:dev": "sourcey dev"
   },
   "devDependencies": {
-    "moxygen": "github:sourcey/moxygen#eedc9b29ecc533b7263637a381aa8a62cac71e04",
+    "moxygen": "github:sourcey/moxygen#18bfb7c17635ae3655e0baa73b9afa5724cd7169",
     "sourcey": "3.2.1"
   }
 }

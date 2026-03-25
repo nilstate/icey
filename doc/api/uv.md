@@ -8,9 +8,9 @@ The `uv` module contains C++ wrappers for `libuv`.
 
 | Name | Description |
 |------|-------------|
-| [`Handle`](#handle) | Wrapper class for managing `uv_handle_t` variants. |
+| [`Handle`](#handle-2) | Wrapper class for managing `uv_handle_t` variants. |
 | [`ScopedLoop`](#scopedloop) | RAII wrapper for a libuv event loop. Automatically closes and deletes the loop on destruction. |
-| [`HandleStorage`](#handlestorage) |  |
+| [`HandleStorage`](#handlestorage-1) |  |
 | [`Context`](#context-1) | Shared `libuv` handle context. |
 | [`BasicEvent`](#basicevent) | Default request callback event carrying a libuv status code. |
 | [`Request`](#request) | Wrapper class for managing `uv_req_t` variants. |
@@ -18,7 +18,269 @@ The `uv` module contains C++ wrappers for `libuv`.
 | [`GetAddrInfoEvent`](#getaddrinfoevent) | Callback event delivered when a `[GetAddrInfoReq](#getaddrinforeq)` resolves. |
 | [`GetAddrInfoReq`](#getaddrinforeq) | DNS resolver request to get the IP address of a hostname. |
 
-{#handle}
+### Typedefs
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `uv_loop_t` | [`Loop`](#loop)  |  |
+
+---
+
+{#loop}
+
+#### Loop
+
+```cpp
+uv_loop_t Loop()
+```
+
+### Functions
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `Loop *` | [`defaultLoop`](#defaultloop) `inline` | Returns the process-wide default libuv event loop.  |
+| `void` | [`runLoop`](#runloop) `inline` | Runs the given event loop using the specified run mode. Blocks until the loop exits (when using `UV_RUN_DEFAULT`).  |
+| `void` | [`stopLoop`](#stoploop) `inline` | Stops the given event loop, causing `uv_run` to return after the current iteration.  |
+| `Loop *` | [`createLoop`](#createloop) `inline` | Allocates and initializes a new libuv event loop. The caller is responsible for closing and deleting the returned loop.  |
+| `bool` | [`closeLoop`](#closeloop) `inline` | Closes the given event loop, releasing internal resources. All handles must be closed before calling this.  |
+| `HandleStorage< T > *` | [`handleStorage`](#handlestorage) `inline` |  |
+| `void` | [`setHandleCloseCleanup`](#sethandleclosecleanup) `inline` |  |
+| `void` | [`clearHandleCloseCleanup`](#clearhandleclosecleanup) `inline` |  |
+| `auto` | [`withHandleContext`](#withhandlecontext) `inline` |  |
+| `T &` | [`createRequest`](#createrequest) `inline` | Allocate a heap-owned `[Request](#request)` of type `T` and attach `callback` to it. |
+| `T &` | [`createRetainedRequest`](#createretainedrequest) `inline` | Allocate a heap-owned `[Request](#request)` of type `T` whose callback retains additional state until completion. |
+
+---
+
+{#defaultloop}
+
+#### defaultLoop
+
+`inline`
+
+```cpp
+inline Loop * defaultLoop()
+```
+
+Returns the process-wide default libuv event loop. 
+#### Returns
+Pointer to the default `uv_loop_t`.
+
+---
+
+{#runloop}
+
+#### runLoop
+
+`inline`
+
+```cpp
+inline void runLoop(Loop * loop, uv_run_mode mode) = default
+```
+
+Runs the given event loop using the specified run mode. Blocks until the loop exits (when using `UV_RUN_DEFAULT`). 
+#### Parameters
+* `loop` Event loop to run. Defaults to the default loop. 
+
+* `mode` libuv run mode: `UV_RUN_DEFAULT`, `UV_RUN_ONCE`, or `UV_RUN_NOWAIT`.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `loop` | `[Loop](#loop) *` |  |
+| `mode` | `uv_run_mode` |  |
+
+---
+
+{#stoploop}
+
+#### stopLoop
+
+`inline`
+
+```cpp
+inline void stopLoop(Loop * loop) = default
+```
+
+Stops the given event loop, causing `uv_run` to return after the current iteration. 
+#### Parameters
+* `loop` Event loop to stop. Defaults to the default loop.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `loop` | `[Loop](#loop) *` |  |
+
+---
+
+{#createloop}
+
+#### createLoop
+
+`inline`
+
+```cpp
+inline Loop * createLoop()
+```
+
+Allocates and initializes a new libuv event loop. The caller is responsible for closing and deleting the returned loop. 
+#### Returns
+Pointer to a newly initialized `uv_loop_t`.
+
+---
+
+{#closeloop}
+
+#### closeLoop
+
+`inline`
+
+```cpp
+inline bool closeLoop(Loop * loop)
+```
+
+Closes the given event loop, releasing internal resources. All handles must be closed before calling this. 
+#### Parameters
+* `loop` Event loop to close. 
+
+#### Returns
+True on success, false if the loop still has active handles.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `loop` | `[Loop](#loop) *` |  |
+
+---
+
+{#handlestorage}
+
+#### handleStorage
+
+`inline`
+
+```cpp
+template<typename T> inline HandleStorage< T > * handleStorage(T * handle)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `handle` | `T *` |  |
+
+---
+
+{#sethandleclosecleanup}
+
+#### setHandleCloseCleanup
+
+`inline`
+
+```cpp
+template<typename T> inline void setHandleCloseCleanup(T * handle, void * data, void(*)(void *) cleanup)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `handle` | `T *` |  |
+| `data` | `void *` |  |
+| `cleanup` | `void(*)(void *)` |  |
+
+---
+
+{#clearhandleclosecleanup}
+
+#### clearHandleCloseCleanup
+
+`inline`
+
+```cpp
+template<typename T> inline void clearHandleCloseCleanup(T * handle)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `handle` | `T *` |  |
+
+---
+
+{#withhandlecontext}
+
+#### withHandleContext
+
+`inline`
+
+```cpp
+template<typename Owner, typename Callback> inline auto withHandleContext(Owner & owner, Callback && callback)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `owner` | `Owner &` |  |
+| `callback` | `Callback &&` |  |
+
+---
+
+{#createrequest}
+
+#### createRequest
+
+`inline`
+
+```cpp
+template<typename T> inline T & createRequest(std::function< void(const typename T::Event &)> callback)
+```
+
+Allocate a heap-owned `[Request](#request)` of type `T` and attach `callback` to it.
+
+The returned reference is valid until the request's `defaultCallback` fires and deletes the object.
+
+#### Parameters
+* `T` A specialization of `[Request](#request)`. 
+
+#### Parameters
+* `callback` Completion handler; receives a `T::Event` on completion. 
+
+#### Returns
+Reference to the newly allocated request.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `callback` | `std::function< void(const typename T::Event &)>` |  |
+
+---
+
+{#createretainedrequest}
+
+#### createRetainedRequest
+
+`inline`
+
+```cpp
+template<typename T, typename Retained, typename Callback> inline T & createRetainedRequest(Retained && retained, Callback && callback)
+```
+
+Allocate a heap-owned `[Request](#request)` of type `T` whose callback retains additional state until completion.
+
+This is the standard way to bind request completion to handle lifetime or other retained context without hand-rolling per-call capture logic.
+
+#### Parameters
+* `T` A specialization of `[Request](#request)`. 
+
+* `Retained` Retained object type copied or moved into the callback. 
+
+* `Callback` Callable invoked as `callback(retained, event)`. 
+
+#### Parameters
+* `retained` Extra state to keep alive until the request completes. 
+
+* `callback` Completion handler receiving the retained state and event. 
+
+#### Returns
+Reference to the newly allocated request.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `retained` | `[Retained](base.md#namespaceicy_1a4208858b844a4f5829aabc3aedb53bcfa3152d729715876babcbb6e064b1ff0d1) &&` |  |
+| `callback` | `Callback &&` |  |
+
+{#handle-2}
 
 ## Handle
 
@@ -26,7 +288,7 @@ The `uv` module contains C++ wrappers for `libuv`.
 #include <handle.h>
 ```
 
-> **Subclassed by:** [`Stream< uv_pipe_t >`](#classicy_1_1Stream), [`Stream< uv_tcp_t >`](#classicy_1_1Stream), [`Stream< T >`](#classicy_1_1Stream)
+> **Subclassed by:** [`Stream< uv_pipe_t >`](base.md#stream), [`Stream< uv_tcp_t >`](base.md#stream), [`Stream< T >`](base.md#stream)
 
 Wrapper class for managing `uv_handle_t` variants.
 
@@ -36,34 +298,34 @@ This class manages the handle during it's lifecycle and safely handles the async
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`Handle`](#handle-1) `inline` | Construct the handle bound to the given event loop. |
+|  | [`Handle`](#handle-3) `inline` | Construct the handle bound to the given event loop. |
 | `bool` | [`init`](#init-2) `inline` | Initialize the underlying libuv handle by calling `f` with the loop, the raw handle pointer, and any additional `args`. |
 | `bool` | [`invoke`](#invoke) `inline` | Invoke a libuv function `f` with `args` on the initialized handle. |
 | `void` | [`invokeOrThrow`](#invokeorthrow) `inline` | Invoke a libuv function `f` with `args`, throwing on failure. |
 | `void` | [`close`](#close-11) `virtual` `inline` | Close and destroy the handle. |
 | `void` | [`ref`](#ref) `inline` | Re-reference the handle with the event loop after a previous `[unref()](#unref)`. |
 | `void` | [`unref`](#unref) `inline` | Unreference the handle from the event loop. |
-| `bool` | [`initialized`](#initialized) `const` `inline` | Return `true` if the handle has been successfully initialized via `[init()](#init-2)`. |
+| `bool` | [`initialized`](#initialized-1) `const` `inline` | Return `true` if the handle has been successfully initialized via `[init()](#init-2)`. |
 | `bool` | [`active`](#active) `virtual` `const` `inline` | Return `true` when the handle is active (libuv `uv_is_active`). |
 | `bool` | [`closing`](#closing-1) `virtual` `const` `inline` | Return `true` if `uv_close` has been called and the handle is awaiting its close callback (libuv `uv_is_closing`). |
 | `bool` | [`closed`](#closed) `virtual` `const` `inline` | Return `true` if the handle has been fully closed (context released). |
-| `const icy::Error &` | [`error`](#error-3) `const` `inline` | Return the last error set on this handle, or a default-constructed `[Error](#structicy_1_1Error)` if no error has occurred. |
+| `const icy::Error &` | [`error`](#error-4) `const` `inline` | Return the last error set on this handle, or a default-constructed `[Error](base.md#error)` if no error has occurred. |
 | `void` | [`setError`](#seterror) `virtual` `inline` | Set the error state and invoke `[onError()](#onerror)`. |
-| `void` | [`setUVError`](#setuverror) `inline` | Translate a libuv error code into an `[Error](#structicy_1_1Error)` and call `[setError()](#seterror)`. |
+| `void` | [`setUVError`](#setuverror) `inline` | Translate a libuv error code into an `[Error](base.md#error)` and call `[setError()](#seterror)`. |
 | `void` | [`setAndThrowError`](#setandthrowerror) `inline` | Set the error state from a libuv error code and throw a `std::runtime_error`. |
 | `void` | [`throwLastError`](#throwlasterror) `inline` | Throw a `std::runtime_error` if the handle currently holds an error. |
-| `uv::Loop *` | [`loop`](#loop) `const` `inline` | Return the event loop this handle is bound to. |
+| `uv::Loop *` | [`loop`](#loop-2) `const` `inline` | Return the event loop this handle is bound to. |
 | `void` | [`reset`](#reset-3) `inline` | Close the current handle (if open) and allocate a fresh `[Context](#context-1)`, leaving the handle ready to be re-initialized via `[init()](#init-2)`. |
-| `Handle *` | [`get`](#get-1) `const` `inline` | Return the raw libuv handle pointer cast to `[Handle](#handle)`. |
+| `Handle *` | [`get`](#get-2) `const` `inline` | Return the raw libuv handle pointer cast to `[Handle](#handle-2)`. |
 | `std::thread::id` | [`tid`](#tid) `const` `inline` | Return the ID of the thread that constructed this handle. |
-| `IntrusivePtr< Context< T > >` | [`context`](#context) `const` `inline` | Return the raw `[Context](#context-1)` that owns the libuv handle memory. |
+| `IntrusivePtr< Context< T > >` | [`context`](#context-3) `const` `inline` | Return the raw `[Context](#context-1)` that owns the libuv handle memory. |
 | `void` | [`setCloseCleanup`](#setclosecleanup) `inline` |  |
 | `void` | [`clearCloseCleanup`](#clearclosecleanup) `inline` |  |
 | `void` | [`assertThread`](#assertthread) `const` `inline` | Throw `std::logic_error` if called from any thread other than the thread that constructed this handle. |
 
 ---
 
-{#handle-1}
+{#handle-3}
 
 #### Handle
 
@@ -80,7 +342,7 @@ Construct the handle bound to the given event loop.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `loop` | `[uv::Loop](#namespaceicy_1_1uv_1a8bfd153231f95de982e16db911389619) *` |  |
+| `loop` | `[uv::Loop](#loop) *` |  |
 
 ---
 
@@ -157,7 +419,7 @@ Invoke a libuv function `f` with `args`, throwing on failure.
 Identical to `[invoke()](#invoke)` but throws a `std::runtime_error` with `message` prepended if `f` returns a libuv error code. Must not be called from inside a libuv callback.
 
 #### Parameters
-* `message` [Error](#structicy_1_1Error) message prefix used in the thrown exception. 
+* `message` [Error](base.md#error) message prefix used in the thrown exception. 
 
 * `f` libuv function to call. 
 
@@ -219,7 +481,7 @@ The loop will exit when all active handles are unref'd, even if this handle is s
 
 ---
 
-{#initialized}
+{#initialized-1}
 
 #### initialized
 
@@ -277,7 +539,7 @@ Return `true` if the handle has been fully closed (context released).
 
 ---
 
-{#error-3}
+{#error-4}
 
 #### error
 
@@ -287,7 +549,7 @@ Return `true` if the handle has been fully closed (context released).
 inline const icy::Error & error() const
 ```
 
-Return the last error set on this handle, or a default-constructed `[Error](#structicy_1_1Error)` if no error has occurred.
+Return the last error set on this handle, or a default-constructed `[Error](base.md#error)` if no error has occurred.
 
 ---
 
@@ -304,11 +566,11 @@ virtual inline void setError(const Error & error)
 Set the error state and invoke `[onError()](#onerror)`.
 
 #### Parameters
-* `error` [Error](#structicy_1_1Error) value to store and propagate.
+* `error` [Error](base.md#error) value to store and propagate.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `error` | `const [Error](#structicy_1_1Error) &` |  |
+| `error` | `const [Error](base.md#error) &` |  |
 
 ---
 
@@ -322,7 +584,7 @@ Set the error state and invoke `[onError()](#onerror)`.
 inline void setUVError(int err, std::string prefix)
 ```
 
-Translate a libuv error code into an `[Error](#structicy_1_1Error)` and call `[setError()](#seterror)`.
+Translate a libuv error code into an `[Error](base.md#error)` and call `[setError()](#seterror)`.
 
 Safe to call from inside libuv callbacks.
 
@@ -387,7 +649,7 @@ The stored error's message is re-formatted with `prefix` before throwing. No-op 
 
 ---
 
-{#loop}
+{#loop-2}
 
 #### loop
 
@@ -402,7 +664,7 @@ Return the event loop this handle is bound to.
 Asserts that the caller is on the owning thread.
 
 #### Returns
-Pointer to the associated `[uv::Loop](#namespaceicy_1_1uv_1a8bfd153231f95de982e16db911389619)`.
+Pointer to the associated `[uv::Loop](#loop)`.
 
 ---
 
@@ -420,7 +682,7 @@ Close the current handle (if open) and allocate a fresh `[Context](#context-1)`,
 
 ---
 
-{#get-1}
+{#get-2}
 
 #### get
 
@@ -430,12 +692,12 @@ Close the current handle (if open) and allocate a fresh `[Context](#context-1)`,
 template<typename Handle> inline Handle * get() const
 ```
 
-Return the raw libuv handle pointer cast to `[Handle](#handle)`.
+Return the raw libuv handle pointer cast to `[Handle](#handle-2)`.
 
 Returns `nullptr` if the context has been released (handle closed). Asserts that the caller is on the owning thread.
 
 #### Parameters
-* `[Handle](#handle)` Target type; defaults to the native handle type `T`. 
+* `[Handle](#handle-2)` Target type; defaults to the native handle type `T`. 
 
 #### Returns
 Pointer to the underlying libuv handle, or `nullptr`.
@@ -461,7 +723,7 @@ All handle operations must be performed on this thread.
 
 ---
 
-{#context}
+{#context-3}
 
 #### context
 
@@ -575,8 +837,8 @@ Error _error
 |--------|------|-------------|
 | `void` | [`onError`](#onerror) `virtual` `inline` | Called by `[setError()](#seterror)` after the error state has been updated. |
 | `void` | [`onClose`](#onclose) `virtual` `inline` | Called by `[close()](#close-11)` after the context has been released. |
-|  | [`Handle`](#handle-2)  | NonCopyable and NonMovable. |
-|  | [`Handle`](#handle-3)  |  |
+|  | [`Handle`](#handle-4)  | NonCopyable and NonMovable. |
+|  | [`Handle`](#handle-5)  |  |
 
 ---
 
@@ -599,7 +861,7 @@ Override to react to errors. The default implementation is a no-op.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `error` | `const [Error](#structicy_1_1Error) &` |  |
+| `error` | `const [Error](base.md#error) &` |  |
 
 ---
 
@@ -619,7 +881,7 @@ Override to perform cleanup on handle closure. The default implementation is a n
 
 ---
 
-{#handle-2}
+{#handle-4}
 
 #### Handle
 
@@ -631,7 +893,7 @@ NonCopyable and NonMovable.
 
 ---
 
-{#handle-3}
+{#handle-5}
 
 #### Handle
 
@@ -689,7 +951,7 @@ Loop * loop
 |--------|------|-------------|
 |  | [`ScopedLoop`](#scopedloop-1) `inline` |  |
 |  | [`operator Loop *`](#operatorloop) `const` `inline` | Implicit conversion to `Loop*` for use with libuv APIs. |
-| `Loop *` | [`get`](#get-2) `const` `inline` | Returns the raw event loop pointer.  |
+| `Loop *` | [`get`](#get-1) `const` `inline` | Returns the raw event loop pointer.  |
 |  | [`ScopedLoop`](#scopedloop-2)  |  |
 |  | [`ScopedLoop`](#scopedloop-3)  |  |
 
@@ -721,7 +983,7 @@ Implicit conversion to `Loop*` for use with libuv APIs.
 
 ---
 
-{#get-2}
+{#get-1}
 
 #### get
 
@@ -755,7 +1017,7 @@ ScopedLoop(const ScopedLoop &) = delete
 ScopedLoop(ScopedLoop &&) = delete
 ```
 
-{#handlestorage}
+{#handlestorage-1}
 
 ## HandleStorage
 
@@ -767,13 +1029,13 @@ ScopedLoop(ScopedLoop &&) = delete
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `T` | [`handle`](#handle-4)  |  |
+| `T` | [`handle`](#handle)  |  |
 | `void *` | [`closeData`](#closedata)  |  |
 | `void(*` | [`closeCleanup`](#closecleanup)  |  |
 
 ---
 
-{#handle-4}
+{#handle}
 
 #### handle
 
@@ -809,7 +1071,7 @@ void(* closeCleanup = nullptr
 #include <handle.h>
 ```
 
-> **Inherits:** [`RefCounted< Context< T > >`](#classicy_1_1RefCounted)
+> **Inherits:** [`RefCounted< Context< T > >`](base.md#refcounted)
 
 Shared `libuv` handle context.
 
@@ -817,15 +1079,15 @@ Shared `libuv` handle context.
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `Handle< T > *` | [`handle`](#handle-5)  |  |
+| `Handle< T > *` | [`handle`](#handle-1)  |  |
 | `HandleStorage< T > *` | [`storage`](#storage)  |  |
 | `T *` | [`ptr`](#ptr-3)  |  |
-| `bool` | [`initialized`](#initialized-1)  |  |
+| `bool` | [`initialized`](#initialized)  |  |
 | `bool` | [`deleted`](#deleted)  |  |
 
 ---
 
-{#handle-5}
+{#handle-1}
 
 #### handle
 
@@ -855,7 +1117,7 @@ T * ptr = &->
 
 ---
 
-{#initialized-1}
+{#initialized}
 
 #### initialized
 
@@ -894,7 +1156,7 @@ inline Context(Handle< T > * h)
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `h` | `[Handle](#handle)< T > *` |  |
+| `h` | `[Handle](#handle-2)< T > *` |  |
 
 ---
 
@@ -1303,7 +1565,7 @@ The result is delivered to `callback` as a `[GetAddrInfoEvent](#getaddrinfoevent
 |-----------|------|-------------|
 | `host` | `const std::string &` |  |
 | `port` | `int` |  |
-| `loop` | `[uv::Loop](#namespaceicy_1_1uv_1a8bfd153231f95de982e16db911389619) *` |  |
+| `loop` | `[uv::Loop](#loop) *` |  |
 
 ### Public Static Methods
 
