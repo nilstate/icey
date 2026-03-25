@@ -391,7 +391,7 @@ protected:
 //
 
 
-/// WebSocket class which belongs to a HTTP Connection.
+/// WebSocket class which belongs to an HTTP connection.
 class HTTP_API ConnectionAdapter : public WebSocketAdapter
 {
 public:

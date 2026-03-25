@@ -71,7 +71,7 @@ public:
     virtual ssize_t sendPacket(const IPacket& packet, const Address& peerAddress, int flags = 0);
 
     /// Sends the given packet to the connected peer.
-    /// This method provides delegate compatability, and unlike
+    /// This method provides delegate compatibility, and unlike
     /// other send methods throws an exception if the underlying
     /// socket is closed.
     virtual void sendPacket(IPacket& packet);

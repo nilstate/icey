@@ -38,7 +38,7 @@ struct BasicEvent
 
 /// Wrapper class for managing `uv_req_t` variants.
 ///
-/// This class povides safe access to the parent handle incase the handle gets
+/// This class provides safe access to the parent handle in case the handle gets
 /// destroyed before the request callback returns, and should be used whenever
 /// the handle pointer is accessed via the callback.
 template <typename T, typename E = BasicEvent>

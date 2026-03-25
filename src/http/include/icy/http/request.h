@@ -51,10 +51,10 @@ public:
     /// the given version (HTTP/1.0 or HTTP/1.1).
     Request(const std::string& version);
 
-    /// Creates a HTTP/1.0 request with the given method and URI.
+    /// Creates an HTTP/1.0 request with the given method and URI.
     Request(const std::string& method, const std::string& uri);
 
-    /// Creates a HTTP request with the given method, URI and version.
+    /// Creates an HTTP request with the given method, URI and version.
     Request(const std::string& method, const std::string& uri, const std::string& version);
 
     /// Destroys the Request.

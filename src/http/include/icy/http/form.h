@@ -33,7 +33,7 @@ class HTTP_API FormPart;
 //
 
 /// @ingroup http
-/// FormWriter is a HTTP client connection adapter for writing HTML forms.
+/// FormWriter is an HTTP client connection adapter for writing HTML forms.
 ///
 /// This class runs in its own thread so as not to block the event loop
 /// while uploading big files. Class members are not synchronized hence

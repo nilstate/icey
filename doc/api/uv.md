@@ -292,7 +292,7 @@ Reference to the newly allocated request.
 
 Wrapper class for managing `uv_handle_t` variants.
 
-This class manages the handle during it's lifecycle and safely handles the asynchronous destruction mechanism.
+This class manages the handle during its lifecycle and safely handles the asynchronous destruction mechanism.
 
 ### Public Methods
 
@@ -1208,7 +1208,7 @@ libuv result: 0 on success, negative on error.
 
 Wrapper class for managing `uv_req_t` variants.
 
-This class povides safe access to the parent handle incase the handle gets destroyed before the request callback returns, and should be used whenever the handle pointer is accessed via the callback.
+This class provides safe access to the parent handle in case the handle gets destroyed before the request callback returns, and should be used whenever the handle pointer is accessed via the callback.
 
 ### Public Attributes
 

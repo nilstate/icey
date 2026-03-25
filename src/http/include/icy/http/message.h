@@ -89,7 +89,7 @@ public:
 
     /// Returns true if
     ///   * the message has a Connection header field and its value is "Keep-Alive"
-    ///   * the message is a HTTP/1.1 message and not Connection header is set
+    ///   * the message is an HTTP/1.1 message and no Connection header is set
     /// Returns false otherwise.
     [[nodiscard]] bool getKeepAlive() const;
 

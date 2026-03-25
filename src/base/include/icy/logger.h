@@ -215,7 +215,7 @@ protected:
 
 
 //
-// Recursive logging for veradic arguments
+// Recursive logging for variadic arguments
 //
 
 
@@ -255,7 +255,7 @@ struct LogStream
     LogStream(const LogStream& that);
     ~LogStream();
 
-    /// Recursively log veradic arguments.
+    /// Recursively log variadic arguments.
     template <typename... Args>
     void write(Args... args)
     {

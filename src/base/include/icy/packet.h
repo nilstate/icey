@@ -98,7 +98,7 @@ public:
     /// Copy/generate to the packet given output buffer.
     /// The number of bytes written can be obtained from the buffer.
     ///
-    /// Todo: It may be prefferable to use our pod types here
+    /// Todo: It may be preferable to use our pod types here
     /// instead of buffer input, but the current codebase requires
     /// that the buffer be dynamically resizable for some protocols...
     ///
@@ -106,7 +106,7 @@ public:
 
     /// The size of the packet in bytes.
     ///
-    /// This is the nember of bytes that will be written on a call
+    /// This is the number of bytes that will be written on a call
     /// to write(), but may not be the number of bytes that will be
     /// consumed by read().
     virtual size_t size() const { return 0; };

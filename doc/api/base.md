@@ -19331,7 +19331,7 @@ std::ostream * _ostream
 
 [State](#state) class for state machines.
 
-This class defined the state for a state machine, and should be extended and passed to implementations of the `[Stateful](#stateful)` template.
+This class defines the state for a state machine, and should be extended and passed to implementations of the `[Stateful](#stateful)` template.
 
 For an example **See also**: [PacketStreamState](#packetstreamstate)
 
@@ -25308,7 +25308,7 @@ Tasks are designed to be run by a [TaskRunner](#taskrunner).
 |  | [`Task`](#task)  | #### Parameters |
 | `void` | [`destroy`](#destroy) `virtual` | Sets the task to destroyed state. |
 | `bool` | [`destroyed`](#destroyed) `virtual` `const` | Signals that the task should be disposed of. |
-| `bool` | [`repeating`](#repeating) `virtual` `const` | Signals that the task's should be called repeatedly by the [TaskRunner](#taskrunner). If this returns false the task will be [cancelled()](#cancelled) |
+| `bool` | [`repeating`](#repeating) `virtual` `const` | Signals that the task should be called repeatedly by the [TaskRunner](#taskrunner). If this returns false the task will be cancelled. |
 | `uint32_t` | [`id`](#id) `virtual` `const` | Unique task ID. |
 |  | [`Task`](#task)  |  |
 |  | [`Task`](#task)  |  |
@@ -25370,7 +25370,7 @@ Signals that the task should be disposed of.
 virtual bool repeating() const
 ```
 
-Signals that the task's should be called repeatedly by the [TaskRunner](#taskrunner). If this returns false the task will be [cancelled()](#cancelled)
+Signals that the task should be called repeatedly by the [TaskRunner](#taskrunner). If this returns false the task will be cancelled.
 
 ---
 
@@ -25598,7 +25598,7 @@ virtual bool cancel(Task * task)
 
 Cancels a task.
 
-The task reference will be managed the [TaskRunner](#taskrunner) until the task is destroyed.
+The task reference will be managed by the [TaskRunner](#taskrunner) until the task is destroyed.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -26109,7 +26109,7 @@ void write(Buffer &) const
 
 Copy/generate to the packet given output buffer. The number of bytes written can be obtained from the buffer.
 
-Todo: It may be prefferable to use our pod types here instead of buffer input, but the current codebase requires that the buffer be dynamically resizable for some protocols...
+Todo: It may be preferable to use our pod types here instead of buffer input, but the current codebase requires that the buffer be dynamically resizable for some protocols...
 
 ---
 
@@ -26125,7 +26125,7 @@ virtual inline size_t size() const
 
 The size of the packet in bytes.
 
-This is the nember of bytes that will be written on a call to [write()](#classicy_1_1IPacket_1a87b978fc87c58eb05e1c01ad1ca60f4c), but may not be the number of bytes that will be consumed by [read()](#classicy_1_1IPacket_1ad42e0c52a5092acb3dd1488928902c5b).
+This is the number of bytes that will be written on a call to [write()](#classicy_1_1IPacket_1a87b978fc87c58eb05e1c01ad1ca60f4c), but may not be the number of bytes that will be consumed by [read()](#classicy_1_1IPacket_1ad42e0c52a5092acb3dd1488928902c5b).
 
 ---
 

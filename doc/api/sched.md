@@ -286,7 +286,7 @@ bool cancel(Task * task)
 
 Cancels a task.
 
-The task reference will be managed the [TaskRunner](base.md#taskrunner) until the task is destroyed.
+The task reference will be managed by the [TaskRunner](base.md#taskrunner) until the task is destroyed.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|

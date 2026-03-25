@@ -42,9 +42,9 @@ public:
     /// Signals that the task should be disposed of.
     virtual bool destroyed() const;
 
-    /// Signals that the task's should be called
+    /// Signals that the task should be called
     /// repeatedly by the TaskRunner.
-    /// If this returns false the task will be cancelled()
+    /// If this returns false the task will be cancelled.
     virtual bool repeating() const;
 
     /// Unique task ID.
@@ -109,7 +109,7 @@ public:
 
     /// Cancels a task.
     ///
-    /// The task reference will be managed the TaskRunner
+    /// The task reference will be managed by the TaskRunner
     /// until the task is destroyed.
     virtual bool cancel(Task* task);
 

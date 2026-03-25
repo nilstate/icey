@@ -257,7 +257,7 @@ public:
 
 
 /// @ingroup http
-/// Packet stream wrapper for a HTTP connection.
+/// Packet stream wrapper for an HTTP connection.
 class HTTP_API ConnectionStream : public net::SocketAdapter
 {
 public:

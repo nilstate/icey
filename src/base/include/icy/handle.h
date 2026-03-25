@@ -118,7 +118,7 @@ struct Context : public RefCounted<Context<T>>
 
 /// Wrapper class for managing `uv_handle_t` variants.
 ///
-/// This class manages the handle during it's lifecycle and safely handles the
+/// This class manages the handle during its lifecycle and safely handles the
 /// asynchronous destruction mechanism.
 template <typename T>
 class Base_API Handle

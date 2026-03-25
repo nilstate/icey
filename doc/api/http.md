@@ -29,11 +29,11 @@ HTTP request/response types, parsers, and server/client helpers.
 | [`Connection`](#connection-1) | Base HTTP connection managing socket I/O and message lifecycle |
 | [`ConnectionAdapter`](#connectionadapter) | Default HTTP socket adapter for reading and writing HTTP messages |
 | [`ConnectionPool`](#connectionpool) | LIFO connection pool for reusing [ServerConnection](#serverconnection) objects. Avoids per-request heap allocation by resetting and reusing connections instead of destroying and recreating them. |
-| [`ConnectionStream`](#connectionstream) | Packet stream wrapper for a HTTP connection. |
+| [`ConnectionStream`](#connectionstream) | Packet stream wrapper for an HTTP connection. |
 | [`Cookie`](#cookie) | HTTP cookie value plus its response/header attributes. |
 | [`FilePart`](#filepart) | Form part backed by a file on disk. |
 | [`FormPart`](#formpart) | An implementation of [FormPart](#formpart). |
-| [`FormWriter`](#formwriter) | [FormWriter](#formwriter) is a HTTP client connection adapter for writing HTML forms. |
+| [`FormWriter`](#formwriter) | [FormWriter](#formwriter) is an HTTP client connection adapter for writing HTML forms. |
 | [`Message`](#message) | The base class for [Request](#request-4) and [Response](#response-1). |
 | [`MultipartAdapter`](#multipartadapter) | HTTP multipart encoding adapter for multipart/x-mixed-replace streaming. |
 | [`Parser`](#parser-1) | HTTP request/response parser using the llhttp library. |
@@ -3154,7 +3154,7 @@ size_t _maxSize = 128
 
 > **Inherits:** [`SocketAdapter`](net.md#socketadapter)
 
-Packet stream wrapper for a HTTP connection.
+Packet stream wrapper for an HTTP connection.
 
 ### Public Attributes
 
@@ -4452,7 +4452,7 @@ bool _initialWrite
 
 > **Inherits:** [`NVCollection`](base.md#nvcollection), [`PacketStreamAdapter`](base.md#packetstreamadapter), [`Startable`](base.md#startable)
 
-[FormWriter](#formwriter) is a HTTP client connection adapter for writing HTML forms.
+[FormWriter](#formwriter) is an HTTP client connection adapter for writing HTML forms.
 
 This class runs in its own thread so as not to block the event loop while uploading big files. Class members are not synchronized hence they should not be accessed while the form is sending, not that there would be any reason to do so.
 
@@ -5301,7 +5301,7 @@ Returns true if
 
 * the message has a [Connection](#connection-1) header field and its value is "Keep-Alive"
 
-* the message is a HTTP/1.1 message and not [Connection](#connection-1) header is set Returns false otherwise.
+* the message is an HTTP/1.1 message and no [Connection](#connection-1) header is set Returns false otherwise.
 
 ---
 
@@ -6788,8 +6788,8 @@ In addition to the properties common to all HTTP messages, an HTTP request has a
 |--------|------|-------------|
 |  | [`Request`](#request-5)  | Creates a GET / HTTP/1.1 HTTP request. |
 |  | [`Request`](#request-6)  | Creates a GET / HTTP/1.x request with the given version (HTTP/1.0 or HTTP/1.1). |
-|  | [`Request`](#request-7)  | Creates a HTTP/1.0 request with the given method and URI. |
-|  | [`Request`](#request-8)  | Creates a HTTP request with the given method, URI and version. |
+|  | [`Request`](#request-7)  | Creates an HTTP/1.0 request with the given method and URI. |
+|  | [`Request`](#request-8)  | Creates an HTTP request with the given method, URI and version. |
 |  | [`~Request`](#request-9) `virtual` | Destroys the [Request](#request-4). |
 | `void` | [`setMethod`](#setmethod)  | Sets the method. |
 | `const std::string &` | [`getMethod`](#getmethod) `const` | Returns the method. |
@@ -6850,7 +6850,7 @@ Creates a GET / HTTP/1.x request with the given version (HTTP/1.0 or HTTP/1.1).
 Request(const std::string & method, const std::string & uri)
 ```
 
-Creates a HTTP/1.0 request with the given method and URI.
+Creates an HTTP/1.0 request with the given method and URI.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -6867,7 +6867,7 @@ Creates a HTTP/1.0 request with the given method and URI.
 Request(const std::string & method, const std::string & uri, const std::string & version)
 ```
 
-Creates a HTTP request with the given method, URI and version.
+Creates an HTTP request with the given method, URI and version.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -7319,8 +7319,8 @@ HTTP response message with status, reason phrase, headers, and body metadata.
 |  | [`Response`](#response-2)  | Creates the [Response](#response-1) with OK status. |
 |  | [`Response`](#response-3)  | Creates the [Response](#response-1) with the given status and reason phrase. |
 |  | [`Response`](#response-4)  | Creates the [Response](#response-1) with the given version, status and reason phrase. |
-|  | [`Response`](#response-5)  | Creates the [Response](#response-1) with the given status an an appropriate reason phrase. |
-|  | [`Response`](#response-6)  | Creates the [Response](#response-1) with the given version, status an an appropriate reason phrase. |
+|  | [`Response`](#response-5)  | Creates the [Response](#response-1) with the given status and an appropriate reason phrase. |
+|  | [`Response`](#response-6)  | Creates the [Response](#response-1) with the given version, status and an appropriate reason phrase. |
 |  | [`~Response`](#response-7) `virtual` | Destroys the [Response](#response-1). |
 | `void` | [`setStatus`](#setstatus)  | Sets the HTTP status code. |
 | `StatusCode` | [`getStatus`](#getstatus) `const` | Returns the HTTP status code. |
@@ -7393,7 +7393,7 @@ Creates the [Response](#response-1) with the given version, status and reason ph
 Response(StatusCode status)
 ```
 
-Creates the [Response](#response-1) with the given status an an appropriate reason phrase.
+Creates the [Response](#response-1) with the given status and an appropriate reason phrase.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -7409,7 +7409,7 @@ Creates the [Response](#response-1) with the given status an an appropriate reas
 Response(const std::string & version, StatusCode status)
 ```
 
-Creates the [Response](#response-1) with the given version, status an an appropriate reason phrase.
+Creates the [Response](#response-1) with the given version, status and an appropriate reason phrase.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -10043,7 +10043,7 @@ const std::string Connect
 
 | Name | Description |
 |------|-------------|
-| [`ConnectionAdapter`](#connectionadapter-2) | [WebSocket](#websocket) class which belongs to a HTTP [Connection](#connection-1). |
+| [`ConnectionAdapter`](#connectionadapter-2) | [WebSocket](#websocket) class which belongs to an HTTP connection. |
 | [`WebSocket`](#websocket) | Standalone [WebSocket](#websocket) class. |
 | [`WebSocketAdapter`](#websocketadapter) | [WebSocket](#websocket) protocol adapter for both client and server endpoints. |
 | [`WebSocketException`](#websocketexception) |  |
@@ -10273,7 +10273,7 @@ The [WebSocket](#websocket) protocol version supported (13).
 
 > **Inherits:** [`WebSocketAdapter`](#websocketadapter)
 
-[WebSocket](#websocket) class which belongs to a HTTP [Connection](#connection-1).
+[WebSocket](#websocket) class which belongs to an HTTP connection.
 
 ### Public Methods
 

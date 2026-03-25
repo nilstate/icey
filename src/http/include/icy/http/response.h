@@ -88,11 +88,11 @@ public:
     Response(const std::string& version, StatusCode status, const std::string& reason);
 
     /// Creates the Response with the given status
-    /// an an appropriate reason phrase.
+    /// and an appropriate reason phrase.
     Response(StatusCode status);
 
     /// Creates the Response with the given version, status
-    /// an an appropriate reason phrase.
+    /// and an appropriate reason phrase.
     Response(const std::string& version, StatusCode status);
 
     /// Destroys the Response.

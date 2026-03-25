@@ -1369,7 +1369,7 @@ The priority of this adapter for STL sort operations.
 | `ssize_t` | [`sendOwned`](#sendowned-3) `virtual` |  |
 | `ssize_t` | [`sendPacket`](#sendpacket) `virtual` | Sends the given packet to the connected peer. Returns the number of bytes sent or -1 on error. No exception will be thrown. For TCP sockets the given peer address must match the connected peer address. |
 | `ssize_t` | [`sendPacket`](#sendpacket-1) `virtual` |  |
-| `void` | [`sendPacket`](#sendpacket-2) `virtual` | Sends the given packet to the connected peer. This method provides delegate compatability, and unlike other send methods throws an exception if the underlying socket is closed. |
+| `void` | [`sendPacket`](#sendpacket-2) `virtual` | Sends the given packet to the connected peer. This method provides delegate compatibility, and unlike other send methods throws an exception if the underlying socket is closed. |
 | `void` | [`setSender`](#setsender) `virtual` | Sets the pointer to the outgoing data adapter. Send methods proxy data to this adapter by default. |
 | `SocketAdapter *` | [`sender`](#sender)  | Returns the output [SocketAdapter](#socketadapter) pointer. |
 | `void` | [`addReceiver`](#addreceiver) `virtual` | Sets the pointer to the incoming data adapter. Events proxy data to this adapter by default. |
@@ -1538,7 +1538,7 @@ virtual ssize_t sendPacket(const IPacket & packet, const Address & peerAddress, 
 virtual void sendPacket(IPacket & packet)
 ```
 
-Sends the given packet to the connected peer. This method provides delegate compatability, and unlike other send methods throws an exception if the underlying socket is closed.
+Sends the given packet to the connected peer. This method provides delegate compatibility, and unlike other send methods throws an exception if the underlying socket is closed.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|

@@ -24,7 +24,7 @@ namespace icy {
 
 /// State class for state machines.
 ///
-/// This class defined the state for a state machine, and should be
+/// This class defines the state for a state machine, and should be
 /// extended and passed to implementations of the `Stateful` template.
 ///
 /// For an example @see PacketStreamState
