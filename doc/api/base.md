@@ -442,40 +442,40 @@ Ordered list of packet creation strategies consulted by a packet factory.
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `void` | [`runOnce`](#runonce)  | Schedules func to run once at the beginning of the next event loop iteration. Uses a uv_prepare_t handle that self-destructs after the first invocation.  |
-| `std::string` | [`formatError`](#formaterror) `inline` | Formats a human-readable error string from a message and a libuv error code. If `err` is not `UV_UNKNOWN`, the libuv error description is appended after a colon.  |
-| `void` | [`throwError`](#throwerror) `inline` | Throws a `std::runtime_error` with a formatted error message.  |
-| `MutableBuffer` | [`mutableBuffer`](#mutablebuffer-1) `inline` | Creates a `[MutableBuffer](#mutablebuffer)` from an arbitrary pointer and size.  |
-| `MutableBuffer` | [`mutableBuffer`](#mutablebuffer-2) `inline` | Creates a `[MutableBuffer](#mutablebuffer)` from a `std::string`.  |
-| `MutableBuffer` | [`mutableBuffer`](#mutablebuffer-3) `inline` | Creates a `[MutableBuffer](#mutablebuffer)` from a const `std::string`. Casts away constness; use with care.  |
-| `MutableBuffer` | [`mutableBuffer`](#mutablebuffer-4) `inline` | Creates a `[MutableBuffer](#mutablebuffer)` from a const `std::vector`. Casts away constness; use with care.  |
-| `MutableBuffer` | [`mutableBuffer`](#mutablebuffer-5) `inline` | Creates a `[MutableBuffer](#mutablebuffer)` from a `Buffer`.  |
-| `MutableBuffer` | [`mutableBuffer`](#mutablebuffer-6) `inline` | Creates a `[MutableBuffer](#mutablebuffer)` from a const `Buffer`. Casts away constness; use with care.  |
-| `ConstBuffer` | [`constBuffer`](#constbuffer-1) `inline` | Creates a `[ConstBuffer](#constbuffer)` from an arbitrary pointer and size.  |
-| `ConstBuffer` | [`constBuffer`](#constbuffer-2) `inline` | Creates a `[ConstBuffer](#constbuffer)` from a `std::string`.  |
-| `ConstBuffer` | [`constBuffer`](#constbuffer-3) `inline` | Creates a `[ConstBuffer](#constbuffer)` from a `std::vector`.  |
-| `constexpr ConstBuffer` | [`constBuffer`](#constbuffer-4) `inline` | Creates a `[ConstBuffer](#constbuffer)` from a `[MutableBuffer](#mutablebuffer)`.  |
-| `ConstBuffer` | [`constBuffer`](#constbuffer-5) `inline` | Creates a `[ConstBuffer](#constbuffer)` from a `Buffer`.  |
-| `ConstBuffer` | [`constBuffer`](#constbuffer-6) `inline` | Creates a `[ConstBuffer](#constbuffer)` from a const `Buffer`. Casts away constness internally; use with care.  |
-| `constexpr PointerToPodType` | [`bufferCast`](#buffercast) `inline` | Casts a `[MutableBuffer](#mutablebuffer)` to a specified pointer-to-POD type.  |
-| `constexpr PointerToPodType` | [`bufferCast`](#buffercast-1) `inline` | Casts a `[ConstBuffer](#constbuffer)` to a specified pointer-to-POD type.  |
-| `Level` | [`getLevelFromString`](#getlevelfromstring) `inline` | Converts a log level string to its corresponding `Level` enum value. Unrecognized strings default to `[Level::Trace](#namespaceicy_1aad3e81b3cd2daab89338dae9b5323f6badd4ec0ac4e58f7c32a01244ae91150b1)`.  |
-| `const char *` | [`getStringFromLevel`](#getstringfromlevel) `inline` | Converts a `Level` enum value to its lowercase string representation.  |
-| `void` | [`logArgs`](#logargs)  |  |
-| `void` | [`logArgs`](#logargs-1)  |  |
-| `constexpr const char *` | [`str_end`](#str_end)  |  |
-| `constexpr bool` | [`str_slant`](#str_slant)  |  |
-| `constexpr const char *` | [`r_slant`](#r_slant)  |  |
-| `constexpr const char *` | [`_fileName`](#_filename)  |  |
-| `std::string` | [`_methodName`](#_methodname) `inline` |  |
-| `void` | [`deleteLater`](#deletelater) `inline` | Schedules deferred deletion of ptr on the next event loop iteration. This is essential for deleting objects that may still be referenced by pending libuv callbacks (e.g. socket adapters with in-flight I/O). Uses a self-cleaning uv_idle_t handle that fires once and then closes itself.  |
-| `IntrusivePtr< T >` | [`makeIntrusive`](#makeintrusive)  | Creates an [IntrusivePtr](#intrusiveptr) managing a newly heap-allocated T. Equivalent to std::make_shared.  |
+| `void` | [`runOnce`](#runonce)  | Schedules func to run once at the beginning of the next event loop iteration. Uses a uv_prepare_t handle that self-destructs after the first invocation. |
+| `std::string` | [`formatError`](#formaterror) `inline` | Formats a human-readable error string from a message and a libuv error code. If `err` is not `UV_UNKNOWN`, the libuv error description is appended after a colon. |
+| `void` | [`throwError`](#throwerror) `inline` | Throws a `std::runtime_error` with a formatted error message. |
+| `MutableBuffer` | [`mutableBuffer`](#mutablebuffer-1) `inline` | Creates a `[MutableBuffer](#mutablebuffer)` from an arbitrary pointer and size. |
+| `MutableBuffer` | [`mutableBuffer`](#mutablebuffer-2) `inline` | Creates a `[MutableBuffer](#mutablebuffer)` from a `std::string`. |
+| `MutableBuffer` | [`mutableBuffer`](#mutablebuffer-3) `inline` | Creates a `[MutableBuffer](#mutablebuffer)` from a const `std::string`. Casts away constness; use with care. |
+| `MutableBuffer` | [`mutableBuffer`](#mutablebuffer-4) `inline` | Creates a `[MutableBuffer](#mutablebuffer)` from a const `std::vector`. Casts away constness; use with care. |
+| `MutableBuffer` | [`mutableBuffer`](#mutablebuffer-5) `inline` | Creates a `[MutableBuffer](#mutablebuffer)` from a `Buffer`. |
+| `MutableBuffer` | [`mutableBuffer`](#mutablebuffer-6) `inline` | Creates a `[MutableBuffer](#mutablebuffer)` from a const `Buffer`. Casts away constness; use with care. |
+| `ConstBuffer` | [`constBuffer`](#constbuffer-1) `inline` | Creates a `[ConstBuffer](#constbuffer)` from an arbitrary pointer and size. |
+| `ConstBuffer` | [`constBuffer`](#constbuffer-2) `inline` | Creates a `[ConstBuffer](#constbuffer)` from a `std::string`. |
+| `ConstBuffer` | [`constBuffer`](#constbuffer-3) `inline` | Creates a `[ConstBuffer](#constbuffer)` from a `std::vector`. |
+| `constexpr ConstBuffer` | [`constBuffer`](#constbuffer-4) `inline` | Creates a `[ConstBuffer](#constbuffer)` from a `[MutableBuffer](#mutablebuffer)`. |
+| `ConstBuffer` | [`constBuffer`](#constbuffer-5) `inline` | Creates a `[ConstBuffer](#constbuffer)` from a `Buffer`. |
+| `ConstBuffer` | [`constBuffer`](#constbuffer-6) `inline` | Creates a `[ConstBuffer](#constbuffer)` from a const `Buffer`. Casts away constness internally; use with care. |
+| `constexpr PointerToPodType` | [`bufferCast`](#buffercast) `inline` | Casts a `[MutableBuffer](#mutablebuffer)` to a specified pointer-to-POD type. |
+| `constexpr PointerToPodType` | [`bufferCast`](#buffercast-1) `inline` | Casts a `[ConstBuffer](#constbuffer)` to a specified pointer-to-POD type. |
+| `Level` | [`getLevelFromString`](#getlevelfromstring) `inline` | Converts a log level string to its corresponding `Level` enum value. Unrecognized strings default to `[Level::Trace](#namespaceicy_1aad3e81b3cd2daab89338dae9b5323f6badd4ec0ac4e58f7c32a01244ae91150b1)`. |
+| `const char *` | [`getStringFromLevel`](#getstringfromlevel) `inline` | Converts a `Level` enum value to its lowercase string representation. |
+| `void` | [`logArgs`](#logargs)  | Write a single logging argument into the destination stream. |
+| `void` | [`logArgs`](#logargs-1)  | Write multiple logging arguments into the destination stream in order. |
+| `constexpr const char *` | [`str_end`](#str_end)  | Return a pointer to the null terminator of a C string. |
+| `constexpr bool` | [`str_slant`](#str_slant)  | Return true if the C string contains a forward or back slash. |
+| `constexpr const char *` | [`r_slant`](#r_slant)  | Walk backward to the character after the last path separator. |
+| `constexpr const char *` | [`_fileName`](#_filename)  | Return the filename portion of a compile-time path string. |
+| `std::string` | [`_methodName`](#_methodname) `inline` | Extract the class-qualified method name from a compiler pretty-function string. |
+| `void` | [`deleteLater`](#deletelater) `inline` | Schedules deferred deletion of ptr on the next event loop iteration. This is essential for deleting objects that may still be referenced by pending libuv callbacks (e.g. socket adapters with in-flight I/O). Uses a self-cleaning uv_idle_t handle that fires once and then closes itself. |
+| `IntrusivePtr< T >` | [`makeIntrusive`](#makeintrusive)  | Creates an [IntrusivePtr](#intrusiveptr) managing a newly heap-allocated T. Equivalent to std::make_shared. |
 | `std::shared_ptr< internal::Slot< RT, Args... > >` | [`slot`](#slot)  | Creates a slot that binds a non-const class member function to an instance. |
 | `std::shared_ptr< internal::Slot< RT, Args... > >` | [`slot`](#slot-1)  | Creates a slot that wraps a free (static) function pointer. |
-| `void` | [`swap`](#swap-2) `inline` |  |
-| `void` | [`swap`](#swap-3) `inline` |  |
-| `void` | [`swap`](#swap-4) `inline` |  |
-| `void` | [`swap`](#swap-5) `inline` |  |
+| `void` | [`swap`](#swap-2) `inline` | Exchange two [DateTime](#datetime) values. |
+| `void` | [`swap`](#swap-3) `inline` | Exchange two [LocalDateTime](#localdatetime) values. |
+| `void` | [`swap`](#swap-4) `inline` | Exchange two [Timestamp](#timestamp) values. |
+| `void` | [`swap`](#swap-5) `inline` | Exchange two [Timespan](#timespan) values. |
 | `std::string` | [`getExePath`](#getexepath)  | Cross-platform utilities. |
 | `std::string` | [`getCwd`](#getcwd)  | Return the current working directory. |
 | `uint64_t` | [`getFreeMemory`](#getfreememory)  | Returns the current amount of free memory. |
@@ -486,31 +486,31 @@ Ordered list of packet creation strategies consulted by a packet factory.
 | `std::string` | [`getHostname`](#gethostname)  | Return the system hostname. |
 | `std::string` | [`getEnv`](#getenv)  | Return an environment variable or the default value. |
 | `bool` | [`getEnvBool`](#getenvbool)  | Return an environment variable boolean or the default value. The variable must be `1` or `true` for this function to return true. |
-| `void` | [`set8`](#set8) `inline` | Writes a single byte at the given offset in memory.  |
-| `uint8_t` | [`get8`](#get8) `inline` | Reads a single byte at the given offset from memory.  |
-| `void` | [`setBE16`](#setbe16) `inline` | Writes a 16-bit value to memory in big-endian byte order.  |
-| `void` | [`setBE32`](#setbe32) `inline` | Writes a 32-bit value to memory in big-endian byte order.  |
-| `void` | [`setBE64`](#setbe64) `inline` | Writes a 64-bit value to memory in big-endian byte order.  |
-| `uint16_t` | [`getBE16`](#getbe16) `inline` | Reads a 16-bit big-endian value from memory.  |
-| `uint32_t` | [`getBE32`](#getbe32) `inline` | Reads a 32-bit big-endian value from memory.  |
-| `uint64_t` | [`getBE64`](#getbe64) `inline` | Reads a 64-bit big-endian value from memory.  |
-| `void` | [`setLE16`](#setle16) `inline` | Writes a 16-bit value to memory in little-endian byte order.  |
-| `void` | [`setLE32`](#setle32) `inline` | Writes a 32-bit value to memory in little-endian byte order.  |
-| `void` | [`setLE64`](#setle64) `inline` | Writes a 64-bit value to memory in little-endian byte order.  |
-| `uint16_t` | [`getLE16`](#getle16) `inline` | Reads a 16-bit little-endian value from memory.  |
-| `uint32_t` | [`getLE32`](#getle32) `inline` | Reads a 32-bit little-endian value from memory.  |
-| `uint64_t` | [`getLE64`](#getle64) `inline` | Reads a 64-bit little-endian value from memory.  |
-| `bool` | [`isBigEndian`](#isbigendian) `inline` | Returns true if the host CPU is big-endian.  |
-| `uint16_t` | [`hostToNetwork16`](#hosttonetwork16) `inline` | Converts a 16-bit value from host byte order to network (big-endian) byte order.  |
-| `uint32_t` | [`hostToNetwork32`](#hosttonetwork32) `inline` | Converts a 32-bit value from host byte order to network (big-endian) byte order.  |
-| `uint64_t` | [`hostToNetwork64`](#hosttonetwork64) `inline` | Converts a 64-bit value from host byte order to network (big-endian) byte order.  |
-| `uint16_t` | [`networkToHost16`](#networktohost16) `inline` | Converts a 16-bit value from network (big-endian) byte order to host byte order.  |
-| `uint32_t` | [`networkToHost32`](#networktohost32) `inline` | Converts a 32-bit value from network (big-endian) byte order to host byte order.  |
-| `uint64_t` | [`networkToHost64`](#networktohost64) `inline` | Converts a 64-bit value from network (big-endian) byte order to host byte order.  |
-| `void` | [`onShutdownSignal`](#onshutdownsignal) `inline` | Installs a SIGINT handler on the given event loop. When the signal fires, `callback` is invoked with `opaque` and the signal handle is closed.  |
-| `void` | [`waitForShutdown`](#waitforshutdown) `inline` | Installs a SIGINT handler and runs the event loop until shutdown. Equivalent to calling `[onShutdownSignal()](#onshutdownsignal)` then `uv_run()`.  |
+| `void` | [`set8`](#set8) `inline` | Writes a single byte at the given offset in memory. |
+| `uint8_t` | [`get8`](#get8) `inline` | Reads a single byte at the given offset from memory. |
+| `void` | [`setBE16`](#setbe16) `inline` | Writes a 16-bit value to memory in big-endian byte order. |
+| `void` | [`setBE32`](#setbe32) `inline` | Writes a 32-bit value to memory in big-endian byte order. |
+| `void` | [`setBE64`](#setbe64) `inline` | Writes a 64-bit value to memory in big-endian byte order. |
+| `uint16_t` | [`getBE16`](#getbe16) `inline` | Reads a 16-bit big-endian value from memory. |
+| `uint32_t` | [`getBE32`](#getbe32) `inline` | Reads a 32-bit big-endian value from memory. |
+| `uint64_t` | [`getBE64`](#getbe64) `inline` | Reads a 64-bit big-endian value from memory. |
+| `void` | [`setLE16`](#setle16) `inline` | Writes a 16-bit value to memory in little-endian byte order. |
+| `void` | [`setLE32`](#setle32) `inline` | Writes a 32-bit value to memory in little-endian byte order. |
+| `void` | [`setLE64`](#setle64) `inline` | Writes a 64-bit value to memory in little-endian byte order. |
+| `uint16_t` | [`getLE16`](#getle16) `inline` | Reads a 16-bit little-endian value from memory. |
+| `uint32_t` | [`getLE32`](#getle32) `inline` | Reads a 32-bit little-endian value from memory. |
+| `uint64_t` | [`getLE64`](#getle64) `inline` | Reads a 64-bit little-endian value from memory. |
+| `bool` | [`isBigEndian`](#isbigendian) `inline` | Returns true if the host CPU is big-endian. |
+| `uint16_t` | [`hostToNetwork16`](#hosttonetwork16) `inline` | Converts a 16-bit value from host byte order to network (big-endian) byte order. |
+| `uint32_t` | [`hostToNetwork32`](#hosttonetwork32) `inline` | Converts a 32-bit value from host byte order to network (big-endian) byte order. |
+| `uint64_t` | [`hostToNetwork64`](#hosttonetwork64) `inline` | Converts a 64-bit value from host byte order to network (big-endian) byte order. |
+| `uint16_t` | [`networkToHost16`](#networktohost16) `inline` | Converts a 16-bit value from network (big-endian) byte order to host byte order. |
+| `uint32_t` | [`networkToHost32`](#networktohost32) `inline` | Converts a 32-bit value from network (big-endian) byte order to host byte order. |
+| `uint64_t` | [`networkToHost64`](#networktohost64) `inline` | Converts a 64-bit value from network (big-endian) byte order to host byte order. |
+| `void` | [`onShutdownSignal`](#onshutdownsignal) `inline` | Installs a SIGINT handler on the given event loop. When the signal fires, `callback` is invoked with `opaque` and the signal handle is closed. |
+| `void` | [`waitForShutdown`](#waitforshutdown) `inline` | Installs a SIGINT handler and runs the event loop until shutdown. Equivalent to calling `[onShutdownSignal()](#onshutdownsignal)` then `uv_run()`. |
 | `std::shared_ptr< internal::Slot< RT, IT & > >` | [`packetSlot`](#packetslot)  | Creates a signal slot that filters by packet subtype `PT` before invoking `method`. |
-| `constexpr unsigned` | [`operator|`](#operator-9)  |  |
+| `constexpr unsigned` | [`operator|`](#operator-9)  | Combine PacketFlags values into a bitmask. |
 | `RawPacket` | [`rawPacket`](#rawpacket-1) `inline` | Constructs a non-owning [RawPacket](#rawpacket) from a mutable buffer (borrowed pointer). |
 | `RawPacket` | [`rawPacket`](#rawpacket-2) `inline` | Constructs an owning [RawPacket](#rawpacket) from a const buffer (data is copied). |
 | `RawPacket` | [`rawPacket`](#rawpacket-3) `inline` | Constructs a non-owning [RawPacket](#rawpacket) from a raw mutable pointer (borrowed). |
@@ -915,6 +915,12 @@ Lowercase C string: "trace", "debug", "info", "warn", "error", or "fatal".
 template<typename T> void logArgs(std::ostream & o, T && t)
 ```
 
+Write a single logging argument into the destination stream. 
+#### Parameters
+* `o` Destination stream. 
+
+* `t` Argument to append with operator<<.
+
 ---
 
 {#logargs-1}
@@ -924,6 +930,14 @@ template<typename T> void logArgs(std::ostream & o, T && t)
 ```cpp
 template<typename T, typename... Args> void logArgs(std::ostream & o, T && t, Args &&... args)
 ```
+
+Write multiple logging arguments into the destination stream in order. 
+#### Parameters
+* `o` Destination stream. 
+
+* `t` First argument to append. 
+
+* `args` Remaining arguments to append recursively.
 
 ---
 
@@ -935,6 +949,8 @@ template<typename T, typename... Args> void logArgs(std::ostream & o, T && t, Ar
 constexpr const char * str_end(const char * str)
 ```
 
+Return a pointer to the null terminator of a C string.
+
 ---
 
 {#str_slant}
@@ -944,6 +960,8 @@ constexpr const char * str_end(const char * str)
 ```cpp
 constexpr bool str_slant(const char * str)
 ```
+
+Return true if the C string contains a forward or back slash.
 
 ---
 
@@ -955,6 +973,8 @@ constexpr bool str_slant(const char * str)
 constexpr const char * r_slant(const char * str)
 ```
 
+Walk backward to the character after the last path separator.
+
 ---
 
 {#_filename}
@@ -964,6 +984,8 @@ constexpr const char * r_slant(const char * str)
 ```cpp
 constexpr const char * _fileName(const char * str)
 ```
+
+Return the filename portion of a compile-time path string.
 
 ---
 
@@ -976,6 +998,8 @@ constexpr const char * _fileName(const char * str)
 ```cpp
 inline std::string _methodName(std::string_view fsig)
 ```
+
+Extract the class-qualified method name from a compiler pretty-function string.
 
 ---
 
@@ -1092,6 +1116,8 @@ A `SlotPtr` ready to attach to a compatible `[Signal](#signal)`.
 inline void swap(DateTime & d1, DateTime & d2)
 ```
 
+Exchange two [DateTime](#datetime) values.
+
 ---
 
 {#swap-3}
@@ -1103,6 +1129,8 @@ inline void swap(DateTime & d1, DateTime & d2)
 ```cpp
 inline void swap(LocalDateTime & d1, LocalDateTime & d2)
 ```
+
+Exchange two [LocalDateTime](#localdatetime) values.
 
 ---
 
@@ -1116,6 +1144,8 @@ inline void swap(LocalDateTime & d1, LocalDateTime & d2)
 inline void swap(Timestamp & s1, Timestamp & s2)
 ```
 
+Exchange two [Timestamp](#timestamp) values.
+
 ---
 
 {#swap-5}
@@ -1127,6 +1157,8 @@ inline void swap(Timestamp & s1, Timestamp & s2)
 ```cpp
 inline void swap(Timespan & s1, Timespan & s2)
 ```
+
+Exchange two [Timespan](#timespan) values.
 
 ---
 
@@ -1728,6 +1760,8 @@ A shared slot suitable for connecting to a `PacketSignal`.
 constexpr unsigned operator|(PacketFlags lhs, PacketFlags rhs)
 ```
 
+Combine PacketFlags values into a bitmask.
+
 ---
 
 {#rawpacket-1}
@@ -1850,11 +1884,11 @@ char lastbyte
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`Decoder`](#decoder-1) `inline` |  |
-| `ssize_t` | [`decode`](#decode-4) `virtual` `inline` | Decodes hex-encoded input to binary. Whitespace in the input is ignored. A trailing unpaired nibble is buffered and prepended on the next call.  |
-| `ssize_t` | [`finalize`](#finalize) `virtual` `inline` | No-op finalizer; hex decoding has no pending output state.  |
-| `bool` | [`readnext`](#readnext) `inline` | Reads the next non-whitespace character from inbuf, prepending any buffered lastbyte before consuming from the stream.  |
-| `int` | [`nybble`](#nybble) `inline` | Converts an ASCII hex character to its 4-bit integer value.  |
-| `bool` | [`iswspace`](#iswspace) `inline` | Returns true if c is an ASCII whitespace character (space, CR, tab, LF).  |
+| `ssize_t` | [`decode`](#decode-4) `virtual` `inline` | Decodes hex-encoded input to binary. Whitespace in the input is ignored. A trailing unpaired nibble is buffered and prepended on the next call. |
+| `ssize_t` | [`finalize`](#finalize) `virtual` `inline` | No-op finalizer; hex decoding has no pending output state. |
+| `bool` | [`readnext`](#readnext) `inline` | Reads the next non-whitespace character from inbuf, prepending any buffered lastbyte before consuming from the stream. |
+| `int` | [`nybble`](#nybble) `inline` | Converts an ASCII hex character to its 4-bit integer value. |
+| `bool` | [`iswspace`](#iswspace) `inline` | Returns true if c is an ASCII whitespace character (space, CR, tab, LF). |
 
 ---
 
@@ -2028,10 +2062,10 @@ int _uppercase
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`Encoder`](#encoder-2) `inline` |  |
-| `ssize_t` | [`encode`](#encode-15) `virtual` `inline` | Encodes binary input as lowercase hex characters, optionally inserting newlines every `_lineLength` output characters.  |
-| `ssize_t` | [`finalize`](#finalize-1) `virtual` `inline` | No-op finalizer; hex encoding has no pending state.  |
-| `void` | [`setUppercase`](#setuppercase) `inline` | Controls whether encoded output uses uppercase hex digits (A-F) or lowercase (a-f).  |
-| `void` | [`setLineLength`](#setlinelength) `inline` | Sets the maximum number of output characters per line before a newline is inserted. Set to 0 to disable line wrapping.  |
+| `ssize_t` | [`encode`](#encode-15) `virtual` `inline` | Encodes binary input as lowercase hex characters, optionally inserting newlines every `_lineLength` output characters. |
+| `ssize_t` | [`finalize`](#finalize-1) `virtual` `inline` | No-op finalizer; hex encoding has no pending state. |
+| `void` | [`setUppercase`](#setuppercase) `inline` | Controls whether encoded output uses uppercase hex digits (A-F) or lowercase (a-f). |
+| `void` | [`setLineLength`](#setlinelength) `inline` | Sets the maximum number of output characters per line before a newline is inserted. Set to 0 to disable line wrapping. |
 
 ---
 
@@ -2174,12 +2208,12 @@ IPC queue is for safely passing templated actions between threads and processes.
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`Queue`](#queue-2) `inline` |  |
-| `void` | [`push`](#push-1) `virtual` `inline` | Pushes an action onto the queue and triggers a post notification. Takes ownership of action; the queue deletes it after execution. Thread-safe.  |
-| `TAction *` | [`pop`](#pop) `virtual` `inline` | Removes and returns the next action from the front of the queue. The caller takes ownership of the returned pointer. Thread-safe.  |
+| `void` | [`push`](#push-1) `virtual` `inline` | Pushes an action onto the queue and triggers a post notification. Takes ownership of action; the queue deletes it after execution. Thread-safe. |
+| `TAction *` | [`pop`](#pop) `virtual` `inline` | Removes and returns the next action from the front of the queue. The caller takes ownership of the returned pointer. Thread-safe. |
 | `void` | [`runSync`](#runsync) `virtual` `inline` | Drains the queue by invoking and deleting every pending action in order. Must be called from the thread that owns the event loop. |
 | `void` | [`close`](#close-17) `virtual` `inline` | Closes the underlying notification handle. No-op in the base implementation. |
 | `void` | [`post`](#post) `virtual` `inline` | Signals the event loop that new actions are available. No-op in the base implementation. |
-| `void` | [`waitForSync`](#waitforsync) `inline` | Blocks the calling thread until the queue is empty or the timeout elapses. Polls every 10 ms. Logs a warning if the timeout is reached.  |
+| `void` | [`waitForSync`](#waitforsync) `inline` | Blocks the calling thread until the queue is empty or the timeout elapses. Polls every 10 ms. Logs a warning if the timeout is reached. |
 
 ---
 
@@ -2326,10 +2360,10 @@ IPC synchronization queue is for passing templated actions between threads and t
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`SyncQueue`](#syncqueue-2) `inline` | Constructs a [SyncQueue](#syncqueue-1) bound to the given libuv event loop.  |
+|  | [`SyncQueue`](#syncqueue-2) `inline` | Constructs a [SyncQueue](#syncqueue-1) bound to the given libuv event loop. |
 | `void` | [`close`](#close-18) `virtual` `inline` | Closes the underlying [Synchronizer](#synchronizer) handle and stops loop wakeups. |
 | `void` | [`post`](#post-1) `virtual` `inline` | Wakes up the event loop so pending actions are dispatched via [runSync()](#runsync). |
-| `Synchronizer &` | [`sync`](#sync) `virtual` `inline` | Returns a reference to the internal [Synchronizer](#synchronizer).  |
+| `Synchronizer &` | [`sync`](#sync) `virtual` `inline` | Returns a reference to the internal [Synchronizer](#synchronizer). |
 
 ---
 
@@ -2465,7 +2499,7 @@ Optional string payload passed to the callback.
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`Action`](#action-1) `inline` | Constructs an [Action](#action) with the given callback, optional argument, and optional data.  |
+|  | [`Action`](#action-1) `inline` | Constructs an [Action](#action) with the given callback, optional argument, and optional data. |
 
 ---
 
@@ -2846,7 +2880,7 @@ Return true when the test passed without errors.
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`Test`](#test-4)  |  |
+|  | [`Test`](#test-4)  | Deleted constructor. |
 
 ---
 
@@ -2857,6 +2891,8 @@ Return true when the test passed without errors.
 ```cpp
 Test(const Test & test) = delete
 ```
+
+Deleted constructor.
 
 {#testrunner}
 
@@ -2877,8 +2913,8 @@ When `[run()](#run-3)` the `[TestRunner](#testrunner)` loops through each test i
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`TestRunner`](#testrunner-1)  |  |
-| `void` | [`add`](#add)  | Adds a test to the runner and prints its name to stdout.  |
-| `Test *` | [`get`](#get-3) `const` | Return a pointer to the test matching the given name, or nullptr if no matching test exists.  |
+| `void` | [`add`](#add)  | Adds a test to the runner and prints its name to stdout. |
+| `Test *` | [`get`](#get-3) `const` | Return a pointer to the test matching the given name, or nullptr if no matching test exists. |
 | `void` | [`run`](#run-3)  | Runs all registered tests sequentially, printing results to stdout. |
 | `void` | [`clear`](#clear-1)  | Destroy and clears all managed tests. |
 | `Test *` | [`current`](#current) `const` | Return the currently active [Test](#test-1) or nullptr. |
@@ -3077,16 +3113,16 @@ Classes and functions for handling time.
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `std::time_t` | [`now`](#now)  | Returns the current wall-clock time as a UTC time_t (seconds since epoch).  |
-| `double` | [`clockSecs`](#clocksecs)  | Returns the elapsed process time in decimal seconds using a monotonic clock.  |
-| `std::string` | [`print`](#print-7)  | Formats a broken-down time value using the given strftime format string.  |
-| `std::string` | [`printLocal`](#printlocal)  | Formats the current local time using the given strftime format string.  |
-| `std::string` | [`printUTC`](#printutc)  | Formats the current UTC time using the given strftime format string.  |
-| `std::tm` | [`toLocal`](#tolocal)  | Converts a time_t value to a broken-down local time structure. Uses thread-safe native functions (localtime_r / localtime_s).  |
-| `std::tm` | [`toUTC`](#toutc)  | Converts a time_t value to a broken-down UTC time structure. Uses thread-safe native functions (gmtime_r / gmtime_s).  |
-| `std::string` | [`getLocal`](#getlocal)  | Returns the current local time as an ISO8601 formatted string.  |
-| `std::string` | [`getUTC`](#getutc)  | Returns the current UTC time as an ISO8601 formatted string.  |
-| `uint64_t` | [`hrtime`](#hrtime)  | Returns the current high-resolution monotonic time in nanoseconds.  |
+| `std::time_t` | [`now`](#now)  | Returns the current wall-clock time as a UTC time_t (seconds since epoch). |
+| `double` | [`clockSecs`](#clocksecs)  | Returns the elapsed process time in decimal seconds using a monotonic clock. |
+| `std::string` | [`print`](#print-7)  | Formats a broken-down time value using the given strftime format string. |
+| `std::string` | [`printLocal`](#printlocal)  | Formats the current local time using the given strftime format string. |
+| `std::string` | [`printUTC`](#printutc)  | Formats the current UTC time using the given strftime format string. |
+| `std::tm` | [`toLocal`](#tolocal)  | Converts a time_t value to a broken-down local time structure. Uses thread-safe native functions (localtime_r / localtime_s). |
+| `std::tm` | [`toUTC`](#toutc)  | Converts a time_t value to a broken-down UTC time structure. Uses thread-safe native functions (gmtime_r / gmtime_s). |
+| `std::string` | [`getLocal`](#getlocal)  | Returns the current local time as an ISO8601 formatted string. |
+| `std::string` | [`getUTC`](#getutc)  | Returns the current UTC time as an ISO8601 formatted string. |
+| `uint64_t` | [`hrtime`](#hrtime)  | Returns the current high-resolution monotonic time in nanoseconds. |
 
 ---
 
@@ -3365,8 +3401,8 @@ Base64 encoding and decoding helpers.
 | Return | Name | Description |
 |--------|------|-------------|
 | `size_t` | [`encodedBufferCapacity`](#encodedbuffercapacity) `inline` | Returns a safe temporary buffer size for encoding up to `inputSize` bytes. Includes padding/newline slack so callers can reuse the same buffer for finalize(). |
-| `std::string` | [`encode`](#encode-16) `inline` | Encodes an STL byte container to a Base64 string.  |
-| `std::string` | [`decode`](#decode-5) `inline` | Decodes a Base64-encoded STL container to a binary string.  |
+| `std::string` | [`encode`](#encode-16) `inline` | Encodes an STL byte container to a Base64 string. |
+| `std::string` | [`decode`](#decode-5) `inline` | Decodes a Base64-encoded STL container to a binary string. |
 
 ---
 
@@ -3499,9 +3535,9 @@ int _buffersize
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`Decoder`](#decoder-3) `inline` | #### Parameters |
-| `ssize_t` | [`decode`](#decode-6) `inline` | Decodes a single Base64 character to its 6-bit value.  |
-| `ssize_t` | [`decode`](#decode-7) `virtual` `inline` | Decodes a raw Base64 buffer into binary data.  |
-| `void` | [`decode`](#decode-8) `inline` | Decodes the entire input stream and writes binary output to `ostrm`. Resets the decoder state after completion.  |
+| `ssize_t` | [`decode`](#decode-6) `inline` | Decodes a single Base64 character to its 6-bit value. |
+| `ssize_t` | [`decode`](#decode-7) `virtual` `inline` | Decodes a raw Base64 buffer into binary data. |
+| `void` | [`decode`](#decode-8) `inline` | Decodes the entire input stream and writes binary output to `ostrm`. Resets the decoder state after completion. |
 
 ---
 
@@ -3622,11 +3658,11 @@ int _buffersize
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`Encoder`](#encoder-4) `inline` | #### Parameters |
-| `void` | [`encode`](#encode-17) `inline` | Encodes the entire input stream and writes Base64 output to `ostrm`. Resets the encoder state after completion.  |
-| `void` | [`encode`](#encode-18) `inline` | Encodes a string to Base64 and appends the result to `out`. Resets the encoder state after completion.  |
-| `ssize_t` | [`encode`](#encode-19) `virtual` `inline` | Encodes a raw buffer, writing Base64 characters to `outbuf`. May be called multiple times before calling `[finalize()](#finalize-3)`.  |
-| `ssize_t` | [`finalize`](#finalize-3) `virtual` `inline` | Writes any pending padding and resets the encoder state. Must be called once after all `[encode()](#encode-17)` calls to flush the final block.  |
-| `void` | [`setLineLength`](#setlinelength-1) `inline` | Sets the line wrap length for encoded output (0 disables line wrapping).  |
+| `void` | [`encode`](#encode-17) `inline` | Encodes the entire input stream and writes Base64 output to `ostrm`. Resets the encoder state after completion. |
+| `void` | [`encode`](#encode-18) `inline` | Encodes a string to Base64 and appends the result to `out`. Resets the encoder state after completion. |
+| `ssize_t` | [`encode`](#encode-19) `virtual` `inline` | Encodes a raw buffer, writing Base64 characters to `outbuf`. May be called multiple times before calling `[finalize()](#finalize-3)`. |
+| `ssize_t` | [`finalize`](#finalize-3) `virtual` `inline` | Writes any pending padding and resets the encoder state. Must be called once after all `[encode()](#encode-17)` calls to flush the final block. |
+| `void` | [`setLineLength`](#setlinelength-1) `inline` | Sets the line wrap length for encoded output (0 disables line wrapping). |
 
 ---
 
@@ -3760,7 +3796,7 @@ Deleter functor for array pointers. Calls delete[] on the pointer.
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `void` | [`operator()`](#operator-10) `inline` | Calls delete[] on ptr if non-null.  |
+| `void` | [`operator()`](#operator-10) `inline` | Calls delete[] on ptr if non-null. |
 
 ---
 
@@ -3788,7 +3824,7 @@ Deleter functor that calls dispose() on the pointer. Useful with std::unique_ptr
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `void` | [`operator()`](#operator-11) `inline` | Calls ptr->dispose() if ptr is non-null.  |
+| `void` | [`operator()`](#operator-11) `inline` | Calls ptr->dispose() if ptr is non-null. |
 
 ---
 
@@ -3816,36 +3852,36 @@ Integer parsing and formatting helpers.
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `void` | [`format`](#format-8)  | Formats an integer value in decimal notation.  |
-| `void` | [`format`](#format-9)  | Formats an integer value in decimal notation, right justified in a field having at least the specified width.  |
-| `void` | [`format0`](#format0)  | Formats an integer value in decimal notation, right justified and zero-padded in a field having at least the specified width.  |
-| `void` | [`formatHex`](#formathex)  | Formats an int value in hexadecimal notation. The value is treated as unsigned.  |
-| `void` | [`formatHex`](#formathex-1)  | Formats an int value in hexadecimal notation, right justified and zero-padded in a field having at least the specified width. The value is treated as unsigned.  |
-| `void` | [`format`](#format-10)  | Formats an unsigned int value in decimal notation.  |
-| `void` | [`format`](#format-11)  | Formats an unsigned int value in decimal notation, right justified in a field having at least the specified width.  |
-| `void` | [`format0`](#format0-1)  | Formats an unsigned int value in decimal notation, right justified and zero-padded in a field having at least the specified width.  |
-| `void` | [`formatHex`](#formathex-2)  | Formats an unsigned int value in hexadecimal notation.  |
-| `void` | [`formatHex`](#formathex-3)  | Formats an unsigned int value in hexadecimal notation, right justified and zero-padded in a field having at least the specified width.  |
-| `void` | [`format`](#format-12)  | Formats a long value in decimal notation.  |
-| `void` | [`format`](#format-13)  | Formats a long value in decimal notation, right justified in a field having at least the specified width.  |
-| `void` | [`format0`](#format0-2)  | Formats a long value in decimal notation, right justified and zero-padded in a field having at least the specified width.  |
-| `void` | [`formatHex`](#formathex-4)  | Formats a long value in hexadecimal notation. The value is treated as unsigned.  |
-| `void` | [`formatHex`](#formathex-5)  | Formats a long value in hexadecimal notation, right justified and zero-padded in a field having at least the specified width. The value is treated as unsigned.  |
-| `void` | [`format`](#format-14)  | Formats an unsigned long value in decimal notation.  |
-| `void` | [`format`](#format-15)  | Formats an unsigned long value in decimal notation, right justified in a field having at least the specified width.  |
-| `void` | [`format0`](#format0-3)  | Formats an unsigned long value in decimal notation, right justified and zero-padded in a field having at least the specified width.  |
-| `void` | [`formatHex`](#formathex-6)  | Formats an unsigned long value in hexadecimal notation.  |
-| `void` | [`formatHex`](#formathex-7)  | Formats an unsigned long value in hexadecimal notation, right justified and zero-padded in a field having at least the specified width.  |
-| `void` | [`format`](#format-16)  | Formats a 64-bit integer value in decimal notation.  |
-| `void` | [`format`](#format-17)  | Formats a 64-bit integer value in decimal notation, right justified in a field having at least the specified width.  |
-| `void` | [`format0`](#format0-4)  | Formats a 64-bit integer value in decimal notation, right justified and zero-padded in a field having at least the specified width.  |
-| `void` | [`formatHex`](#formathex-8)  | Formats a 64-bit integer value in hexadecimal notation. The value is treated as unsigned.  |
-| `void` | [`formatHex`](#formathex-9)  | Formats a 64-bit integer value in hexadecimal notation, right justified and zero-padded in a field having at least the specified width. The value is treated as unsigned.  |
-| `void` | [`format`](#format-18)  | Formats an unsigned 64-bit integer value in decimal notation.  |
-| `void` | [`format`](#format-19)  | Formats an unsigned 64-bit integer value in decimal notation, right justified in a field having at least the specified width.  |
-| `void` | [`format0`](#format0-5)  | Formats an unsigned 64-bit integer value in decimal notation, right justified and zero-padded in a field having at least the specified width.  |
-| `void` | [`formatHex`](#formathex-10)  | Formats an unsigned 64-bit integer value in hexadecimal notation.  |
-| `void` | [`formatHex`](#formathex-11)  | Formats an unsigned 64-bit integer value in hexadecimal notation, right justified and zero-padded in a field having at least the specified width.  |
+| `void` | [`format`](#format-8)  | Formats an integer value in decimal notation. |
+| `void` | [`format`](#format-9)  | Formats an integer value in decimal notation, right justified in a field having at least the specified width. |
+| `void` | [`format0`](#format0)  | Formats an integer value in decimal notation, right justified and zero-padded in a field having at least the specified width. |
+| `void` | [`formatHex`](#formathex)  | Formats an int value in hexadecimal notation. The value is treated as unsigned. |
+| `void` | [`formatHex`](#formathex-1)  | Formats an int value in hexadecimal notation, right justified and zero-padded in a field having at least the specified width. The value is treated as unsigned. |
+| `void` | [`format`](#format-10)  | Formats an unsigned int value in decimal notation. |
+| `void` | [`format`](#format-11)  | Formats an unsigned int value in decimal notation, right justified in a field having at least the specified width. |
+| `void` | [`format0`](#format0-1)  | Formats an unsigned int value in decimal notation, right justified and zero-padded in a field having at least the specified width. |
+| `void` | [`formatHex`](#formathex-2)  | Formats an unsigned int value in hexadecimal notation. |
+| `void` | [`formatHex`](#formathex-3)  | Formats an unsigned int value in hexadecimal notation, right justified and zero-padded in a field having at least the specified width. |
+| `void` | [`format`](#format-12)  | Formats a long value in decimal notation. |
+| `void` | [`format`](#format-13)  | Formats a long value in decimal notation, right justified in a field having at least the specified width. |
+| `void` | [`format0`](#format0-2)  | Formats a long value in decimal notation, right justified and zero-padded in a field having at least the specified width. |
+| `void` | [`formatHex`](#formathex-4)  | Formats a long value in hexadecimal notation. The value is treated as unsigned. |
+| `void` | [`formatHex`](#formathex-5)  | Formats a long value in hexadecimal notation, right justified and zero-padded in a field having at least the specified width. The value is treated as unsigned. |
+| `void` | [`format`](#format-14)  | Formats an unsigned long value in decimal notation. |
+| `void` | [`format`](#format-15)  | Formats an unsigned long value in decimal notation, right justified in a field having at least the specified width. |
+| `void` | [`format0`](#format0-3)  | Formats an unsigned long value in decimal notation, right justified and zero-padded in a field having at least the specified width. |
+| `void` | [`formatHex`](#formathex-6)  | Formats an unsigned long value in hexadecimal notation. |
+| `void` | [`formatHex`](#formathex-7)  | Formats an unsigned long value in hexadecimal notation, right justified and zero-padded in a field having at least the specified width. |
+| `void` | [`format`](#format-16)  | Formats a 64-bit integer value in decimal notation. |
+| `void` | [`format`](#format-17)  | Formats a 64-bit integer value in decimal notation, right justified in a field having at least the specified width. |
+| `void` | [`format0`](#format0-4)  | Formats a 64-bit integer value in decimal notation, right justified and zero-padded in a field having at least the specified width. |
+| `void` | [`formatHex`](#formathex-8)  | Formats a 64-bit integer value in hexadecimal notation. The value is treated as unsigned. |
+| `void` | [`formatHex`](#formathex-9)  | Formats a 64-bit integer value in hexadecimal notation, right justified and zero-padded in a field having at least the specified width. The value is treated as unsigned. |
+| `void` | [`format`](#format-18)  | Formats an unsigned 64-bit integer value in decimal notation. |
+| `void` | [`format`](#format-19)  | Formats an unsigned 64-bit integer value in decimal notation, right justified in a field having at least the specified width. |
+| `void` | [`format0`](#format0-5)  | Formats an unsigned 64-bit integer value in decimal notation, right justified and zero-padded in a field having at least the specified width. |
+| `void` | [`formatHex`](#formathex-10)  | Formats an unsigned 64-bit integer value in hexadecimal notation. |
+| `void` | [`formatHex`](#formathex-11)  | Formats an unsigned 64-bit integer value in hexadecimal notation, right justified and zero-padded in a field having at least the specified width. |
 
 ---
 
@@ -4395,9 +4431,9 @@ Abstract interface for stream decoders.
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`Decoder`](#decoder-5)  |  |
-| `ssize_t` | [`decode`](#decode-9)  | Decodes nread bytes from inbuf and writes decoded output to outbuf.  |
-| `ssize_t` | [`finalize`](#finalize-4) `virtual` `inline` | Flushes any buffered state and writes final output to outbuf.  |
+|  | [`Decoder`](#decoder-5)  | Defaulted constructor. |
+| `ssize_t` | [`decode`](#decode-9)  | Decodes nread bytes from inbuf and writes decoded output to outbuf. |
+| `ssize_t` | [`finalize`](#finalize-4) `virtual` `inline` | Flushes any buffered state and writes final output to outbuf. |
 
 ---
 
@@ -4408,6 +4444,8 @@ Abstract interface for stream decoders.
 ```cpp
 Decoder() = default
 ```
+
+Defaulted constructor.
 
 ---
 
@@ -4465,9 +4503,9 @@ Abstract interface for stream encoders.
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`Encoder`](#encoder-6)  |  |
-| `ssize_t` | [`encode`](#encode-20)  | Encodes nread bytes from inbuf and writes encoded output to outbuf.  |
-| `ssize_t` | [`finalize`](#finalize-5) `virtual` `inline` | Flushes any buffered state and writes final output to outbuf.  |
+|  | [`Encoder`](#encoder-6)  | Defaulted constructor. |
+| `ssize_t` | [`encode`](#encode-20)  | Encodes nread bytes from inbuf and writes encoded output to outbuf. |
+| `ssize_t` | [`finalize`](#finalize-5) `virtual` `inline` | Flushes any buffered state and writes final output to outbuf. |
 
 ---
 
@@ -4478,6 +4516,8 @@ Abstract interface for stream encoders.
 ```cpp
 Encoder() = default
 ```
+
+Defaulted constructor.
 
 ---
 
@@ -4624,7 +4664,7 @@ Abstract interface for classes that can be sent and cancelled.
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `bool` | [`send`](#send-9)  | Initiates the send operation.  |
+| `bool` | [`send`](#send-9)  | Initiates the send operation. |
 | `void` | [`cancel`](#cancel-2)  | Cancels a pending send operation. |
 
 ---
@@ -4706,25 +4746,25 @@ Cross-platform filesystem path and file helpers.
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `std::string` | [`filename`](#filename)  | Returns the file name and extension part of the given path.  |
-| `std::string` | [`basename`](#basename)  | Returns the file name without its extension.  |
-| `std::string` | [`dirname`](#dirname)  | Returns the directory part of the path.  |
-| `std::string` | [`extname`](#extname)  | Returns the file extension part of the path.  |
-| `bool` | [`exists`](#exists-1)  | Returns true if the file or directory exists.  |
-| `bool` | [`isdir`](#isdir)  | Returns true if the path refers to a directory.  |
-| `std::int64_t` | [`filesize`](#filesize)  | Returns the size in bytes of the given file.  |
-| `void` | [`readdir`](#readdir)  | Populates `res` with the names of all entries in the given directory.  |
-| `void` | [`mkdir`](#mkdir)  | Creates a single directory.  |
-| `void` | [`mkdirr`](#mkdirr)  | Creates a directory and all missing parent directories.  |
-| `void` | [`rmdir`](#rmdir)  | Removes an empty directory.  |
-| `void` | [`unlink`](#unlink)  | Deletes a file.  |
-| `void` | [`rename`](#rename)  | Renames or moves the given file to the target path.  |
-| `void` | [`addsep`](#addsep)  | Appends the platform-specific path separator to `path` if not already present.  |
-| `void` | [`addnode`](#addnode)  | Appends a path node to `path`, inserting a separator if necessary.  |
-| `std::string` | [`makePath`](#makepath)  | Joins a base path and a node component into a single path string.  |
-| `std::string` | [`normalize`](#normalize)  | Normalizes a path by resolving `.` and `..` segments and converting separators to the native platform style.  |
-| `std::string` | [`transcode`](#transcode)  | Transcodes a path to the native platform format. On Windows with `ICY_UNICODE` defined, converts to the Windows-native wide-to-narrow format. On other platforms, returns the path unchanged.  |
-| `bool` | [`savefile`](#savefile)  | Writes `size` bytes from `data` to the file at `path`, creating or overwriting it.  |
+| `std::string` | [`filename`](#filename)  | Returns the file name and extension part of the given path. |
+| `std::string` | [`basename`](#basename)  | Returns the file name without its extension. |
+| `std::string` | [`dirname`](#dirname)  | Returns the directory part of the path. |
+| `std::string` | [`extname`](#extname)  | Returns the file extension part of the path. |
+| `bool` | [`exists`](#exists-1)  | Returns true if the file or directory exists. |
+| `bool` | [`isdir`](#isdir)  | Returns true if the path refers to a directory. |
+| `std::int64_t` | [`filesize`](#filesize)  | Returns the size in bytes of the given file. |
+| `void` | [`readdir`](#readdir)  | Populates `res` with the names of all entries in the given directory. |
+| `void` | [`mkdir`](#mkdir)  | Creates a single directory. |
+| `void` | [`mkdirr`](#mkdirr)  | Creates a directory and all missing parent directories. |
+| `void` | [`rmdir`](#rmdir)  | Removes an empty directory. |
+| `void` | [`unlink`](#unlink)  | Deletes a file. |
+| `void` | [`rename`](#rename)  | Renames or moves the given file to the target path. |
+| `void` | [`addsep`](#addsep)  | Appends the platform-specific path separator to `path` if not already present. |
+| `void` | [`addnode`](#addnode)  | Appends a path node to `path`, inserting a separator if necessary. |
+| `std::string` | [`makePath`](#makepath)  | Joins a base path and a node component into a single path string. |
+| `std::string` | [`normalize`](#normalize)  | Normalizes a path by resolving `.` and `..` segments and converting separators to the native platform style. |
+| `std::string` | [`transcode`](#transcode)  | Transcodes a path to the native platform format. On Windows with `ICY_UNICODE` defined, converts to the Windows-native wide-to-narrow format. On other platforms, returns the path unchanged. |
+| `bool` | [`savefile`](#savefile)  | Writes `size` bytes from `data` to the file at `path`, creating or overwriting it. |
 
 ---
 
@@ -5092,32 +5132,32 @@ Miscellaneous string, parsing, and version utilities.
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `std::string` | [`format`](#format-20)  | Printf-style string formatting for POD types.  |
-| `void` | [`toUnderscore`](#tounderscore)  | Replaces all non-alphanumeric characters in str with underscores and converts to lowercase.  |
-| `bool` | [`isNumber`](#isnumber)  | Returns true if str consists entirely of digit characters.  |
-| `bool` | [`endsWith`](#endswith)  | Returns true if str ends with the given suffix.  |
-| `void` | [`removeSpecialCharacters`](#removespecialcharacters)  | Replaces non-alphanumeric characters. Removes all non-alphanumeric characters from str in place.  |
-| `void` | [`replaceSpecialCharacters`](#replacespecialcharacters)  | Replaces all non-alphanumeric characters in str with `with` in place.  |
-| `bool` | [`tryParseHex`](#tryparsehex)  | Attempts to parse a hex string into an unsigned integer.  |
-| `unsigned` | [`parseHex`](#parsehex)  | Parses a hex string into an unsigned integer.  |
-| `std::string` | [`dumpbin`](#dumpbin)  | Formats the binary contents of data as a hex+ASCII dump string.  |
-| `bool` | [`compareVersion`](#compareversion)  | Compares two dot-separated version strings.  |
-| `bool` | [`matchNodes`](#matchnodes)  | Checks whether node matches xnode by splitting both on delim and comparing element-wise.  |
-| `bool` | [`matchNodes`](#matchnodes-1)  | Checks whether params matches xparams element-wise.  |
-| `std::string` | [`memAddress`](#memaddress)  | Returns the memory address of ptr as a hex string (e.g. "0x7f3a2b10c0").  |
-| `std::string` | [`itostr`](#itostr)  | Converts an integer (or any stream-insertable type) to its string representation.  |
-| `T` | [`strtoi`](#strtoi)  | Parses a string into integer type T using std::istringstream. Returns 0 if parsing fails. Ensure T has sufficient range for the value.  |
-| `uint32_t` | [`randomNumber`](#randomnumber)  | Generates a 31-bit pseudo random number using the internal [Random](#random) instance.  |
-| `std::string` | [`randomString`](#randomstring)  | Generates a random alphanumeric string of the given length.  |
-| `std::string` | [`randomBinaryString`](#randombinarystring)  | Generates a random binary string of the given byte length.  |
-| `void` | [`split`](#split)  | Splits str on the delimiter string and appends tokens to elems.  |
-| `std::vector< std::string >` | [`split`](#split-1)  | Splits str on the delimiter string and returns the tokens as a vector.  |
-| `void` | [`split`](#split-2)  | Splits str on the delimiter character and appends tokens to elems.  |
-| `std::vector< std::string >` | [`split`](#split-3)  | Splits str on the delimiter character and returns the tokens as a vector.  |
+| `std::string` | [`format`](#format-20)  | Printf-style string formatting for POD types. |
+| `void` | [`toUnderscore`](#tounderscore)  | Replaces all non-alphanumeric characters in str with underscores and converts to lowercase. |
+| `bool` | [`isNumber`](#isnumber)  | Returns true if str consists entirely of digit characters. |
+| `bool` | [`endsWith`](#endswith)  | Returns true if str ends with the given suffix. |
+| `void` | [`removeSpecialCharacters`](#removespecialcharacters)  | Replaces non-alphanumeric characters. Removes all non-alphanumeric characters from str in place. |
+| `void` | [`replaceSpecialCharacters`](#replacespecialcharacters)  | Replaces all non-alphanumeric characters in str with `with` in place. |
+| `bool` | [`tryParseHex`](#tryparsehex)  | Attempts to parse a hex string into an unsigned integer. |
+| `unsigned` | [`parseHex`](#parsehex)  | Parses a hex string into an unsigned integer. |
+| `std::string` | [`dumpbin`](#dumpbin)  | Formats the binary contents of data as a hex+ASCII dump string. |
+| `bool` | [`compareVersion`](#compareversion)  | Compares two dot-separated version strings. |
+| `bool` | [`matchNodes`](#matchnodes)  | Checks whether node matches xnode by splitting both on delim and comparing element-wise. |
+| `bool` | [`matchNodes`](#matchnodes-1)  | Checks whether params matches xparams element-wise. |
+| `std::string` | [`memAddress`](#memaddress)  | Returns the memory address of ptr as a hex string (e.g. "0x7f3a2b10c0"). |
+| `std::string` | [`itostr`](#itostr)  | Converts an integer (or any stream-insertable type) to its string representation. |
+| `T` | [`strtoi`](#strtoi)  | Parses a string into integer type T using std::istringstream. Returns 0 if parsing fails. Ensure T has sufficient range for the value. |
+| `uint32_t` | [`randomNumber`](#randomnumber)  | Generates a 31-bit pseudo random number using the internal [Random](#random) instance. |
+| `std::string` | [`randomString`](#randomstring)  | Generates a random alphanumeric string of the given length. |
+| `std::string` | [`randomBinaryString`](#randombinarystring)  | Generates a random binary string of the given byte length. |
+| `void` | [`split`](#split)  | Splits str on the delimiter string and appends tokens to elems. |
+| `std::vector< std::string >` | [`split`](#split-1)  | Splits str on the delimiter string and returns the tokens as a vector. |
+| `void` | [`split`](#split-2)  | Splits str on the delimiter character and appends tokens to elems. |
+| `std::vector< std::string >` | [`split`](#split-3)  | Splits str on the delimiter character and returns the tokens as a vector. |
 | `S &` | [`replaceInPlace`](#replaceinplace)  | Replace all occurrences of `from` in `str` with `to`, starting at position `start`. Modifies and returns `str` in place. `from` must not be empty. |
 | `S &` | [`replaceInPlace`](#replaceinplace-1)  | Replace all occurrences of `from` in `str` with `to`, starting at position `start`. C-string overload. Modifies and returns `str` in place. |
 | `S` | [`replace`](#replace)  | Replace all occurences of from (which must not be the empty string) in str with to, starting at position start. |
-| `S` | [`replace`](#replace-1)  | Returns a copy of str with all occurrences of from replaced by to (C-string overload).  |
+| `S` | [`replace`](#replace-1)  | Returns a copy of str with all occurrences of from replaced by to (C-string overload). |
 | `S` | [`trimLeft`](#trimleft)  | Returns a copy of str with all leading whitespace removed. |
 | `S &` | [`trimLeftInPlace`](#trimleftinplace)  | Removes all leading whitespace in str. |
 | `S` | [`trimRight`](#trimright)  | Returns a copy of str with all trailing whitespace removed. |
@@ -5128,10 +5168,10 @@ Miscellaneous string, parsing, and version utilities.
 | `S &` | [`toUpperInPlace`](#toupperinplace)  | Replaces all characters in str with their upper-case counterparts. |
 | `S` | [`toLower`](#tolower)  | Returns a copy of str containing all lower-case characters. |
 | `S &` | [`toLowerInPlace`](#tolowerinplace)  | Replaces all characters in str with their lower-case counterparts. |
-| `int` | [`icompare`](#icompare) `inline` | Case-insensitive string comparison (locale-independent, ASCII only).  |
-| `std::streamsize` | [`copyStreamUnbuffered`](#copystreamunbuffered)  | Copies all bytes from istr to ostr one byte at a time (no internal buffer).  |
-| `std::streamsize` | [`copyStream`](#copystream)  | Copies all bytes from istr to ostr using an internal buffer.  |
-| `std::streamsize` | [`copyToString`](#copytostring)  | Reads all bytes from istr and appends them to str.  |
+| `int` | [`icompare`](#icompare) `inline` | Case-insensitive string comparison (locale-independent, ASCII only). |
+| `std::streamsize` | [`copyStreamUnbuffered`](#copystreamunbuffered)  | Copies all bytes from istr to ostr one byte at a time (no internal buffer). |
+| `std::streamsize` | [`copyStream`](#copystream)  | Copies all bytes from istr to ostr using an internal buffer. |
+| `std::streamsize` | [`copyToString`](#copytostring)  | Reads all bytes from istr and appends them to str. |
 | `void` | [`clearList`](#clearlist) `inline` | Delete all elements from a list of pointers. |
 | `void` | [`clearDeque`](#cleardeque) `inline` | Delete all elements from a deque of pointers. |
 | `void` | [`clearVector`](#clearvector) `inline` | Delete all elements from a vector of pointers. |
@@ -5926,9 +5966,9 @@ int build
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`Version`](#version-1) `inline` | Parses a dot-separated version string into up to four numeric fields. Unspecified fields default to 0. Examples: "1.2.3", "2.0", "3.7.8.0".  |
-| `bool` | [`operator<`](#operator-12) `inline` | Returns true if this version is strictly less than other. Compares fields in major, minor, revision, build order.  |
-| `bool` | [`operator==`](#operator-13) `const` `inline` | Returns true if all four version fields are equal.  |
+|  | [`Version`](#version-1) `inline` | Parses a dot-separated version string into up to four numeric fields. Unspecified fields default to 0. Examples: "1.2.3", "2.0", "3.7.8.0". |
+| `bool` | [`operator<`](#operator-12) `inline` | Returns true if this version is strictly less than other. Compares fields in major, minor, revision, build order. |
+| `bool` | [`operator==`](#operator-13) `const` `inline` | Returns true if all four version fields are equal. |
 
 ---
 
@@ -6275,13 +6315,13 @@ Thread-safe queue container.
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `void` | [`push`](#push) `inline` | Appends an item to the back of the queue (thread-safe).  |
-| `void` | [`push`](#push) `inline` | Appends an item to the back of the queue by move (thread-safe).  |
+| `void` | [`push`](#push) `inline` | Appends an item to the back of the queue (thread-safe). |
+| `void` | [`push`](#push) `inline` | Appends an item to the back of the queue by move (thread-safe). |
 | `bool` | [`empty`](#empty) `const` `inline` | #### Returns |
 | `T` | [`front`](#front) `const` `inline` | #### Returns |
 | `T` | [`back`](#back) `const` `inline` | #### Returns |
 | `void` | [`pop`](#pop) `inline` | Removes the front item from the queue (thread-safe). |
-| `void` | [`sort`](#sort) `inline` | Sorts all queued items using the given comparator (thread-safe).  |
+| `void` | [`sort`](#sort) `inline` | Sorts all queued items using the given comparator (thread-safe). |
 | `size_t` | [`size`](#size) `const` `inline` | #### Returns |
 | `std::deque< T >` | [`queue`](#queue) `const` `inline` | #### Returns |
 
@@ -6492,7 +6532,7 @@ The default dispatch function. Must be set before the queue is running.
 | `void` | [`runTimeout`](#runtimeout) `virtual` `inline` | Called asynchronously to dispatch queued items until the queue is empty or the timeout expires. Pseudo protected for std::bind compatability. |
 | `void` | [`dispatch`](#dispatch) `virtual` `inline` | Dispatch a single item to listeners. |
 | `int` | [`timeout`](#timeout) `inline` | #### Returns |
-| `void` | [`setTimeout`](#settimeout) `inline` | Sets the dispatch timeout. Must only be called when the queue is empty.  |
+| `void` | [`setTimeout`](#settimeout) `inline` | Sets the dispatch timeout. Must only be called when the queue is empty. |
 | `size_t` | [`dropped`](#dropped) `const` `inline` | #### Returns |
 
 ---
@@ -6685,8 +6725,8 @@ size_t _dropped = 0
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`RunnableQueue`](#runnablequeue)  |  |
-|  | [`RunnableQueue`](#runnablequeue)  |  |
+|  | [`RunnableQueue`](#runnablequeue)  | Deleted constructor. |
+|  | [`RunnableQueue`](#runnablequeue)  | Deleted constructor. |
 | `T *` | [`popNext`](#popnext) `virtual` `inline` | Pops the next waiting item. |
 | `bool` | [`dispatchNext`](#dispatchnext) `virtual` `inline` | Pops and dispatches the next waiting item. |
 
@@ -6700,6 +6740,8 @@ size_t _dropped = 0
 RunnableQueue(const RunnableQueue &) = delete
 ```
 
+Deleted constructor.
+
 ---
 
 {#runnablequeue}
@@ -6709,6 +6751,8 @@ RunnableQueue(const RunnableQueue &) = delete
 ```cpp
 RunnableQueue(RunnableQueue &&) = delete
 ```
+
+Deleted constructor.
 
 ---
 
@@ -6757,8 +6801,8 @@ Pops and dispatches the next waiting item.
 |--------|------|-------------|
 |  | [`SyncQueue`](#syncqueue) `inline` | #### Parameters |
 |  | [`~SyncQueue`](#syncqueue) `virtual` `inline` | Destruction is deferred to allow enough time for all callbacks to return. |
-| `void` | [`push`](#push) `virtual` `inline` | Pushes an item onto the queue and wakes the event loop for dispatch. Ownership of `item` is transferred to the queue.  |
-| `void` | [`cancel`](#cancel) `virtual` `inline` | Cancels the queue and its underlying synchronizer.  |
+| `void` | [`push`](#push) `virtual` `inline` | Pushes an item onto the queue and wakes the event loop for dispatch. Ownership of `item` is transferred to the queue. |
+| `void` | [`cancel`](#cancel) `virtual` `inline` | Cancels the queue and its underlying synchronizer. |
 | `Synchronizer &` | [`sync`](#sync) `inline` | #### Returns |
 
 ---
@@ -6895,7 +6939,7 @@ The thread will call the [RunnableQueue](#runnablequeue)'s [run()](#classicy_1_1
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`AsyncQueue`](#asyncqueue) `inline` | #### Parameters |
-| `void` | [`cancel`](#cancel) `virtual` `inline` | Cancels the queue and joins the dispatch thread.  |
+| `void` | [`cancel`](#cancel) `virtual` `inline` | Cancels the queue and joins the dispatch thread. |
 
 ---
 
@@ -7331,8 +7375,8 @@ std::int64_t _count
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`Timer`](#timer)  |  |
-|  | [`Timer`](#timer)  |  |
+|  | [`Timer`](#timer)  | Deleted constructor. |
+|  | [`Timer`](#timer)  | Deleted constructor. |
 | `void` | [`init`](#init)  |  |
 
 ---
@@ -7345,6 +7389,8 @@ std::int64_t _count
 Timer(const Timer &) = delete
 ```
 
+Deleted constructor.
+
 ---
 
 {#timer}
@@ -7354,6 +7400,8 @@ Timer(const Timer &) = delete
 ```cpp
 Timer(Timer &&) = delete
 ```
+
+Deleted constructor.
 
 ---
 
@@ -7650,30 +7698,30 @@ Class for reading binary streams.
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`BitReader`](#bitreader)  | Constructs a `[BitReader](#bitreader)` over a raw byte array.  |
-|  | [`BitReader`](#bitreader)  | Constructs a `[BitReader](#bitreader)` over a `Buffer`.  |
-|  | [`BitReader`](#bitreader)  | Constructs a `[BitReader](#bitreader)` over a `[ConstBuffer](#constbuffer)`.  |
-| `void` | [`get`](#get)  | Reads a value from the [BitReader](#bitreader). Returns false if there isn't enough data left for the specified type. Throws a std::out_of_range exception if reading past the limit. Reads `len` raw bytes into `val`. Throws `std::out_of_range` if insufficient data remains.  |
-| `void` | [`get`](#get)  | Reads `len` bytes and appends them to `val`. Throws `std::out_of_range` if insufficient data remains.  |
-| `void` | [`getU8`](#getu8)  | Reads an unsigned 8-bit integer. Throws `std::out_of_range` if insufficient data remains.  |
-| `void` | [`getU16`](#getu16)  | Reads an unsigned 16-bit integer, applying byte-order conversion. Throws `std::out_of_range` if insufficient data remains.  |
-| `void` | [`getU24`](#getu24)  | Reads an unsigned 24-bit integer into a 32-bit variable, applying byte-order conversion. Throws `std::out_of_range` if insufficient data remains.  |
-| `void` | [`getU32`](#getu32)  | Reads an unsigned 32-bit integer, applying byte-order conversion. Throws `std::out_of_range` if insufficient data remains.  |
-| `void` | [`getU64`](#getu64)  | Reads an unsigned 64-bit integer, applying byte-order conversion. Throws `std::out_of_range` if insufficient data remains.  |
-| `char` | [`peek`](#peek)  | Peeks at the current byte without advancing the position.  |
-| `uint8_t` | [`peekU8`](#peeku8)  | Peeks at the current byte as a `uint8_t` without advancing the position.  |
-| `uint16_t` | [`peekU16`](#peeku16)  | Peeks at the next two bytes as a `uint16_t` without advancing the position.  |
-| `uint32_t` | [`peekU24`](#peeku24)  | Peeks at the next three bytes as a `uint32_t` without advancing the position.  |
-| `uint32_t` | [`peekU32`](#peeku32)  | Peeks at the next four bytes as a `uint32_t` without advancing the position.  |
+|  | [`BitReader`](#bitreader)  | Constructs a `[BitReader](#bitreader)` over a raw byte array. |
+|  | [`BitReader`](#bitreader)  | Constructs a `[BitReader](#bitreader)` over a `Buffer`. |
+|  | [`BitReader`](#bitreader)  | Constructs a `[BitReader](#bitreader)` over a `[ConstBuffer](#constbuffer)`. |
+| `void` | [`get`](#get)  | Reads a value from the [BitReader](#bitreader). Returns false if there isn't enough data left for the specified type. Throws a std::out_of_range exception if reading past the limit. Reads `len` raw bytes into `val`. Throws `std::out_of_range` if insufficient data remains. |
+| `void` | [`get`](#get)  | Reads `len` bytes and appends them to `val`. Throws `std::out_of_range` if insufficient data remains. |
+| `void` | [`getU8`](#getu8)  | Reads an unsigned 8-bit integer. Throws `std::out_of_range` if insufficient data remains. |
+| `void` | [`getU16`](#getu16)  | Reads an unsigned 16-bit integer, applying byte-order conversion. Throws `std::out_of_range` if insufficient data remains. |
+| `void` | [`getU24`](#getu24)  | Reads an unsigned 24-bit integer into a 32-bit variable, applying byte-order conversion. Throws `std::out_of_range` if insufficient data remains. |
+| `void` | [`getU32`](#getu32)  | Reads an unsigned 32-bit integer, applying byte-order conversion. Throws `std::out_of_range` if insufficient data remains. |
+| `void` | [`getU64`](#getu64)  | Reads an unsigned 64-bit integer, applying byte-order conversion. Throws `std::out_of_range` if insufficient data remains. |
+| `char` | [`peek`](#peek)  | Peeks at the current byte without advancing the position. |
+| `uint8_t` | [`peekU8`](#peeku8)  | Peeks at the current byte as a `uint8_t` without advancing the position. |
+| `uint16_t` | [`peekU16`](#peeku16)  | Peeks at the next two bytes as a `uint16_t` without advancing the position. |
+| `uint32_t` | [`peekU24`](#peeku24)  | Peeks at the next three bytes as a `uint32_t` without advancing the position. |
+| `uint32_t` | [`peekU32`](#peeku32)  | Peeks at the next four bytes as a `uint32_t` without advancing the position. |
 | `uint64_t` | [`peekU64`](#peeku64)  | Peeks data from the [BitReader](#bitreader). -1 is returned if reading past boundary. |
-| `size_t` | [`skipToChar`](#skiptochar)  | Advances the position until the given character is found, stopping before it.  |
-| `size_t` | [`skipWhitespace`](#skipwhitespace)  | Advances the position past any leading space characters.  |
-| `size_t` | [`skipToNextLine`](#skiptonextline)  | Advances the position past the end of the current line (past the newline).  |
-| `size_t` | [`skipNextWord`](#skipnextword)  | Advances the position past the next whitespace-delimited word.  |
-| `size_t` | [`readNextWord`](#readnextword)  | Reads the next whitespace-delimited word into `val`.  |
-| `size_t` | [`readNextNumber`](#readnextnumber)  | Reads the next whitespace-delimited decimal number into `val`.  |
-| `size_t` | [`readLine`](#readline)  | Reads bytes up to (but not including) the next newline into `val`.  |
-| `size_t` | [`readToNext`](#readtonext)  | Reads bytes up to (but not including) the next occurrence of `c` into `val`.  |
+| `size_t` | [`skipToChar`](#skiptochar)  | Advances the position until the given character is found, stopping before it. |
+| `size_t` | [`skipWhitespace`](#skipwhitespace)  | Advances the position past any leading space characters. |
+| `size_t` | [`skipToNextLine`](#skiptonextline)  | Advances the position past the end of the current line (past the newline). |
+| `size_t` | [`skipNextWord`](#skipnextword)  | Advances the position past the next whitespace-delimited word. |
+| `size_t` | [`readNextWord`](#readnextword)  | Reads the next whitespace-delimited word into `val`. |
+| `size_t` | [`readNextNumber`](#readnextnumber)  | Reads the next whitespace-delimited decimal number into `val`. |
+| `size_t` | [`readLine`](#readline)  | Reads bytes up to (but not including) the next newline into `val`. |
+| `size_t` | [`readToNext`](#readtonext)  | Reads bytes up to (but not including) the next occurrence of `c` into `val`. |
 | `void` | [`seek`](#seek)  | Set position pointer to absolute position. Throws a std::out_of_range exception if the value exceeds the limit. |
 | `void` | [`skip`](#skip)  | Set position pointer to relative position. Throws a std::out_of_range exception if the value exceeds the limit. |
 | `size_t` | [`limit`](#limit) `const` | Returns the read limit. |
@@ -7682,7 +7730,7 @@ Class for reading binary streams.
 | `const char *` | [`begin`](#begin) `const` `inline` | Returns a pointer to the start of the buffer. |
 | `const char *` | [`current`](#current) `const` `inline` | Returns a pointer to the current read position. |
 | `ByteOrder` | [`order`](#order) `const` `inline` | Returns the byte order used for multi-byte integer reads. |
-| `std::string` | [`toString`](#tostring)  | Returns the remaining unread bytes as a `std::string`.  |
+| `std::string` | [`toString`](#tostring)  | Returns the remaining unread bytes as a `std::string`. |
 
 ---
 
@@ -8252,23 +8300,23 @@ Note that when using the constructor with the Buffer reference as an argument, t
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`BitWriter`](#bitwriter)  | Constructs a `[BitWriter](#bitwriter)` over a raw byte array with a fixed capacity.  |
-|  | [`BitWriter`](#bitwriter)  | Constructs a `[BitWriter](#bitwriter)` backed by a `Buffer`. Writes are bounded by the buffer's capacity; use `[DynamicBitWriter](#dynamicbitwriter)` for auto-resize.  |
-|  | [`BitWriter`](#bitwriter)  | Constructs a `[BitWriter](#bitwriter)` over a `[MutableBuffer](#mutablebuffer)` with a fixed capacity.  |
+|  | [`BitWriter`](#bitwriter)  | Constructs a `[BitWriter](#bitwriter)` over a raw byte array with a fixed capacity. |
+|  | [`BitWriter`](#bitwriter)  | Constructs a `[BitWriter](#bitwriter)` backed by a `Buffer`. Writes are bounded by the buffer's capacity; use `[DynamicBitWriter](#dynamicbitwriter)` for auto-resize. |
+|  | [`BitWriter`](#bitwriter)  | Constructs a `[BitWriter](#bitwriter)` over a `[MutableBuffer](#mutablebuffer)` with a fixed capacity. |
 | `void` | [`put`](#put) `virtual` | Append bytes to the buffer. Throws a `std::out_of_range` exception if reading past the limit. |
-| `void` | [`put`](#put)  | Appends the contents of a string. Throws `std::out_of_range` if capacity is exceeded.  |
-| `void` | [`putU8`](#putu8)  | Appends an unsigned 8-bit integer. Throws `std::out_of_range` if capacity is exceeded.  |
-| `void` | [`putU16`](#putu16)  | Appends an unsigned 16-bit integer with byte-order conversion. Throws `std::out_of_range` if capacity is exceeded.  |
-| `void` | [`putU24`](#putu24)  | Appends the low 24 bits of a 32-bit integer with byte-order conversion. Throws `std::out_of_range` if capacity is exceeded.  |
-| `void` | [`putU32`](#putu32)  | Appends an unsigned 32-bit integer with byte-order conversion. Throws `std::out_of_range` if capacity is exceeded.  |
-| `void` | [`putU64`](#putu64)  | Appends an unsigned 64-bit integer with byte-order conversion. Throws `std::out_of_range` if capacity is exceeded.  |
+| `void` | [`put`](#put)  | Appends the contents of a string. Throws `std::out_of_range` if capacity is exceeded. |
+| `void` | [`putU8`](#putu8)  | Appends an unsigned 8-bit integer. Throws `std::out_of_range` if capacity is exceeded. |
+| `void` | [`putU16`](#putu16)  | Appends an unsigned 16-bit integer with byte-order conversion. Throws `std::out_of_range` if capacity is exceeded. |
+| `void` | [`putU24`](#putu24)  | Appends the low 24 bits of a 32-bit integer with byte-order conversion. Throws `std::out_of_range` if capacity is exceeded. |
+| `void` | [`putU32`](#putu32)  | Appends an unsigned 32-bit integer with byte-order conversion. Throws `std::out_of_range` if capacity is exceeded. |
+| `void` | [`putU64`](#putu64)  | Appends an unsigned 64-bit integer with byte-order conversion. Throws `std::out_of_range` if capacity is exceeded. |
 | `bool` | [`update`](#update) `virtual` | Update a byte range. Throws a `std::out_of_range` exception if reading past the limit. |
-| `bool` | [`update`](#update)  | Overwrites a previously written string at the given absolute position.  |
-| `bool` | [`updateU8`](#updateu8)  | Overwrites a `uint8_t` at the given absolute position.  |
-| `bool` | [`updateU16`](#updateu16)  | Overwrites a `uint16_t` at the given absolute position, with byte-order conversion.  |
-| `bool` | [`updateU24`](#updateu24)  | Overwrites 3 bytes (low 24 bits of `val`) at the given absolute position, with byte-order conversion.  |
-| `bool` | [`updateU32`](#updateu32)  | Overwrites a `uint32_t` at the given absolute position, with byte-order conversion.  |
-| `bool` | [`updateU64`](#updateu64)  | Overwrites a `uint64_t` at the given absolute position, with byte-order conversion.  |
+| `bool` | [`update`](#update)  | Overwrites a previously written string at the given absolute position. |
+| `bool` | [`updateU8`](#updateu8)  | Overwrites a `uint8_t` at the given absolute position. |
+| `bool` | [`updateU16`](#updateu16)  | Overwrites a `uint16_t` at the given absolute position, with byte-order conversion. |
+| `bool` | [`updateU24`](#updateu24)  | Overwrites 3 bytes (low 24 bits of `val`) at the given absolute position, with byte-order conversion. |
+| `bool` | [`updateU32`](#updateu32)  | Overwrites a `uint32_t` at the given absolute position, with byte-order conversion. |
+| `bool` | [`updateU64`](#updateu64)  | Overwrites a `uint64_t` at the given absolute position, with byte-order conversion. |
 | `void` | [`seek`](#seek)  | Set position pointer to absolute position. Throws a `std::out_of_range` exception if the value exceeds the limit. |
 | `void` | [`skip`](#skip)  | Set position pointer to relative position. Throws a `std::out_of_range` exception if the value exceeds the limit. |
 | `size_t` | [`limit`](#limit) `const` | Returns the write limit. |
@@ -8279,7 +8327,7 @@ Note that when using the constructor with the Buffer reference as an argument, t
 | `const char *` | [`begin`](#begin) `const` `inline` | Returns a const pointer to the start of the write buffer. |
 | `const char *` | [`current`](#current) `const` `inline` | Returns a const pointer to the current write position. |
 | `ByteOrder` | [`order`](#order) `const` `inline` | Returns the byte order used for multi-byte integer writes. |
-| `std::string` | [`toString`](#tostring)  | Returns all bytes written so far as a `std::string`.  |
+| `std::string` | [`toString`](#tostring)  | Returns all bytes written so far as a `std::string`. |
 
 ---
 
@@ -8792,8 +8840,8 @@ Note that when using the constructor with the Buffer reference as an argument, t
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`DynamicBitWriter`](#dynamicbitwriter)  | Constructs a `[DynamicBitWriter](#dynamicbitwriter)` backed by a dynamically resizable `Buffer`. The buffer is expanded automatically as data is written.  |
-|  | [`DynamicBitWriter`](#dynamicbitwriter)  | Constructs a `[DynamicBitWriter](#dynamicbitwriter)` that inserts data starting at a specific iterator position.  |
+|  | [`DynamicBitWriter`](#dynamicbitwriter)  | Constructs a `[DynamicBitWriter](#dynamicbitwriter)` backed by a dynamically resizable `Buffer`. The buffer is expanded automatically as data is written. |
+|  | [`DynamicBitWriter`](#dynamicbitwriter)  | Constructs a `[DynamicBitWriter](#dynamicbitwriter)` that inserts data starting at a specific iterator position. |
 | `void` | [`put`](#put) `virtual` | Append bytes to the buffer. Throws a `std::out_of_range` exception if reading past the limit. |
 | `bool` | [`update`](#update) `virtual` | Update a byte range. Throws a `std::out_of_range` exception if reading past the limit. |
 
@@ -9305,7 +9353,7 @@ std::unique_ptr< LogWriter > _writer
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`Logger`](#logger)  | NonCopyable and NonMovable. |
-|  | [`Logger`](#logger)  |  |
+|  | [`Logger`](#logger)  | Deleted constructor. |
 
 ---
 
@@ -9329,6 +9377,8 @@ NonCopyable and NonMovable.
 Logger(Logger &&) = delete
 ```
 
+Deleted constructor.
+
 {#logchannel}
 
 ## LogChannel
@@ -9346,15 +9396,15 @@ Named log output channel with configurable severity level and formatting.
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`LogChannel`](#logchannel)  | #### Parameters |
-| `void` | [`write`](#write) `virtual` | Writes a log stream entry to this channel.  |
-| `void` | [`write`](#write) `virtual` | Writes a plain message to this channel.  |
-| `void` | [`format`](#format) `virtual` | Formats a log stream entry into the given output stream.  |
+| `void` | [`write`](#write) `virtual` | Writes a log stream entry to this channel. |
+| `void` | [`write`](#write) `virtual` | Writes a plain message to this channel. |
+| `void` | [`format`](#format) `virtual` | Formats a log stream entry into the given output stream. |
 | `std::string` | [`name`](#name) `const` `inline` | Returns the channel name. |
 | `Level` | [`level`](#level) `const` `inline` | Returns the minimum severity level. |
 | `std::string` | [`timeFormat`](#timeformat) `const` `inline` | Returns the timestamp format string. |
-| `void` | [`setLevel`](#setlevel) `inline` | Sets the minimum severity level.  |
-| `void` | [`setTimeFormat`](#settimeformat) `inline` | Sets the timestamp format string.  |
-| `void` | [`setFilter`](#setfilter) `inline` | Sets a realm filter; only messages whose realm matches are written.  |
+| `void` | [`setLevel`](#setlevel) `inline` | Sets the minimum severity level. |
+| `void` | [`setTimeFormat`](#settimeformat) `inline` | Sets the timestamp format string. |
+| `void` | [`setFilter`](#setfilter) `inline` | Sets a realm filter; only messages whose realm matches are written. |
 
 ---
 
@@ -9583,7 +9633,7 @@ Log channel that writes formatted messages to standard output.
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`ConsoleChannel`](#consolechannel)  | #### Parameters |
-| `void` | [`write`](#write) `virtual` | Formats and writes the log stream entry to stdout. Messages below the channel level or filtered by realm are silently dropped.  |
+| `void` | [`write`](#write) `virtual` | Formats and writes the log stream entry to stdout. Messages below the channel level or filtered by realm are silently dropped. |
 
 ---
 
@@ -9635,9 +9685,9 @@ Log channel that writes formatted messages to a file.
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`FileChannel`](#filechannel)  | #### Parameters |
-| `void` | [`write`](#write) `virtual` | Formats and writes the log stream entry to the file. Opens the file on first write if not already open.  |
-| `void` | [`setPath`](#setpath)  | Sets the file path and reopens the file stream.  |
-| `std::string` | [`path`](#path) `const` | Returns the current log file path.  |
+| `void` | [`write`](#write) `virtual` | Formats and writes the log stream entry to the file. Opens the file on first write if not already open. |
+| `void` | [`setPath`](#setpath)  | Sets the file path and reopens the file stream. |
+| `std::string` | [`path`](#path) `const` | Returns the current log file path. |
 
 ---
 
@@ -9779,14 +9829,14 @@ Log channel that writes to time-rotated log files.
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`RotatingFileChannel`](#rotatingfilechannel)  | #### Parameters |
-| `void` | [`write`](#write) `virtual` | Formats and writes the log stream entry to the current log file. Rotates the file if the rotation interval has elapsed.  |
+| `void` | [`write`](#write) `virtual` | Formats and writes the log stream entry to the current log file. Rotates the file if the rotation interval has elapsed. |
 | `void` | [`rotate`](#rotate) `virtual` | Closes the current log file and opens a new one with a timestamped filename. |
 | `std::string` | [`dir`](#dir) `const` `inline` | Returns the directory where log files are written. |
 | `std::string` | [`filename`](#filename) `const` `inline` | Returns the filename of the currently open log file. |
 | `int` | [`rotationInterval`](#rotationinterval) `const` `inline` | Returns the rotation interval in seconds. |
-| `void` | [`setDir`](#setdir) `inline` | Sets the output directory for rotated log files.  |
-| `void` | [`setExtension`](#setextension) `inline` | Sets the file extension for rotated log files.  |
-| `void` | [`setRotationInterval`](#setrotationinterval) `inline` | Sets the rotation interval.  |
+| `void` | [`setDir`](#setdir) `inline` | Sets the output directory for rotated log files. |
+| `void` | [`setExtension`](#setextension) `inline` | Sets the file extension for rotated log files. |
+| `void` | [`setRotationInterval`](#setrotationinterval) `inline` | Sets the rotation interval. |
 
 ---
 
@@ -10026,11 +10076,11 @@ Usage: inherit from RefCounted<YourClass>, then use IntrusivePtr<YourClass> inst
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`RefCounted`](#refcounted)  |  |
+|  | [`RefCounted`](#refcounted)  | Defaulted constructor. |
 |  | [`RefCounted`](#refcounted) `inline` |  |
 | `void` | [`addRef`](#addref) `const` `inline` | Increments the reference count. Called by [IntrusivePtr](#intrusiveptr) on acquisition. |
-| `bool` | [`releaseRef`](#releaseref) `const` `inline` | Decrements the reference count.  |
-| `int` | [`refCount`](#refcount) `const` `inline` | Returns the current reference count.  |
+| `bool` | [`releaseRef`](#releaseref) `const` `inline` | Decrements the reference count. |
+| `int` | [`refCount`](#refcount) `const` `inline` | Returns the current reference count. |
 
 ---
 
@@ -10041,6 +10091,8 @@ Usage: inherit from RefCounted<YourClass>, then use IntrusivePtr<YourClass> inst
 ```cpp
 RefCounted() = default
 ```
+
+Defaulted constructor.
 
 ---
 
@@ -10146,12 +10198,12 @@ Like std::shared_ptr but with zero allocation overhead:
 |  | [`IntrusivePtr`](#intrusiveptr) `inline` |  |
 |  | [`IntrusivePtr`](#intrusiveptr) `inline` |  |
 | `void` | [`reset`](#reset) `inline` | Releases ownership of the current pointer, decrementing its refcount. The pointer is set to null. |
-| `void` | [`reset`](#reset) `inline` | Releases the current pointer and takes ownership of p, incrementing its refcount.  |
-| `T *` | [`get`](#get) `const` `inline` | Returns the raw pointer without transferring ownership.  |
-| `T &` | [`operator*`](#operator) `const` `inline` | Dereferences the managed pointer.  |
-| `T *` | [`operator->`](#operator) `const` `inline` | Member access on the managed pointer.  |
+| `void` | [`reset`](#reset) `inline` | Releases the current pointer and takes ownership of p, incrementing its refcount. |
+| `T *` | [`get`](#get) `const` `inline` | Returns the raw pointer without transferring ownership. |
+| `T &` | [`operator*`](#operator) `const` `inline` | Dereferences the managed pointer. |
+| `T *` | [`operator->`](#operator) `const` `inline` | Member access on the managed pointer. |
 |  | [`operator bool`](#operatorbool) `const` `inline` `explicit` | Returns true if the pointer is non-null. |
-| `void` | [`swap`](#swap) `inline` | Swaps the managed pointer with another [IntrusivePtr](#intrusiveptr).  |
+| `void` | [`swap`](#swap) `inline` | Swaps the managed pointer with another [IntrusivePtr](#intrusiveptr). |
 | `void` | [`detach`](#detach) `inline` | Release ownership without decrementing refcount. Used internally for move construction across types. |
 | `bool` | [`operator==`](#operator) `const` `inline` |  |
 | `bool` | [`operator!=`](#operator) `const` `inline` |  |
@@ -10455,16 +10507,16 @@ T * _ptr
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`Random`](#random)  | Creates and initializes the PRNG. The stateSize parameter is accepted for API compatibility but is ignored; the engine always uses mt19937's fixed state size.  |
+|  | [`Random`](#random)  | Creates and initializes the PRNG. The stateSize parameter is accepted for API compatibility but is ignored; the engine always uses mt19937's fixed state size. |
 |  | [`~Random`](#random)  | Destroys the PRNG. |
-| `void` | [`seed`](#seed)  | Seeds the pseudo random generator with the given seed.  |
+| `void` | [`seed`](#seed)  | Seeds the pseudo random generator with the given seed. |
 | `void` | [`seed`](#seed)  | Seeds the pseudo random generator with entropy from std::random_device. |
-| `uint32_t` | [`next`](#next)  | Returns the next pseudo random number from the mt19937 engine.  |
-| `uint32_t` | [`next`](#next)  | Returns the next pseudo random number in the range [0, n).  |
-| `char` | [`nextChar`](#nextchar)  | Returns the next pseudo random byte as a char.  |
-| `bool` | [`nextBool`](#nextbool)  | Returns the next pseudo random boolean value.  |
-| `float` | [`nextFloat`](#nextfloat)  | Returns the next pseudo random float in [0.0, 1.0].  |
-| `double` | [`nextDouble`](#nextdouble)  | Returns the next pseudo random double in [0.0, 1.0].  |
+| `uint32_t` | [`next`](#next)  | Returns the next pseudo random number from the mt19937 engine. |
+| `uint32_t` | [`next`](#next)  | Returns the next pseudo random number in the range [0, n). |
+| `char` | [`nextChar`](#nextchar)  | Returns the next pseudo random byte as a char. |
+| `bool` | [`nextBool`](#nextbool)  | Returns the next pseudo random boolean value. |
+| `float` | [`nextFloat`](#nextfloat)  | Returns the next pseudo random float in [0.0, 1.0]. |
+| `double` | [`nextDouble`](#nextdouble)  | Returns the next pseudo random double in [0.0, 1.0]. |
 
 ---
 
@@ -10609,7 +10661,7 @@ Pseudo random double value.
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `void` | [`getSeed`](#getseed) `static` | Fills the buffer with cryptographically random bytes from std::random_device.  |
+| `void` | [`getSeed`](#getseed) `static` | Fills the buffer with cryptographically random bytes from std::random_device. |
 
 ---
 
@@ -10662,15 +10714,15 @@ std::mt19937 _engine
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`Runner`](#runner)  |  |
-| `void` | [`start`](#start)  | Starts the asynchronous context with the given callback. The callback must remain valid for the lifetime of the `[Runner](#runner)`.  |
-| `bool` | [`running`](#running) `const` | Returns true if the async context is currently running.  |
+| `void` | [`start`](#start)  | Starts the asynchronous context with the given callback. The callback must remain valid for the lifetime of the `[Runner](#runner)`. |
+| `bool` | [`running`](#running) `const` | Returns true if the async context is currently running. |
 | `void` | [`cancel`](#cancel)  | Signals the async context to stop at the earliest opportunity. |
-| `bool` | [`cancelled`](#cancelled) `const` | Returns true if the context has been cancelled. The implementation is responsible for exiting as soon as possible after cancellation.  |
-| `bool` | [`repeating`](#repeating) `const` | Returns true if the runner is in repeating mode.  |
-| `void` | [`setRepeating`](#setrepeating)  | Enables or disables repeating mode. When repeating, the target function is invoked repeatedly until `[cancel()](#classicy_1_1Runner_1a53b3794fbd4ace235771a4e84f93f1e7)` is called. This normalizes behaviour across thread-based and event-loop-based `[Runner](#runner)` implementations. Must be called before `[start()](#classicy_1_1Runner_1a5969e823f1ce0bdd8730d3108bf13fbd)`.  |
-| `bool` | [`async`](#async) `const` | Returns true if the implementation is thread-based.  |
-| `std::thread::id` | [`tid`](#tid) `const` | Returns the native thread ID of the thread running the async context.  |
-| `bool` | [`waitForExit`](#waitforexit)  | Blocks until the async context exits or the timeout elapses. The context should be cancelled before calling this method. Must be called from outside the runner's own thread to avoid deadlock.  |
+| `bool` | [`cancelled`](#cancelled) `const` | Returns true if the context has been cancelled. The implementation is responsible for exiting as soon as possible after cancellation. |
+| `bool` | [`repeating`](#repeating) `const` | Returns true if the runner is in repeating mode. |
+| `void` | [`setRepeating`](#setrepeating)  | Enables or disables repeating mode. When repeating, the target function is invoked repeatedly until `[cancel()](#classicy_1_1Runner_1a53b3794fbd4ace235771a4e84f93f1e7)` is called. This normalizes behaviour across thread-based and event-loop-based `[Runner](#runner)` implementations. Must be called before `[start()](#classicy_1_1Runner_1a5969e823f1ce0bdd8730d3108bf13fbd)`. |
+| `bool` | [`async`](#async) `const` | Returns true if the implementation is thread-based. |
+| `std::thread::id` | [`tid`](#tid) `const` | Returns the native thread ID of the thread running the async context. |
+| `bool` | [`waitForExit`](#waitforexit)  | Blocks until the async context exits or the timeout elapses. The context should be cancelled before calling this method. Must be called from outside the runner's own thread to avoid deadlock. |
 
 ---
 
@@ -10842,7 +10894,7 @@ Shared pointer to the internal [Context](#context).
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`Runner`](#runner)  | NonCopyable and NonMovable. |
-|  | [`Runner`](#runner)  |  |
+|  | [`Runner`](#runner)  | Deleted constructor. |
 
 ---
 
@@ -10865,6 +10917,8 @@ NonCopyable and NonMovable.
 ```cpp
 Runner(Runner &&) = delete
 ```
+
+Deleted constructor.
 
 {#signalrtargsmutext}
 
@@ -10894,9 +10948,9 @@ Thread-safe signal and slot implementation for callback-based event dispatch.
 | `bool` | [`operator-=`](#operator) `inline` | Detaches the slot with the given ID; equivalent to `detach(id)`. |
 | `bool` | [`operator-=`](#operator) `inline` | Detaches all slots for the given instance; equivalent to `detach(instance)`. |
 | `bool` | [`operator-=`](#operator) `inline` | Detaches the slot matching `slot`'s delegate; equivalent to `detach(slot)`. |
-|  | [`Signal`](#signal)  |  |
-|  | [`Signal`](#signal) `inline` | Copy constructor; copies the slot list and last-assigned ID from `r`.  |
-| `Signal &` | [`operator=`](#operator) `inline` | Copy assignment operator; copies the slot list and last-assigned ID from `r`.  |
+|  | [`Signal`](#signal)  | Defaulted constructor. |
+|  | [`Signal`](#signal) `inline` | Copy constructor; copies the slot list and last-assigned ID from `r`. |
+| `Signal &` | [`operator=`](#operator) `inline` | Copy assignment operator; copies the slot list and last-assigned ID from `r`. |
 
 ---
 
@@ -11189,6 +11243,8 @@ Detaches the slot matching `slot`'s delegate; equivalent to `detach(slot)`.
 ```cpp
 Signal() = default
 ```
+
+Defaulted constructor.
 
 ---
 
@@ -11914,10 +11970,10 @@ This class inherits the `[Runner](#runner)` interface and may be used with any i
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`Thread`](#thread)  | Default constructor. |
-|  | [`Thread`](#thread) `inline` `explicit` | Constructs a `[Thread](#thread)` and immediately starts it with the given function and arguments.  |
+|  | [`Thread`](#thread) `inline` `explicit` | Constructs a `[Thread](#thread)` and immediately starts it with the given function and arguments. |
 |  | [`~Thread`](#thread) `virtual` | Destructor. |
-| `void` | [`start`](#start) `inline` | Starts the thread with a variadic function and arguments. The thread is started immediately; the previous thread must have exited before calling again.  |
-| `void` | [`start`](#start) `virtual` | Starts the thread with a `std::function` callback. Overrides `[Runner::start](#classicy_1_1Runner_1a5969e823f1ce0bdd8730d3108bf13fbd)`; delegates to the variadic `start` template.  |
+| `void` | [`start`](#start) `inline` | Starts the thread with a variadic function and arguments. The thread is started immediately; the previous thread must have exited before calling again. |
+| `void` | [`start`](#start) `virtual` | Starts the thread with a `std::function` callback. Overrides `[Runner::start](#classicy_1_1Runner_1a5969e823f1ce0bdd8730d3108bf13fbd)`; delegates to the variadic `start` template. |
 | `void` | [`join`](#join)  | Wait until the thread exits. |
 | `std::thread::id` | [`id`](#id) `const` | Return the native thread handle. |
 
@@ -12096,8 +12152,8 @@ std::thread _thread
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`Thread`](#thread)  | NonCopyable and NonMovable. |
-|  | [`Thread`](#thread)  |  |
-| `bool` | [`async`](#async) `virtual` `const` | Returns true if the implementation is thread-based.  |
+|  | [`Thread`](#thread)  | Deleted constructor. |
+| `bool` | [`async`](#async) `virtual` `const` | Returns true if the implementation is thread-based. |
 
 ---
 
@@ -12120,6 +12176,8 @@ NonCopyable and NonMovable.
 ```cpp
 Thread(Thread &&) = delete
 ```
+
+Deleted constructor.
 
 ---
 
@@ -12276,13 +12334,13 @@ LibUV C options. Available for advanced use cases.
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`Process`](#process)  | Constructs a `[Process](#process)` attached to the given event loop.  |
-|  | [`Process`](#process)  | Constructs a `[Process](#process)` with initial command-line arguments.  |
+|  | [`Process`](#process)  | Constructs a `[Process](#process)` attached to the given event loop. |
+|  | [`Process`](#process)  | Constructs a `[Process](#process)` with initial command-line arguments. |
 |  | [`~Process`](#process)  | Destructor. |
-|  | [`Process`](#process)  |  |
-|  | [`Process`](#process)  |  |
+|  | [`Process`](#process)  | Deleted constructor. |
+|  | [`Process`](#process)  | Deleted constructor. |
 | `void` | [`spawn`](#spawn)  | Spawns the process. Options must be properly set. Throws an exception on error. |
-| `bool` | [`kill`](#kill)  | Sends a signal to the process.  |
+| `bool` | [`kill`](#kill)  | Sends a signal to the process. |
 | `int` | [`pid`](#pid) `const` | Returns the process PID, or 0 if not spawned. |
 | `Pipe &` | [`in`](#in)  | Returns the stdin pipe. |
 | `Pipe &` | [`out`](#out)  | Returns the stdout pipe. |
@@ -12340,6 +12398,8 @@ Destructor.
 Process(const Process &) = delete
 ```
 
+Deleted constructor.
+
 ---
 
 {#process}
@@ -12349,6 +12409,8 @@ Process(const Process &) = delete
 ```cpp
 Process(Process &&) = delete
 ```
+
+Deleted constructor.
 
 ---
 
@@ -12543,18 +12605,18 @@ void init()
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`Timeout`](#timeout)  | Constructs a [Timeout](#timeout) with the given delay.  |
-|  | [`Timeout`](#timeout)  | Copy constructor.  |
-|  | [`Timeout`](#timeout)  |  |
-| `bool` | [`running`](#running) `const` | Returns true if the timer is currently running.  |
+|  | [`Timeout`](#timeout)  | Constructs a [Timeout](#timeout) with the given delay. |
+|  | [`Timeout`](#timeout)  | Copy constructor. |
+|  | [`Timeout`](#timeout)  | Defaulted constructor. |
+| `bool` | [`running`](#running) `const` | Returns true if the timer is currently running. |
 | `void` | [`start`](#start)  | Starts (or restarts) the timer, recording the current time as the start point. |
 | `void` | [`stop`](#stop)  | Stops the timer without resetting it. [expired()](#classicy_1_1Timeout_1a9f4b4b19851da30eca70e18fd369a2e7) will return false after this call. |
 | `void` | [`reset`](#reset)  | Restarts the timer from now, equivalent to calling [start()](#classicy_1_1Timeout_1a53c636b9d861ad0fcc4051fdc2fb007e). |
-| `long` | [`remaining`](#remaining) `const` | Returns the number of milliseconds remaining before expiry. Returns 0 if already expired, or the full delay if not running.  |
-| `bool` | [`expired`](#expired) `const` | Returns true if the timer is running and the delay has fully elapsed.  |
-| `void` | [`setDelay`](#setdelay) `inline` | Sets the expiry delay without restarting the timer.  |
-| `long` | [`delay`](#delay) `const` `inline` | Returns the configured delay in milliseconds.  |
-| `Timeout &` | [`operator=`](#operator)  | Copy assignment operator.  |
+| `long` | [`remaining`](#remaining) `const` | Returns the number of milliseconds remaining before expiry. Returns 0 if already expired, or the full delay if not running. |
+| `bool` | [`expired`](#expired) `const` | Returns true if the timer is running and the delay has fully elapsed. |
+| `void` | [`setDelay`](#setdelay) `inline` | Sets the expiry delay without restarting the timer. |
+| `long` | [`delay`](#delay) `const` `inline` | Returns the configured delay in milliseconds. |
+| `Timeout &` | [`operator=`](#operator)  | Copy assignment operator. |
 
 ---
 
@@ -12595,6 +12657,8 @@ Copy constructor.
 ```cpp
 Timeout(Timeout && src) = default
 ```
+
+Defaulted constructor.
 
 ---
 
@@ -12780,9 +12844,9 @@ Token that expires after the specified duration.
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`TimedToken`](#timedtoken) `explicit` | Constructs a [TimedToken](#timedtoken) with a randomly generated 32-character ID, started immediately with the given duration.  |
-|  | [`TimedToken`](#timedtoken) `explicit` | Constructs a [TimedToken](#timedtoken) with an explicit ID, started immediately.  |
-| `std::string` | [`id`](#id) `const` `inline` | Returns the token's identifier string.  |
+|  | [`TimedToken`](#timedtoken) `explicit` | Constructs a [TimedToken](#timedtoken) with a randomly generated 32-character ID, started immediately with the given duration. |
+|  | [`TimedToken`](#timedtoken) `explicit` | Constructs a [TimedToken](#timedtoken) with an explicit ID, started immediately. |
+| `std::string` | [`id`](#id) `const` `inline` | Returns the token's identifier string. |
 | `bool` | [`operator==`](#operator) `const` `inline` | Compares two tokens by ID. |
 | `bool` | [`operator==`](#operator) `const` `inline` | Compares this token's ID against a string. |
 
@@ -16705,7 +16769,7 @@ bool _running
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`Stopwatch`](#stopwatch)  |  |
+|  | [`Stopwatch`](#stopwatch)  | Deleted constructor. |
 
 ---
 
@@ -16716,6 +16780,8 @@ bool _running
 ```cpp
 Stopwatch(const Stopwatch &) = delete
 ```
+
+Deleted constructor.
 
 {#threadedstreamreader}
 
@@ -16755,7 +16821,7 @@ PacketSignal emitter
 |  | [`~ThreadedStreamReader`](#threadedstreamreader) `inline` | Stops the reader thread and deletes the owned stream. |
 | `void` | [`start`](#start) `virtual` `inline` | Starts the reader thread; emits one line per iteration as a [RawPacket](#rawpacket). Emits a [FlagPacket](#flagpacket) with `[PacketFlags::Final](#namespaceicy_1a3d1e0d9028d45b9ec824bf4306047f18abeae421a14a34f831c113f61323d1ab3)` on EOF. |
 | `void` | [`stop`](#stop) `virtual` `inline` | Cancels the reader thread. |
-| `StreamT &` | [`stream`](#stream) `inline` | Returns the internal stream cast to `StreamT`.  |
+| `StreamT &` | [`stream`](#stream) `inline` | Returns the internal stream cast to `StreamT`. |
 | `std::istream &` | [`stream`](#stream) `inline` | #### Returns |
 
 ---
@@ -16915,9 +16981,9 @@ PacketSignal emitter
 |--------|------|-------------|
 |  | [`StreamWriter`](#streamwriter) `inline` | #### Parameters |
 |  | [`~StreamWriter`](#streamwriter) `virtual` `inline` | Closes any open `std::ofstream` and deletes the owned stream. |
-| `void` | [`process`](#process) `virtual` `inline` | Serializes the packet via `write()`, flushes it to the output stream, then forwards the packet to the next processor.  |
-| `StreamT &` | [`stream`](#stream) `inline` | Returns the internal output stream cast to `StreamT`.  |
-| `void` | [`onStreamStateChange`](#onstreamstatechange) `virtual` `inline` | Closes the output file on `Closed` or `[Error](#error)` stream state transitions.  |
+| `void` | [`process`](#process) `virtual` `inline` | Serializes the packet via `write()`, flushes it to the output stream, then forwards the packet to the next processor. |
+| `StreamT &` | [`stream`](#stream) `inline` | Returns the internal output stream cast to `StreamT`. |
+| `void` | [`onStreamStateChange`](#onstreamstatechange) `virtual` `inline` | Closes the output file on `Closed` or `[Error](#error)` stream state transitions. |
 | `std::ostream &` | [`stream`](#stream) `inline` | #### Returns |
 
 ---
@@ -17058,14 +17124,14 @@ For an example **See also**: [PacketStreamState](#packetstreamstate)
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`State`](#state)  | #### Parameters |
-|  | [`State`](#state)  | Copy constructor.  |
-| `State &` | [`operator=`](#operator)  | Copy assignment.  |
-| `ID` | [`id`](#id) `const` | Returns the current state ID.  |
-| `void` | [`set`](#set)  | Sets the state ID.  |
-| `std::string` | [`str`](#str) `virtual` `const` | Returns a human-readable string for the given state ID. Override in derived classes to provide meaningful names.  |
-| `std::string` | [`toString`](#tostring) `virtual` `const` | Returns a human-readable string for the current state ID.  |
-| `bool` | [`equals`](#equals) `const` | Returns true if the current state ID equals the given ID.  |
-| `bool` | [`between`](#between) `const` | Returns true if the current state ID is in the inclusive range [lid, rid].  |
+|  | [`State`](#state)  | Copy constructor. |
+| `State &` | [`operator=`](#operator)  | Copy assignment. |
+| `ID` | [`id`](#id) `const` | Returns the current state ID. |
+| `void` | [`set`](#set)  | Sets the state ID. |
+| `std::string` | [`str`](#str) `virtual` `const` | Returns a human-readable string for the given state ID. Override in derived classes to provide meaningful names. |
+| `std::string` | [`toString`](#tostring) `virtual` `const` | Returns a human-readable string for the current state ID. |
+| `bool` | [`equals`](#equals) `const` | Returns true if the current state ID equals the given ID. |
+| `bool` | [`between`](#between) `const` | Returns true if the current state ID is in the inclusive range [lid, rid]. |
 | `bool` | [`operator==`](#operator) `const` `inline` |  |
 | `bool` | [`operator==`](#operator) `const` `inline` |  |
 
@@ -17309,10 +17375,10 @@ Signals when the state changes.
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`Stateful`](#stateful) `inline` |  |
-| `bool` | [`stateEquals`](#stateequals) `virtual` `const` `inline` | Returns true if the current state ID equals the given ID.  |
-| `bool` | [`stateBetween`](#statebetween) `virtual` `const` `inline` | Returns true if the current state ID is in the inclusive range [lid, rid].  |
-| `T &` | [`state`](#state) `virtual` `inline` | Returns a mutable reference to the current state.  |
-| `const T` | [`state`](#state) `virtual` `const` `inline` | Returns a copy of the current state.  |
+| `bool` | [`stateEquals`](#stateequals) `virtual` `const` `inline` | Returns true if the current state ID equals the given ID. |
+| `bool` | [`stateBetween`](#statebetween) `virtual` `const` `inline` | Returns true if the current state ID is in the inclusive range [lid, rid]. |
+| `T &` | [`state`](#state) `virtual` `inline` | Returns a mutable reference to the current state. |
+| `const T` | [`state`](#state) `virtual` `const` `inline` | Returns a copy of the current state. |
 
 ---
 
@@ -17520,11 +17586,11 @@ Signal< void(const std::string &)> TypeUnregistered
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`IRegistry`](#iregistry)  |  |
-| `ItemT *` | [`createInstance`](#createinstance) `virtual` `inline` | Creates and returns a new heap-allocated instance of the type registered under key s.  |
-| `void` | [`registerType`](#registertype) `inline` | Registers type T under the given key s. Emits TypeRegistered. Subsequent calls to createInstance(s) will return `new T()`.  |
-| `void` | [`unregisterType`](#unregistertype) `virtual` `inline` | Removes the type registered under key s. Emits TypeUnregistered. Does nothing if s is not registered.  |
-| `TypeMap` | [`types`](#types) `const` `inline` | Returns a copy of the current type map.  |
+|  | [`IRegistry`](#iregistry)  | Defaulted constructor. |
+| `ItemT *` | [`createInstance`](#createinstance) `virtual` `inline` | Creates and returns a new heap-allocated instance of the type registered under key s. |
+| `void` | [`registerType`](#registertype) `inline` | Registers type T under the given key s. Emits TypeRegistered. Subsequent calls to createInstance(s) will return `new T()`. |
+| `void` | [`unregisterType`](#unregistertype) `virtual` `inline` | Removes the type registered under key s. Emits TypeUnregistered. Does nothing if s is not registered. |
+| `TypeMap` | [`types`](#types) `const` `inline` | Returns a copy of the current type map. |
 
 ---
 
@@ -17535,6 +17601,8 @@ Signal< void(const std::string &)> TypeUnregistered
 ```cpp
 IRegistry() = default
 ```
+
+Defaulted constructor.
 
 ---
 
@@ -17670,9 +17738,9 @@ Helper template class for managing singleton objects allocated on the heap.
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`Singleton`](#singleton)  |  |
-| `S *` | [`get`](#get) `inline` | Returns a pointer to the managed singleton, instantiating it on first call. Thread-safe; protected by an internal mutex.  |
-| `S *` | [`swap`](#swap) `inline` | Replaces the managed singleton with newPtr and returns the previous instance. The caller takes ownership of the returned pointer. Thread-safe; protected by an internal mutex.  |
+|  | [`Singleton`](#singleton)  | Defaulted constructor. |
+| `S *` | [`get`](#get) `inline` | Returns a pointer to the managed singleton, instantiating it on first call. Thread-safe; protected by an internal mutex. |
+| `S *` | [`swap`](#swap) `inline` | Replaces the managed singleton with newPtr and returns the previous instance. The caller takes ownership of the returned pointer. Thread-safe; protected by an internal mutex. |
 | `void` | [`destroy`](#destroy) `inline` | Destroys the managed singleton instance and resets the internal pointer to null. Thread-safe; protected by an internal mutex. |
 
 ---
@@ -17684,6 +17752,8 @@ Helper template class for managing singleton objects allocated on the heap.
 ```cpp
 Singleton() = default
 ```
+
+Defaulted constructor.
 
 ---
 
@@ -17779,14 +17849,14 @@ Subclasses can override onAdd/onRemove for lifecycle reactions, and add [Signal]
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`KeyedStore`](#keyedstore)  |  |
-|  | [`KeyedStore`](#keyedstore)  |  |
-|  | [`KeyedStore`](#keyedstore)  |  |
+|  | [`KeyedStore`](#keyedstore)  | Defaulted constructor. |
+|  | [`KeyedStore`](#keyedstore)  | Deleted constructor. |
+|  | [`KeyedStore`](#keyedstore)  | Defaulted constructor. |
 | `TValue *` | [`get`](#get) `const` `inline` | Returns the item for `key`, or nullptr if not found. |
-| `TValue &` | [`add`](#add) `inline` | Inserts a uniquely owned item. Returns a reference to the stored item.  |
+| `TValue &` | [`add`](#add) `inline` | Inserts a uniquely owned item. Returns a reference to the stored item. |
 | `bool` | [`tryAdd`](#tryadd) `inline` | Inserts if absent; returns false on duplicate (never throws). |
 | `TValue &` | [`put`](#put) `inline` | Inserts or replaces the item under `key`. |
-| `bool` | [`erase`](#erase) `inline` | Removes and destroys the item under `key`.  |
+| `bool` | [`erase`](#erase) `inline` | Removes and destroys the item under `key`. |
 | `bool` | [`contains`](#contains) `const` `inline` |  |
 | `bool` | [`empty`](#empty) `const` `inline` |  |
 | `size_t` | [`size`](#size) `const` `inline` |  |
@@ -17808,6 +17878,8 @@ Subclasses can override onAdd/onRemove for lifecycle reactions, and add [Signal]
 KeyedStore() = default
 ```
 
+Defaulted constructor.
+
 ---
 
 {#keyedstore}
@@ -17818,6 +17890,8 @@ KeyedStore() = default
 KeyedStore(constKeyedStore &) = delete
 ```
 
+Deleted constructor.
+
 ---
 
 {#keyedstore}
@@ -17827,6 +17901,8 @@ KeyedStore(constKeyedStore &) = delete
 ```cpp
 KeyedStore(KeyedStore &&) = default
 ```
+
+Defaulted constructor.
 
 ---
 
@@ -18103,7 +18179,7 @@ A keyed value store (values stored by copy, not pointer).
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`KVCollection`](#kvcollection)  |  |
+|  | [`KVCollection`](#kvcollection)  | Defaulted constructor. |
 | `bool` | [`add`](#add) `inline` | Inserts a value; returns false if key already exists. |
 | `TValue &` | [`get`](#get) `inline` | Returns the value or throws. |
 | `constTValue &` | [`get`](#get) `const` `inline` | Returns the value or defaultValue. |
@@ -18124,6 +18200,8 @@ A keyed value store (values stored by copy, not pointer).
 ```cpp
 KVCollection() = default
 ```
+
+Defaulted constructor.
 
 ---
 
@@ -18770,8 +18848,8 @@ Returns the default [Application](#application) singleton, although [Application
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`Application`](#application)  |  |
-|  | [`Application`](#application)  |  |
+|  | [`Application`](#application)  | Deleted constructor. |
+|  | [`Application`](#application)  | Deleted constructor. |
 
 ---
 
@@ -18783,6 +18861,8 @@ Returns the default [Application](#application) singleton, although [Application
 Application(const Application &) = delete
 ```
 
+Deleted constructor.
+
 ---
 
 {#application}
@@ -18792,6 +18872,8 @@ Application(const Application &) = delete
 ```cpp
 Application(Application &&) = delete
 ```
+
+Deleted constructor.
 
 {#syncpacketqueue}
 
@@ -18826,9 +18908,9 @@ PacketSignal emitter
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`SyncPacketQueue`](#syncpacketqueue) `inline` | #### Parameters |
-|  | [`SyncPacketQueue`](#syncpacketqueue) `inline` | Uses the default libuv event loop.  |
-| `void` | [`process`](#process) `virtual` `inline` | Clones the incoming packet and pushes it onto the queue for synchronized dispatch. This queue is therefore an explicit [PacketStream](#packetstream) ownership boundary. Drops the packet with a warning if the queue has been cancelled.  |
-| `bool` | [`accepts`](#accepts) `virtual` `inline` | Returns true if the packet can be cast to type `T`.  |
+|  | [`SyncPacketQueue`](#syncpacketqueue) `inline` | Uses the default libuv event loop. |
+| `void` | [`process`](#process) `virtual` `inline` | Clones the incoming packet and pushes it onto the queue for synchronized dispatch. This queue is therefore an explicit [PacketStream](#packetstream) ownership boundary. Drops the packet with a warning if the queue has been cancelled. |
+| `bool` | [`accepts`](#accepts) `virtual` `inline` | Returns true if the packet can be cast to type `T`. |
 | `PacketRetention` | [`retention`](#retention) `virtual` `const` `inline` | Returns how this adapter treats incoming packet lifetime. Most adapters are synchronous and therefore only borrow the packet for the current call chain. Queue-style adapters override this to advertise that they clone before deferred use. Callers may treat the first adapter reporting Cloned or Retained as the explicit ownership boundary in the stream graph. |
 
 ---
@@ -18917,8 +18999,8 @@ Returns how this adapter treats incoming packet lifetime. Most adapters are sync
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `void` | [`dispatch`](#dispatch) `virtual` `inline` | Emits the packet to downstream processors from the event loop thread.  |
-| `void` | [`onStreamStateChange`](#onstreamstatechange) `virtual` `inline` | Cancels the queue on `Closed` or `[Error](#error)` stream state transitions.  |
+| `void` | [`dispatch`](#dispatch) `virtual` `inline` | Emits the packet to downstream processors from the event loop thread. |
+| `void` | [`onStreamStateChange`](#onstreamstatechange) `virtual` `inline` | Cancels the queue on `Closed` or `[Error](#error)` stream state transitions. |
 
 ---
 
@@ -19013,8 +19095,8 @@ PacketSignal emitter
 |--------|------|-------------|
 |  | [`AsyncPacketQueue`](#asyncpacketqueue) `inline` | #### Parameters |
 | `void` | [`close`](#close) `virtual` `inline` | Flushes remaining packets, cancels the queue, and joins the dispatch thread. |
-| `void` | [`process`](#process) `virtual` `inline` | Clones the incoming packet and pushes it onto the async queue. This queue is therefore an explicit [PacketStream](#packetstream) ownership boundary. Drops the packet with a warning if the queue has been cancelled.  |
-| `bool` | [`accepts`](#accepts) `virtual` `inline` | Returns true if the packet can be cast to type `T`.  |
+| `void` | [`process`](#process) `virtual` `inline` | Clones the incoming packet and pushes it onto the async queue. This queue is therefore an explicit [PacketStream](#packetstream) ownership boundary. Drops the packet with a warning if the queue has been cancelled. |
+| `bool` | [`accepts`](#accepts) `virtual` `inline` | Returns true if the packet can be cast to type `T`. |
 | `PacketRetention` | [`retention`](#retention) `virtual` `const` `inline` | Returns how this adapter treats incoming packet lifetime. Most adapters are synchronous and therefore only borrow the packet for the current call chain. Queue-style adapters override this to advertise that they clone before deferred use. Callers may treat the first adapter reporting Cloned or Retained as the explicit ownership boundary in the stream graph. |
 
 ---
@@ -19099,8 +19181,8 @@ Returns how this adapter treats incoming packet lifetime. Most adapters are sync
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `void` | [`dispatch`](#dispatch) `virtual` `inline` | Emits the packet to downstream processors from the async thread.  |
-| `void` | [`onStreamStateChange`](#onstreamstatechange) `virtual` `inline` | Closes the queue on `[Error](#error)` or `Closed` stream state transitions.  |
+| `void` | [`dispatch`](#dispatch) `virtual` `inline` | Emits the packet to downstream processors from the async thread. |
+| `void` | [`onStreamStateChange`](#onstreamstatechange) `virtual` `inline` | Closes the queue on `[Error](#error)` or `Closed` stream state transitions. |
 
 ---
 
@@ -19219,8 +19301,8 @@ Remaining send allowance.
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`RateLimiter`](#ratelimiter) `inline` | Constructs a token bucket limiter.  |
-| `bool` | [`canSend`](#cansend) `inline` | Returns true if a message may be sent without exceeding the rate limit. Replenishes the token bucket based on elapsed time since the last check, then consumes one token. Returns false if the bucket is empty.  |
+|  | [`RateLimiter`](#ratelimiter) `inline` | Constructs a token bucket limiter. |
+| `bool` | [`canSend`](#cansend) `inline` | Returns true if a message may be sent without exceeding the rate limit. Replenishes the token bucket based on elapsed time since the last check, then consumes one token. Returns false if the bucket is empty. |
 
 ---
 
@@ -19299,12 +19381,12 @@ This class is a wrapper for integrating external classes with the a [PacketStrea
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`PacketStreamAdapter`](#packetstreamadapter)  | Construct the adapter, binding it to the given packet signal.  |
-| `void` | [`emit`](#emit) `virtual` | Emit a mutable raw buffer as a packet.  |
-| `void` | [`emit`](#emit) `virtual` | Emit a read-only raw buffer as a packet (data is copied internally).  |
-| `void` | [`emit`](#emit) `virtual` | Emit a string as a packet (data is copied internally).  |
-| `void` | [`emit`](#emit) `virtual` | Emit a flag-only packet carrying no payload data.  |
-| `void` | [`emit`](#emit) `virtual` | Emit an existing packet directly onto the outgoing signal.  |
+|  | [`PacketStreamAdapter`](#packetstreamadapter)  | Construct the adapter, binding it to the given packet signal. |
+| `void` | [`emit`](#emit) `virtual` | Emit a mutable raw buffer as a packet. |
+| `void` | [`emit`](#emit) `virtual` | Emit a read-only raw buffer as a packet (data is copied internally). |
+| `void` | [`emit`](#emit) `virtual` | Emit a string as a packet (data is copied internally). |
+| `void` | [`emit`](#emit) `virtual` | Emit a flag-only packet carrying no payload data. |
+| `void` | [`emit`](#emit) `virtual` | Emit an existing packet directly onto the outgoing signal. |
 | `PacketSignal &` | [`getEmitter`](#getemitter)  | Returns a reference to the outgoing packet signal. |
 | `PacketRetention` | [`retention`](#retention) `virtual` `const` | Returns how this adapter treats incoming packet lifetime. Most adapters are synchronous and therefore only borrow the packet for the current call chain. Queue-style adapters override this to advertise that they clone before deferred use. Callers may treat the first adapter reporting Cloned or Retained as the explicit ownership boundary in the stream graph. |
 | `void` | [`onStreamStateChange`](#onstreamstatechange) `virtual` `inline` | Called by the [PacketStream](#packetstream) to notify when the internal [Stream](#stream) state changes. On receiving the Stopped state, it is the responsibility of the adapter to have ceased all outgoing packet transmission, especially in multi-thread scenarios. |
@@ -19474,7 +19556,7 @@ PacketSignal & _emitter
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`PacketStreamAdapter`](#packetstreamadapter)  | NonCopyable and NonMovable. |
-|  | [`PacketStreamAdapter`](#packetstreamadapter)  |  |
+|  | [`PacketStreamAdapter`](#packetstreamadapter)  | Deleted constructor. |
 
 ---
 
@@ -19497,6 +19579,8 @@ NonCopyable and NonMovable.
 ```cpp
 PacketStreamAdapter(PacketStreamAdapter &&) = delete
 ```
+
+Deleted constructor.
 
 {#packetprocessor}
 
@@ -19644,10 +19728,10 @@ Signals that the [PacketStream](#packetstream) is in Close state. This signal is
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`PacketStream`](#packetstream)  | Construct a named packet stream.  |
+|  | [`PacketStream`](#packetstream)  | Construct a named packet stream. |
 |  | [`~PacketStream`](#packetstream) `virtual` | Destroy the stream; calls [close()](#classicy_1_1PacketStream_1a744ce42be8c86ada9cf8d8c85e080d37) then [reset()](#classicy_1_1PacketStream_1a92bc04f29c224402edb681c55c648eb0) to release all adapters. |
-|  | [`PacketStream`](#packetstream)  |  |
-|  | [`PacketStream`](#packetstream)  |  |
+|  | [`PacketStream`](#packetstream)  | Deleted constructor. |
+|  | [`PacketStream`](#packetstream)  | Deleted constructor. |
 | `void` | [`start`](#start) `virtual` | Start the stream and synchronized sources. |
 | `void` | [`stop`](#stop) `virtual` | Stop the stream and synchronized sources. |
 | `void` | [`pause`](#pause) `virtual` | Pause the stream. |
@@ -19659,31 +19743,31 @@ Signals that the [PacketStream](#packetstream) is in Close state. This signal is
 | `bool` | [`closed`](#closed) `virtual` `const` | Returns true when the stream is in the Closed or [Error](#error) state. |
 | `bool` | [`lock`](#lock) `virtual` | Sets the stream to locked state. In a locked state no new adapters can be added or removed from the stream until the stream is stopped. |
 | `bool` | [`locked`](#locked) `virtual` `const` | Returns true is the stream is currently locked. |
-| `void` | [`write`](#write) `virtual` | Write a mutable buffer into the stream without copying. The caller must keep the buffer alive until processing crosses a Cloned/Retained boundary or, if the graph is fully synchronous, until [write()](#classicy_1_1PacketStream_1a22f83c8eda142efab8d21ea04a88137a) returns.  |
-| `void` | [`write`](#write) `virtual` | Write a read-only buffer into the stream; data is copied immediately into an owning [RawPacket](#rawpacket) before any adapter sees it.  |
-| `void` | [`write`](#write) `virtual` | Write a packet directly into the processing chain.  |
-| `void` | [`attachSource`](#attachsource) `virtual` | Attach a bare packet signal as a stream source. The signal is wrapped in an unowned [PacketStreamAdapter](#packetstreamadapter) internally. Useful when the source is another [PacketStream::emitter](#classicy_1_1PacketStream_1adc148eb61c088baa5737dc299ecd9599).  |
-| `void` | [`attachSource`](#attachsource) `virtual` | Attach a [PacketStreamAdapter](#packetstreamadapter) as a source. Source adapters default to Borrowed retention unless overridden; they must not retain inbound packet storage asynchronously without reporting Cloned or Retained.  |
-| `void` | [`attachSource`](#attachsource) `inline` | Attach a shared_ptr-managed source adapter to the stream. The stream shares ownership; the adapter is kept alive at least until teardown. Throws std::runtime_error if `ptr` does not derive from [PacketStreamAdapter](#packetstreamadapter).  |
-| `bool` | [`detachSource`](#detachsource) `virtual` | Detach a source by its packet signal. Disconnects the signal from the stream's process slot and removes the adapter entry.  |
-| `bool` | [`detachSource`](#detachsource) `virtual` | Detach a source by its adapter pointer. Disconnects the adapter's emitter from the stream's process slot and removes the entry.  |
-| `void` | [`attach`](#attach) `virtual` | Attach a packet processor to the stream. Processors are executed in ascending order of their `order` value. Pass order = -1 to append at the end of the current processor list. Valid range is -1 to 101; values outside this range throw std::invalid_argument. Borrowed processors must finish with the packet before [process()](#classicy_1_1PacketStream_1ad5a93a94d2b8694b517438935c435397) returns. Queue/processors that defer work must report Cloned or Retained via retention() so upstream code has an explicit ownership boundary.  |
-| `void` | [`attach`](#attach) `inline` | Attach a shared_ptr-managed processor to the stream. The stream shares ownership; the processor is kept alive at least until teardown. Throws std::runtime_error if `ptr` does not derive from [PacketProcessor](#packetprocessor).  |
-| `bool` | [`detach`](#detach) `virtual` | Detach a packet processor from the stream. The processor's delegate connections are removed; ownership is released if held.  |
-| `void` | [`synchronizeOutput`](#synchronizeoutput) `virtual` | Synchronize stream output packets with a libuv event loop. Internally attaches a [SyncPacketQueue](#syncpacketqueue) at order 101 so that all packets emitted by the processor chain are dispatched from the loop thread rather than the source thread. Must be called before [start()](#classicy_1_1PacketStream_1ac6843f20698879acdaabd8110b440c55).  |
-| `void` | [`autoStart`](#autostart) `virtual` | Enable or disable auto-start behaviour (default: false). When enabled, the stream automatically transitions to Active state upon receiving the first packet while in the None or Locked state. Must be called before [start()](#classicy_1_1PacketStream_1ac6843f20698879acdaabd8110b440c55).  |
-| `void` | [`closeOnError`](#closeonerror) `virtual` | Enable or disable close-on-error behaviour (default: true). When enabled, an unhandled processor exception causes the stream to transition from [Error](#error) to Closed state automatically.  |
+| `void` | [`write`](#write) `virtual` | Write a mutable buffer into the stream without copying. The caller must keep the buffer alive until processing crosses a Cloned/Retained boundary or, if the graph is fully synchronous, until [write()](#classicy_1_1PacketStream_1a22f83c8eda142efab8d21ea04a88137a) returns. |
+| `void` | [`write`](#write) `virtual` | Write a read-only buffer into the stream; data is copied immediately into an owning [RawPacket](#rawpacket) before any adapter sees it. |
+| `void` | [`write`](#write) `virtual` | Write a packet directly into the processing chain. |
+| `void` | [`attachSource`](#attachsource) `virtual` | Attach a bare packet signal as a stream source. The signal is wrapped in an unowned [PacketStreamAdapter](#packetstreamadapter) internally. Useful when the source is another [PacketStream::emitter](#classicy_1_1PacketStream_1adc148eb61c088baa5737dc299ecd9599). |
+| `void` | [`attachSource`](#attachsource) `virtual` | Attach a [PacketStreamAdapter](#packetstreamadapter) as a source. Source adapters default to Borrowed retention unless overridden; they must not retain inbound packet storage asynchronously without reporting Cloned or Retained. |
+| `void` | [`attachSource`](#attachsource) `inline` | Attach a shared_ptr-managed source adapter to the stream. The stream shares ownership; the adapter is kept alive at least until teardown. Throws std::runtime_error if `ptr` does not derive from [PacketStreamAdapter](#packetstreamadapter). |
+| `bool` | [`detachSource`](#detachsource) `virtual` | Detach a source by its packet signal. Disconnects the signal from the stream's process slot and removes the adapter entry. |
+| `bool` | [`detachSource`](#detachsource) `virtual` | Detach a source by its adapter pointer. Disconnects the adapter's emitter from the stream's process slot and removes the entry. |
+| `void` | [`attach`](#attach) `virtual` | Attach a packet processor to the stream. Processors are executed in ascending order of their `order` value. Pass order = -1 to append at the end of the current processor list. Valid range is -1 to 101; values outside this range throw std::invalid_argument. Borrowed processors must finish with the packet before [process()](#classicy_1_1PacketStream_1ad5a93a94d2b8694b517438935c435397) returns. Queue/processors that defer work must report Cloned or Retained via retention() so upstream code has an explicit ownership boundary. |
+| `void` | [`attach`](#attach) `inline` | Attach a shared_ptr-managed processor to the stream. The stream shares ownership; the processor is kept alive at least until teardown. Throws std::runtime_error if `ptr` does not derive from [PacketProcessor](#packetprocessor). |
+| `bool` | [`detach`](#detach) `virtual` | Detach a packet processor from the stream. The processor's delegate connections are removed; ownership is released if held. |
+| `void` | [`synchronizeOutput`](#synchronizeoutput) `virtual` | Synchronize stream output packets with a libuv event loop. Internally attaches a [SyncPacketQueue](#syncpacketqueue) at order 101 so that all packets emitted by the processor chain are dispatched from the loop thread rather than the source thread. Must be called before [start()](#classicy_1_1PacketStream_1ac6843f20698879acdaabd8110b440c55). |
+| `void` | [`autoStart`](#autostart) `virtual` | Enable or disable auto-start behaviour (default: false). When enabled, the stream automatically transitions to Active state upon receiving the first packet while in the None or Locked state. Must be called before [start()](#classicy_1_1PacketStream_1ac6843f20698879acdaabd8110b440c55). |
+| `void` | [`closeOnError`](#closeonerror) `virtual` | Enable or disable close-on-error behaviour (default: true). When enabled, an unhandled processor exception causes the stream to transition from [Error](#error) to Closed state automatically. |
 | `const std::exception_ptr &` | [`error`](#error)  | Accessors for the unmanaged client data pointer. |
-| `std::string` | [`name`](#name) `const` | Return the name assigned to this stream at construction.  |
+| `std::string` | [`name`](#name) `const` | Return the name assigned to this stream at construction. |
 | `PacketAdapterVec` | [`adapters`](#adapters) `const` | Returns a combined list of all stream sources and processors. |
 | `PacketAdapterVec` | [`sources`](#sources) `const` | Returns a list of all stream sources. |
 | `PacketAdapterVec` | [`processors`](#processors) `const` | Returns a list of all stream processors. |
-| `int` | [`numSources`](#numsources) `const` | Return the number of source adapters currently registered.  |
-| `int` | [`numProcessors`](#numprocessors) `const` | Return the number of processor adapters currently registered.  |
-| `int` | [`numAdapters`](#numadapters) `const` | Return the total number of adapters (sources + processors).  |
-| `AdapterT *` | [`getSource`](#getsource) `inline` | Return the nth source of type AdapterT, or nullptr if not found. Sources are searched in their registered order; only adapters that dynamic_cast successfully to AdapterT are counted.  |
-| `AdapterT *` | [`getProcessor`](#getprocessor) `inline` | Return the nth processor of type AdapterT, or nullptr if not found. Processors are searched in their registered order; only adapters that dynamic_cast successfully to AdapterT are counted.  |
-| `PacketProcessor *` | [`getProcessor`](#getprocessor) `inline` | Return the processor registered at a specific order value. Unlike the template overload, this searches by order rather than by type and index.  |
+| `int` | [`numSources`](#numsources) `const` | Return the number of source adapters currently registered. |
+| `int` | [`numProcessors`](#numprocessors) `const` | Return the number of processor adapters currently registered. |
+| `int` | [`numAdapters`](#numadapters) `const` | Return the total number of adapters (sources + processors). |
+| `AdapterT *` | [`getSource`](#getsource) `inline` | Return the nth source of type AdapterT, or nullptr if not found. Sources are searched in their registered order; only adapters that dynamic_cast successfully to AdapterT are counted. |
+| `AdapterT *` | [`getProcessor`](#getprocessor) `inline` | Return the nth processor of type AdapterT, or nullptr if not found. Processors are searched in their registered order; only adapters that dynamic_cast successfully to AdapterT are counted. |
+| `PacketProcessor *` | [`getProcessor`](#getprocessor) `inline` | Return the processor registered at a specific order value. Unlike the template overload, this searches by order rather than by type and index. |
 
 ---
 
@@ -19723,6 +19807,8 @@ Destroy the stream; calls [close()](#classicy_1_1PacketStream_1a744ce42be8c86ada
 PacketStream(const PacketStream &) = delete
 ```
 
+Deleted constructor.
+
 ---
 
 {#packetstream}
@@ -19732,6 +19818,8 @@ PacketStream(const PacketStream &) = delete
 ```cpp
 PacketStream(PacketStream &&) = delete
 ```
+
+Deleted constructor.
 
 ---
 
@@ -20643,16 +20731,16 @@ This class inherits the `[Runner](#runner)` interface and may be used with any i
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`Synchronizer`](#synchronizer)  | Creates a synchronizer attached to the given event loop without a callback. Call `[start()](#classicy_1_1Synchronizer_1a535a1605fc8902d814f9f5ab5e213a66)` separately to register the callback before using `[post()](#classicy_1_1Synchronizer_1a1400f8a4c294ba3d4a9d9d1887131abb)`.  |
-|  | [`Synchronizer`](#synchronizer)  | Creates and immediately starts a synchronizer with a single callback function. The target is invoked from the event loop context each time `[post()](#classicy_1_1Synchronizer_1a1400f8a4c294ba3d4a9d9d1887131abb)` is called.  |
-|  | [`Synchronizer`](#synchronizer) `inline` `explicit` | Creates and immediately starts a synchronizer with a variadic callback.  |
+|  | [`Synchronizer`](#synchronizer)  | Creates a synchronizer attached to the given event loop without a callback. Call `[start()](#classicy_1_1Synchronizer_1a535a1605fc8902d814f9f5ab5e213a66)` separately to register the callback before using `[post()](#classicy_1_1Synchronizer_1a1400f8a4c294ba3d4a9d9d1887131abb)`. |
+|  | [`Synchronizer`](#synchronizer)  | Creates and immediately starts a synchronizer with a single callback function. The target is invoked from the event loop context each time `[post()](#classicy_1_1Synchronizer_1a1400f8a4c294ba3d4a9d9d1887131abb)` is called. |
+|  | [`Synchronizer`](#synchronizer) `inline` `explicit` | Creates and immediately starts a synchronizer with a variadic callback. |
 |  | [`~Synchronizer`](#synchronizer) `virtual` | Destructor. |
 | `void` | [`post`](#post)  | Send a synchronization request to the event loop. Call this each time you want the target method called synchronously. The synchronous method will be called on next iteration. This is not atomic, so do not expect a callback for every request. |
-| `void` | [`start`](#start) `inline` | Starts the synchronizer with a variadic callback function. The callback is invoked from the event loop each time `[post()](#classicy_1_1Synchronizer_1a1400f8a4c294ba3d4a9d9d1887131abb)` is called. Throws `std::logic_error` if already running or if the handle is null.  |
-| `void` | [`start`](#start) `virtual` | Starts the synchronizer with a `std::function` callback. Overrides `[Runner::start](#classicy_1_1Runner_1a5969e823f1ce0bdd8730d3108bf13fbd)`; delegates to the variadic `start` template.  |
+| `void` | [`start`](#start) `inline` | Starts the synchronizer with a variadic callback function. The callback is invoked from the event loop each time `[post()](#classicy_1_1Synchronizer_1a1400f8a4c294ba3d4a9d9d1887131abb)` is called. Throws `std::logic_error` if already running or if the handle is null. |
+| `void` | [`start`](#start) `virtual` | Starts the synchronizer with a `std::function` callback. Overrides `[Runner::start](#classicy_1_1Runner_1a5969e823f1ce0bdd8730d3108bf13fbd)`; delegates to the variadic `start` template. |
 | `void` | [`cancel`](#cancel) `virtual` | Cancels the synchronizer, signalling the associated callback to stop. A subsequent `[post()](#classicy_1_1Synchronizer_1a1400f8a4c294ba3d4a9d9d1887131abb)` is needed to wake up the event loop so it can process the cancellation. |
 | `void` | [`close`](#close) `virtual` | Cancels the synchronizer and closes the underlying `uv_async_t` handle. Safe to call multiple times; no-op if already closed. |
-| `uv::Handle< uv_async_t > &` | [`handle`](#handle)  | Returns a reference to the underlying libuv async handle.  |
+| `uv::Handle< uv_async_t > &` | [`handle`](#handle)  | Returns a reference to the underlying libuv async handle. |
 
 ---
 
@@ -20836,7 +20924,7 @@ uv::Handle< uv_async_t > _handle
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `bool` | [`async`](#async) `virtual` `const` | Returns true if the implementation is thread-based.  |
+| `bool` | [`async`](#async) `virtual` `const` | Returns true if the implementation is thread-based. |
 
 ---
 
@@ -20872,7 +20960,7 @@ Provides timed persistent data storage for class instances. TValue must implemen
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`TimedManager`](#timedmanager) `inline` | Constructs a [TimedManager](#timedmanager) and starts the internal expiry-check timer.  |
+|  | [`TimedManager`](#timedmanager) `inline` | Constructs a [TimedManager](#timedmanager) and starts the internal expiry-check timer. |
 | `void` | [`add`](#add) `inline` | Add an item which will expire (and be deleted) after the specified timeout value. If the timeout is 0 the item will be stored indefinitely. The [TimedManager](#timedmanager) assumes ownership of the given pointer. |
 | `bool` | [`expires`](#expires) `virtual` `inline` | Update the item expiry timeout. |
 | `bool` | [`expires`](#expires) `virtual` `inline` | Update the item expiry timeout. |
@@ -20992,9 +21080,9 @@ Timer _timer
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `bool` | [`setTimeout`](#settimeout) `virtual` `inline` | Sets or removes the expiry timeout for a specific item pointer. If timeout > 0, starts a countdown; if timeout == 0, removes any existing timeout.  |
-| `void` | [`onRemove`](#onremove) `virtual` `inline` | Called when an item is removed from the collection. Erases the item's timeout entry and calls the base implementation.  |
-| `void` | [`onTimeout`](#ontimeout) `virtual` `inline` | Called when an item's timeout expires. Default implementation removes and deletes the item.  |
+| `bool` | [`setTimeout`](#settimeout) `virtual` `inline` | Sets or removes the expiry timeout for a specific item pointer. If timeout > 0, starts a countdown; if timeout == 0, removes any existing timeout. |
+| `void` | [`onRemove`](#onremove) `virtual` `inline` | Called when an item is removed from the collection. Erases the item's timeout entry and calls the base implementation. |
+| `void` | [`onTimeout`](#ontimeout) `virtual` `inline` | Called when an item's timeout expires. Default implementation removes and deletes the item. |
 | `void` | [`onTimerUpdate`](#ontimerupdate) `inline` | Internal timer callback; iterates all tracked timeouts and calls [onTimeout()](#classicy_1_1TimedManager_1a81f3927772f9e446aa04be7837215180) for any that have expired. |
 
 ---
@@ -21112,8 +21200,8 @@ Abstract strategy for creating typed packets from raw buffer data.
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`IPacketCreationStrategy`](#ipacketcreationstrategy)  |  |
-| `IPacket *` | [`create`](#create) `const` | Attempts to create a typed packet from the given buffer.  |
+|  | [`IPacketCreationStrategy`](#ipacketcreationstrategy)  | Defaulted constructor. |
+| `IPacket *` | [`create`](#create) `const` | Attempts to create a typed packet from the given buffer. |
 | `int` | [`priority`](#priority) `const` | Returns the dispatch priority of this strategy (0–100; higher runs first). |
 
 ---
@@ -21125,6 +21213,8 @@ Abstract strategy for creating typed packets from raw buffer data.
 ```cpp
 IPacketCreationStrategy() = default
 ```
+
+Defaulted constructor.
 
 ---
 
@@ -21175,15 +21265,15 @@ Priority-ordered factory that creates typed packets from raw buffers using regis
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`PacketFactory`](#packetfactory)  |  |
-| `void` | [`registerPacketType`](#registerpackettype) `inline` | Registers a `[PacketCreationStrategy](#packetcreationstrategy)<PacketT>` at the given priority. Any previously registered strategy for `PacketT` is replaced.  |
-| `void` | [`unregisterPacketType`](#unregisterpackettype) `inline` | Removes the `[PacketCreationStrategy](#packetcreationstrategy)<PacketT>` from the factory, if present.  |
-| `void` | [`registerStrategy`](#registerstrategy) `inline` | Registers an arbitrary `[IPacketCreationStrategy](#ipacketcreationstrategy)` subclass at the given priority. Any previously registered instance of the same type is replaced.  |
-| `void` | [`unregisterStrategy`](#unregisterstrategy) `inline` | Removes the `StrategyT` instance from the factory, if present.  |
+|  | [`PacketFactory`](#packetfactory)  | Defaulted constructor. |
+| `void` | [`registerPacketType`](#registerpackettype) `inline` | Registers a `[PacketCreationStrategy](#packetcreationstrategy)<PacketT>` at the given priority. Any previously registered strategy for `PacketT` is replaced. |
+| `void` | [`unregisterPacketType`](#unregisterpackettype) `inline` | Removes the `[PacketCreationStrategy](#packetcreationstrategy)<PacketT>` from the factory, if present. |
+| `void` | [`registerStrategy`](#registerstrategy) `inline` | Registers an arbitrary `[IPacketCreationStrategy](#ipacketcreationstrategy)` subclass at the given priority. Any previously registered instance of the same type is replaced. |
+| `void` | [`unregisterStrategy`](#unregisterstrategy) `inline` | Removes the `StrategyT` instance from the factory, if present. |
 | `PacketCreationStrategyList &` | [`types`](#types) `inline` | #### Returns |
 | `const PacketCreationStrategyList &` | [`types`](#types) `const` `inline` | #### Returns |
-| `bool` | [`onPacketCreated`](#onpacketcreated) `virtual` `inline` | Called after a packet is successfully created by a strategy. Override to apply filtering; return false to reject the packet (it will be deleted).  |
-| `IPacket *` | [`createPacket`](#createpacket) `virtual` `inline` | Iterates registered strategies in priority order and returns the first successfully created packet.  |
+| `bool` | [`onPacketCreated`](#onpacketcreated) `virtual` `inline` | Called after a packet is successfully created by a strategy. Override to apply filtering; return false to reject the packet (it will be deleted). |
+| `IPacket *` | [`createPacket`](#createpacket) `virtual` `inline` | Iterates registered strategies in priority order and returns the first successfully created packet. |
 
 ---
 
@@ -21194,6 +21284,8 @@ Priority-ordered factory that creates typed packets from raw buffers using regis
 ```cpp
 PacketFactory() = default
 ```
+
+Defaulted constructor.
 
 ---
 
@@ -21617,9 +21709,9 @@ Signals when a new text item is added to the summary.
 |  | [`IDiagnostic`](#idiagnostic)  |  |
 | `void` | [`check`](#check) `virtual` | Resets state to None and invokes [run()](#classicy_1_1IDiagnostic_1a052a9fcd71565081be080e9c285b7497) to perform the diagnostic check. |
 | `void` | [`reset`](#reset) `virtual` | Clears the summary and resets state to None. |
-| `bool` | [`complete`](#complete) `virtual` `const` | Returns true if the diagnostic has reached a terminal state (Passed or Failed).  |
-| `bool` | [`passed`](#passed) `virtual` `const` | Returns true if the diagnostic state is Passed.  |
-| `bool` | [`failed`](#failed) `virtual` `const` | Returns true if the diagnostic state is Failed.  |
+| `bool` | [`complete`](#complete) `virtual` `const` | Returns true if the diagnostic has reached a terminal state (Passed or Failed). |
+| `bool` | [`passed`](#passed) `virtual` `const` | Returns true if the diagnostic state is Passed. |
+| `bool` | [`failed`](#failed) `virtual` `const` | Returns true if the diagnostic state is Failed. |
 
 ---
 
@@ -21712,9 +21804,9 @@ true if failed.
 | Return | Name | Description |
 |--------|------|-------------|
 | `void` | [`run`](#run)  | Override to implement diagnostic logic. |
-| `bool` | [`pass`](#pass) `virtual` | Transitions the state to Passed.  |
-| `bool` | [`fail`](#fail) `virtual` | Transitions the state to Failed.  |
-| `void` | [`addSummary`](#addsummary) `virtual` | Appends text to the summary list and emits SummaryUpdated.  |
+| `bool` | [`pass`](#pass) `virtual` | Transitions the state to Passed. |
+| `bool` | [`fail`](#fail) `virtual` | Transitions the state to Failed. |
+| `void` | [`addSummary`](#addsummary) `virtual` | Appends text to the summary list and emits SummaryUpdated. |
 
 ---
 
@@ -22429,7 +22521,7 @@ PacketSignal emitter
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`Base64PacketEncoder`](#base64packetencoder) `inline` |  |
-| `void` | [`process`](#process) `virtual` `inline` | Base64-encodes the payload of an incoming `[RawPacket](#rawpacket)` and emits the result.  |
+| `void` | [`process`](#process) `virtual` `inline` | Base64-encodes the payload of an incoming `[RawPacket](#rawpacket)` and emits the result. |
 
 ---
 
@@ -22486,8 +22578,8 @@ Tasks are designed to be run by a [TaskRunner](#taskrunner).
 | `bool` | [`destroyed`](#destroyed) `virtual` `const` | Signals that the task should be disposed of. |
 | `bool` | [`repeating`](#repeating) `virtual` `const` | Signals that the task should be called repeatedly by the [TaskRunner](#taskrunner). If this returns false the task will be cancelled. |
 | `uint32_t` | [`id`](#id) `virtual` `const` | Unique task ID. |
-|  | [`Task`](#task)  |  |
-|  | [`Task`](#task)  |  |
+|  | [`Task`](#task)  | Deleted constructor. |
+|  | [`Task`](#task)  | Deleted constructor. |
 
 ---
 
@@ -22568,6 +22660,8 @@ Unique task ID.
 Task(const Task & task) = delete
 ```
 
+Deleted constructor.
+
 ---
 
 {#task}
@@ -22577,6 +22671,8 @@ Task(const Task & task) = delete
 ```cpp
 Task(Task &&) = delete
 ```
+
+Deleted constructor.
 
 ### Protected Attributes
 
@@ -22687,8 +22783,8 @@ Signals when the `[TaskRunner](#taskrunner)` is shutting down.
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`TaskRunner`](#taskrunner)  | #### Parameters |
-|  | [`TaskRunner`](#taskrunner)  |  |
-|  | [`TaskRunner`](#taskrunner)  |  |
+|  | [`TaskRunner`](#taskrunner)  | Deleted constructor. |
+|  | [`TaskRunner`](#taskrunner)  | Deleted constructor. |
 | `bool` | [`start`](#start) `virtual` | Starts a task, adding it if it doesn't exist. |
 | `bool` | [`cancel`](#cancel) `virtual` | Cancels a task. |
 | `bool` | [`destroy`](#destroy) `virtual` | Queues a task for destruction. |
@@ -22720,6 +22816,8 @@ TaskRunner(std::shared_ptr< Runner > runner)
 TaskRunner(const TaskRunner &) = delete
 ```
 
+Deleted constructor.
+
 ---
 
 {#taskrunner}
@@ -22729,6 +22827,8 @@ TaskRunner(const TaskRunner &) = delete
 ```cpp
 TaskRunner(TaskRunner &&) = delete
 ```
+
+Deleted constructor.
 
 ---
 
@@ -23102,9 +23202,9 @@ Provides basic information about the packet.
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`IPacket`](#ipacket) `inline` | #### Parameters |
-|  | [`IPacket`](#ipacket) `inline` | Copy constructor; clones the info object if present.  |
-| `IPacket &` | [`operator=`](#operator) `inline` | Copy assignment; clones the info object if present.  |
-| `std::unique_ptr< IPacket >` | [`clone`](#clone) `const` | Returns a heap-allocated deep copy of this packet.  |
+|  | [`IPacket`](#ipacket) `inline` | Copy constructor; clones the info object if present. |
+| `IPacket &` | [`operator=`](#operator) `inline` | Copy assignment; clones the info object if present. |
+| `std::unique_ptr< IPacket >` | [`clone`](#clone) `const` | Returns a heap-allocated deep copy of this packet. |
 | `ssize_t` | [`read`](#read)  | Read/parse to the packet from the given input buffer. The number of bytes read is returned. |
 | `void` | [`write`](#write) `const` | Copy/generate to the packet given output buffer. The number of bytes written can be obtained from the buffer. |
 | `size_t` | [`size`](#size) `virtual` `const` `inline` | The size of the packet in bytes. |
@@ -23112,7 +23212,7 @@ Provides basic information about the packet.
 | `char *` | [`data`](#data) `virtual` `const` `inline` | The packet data pointer for buffered packets. |
 | `const void *` | [`constData`](#constdata) `virtual` `const` `inline` | The const packet data pointer for buffered packets. |
 | `const char *` | [`className`](#classname) `const` | Returns the class name of this packet type for logging and diagnostics. |
-| `void` | [`print`](#print) `virtual` `const` `inline` | Prints a human-readable representation to the given stream.  |
+| `void` | [`print`](#print) `virtual` `const` `inline` | Prints a human-readable representation to the given stream. |
 
 ---
 
@@ -23317,7 +23417,7 @@ Packet for sending bitwise flags along the packet stream.
 |  | [`FlagPacket`](#flagpacket) `inline` | #### Parameters |
 | `std::unique_ptr< IPacket >` | [`clone`](#clone) `virtual` `const` `inline` | #### Returns |
 |  | [`FlagPacket`](#flagpacket) `inline` | #### Parameters |
-| `ssize_t` | [`read`](#read) `virtual` `inline` | No-op read; [FlagPacket](#flagpacket) carries no payload data.  |
+| `ssize_t` | [`read`](#read) `virtual` `inline` | No-op read; [FlagPacket](#flagpacket) carries no payload data. |
 | `void` | [`write`](#write) `virtual` `const` `inline` | No-op write; [FlagPacket](#flagpacket) carries no payload data. |
 | `const char *` | [`className`](#classname) `virtual` `const` `inline` | Returns the class name of this packet type for logging and diagnostics. |
 
@@ -23431,9 +23531,9 @@ Returns the class name of this packet type for logging and diagnostics.
 |  | [`RawPacket`](#rawpacket) `inline` | Construct with const data (copied, owning). |
 |  | [`RawPacket`](#rawpacket) `inline` | Copy constructor (always copies data). |
 | `std::unique_ptr< IPacket >` | [`clone`](#clone) `virtual` `const` `inline` | #### Returns |
-| `void` | [`copyData`](#copydata) `virtual` `inline` | Copies data into an internally owned buffer, replacing any prior content.  |
-| `ssize_t` | [`read`](#read) `virtual` `inline` | Reads from the buffer by copying its contents into an owned buffer.  |
-| `void` | [`write`](#write) `virtual` `const` `inline` | Appends the packet data to the given output buffer.  |
+| `void` | [`copyData`](#copydata) `virtual` `inline` | Copies data into an internally owned buffer, replacing any prior content. |
+| `ssize_t` | [`read`](#read) `virtual` `inline` | Reads from the buffer by copying its contents into an owned buffer. |
+| `void` | [`write`](#write) `virtual` `const` `inline` | Appends the packet data to the given output buffer. |
 | `char *` | [`data`](#data) `virtual` `const` `inline` | #### Returns |
 | `size_t` | [`size`](#size) `virtual` `const` `inline` | #### Returns |
 | `const char *` | [`className`](#classname) `virtual` `const` `inline` | Returns the class name of this packet type for logging and diagnostics. |
@@ -23983,8 +24083,8 @@ Sets the property with the given key to the given value. An already existing val
 |--------|------|-------------|
 | `bool` | [`getRaw`](#getraw) `const` | If the property with the given key exists, stores the property's value in value and returns true. Otherwise, returns false. |
 | `void` | [`setRaw`](#setraw)  | Sets the property with the given key to the given value. An already existing value for the key is overwritten. |
-|  | [`Configuration`](#configuration)  |  |
-|  | [`Configuration`](#configuration)  |  |
+|  | [`Configuration`](#configuration)  | Deleted constructor. |
+|  | [`Configuration`](#configuration)  | Deleted constructor. |
 
 ---
 
@@ -24026,6 +24126,8 @@ The implementation is responsible for emitting the PropertyChanged signal.
 Configuration(const Configuration &) = delete
 ```
 
+Deleted constructor.
+
 ---
 
 {#configuration}
@@ -24035,6 +24137,8 @@ Configuration(const Configuration &) = delete
 ```cpp
 Configuration(Configuration &&) = delete
 ```
+
+Deleted constructor.
 
 ### Private Attributes
 
@@ -24108,14 +24212,14 @@ std::string defaultScope
 |--------|------|-------------|
 |  | [`ScopedConfiguration`](#scopedconfiguration)  | #### Parameters |
 |  | [`ScopedConfiguration`](#scopedconfiguration)  |  |
-| `std::string` | [`getString`](#getstring) `const` | Returns the string value, trying `currentScope` first then `defaultScope`.  |
-| `int` | [`getInt`](#getint) `const` | Returns the int value, trying `currentScope` first then `defaultScope`.  |
-| `double` | [`getDouble`](#getdouble) `const` | Returns the double value, trying `currentScope` first then `defaultScope`.  |
-| `bool` | [`getBool`](#getbool) `const` | Returns the bool value, trying `currentScope` first then `defaultScope`.  |
-| `void` | [`setString`](#setstring)  | Writes a string value under the scoped key.  |
-| `void` | [`setInt`](#setint)  | Writes an int value under the scoped key.  |
-| `void` | [`setDouble`](#setdouble)  | Writes a double value under the scoped key.  |
-| `void` | [`setBool`](#setbool)  | Writes a bool value under the scoped key.  |
+| `std::string` | [`getString`](#getstring) `const` | Returns the string value, trying `currentScope` first then `defaultScope`. |
+| `int` | [`getInt`](#getint) `const` | Returns the int value, trying `currentScope` first then `defaultScope`. |
+| `double` | [`getDouble`](#getdouble) `const` | Returns the double value, trying `currentScope` first then `defaultScope`. |
+| `bool` | [`getBool`](#getbool) `const` | Returns the bool value, trying `currentScope` first then `defaultScope`. |
+| `void` | [`setString`](#setstring)  | Writes a string value under the scoped key. |
+| `void` | [`setInt`](#setint)  | Writes an int value under the scoped key. |
+| `void` | [`setDouble`](#setdouble)  | Writes a double value under the scoped key. |
+| `void` | [`setBool`](#setbool)  | Writes a bool value under the scoped key. |
 | `std::string` | [`getCurrentScope`](#getcurrentscope) `const` | #### Parameters |
 | `std::string` | [`getDafaultKey`](#getdafaultkey) `const` | #### Parameters |
 | `std::string` | [`getScopedKey`](#getscopedkey) `const` | #### Parameters |
@@ -24422,9 +24526,9 @@ std::exception_ptr exception
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`Error`](#error) `inline` | Default constructor; initializes all fields to a no-error state. |
-|  | [`Error`](#error) `inline` | Constructs an error with the given message string.  |
-|  | [`Error`](#error) `inline` | Constructs an error with the given C string message.  |
-| `bool` | [`any`](#any) `const` `inline` | Returns true if any error condition is set (non-zero code, non-empty message, or exception).  |
+|  | [`Error`](#error) `inline` | Constructs an error with the given message string. |
+|  | [`Error`](#error) `inline` | Constructs an error with the given C string message. |
+| `bool` | [`any`](#any) `const` `inline` | Returns true if any error condition is set (non-zero code, non-empty message, or exception). |
 | `void` | [`reset`](#reset) `inline` | Clears all error fields, resetting to a no-error state. |
 | `void` | [`rethrow`](#rethrow) `inline` | Re-throws the stored exception pointer if one is set. Has no effect if `exception` is null. |
 
@@ -24697,13 +24801,13 @@ Backing storage for the flag bits.
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`Bitwise`](#bitwise) `inline` | Constructs a [Bitwise](#bitwise) with optional initial flags.  |
+|  | [`Bitwise`](#bitwise) `inline` | Constructs a [Bitwise](#bitwise) with optional initial flags. |
 | `void` | [`reset`](#reset) `virtual` `inline` | Clears all flags (sets data to 0). |
-| `void` | [`set`](#set) `virtual` `inline` | Sets the given flag only if it is not already set.  |
-| `void` | [`add`](#add) `virtual` `inline` | Unconditionally sets (OR) the given flag bits.  |
-| `void` | [`remove`](#remove) `virtual` `inline` | Clears the given flag bits.  |
-| `void` | [`toggle`](#toggle) `virtual` `inline` | Toggles (XOR) the given flag bits.  |
-| `bool` | [`has`](#has) `virtual` `const` `inline` | Returns true if all bits in flag are set.  |
+| `void` | [`set`](#set) `virtual` `inline` | Sets the given flag only if it is not already set. |
+| `void` | [`add`](#add) `virtual` `inline` | Unconditionally sets (OR) the given flag bits. |
+| `void` | [`remove`](#remove) `virtual` `inline` | Clears the given flag bits. |
+| `void` | [`toggle`](#toggle) `virtual` `inline` | Toggles (XOR) the given flag bits. |
+| `bool` | [`has`](#has) `virtual` `const` `inline` | Returns true if all bits in flag are set. |
 
 ---
 
@@ -24834,8 +24938,8 @@ The `Delegate` class contains a pointer to a function. This wrapper class is use
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `RT` | [`operator()`](#operator) `const` | Invokes the underlying callable with the supplied arguments.  |
-| `bool` | [`operator==`](#operator) `const` | Compares two delegates for equality (same target function and instance).  |
+| `RT` | [`operator()`](#operator) `const` | Invokes the underlying callable with the supplied arguments. |
+| `bool` | [`operator==`](#operator) `const` | Compares two delegates for equality (same target function and instance). |
 
 ---
 
@@ -24908,7 +25012,7 @@ std::function< RT(Args...)> func
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`FunctionDelegate`](#functiondelegate) `inline` | #### Parameters |
-| `RT` | [`operator()`](#operator) `virtual` `const` `inline` | Calls the wrapped `std::function`.  |
+| `RT` | [`operator()`](#operator) `virtual` `const` `inline` | Calls the wrapped `std::function`. |
 | `bool` | [`operator==`](#operator) `virtual` `const` `inline` | Always returns false; `std::function` targets cannot be compared for equality. |
 
 ---
@@ -25005,7 +25109,7 @@ RT(Class::* method
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`ClassDelegate`](#classdelegate) `inline` | #### Parameters |
-| `RT` | [`operator()`](#operator) `virtual` `const` `inline` | Calls the member function on `instance`.  |
+| `RT` | [`operator()`](#operator) `virtual` `const` `inline` | Calls the member function on `instance`. |
 | `bool` | [`operator==`](#operator) `virtual` `const` `inline` | #### Parameters |
 
 ---
@@ -25108,7 +25212,7 @@ RT(Class::* method
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`ConstClassDelegate`](#constclassdelegate) `inline` | #### Parameters |
-| `RT` | [`operator()`](#operator) `virtual` `const` `inline` | Calls the const member function on `instance`.  |
+| `RT` | [`operator()`](#operator) `virtual` `const` `inline` | Calls the const member function on `instance`. |
 | `bool` | [`operator==`](#operator) `virtual` `const` `inline` | #### Parameters |
 
 ---
@@ -25211,7 +25315,7 @@ RT(Class::* method
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`PolymorphicDelegate`](#polymorphicdelegate) `inline` | #### Parameters |
-| `RT` | [`operator()`](#operator) `virtual` `const` `inline` | Attempts to cast `object` to `PT`; invokes the method if successful. Returns a default-constructed `RT` if the cast fails (packet type mismatch).  |
+| `RT` | [`operator()`](#operator) `virtual` `const` `inline` | Attempts to cast `object` to `PT`; invokes the method if successful. Returns a default-constructed `RT` if the cast fails (packet type mismatch). |
 | `bool` | [`operator==`](#operator) `virtual` `const` `inline` | #### Parameters |
 
 ---
@@ -25309,10 +25413,10 @@ OptionMap args
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`OptionParser`](#optionparser)  | Parses command-line arguments from `argc`/`argv`.  |
-| `bool` | [`has`](#has) `inline` | Returns true if the given option key was present on the command line.  |
-| `std::string` | [`get`](#get) `inline` | Returns the string value associated with the given option key. Returns an empty string if the key was not found.  |
-| `NumericType` | [`get`](#get) `inline` | Returns the value associated with the given option key, converted to a numeric type.  |
+|  | [`OptionParser`](#optionparser)  | Parses command-line arguments from `argc`/`argv`. |
+| `bool` | [`has`](#has) `inline` | Returns true if the given option key was present on the command line. |
+| `std::string` | [`get`](#get) `inline` | Returns the string value associated with the given option key. Returns an empty string if the key was not found. |
+| `NumericType` | [`get`](#get) `inline` | Returns the value associated with the given option key, converted to a numeric type. |
 
 ---
 
@@ -25527,7 +25631,7 @@ Construct with shared_ptr ownership.
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `bool` | [`compareOrder`](#compareorder) `static` `inline` | Comparator for sorting references by ascending order value.  |
+| `bool` | [`compareOrder`](#compareorder) `static` `inline` | Comparator for sorting references by ascending order value. |
 
 ---
 
@@ -25749,7 +25853,7 @@ This template class implements an adapter that sits between an SignalBase and an
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`PacketCreationStrategy`](#packetcreationstrategy) `inline` | #### Parameters |
-| `IPacket *` | [`create`](#create) `virtual` `const` `inline` | Attempts to default-construct a `PacketT`, calling its `read()` method.  |
+| `IPacket *` | [`create`](#create) `virtual` `const` `inline` | Attempts to default-construct a `PacketT`, calling its `read()` method. |
 | `int` | [`priority`](#priority) `virtual` `const` `inline` | #### Returns |
 
 ---
@@ -25839,8 +25943,8 @@ Loads a shared library at runtime and resolves exported symbols.
 | `bool` | [`open`](#open) `inline` | Opens a shared library. The filename is in utf-8. Returns true on success and false on error. Call `[SharedLibrary::error()](#structicy_1_1SharedLibrary_1a884ec111fdba82e16e31feaaf65bd4fd)` to get the error message. |
 | `void` | [`close`](#close) `inline` | Closes the shared library. |
 | `bool` | [`sym`](#sym) `inline` | Retrieves a data pointer from a dynamic library. It is legal for a symbol to map to nullptr. Returns 0 on success and -1 if the symbol was not found. |
-| `void` | [`setError`](#seterror) `inline` | Reads the last libuv dynamic-linker error, stores it in _error, and throws a std::runtime_error with the combined prefix and error message.  |
-| `std::string` | [`error`](#error) `const` `inline` | Returns the last error message recorded by [setError()](#structicy_1_1SharedLibrary_1a6ac5f2cc9cb2883df675da47cf844fbf). Empty if no error has occurred.  |
+| `void` | [`setError`](#seterror) `inline` | Reads the last libuv dynamic-linker error, stores it in _error, and throws a std::runtime_error with the combined prefix and error message. |
+| `std::string` | [`error`](#error) `const` `inline` | Returns the last error message recorded by [setError()](#structicy_1_1SharedLibrary_1a6ac5f2cc9cb2883df675da47cf844fbf). Empty if no error has occurred. |
 
 ---
 
@@ -25962,7 +26066,7 @@ std::string _error
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `std::string` | [`str`](#str) `const` `inline` | Returns a human-readable string for the given state ID.  |
+| `std::string` | [`str`](#str) `const` `inline` | Returns a human-readable string for the given state ID. |
 
 ---
 
@@ -26085,8 +26189,8 @@ An abstract interface for packet sources to provide extra information about pack
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`IPacketInfo`](#ipacketinfo)  |  |
-| `std::unique_ptr< IPacketInfo >` | [`clone`](#clone) `const` | Returns a heap-allocated deep copy of this info object.  |
+|  | [`IPacketInfo`](#ipacketinfo)  | Defaulted constructor. |
+| `std::unique_ptr< IPacketInfo >` | [`clone`](#clone) `const` | Returns a heap-allocated deep copy of this info object. |
 
 ---
 
@@ -26097,6 +26201,8 @@ An abstract interface for packet sources to provide extra information about pack
 ```cpp
 IPacketInfo() = default
 ```
+
+Defaulted constructor.
 
 ---
 

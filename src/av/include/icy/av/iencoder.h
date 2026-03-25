@@ -141,7 +141,7 @@ public:
 };
 
 
-using IPacketEncoder = IEncoder; ///< 0.8.x compatibility
+using IPacketEncoder = IEncoder; ///< Legacy alias for IEncoder kept for 0.8.x compatibility.
 
 
 } // namespace av

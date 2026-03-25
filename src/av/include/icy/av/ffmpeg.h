@@ -62,7 +62,7 @@ void printEncoders(std::ostream& ost, const char* delim = " ");
 #ifdef HAVE_FFMPEG
 
 //
-/// Utilites for RAII:
+/// RAII helpers for owning FFmpeg allocation types.
 
 /// Deleter adaptor for functions like av_free that take a pointer.
 template <typename T, typename R, R (*Fn)(T*)>
@@ -88,18 +88,23 @@ struct Deleterp
 
 using AVFrameHolder = std::unique_ptr<
     AVFrame, Deleterp<AVFrame, void, av_frame_free>>;
+///< Owning AVFrame pointer released with av_frame_free().
 
 using AVFormatContextHolder = std::unique_ptr<
     AVFormatContext, Deleter<AVFormatContext, void, avformat_free_context>>;
+///< Owning AVFormatContext pointer released with avformat_free_context().
 
 using AVCodecContextHolder = std::unique_ptr<
     AVCodecContext, Deleterp<AVCodecContext, void, avcodec_free_context>>;
+///< Owning AVCodecContext pointer released with avcodec_free_context().
 
 using AVDictionaryCleanup = std::unique_ptr<
     AVDictionary*, Deleter<AVDictionary*, void, av_dict_free>>;
+///< Cleanup wrapper for AVDictionary* values freed with av_dict_free().
 
 using AVPacketHolder = std::unique_ptr<
     AVPacket, Deleterp<AVPacket, void, av_packet_free>>;
+///< Owning AVPacket pointer released with av_packet_free().
 
 #endif
 

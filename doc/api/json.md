@@ -45,8 +45,8 @@ Primary JSON value type used throughout the library.
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `bool` | [`serialize`](#serialize) `inline` | Serializes `pObj` to a pretty-printed JSON string.  |
-| `bool` | [`deserialize`](#deserialize) `inline` | Deserializes `pObj` from a JSON string.  |
+| `bool` | [`serialize`](#serialize) `inline` | Serializes `pObj` to a pretty-printed JSON string. |
+| `bool` | [`deserialize`](#deserialize) `inline` | Deserializes `pObj` from a JSON string. |
 | `void` | [`loadFile`](#loadfile) `inline` | Load a JSON file into a value. Throws on missing file or parse error. |
 | `void` | [`saveFile`](#savefile-1) `inline` | Save a JSON value to a file. Throws on write error. |
 | `void` | [`assertMember`](#assertmember) `inline` | Assert that a required member exists. Throws if missing. |
@@ -220,14 +220,14 @@ json::Value root
 |--------|------|-------------|
 |  | [`Configuration`](#configuration-2)  |  |
 |  | [`~Configuration`](#configuration-3) `virtual` | Destroys the [Configuration](#configuration-1). |
-| `void` | [`load`](#load) `virtual` | Sets the file path and loads the configuration.  |
-| `void` | [`load`](#load-1) `virtual` | Reloads the configuration from the previously set path. Silently ignores parse errors (e.g. empty file).  |
-| `void` | [`save`](#save) `virtual` | Writes the current JSON root to the file at the stored path.  |
-| `bool` | [`remove`](#remove) `virtual` | Removes the top-level key `key` from the JSON root.  |
-| `void` | [`removeAll`](#removeall) `virtual` | Removes all top-level keys whose names contain `baseKey` as a substring.  |
-| `void` | [`replace`](#replace-2) `virtual` | Performs a global string substitution on the serialized JSON, replacing all occurrences of `from` with `to`, then re-parses.  |
-| `void` | [`keys`](#keys) `virtual` | Populates `keys` with all top-level key names containing `baseKey` as a substring.  |
-| `void` | [`print`](#print-8) `virtual` | Writes the pretty-printed JSON to `ost` with 4-space indentation.  |
+| `void` | [`load`](#load) `virtual` | Sets the file path and loads the configuration. |
+| `void` | [`load`](#load-1) `virtual` | Reloads the configuration from the previously set path. Silently ignores parse errors (e.g. empty file). |
+| `void` | [`save`](#save) `virtual` | Writes the current JSON root to the file at the stored path. |
+| `bool` | [`remove`](#remove) `virtual` | Removes the top-level key `key` from the JSON root. |
+| `void` | [`removeAll`](#removeall) `virtual` | Removes all top-level keys whose names contain `baseKey` as a substring. |
+| `void` | [`replace`](#replace-2) `virtual` | Performs a global string substitution on the serialized JSON, replacing all occurrences of `from` with `to`, then re-parses. |
+| `void` | [`keys`](#keys) `virtual` | Populates `keys` with all top-level key names containing `baseKey` as a substring. |
+| `void` | [`print`](#print-8) `virtual` | Writes the pretty-printed JSON to `ost` with 4-space indentation. |
 | `std::string` | [`path`](#path-1) `virtual` | Returns the file path that was passed to [load()](#load). |
 | `bool` | [`loaded`](#loaded) `virtual` | Returns true if [load()](#load) has been called at least once. |
 
@@ -468,8 +468,8 @@ std::mutex _mutex
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `bool` | [`getRaw`](#getraw) `virtual` `const` | Retrieves the string value for `key` from the JSON root.  |
-| `void` | [`setRaw`](#setraw) `virtual` | Stores `value` under `key` in the JSON root and emits PropertyChanged.  |
+| `bool` | [`getRaw`](#getraw) `virtual` `const` | Retrieves the string value for `key` from the JSON root. |
+| `void` | [`setRaw`](#setraw) `virtual` | Stores `value` under `key` in the JSON root and emits PropertyChanged. |
 
 ---
 
@@ -526,8 +526,8 @@ Abstract interface for JSON-serializable objects.
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `void` | [`serialize`](#serialize-1)  | Serializes this object's state into `root`.  |
-| `void` | [`deserialize`](#deserialize-1)  | Populates this object's state from `root`.  |
+| `void` | [`serialize`](#serialize-1)  | Serializes this object's state into `root`. |
+| `void` | [`deserialize`](#deserialize-1)  | Populates this object's state from `root`. |
 
 ---
 

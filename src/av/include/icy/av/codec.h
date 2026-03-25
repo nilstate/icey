@@ -228,8 +228,8 @@ struct AV_API VideoCodec : public Codec
 };
 
 
-using CodecList = std::list<Codec>;
-using CodecPList = std::list<Codec*>;
+using CodecList = std::list<Codec>;   ///< List of codec value objects.
+using CodecPList = std::list<Codec*>; ///< List of codec pointers.
 
 
 // ---------------------------------------------------------------------

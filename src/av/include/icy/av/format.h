@@ -23,8 +23,10 @@ namespace icy {
 namespace av {
 
 /// Defines a media container format which is available through the
-/// Format Registry for encoding/decoding. A format defined preferred
-/// default values for each codec.
+/// FormatRegistry for encoding or decoding.
+///
+/// A format bundles the preferred default audio and video codec settings for a
+/// named container such as MP4, MKV, or WAV.
 struct AV_API Format
 {
     enum Type
@@ -108,8 +110,8 @@ struct AV_API Format
 };
 
 
-using FormatList = std::vector<Format>;
-using FormatPList = std::vector<Format*>;
+using FormatList = std::vector<Format>;   ///< List of container format value objects.
+using FormatPList = std::vector<Format*>; ///< List of container format pointers.
 
 
 } // namespace av

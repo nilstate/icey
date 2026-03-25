@@ -965,9 +965,9 @@ ByteVec _iv
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`Cipher`](#cipher-6)  |  |
-|  | [`Cipher`](#cipher-7)  |  |
-|  | [`Cipher`](#cipher-8)  |  |
+|  | [`Cipher`](#cipher-6)  | Deleted constructor. |
+|  | [`Cipher`](#cipher-7)  | Deleted constructor. |
+|  | [`Cipher`](#cipher-8)  | Deleted constructor. |
 | `void` | [`generateKey`](#generatekey)  | Derives and sets the key and IV from a passphrase using EVP_BytesToKey. |
 | `void` | [`setRandomKey`](#setrandomkey)  | Fills the key buffer with cryptographically random bytes. |
 | `void` | [`setRandomIV`](#setrandomiv)  | Fills the IV buffer with cryptographically random bytes. |
@@ -983,6 +983,8 @@ ByteVec _iv
 Cipher() = delete
 ```
 
+Deleted constructor.
+
 ---
 
 {#cipher-7}
@@ -993,6 +995,8 @@ Cipher() = delete
 Cipher(const Cipher &) = delete
 ```
 
+Deleted constructor.
+
 ---
 
 {#cipher-8}
@@ -1002,6 +1006,8 @@ Cipher(const Cipher &) = delete
 ```cpp
 Cipher(Cipher &&) = delete
 ```
+
+Deleted constructor.
 
 ---
 

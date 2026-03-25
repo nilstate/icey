@@ -84,7 +84,7 @@ Stable codec identifiers used across negotiation and track setup.
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `const char *` | [`stateToString`](#statetostring)  | Convert a [PeerSession::State](#state-4) to a lowercase C string for logging.  |
+| `const char *` | [`stateToString`](#statetostring)  | Convert a [PeerSession::State](#state-4) to a lowercase C string for logging. |
 | `TrackHandle` | [`createVideoTrack`](#createvideotrack)  | Create a video send track on a PeerConnection. |
 | `TrackHandle` | [`createAudioTrack`](#createaudiotrack)  | Create an audio send track on a PeerConnection. |
 | `bool` | [`setupReceiveTrack`](#setupreceivetrack)  | Set up the receive-side media handler chain on a remote track. |
@@ -525,12 +525,13 @@ Remote peer reports estimated bandwidth (bits/sec).
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`MediaBridge`](#mediabridge-1)  |  |
-|  | [`MediaBridge`](#mediabridge-2)  |  |
+|  | [`MediaBridge`](#mediabridge-1)  | Construct a detached bridge with stable sender and receiver adapters. |
+|  | [`~MediaBridge`](#mediabridge-2)  | Destroy the bridge and release any attached PeerConnection state. |
+|  | [`MediaBridge`](#mediabridge-3)  | Deleted copy constructor; [MediaBridge](#mediabridge) owns live track and adapter state. |
 | `void` | [`attach`](#attach)  | Create tracks on the PeerConnection and set up handler chains. Only creates tracks for codecs with a non-empty encoder name. |
 | `void` | [`detach`](#detach)  | Detach all tracks and adapters. |
 | `void` | [`requestKeyframe`](#requestkeyframe)  | Request an immediate keyframe (IDR) from the remote sender. Sends a PLI (Picture Loss Indication) RTCP message on the video track. No-op if no video track is attached. |
-| `void` | [`requestBitrate`](#requestbitrate)  | Request that the remote sender reduce to a target bitrate. Sends a TMMBR RTCP message on the video track.  |
+| `void` | [`requestBitrate`](#requestbitrate)  | Request that the remote sender reduce to a target bitrate. Sends a TMMBR RTCP message on the video track. |
 | `WebRtcTrackSender &` | [`videoSender`](#videosender)  | Video send processor. Attach to a [PacketStream](base.md#packetstream) after a VideoEncoder. Throws if no video track was created. |
 | `WebRtcTrackSender &` | [`audioSender`](#audiosender)  | Audio send processor. Attach to a [PacketStream](base.md#packetstream) after an AudioEncoder. Throws if no audio track was created. |
 | `WebRtcTrackReceiver &` | [`videoReceiver`](#videoreceiver)  | Video receive adapter. Attach as a [PacketStream](base.md#packetstream) source. Only valid after a remote video track arrives. |
@@ -551,15 +552,31 @@ Remote peer reports estimated bandwidth (bits/sec).
 MediaBridge()
 ```
 
+Construct a detached bridge with stable sender and receiver adapters.
+
 ---
 
 {#mediabridge-2}
+
+#### ~MediaBridge
+
+```cpp
+~MediaBridge()
+```
+
+Destroy the bridge and release any attached PeerConnection state.
+
+---
+
+{#mediabridge-3}
 
 #### MediaBridge
 
 ```cpp
 MediaBridge(const MediaBridge &) = delete
 ```
+
+Deleted copy constructor; [MediaBridge](#mediabridge) owns live track and adapter state.
 
 ---
 
@@ -841,7 +858,7 @@ std::mutex _mutex
 | `uint32_t` | [`videoSsrc`](#videossrc)  | 0 = auto-generate |
 | `uint32_t` | [`audioSsrc`](#audiossrc)  | 0 = auto-generate |
 | `std::string` | [`cname`](#cname)  | CNAME for RTCP (auto if empty) |
-| `unsigned` | [`nackBufferSize`](#nackbuffersize)  |  |
+| `unsigned` | [`nackBufferSize`](#nackbuffersize)  | Max RTP packets retained for video NACK retransmission. |
 
 ---
 
@@ -913,6 +930,8 @@ CNAME for RTCP (auto if empty)
 unsigned nackBufferSize = 512
 ```
 
+Max RTP packets retained for video NACK retransmission.
+
 {#peersession}
 
 ## PeerSession
@@ -976,13 +995,13 @@ Emitted when a message arrives on the data channel. Parameter: rtc::message_vari
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`PeerSession`](#peersession-1)  | Construct with any signalling implementation. The signaller must outlive this [PeerSession](#peersession). |
-|  | [`PeerSession`](#peersession-2)  |  |
-| `void` | [`call`](#call)  | Initiate an outgoing call to a remote peer. Sends a "init" control message and transitions to OutgoingInit.  |
-| `void` | [`accept`](#accept)  | Accept an incoming call. Creates the PeerConnection, sends "accept", and transitions to Negotiating.  |
-| `void` | [`reject`](#reject)  | Reject an incoming call. Sends a "reject" control message and transitions to Ended.  |
-| `void` | [`hangup`](#hangup)  | Terminate any non-idle call phase. Sends a "hangup" control message, closes the PeerConnection, and transitions to Ended. Safe to call from any non-Idle/Ended state.  |
-| `void` | [`sendData`](#senddata-2)  | Send a UTF-8 string message over the data channel. Silently dropped if the data channel is not open.  |
-| `void` | [`sendData`](#senddata-3)  | Send raw binary data over the data channel. Silently dropped if the data channel is not open.  |
+|  | [`PeerSession`](#peersession-2)  | Deleted copy constructor; [PeerSession](#peersession) owns live signalling and RTC callbacks. |
+| `void` | [`call`](#call)  | Initiate an outgoing call to a remote peer. Sends a "init" control message and transitions to OutgoingInit. |
+| `void` | [`accept`](#accept)  | Accept an incoming call. Creates the PeerConnection, sends "accept", and transitions to Negotiating. |
+| `void` | [`reject`](#reject)  | Reject an incoming call. Sends a "reject" control message and transitions to Ended. |
+| `void` | [`hangup`](#hangup)  | Terminate any non-idle call phase. Sends a "hangup" control message, closes the PeerConnection, and transitions to Ended. Safe to call from any non-Idle/Ended state. |
+| `void` | [`sendData`](#senddata-2)  | Send a UTF-8 string message over the data channel. Silently dropped if the data channel is not open. |
+| `void` | [`sendData`](#senddata-3)  | Send raw binary data over the data channel. Silently dropped if the data channel is not open. |
 | `State` | [`state`](#state-3) `const` | Current session state. Thread-safe. |
 | `std::string` | [`remotePeerId`](#remotepeerid) `const` | Identifier of the remote peer for the current or most recent call. Empty when Idle. |
 | `MediaBridge &` | [`media`](#media)  | Media bridge for this session. Valid for the lifetime of the [PeerSession](#peersession). |
@@ -1011,6 +1030,8 @@ Construct with any signalling implementation. The signaller must outlive this [P
 ```cpp
 PeerSession(const PeerSession &) = delete
 ```
+
+Deleted copy constructor; [PeerSession](#peersession) owns live signalling and RTC callbacks.
 
 ---
 
@@ -1186,7 +1207,7 @@ The data channel, or nullptr if none is open.
 
 | Name | Description |
 |------|-------------|
-| [`State`](#state-4)  |  |
+| [`State`](#state-4)  | High-level lifecycle phases for a single peer-to-peer call session. |
 
 ---
 
@@ -1197,6 +1218,8 @@ The data channel, or nullptr if none is open.
 ```cpp
 enum State
 ```
+
+High-level lifecycle phases for a single peer-to-peer call session.
 
 | Value | Description |
 |-------|-------------|
@@ -1461,10 +1484,10 @@ std::atomic< bool > alive {true}
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `rtc::Configuration` | [`rtcConfig`](#rtcconfig)  |  |
-| `MediaBridge::Options` | [`mediaOpts`](#mediaopts)  |  |
-| `bool` | [`enableDataChannel`](#enabledatachannel)  |  |
-| `std::string` | [`dataChannelLabel`](#datachannellabel)  |  |
+| `rtc::Configuration` | [`rtcConfig`](#rtcconfig)  | libdatachannel connection options, ICE servers, and transport settings. |
+| `MediaBridge::Options` | [`mediaOpts`](#mediaopts)  | Media tracks to create when the session negotiates media. |
+| `bool` | [`enableDataChannel`](#enabledatachannel)  | True to create a data channel on outgoing calls and accept one on incoming calls. |
+| `std::string` | [`dataChannelLabel`](#datachannellabel)  | Label to use for the application data channel. |
 
 ---
 
@@ -1476,6 +1499,8 @@ std::atomic< bool > alive {true}
 rtc::Configuration rtcConfig
 ```
 
+libdatachannel connection options, ICE servers, and transport settings.
+
 ---
 
 {#mediaopts}
@@ -1485,6 +1510,8 @@ rtc::Configuration rtcConfig
 ```cpp
 MediaBridge::Options mediaOpts
 ```
+
+Media tracks to create when the session negotiates media.
 
 ---
 
@@ -1496,6 +1523,8 @@ MediaBridge::Options mediaOpts
 bool enableDataChannel = true
 ```
 
+True to create a data channel on outgoing calls and accept one on incoming calls.
+
 ---
 
 {#datachannellabel}
@@ -1505,6 +1534,8 @@ bool enableDataChannel = true
 ```cpp
 std::string dataChannelLabel = "data"
 ```
+
+Label to use for the application data channel.
 
 {#pendingcandidate}
 
@@ -1607,9 +1638,9 @@ Fires when a control message arrives from a remote peer. Parameters: peerId, typ
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `void` | [`sendSdp`](#sendsdp)  | Send an SDP offer or answer to the remote peer.  |
-| `void` | [`sendCandidate`](#sendcandidate)  | Send an ICE candidate to the remote peer.  |
-| `void` | [`sendControl`](#sendcontrol)  | Send a control message to the remote peer.  |
+| `void` | [`sendSdp`](#sendsdp)  | Send an SDP offer or answer to the remote peer. |
+| `void` | [`sendCandidate`](#sendcandidate)  | Send an ICE candidate to the remote peer. |
+| `void` | [`sendControl`](#sendcontrol)  | Send a control message to the remote peer. |
 
 ---
 
@@ -1708,7 +1739,7 @@ PacketSignal emitter
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`WebRtcTrackReceiver`](#webrtctrackreceiver-1)  | Construct an unbound receiver. Call [bind()](#bind-5) to attach a remote track. |
-| `void` | [`bind`](#bind-5)  | Bind to a remote track. Must be called after [setupReceiveTrack()](#setupreceivetrack) returned true. Installs an onFrame callback that converts each depacketized frame to a VideoPacket or AudioPacket and emits it on the [PacketStream](base.md#packetstream). The track type (video/audio) is detected from the SDP description.  |
+| `void` | [`bind`](#bind-5)  | Bind to a remote track. Must be called after [setupReceiveTrack()](#setupreceivetrack) returned true. Installs an onFrame callback that converts each depacketized frame to a VideoPacket or AudioPacket and emits it on the [PacketStream](base.md#packetstream). The track type (video/audio) is detected from the SDP description. |
 
 ---
 
@@ -1782,9 +1813,9 @@ PacketSignal emitter
 |  | [`WebRtcTrackSender`](#webrtctracksender-2) `explicit` | Construct bound to a track handle from [createVideoTrack()](#createvideotrack) or [createAudioTrack()](#createaudiotrack). |
 | `void` | [`bind`](#bind-6)  | Bind to a track. Can be called to rebind to a different track. |
 | `void` | [`unbind`](#unbind-1)  | Unbind from the current track. |
-| `void` | [`process`](#process-7) `virtual` | Send an encoded media frame to the bound WebRTC track. Converts the FFmpeg microsecond timestamp to an RTP timestamp using the track's clock rate, then calls rtc::Track::sendFrame(). Only forwards the packet downstream on a successful send.  |
-| `bool` | [`accepts`](#accepts-3) `virtual` | Return true if packet is an [av::MediaPacket](av.md#mediapacket) (VideoPacket or AudioPacket).  |
-| `void` | [`onStreamStateChange`](#onstreamstatechange-6) `virtual` | Called by the [PacketStream](base.md#packetstream) when stream state changes. Logs when the stream is stopping; no other action is taken.  |
+| `void` | [`process`](#process-7) `virtual` | Send an encoded media frame to the bound WebRTC track. Converts the FFmpeg microsecond timestamp to an RTP timestamp using the track's clock rate, then calls rtc::Track::sendFrame(). Only forwards the packet downstream on a successful send. |
+| `bool` | [`accepts`](#accepts-3) `virtual` | Return true if packet is an [av::MediaPacket](av.md#mediapacket) (VideoPacket or AudioPacket). |
+| `void` | [`onStreamStateChange`](#onstreamstatechange-6) `virtual` | Called by the [PacketStream](base.md#packetstream) when stream state changes. Logs when the stream is stopping; no other action is taken. |
 | `bool` | [`isVideo`](#isvideo) `const` | True if this sender is bound to a video track. |
 | `bool` | [`bound`](#bound) `const` | True if bound to any track. |
 
@@ -2249,8 +2280,8 @@ Result of creating a track: the track itself plus its RTP config. Keep the confi
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `std::shared_ptr< rtc::Track >` | [`track`](#track)  |  |
-| `std::shared_ptr< rtc::RtpPacketizationConfig >` | [`rtpConfig`](#rtpconfig)  |  |
+| `std::shared_ptr< rtc::Track >` | [`track`](#track)  | The libdatachannel track added to the PeerConnection. |
+| `std::shared_ptr< rtc::RtpPacketizationConfig >` | [`rtpConfig`](#rtpconfig)  | RTP packetization state required by [WebRtcTrackSender](#webrtctracksender). |
 
 ---
 
@@ -2262,6 +2293,8 @@ Result of creating a track: the track itself plus its RTP config. Keep the confi
 std::shared_ptr< rtc::Track > track
 ```
 
+The libdatachannel track added to the PeerConnection.
+
 ---
 
 {#rtpconfig}
@@ -2271,4 +2304,6 @@ std::shared_ptr< rtc::Track > track
 ```cpp
 std::shared_ptr< rtc::RtpPacketizationConfig > rtpConfig
 ```
+
+RTP packetization state required by [WebRtcTrackSender](#webrtctracksender).
 

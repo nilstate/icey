@@ -29,12 +29,14 @@ class Sched_API Scheduler;
 
 
 template <typename T>
+/// Instantiate a registered Task subtype using its default constructor.
 std::unique_ptr<sched::Task> instantiateTask()
 {
     return std::make_unique<T>();
 }
 
 template <typename T>
+/// Instantiate a registered Trigger subtype using its default constructor.
 std::unique_ptr<sched::Trigger> instantiateTrigger()
 {
     return std::make_unique<T>();

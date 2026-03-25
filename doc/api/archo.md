@@ -82,20 +82,20 @@ unzFile fp
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`ZipFile`](#zipfile-1)  | Constructs an unopened [ZipFile](#zipfile). Call [open()](#open-5) before use. |
-|  | [`ZipFile`](#zipfile-2) `explicit` | Constructs a [ZipFile](#zipfile) and immediately opens the archive at `file`.  |
+|  | [`ZipFile`](#zipfile-2) `explicit` | Constructs a [ZipFile](#zipfile) and immediately opens the archive at `file`. |
 |  | [`~ZipFile`](#zipfile-3)  | Closes the archive if still open. |
-|  | [`ZipFile`](#zipfile-4)  |  |
-|  | [`ZipFile`](#zipfile-5)  |  |
-| `void` | [`open`](#open-5)  | Opens the archive at `file`, closing any previously opened archive. Populates the `info` vector with metadata for every entry.  |
+|  | [`ZipFile`](#zipfile-4)  | Deleted constructor. |
+|  | [`ZipFile`](#zipfile-5)  | Deleted constructor. |
+| `void` | [`open`](#open-5)  | Opens the archive at `file`, closing any previously opened archive. Populates the `info` vector with metadata for every entry. |
 | `bool` | [`opened`](#opened) `const` | Returns true if the archive is currently open. |
 | `void` | [`close`](#close-23)  | Closes the archive and releases the underlying file handle. |
-| `void` | [`extract`](#extract)  | Extracts the archive contents to the given directory path.  |
-| `bool` | [`extractCurrentFile`](#extractcurrentfile)  | Extracts the current file entry to `path`. Validates each entry against path-traversal attacks before writing.  |
-| `bool` | [`goToFirstFile`](#gotofirstfile)  | Moves the internal cursor to the first file entry in the archive.  |
-| `bool` | [`goToNextFile`](#gotonextfile)  | Advances the internal cursor to the next file entry.  |
-| `void` | [`openCurrentFile`](#opencurrentfile)  | Opens the current file entry for reading.  |
-| `void` | [`closeCurrentFile`](#closecurrentfile)  | Closes the current file entry.  |
-| `std::string` | [`currentFileName`](#currentfilename)  | Returns the name (relative path) of the current file entry.  |
+| `void` | [`extract`](#extract)  | Extracts the archive contents to the given directory path. |
+| `bool` | [`extractCurrentFile`](#extractcurrentfile)  | Extracts the current file entry to `path`. Validates each entry against path-traversal attacks before writing. |
+| `bool` | [`goToFirstFile`](#gotofirstfile)  | Moves the internal cursor to the first file entry in the archive. |
+| `bool` | [`goToNextFile`](#gotonextfile)  | Advances the internal cursor to the next file entry. |
+| `void` | [`openCurrentFile`](#opencurrentfile)  | Opens the current file entry for reading. |
+| `void` | [`closeCurrentFile`](#closecurrentfile)  | Closes the current file entry. |
+| `std::string` | [`currentFileName`](#currentfilename)  | Returns the name (relative path) of the current file entry. |
 
 ---
 
@@ -147,6 +147,8 @@ Closes the archive if still open.
 ZipFile(const ZipFile &) = delete
 ```
 
+Deleted constructor.
+
 ---
 
 {#zipfile-5}
@@ -156,6 +158,8 @@ ZipFile(const ZipFile &) = delete
 ```cpp
 ZipFile(ZipFile &&) = delete
 ```
+
+Deleted constructor.
 
 ---
 

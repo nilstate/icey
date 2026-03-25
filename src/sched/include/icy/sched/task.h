@@ -118,7 +118,7 @@ protected:
 };
 
 
-using TaskList = std::vector<sched::Task*>;
+using TaskList = std::vector<sched::Task*>; ///< Ordered list of task pointers used by the scheduler.
 
 
 } // namespace sched

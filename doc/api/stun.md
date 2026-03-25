@@ -71,15 +71,15 @@ STUN address types as defined in RFC 5389. NB: Undefined is not part of the STUN
 
 | Value | Description |
 |-------|-------------|
-| `Undefined` |  |
-| `IPv4` |  |
-| `IPv6` |  |
+| `Undefined` | Not a valid STUN address family; used as a sentinel. |
+| `IPv4` | IPv4 transport address. |
+| `IPv6` | IPv6 transport address. |
 
 ### Typedefs
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `std::string` | [`TransactionID`](#transactionid-1)  |  |
+| `std::string` | [`TransactionID`](#transactionid-1)  | Fixed-width 12-byte STUN transaction identifier stored as raw bytes. |
 
 ---
 
@@ -91,11 +91,13 @@ STUN address types as defined in RFC 5389. NB: Undefined is not part of the STUN
 std::string TransactionID()
 ```
 
+Fixed-width 12-byte STUN transaction identifier stored as raw bytes.
+
 ### Functions
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `constexpr bool` | [`isValidMethod`](#isvalidmethod)  | Returns true if `methodType` corresponds to a recognised STUN/TURN method. Used during parsing to reject malformed packets.  |
+| `constexpr bool` | [`isValidMethod`](#isvalidmethod)  | Returns true if `methodType` corresponds to a recognised STUN/TURN method. Used during parsing to reject malformed packets. |
 
 ---
 
@@ -118,12 +120,12 @@ true if the method is one of the defined MethodType values.
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `constexpr int` | [`kAttributeHeaderSize`](#kattributeheadersize)  |  |
-| `constexpr int` | [`kMessageHeaderSize`](#kmessageheadersize)  |  |
-| `constexpr int` | [`kTransactionIdOffset`](#ktransactionidoffset)  |  |
-| `constexpr int` | [`kTransactionIdLength`](#ktransactionidlength)  |  |
-| `constexpr uint32_t` | [`kMagicCookie`](#kmagiccookie)  |  |
-| `constexpr int` | [`kMagicCookieLength`](#kmagiccookielength)  |  |
+| `constexpr int` | [`kAttributeHeaderSize`](#kattributeheadersize)  | Bytes in a STUN attribute header. |
+| `constexpr int` | [`kMessageHeaderSize`](#kmessageheadersize)  | Bytes in the fixed STUN message header. |
+| `constexpr int` | [`kTransactionIdOffset`](#ktransactionidoffset)  | Byte offset of the transaction ID inside the message header. |
+| `constexpr int` | [`kTransactionIdLength`](#ktransactionidlength)  | Length in bytes of a STUN transaction ID. |
+| `constexpr uint32_t` | [`kMagicCookie`](#kmagiccookie)  | RFC 5389 magic cookie used by modern STUN/TURN messages. |
+| `constexpr int` | [`kMagicCookieLength`](#kmagiccookielength)  | Length in bytes of the magic cookie field. |
 
 ---
 
@@ -135,6 +137,8 @@ true if the method is one of the defined MethodType values.
 constexpr int kAttributeHeaderSize = 4
 ```
 
+Bytes in a STUN attribute header.
+
 ---
 
 {#kmessageheadersize}
@@ -144,6 +148,8 @@ constexpr int kAttributeHeaderSize = 4
 ```cpp
 constexpr int kMessageHeaderSize = 20
 ```
+
+Bytes in the fixed STUN message header.
 
 ---
 
@@ -155,6 +161,8 @@ constexpr int kMessageHeaderSize = 20
 constexpr int kTransactionIdOffset = 8
 ```
 
+Byte offset of the transaction ID inside the message header.
+
 ---
 
 {#ktransactionidlength}
@@ -164,6 +172,8 @@ constexpr int kTransactionIdOffset = 8
 ```cpp
 constexpr int kTransactionIdLength = 12
 ```
+
+Length in bytes of a STUN transaction ID.
 
 ---
 
@@ -175,6 +185,8 @@ constexpr int kTransactionIdLength = 12
 constexpr uint32_t kMagicCookie = 0x2112A442
 ```
 
+RFC 5389 magic cookie used by modern STUN/TURN messages.
+
 ---
 
 {#kmagiccookielength}
@@ -184,6 +196,8 @@ constexpr uint32_t kMagicCookie = 0x2112A442
 ```cpp
 constexpr int kMagicCookieLength = sizeof()
 ```
+
+Length in bytes of the magic cookie field.
 
 {#addressattribute}
 
@@ -206,9 +220,9 @@ Implements a STUN/TURN attribute that contains a socket address. Handles XOR enc
 | `std::unique_ptr< Attribute >` | [`clone`](#clone-7) `virtual` | Returns a deep copy of this attribute. |
 | `stun::AddressFamily` | [`family`](#family-2) `const` `inline` | #### Returns |
 | `net::Address` | [`address`](#address-12) `virtual` `const` | #### Returns |
-| `void` | [`read`](#read-2) `virtual` | Reads the body (not the type or size) for this type of attribute from the given buffer.  |
-| `void` | [`write`](#write-17) `virtual` `const` | Writes the body (not the type or size) to the given buffer.  |
-| `void` | [`setAddress`](#setaddress) `virtual` `inline` | Sets the address to encode into this attribute.  |
+| `void` | [`read`](#read-2) `virtual` | Reads the body (not the type or size) for this type of attribute from the given buffer. |
+| `void` | [`write`](#write-17) `virtual` `const` | Writes the body (not the type or size) to the given buffer. |
+| `void` | [`setAddress`](#setaddress) `virtual` `inline` | Sets the address to encode into this attribute. |
 | `bool` | [`isXorType`](#isxortype) `const` `inline` | #### Returns |
 
 ---
@@ -409,14 +423,14 @@ The virtual base class for all STUN/TURN attributes.
 | Return | Name | Description |
 |--------|------|-------------|
 | `std::unique_ptr< Attribute >` | [`clone`](#clone-8)  | Returns a deep copy of this attribute. |
-| `void` | [`read`](#read-3)  | Reads the body (not the type or size) for this type of attribute from the given buffer.  |
-| `void` | [`write`](#write-18) `const` | Writes the body (not the type or size) to the given buffer.  |
+| `void` | [`read`](#read-3)  | Reads the body (not the type or size) for this type of attribute from the given buffer. |
+| `void` | [`write`](#write-18) `const` | Writes the body (not the type or size) to the given buffer. |
 | `uint16_t` | [`type`](#type-14) `const` | #### Returns |
 | `uint16_t` | [`size`](#size-3) `const` | #### Returns |
 | `uint16_t` | [`paddingBytes`](#paddingbytes) `const` `inline` | #### Returns |
 | `uint16_t` | [`paddedBytes`](#paddedbytes) `const` `inline` | #### Returns |
-| `void` | [`consumePadding`](#consumepadding) `const` | Advances the reader past any 4-byte alignment padding that follows this attribute's body.  |
-| `void` | [`writePadding`](#writepadding) `const` | Writes zero-fill padding bytes to align this attribute to a 4-byte boundary.  |
+| `void` | [`consumePadding`](#consumepadding) `const` | Advances the reader past any 4-byte alignment padding that follows this attribute's body. |
+| `void` | [`writePadding`](#writepadding) `const` | Writes zero-fill padding bytes to align this attribute to a 4-byte boundary. |
 | `std::string` | [`typeString`](#typestring)  | #### Returns |
 
 ---
@@ -588,7 +602,7 @@ constexpr uint16_t TypeID = 0
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `std::unique_ptr< Attribute >` | [`create`](#create-8) `static` | Creates an attribute of the given wire type and body size. Returns nullptr if the type is unknown or the size is invalid.  |
+| `std::unique_ptr< Attribute >` | [`create`](#create-8) `static` | Creates an attribute of the given wire type and body size. Returns nullptr if the type is unknown or the size is invalid. |
 | `constexpr uint16_t` | [`paddingBytes`](#paddingbytes-1) `static` `inline` | Returns the 4-byte alignment padding required for a body of `size` bytes. |
 | `constexpr uint16_t` | [`paddedBytes`](#paddedbytes-1) `static` `inline` | Returns the body length including 4-byte alignment padding. |
 | `std::string` | [`typeString`](#typestring-1) `static` | #### Parameters |
@@ -692,7 +706,7 @@ uint16_t _size
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`Attribute`](#attribute-1)  | #### Parameters |
-| `void` | [`setLength`](#setlength)  | Updates the stored body length.  |
+| `void` | [`setLength`](#setlength)  | Updates the stored body length. |
 
 ---
 
@@ -797,14 +811,14 @@ Implements the STUN ERROR-CODE attribute (RFC 5389 section 15.6). Encodes a 3-di
 |  | [`ErrorCode`](#errorcode-2)  | #### Parameters |
 |  | [`ErrorCode`](#errorcode-3)  | Copy constructor. |
 | `std::unique_ptr< Attribute >` | [`clone`](#clone-9) `virtual` | Returns a deep copy of this attribute. |
-| `void` | [`setErrorCode`](#seterrorcode)  | Sets the error code, splitting it into class and number fields.  |
-| `void` | [`setReason`](#setreason-1)  | Sets the UTF-8 reason phrase and updates the attribute size.  |
+| `void` | [`setErrorCode`](#seterrorcode)  | Sets the error code, splitting it into class and number fields. |
+| `void` | [`setReason`](#setreason-1)  | Sets the UTF-8 reason phrase and updates the attribute size. |
 | `int` | [`errorCode`](#errorcode-4) `const` | #### Returns |
 | `uint8_t` | [`errorClass`](#errorclass) `const` `inline` | #### Returns |
 | `uint8_t` | [`errorNumber`](#errornumber-1) `const` `inline` | #### Returns |
 | `const std::string &` | [`reason`](#reason-1) `const` `inline` | #### Returns |
-| `void` | [`read`](#read-4) `virtual` | Reads the body (not the type or size) for this type of attribute from the given buffer.  |
-| `void` | [`write`](#write-19) `virtual` `const` | Writes the body (not the type or size) to the given buffer.  |
+| `void` | [`read`](#read-4) `virtual` | Reads the body (not the type or size) for this type of attribute from the given buffer. |
+| `void` | [`write`](#write-19) `virtual` `const` | Writes the body (not the type or size) to the given buffer. |
 
 ---
 
@@ -1148,30 +1162,30 @@ STUN/TURN protocol message with method, class, transaction ID, and attributes.
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`Message`](#message-6)  | Constructs a default message (Request class, Undefined method) with a randomly generated 12-byte transaction ID. |
-|  | [`Message`](#message-7)  | Constructs a message with explicit class and method.  |
+|  | [`Message`](#message-7)  | Constructs a message with explicit class and method. |
 |  | [`Message`](#message-8)  | Deep-copy constructor; clones all attributes. |
 |  | [`Message`](#message-9)  | Move constructor. |
 | `Message &` | [`operator=`](#operator-23)  | Deep-copy assignment; clones all attributes from `that`. |
 | `Message &` | [`operator=`](#operator-24)  | Move assignment. |
 | `std::unique_ptr< IPacket >` | [`clone`](#clone-11) `virtual` `const` | #### Returns |
-| `void` | [`setClass`](#setclass)  | Sets the message class field.  |
-| `void` | [`setMethod`](#setmethod-1)  | Sets the message method field.  |
-| `void` | [`setTransactionID`](#settransactionid)  | Sets the 12-byte transaction ID.  |
+| `void` | [`setClass`](#setclass)  | Sets the message class field. |
+| `void` | [`setMethod`](#setmethod-1)  | Sets the message method field. |
+| `void` | [`setTransactionID`](#settransactionid)  | Sets the 12-byte transaction ID. |
 | `ClassType` | [`classType`](#classtype) `const` | #### Returns |
 | `MethodType` | [`methodType`](#methodtype) `const` | #### Returns |
 | `const TransactionID &` | [`transactionID`](#transactionid-2) `const` `inline` | #### Returns |
 | `size_t` | [`size`](#size-5) `virtual` `const` `inline` | #### Returns |
 | `std::string` | [`methodString`](#methodstring) `const` | #### Returns |
 | `std::string` | [`classString`](#classstring) `const` | #### Returns |
-| `std::string` | [`errorString`](#errorstring) `const` | Maps a numeric error code to its canonical string description.  |
-| `T &` | [`add`](#add-1) `inline` | Constructs an attribute of type T in-place and appends it to the message. Returns a reference to the new attribute for further configuration.  |
-| `void` | [`add`](#add-2)  | Appends an attribute to the message, taking ownership via unique_ptr.  |
-| `Attribute *` | [`get`](#get-5) `const` | Returns the Nth attribute of the given type, or nullptr if not found.  |
-| `T *` | [`get`](#get-6) `const` `inline` | Type-safe attribute accessor using the concrete attribute's TypeID.  |
-| `ssize_t` | [`read`](#read-6) `virtual` | Parses a STUN/TURN packet from the given buffer.  |
-| `void` | [`write`](#write-21) `virtual` `const` | Serialises this message into a STUN/TURN wire-format packet.  |
+| `std::string` | [`errorString`](#errorstring) `const` | Maps a numeric error code to its canonical string description. |
+| `T &` | [`add`](#add-1) `inline` | Constructs an attribute of type T in-place and appends it to the message. Returns a reference to the new attribute for further configuration. |
+| `void` | [`add`](#add-2)  | Appends an attribute to the message, taking ownership via unique_ptr. |
+| `Attribute *` | [`get`](#get-5) `const` | Returns the Nth attribute of the given type, or nullptr if not found. |
+| `T *` | [`get`](#get-6) `const` `inline` | Type-safe attribute accessor using the concrete attribute's TypeID. |
+| `ssize_t` | [`read`](#read-6) `virtual` | Parses a STUN/TURN packet from the given buffer. |
+| `void` | [`write`](#write-21) `virtual` `const` | Serialises this message into a STUN/TURN wire-format packet. |
 | `std::string` | [`toString`](#tostring-8) `const` | #### Returns |
-| `void` | [`print`](#print-13) `virtual` `const` | Writes the same representation as [toString()](#tostring-8) to the given stream.  |
+| `void` | [`print`](#print-13) `virtual` `const` | Writes the same representation as [toString()](#tostring-8) to the given stream. |
 | `const char *` | [`className`](#classname-7) `virtual` `const` `inline` | Returns the class name of this packet type for logging and diagnostics. |
 
 ---
@@ -1755,15 +1769,15 @@ Implements the STUN MESSAGE-INTEGRITY attribute (RFC 5389 section 15.4). On writ
 |  | [`MessageIntegrity`](#messageintegrity-1)  |  |
 |  | [`MessageIntegrity`](#messageintegrity-2)  |  |
 | `std::unique_ptr< Attribute >` | [`clone`](#clone-12) `virtual` | Returns a deep copy of this attribute. |
-| `bool` | [`verifyHmac`](#verifyhmac) `const` | Verifies the stored HMAC against the stored input bytes using `key`.  |
+| `bool` | [`verifyHmac`](#verifyhmac) `const` | Verifies the stored HMAC against the stored input bytes using `key`. |
 | `std::string` | [`input`](#input) `const` `inline` | #### Returns |
 | `std::string` | [`hmac`](#hmac) `const` `inline` | #### Returns |
 | `std::string` | [`key`](#key-2) `const` `inline` | #### Returns |
-| `void` | [`setInput`](#setinput) `inline` | Sets the raw message bytes used as HMAC input during verification.  |
-| `void` | [`setHmac`](#sethmac) `inline` | Sets the raw HMAC value (used when copying a received attribute).  |
-| `void` | [`setKey`](#setkey) `inline` | Sets the HMAC key; triggers HMAC computation on [write()](#write-22).  |
-| `void` | [`read`](#read-7) `virtual` | Reads the body (not the type or size) for this type of attribute from the given buffer.  |
-| `void` | [`write`](#write-22) `virtual` `const` | Writes the body (not the type or size) to the given buffer.  |
+| `void` | [`setInput`](#setinput) `inline` | Sets the raw message bytes used as HMAC input during verification. |
+| `void` | [`setHmac`](#sethmac) `inline` | Sets the raw HMAC value (used when copying a received attribute). |
+| `void` | [`setKey`](#setkey) `inline` | Sets the HMAC key; triggers HMAC computation on [write()](#write-22). |
+| `void` | [`read`](#read-7) `virtual` | Reads the body (not the type or size) for this type of attribute from the given buffer. |
+| `void` | [`write`](#write-22) `virtual` `const` | Writes the body (not the type or size) to the given buffer. |
 
 ---
 
@@ -2034,14 +2048,14 @@ Implements a STUN/TURN attribute that holds an arbitrary byte string. Used for U
 |  | [`StringAttribute`](#stringattribute-2)  | Copy constructor; duplicates stored bytes. |
 | `std::unique_ptr< Attribute >` | [`clone`](#clone-13) `virtual` | Returns a deep copy of this attribute. |
 | `const char *` | [`bytes`](#bytes-1) `const` `inline` | #### Returns |
-| `void` | [`setBytes`](#setbytes)  | Replaces the stored bytes with a copy of the given buffer and updates the attribute's reported size.  |
+| `void` | [`setBytes`](#setbytes)  | Replaces the stored bytes with a copy of the given buffer and updates the attribute's reported size. |
 | `std::string` | [`asString`](#asstring) `const` | #### Returns |
-| `void` | [`copyBytes`](#copybytes)  | Copies a null-terminated string into the attribute, using strlen to determine the length.  |
-| `void` | [`copyBytes`](#copybytes-1)  | Copies an arbitrary block of memory into the attribute.  |
-| `uint8_t` | [`getByte`](#getbyte) `const` | Returns a single byte from the stored buffer.  |
-| `void` | [`setByte`](#setbyte)  | Overwrites a single byte in the stored buffer.  |
-| `void` | [`read`](#read-8) `virtual` | Reads the body (not the type or size) for this type of attribute from the given buffer.  |
-| `void` | [`write`](#write-23) `virtual` `const` | Writes the body (not the type or size) to the given buffer.  |
+| `void` | [`copyBytes`](#copybytes)  | Copies a null-terminated string into the attribute, using strlen to determine the length. |
+| `void` | [`copyBytes`](#copybytes-1)  | Copies an arbitrary block of memory into the attribute. |
+| `uint8_t` | [`getByte`](#getbyte) `const` | Returns a single byte from the stored buffer. |
+| `void` | [`setByte`](#setbyte)  | Overwrites a single byte in the stored buffer. |
+| `void` | [`read`](#read-8) `virtual` | Reads the body (not the type or size) for this type of attribute from the given buffer. |
+| `void` | [`write`](#write-23) `virtual` `const` | Writes the body (not the type or size) to the given buffer. |
 
 ---
 
@@ -2261,8 +2275,8 @@ Lifetime is managed by [IntrusivePtr](base.md#intrusiveptr). Create via makeIntr
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`Transaction`](#transaction-3)  | Constructs a STUN transaction bound to a specific socket and peer.  |
-| `bool` | [`checkResponse`](#checkresponse-1)  | Checks that `message` is a valid response for the pending request. In addition to the base class check, verifies that the transaction IDs match.  |
+|  | [`Transaction`](#transaction-3)  | Constructs a STUN transaction bound to a specific socket and peer. |
+| `bool` | [`checkResponse`](#checkresponse-1)  | Checks that `message` is a valid response for the pending request. In addition to the base class check, verifies that the transaction IDs match. |
 | `void` | [`onResponse`](#onresponse-1) `virtual` | Called when a valid response is received. Infers the response class (SuccessResponse, ErrorResponse, or Indication) from the response attributes and delegates to the base class handler. |
 
 ---
@@ -2352,11 +2366,11 @@ Implements a STUN/TURN attribute that holds a list of attribute type codes. Used
 |  | [`UInt16ListAttribute`](#uint16listattribute-2)  | Copy constructor; duplicates the type list. |
 | `std::unique_ptr< Attribute >` | [`clone`](#clone-14) `virtual` | Returns a deep copy of this attribute. |
 | `size_t` | [`size`](#size-7) `const` | #### Returns |
-| `uint16_t` | [`getType`](#gettype) `const` | Returns the type code at the given list position.  |
-| `void` | [`setType`](#settype)  | Overwrites the type code at the given list position.  |
-| `void` | [`addType`](#addtype)  | Appends a type code to the list and updates the attribute size.  |
-| `void` | [`read`](#read-9) `virtual` | Reads the body (not the type or size) for this type of attribute from the given buffer.  |
-| `void` | [`write`](#write-24) `virtual` `const` | Writes the body (not the type or size) to the given buffer.  |
+| `uint16_t` | [`getType`](#gettype) `const` | Returns the type code at the given list position. |
+| `void` | [`setType`](#settype)  | Overwrites the type code at the given list position. |
+| `void` | [`addType`](#addtype)  | Appends a type code to the list and updates the attribute size. |
+| `void` | [`read`](#read-9) `virtual` | Reads the body (not the type or size) for this type of attribute from the given buffer. |
+| `void` | [`write`](#write-24) `virtual` `const` | Writes the body (not the type or size) to the given buffer. |
 
 ---
 
@@ -2531,11 +2545,11 @@ Implements a STUN/TURN attribute that holds a 32-bit integer.
 |  | [`UInt32Attribute`](#uint32attribute-2)  | Copy constructor. |
 | `std::unique_ptr< Attribute >` | [`clone`](#clone-15) `virtual` | Returns a deep copy of this attribute. |
 | `uint32_t` | [`value`](#value-1) `const` `inline` | #### Returns |
-| `void` | [`setValue`](#setvalue-1) `inline` | Sets the stored 32-bit value.  |
-| `bool` | [`getBit`](#getbit) `const` | Returns the state of a single bit within the stored word.  |
-| `void` | [`setBit`](#setbit)  | Sets or clears a single bit within the stored word.  |
-| `void` | [`read`](#read-10) `virtual` | Reads the body (not the type or size) for this type of attribute from the given buffer.  |
-| `void` | [`write`](#write-25) `virtual` `const` | Writes the body (not the type or size) to the given buffer.  |
+| `void` | [`setValue`](#setvalue-1) `inline` | Sets the stored 32-bit value. |
+| `bool` | [`getBit`](#getbit) `const` | Returns the state of a single bit within the stored word. |
+| `void` | [`setBit`](#setbit)  | Sets or clears a single bit within the stored word. |
+| `void` | [`read`](#read-10) `virtual` | Reads the body (not the type or size) for this type of attribute from the given buffer. |
+| `void` | [`write`](#write-25) `virtual` `const` | Writes the body (not the type or size) to the given buffer. |
 
 ---
 
@@ -2728,11 +2742,11 @@ Implements a STUN/TURN attribute that holds a 64-bit integer.
 |  | [`UInt64Attribute`](#uint64attribute-2)  | Copy constructor. |
 | `std::unique_ptr< Attribute >` | [`clone`](#clone-16) `virtual` | Returns a deep copy of this attribute. |
 | `uint64_t` | [`value`](#value-2) `const` `inline` | #### Returns |
-| `void` | [`setValue`](#setvalue-2) `inline` | Sets the stored 64-bit value.  |
-| `bool` | [`getBit`](#getbit-1) `const` | Returns the state of a single bit within the stored quad-word.  |
-| `void` | [`setBit`](#setbit-1)  | Sets or clears a single bit within the stored quad-word.  |
-| `void` | [`read`](#read-11) `virtual` | Reads the body (not the type or size) for this type of attribute from the given buffer.  |
-| `void` | [`write`](#write-26) `virtual` `const` | Writes the body (not the type or size) to the given buffer.  |
+| `void` | [`setValue`](#setvalue-2) `inline` | Sets the stored 64-bit value. |
+| `bool` | [`getBit`](#getbit-1) `const` | Returns the state of a single bit within the stored quad-word. |
+| `void` | [`setBit`](#setbit-1)  | Sets or clears a single bit within the stored quad-word. |
+| `void` | [`read`](#read-11) `virtual` | Reads the body (not the type or size) for this type of attribute from the given buffer. |
+| `void` | [`write`](#write-26) `virtual` `const` | Writes the body (not the type or size) to the given buffer. |
 
 ---
 
@@ -2925,11 +2939,11 @@ Implements a STUN/TURN attribute that holds an 8-bit integer.
 |  | [`UInt8Attribute`](#uint8attribute-2)  | Copy constructor. |
 | `std::unique_ptr< Attribute >` | [`clone`](#clone-17) `virtual` | Returns a deep copy of this attribute. |
 | `uint8_t` | [`value`](#value-3) `const` `inline` | #### Returns |
-| `void` | [`setValue`](#setvalue-3) `inline` | Sets the stored 8-bit value.  |
-| `bool` | [`getBit`](#getbit-2) `const` | Returns the state of a single bit within the stored byte.  |
-| `void` | [`setBit`](#setbit-2)  | Sets or clears a single bit within the stored byte.  |
-| `void` | [`read`](#read-12) `virtual` | Reads the body (not the type or size) for this type of attribute from the given buffer.  |
-| `void` | [`write`](#write-27) `virtual` `const` | Writes the body (not the type or size) to the given buffer.  |
+| `void` | [`setValue`](#setvalue-3) `inline` | Sets the stored 8-bit value. |
+| `bool` | [`getBit`](#getbit-2) `const` | Returns the state of a single bit within the stored byte. |
+| `void` | [`setBit`](#setbit-2)  | Sets or clears a single bit within the stored byte. |
+| `void` | [`read`](#read-12) `virtual` | Reads the body (not the type or size) for this type of attribute from the given buffer. |
+| `void` | [`write`](#write-27) `virtual` `const` | Writes the body (not the type or size) to the given buffer. |
 
 ---
 

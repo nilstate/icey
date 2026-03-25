@@ -158,7 +158,7 @@ Transport mode for server connections before and after protocol upgrade.
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `std::vector< ClientConnection::Ptr >` | [`ClientConnectionPtrVec`](#clientconnectionptrvec)  |  |
+| `std::vector< ClientConnection::Ptr >` | [`ClientConnectionPtrVec`](#clientconnectionptrvec)  | List of owned client connections tracked by an HTTP client. |
 
 ---
 
@@ -170,28 +170,30 @@ Transport mode for server connections before and after protocol upgrade.
 std::vector< ClientConnection::Ptr > ClientConnectionPtrVec()
 ```
 
+List of owned client connections tracked by an HTTP client.
+
 ### Functions
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `bool` | [`isBasicCredentials`](#isbasiccredentials)  | Returns true if the given Authorization header value uses HTTP Basic authentication.  |
-| `bool` | [`isDigestCredentials`](#isdigestcredentials)  | Returns true if the given Authorization header value uses HTTP Digest authentication.  |
-| `bool` | [`hasBasicCredentials`](#hasbasiccredentials)  | Returns true if the request contains a Basic Authorization header.  |
-| `bool` | [`hasDigestCredentials`](#hasdigestcredentials)  | Returns true if the request contains a Digest Authorization header.  |
-| `bool` | [`hasProxyBasicCredentials`](#hasproxybasiccredentials)  | Returns true if the request contains a Basic Proxy-Authorization header.  |
-| `bool` | [`hasProxyDigestCredentials`](#hasproxydigestcredentials)  | Returns true if the request contains a Digest Proxy-Authorization header.  |
-| `void` | [`extractCredentials`](#extractcredentials)  | Splits a "user:password" user-info string into separate username and password strings. If no ':' is present, the entire string is treated as the username and password is empty.  |
-| `void` | [`extractCredentials`](#extractcredentials-1)  | Extracts username and password from the user-info component of a [URL](#url). Does nothing if the [URL](#url) has no user-info part.  |
+| `bool` | [`isBasicCredentials`](#isbasiccredentials)  | Returns true if the given Authorization header value uses HTTP Basic authentication. |
+| `bool` | [`isDigestCredentials`](#isdigestcredentials)  | Returns true if the given Authorization header value uses HTTP Digest authentication. |
+| `bool` | [`hasBasicCredentials`](#hasbasiccredentials)  | Returns true if the request contains a Basic Authorization header. |
+| `bool` | [`hasDigestCredentials`](#hasdigestcredentials)  | Returns true if the request contains a Digest Authorization header. |
+| `bool` | [`hasProxyBasicCredentials`](#hasproxybasiccredentials)  | Returns true if the request contains a Basic Proxy-Authorization header. |
+| `bool` | [`hasProxyDigestCredentials`](#hasproxydigestcredentials)  | Returns true if the request contains a Digest Proxy-Authorization header. |
+| `void` | [`extractCredentials`](#extractcredentials)  | Splits a "user:password" user-info string into separate username and password strings. If no ':' is present, the entire string is treated as the username and password is empty. |
+| `void` | [`extractCredentials`](#extractcredentials-1)  | Extracts username and password from the user-info component of a [URL](#url). Does nothing if the [URL](#url) has no user-info part. |
 | `ClientConnection::Ptr` | [`createConnectionT`](#createconnectiont) `inline` | Creates a [ClientConnection](#clientconnection) (or subtype) for the given [URL](#url) without registering it with a [Client](#client) instance. The socket and adapter are chosen based on the [URL](#url) scheme: |
-| `ClientConnection::Ptr` | [`createConnection`](#createconnection) `inline` | Creates a [ClientConnection](#clientconnection) for the given [URL](#url) and optionally registers it with a [Client](#client). Equivalent to calling [Client::createConnection()](#createconnection-1) when `client` is non-null.  |
-| `const char *` | [`getStatusCodeReason`](#getstatuscodereason)  | Returns the standard reason phrase for the given HTTP status code (e.g. "OK" for [StatusCode::OK](#namespaceicy_1_1http_1aa73f8ae30b4882be20ce0a7e16adc1a4ae0aa021e21dddbd6d8cecec71e9cf564), "Not Found" for [StatusCode::NotFound](#namespaceicy_1_1http_1aa73f8ae30b4882be20ce0a7e16adc1a4a38c300f4fc9ce8a77aad4a30de05cad8)).  |
-| `const char *` | [`getStatusCodeString`](#getstatuscodestring)  | Returns a combined "NNN Reason" string for the given HTTP status code (e.g. "200 OK").  |
-| `std::string` | [`parseURI`](#parseuri)  | Extracts the URI (path and query) from a raw HTTP request line.  |
-| `bool` | [`matchURL`](#matchurl)  | Tests whether a URI matches a glob-style expression.  |
-| `std::string` | [`parseCookieItem`](#parsecookieitem)  | Extracts a named attribute from a [Cookie](#cookie) header value.  |
-| `bool` | [`splitURIParameters`](#splituriparameters)  | Parses [URL](#url) query parameters from a URI into key-value pairs. Handles percent-decoding of names and values.  |
+| `ClientConnection::Ptr` | [`createConnection`](#createconnection) `inline` | Creates a [ClientConnection](#clientconnection) for the given [URL](#url) and optionally registers it with a [Client](#client). Equivalent to calling [Client::createConnection()](#createconnection-1) when `client` is non-null. |
+| `const char *` | [`getStatusCodeReason`](#getstatuscodereason)  | Returns the standard reason phrase for the given HTTP status code (e.g. "OK" for [StatusCode::OK](#namespaceicy_1_1http_1aa73f8ae30b4882be20ce0a7e16adc1a4ae0aa021e21dddbd6d8cecec71e9cf564), "Not Found" for [StatusCode::NotFound](#namespaceicy_1_1http_1aa73f8ae30b4882be20ce0a7e16adc1a4a38c300f4fc9ce8a77aad4a30de05cad8)). |
+| `const char *` | [`getStatusCodeString`](#getstatuscodestring)  | Returns a combined "NNN Reason" string for the given HTTP status code (e.g. "200 OK"). |
+| `std::string` | [`parseURI`](#parseuri)  | Extracts the URI (path and query) from a raw HTTP request line. |
+| `bool` | [`matchURL`](#matchurl)  | Tests whether a URI matches a glob-style expression. |
+| `std::string` | [`parseCookieItem`](#parsecookieitem)  | Extracts a named attribute from a [Cookie](#cookie) header value. |
+| `bool` | [`splitURIParameters`](#splituriparameters)  | Parses [URL](#url) query parameters from a URI into key-value pairs. Handles percent-decoding of names and values. |
 | `void` | [`splitParameters`](#splitparameters)  | Splits a header-style parameter string into a primary value and named attributes. Attributes are separated by ';'. Enclosing quotes are stripped from values. |
-| `void` | [`splitParameters`](#splitparameters-1)  | Splits a substring (defined by iterators) into named attributes. Attributes are separated by ';'. Enclosing quotes are stripped from values.  |
+| `void` | [`splitParameters`](#splitparameters-1)  | Splits a substring (defined by iterators) into named attributes. Attributes are separated by ';'. Enclosing quotes are stripped from values. |
 
 ---
 
@@ -740,7 +742,7 @@ std::string _password
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`Authenticator`](#authenticator-4)  |  |
+|  | [`Authenticator`](#authenticator-4)  | Deleted constructor. |
 
 ---
 
@@ -751,6 +753,8 @@ std::string _password
 ```cpp
 Authenticator(const Authenticator &) = delete
 ```
+
+Deleted constructor.
 
 {#basicauthenticator}
 
@@ -973,7 +977,7 @@ std::string _password
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`BasicAuthenticator`](#basicauthenticator-6)  |  |
+|  | [`BasicAuthenticator`](#basicauthenticator-6)  | Deleted constructor. |
 
 ---
 
@@ -984,6 +988,8 @@ std::string _password
 ```cpp
 BasicAuthenticator(const BasicAuthenticator &) = delete
 ```
+
+Deleted constructor.
 
 {#chunkedadapter}
 
@@ -1082,10 +1088,10 @@ PacketSignal emitter
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`ChunkedAdapter`](#chunkedadapter-1) `inline` | Creates a [ChunkedAdapter](#chunkedadapter) that sends its initial response header through the given connection. The content type is read from the connection's outgoing header.  |
-|  | [`ChunkedAdapter`](#chunkedadapter-2) `inline` | Creates a [ChunkedAdapter](#chunkedadapter) that emits its own raw HTTP/1.1 200 response header. Use this when no [Connection](#connection-1) object is available.  |
+|  | [`ChunkedAdapter`](#chunkedadapter-1) `inline` | Creates a [ChunkedAdapter](#chunkedadapter) that sends its initial response header through the given connection. The content type is read from the connection's outgoing header. |
+|  | [`ChunkedAdapter`](#chunkedadapter-2) `inline` | Creates a [ChunkedAdapter](#chunkedadapter) that emits its own raw HTTP/1.1 200 response header. Use this when no [Connection](#connection-1) object is available. |
 | `void` | [`emitHeader`](#emitheader) `virtual` `inline` | Emits the initial HTTP/1.1 200 OK response headers with chunked transfer encoding. If a connection is set, headers are written through it; otherwise a raw response string is emitted via the packet signal. |
-| `void` | [`process`](#process-5) `virtual` `inline` | Encodes an incoming packet as a chunked transfer encoding chunk and emits it. Emits the HTTP response headers on the first call.  |
+| `void` | [`process`](#process-5) `virtual` `inline` | Encodes an incoming packet as a chunked transfer encoding chunk and emits it. Emits the HTTP response headers on the first call. |
 
 ---
 
@@ -1192,10 +1198,10 @@ NullSignal Shutdown
 |--------|------|-------------|
 |  | [`Client`](#client-1)  |  |
 | `void` | [`shutdown`](#shutdown-7)  | Shutdown the [Client](#client) and close all connections. |
-| `ClientConnection::Ptr` | [`createConnectionT`](#createconnectiont-1) `inline` | Creates and registers a typed client connection for the given [URL](#url). The connection type is inferred from the [URL](#url) scheme (http, https, ws, wss).  |
-| `ClientConnection::Ptr` | [`createConnection`](#createconnection-1) `inline` | Creates and registers a [ClientConnection](#clientconnection) for the given [URL](#url). The socket type is chosen based on the [URL](#url) scheme (http/https/ws/wss).  |
-| `void` | [`addConnection`](#addconnection) `virtual` | Registers a connection with this client so it is tracked and cleaned up on shutdown.  |
-| `void` | [`removeConnection`](#removeconnection) `virtual` | Removes a previously registered connection from the client.  |
+| `ClientConnection::Ptr` | [`createConnectionT`](#createconnectiont-1) `inline` | Creates and registers a typed client connection for the given [URL](#url). The connection type is inferred from the [URL](#url) scheme (http, https, ws, wss). |
+| `ClientConnection::Ptr` | [`createConnection`](#createconnection-1) `inline` | Creates and registers a [ClientConnection](#clientconnection) for the given [URL](#url). The socket type is chosen based on the [URL](#url) scheme (http/https/ws/wss). |
+| `void` | [`addConnection`](#addconnection) `virtual` | Registers a connection with this client so it is tracked and cleaned up on shutdown. |
+| `void` | [`removeConnection`](#removeconnection) `virtual` | Removes a previously registered connection from the client. |
 
 ---
 
@@ -1480,12 +1486,12 @@ Signals download progress (0-100%)
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`ClientConnection`](#clientconnection-1)  | Creates a [ClientConnection](#clientconnection) to the given [URL](#url), pre-populating the request URI and Host header. The response status is initialised to 502 Bad Gateway until a real response is received.  |
+|  | [`ClientConnection`](#clientconnection-1)  | Creates a [ClientConnection](#clientconnection) to the given [URL](#url), pre-populating the request URI and Host header. The response status is initialised to 502 Bad Gateway until a real response is received. |
 | `void` | [`submit`](#submit) `virtual` | Submits the internal HTTP request. |
 | `void` | [`submit`](#submit-1) `virtual` | Submits the given HTTP request, replacing the internal request object. |
-| `ssize_t` | [`send`](#send-10) `virtual` | Sends raw data to the peer, initiating a connection first if needed. Data is buffered internally until the connection is established.  |
-| `void` | [`setReadStream`](#setreadstream) `virtual` | Sets the output stream to which incoming response body data is written. The stream pointer is owned by the connection and freed with it. Must be called before [submit()](#submit).  |
-| `StreamT &` | [`readStream`](#readstream) `inline` | Returns a reference to the read stream cast to the specified type.  |
+| `ssize_t` | [`send`](#send-10) `virtual` | Sends raw data to the peer, initiating a connection first if needed. Data is buffered internally until the connection is established. |
+| `void` | [`setReadStream`](#setreadstream) `virtual` | Sets the output stream to which incoming response body data is written. The stream pointer is owned by the connection and freed with it. Must be called before [submit()](#submit). |
+| `StreamT &` | [`readStream`](#readstream) `inline` | Returns a reference to the read stream cast to the specified type. |
 
 ---
 
@@ -1879,9 +1885,9 @@ Base HTTP connection managing socket I/O and message lifecycle
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`Connection`](#connection-2)  | Creates a [Connection](#connection-1) using the given TCP socket.  |
+|  | [`Connection`](#connection-2)  | Creates a [Connection](#connection-1) using the given TCP socket. |
 | `void` | [`onHeaders`](#onheaders-1)  | Called when the incoming HTTP headers have been fully parsed. |
-| `void` | [`onPayload`](#onpayload-1)  | Called for each chunk of incoming body data after headers are complete.  |
+| `void` | [`onPayload`](#onpayload-1)  | Called for each chunk of incoming body data after headers are complete. |
 | `void` | [`onComplete`](#oncomplete-1)  | Called when the incoming HTTP message is fully received. |
 | `void` | [`onClose`](#onclose-4)  | Called when the connection is closed. |
 | `ssize_t` | [`send`](#send-11) `virtual` | Send raw data to the peer. |
@@ -2329,9 +2335,9 @@ bool _shouldSendHeader
 |--------|------|-------------|
 | `void` | [`setError`](#seterror-4) `virtual` | Set the internal error. Note: Setting the error does not `[close()](#close-20)` the connection. |
 | `bool` | [`onSocketConnect`](#onsocketconnect-3) `virtual` | [net::SocketAdapter](net.md#socketadapter) interface |
-| `bool` | [`onSocketRecv`](#onsocketrecv-3) `virtual` | Called when data is received from the socket. Forwards the event to all registered receivers in priority order.  |
-| `bool` | [`onSocketError`](#onsocketerror-2) `virtual` | Called when the socket encounters an error. Forwards the event to all registered receivers in priority order.  |
-| `bool` | [`onSocketClose`](#onsocketclose-2) `virtual` | Called when the socket is closed. Forwards the event to all registered receivers in priority order.  |
+| `bool` | [`onSocketRecv`](#onsocketrecv-3) `virtual` | Called when data is received from the socket. Forwards the event to all registered receivers in priority order. |
+| `bool` | [`onSocketError`](#onsocketerror-2) `virtual` | Called when the socket encounters an error. Forwards the event to all registered receivers in priority order. |
+| `bool` | [`onSocketClose`](#onsocketclose-2) `virtual` | Called when the socket is closed. Forwards the event to all registered receivers in priority order. |
 
 ---
 
@@ -2456,13 +2462,13 @@ Default HTTP socket adapter for reading and writing HTTP messages
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`ConnectionAdapter`](#connectionadapter-1)  | Creates a [ConnectionAdapter](#connectionadapter) for the given connection.  |
-| `ssize_t` | [`send`](#send-12) `virtual` | Sends data to the peer, flushing the outgoing HTTP header first if needed.  |
+|  | [`ConnectionAdapter`](#connectionadapter-1)  | Creates a [ConnectionAdapter](#connectionadapter) for the given connection. |
+| `ssize_t` | [`send`](#send-12) `virtual` | Sends data to the peer, flushing the outgoing HTTP header first if needed. |
 | `ssize_t` | [`sendOwned`](#sendowned-11) `virtual` | Sends an owned payload buffer to the connected peer. |
 | `void` | [`removeReceiver`](#removereceiver-2)  | Remove the given receiver. |
 | `Parser &` | [`parser`](#parser)  | Returns the HTTP parser instance. |
 | `Connection *` | [`connection`](#connection-3)  | Returns the owning [Connection](#connection-1) pointer, or nullptr if detached. |
-| `void` | [`reset`](#reset-7)  | Resets the adapter for reuse with a new socket and request. Clears the parser state and re-wires the sender without reallocating. Used by the connection pool to avoid destroying/recreating adapters.  |
+| `void` | [`reset`](#reset-7)  | Resets the adapter for reuse with a new socket and request. Clears the parser state and re-wires the sender without reallocating. Used by the connection pool to avoid destroying/recreating adapters. |
 
 ---
 
@@ -2606,9 +2612,9 @@ Parser _parser
 |--------|------|-------------|
 | `bool` | [`onSocketRecv`](#onsocketrecv-4) `virtual` | SocketAdapter interface. |
 | `void` | [`onParserHeader`](#onparserheader) `virtual` | HTTP [Parser](#parser-1) interface. |
-| `void` | [`onParserHeadersEnd`](#onparserheadersend) `virtual` | Called when all HTTP headers have been parsed.  |
-| `void` | [`onParserChunk`](#onparserchunk) `virtual` | Called for each chunk of body data received.  |
-| `void` | [`onParserError`](#onparsererror) `virtual` | Called when a parse error occurs.  |
+| `void` | [`onParserHeadersEnd`](#onparserheadersend) `virtual` | Called when all HTTP headers have been parsed. |
+| `void` | [`onParserChunk`](#onparserchunk) `virtual` | Called for each chunk of body data received. |
+| `void` | [`onParserError`](#onparsererror) `virtual` | Called when a parse error occurs. |
 | `void` | [`onParserEnd`](#onparserend) `virtual` | Called when the HTTP message is fully parsed. |
 
 ---
@@ -2717,9 +2723,9 @@ LIFO connection pool for reusing [ServerConnection](#serverconnection) objects. 
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `ServerConnection::Ptr` | [`acquire`](#acquire) `inline` | Takes a connection from the pool for reuse.  |
-| `bool` | [`release`](#release) `inline` | Returns a connection to the pool after use.  |
-| `void` | [`setMaxSize`](#setmaxsize) `inline` | Sets the maximum number of connections the pool will hold.  |
+| `ServerConnection::Ptr` | [`acquire`](#acquire) `inline` | Takes a connection from the pool for reuse. |
+| `bool` | [`release`](#release) `inline` | Returns a connection to the pool after use. |
+| `void` | [`setMaxSize`](#setmaxsize) `inline` | Sets the maximum number of connections the pool will hold. |
 | `size_t` | [`size`](#size) `const` `inline` | Returns the current number of connections held in the pool. |
 
 ---
@@ -2889,7 +2895,7 @@ Fired on upload progress.
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`ConnectionStream`](#connectionstream-1)  | Creates a [ConnectionStream](#connectionstream) wrapping the given HTTP connection. Wires the Outgoing stream emitter to the connection adapter and registers this stream to receive incoming data from the adapter.  |
+|  | [`ConnectionStream`](#connectionstream-1)  | Creates a [ConnectionStream](#connectionstream) wrapping the given HTTP connection. Wires the Outgoing stream emitter to the connection adapter and registers this stream to receive incoming data from the adapter. |
 | `ssize_t` | [`send`](#send-13) `virtual` | Send data via the Outgoing stream. |
 | `Connection::Ptr` | [`connection`](#connection-4)  | Return a reference to the underlying connection. |
 
@@ -2953,7 +2959,7 @@ Connection::Ptr _connection
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `bool` | [`onSocketRecv`](#onsocketrecv-5) `virtual` | Called when data is received from the socket. Forwards the event to all registered receivers in priority order.  |
+| `bool` | [`onSocketRecv`](#onsocketrecv-5) `virtual` | Called when data is received from the socket. Forwards the event to all registered receivers in priority order. |
 
 ---
 
@@ -3534,11 +3540,11 @@ Form part backed by a file on disk.
 |  | [`FilePart`](#filepart-2)  | Creates the [FilePart](#filepart) for the given path and MIME type. |
 |  | [`FilePart`](#filepart-3)  | Creates the [FilePart](#filepart) for the given path and MIME type. The given filename is used as part filename (see [filename()](#filename-1)) only. |
 |  | [`~FilePart`](#filepart-4) `virtual` | Destroys the [FilePart](#filepart). |
-| `void` | [`open`](#open-4) `virtual` | Opens the file for reading.  |
+| `void` | [`open`](#open-4) `virtual` | Opens the file for reading. |
 | `void` | [`reset`](#reset-8) `virtual` | Resets the file stream to the beginning and clears initial-write state. |
-| `bool` | [`writeChunk`](#writechunk) `virtual` | Writes the next chunk of the file to the [FormWriter](#formwriter).  |
-| `void` | [`write`](#write-2) `virtual` | Writes the entire file content to the [FormWriter](#formwriter).  |
-| `void` | [`write`](#write-3) `virtual` | Writes the entire file content to an output stream (used for content-length calculation).  |
+| `bool` | [`writeChunk`](#writechunk) `virtual` | Writes the next chunk of the file to the [FormWriter](#formwriter). |
+| `void` | [`write`](#write-2) `virtual` | Writes the entire file content to the [FormWriter](#formwriter). |
+| `void` | [`write`](#write-3) `virtual` | Writes the entire file content to an output stream (used for content-length calculation). |
 | `const std::string &` | [`filename`](#filename-1) `const` | Returns the filename component of the file path (not the full path). |
 | `std::ifstream &` | [`stream`](#stream-3)  | Returns a reference to the underlying file input stream. |
 | `uint64_t` | [`length`](#length-1) `virtual` `const` | Returns the total file size in bytes. |
@@ -3787,12 +3793,12 @@ An implementation of [FormPart](#formpart).
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`FormPart`](#formpart-1)  | Creates the [FormPart](#formpart) with the given MIME content type.  |
+|  | [`FormPart`](#formpart-1)  | Creates the [FormPart](#formpart) with the given MIME content type. |
 |  | [`~FormPart`](#formpart-2) `virtual` | Destroys the [FormPart](#formpart). |
 | `void` | [`reset`](#reset-9) `virtual` | Resets the internal state and write position to the beginning. Called by [FormWriter](#formwriter) when retrying or recalculating content length. |
-| `bool` | [`writeChunk`](#writechunk-1)  | Writes the next chunk of data to the [FormWriter](#formwriter).  |
-| `void` | [`write`](#write-4)  | Writes the entire part data to the [FormWriter](#formwriter) in one call.  |
-| `void` | [`write`](#write-5)  | Writes the entire part data to an output stream (used for content-length calculation).  |
+| `bool` | [`writeChunk`](#writechunk-1)  | Writes the next chunk of data to the [FormWriter](#formwriter). |
+| `void` | [`write`](#write-4)  | Writes the entire part data to the [FormWriter](#formwriter) in one call. |
+| `void` | [`write`](#write-5)  | Writes the entire part data to an output stream (used for content-length calculation). |
 | `NVCollection &` | [`headers`](#headers-1)  | Returns the extra MIME headers for this part (e.g. Content-Disposition). |
 | `bool` | [`initialWrite`](#initialwrite) `virtual` `const` | Returns true if this is the first write call since construction or [reset()](#reset-9). |
 | `const std::string &` | [`contentType`](#contenttype-1) `const` | Returns the MIME content type for this part. |
@@ -4031,13 +4037,13 @@ The outgoing packet emitter.
 | `bool` | [`complete`](#complete-1) `const` | Returns true if the request is complete. |
 | `bool` | [`cancelled`](#cancelled-1) `const` | Returns true if the request is cancelled. |
 | `void` | [`prepareSubmit`](#preparesubmit)  | Prepares the outgoing HTTP request object for submitting the form. |
-| `uint64_t` | [`calculateMultipartContentLength`](#calculatemultipartcontentlength)  | Processes the entire form body and computes its total byte length. Only meaningful for multipart/form-data when not using chunked encoding.  |
-| `void` | [`writeUrl`](#writeurl)  | Writes the complete "application/x-www-form-urlencoded" encoded body to `ostr`. All key-value pairs from the [NVCollection](base.md#nvcollection) base are percent-encoded and joined with '&'.  |
+| `uint64_t` | [`calculateMultipartContentLength`](#calculatemultipartcontentlength)  | Processes the entire form body and computes its total byte length. Only meaningful for multipart/form-data when not using chunked encoding. |
+| `void` | [`writeUrl`](#writeurl)  | Writes the complete "application/x-www-form-urlencoded" encoded body to `ostr`. All key-value pairs from the [NVCollection](base.md#nvcollection) base are percent-encoded and joined with '&'. |
 | `void` | [`writeMultipartChunk`](#writemultipartchunk)  | Writes the next pending multipart chunk to the connection. Non-blocking; intended to be called repeatedly from the event loop until all parts have been sent. |
 | `void` | [`writeAsync`](#writeasync)  | Writes the next message chunk from the background runner thread. Called by the [Runner](base.md#runner); do not call directly. |
-| `void` | [`setEncoding`](#setencoding)  | Sets the MIME encoding used for submitting the form. Must be set before [prepareSubmit()](#preparesubmit) is called.  |
+| `void` | [`setEncoding`](#setencoding)  | Sets the MIME encoding used for submitting the form. Must be set before [prepareSubmit()](#preparesubmit) is called. |
 | `const std::string &` | [`encoding`](#encoding) `const` | Returns the encoding used for posting the form. |
-| `void` | [`setBoundary`](#setboundary)  | Sets the MIME boundary string used to delimit multipart form parts. If not set, a random boundary is generated by [prepareSubmit()](#preparesubmit). Must be set before [prepareSubmit()](#preparesubmit) is called.  |
+| `void` | [`setBoundary`](#setboundary)  | Sets the MIME boundary string used to delimit multipart form parts. If not set, a random boundary is generated by [prepareSubmit()](#preparesubmit). Must be set before [prepareSubmit()](#preparesubmit) is called. |
 | `const std::string &` | [`boundary`](#boundary) `const` | Returns the MIME boundary used for writing multipart form data. |
 | `ConnectionStream &` | [`connection`](#connection-5)  | The associated HTTP client connection. |
 
@@ -4449,8 +4455,8 @@ bool _complete
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`FormWriter`](#formwriter-2)  | Creates the [FormWriter](#formwriter) that uses the given encoding. |
-|  | [`FormWriter`](#formwriter-3)  |  |
-|  | [`FormWriter`](#formwriter-4)  |  |
+|  | [`FormWriter`](#formwriter-3)  | Deleted constructor. |
+|  | [`FormWriter`](#formwriter-4)  | Deleted constructor. |
 | `void` | [`writePartHeader`](#writepartheader)  | Writes the message boundary std::string, followed by the message header to the output stream. |
 | `void` | [`writeEnd`](#writeend)  | Writes the final boundary std::string to the output stream. |
 | `void` | [`updateProgress`](#updateprogress) `virtual` | Updates the upload progress via the associated [ConnectionStream](#connectionstream) object. |
@@ -4477,6 +4483,8 @@ Creates the [FormWriter](#formwriter) that uses the given encoding.
 FormWriter(const FormWriter &) = delete
 ```
 
+Deleted constructor.
+
 ---
 
 {#formwriter-4}
@@ -4486,6 +4494,8 @@ FormWriter(const FormWriter &) = delete
 ```cpp
 FormWriter(FormWriter &&) = delete
 ```
+
+Deleted constructor.
 
 ---
 
@@ -5148,11 +5158,11 @@ PacketSignal emitter
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`MultipartAdapter`](#multipartadapter-1) `inline` | Creates a [MultipartAdapter](#multipartadapter) that sends headers through the given connection. The per-part content type is read from the connection's outgoing header.  |
-|  | [`MultipartAdapter`](#multipartadapter-2) `inline` | Creates a [MultipartAdapter](#multipartadapter) that emits its own raw HTTP/1.1 200 response header. Use this when no [Connection](#connection-1) object is available.  |
+|  | [`MultipartAdapter`](#multipartadapter-1) `inline` | Creates a [MultipartAdapter](#multipartadapter) that sends headers through the given connection. The per-part content type is read from the connection's outgoing header. |
+|  | [`MultipartAdapter`](#multipartadapter-2) `inline` | Creates a [MultipartAdapter](#multipartadapter) that emits its own raw HTTP/1.1 200 response header. Use this when no [Connection](#connection-1) object is available. |
 | `void` | [`emitHeader`](#emitheader-1) `virtual` `inline` | Emits the initial HTTP/1.1 200 OK response with Content-Type multipart/x-mixed-replace. If a connection is set, headers are written through it; otherwise a raw response string is emitted. |
 | `void` | [`emitChunkHeader`](#emitchunkheader) `virtual` `inline` | Emits the MIME boundary and per-part headers (Content-Type, optionally Content-Transfer-Encoding) for the next multipart chunk. |
-| `void` | [`process`](#process-6) `virtual` `inline` | Wraps the incoming packet as a multipart chunk and emits it downstream. Emits the multipart HTTP response headers on the first call.  |
+| `void` | [`process`](#process-6) `virtual` `inline` | Wraps the incoming packet as a multipart chunk and emits it downstream. Emits the multipart HTTP response headers on the first call. |
 
 ---
 
@@ -5248,20 +5258,20 @@ HTTP request/response parser using the llhttp library.
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`Parser`](#parser-2)  | Creates a response parser. The response object is populated as data is parsed.  |
-|  | [`Parser`](#parser-3)  | Creates a request parser. The request object is populated as data is parsed.  |
-|  | [`Parser`](#parser-4)  | Creates a parser of the given type without binding a message object.  |
-|  | [`Parser`](#parser-5)  |  |
-|  | [`Parser`](#parser-6)  |  |
+|  | [`Parser`](#parser-2)  | Creates a response parser. The response object is populated as data is parsed. |
+|  | [`Parser`](#parser-3)  | Creates a request parser. The request object is populated as data is parsed. |
+|  | [`Parser`](#parser-4)  | Creates a parser of the given type without binding a message object. |
+|  | [`Parser`](#parser-5)  | Deleted constructor. |
+|  | [`Parser`](#parser-6)  | Deleted constructor. |
 | `ParseResult` | [`parse`](#parse)  | Feeds a buffer of raw HTTP data into the parser. |
 | `void` | [`reset`](#reset-10)  | Reset the internal state (reinitialises llhttp). Safe to call externally, NOT from inside llhttp callbacks. |
 | `void` | [`resetState`](#resetstate)  | Reset internal flags without reinitialising llhttp. Safe to call from inside llhttp callbacks (e.g. on_message_begin). |
 | `bool` | [`complete`](#complete-2) `const` | Returns true if parsing is complete, either in success or error. |
 | `bool` | [`upgrade`](#upgrade) `const` | Returns true if the connection should be upgraded. |
 | `llhttp_type_t` | [`type`](#type-9) `const` `inline` | Returns the parser type (HTTP_REQUEST or HTTP_RESPONSE). |
-| `void` | [`setRequest`](#setrequest)  | Binds an HTTP request object to populate during parsing. Must only be called when no message is currently set and type is HTTP_REQUEST.  |
-| `void` | [`setResponse`](#setresponse)  | Binds an HTTP response object to populate during parsing. Must only be called when no message is currently set and type is HTTP_RESPONSE.  |
-| `void` | [`setObserver`](#setobserver)  | Sets the observer that receives parser events.  |
+| `void` | [`setRequest`](#setrequest)  | Binds an HTTP request object to populate during parsing. Must only be called when no message is currently set and type is HTTP_REQUEST. |
+| `void` | [`setResponse`](#setresponse)  | Binds an HTTP response object to populate during parsing. Must only be called when no message is currently set and type is HTTP_RESPONSE. |
+| `void` | [`setObserver`](#setobserver)  | Sets the observer that receives parser events. |
 | `void` | [`clearMessage`](#clearmessage)  | Clear request/response pointers so they can be re-set. Used when resetting a pooled connection for reuse. |
 | `http::Message *` | [`message`](#message-4)  | Returns the currently bound message (request or response), or nullptr. |
 | `ParserObserver *` | [`observer`](#observer) `const` | Returns the current parser observer, or nullptr if none is set. |
@@ -5318,6 +5328,8 @@ Creates a parser of the given type without binding a message object.
 Parser(const Parser &) = delete
 ```
 
+Deleted constructor.
+
 ---
 
 {#parser-6}
@@ -5327,6 +5339,8 @@ Parser(const Parser &) = delete
 ```cpp
 Parser(Parser &&) = delete
 ```
+
+Deleted constructor.
 
 ---
 
@@ -5959,11 +5973,11 @@ Abstract observer interface for HTTP parser events.
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `void` | [`onParserHeader`](#onparserheader-1)  | Called for each parsed HTTP header name/value pair.  |
-| `void` | [`onParserHeadersEnd`](#onparserheadersend-1)  | Called when all HTTP headers have been parsed.  |
-| `void` | [`onParserChunk`](#onparserchunk-1)  | Called for each chunk of body data received.  |
+| `void` | [`onParserHeader`](#onparserheader-1)  | Called for each parsed HTTP header name/value pair. |
+| `void` | [`onParserHeadersEnd`](#onparserheadersend-1)  | Called when all HTTP headers have been parsed. |
+| `void` | [`onParserChunk`](#onparserchunk-1)  | Called for each chunk of body data received. |
 | `void` | [`onParserEnd`](#onparserend-1)  | Called when the HTTP message is fully parsed. |
-| `void` | [`onParserError`](#onparsererror-1)  | Called when a parse error occurs.  |
+| `void` | [`onParserError`](#onparsererror-1)  | Called when a parse error occurs. |
 
 ---
 
@@ -6101,7 +6115,7 @@ Total expected bytes (from Content-Length).
 |--------|------|-------------|
 |  | [`ProgressSignal`](#progresssignal-1) `inline` |  |
 | `double` | [`progress`](#progress) `const` `inline` | Returns the current transfer progress as a percentage (0-100). |
-| `void` | [`update`](#update-1) `inline` | Advances the progress counter by `nread` bytes and emits the updated percentage.  |
+| `void` | [`update`](#update-1) `inline` | Advances the progress counter by `nread` bytes and emits the updated percentage. |
 
 ---
 
@@ -6950,10 +6964,10 @@ Signals when the server is shutting down.
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`Server`](#server-1)  | Constructs an HTTP server on the given host and port using an internally created TCP socket.  |
-|  | [`Server`](#server-2)  | Constructs an HTTP server on the given address using an internally created TCP socket.  |
-|  | [`Server`](#server-3)  | Constructs an HTTP server on the given host and port using a caller-supplied socket. Useful for HTTPS by passing an SSLSocket. The event loop is derived from the socket.  |
-|  | [`Server`](#server-4)  | Constructs an HTTP server on the given address using a caller-supplied socket. The event loop is derived from the socket.  |
+|  | [`Server`](#server-1)  | Constructs an HTTP server on the given host and port using an internally created TCP socket. |
+|  | [`Server`](#server-2)  | Constructs an HTTP server on the given address using an internally created TCP socket. |
+|  | [`Server`](#server-3)  | Constructs an HTTP server on the given host and port using a caller-supplied socket. Useful for HTTPS by passing an SSLSocket. The event loop is derived from the socket. |
+|  | [`Server`](#server-4)  | Constructs an HTTP server on the given address using a caller-supplied socket. The event loop is derived from the socket. |
 | `void` | [`start`](#start-9)  | Start the HTTP server. |
 | `void` | [`shutdown`](#shutdown-9)  | Shutdown the HTTP server. |
 | `void` | [`setReusePort`](#setreuseport-1) `inline` | Enable SO_REUSEPORT for multicore server instances. Must be called before [start()](#start-9). Allows multiple server instances to bind the same address:port with kernel-level load balancing (Linux 3.9+). |
@@ -7268,7 +7282,7 @@ bool _reusePort {false}
 | `void` | [`onClientSocketAccept`](#onclientsocketaccept)  |  |
 | `void` | [`onConnectionReady`](#onconnectionready)  |  |
 | `void` | [`onConnectionClose`](#onconnectionclose-1)  |  |
-| `bool` | [`onSocketClose`](#onsocketclose-3) `virtual` | Called when the socket is closed. Forwards the event to all registered receivers in priority order.  |
+| `bool` | [`onSocketClose`](#onsocketclose-3) `virtual` | Called when the socket is closed. Forwards the event to all registered receivers in priority order. |
 | `void` | [`onTimer`](#ontimer)  |  |
 | `uv::Loop *` | [`loop`](#loop-6) `const` `inline` | Return the event loop this server runs on. |
 
@@ -7402,7 +7416,7 @@ Signals when the connection is closed.
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`ServerConnection`](#serverconnection-1)  | Creates a [ServerConnection](#serverconnection) attached to the given server and socket.  |
+|  | [`ServerConnection`](#serverconnection-1)  | Creates a [ServerConnection](#serverconnection) attached to the given server and socket. |
 | `Server &` | [`server`](#server-5)  | Returns the owning [Server](#server) instance. |
 | `ServerConnectionState` | [`state`](#state-1) `const` `inline` | Returns the current server-side connection state. |
 | `ServerConnectionMode` | [`mode`](#mode-1) `const` `inline` | Returns the current transport mode. |
@@ -7717,7 +7731,7 @@ ServerConnectionMode _mode {}
 | Return | Name | Description |
 |--------|------|-------------|
 | `void` | [`onHeaders`](#onheaders-2) `virtual` | Called when the incoming HTTP headers have been fully parsed. |
-| `void` | [`onPayload`](#onpayload-2) `virtual` | Called for each chunk of incoming body data after headers are complete.  |
+| `void` | [`onPayload`](#onpayload-2) `virtual` | Called for each chunk of incoming body data after headers are complete. |
 | `void` | [`onComplete`](#oncomplete-2) `virtual` | Called when the incoming HTTP message is fully received. |
 | `void` | [`onClose`](#onclose-5) `virtual` | Called when the connection is closed. |
 | `http::Message *` | [`incomingHeader`](#incomingheader-2) `virtual` | Returns the incoming HTTP message header (request or response depending on role). |
@@ -7876,7 +7890,7 @@ Factory for creating per-socket `[ServerConnection](#serverconnection)` and per-
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`ServerConnectionFactory`](#serverconnectionfactory-1)  |  |
+|  | [`ServerConnectionFactory`](#serverconnectionfactory-1)  | Defaulted constructor. |
 | `ServerConnection::Ptr` | [`createConnection`](#createconnection-2) `virtual` `inline` | Creates the `[ServerConnection](#serverconnection)` wrapper for an accepted TCP socket. |
 | `std::unique_ptr< ServerResponder >` | [`createResponder`](#createresponder-1) `virtual` `inline` | Creates the responder for the current request on `connection`. |
 
@@ -7889,6 +7903,8 @@ Factory for creating per-socket `[ServerConnection](#serverconnection)` and per-
 ```cpp
 ServerConnectionFactory() = default
 ```
+
+Defaulted constructor.
 
 ---
 
@@ -7932,10 +7948,10 @@ Base responder interface for handling one HTTP request on a server connection. D
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`ServerResponder`](#serverresponder-1) `inline` | Creates a [ServerResponder](#serverresponder) for the given connection.  |
-| `void` | [`onHeaders`](#onheaders-3) `virtual` `inline` | Called when the incoming request headers have been parsed.  |
-| `void` | [`onPayload`](#onpayload-3) `virtual` `inline` | Called for each chunk of incoming request body data.  |
-| `void` | [`onRequest`](#onrequest) `virtual` `inline` | Called when the complete HTTP request has been received. Derived classes should write their response here.  |
+|  | [`ServerResponder`](#serverresponder-1) `inline` | Creates a [ServerResponder](#serverresponder) for the given connection. |
+| `void` | [`onHeaders`](#onheaders-3) `virtual` `inline` | Called when the incoming request headers have been parsed. |
+| `void` | [`onPayload`](#onpayload-3) `virtual` `inline` | Called for each chunk of incoming request body data. |
+| `void` | [`onRequest`](#onrequest) `virtual` `inline` | Called when the complete HTTP request has been received. Derived classes should write their response here. |
 | `void` | [`onClose`](#onclose-6) `virtual` `inline` | Called when the connection is closed. |
 | `ServerConnection &` | [`connection`](#connection-9) `inline` | Returns the underlying server connection. |
 | `Request &` | [`request`](#request-10) `inline` | Returns the current HTTP request from the underlying connection. |
@@ -8083,7 +8099,7 @@ ServerConnection & _connection
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`ServerResponder`](#serverresponder-2)  |  |
+|  | [`ServerResponder`](#serverresponder-2)  | Deleted constructor. |
 
 ---
 
@@ -8094,6 +8110,8 @@ ServerConnection & _connection
 ```cpp
 ServerResponder(const ServerResponder &) = delete
 ```
+
+Deleted constructor.
 
 {#stringpart}
 
@@ -8111,12 +8129,12 @@ Form part backed by an in-memory string payload.
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`StringPart`](#stringpart-1)  | Creates a [StringPart](#stringpart) with the given data and default content type "application/octet-stream".  |
-|  | [`StringPart`](#stringpart-2)  | Creates a [StringPart](#stringpart) with the given data and MIME content type.  |
+|  | [`StringPart`](#stringpart-1)  | Creates a [StringPart](#stringpart) with the given data and default content type "application/octet-stream". |
+|  | [`StringPart`](#stringpart-2)  | Creates a [StringPart](#stringpart) with the given data and MIME content type. |
 |  | [`~StringPart`](#stringpart-3) `virtual` | Destroys the [StringPart](#stringpart). |
-| `bool` | [`writeChunk`](#writechunk-2) `virtual` | Writes the string data as a single chunk to the [FormWriter](#formwriter).  |
-| `void` | [`write`](#write-15) `virtual` | Writes the string data to the [FormWriter](#formwriter).  |
-| `void` | [`write`](#write-16) `virtual` | Writes the string data to an output stream.  |
+| `bool` | [`writeChunk`](#writechunk-2) `virtual` | Writes the string data as a single chunk to the [FormWriter](#formwriter). |
+| `void` | [`write`](#write-15) `virtual` | Writes the string data to the [FormWriter](#formwriter). |
+| `void` | [`write`](#write-16) `virtual` | Writes the string data to an output stream. |
 | `uint64_t` | [`length`](#length-3) `virtual` `const` | Returns the byte length of the string data. |
 
 ---
@@ -8259,16 +8277,16 @@ An RFC 3986 based [URL](#url) parser. Constructors and assignment operators will
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`URL`](#url-1)  | Creates an empty [URL](#url). |
-|  | [`URL`](#url-2)  | Parses the [URL](#url) from a null-terminated string.  |
-|  | [`URL`](#url-3)  | Parses the [URL](#url) from a std::string.  |
-|  | [`URL`](#url-4)  | Constructs a [URL](#url) from scheme and authority components.  |
-|  | [`URL`](#url-5)  | Constructs a [URL](#url) from scheme, authority, and path+query+fragment.  |
-|  | [`URL`](#url-6)  | Constructs a [URL](#url) from individual components.  |
-|  | [`URL`](#url-7)  |  |
-| `URL &` | [`operator=`](#operator-15)  | Assigns a [URL](#url) from another [URL](#url) instance.  |
-| `URL &` | [`operator=`](#operator-16)  | Assigns a [URL](#url) from a null-terminated string.  |
-| `URL &` | [`operator=`](#operator-17)  | Assigns a [URL](#url) from a std::string.  |
-| `bool` | [`parse`](#parse-1)  | Parses and assigns a [URL](#url) from the given string view, resetting all components first.  |
+|  | [`URL`](#url-2)  | Parses the [URL](#url) from a null-terminated string. |
+|  | [`URL`](#url-3)  | Parses the [URL](#url) from a std::string. |
+|  | [`URL`](#url-4)  | Constructs a [URL](#url) from scheme and authority components. |
+|  | [`URL`](#url-5)  | Constructs a [URL](#url) from scheme, authority, and path+query+fragment. |
+|  | [`URL`](#url-6)  | Constructs a [URL](#url) from individual components. |
+|  | [`URL`](#url-7)  | Defaulted constructor. |
+| `URL &` | [`operator=`](#operator-15)  | Assigns a [URL](#url) from another [URL](#url) instance. |
+| `URL &` | [`operator=`](#operator-16)  | Assigns a [URL](#url) from a null-terminated string. |
+| `URL &` | [`operator=`](#operator-17)  | Assigns a [URL](#url) from a std::string. |
+| `bool` | [`parse`](#parse-1)  | Parses and assigns a [URL](#url) from the given string view, resetting all components first. |
 | `std::string` | [`scheme`](#scheme) `const` | Returns the [URL](#url) scheme (e.g. "http", "https", "ws"). Always lowercase. |
 | `std::string` | [`userInfo`](#userinfo) `const` | Returns the user info component (e.g. "user:pass" from "http://user:pass@host/"). Returns an empty string if not present. |
 | `std::string` | [`host`](#host-1) `const` | Returns the host component (e.g. "example.com"). Returns an empty string if not present. |
@@ -8393,6 +8411,8 @@ Constructs a [URL](#url) from individual components.
 ```cpp
 URL(const URL &) = default
 ```
+
+Defaulted constructor.
 
 ---
 
@@ -8720,8 +8740,8 @@ Returns the original [URL](#url) string as parsed.
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `std::string` | [`encode`](#encode-21) `static` | Percent-encodes a string per RFC 3986, preserving unreserved characters (A-Z, a-z, 0-9, '-', '_', '.', '~'). Equivalent to JavaScript's encodeURIComponent().  |
-| `std::string` | [`decode`](#decode-10) `static` | Decodes a percent-encoded string per RFC 3986. Equivalent to JavaScript's decodeURIComponent().  |
+| `std::string` | [`encode`](#encode-21) `static` | Percent-encodes a string per RFC 3986, preserving unreserved characters (A-Z, a-z, 0-9, '-', '_', '.', '~'). Equivalent to JavaScript's encodeURIComponent(). |
+| `std::string` | [`decode`](#decode-10) `static` | Decodes a percent-encoded string per RFC 3986. Equivalent to JavaScript's decodeURIComponent(). |
 
 ---
 
@@ -9328,7 +9348,7 @@ The [WebSocket](#websocket) protocol version supported (13).
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`ConnectionAdapter`](#connectionadapter-3)  | Creates a [ConnectionAdapter](#connectionadapter-2) for upgrading an existing HTTP connection to [WebSocket](#websocket). Disables automatic header sending on the underlying connection.  |
+|  | [`ConnectionAdapter`](#connectionadapter-3)  | Creates a [ConnectionAdapter](#connectionadapter-2) for upgrading an existing HTTP connection to [WebSocket](#websocket). Disables automatic header sending on the underlying connection. |
 | `void` | [`onHandshakeComplete`](#onhandshakecomplete) `virtual` | Called when the [WebSocket](#websocket) handshake completes. Emits the connect event via the socket emitter chain. |
 
 ---
@@ -9511,14 +9531,14 @@ Pointer to the underlying socket. Sent data will be proxied to this socket.
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`WebSocketAdapter`](#websocketadapter-1)  | Creates a [WebSocketAdapter](#websocketadapter) using the given socket, mode and HTTP message objects.  |
-| `ssize_t` | [`send`](#send-14) `virtual` | Frames and sends data to the peer's address.  |
-| `ssize_t` | [`send`](#send-15) `virtual` | Frames and sends data to a specific peer address (for UDP-backed sockets).  |
+|  | [`WebSocketAdapter`](#websocketadapter-1)  | Creates a [WebSocketAdapter](#websocketadapter) using the given socket, mode and HTTP message objects. |
+| `ssize_t` | [`send`](#send-14) `virtual` | Frames and sends data to the peer's address. |
+| `ssize_t` | [`send`](#send-15) `virtual` | Frames and sends data to a specific peer address (for UDP-backed sockets). |
 | `ssize_t` | [`sendOwned`](#sendowned-12) `virtual` | Sends an owned payload buffer to the connected peer. |
 | `ssize_t` | [`sendOwned`](#sendowned-13) `virtual` |  |
-| `bool` | [`shutdown`](#shutdown-10) `virtual` | Sends a [WebSocket](#websocket) CLOSE frame with the given status code and message, then closes the underlying socket.  |
+| `bool` | [`shutdown`](#shutdown-10) `virtual` | Sends a [WebSocket](#websocket) CLOSE frame with the given status code and message, then closes the underlying socket. |
 | `void` | [`sendClientRequest`](#sendclientrequest) `virtual` | [Client](#client) side. |
-| `void` | [`handleClientResponse`](#handleclientresponse) `virtual` | Parses the server's HTTP upgrade response and completes the handshake. Any data remaining in the buffer after the HTTP response is re-fed as [WebSocket](#websocket) frames.  |
+| `void` | [`handleClientResponse`](#handleclientresponse) `virtual` | Parses the server's HTTP upgrade response and completes the handshake. Any data remaining in the buffer after the HTTP response is re-fed as [WebSocket](#websocket) frames. |
 | `void` | [`handleServerRequest`](#handleserverrequest) `virtual` | [Server](#server) side. |
 | `void` | [`onHandshakeComplete`](#onhandshakecomplete-1) `virtual` | Called when the [WebSocket](#websocket) handshake completes. Emits the connect event to downstream handlers. |
 
@@ -9941,14 +9961,14 @@ uint16_t _closeStatus
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`WebSocketFramer`](#websocketframer-1)  | Creates a [WebSocketFramer](#websocketframer) operating in the given endpoint mode. Client-side framers mask outgoing payloads; server-side framers do not.  |
-| `size_t` | [`writeFrame`](#writeframe) `virtual` | Encodes `data` into a [WebSocket](#websocket) frame and writes it to `frame`.  |
+|  | [`WebSocketFramer`](#websocketframer-1)  | Creates a [WebSocketFramer](#websocketframer) operating in the given endpoint mode. Client-side framers mask outgoing payloads; server-side framers do not. |
+| `size_t` | [`writeFrame`](#writeframe) `virtual` | Encodes `data` into a [WebSocket](#websocket) frame and writes it to `frame`. |
 | `uint64_t` | [`readFrame`](#readframe) `virtual` | Decodes a single [WebSocket](#websocket) frame from `frame`. |
 | `bool` | [`handshakeComplete`](#handshakecomplete) `const` | Returns true if the [WebSocket](#websocket) handshake has completed successfully. |
 | `void` | [`acceptServerRequest`](#acceptserverrequest)  | [Server](#server) side. |
 | `void` | [`createClientHandshakeRequest`](#createclienthandshakerequest)  | [Client](#client) side. |
-| `bool` | [`checkClientHandshakeResponse`](#checkclienthandshakeresponse)  | Validates the server's 101 Switching Protocols response.  |
-| `void` | [`completeClientHandshake`](#completeclienthandshake)  | Completes the client-side handshake by verifying [Connection](#connection-1), Upgrade and Sec-WebSocket-Accept headers. Advances internal state to "complete".  |
+| `bool` | [`checkClientHandshakeResponse`](#checkclienthandshakeresponse)  | Validates the server's 101 Switching Protocols response. |
+| `void` | [`completeClientHandshake`](#completeclienthandshake)  | Completes the client-side handshake by verifying [Connection](#connection-1), Upgrade and Sec-WebSocket-Accept headers. Advances internal state to "complete". |
 
 ---
 

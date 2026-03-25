@@ -30,8 +30,8 @@ namespace wrtc {
 /// Keep the config around - you need it for WebRtcTrackSender.
 struct WEBRTC_API TrackHandle
 {
-    std::shared_ptr<rtc::Track> track;
-    std::shared_ptr<rtc::RtpPacketizationConfig> rtpConfig;
+    std::shared_ptr<rtc::Track> track; ///< The libdatachannel track added to the PeerConnection.
+    std::shared_ptr<rtc::RtpPacketizationConfig> rtpConfig; ///< RTP packetization state required by WebRtcTrackSender.
 };
 
 

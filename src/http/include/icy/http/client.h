@@ -138,7 +138,7 @@ protected:
 };
 
 
-using ClientConnectionPtrVec = std::vector<ClientConnection::Ptr>;
+using ClientConnectionPtrVec = std::vector<ClientConnection::Ptr>; ///< List of owned client connections tracked by an HTTP client.
 
 
 //

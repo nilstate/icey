@@ -16,7 +16,7 @@ Plugin system for shared library loading.
 |------|-------------|
 | [`ICY_PLUGIN_API_VERSION`](#icy_plugin_api_version)  | ABI version expected by the host when loading plugins. Increment this whenever plugin-facing binary compatibility changes. |
 | [`ICY_STANDARD_PLUGIN_STUFF`](#icy_standard_plugin_stuff)  | Default metadata prefix used by the `ICY_PLUGIN` export helper. |
-| [`ICY_PLUGIN`](#icy_plugin)  | Declares the standard exported entry points and metadata for a plugin class.  |
+| [`ICY_PLUGIN`](#icy_plugin)  | Declares the standard exported entry points and metadata for a plugin class. |
 
 ---
 

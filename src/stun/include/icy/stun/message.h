@@ -24,7 +24,7 @@ namespace icy {
 namespace stun {
 
 
-using TransactionID = std::string;
+using TransactionID = std::string; ///< Fixed-width 12-byte STUN transaction identifier stored as raw bytes.
 
 
 /// STUN/TURN protocol message with method, class, transaction ID, and attributes

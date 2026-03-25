@@ -163,24 +163,24 @@ List of peer IP strings used when creating or refreshing permissions.
 | `constexpr int` | [`kServerTimerInterval`](#kservertimerinterval) `static` | [Server](#server-6) timer interval (10 seconds) |
 | `constexpr int` | [`kServerEarlyMediaBufferSize`](#kserverearlymediabuffersize) `static` | Early media buffer size. |
 | `constexpr int` | [`kConnectionBindTimeout`](#kconnectionbindtimeout) `static` | ConnectionBind request timeout (30 seconds, in milliseconds) |
-| `constexpr int` | [`CLIENT_SOCK_BUF_SIZE`](#client_sock_buf_size) `static` |  |
-| `constexpr int` | [`SERVER_SOCK_BUF_SIZE`](#server_sock_buf_size) `static` |  |
+| `constexpr int` | [`CLIENT_SOCK_BUF_SIZE`](#client_sock_buf_size) `static` | Default socket buffer size for TURN client sockets. |
+| `constexpr int` | [`SERVER_SOCK_BUF_SIZE`](#server_sock_buf_size) `static` | Default socket buffer size for TURN server sockets. |
 | `constexpr uint8_t` | [`kProtocolUDP`](#kprotocoludp) `static` | TURN protocol numbers. |
-| `constexpr uint8_t` | [`kProtocolTCP`](#kprotocoltcp) `static` |  |
+| `constexpr uint8_t` | [`kProtocolTCP`](#kprotocoltcp) `static` | IP protocol number for TCP. |
 | `constexpr int` | [`kErrorTryAlternate`](#kerrortryalternate) `static` | TURN/STUN error codes used in this module. |
-| `constexpr int` | [`kErrorBadRequest`](#kerrorbadrequest) `static` |  |
-| `constexpr int` | [`kErrorNotAuthorized`](#kerrornotauthorized) `static` |  |
-| `constexpr int` | [`kErrorForbidden`](#kerrorforbidden) `static` |  |
-| `constexpr int` | [`kErrorUnknownAttribute`](#kerrorunknownattribute) `static` |  |
-| `constexpr int` | [`kErrorUnsupportedTransport`](#kerrorunsupportedtransport) `static` |  |
-| `constexpr int` | [`kErrorAllocationMismatch`](#kerrorallocationmismatch) `static` |  |
-| `constexpr int` | [`kErrorStaleNonce`](#kerrorstalenonce) `static` |  |
-| `constexpr int` | [`kErrorWrongCredentials`](#kerrorwrongcredentials) `static` |  |
-| `constexpr int` | [`kErrorConnectionAlreadyExists`](#kerrorconnectionalreadyexists) `static` |  |
-| `constexpr int` | [`kErrorConnectionTimeoutOrFailure`](#kerrorconnectiontimeoutorfailure) `static` |  |
-| `constexpr int` | [`kErrorAllocationQuotaReached`](#kerrorallocationquotareached) `static` |  |
-| `constexpr int` | [`kErrorInsufficientCapacity`](#kerrorinsufficientcapacity) `static` |  |
-| `constexpr int` | [`kErrorOperationNotSupported`](#kerroroperationnotsupported) `static` |  |
+| `constexpr int` | [`kErrorBadRequest`](#kerrorbadrequest) `static` | [Request](#request-12) was malformed or missing required attributes. |
+| `constexpr int` | [`kErrorNotAuthorized`](#kerrornotauthorized) `static` | Authentication failed or credentials were not accepted. |
+| `constexpr int` | [`kErrorForbidden`](#kerrorforbidden) `static` | [Request](#request-12) was understood but is not permitted for this client. |
+| `constexpr int` | [`kErrorUnknownAttribute`](#kerrorunknownattribute) `static` | [Request](#request-12) included an unsupported comprehension-required attribute. |
+| `constexpr int` | [`kErrorUnsupportedTransport`](#kerrorunsupportedtransport) `static` | Requested transport protocol is not supported by the server. |
+| `constexpr int` | [`kErrorAllocationMismatch`](#kerrorallocationmismatch) `static` | [Client](#client-2) attempted an allocation operation that conflicts with existing state. |
+| `constexpr int` | [`kErrorStaleNonce`](#kerrorstalenonce) `static` | Authentication nonce expired and must be refreshed. |
+| `constexpr int` | [`kErrorWrongCredentials`](#kerrorwrongcredentials) `static` | Supplied credentials were well formed but did not match the allocation. |
+| `constexpr int` | [`kErrorConnectionAlreadyExists`](#kerrorconnectionalreadyexists) `static` | TURN TCP connection binding already exists. |
+| `constexpr int` | [`kErrorConnectionTimeoutOrFailure`](#kerrorconnectiontimeoutorfailure) `static` | TURN TCP peer connection attempt timed out or failed. |
+| `constexpr int` | [`kErrorAllocationQuotaReached`](#kerrorallocationquotareached) `static` | User or server allocation quota was exceeded. |
+| `constexpr int` | [`kErrorInsufficientCapacity`](#kerrorinsufficientcapacity) `static` | [Server](#server-6) lacks capacity to satisfy the request. |
+| `constexpr int` | [`kErrorOperationNotSupported`](#kerroroperationnotsupported) `static` | [Request](#request-12) is recognized but not implemented by this server. |
 
 ---
 
@@ -348,6 +348,8 @@ ConnectionBind request timeout (30 seconds, in milliseconds)
 constexpr int CLIENT_SOCK_BUF_SIZE = 65536
 ```
 
+Default socket buffer size for TURN client sockets.
+
 ---
 
 {#server_sock_buf_size}
@@ -359,6 +361,8 @@ constexpr int CLIENT_SOCK_BUF_SIZE = 65536
 ```cpp
 constexpr int SERVER_SOCK_BUF_SIZE = CLIENT_SOCK_BUF_SIZE * 32
 ```
+
+Default socket buffer size for TURN server sockets.
 
 ---
 
@@ -374,6 +378,8 @@ constexpr uint8_t kProtocolUDP = 17
 
 TURN protocol numbers.
 
+IP protocol number for UDP.
+
 ---
 
 {#kprotocoltcp}
@@ -385,6 +391,8 @@ TURN protocol numbers.
 ```cpp
 constexpr uint8_t kProtocolTCP = 6
 ```
+
+IP protocol number for TCP.
 
 ---
 
@@ -400,6 +408,8 @@ constexpr int kErrorTryAlternate = 300
 
 TURN/STUN error codes used in this module.
 
+[Client](#client-2) should retry against an alternate TURN server.
+
 ---
 
 {#kerrorbadrequest}
@@ -411,6 +421,8 @@ TURN/STUN error codes used in this module.
 ```cpp
 constexpr int kErrorBadRequest = 400
 ```
+
+[Request](#request-12) was malformed or missing required attributes.
 
 ---
 
@@ -424,6 +436,8 @@ constexpr int kErrorBadRequest = 400
 constexpr int kErrorNotAuthorized = 401
 ```
 
+Authentication failed or credentials were not accepted.
+
 ---
 
 {#kerrorforbidden}
@@ -435,6 +449,8 @@ constexpr int kErrorNotAuthorized = 401
 ```cpp
 constexpr int kErrorForbidden = 403
 ```
+
+[Request](#request-12) was understood but is not permitted for this client.
 
 ---
 
@@ -448,6 +464,8 @@ constexpr int kErrorForbidden = 403
 constexpr int kErrorUnknownAttribute = 420
 ```
 
+[Request](#request-12) included an unsupported comprehension-required attribute.
+
 ---
 
 {#kerrorunsupportedtransport}
@@ -459,6 +477,8 @@ constexpr int kErrorUnknownAttribute = 420
 ```cpp
 constexpr int kErrorUnsupportedTransport = 442
 ```
+
+Requested transport protocol is not supported by the server.
 
 ---
 
@@ -472,6 +492,8 @@ constexpr int kErrorUnsupportedTransport = 442
 constexpr int kErrorAllocationMismatch = 437
 ```
 
+[Client](#client-2) attempted an allocation operation that conflicts with existing state.
+
 ---
 
 {#kerrorstalenonce}
@@ -483,6 +505,8 @@ constexpr int kErrorAllocationMismatch = 437
 ```cpp
 constexpr int kErrorStaleNonce = 438
 ```
+
+Authentication nonce expired and must be refreshed.
 
 ---
 
@@ -496,6 +520,8 @@ constexpr int kErrorStaleNonce = 438
 constexpr int kErrorWrongCredentials = 441
 ```
 
+Supplied credentials were well formed but did not match the allocation.
+
 ---
 
 {#kerrorconnectionalreadyexists}
@@ -507,6 +533,8 @@ constexpr int kErrorWrongCredentials = 441
 ```cpp
 constexpr int kErrorConnectionAlreadyExists = 446
 ```
+
+TURN TCP connection binding already exists.
 
 ---
 
@@ -520,6 +548,8 @@ constexpr int kErrorConnectionAlreadyExists = 446
 constexpr int kErrorConnectionTimeoutOrFailure = 447
 ```
 
+TURN TCP peer connection attempt timed out or failed.
+
 ---
 
 {#kerrorallocationquotareached}
@@ -531,6 +561,8 @@ constexpr int kErrorConnectionTimeoutOrFailure = 447
 ```cpp
 constexpr int kErrorAllocationQuotaReached = 486
 ```
+
+User or server allocation quota was exceeded.
 
 ---
 
@@ -544,6 +576,8 @@ constexpr int kErrorAllocationQuotaReached = 486
 constexpr int kErrorInsufficientCapacity = 508
 ```
 
+[Server](#server-6) lacks capacity to satisfy the request.
+
 ---
 
 {#kerroroperationnotsupported}
@@ -555,6 +589,8 @@ constexpr int kErrorInsufficientCapacity = 508
 ```cpp
 constexpr int kErrorOperationNotSupported = 600
 ```
+
+[Request](#request-12) is recognized but not implemented by this server.
 
 {#client-2}
 
@@ -577,34 +613,34 @@ TURN client that manages relay allocations, permissions, and data relay via RFC 
 | `void` | [`initiate`](#initiate) `virtual` | Connects the socket to the TURN server and starts the allocation sequence. Permissions must be added via [addPermission()](#addpermission) before calling this. |
 | `void` | [`shutdown`](#shutdown-11) `virtual` | Stops the timer, cancels pending transactions, and closes the socket. |
 | `void` | [`sendAllocate`](#sendallocate) `virtual` | Sends an Allocate request to the server with the configured transport and lifetime. On first call the server will typically respond with a 401 challenge; the client re-sends with credentials automatically. |
-| `void` | [`addPermission`](#addpermission) `virtual` | Adds multiple peer IP addresses to the permission list.  |
-| `void` | [`addPermission`](#addpermission-1) `virtual` | Adds a single peer IP to the permission list, or refreshes it if already present. Permissions should be added before [initiate()](#initiate); they may also be added later, in which case a new CreatePermission request is required.  |
+| `void` | [`addPermission`](#addpermission) `virtual` | Adds multiple peer IP addresses to the permission list. |
+| `void` | [`addPermission`](#addpermission-1) `virtual` | Adds a single peer IP to the permission list, or refreshes it if already present. Permissions should be added before [initiate()](#initiate); they may also be added later, in which case a new CreatePermission request is required. |
 | `void` | [`sendCreatePermission`](#sendcreatepermission) `virtual` | Sends a CreatePermission request for all IPs currently in the permission list. Called automatically after allocation succeeds and periodically by the timer to refresh expiring permissions. |
-| `void` | [`sendChannelBind`](#sendchannelbind) `virtual` | Channel bindings (RFC 5766 Section 11) are intentionally not implemented. They are a bandwidth optimization that replaces STUN-framed Send/Data indications with a compact 4-byte ChannelData header. This only benefits high-throughput media relay scenarios; in practice, media flows directly via ICE/DTLS rather than through this TURN client's data path, so the optimization is not worth the complexity (channel number allocation, 10-minute binding refresh timers, ChannelData wire framing). Data relay uses [sendData()](#senddata) with Send Indications instead.  |
+| `void` | [`sendChannelBind`](#sendchannelbind) `virtual` | Channel bindings (RFC 5766 Section 11) are intentionally not implemented. They are a bandwidth optimization that replaces STUN-framed Send/Data indications with a compact 4-byte ChannelData header. This only benefits high-throughput media relay scenarios; in practice, media flows directly via ICE/DTLS rather than through this TURN client's data path, so the optimization is not worth the complexity (channel number allocation, 10-minute binding refresh timers, ChannelData wire framing). Data relay uses [sendData()](#senddata) with Send Indications instead. |
 | `void` | [`sendRefresh`](#sendrefresh) `virtual` | Sends a Refresh request to extend the allocation lifetime. Called automatically by the timer when roughly one-third of the lifetime remains. |
-| `void` | [`sendData`](#senddata) `virtual` | Sends a Send Indication to relay `data` to `peerAddress` through the TURN server. If permissions are still being negotiated the indication is queued and flushed once CreatePermission succeeds.  |
-| `bool` | [`handleResponse`](#handleresponse) `virtual` | Dispatches an incoming STUN/TURN response to the appropriate handler.  |
-| `void` | [`handleAllocateResponse`](#handleallocateresponse) `virtual` | Processes a successful Allocate response; extracts mapped/relayed addresses and advances the state to Authorizing, then sends CreatePermission.  |
-| `void` | [`handleAllocateErrorResponse`](#handleallocateerrorresponse) `virtual` | Handles an Allocate error response; manages the 401 challenge/re-send flow and sets the client to Failed for unrecoverable errors.  |
-| `void` | [`handleCreatePermissionResponse`](#handlecreatepermissionresponse) `virtual` | Handles a successful CreatePermission response; flushes queued Send Indications and advances state to Success.  |
-| `void` | [`handleCreatePermissionErrorResponse`](#handlecreatepermissionerrorresponse) `virtual` | Handles a failed CreatePermission response; clears all permissions and sets the client to Failed.  |
-| `void` | [`handleRefreshResponse`](#handlerefreshresponse) `virtual` | Handles a Refresh response; updates the stored lifetime.  |
-| `void` | [`handleDataIndication`](#handledataindication) `virtual` | Handles an incoming Data Indication; extracts peer address and data and forwards to [ClientObserver::onRelayDataReceived()](#onrelaydatareceived).  |
+| `void` | [`sendData`](#senddata) `virtual` | Sends a Send Indication to relay `data` to `peerAddress` through the TURN server. If permissions are still being negotiated the indication is queued and flushed once CreatePermission succeeds. |
+| `bool` | [`handleResponse`](#handleresponse) `virtual` | Dispatches an incoming STUN/TURN response to the appropriate handler. |
+| `void` | [`handleAllocateResponse`](#handleallocateresponse) `virtual` | Processes a successful Allocate response; extracts mapped/relayed addresses and advances the state to Authorizing, then sends CreatePermission. |
+| `void` | [`handleAllocateErrorResponse`](#handleallocateerrorresponse) `virtual` | Handles an Allocate error response; manages the 401 challenge/re-send flow and sets the client to Failed for unrecoverable errors. |
+| `void` | [`handleCreatePermissionResponse`](#handlecreatepermissionresponse) `virtual` | Handles a successful CreatePermission response; flushes queued Send Indications and advances state to Success. |
+| `void` | [`handleCreatePermissionErrorResponse`](#handlecreatepermissionerrorresponse) `virtual` | Handles a failed CreatePermission response; clears all permissions and sets the client to Failed. |
+| `void` | [`handleRefreshResponse`](#handlerefreshresponse) `virtual` | Handles a Refresh response; updates the stored lifetime. |
+| `void` | [`handleDataIndication`](#handledataindication) `virtual` | Handles an incoming Data Indication; extracts peer address and data and forwards to [ClientObserver::onRelayDataReceived()](#onrelaydatareceived). |
 | `int` | [`transportProtocol`](#transportprotocol) `virtual` | #### Returns |
-| `stun::Transaction::Ptr` | [`createTransaction`](#createtransaction) `virtual` | Creates a new STUN transaction, registers the progress callback, and adds it to the active transaction list.  |
-| `void` | [`authenticateRequest`](#authenticaterequest) `virtual` | Adds STUN long-term credential attributes (Username, Realm, Nonce, MessageIntegrity) to `request` if the realm has been received from the server.  |
-| `bool` | [`sendAuthenticatedTransaction`](#sendauthenticatedtransaction) `virtual` | Calls [authenticateRequest()](#authenticaterequest) then sends the transaction.  |
-| `stun::Transaction::Ptr` | [`removeTransaction`](#removetransaction) `virtual` | Removes a transaction from the active list. The [IntrusivePtr](base.md#intrusiveptr) keeps the object alive until the caller's copy is released.  |
+| `stun::Transaction::Ptr` | [`createTransaction`](#createtransaction) `virtual` | Creates a new STUN transaction, registers the progress callback, and adds it to the active transaction list. |
+| `void` | [`authenticateRequest`](#authenticaterequest) `virtual` | Adds STUN long-term credential attributes (Username, Realm, Nonce, MessageIntegrity) to `request` if the realm has been received from the server. |
+| `bool` | [`sendAuthenticatedTransaction`](#sendauthenticatedtransaction) `virtual` | Calls [authenticateRequest()](#authenticaterequest) then sends the transaction. |
+| `stun::Transaction::Ptr` | [`removeTransaction`](#removetransaction) `virtual` | Removes a transaction from the active list. The [IntrusivePtr](base.md#intrusiveptr) keeps the object alive until the caller's copy is released. |
 | `net::Address` | [`mappedAddress`](#mappedaddress) `const` | #### Returns |
 | `net::Address` | [`relayedAddress`](#relayedaddress) `virtual` `const` | #### Returns |
 | `bool` | [`closed`](#closed-5) `const` | #### Returns |
 | `ClientObserver &` | [`observer`](#observer-1)  | #### Returns |
 | `const Options &` | [`options`](#options-8) `const` | #### Returns |
-| `void` | [`addPermission`](#addpermission-2) `virtual` | Adds a permission for `ip`, or refreshes the existing one.  |
+| `void` | [`addPermission`](#addpermission-2) `virtual` | Adds a permission for `ip`, or refreshes the existing one. |
 | `void` | [`addPermission`](#addpermission-3) `virtual` | Adds a permission for `address`, or refreshes the existing one. The port is ignored; TURN permissions are IP-only. |
-| `bool` | [`hasPermission`](#haspermission) `virtual` | Checks whether a permission exists for `peerIP`. Local addresses (192.168.x.x and 127.x.x.x) are always permitted.  |
+| `bool` | [`hasPermission`](#haspermission) `virtual` | Checks whether a permission exists for `peerIP`. Local addresses (192.168.x.x and 127.x.x.x) are always permitted. |
 | `bool` | [`hasPermission`](#haspermission-1) `virtual` | Checks whether a permission exists for `peerAddress`. The port is ignored; TURN permissions are IP-only. |
-| `void` | [`removePermission`](#removepermission) `virtual` | Removes the permission for `ip` if present.  |
+| `void` | [`removePermission`](#removepermission) `virtual` | Removes the permission for `ip` if present. |
 | `void` | [`removePermission`](#removepermission-1) `virtual` | Removes the permission for `address` if present. The port is ignored; TURN permissions are IP-only. |
 
 ---
@@ -1265,11 +1301,11 @@ A list containing currently active transactions.
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `void` | [`setError`](#seterror-5) `virtual` | Sets the error field and transitions the client to the Failed state.  |
-| `bool` | [`onSocketConnect`](#onsocketconnect-5) `virtual` | Socket connect callback; starts the timer and sends the first Allocate request.  |
-| `bool` | [`onSocketRecv`](#onsocketrecv-7) `virtual` | Socket receive callback; parses STUN messages from the buffer and dispatches them.  |
-| `bool` | [`onSocketClose`](#onsocketclose-5) `virtual` | Socket close callback; shuts down the client and records the socket error.  |
-| `void` | [`onTransactionProgress`](#ontransactionprogress) `virtual` | STUN transaction state-change callback; handles Success and Failed outcomes.  |
+| `void` | [`setError`](#seterror-5) `virtual` | Sets the error field and transitions the client to the Failed state. |
+| `bool` | [`onSocketConnect`](#onsocketconnect-5) `virtual` | Socket connect callback; starts the timer and sends the first Allocate request. |
+| `bool` | [`onSocketRecv`](#onsocketrecv-7) `virtual` | Socket receive callback; parses STUN messages from the buffer and dispatches them. |
+| `bool` | [`onSocketClose`](#onsocketclose-5) `virtual` | Socket close callback; shuts down the client and records the socket error. |
+| `void` | [`onTransactionProgress`](#ontransactionprogress) `virtual` | STUN transaction state-change callback; handles Success and Failed outcomes. |
 | `void` | [`onStateChange`](#onstatechange-1)  | Forwards state-change events to the observer. |
 | `void` | [`onTimer`](#ontimer-1) `virtual` | Periodic timer callback; re-allocates on expiry or refreshes when lifetime is below one-third remaining. Also calls [ClientObserver::onTimer()](#ontimer-2). |
 
@@ -1551,14 +1587,14 @@ Allocations    Address      Address     Address          Address
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`FiveTuple`](#fivetuple-1)  | Constructs a default [FiveTuple](#fivetuple) with empty addresses and UDP transport. |
-|  | [`FiveTuple`](#fivetuple-2)  | Constructs a [FiveTuple](#fivetuple) from explicit addresses and transport.  |
+|  | [`FiveTuple`](#fivetuple-2)  | Constructs a [FiveTuple](#fivetuple) from explicit addresses and transport. |
 |  | [`FiveTuple`](#fivetuple-3)  | Copy constructor. |
 | `const net::Address &` | [`remote`](#remote-2) `const` `inline` | #### Returns |
 | `const net::Address &` | [`local`](#local-2) `const` `inline` | #### Returns |
 | `const net::TransportType &` | [`transport`](#transport-4) `const` `inline` | #### Returns |
-| `void` | [`remote`](#remote-3) `inline` | Sets the remote address.  |
-| `void` | [`local`](#local-3) `inline` | Sets the local address.  |
-| `void` | [`transport`](#transport-5) `inline` | Sets the transport protocol.  |
+| `void` | [`remote`](#remote-3) `inline` | Sets the remote address. |
+| `void` | [`local`](#local-3) `inline` | Sets the local address. |
+| `void` | [`transport`](#transport-5) `inline` | Sets the transport protocol. |
 | `bool` | [`operator==`](#operator-20) `const` | Equality comparison; all three components must match. |
 | `bool` | [`operator<`](#operator-21) `const` | Less-than ordering based on remote then local port; used as std::map key. |
 | `std::string` | [`toString`](#tostring-7) `const` | #### Returns |
@@ -1818,11 +1854,11 @@ The time-to-expiry is the time left until the allocation expires. Each Allocate 
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`IAllocation`](#iallocation-1)  | #### Parameters |
-|  | [`IAllocation`](#iallocation-2)  |  |
-|  | [`IAllocation`](#iallocation-3)  |  |
-| `void` | [`updateUsage`](#updateusage) `virtual` | Updates the last-activity timestamp and accumulates bandwidth usage. Call this whenever data is relayed through the allocation.  |
-| `void` | [`setLifetime`](#setlifetime) `virtual` | Sets the allocation lifetime in seconds and resets the activity timestamp, effectively extending the expiry from the current moment.  |
-| `void` | [`setBandwidthLimit`](#setbandwidthlimit) `virtual` | Sets the maximum number of bytes this allocation may relay in its lifetime. Pass 0 to disable bandwidth limiting.  |
+|  | [`IAllocation`](#iallocation-2)  | Deleted constructor. |
+|  | [`IAllocation`](#iallocation-3)  | Deleted constructor. |
+| `void` | [`updateUsage`](#updateusage) `virtual` | Updates the last-activity timestamp and accumulates bandwidth usage. Call this whenever data is relayed through the allocation. |
+| `void` | [`setLifetime`](#setlifetime) `virtual` | Sets the allocation lifetime in seconds and resets the activity timestamp, effectively extending the expiry from the current moment. |
+| `void` | [`setBandwidthLimit`](#setbandwidthlimit) `virtual` | Sets the maximum number of bytes this allocation may relay in its lifetime. Pass 0 to disable bandwidth limiting. |
 | `bool` | [`expired`](#expired) `virtual` `const` | #### Returns |
 | `bool` | [`deleted`](#deleted-1) `virtual` `const` | Returns true if the allocation's deleted flag is set and or if the allocation has expired. |
 | `std::int64_t` | [`bandwidthLimit`](#bandwidthlimit) `virtual` `const` | #### Returns |
@@ -1834,14 +1870,14 @@ The time-to-expiry is the time left until the allocation expires. Each Allocate 
 | `std::int64_t` | [`lifetime`](#lifetime-1) `virtual` `const` | #### Returns |
 | `PermissionList` | [`permissions`](#permissions) `virtual` `const` | #### Returns |
 | `net::Address` | [`relayedAddress`](#relayedaddress-1) `const` | #### Returns |
-| `void` | [`addPermission`](#addpermission-4) `virtual` | Adds a permission for `ip`, or refreshes the existing one.  |
+| `void` | [`addPermission`](#addpermission-4) `virtual` | Adds a permission for `ip`, or refreshes the existing one. |
 | `void` | [`addPermission`](#addpermission-5) `virtual` | Adds a permission for `address`, or refreshes the existing one. The port is ignored; TURN permissions are IP-only. |
-| `void` | [`addPermissions`](#addpermissions) `virtual` | Adds (or refreshes) permissions for multiple IPs.  |
-| `void` | [`removePermission`](#removepermission-2) `virtual` | Removes the permission for `ip` if present.  |
+| `void` | [`addPermissions`](#addpermissions) `virtual` | Adds (or refreshes) permissions for multiple IPs. |
+| `void` | [`removePermission`](#removepermission-2) `virtual` | Removes the permission for `ip` if present. |
 | `void` | [`removePermission`](#removepermission-3) `virtual` | Removes the permission for `address` if present. The port is ignored; TURN permissions are IP-only. |
 | `void` | [`removeAllPermissions`](#removeallpermissions) `virtual` | Removes all permissions from the list. |
 | `void` | [`removeExpiredPermissions`](#removeexpiredpermissions) `virtual` | Removes any permissions whose 5-minute lifetime has elapsed. |
-| `bool` | [`hasPermission`](#haspermission-2) `virtual` | Checks whether a permission exists for `peerIP`. Local addresses (192.168.x.x and 127.x.x.x) are always permitted.  |
+| `bool` | [`hasPermission`](#haspermission-2) `virtual` | Checks whether a permission exists for `peerIP`. Local addresses (192.168.x.x and 127.x.x.x) are always permitted. |
 | `bool` | [`hasPermission`](#haspermission-3) `virtual` | Checks whether a permission exists for `peerAddress`. The port is ignored; TURN permissions are IP-only. |
 | `void` | [`print`](#print-11) `virtual` `const` `inline` |  |
 
@@ -1872,6 +1908,8 @@ IAllocation(const FiveTuple & tuple, const std::string & username, std::int64_t 
 IAllocation(const IAllocation &) = delete
 ```
 
+Deleted constructor.
+
 ---
 
 {#iallocation-3}
@@ -1881,6 +1919,8 @@ IAllocation(const IAllocation &) = delete
 ```cpp
 IAllocation(IAllocation &&) = delete
 ```
+
+Deleted constructor.
 
 ---
 
@@ -2525,7 +2565,7 @@ Pre-computed MessageIntegrity key for signing responses.
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`Request`](#request-13) `inline` | Constructs a [Request](#request-12) by copying a parsed STUN message and annotating it with the transport context.  |
+|  | [`Request`](#request-13) `inline` | Constructs a [Request](#request-12) by copying a parsed STUN message and annotating it with the transport context. |
 
 ---
 
@@ -2566,28 +2606,28 @@ TURN server RFC 5766 / RFC 6062 implementation. Listens on UDP and/or TCP, authe
 |  | [`Server`](#server-7)  | #### Parameters |
 | `void` | [`start`](#start-11) `virtual` | Binds and listens on the configured address, then starts the maintenance timer. |
 | `void` | [`stop`](#stop-8) `virtual` | Stops the timer, destroys all allocations, and closes server sockets. |
-| `void` | [`handleRequest`](#handlerequest)  | Routes an authenticated request to the appropriate handler based on state. Pending (Authenticating) requests are held until the observer calls back.  |
-| `void` | [`handleAuthorizedRequest`](#handleauthorizedrequest)  | Dispatches an already-authorized request to the specific method handler.  |
-| `void` | [`handleBindingRequest`](#handlebindingrequest)  | Handles a Binding request; responds with XOR-MAPPED-ADDRESS.  |
-| `void` | [`handleAllocateRequest`](#handleallocaterequest)  | Handles an Allocate request; creates a UDP or TCP [ServerAllocation](#serverallocation) and sends a success response with XOR-RELAYED-ADDRESS and LIFETIME.  |
-| `void` | [`handleConnectionBindRequest`](#handleconnectionbindrequest)  | Handles a ConnectionBind request by locating the [TCPAllocation](#tcpallocation) that owns the given CONNECTION-ID and delegating to it.  |
-| `void` | [`respond`](#respond)  | Sends a STUN response, signing it with MessageIntegrity if the request had a hash. Routes via UDP or TCP depending on request.transport.  |
-| `void` | [`respondError`](#responderror)  | Constructs and sends an error response with SOFTWARE, REALM, NONCE, and ERROR-CODE.  |
-| `std::map< FiveTuple, ServerAllocation * >` | [`allocations`](#allocations) `const` | Returns a snapshot copy of the allocation map for safe iteration. Returned raw pointers are valid only while the server holds the allocations.  |
-| `void` | [`addAllocation`](#addallocation)  | Transfers ownership of `alloc` to the server and notifies the observer.  |
-| `void` | [`removeAllocation`](#removeallocation)  | Removes `alloc` from the map and notifies the observer. Called automatically from the [ServerAllocation](#serverallocation) destructor.  |
-| `ServerAllocation *` | [`getAllocation`](#getallocation)  | Looks up an allocation by its 5-tuple.  |
-| `TCPAllocation *` | [`getTCPAllocation`](#gettcpallocation)  | Finds the [TCPAllocation](#tcpallocation) that owns a [TCPConnectionPair](#tcpconnectionpair) with the given connection ID.  |
-| `net::TCPSocket::Ptr` | [`getTCPSocket`](#gettcpsocket)  | Returns the accepted TCP socket whose peer address matches `remoteAddr`.  |
-| `void` | [`releaseTCPSocket`](#releasetcpsocket)  | Removes a TCP control socket from the server's socket list and unregisters callbacks. Called when the socket is handed off to a [TCPAllocation](#tcpallocation) (ConnectionBind).  |
+| `void` | [`handleRequest`](#handlerequest)  | Routes an authenticated request to the appropriate handler based on state. Pending (Authenticating) requests are held until the observer calls back. |
+| `void` | [`handleAuthorizedRequest`](#handleauthorizedrequest)  | Dispatches an already-authorized request to the specific method handler. |
+| `void` | [`handleBindingRequest`](#handlebindingrequest)  | Handles a Binding request; responds with XOR-MAPPED-ADDRESS. |
+| `void` | [`handleAllocateRequest`](#handleallocaterequest)  | Handles an Allocate request; creates a UDP or TCP [ServerAllocation](#serverallocation) and sends a success response with XOR-RELAYED-ADDRESS and LIFETIME. |
+| `void` | [`handleConnectionBindRequest`](#handleconnectionbindrequest)  | Handles a ConnectionBind request by locating the [TCPAllocation](#tcpallocation) that owns the given CONNECTION-ID and delegating to it. |
+| `void` | [`respond`](#respond)  | Sends a STUN response, signing it with MessageIntegrity if the request had a hash. Routes via UDP or TCP depending on request.transport. |
+| `void` | [`respondError`](#responderror)  | Constructs and sends an error response with SOFTWARE, REALM, NONCE, and ERROR-CODE. |
+| `std::map< FiveTuple, ServerAllocation * >` | [`allocations`](#allocations) `const` | Returns a snapshot copy of the allocation map for safe iteration. Returned raw pointers are valid only while the server holds the allocations. |
+| `void` | [`addAllocation`](#addallocation)  | Transfers ownership of `alloc` to the server and notifies the observer. |
+| `void` | [`removeAllocation`](#removeallocation)  | Removes `alloc` from the map and notifies the observer. Called automatically from the [ServerAllocation](#serverallocation) destructor. |
+| `ServerAllocation *` | [`getAllocation`](#getallocation)  | Looks up an allocation by its 5-tuple. |
+| `TCPAllocation *` | [`getTCPAllocation`](#gettcpallocation)  | Finds the [TCPAllocation](#tcpallocation) that owns a [TCPConnectionPair](#tcpconnectionpair) with the given connection ID. |
+| `net::TCPSocket::Ptr` | [`getTCPSocket`](#gettcpsocket)  | Returns the accepted TCP socket whose peer address matches `remoteAddr`. |
+| `void` | [`releaseTCPSocket`](#releasetcpsocket)  | Removes a TCP control socket from the server's socket list and unregisters callbacks. Called when the socket is handed off to a [TCPAllocation](#tcpallocation) (ConnectionBind). |
 | `ServerObserver &` | [`observer`](#observer-2)  | #### Returns |
 | `const ServerOptions &` | [`options`](#options-11) `const` | #### Returns |
 | `net::UDPSocket &` | [`udpSocket`](#udpsocket-4)  | #### Returns |
 | `net::TCPSocket &` | [`tcpSocket`](#tcpsocket-4)  | #### Returns |
 | `Timer &` | [`timer`](#timer-1)  | #### Returns |
-| `void` | [`onTCPAcceptConnection`](#ontcpacceptconnection)  | Accept callback for the TCP listening socket; registers new connections for STUN message processing.  |
-| `bool` | [`onTCPSocketClosed`](#ontcpsocketclosed)  | Close callback for accepted TCP sockets; removes the socket from the list.  |
-| `bool` | [`onSocketRecv`](#onsocketrecv-8)  | Receive callback for both UDP and TCP sockets; parses STUN messages and calls [handleRequest()](#handlerequest) for each one.  |
+| `void` | [`onTCPAcceptConnection`](#ontcpacceptconnection)  | Accept callback for the TCP listening socket; registers new connections for STUN message processing. |
+| `bool` | [`onTCPSocketClosed`](#ontcpsocketclosed)  | Close callback for accepted TCP sockets; removes the socket from the list. |
+| `bool` | [`onSocketRecv`](#onsocketrecv-8)  | Receive callback for both UDP and TCP sockets; parses STUN messages and calls [handleRequest()](#handlerequest) for each one. |
 | `void` | [`onTimer`](#ontimer-3)  | Periodic maintenance callback; expires and removes stale allocations. |
 | `void` | [`scheduleDeferredTCPSocketRelease`](#scheduledeferredtcpsocketrelease)  | Defers accepted TCP socket removal until after the active callback stack unwinds. |
 | `void` | [`drainReleasedTCPSockets`](#drainreleasedtcpsockets)  |  |
@@ -3130,10 +3170,10 @@ Server-side TURN allocation that tracks permissions, lifetime, and relay state. 
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`ServerAllocation`](#serverallocation-1)  | #### Parameters |
-| `bool` | [`handleRequest`](#handlerequest-1) `virtual` | Dispatches incoming STUN requests to [handleCreatePermission()](#handlecreatepermission) or [handleRefreshRequest()](#handlerefreshrequest). Subclasses override to add transport-specific methods.  |
-| `void` | [`handleRefreshRequest`](#handlerefreshrequest) `virtual` | Processes a Refresh request; updates the lifetime or sets the delete flag if the requested lifetime is 0, then sends a success response.  |
-| `void` | [`handleCreatePermission`](#handlecreatepermission) `virtual` | Processes a CreatePermission request; installs or refreshes permissions for each XOR-PEER-ADDRESS attribute, then sends a success response.  |
-| `bool` | [`onTimer`](#ontimer-4)  | Periodic maintenance callback called by [Server::onTimer()](#ontimer-3). Removes expired permissions. Returns false to signal that this allocation should be destroyed.  |
+| `bool` | [`handleRequest`](#handlerequest-1) `virtual` | Dispatches incoming STUN requests to [handleCreatePermission()](#handlecreatepermission) or [handleRefreshRequest()](#handlerefreshrequest). Subclasses override to add transport-specific methods. |
+| `void` | [`handleRefreshRequest`](#handlerefreshrequest) `virtual` | Processes a Refresh request; updates the lifetime or sets the delete flag if the requested lifetime is 0, then sends a success response. |
+| `void` | [`handleCreatePermission`](#handlecreatepermission) `virtual` | Processes a CreatePermission request; installs or refreshes permissions for each XOR-PEER-ADDRESS attribute, then sends a success response. |
+| `bool` | [`onTimer`](#ontimer-4)  | Periodic maintenance callback called by [Server::onTimer()](#ontimer-3). Removes expired permissions. Returns false to signal that this allocation should be destroyed. |
 | `std::int64_t` | [`timeRemaining`](#timeremaining-1) `virtual` `const` | #### Returns |
 | `std::int64_t` | [`maxTimeRemaining`](#maxtimeremaining) `const` | #### Returns |
 | `bool` | [`hasPermission`](#haspermission-4) `virtual` | Checks permission, auto-granting local IPs if enabled in server options. |
@@ -3381,7 +3421,7 @@ bool _refreshDeleteRequested = false
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`ServerAllocation`](#serverallocation-2)  | NonCopyable and NonMovable. |
-|  | [`ServerAllocation`](#serverallocation-3)  |  |
+|  | [`ServerAllocation`](#serverallocation-3)  | Deleted constructor. |
 
 ---
 
@@ -3405,6 +3445,8 @@ NonCopyable and NonMovable.
 ServerAllocation(ServerAllocation &&) = delete
 ```
 
+Deleted constructor.
+
 {#tcpallocation}
 
 ## TCPAllocation
@@ -3422,17 +3464,17 @@ Server-side TCP TURN allocation with connection pair management per RFC 6062. Ma
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`TCPAllocation`](#tcpallocation-1)  | #### Parameters |
-| `bool` | [`handleRequest`](#handlerequest-2) `virtual` | Extends the base handler with Connect and ConnectionBind methods.  |
-| `void` | [`handleConnectRequest`](#handleconnectrequest)  | Handles a Connect request; creates a [TCPConnectionPair](#tcpconnectionpair) and initiates a TCP connection to the peer address carried in XOR-PEER-ADDRESS.  |
-| `void` | [`handleConnectionBindRequest`](#handleconnectionbindrequest-1)  | Handles a ConnectionBind request; associates the incoming TCP data socket with the pending [TCPConnectionPair](#tcpconnectionpair) and activates the relay pipe.  |
-| `void` | [`sendPeerConnectResponse`](#sendpeerconnectresponse)  | Sends a Connect success or failure response to the control connection.  |
-| `int` | [`sendToControl`](#sendtocontrol)  | Sends a STUN message to the client over the control TCP connection.  |
+| `bool` | [`handleRequest`](#handlerequest-2) `virtual` | Extends the base handler with Connect and ConnectionBind methods. |
+| `void` | [`handleConnectRequest`](#handleconnectrequest)  | Handles a Connect request; creates a [TCPConnectionPair](#tcpconnectionpair) and initiates a TCP connection to the peer address carried in XOR-PEER-ADDRESS. |
+| `void` | [`handleConnectionBindRequest`](#handleconnectionbindrequest-1)  | Handles a ConnectionBind request; associates the incoming TCP data socket with the pending [TCPConnectionPair](#tcpconnectionpair) and activates the relay pipe. |
+| `void` | [`sendPeerConnectResponse`](#sendpeerconnectresponse)  | Sends a Connect success or failure response to the control connection. |
+| `int` | [`sendToControl`](#sendtocontrol)  | Sends a STUN message to the client over the control TCP connection. |
 | `net::TCPSocket &` | [`control`](#control)  | #### Returns |
 | `net::Address` | [`relayedAddress`](#relayedaddress-2) `virtual` `const` | #### Returns |
 | `TCPConnectionPairMap &` | [`pairs`](#pairs)  | #### Returns |
-| `bool` | [`onTimer`](#ontimer-5)  | Periodic timer callback; removes expired or pending-delete connection pairs, then calls the base class timer.  |
-| `void` | [`onPeerAccept`](#onpeeraccept)  | Accepts incoming peer sockets on the relay acceptor socket. Checks permissions and sends a ConnectionAttempt indication to the control.  |
-| `bool` | [`onControlClosed`](#oncontrolclosed)  | Called when the control connection closes; marks the allocation for deletion.  |
+| `bool` | [`onTimer`](#ontimer-5)  | Periodic timer callback; removes expired or pending-delete connection pairs, then calls the base class timer. |
+| `void` | [`onPeerAccept`](#onpeeraccept)  | Accepts incoming peer sockets on the relay acceptor socket. Checks permissions and sends a ConnectionAttempt indication to the control. |
+| `bool` | [`onControlClosed`](#oncontrolclosed)  | Called when the control connection closes; marks the allocation for deletion. |
 
 ---
 
@@ -3678,20 +3720,20 @@ TCP transport TURN client with relay connection management per RFC 6062. Uses a 
 |  | [`TCPClient`](#tcpclient-1)  | #### Parameters |
 | `void` | [`initiate`](#initiate-1) `virtual` | Connects the socket to the TURN server and starts the allocation sequence. Permissions must be added via [addPermission()](#addpermission) before calling this. |
 | `void` | [`shutdown`](#shutdown-12) `virtual` | Shuts down the control connection, cancels all relay connections, and calls the base class shutdown. |
-| `void` | [`sendConnectRequest`](#sendconnectrequest) `virtual` | Sends a Connect request to the server asking it to open a TCP connection to `peerAddress` on the client's behalf (RFC 6062 section 4.3).  |
-| `void` | [`sendData`](#senddata-1) `virtual` | Sends raw data to `peerAddress` over the established relay connection. The peer must have an active permission and a bound relay connection.  |
-| `bool` | [`handleResponse`](#handleresponse-1) `virtual` | Extends the base handler with Connect, ConnectionBind, and ConnectionAttempt responses.  |
-| `void` | [`handleConnectResponse`](#handleconnectresponse) `virtual` | Processes a successful Connect response; extracts the connection ID and calls [createAndBindConnection()](#createandbindconnection).  |
-| `void` | [`handleConnectErrorResponse`](#handleconnecterrorresponse) `virtual` | Processes a Connect error response; notifies the observer that binding failed.  |
-| `void` | [`handleConnectionBindResponse`](#handleconnectionbindresponse) `virtual` | Processes a successful ConnectionBind response; arms the relay socket for data transfer and notifies the observer.  |
-| `void` | [`handleConnectionBindErrorResponse`](#handleconnectionbinderrorresponse) `virtual` | Processes a ConnectionBind error response; frees the failed connection.  |
-| `void` | [`handleConnectionAttemptIndication`](#handleconnectionattemptindication) `virtual` | Processes a ConnectionAttempt indication from the server; optionally accepts the incoming peer connection by calling [createAndBindConnection()](#createandbindconnection).  |
-| `bool` | [`createAndBindConnection`](#createandbindconnection) `virtual` | Opens a new TCP relay socket to the TURN server and sends a ConnectionBind request carrying `connectionID`.  |
-| `bool` | [`onRelayConnectionConnect`](#onrelayconnectionconnect) `virtual` | Relay socket connect callback; sends the ConnectionBind request.  |
-| `bool` | [`onRelayDataReceived`](#onrelaydatareceived-1) `virtual` | Relay socket receive callback; forwards data to the observer.  |
-| `bool` | [`onRelayConnectionError`](#onrelayconnectionerror) `virtual` | Relay socket error callback; notifies the observer of the error.  |
-| `bool` | [`onRelayConnectionClosed`](#onrelayconnectionclosed) `virtual` | Relay socket close callback; notifies the observer and frees the connection.  |
-| `void` | [`freeConnection`](#freeconnection)  | Removes the relay connection for `peerAddress`, unregisters its callbacks, and deletes the associated [RelayConnectionBinding](#relayconnectionbinding).  |
+| `void` | [`sendConnectRequest`](#sendconnectrequest) `virtual` | Sends a Connect request to the server asking it to open a TCP connection to `peerAddress` on the client's behalf (RFC 6062 section 4.3). |
+| `void` | [`sendData`](#senddata-1) `virtual` | Sends raw data to `peerAddress` over the established relay connection. The peer must have an active permission and a bound relay connection. |
+| `bool` | [`handleResponse`](#handleresponse-1) `virtual` | Extends the base handler with Connect, ConnectionBind, and ConnectionAttempt responses. |
+| `void` | [`handleConnectResponse`](#handleconnectresponse) `virtual` | Processes a successful Connect response; extracts the connection ID and calls [createAndBindConnection()](#createandbindconnection). |
+| `void` | [`handleConnectErrorResponse`](#handleconnecterrorresponse) `virtual` | Processes a Connect error response; notifies the observer that binding failed. |
+| `void` | [`handleConnectionBindResponse`](#handleconnectionbindresponse) `virtual` | Processes a successful ConnectionBind response; arms the relay socket for data transfer and notifies the observer. |
+| `void` | [`handleConnectionBindErrorResponse`](#handleconnectionbinderrorresponse) `virtual` | Processes a ConnectionBind error response; frees the failed connection. |
+| `void` | [`handleConnectionAttemptIndication`](#handleconnectionattemptindication) `virtual` | Processes a ConnectionAttempt indication from the server; optionally accepts the incoming peer connection by calling [createAndBindConnection()](#createandbindconnection). |
+| `bool` | [`createAndBindConnection`](#createandbindconnection) `virtual` | Opens a new TCP relay socket to the TURN server and sends a ConnectionBind request carrying `connectionID`. |
+| `bool` | [`onRelayConnectionConnect`](#onrelayconnectionconnect) `virtual` | Relay socket connect callback; sends the ConnectionBind request. |
+| `bool` | [`onRelayDataReceived`](#onrelaydatareceived-1) `virtual` | Relay socket receive callback; forwards data to the observer. |
+| `bool` | [`onRelayConnectionError`](#onrelayconnectionerror) `virtual` | Relay socket error callback; notifies the observer of the error. |
+| `bool` | [`onRelayConnectionClosed`](#onrelayconnectionclosed) `virtual` | Relay socket close callback; notifies the observer and frees the connection. |
+| `void` | [`freeConnection`](#freeconnection)  | Removes the relay connection for `peerAddress`, unregisters its callbacks, and deletes the associated [RelayConnectionBinding](#relayconnectionbinding). |
 | `int` | [`transportProtocol`](#transportprotocol-1) `virtual` | #### Returns |
 | `ConnectionManager &` | [`connections`](#connections)  | #### Returns |
 | `const char *` | [`className`](#classname-6) `virtual` `const` `inline` |  |
@@ -4166,7 +4208,7 @@ stun::TransactionID transactionID
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`TCPConnectionPair`](#tcpconnectionpair-1)  | Constructs a pair with a randomly assigned connection ID. The caller must add the pair to the allocation's pair map.  |
+|  | [`TCPConnectionPair`](#tcpconnectionpair-1)  | Constructs a pair with a randomly assigned connection ID. The caller must add the pair to the allocation's pair map. |
 | `bool` | [`doPeerConnect`](#dopeerconnect)  |  |
 | `bool` | [`makeDataConnection`](#makedataconnection)  |  |
 | `void` | [`setPeerSocket`](#setpeersocket)  |  |
@@ -4336,8 +4378,8 @@ IntrusivePtr< TCPConnectionPair > Ptr()
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`TCPConnectionPair`](#tcpconnectionpair-2)  |  |
-|  | [`TCPConnectionPair`](#tcpconnectionpair-3)  |  |
+|  | [`TCPConnectionPair`](#tcpconnectionpair-2)  | Deleted constructor. |
+|  | [`TCPConnectionPair`](#tcpconnectionpair-3)  | Deleted constructor. |
 
 ---
 
@@ -4349,6 +4391,8 @@ IntrusivePtr< TCPConnectionPair > Ptr()
 TCPConnectionPair(const TCPConnectionPair &) = delete
 ```
 
+Deleted constructor.
+
 ---
 
 {#tcpconnectionpair-3}
@@ -4358,6 +4402,8 @@ TCPConnectionPair(const TCPConnectionPair &) = delete
 ```cpp
 TCPConnectionPair(TCPConnectionPair &&) = delete
 ```
+
+Deleted constructor.
 
 {#udpallocation}
 
@@ -4375,11 +4421,11 @@ Server-side UDP TURN allocation that relays datagrams to permitted peers. Binds 
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`UDPAllocation`](#udpallocation-1)  | Binds the relay UDP socket and registers the peer receive callback.  |
-| `bool` | [`onPeerDataReceived`](#onpeerdatareceived-1)  | Receive callback for the relay UDP socket; validates permissions, updates bandwidth usage, and forwards data to the client as a Data Indication.  |
-| `bool` | [`handleRequest`](#handlerequest-3) `virtual` | Extends the base handler with Send Indication support.  |
-| `void` | [`handleSendIndication`](#handlesendindication)  | Handles a Send Indication from the client; validates permissions and relays the DATA attribute payload to the peer via the relay socket. Silently discards on permission or attribute errors.  |
-| `ssize_t` | [`send`](#send-16)  | Sends raw data to `peerAddress` via the relay UDP socket. Updates bandwidth usage and returns -1 if the allocation is expired.  |
+|  | [`UDPAllocation`](#udpallocation-1)  | Binds the relay UDP socket and registers the peer receive callback. |
+| `bool` | [`onPeerDataReceived`](#onpeerdatareceived-1)  | Receive callback for the relay UDP socket; validates permissions, updates bandwidth usage, and forwards data to the client as a Data Indication. |
+| `bool` | [`handleRequest`](#handlerequest-3) `virtual` | Extends the base handler with Send Indication support. |
+| `void` | [`handleSendIndication`](#handlesendindication)  | Handles a Send Indication from the client; validates permissions and relays the DATA attribute payload to the peer via the relay socket. Silently discards on permission or attribute errors. |
+| `ssize_t` | [`send`](#send-16)  | Sends raw data to `peerAddress` via the relay UDP socket. Updates bandwidth usage and returns -1 if the allocation is expired. |
 | `net::Address` | [`relayedAddress`](#relayedaddress-3) `virtual` `const` | #### Returns |
 
 ---
@@ -4554,13 +4600,13 @@ Abstract observer interface for TURN client events. Callers subclass this to rec
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `void` | [`onClientStateChange`](#onclientstatechange)  | Called whenever the client's state machine transitions to a new state.  |
-| `void` | [`onRelayDataReceived`](#onrelaydatareceived)  | Called when relayed data is received from a peer via a Data Indication.  |
-| `void` | [`onAllocationFailed`](#onallocationfailed) `virtual` `inline` | Called when the server rejects an Allocate request with an error.  |
-| `void` | [`onAllocationDeleted`](#onallocationdeleted) `virtual` `inline` | Called when the server confirms deletion of the allocation.  |
-| `void` | [`onAllocationPermissionsCreated`](#onallocationpermissionscreated) `virtual` `inline` | Called after a CreatePermission request succeeds.  |
-| `void` | [`onTransactionResponse`](#ontransactionresponse) `virtual` `inline` | All received transaction responses will be routed here after local processing so the observer can easily implement extra functionality.  |
-| `void` | [`onTimer`](#ontimer-2) `virtual` `inline` | Fires after the client's internal timer callback. Handy for performing extra async cleanup tasks.  |
+| `void` | [`onClientStateChange`](#onclientstatechange)  | Called whenever the client's state machine transitions to a new state. |
+| `void` | [`onRelayDataReceived`](#onrelaydatareceived)  | Called when relayed data is received from a peer via a Data Indication. |
+| `void` | [`onAllocationFailed`](#onallocationfailed) `virtual` `inline` | Called when the server rejects an Allocate request with an error. |
+| `void` | [`onAllocationDeleted`](#onallocationdeleted) `virtual` `inline` | Called when the server confirms deletion of the allocation. |
+| `void` | [`onAllocationPermissionsCreated`](#onallocationpermissionscreated) `virtual` `inline` | Called after a CreatePermission request succeeds. |
+| `void` | [`onTransactionResponse`](#ontransactionresponse) `virtual` `inline` | All received transaction responses will be routed here after local processing so the observer can easily implement extra functionality. |
+| `void` | [`onTimer`](#ontimer-2) `virtual` `inline` | Fires after the client's internal timer callback. Handy for performing extra async cleanup tasks. |
 
 ---
 
@@ -4805,10 +4851,10 @@ Countdown timer; expires after PERMISSION_LIFETIME milliseconds.
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`Permission`](#permission-1) `inline` | Constructs a permission for `ip` and immediately starts the expiry timer.  |
-|  | [`Permission`](#permission-2) `inline` | Constructs a permission from a binary socket address.  |
+|  | [`Permission`](#permission-1) `inline` | Constructs a permission for `ip` and immediately starts the expiry timer. |
+|  | [`Permission`](#permission-2) `inline` | Constructs a permission from a binary socket address. |
 | `void` | [`refresh`](#refresh) `inline` | Resets the expiry timer, extending the permission lifetime by another 300 seconds. |
-| `bool` | [`operator==`](#operator-22) `const` `inline` | Equality comparison against an IP string.  |
+| `bool` | [`operator==`](#operator-22) `const` `inline` | Equality comparison against an IP string. |
 | `bool` | [`matches`](#matches) `const` `inline` | Binary IP comparison used on the TURN relay hot path. |
 
 ---
@@ -5068,9 +5114,9 @@ The observer is responsible for enforcing per-user allocation quotas and bandwid
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `void` | [`onServerAllocationCreated`](#onserverallocationcreated)  | Called after a new allocation is successfully created.  |
-| `void` | [`onServerAllocationRemoved`](#onserverallocationremoved)  | Called just before an allocation is destroyed (expired, deleted, or server stopped).  |
-| `AuthenticationState` | [`authenticateRequest`](#authenticaterequest-1)  | Authenticates an incoming STUN request using the long-term credential mechanism (RFC 5389 section 10.2). Return Authorized to proceed, NotAuthorized to reject with a 401, QuotaReached to reject with a 486, or Authenticating to defer until the result is available asynchronously.  |
+| `void` | [`onServerAllocationCreated`](#onserverallocationcreated)  | Called after a new allocation is successfully created. |
+| `void` | [`onServerAllocationRemoved`](#onserverallocationremoved)  | Called just before an allocation is destroyed (expired, deleted, or server stopped). |
+| `AuthenticationState` | [`authenticateRequest`](#authenticaterequest-1)  | Authenticates an incoming STUN request using the long-term credential mechanism (RFC 5389 section 10.2). Return Authorized to proceed, NotAuthorized to reject with a 401, QuotaReached to reject with a 486, or Authenticating to defer until the result is available asynchronously. |
 
 ---
 
@@ -5310,11 +5356,11 @@ Observer interface for TCP TURN client events (RFC 6062). Extends [ClientObserve
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `void` | [`onRelayConnectionCreated`](#onrelayconnectioncreated)  | Called when a ConnectionBind succeeds and the relay pipe is live.  |
-| `void` | [`onRelayConnectionError`](#onrelayconnectionerror-1) `virtual` `inline` | Called when an error occurs on a relay connection socket.  |
-| `void` | [`onRelayConnectionClosed`](#onrelayconnectionclosed-1)  | Called when a relay connection socket is closed.  |
-| `void` | [`onRelayConnectionBindingFailed`](#onrelayconnectionbindingfailed) `virtual` `inline` | Called when a Connect request (client-initiated) or a ConnectionBind handshake fails for the given peer.  |
-| `bool` | [`onPeerConnectionAttempt`](#onpeerconnectionattempt) `virtual` `inline` | Called when the server sends a ConnectionAttempt indication indicating that a remote peer wants to connect. Return true to accept the connection (proceeds with ConnectionBind), or false to reject it.  |
+| `void` | [`onRelayConnectionCreated`](#onrelayconnectioncreated)  | Called when a ConnectionBind succeeds and the relay pipe is live. |
+| `void` | [`onRelayConnectionError`](#onrelayconnectionerror-1) `virtual` `inline` | Called when an error occurs on a relay connection socket. |
+| `void` | [`onRelayConnectionClosed`](#onrelayconnectionclosed-1)  | Called when a relay connection socket is closed. |
+| `void` | [`onRelayConnectionBindingFailed`](#onrelayconnectionbindingfailed) `virtual` `inline` | Called when a Connect request (client-initiated) or a ConnectionBind handshake fails for the given peer. |
+| `bool` | [`onPeerConnectionAttempt`](#onpeerconnectionattempt) `virtual` `inline` | Called when the server sends a ConnectionAttempt indication indicating that a remote peer wants to connect. Return true to accept the connection (proceeds with ConnectionBind), or false to reject it. |
 
 ---
 

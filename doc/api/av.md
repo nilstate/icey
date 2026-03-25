@@ -83,12 +83,12 @@ Audio/video codecs, capture devices, packet types, and media helpers.
 | [`AudioPacket`](#audiopacket) | Audio packet for interleaved formats. |
 | [`AudioResampler`](#audioresampler) | Converts audio samples between different formats, sample rates, and channel layouts. |
 | [`Codec`](#codec-1) | [Codec](#codec-1) for encoding/decoding media. |
-| [`Deleter`](#deleter-1) | Utilites for RAII: |
+| [`Deleter`](#deleter-1) | RAII helpers for owning FFmpeg allocation types. |
 | [`Deleterp`](#deleterp) | [Deleter](#deleter-1) adaptor for functions like av_freep that take a pointer to a pointer. |
 | [`Device`](#device) | Represents a system audio, video or render device. |
 | [`EncoderOptions`](#encoderoptions) | [Configuration](base.md#configuration) options for audio and video encoders. |
 | [`EncoderState`](#encoderstate) | [State](base.md#state) machine states for the encoder pipeline. |
-| [`Format`](#format-1) | Defines a media container format which is available through the [Format](#format-1) Registry for encoding/decoding. A format defined preferred default values for each codec. |
+| [`Format`](#format-1) | Defines a media container format which is available through the [FormatRegistry](#formatregistry) for encoding or decoding. |
 | [`MediaPacket`](#mediapacket) | Timestamped media packet carrying raw audio or video data. |
 | [`PlanarAudioPacket`](#planaraudiopacket) | Audio packet for planar formats. |
 | [`PlanarVideoPacket`](#planarvideopacket) | Video packet for planar formats. |
@@ -119,25 +119,25 @@ Bitmask of media capabilities detected on this system.
 
 | Value | Description |
 |-------|-------------|
-| `AUDIO_RECV` |  |
-| `AUDIO_SEND` |  |
-| `VIDEO_RECV` |  |
-| `VIDEO_SEND` |  |
+| `AUDIO_RECV` | Audio capture or decode is available. |
+| `AUDIO_SEND` | Audio playback or encode is available. |
+| `VIDEO_RECV` | Video capture or decode is available. |
+| `VIDEO_SEND` | Video render or encode is available. |
 
 ### Typedefs
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `std::list< Codec >` | [`CodecList`](#codeclist)  |  |
-| `std::list< Codec * >` | [`CodecPList`](#codecplist)  |  |
-| `std::unique_ptr< AVFrame, Deleterp< AVFrame, void, av_frame_free > >` | [`AVFrameHolder`](#avframeholder)  |  |
-| `std::unique_ptr< AVFormatContext, Deleter< AVFormatContext, void, avformat_free_context > >` | [`AVFormatContextHolder`](#avformatcontextholder)  |  |
-| `std::unique_ptr< AVCodecContext, Deleterp< AVCodecContext, void, avcodec_free_context > >` | [`AVCodecContextHolder`](#avcodeccontextholder)  |  |
-| `std::unique_ptr< AVDictionary *, Deleter< AVDictionary *, void, av_dict_free > >` | [`AVDictionaryCleanup`](#avdictionarycleanup)  |  |
-| `std::unique_ptr< AVPacket, Deleterp< AVPacket, void, av_packet_free > >` | [`AVPacketHolder`](#avpacketholder)  |  |
-| `std::vector< Format >` | [`FormatList`](#formatlist)  |  |
-| `std::vector< Format * >` | [`FormatPList`](#formatplist)  |  |
-| `IEncoder` | [`IPacketEncoder`](#ipacketencoder)  | 0.8.x compatibility |
+| `std::list< Codec >` | [`CodecList`](#codeclist)  | List of codec value objects. |
+| `std::list< Codec * >` | [`CodecPList`](#codecplist)  | List of codec pointers. |
+| `std::unique_ptr< AVFrame, Deleterp< AVFrame, void, av_frame_free > >` | [`AVFrameHolder`](#avframeholder)  | Owning AVFrame pointer released with av_frame_free(). |
+| `std::unique_ptr< AVFormatContext, Deleter< AVFormatContext, void, avformat_free_context > >` | [`AVFormatContextHolder`](#avformatcontextholder)  | Owning AVFormatContext pointer released with avformat_free_context(). |
+| `std::unique_ptr< AVCodecContext, Deleterp< AVCodecContext, void, avcodec_free_context > >` | [`AVCodecContextHolder`](#avcodeccontextholder)  | Owning AVCodecContext pointer released with avcodec_free_context(). |
+| `std::unique_ptr< AVDictionary *, Deleter< AVDictionary *, void, av_dict_free > >` | [`AVDictionaryCleanup`](#avdictionarycleanup)  | Cleanup wrapper for AVDictionary* values freed with av_dict_free(). |
+| `std::unique_ptr< AVPacket, Deleterp< AVPacket, void, av_packet_free > >` | [`AVPacketHolder`](#avpacketholder)  | Owning AVPacket pointer released with av_packet_free(). |
+| `std::vector< Format >` | [`FormatList`](#formatlist)  | List of container format value objects. |
+| `std::vector< Format * >` | [`FormatPList`](#formatplist)  | List of container format pointers. |
+| `IEncoder` | [`IPacketEncoder`](#ipacketencoder)  | Legacy alias for [IEncoder](#iencoder) kept for 0.8.x compatibility. |
 
 ---
 
@@ -149,6 +149,8 @@ Bitmask of media capabilities detected on this system.
 std::list< Codec > CodecList()
 ```
 
+List of codec value objects.
+
 ---
 
 {#codecplist}
@@ -158,6 +160,8 @@ std::list< Codec > CodecList()
 ```cpp
 std::list< Codec * > CodecPList()
 ```
+
+List of codec pointers.
 
 ---
 
@@ -169,6 +173,8 @@ std::list< Codec * > CodecPList()
 std::unique_ptr< AVFrame, Deleterp< AVFrame, void, av_frame_free > > AVFrameHolder()
 ```
 
+Owning AVFrame pointer released with av_frame_free().
+
 ---
 
 {#avformatcontextholder}
@@ -178,6 +184,8 @@ std::unique_ptr< AVFrame, Deleterp< AVFrame, void, av_frame_free > > AVFrameHold
 ```cpp
 std::unique_ptr< AVFormatContext, Deleter< AVFormatContext, void, avformat_free_context > > AVFormatContextHolder()
 ```
+
+Owning AVFormatContext pointer released with avformat_free_context().
 
 ---
 
@@ -189,6 +197,8 @@ std::unique_ptr< AVFormatContext, Deleter< AVFormatContext, void, avformat_free_
 std::unique_ptr< AVCodecContext, Deleterp< AVCodecContext, void, avcodec_free_context > > AVCodecContextHolder()
 ```
 
+Owning AVCodecContext pointer released with avcodec_free_context().
+
 ---
 
 {#avdictionarycleanup}
@@ -198,6 +208,8 @@ std::unique_ptr< AVCodecContext, Deleterp< AVCodecContext, void, avcodec_free_co
 ```cpp
 std::unique_ptr< AVDictionary *, Deleter< AVDictionary *, void, av_dict_free > > AVDictionaryCleanup()
 ```
+
+Cleanup wrapper for AVDictionary* values freed with av_dict_free().
 
 ---
 
@@ -209,6 +221,8 @@ std::unique_ptr< AVDictionary *, Deleter< AVDictionary *, void, av_dict_free > >
 std::unique_ptr< AVPacket, Deleterp< AVPacket, void, av_packet_free > > AVPacketHolder()
 ```
 
+Owning AVPacket pointer released with av_packet_free().
+
 ---
 
 {#formatlist}
@@ -218,6 +232,8 @@ std::unique_ptr< AVPacket, Deleterp< AVPacket, void, av_packet_free > > AVPacket
 ```cpp
 std::vector< Format > FormatList()
 ```
+
+List of container format value objects.
 
 ---
 
@@ -229,6 +245,8 @@ std::vector< Format > FormatList()
 std::vector< Format * > FormatPList()
 ```
 
+List of container format pointers.
+
 ---
 
 {#ipacketencoder}
@@ -239,30 +257,30 @@ std::vector< Format * > FormatPList()
 IEncoder IPacketEncoder()
 ```
 
-0.8.x compatibility
+Legacy alias for [IEncoder](#iencoder) kept for 0.8.x compatibility.
 
 ### Functions
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `void` | [`initAudioCodecFromContext`](#initaudiocodecfromcontext)  | Populate an [AudioCodec](#audiocodec) from an open AVCodecContext.  |
-| `AVSampleFormat` | [`selectSampleFormat`](#selectsampleformat)  | Select the best supported sample format for a codec given the requested parameters. Returns the requested format if supported, otherwise the first format with the same planarity.  |
-| `bool` | [`isSampleFormatSupported`](#issampleformatsupported)  | Check whether a specific sample format is in the codec's supported list.  |
-| `bool` | [`formatIsPlanar`](#formatisplanar)  | Return true if the named sample format is planar (e.g. "fltp", "s16p").  |
-| `bool` | [`formatIsPlanar`](#formatisplanar-1)  | Return true if the given AVSampleFormat is planar.  |
-| `int64_t` | [`fpsToInterval`](#fpstointerval) `inline` | Convert a frame rate to a nanosecond frame interval.  |
-| `int` | [`intervalToFps`](#intervaltofps) `inline` | Convert a nanosecond frame interval to a frame rate.  |
-| `float` | [`intervalToFpsFloat`](#intervaltofpsfloat) `inline` | Convert a nanosecond frame interval to a floating-point frame rate.  |
+| `void` | [`initAudioCodecFromContext`](#initaudiocodecfromcontext)  | Populate an [AudioCodec](#audiocodec) from an open AVCodecContext. |
+| `AVSampleFormat` | [`selectSampleFormat`](#selectsampleformat)  | Select the best supported sample format for a codec given the requested parameters. Returns the requested format if supported, otherwise the first format with the same planarity. |
+| `bool` | [`isSampleFormatSupported`](#issampleformatsupported)  | Check whether a specific sample format is in the codec's supported list. |
+| `bool` | [`formatIsPlanar`](#formatisplanar)  | Return true if the named sample format is planar (e.g. "fltp", "s16p"). |
+| `bool` | [`formatIsPlanar`](#formatisplanar-1)  | Return true if the given AVSampleFormat is planar. |
+| `int64_t` | [`fpsToInterval`](#fpstointerval) `inline` | Convert a frame rate to a nanosecond frame interval. |
+| `int` | [`intervalToFps`](#intervaltofps) `inline` | Convert a nanosecond frame interval to a frame rate. |
+| `float` | [`intervalToFpsFloat`](#intervaltofpsfloat) `inline` | Convert a nanosecond frame interval to a floating-point frame rate. |
 | `void` | [`initializeFFmpeg`](#initializeffmpeg)  | Initialize the FFmpeg library. |
 | `void` | [`uninitializeFFmpeg`](#uninitializeffmpeg)  | Uninitializes the FFmpeg library. |
 | `std::string` | [`averror`](#averror)  | Get an error string for the given error code. |
-| `void` | [`printInputFormats`](#printinputformats)  | Print all available FFmpeg demuxer (input) format names to the given stream.  |
-| `void` | [`printOutputFormats`](#printoutputformats)  | Print all available FFmpeg muxer (output) format names to the given stream.  |
-| `void` | [`printEncoders`](#printencoders)  | Print all available FFmpeg encoder names to the given stream.  |
-| `AVFrame *` | [`createVideoFrame`](#createvideoframe)  | Allocate a new AVFrame with the given pixel format and dimensions. Uses av_frame_get_buffer for reference-counted allocation with 16-byte alignment.  |
-| `AVFrame *` | [`cloneVideoFrame`](#clonevideoframe)  | Perform a deep copy of an AVFrame including its buffer data and properties.  |
-| `void` | [`initVideoCodecFromContext`](#initvideocodecfromcontext)  | Populate a [VideoCodec](#videocodec) from an open AVStream and AVCodecContext.  |
-| `AVPixelFormat` | [`selectPixelFormat`](#selectpixelformat)  | Select the best supported pixel format for a codec given the requested parameters. Returns the requested format if supported, otherwise the first format with the same plane count.  |
+| `void` | [`printInputFormats`](#printinputformats)  | Print all available FFmpeg demuxer (input) format names to the given stream. |
+| `void` | [`printOutputFormats`](#printoutputformats)  | Print all available FFmpeg muxer (output) format names to the given stream. |
+| `void` | [`printEncoders`](#printencoders)  | Print all available FFmpeg encoder names to the given stream. |
+| `AVFrame *` | [`createVideoFrame`](#createvideoframe)  | Allocate a new AVFrame with the given pixel format and dimensions. Uses av_frame_get_buffer for reference-counted allocation with 16-byte alignment. |
+| `AVFrame *` | [`cloneVideoFrame`](#clonevideoframe)  | Perform a deep copy of an AVFrame including its buffer data and properties. |
+| `void` | [`initVideoCodecFromContext`](#initvideocodecfromcontext)  | Populate a [VideoCodec](#videocodec) from an open AVStream and AVCodecContext. |
+| `AVPixelFormat` | [`selectPixelFormat`](#selectpixelformat)  | Select the best supported pixel format for a codec given the requested parameters. Returns the requested format if supported, otherwise the first format with the same plane count. |
 
 ---
 
@@ -579,7 +597,7 @@ Monitors device add/remove events via AVFoundation notifications and CoreAudio p
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`AppleDeviceWatcher`](#appledevicewatcher-1) `explicit` | #### Parameters |
-| `bool` | [`start`](#start) `virtual` | Begin monitoring for device connect/disconnect events.  |
+| `bool` | [`start`](#start) `virtual` | Begin monitoring for device connect/disconnect events. |
 | `void` | [`stop`](#stop) `virtual` | Stop monitoring and release all notification observers. |
 
 ---
@@ -671,10 +689,10 @@ Cross-platform audio capture device backed by FFmpeg input devices.
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`AudioCapture`](#audiocapture-1)  | Construct without opening a device. Call [openAudio()](#openaudio) before [start()](#start-4). |
-|  | [`AudioCapture`](#audiocapture-2)  | Construct and immediately open the given audio device using an [AudioCodec](#audiocodec) params struct.  |
-|  | [`AudioCapture`](#audiocapture-3)  | Construct and immediately open the given audio device with individual parameters.  |
-| `void` | [`openAudio`](#openaudio) `virtual` | Open the given audio device using an [AudioCodec](#audiocodec) params struct.  |
-| `void` | [`openAudio`](#openaudio-1) `virtual` | Open the given audio device with individual parameters. Configures the FFmpeg input format and passes device options via AVDictionary. If the device cannot satisfy the requested parameters, resampling will be applied.  |
+|  | [`AudioCapture`](#audiocapture-2)  | Construct and immediately open the given audio device using an [AudioCodec](#audiocodec) params struct. |
+|  | [`AudioCapture`](#audiocapture-3)  | Construct and immediately open the given audio device with individual parameters. |
+| `void` | [`openAudio`](#openaudio) `virtual` | Open the given audio device using an [AudioCodec](#audiocodec) params struct. |
+| `void` | [`openAudio`](#openaudio-1) `virtual` | Open the given audio device with individual parameters. Configures the FFmpeg input format and passes device options via AVDictionary. If the device cannot satisfy the requested parameters, resampling will be applied. |
 
 ---
 
@@ -805,7 +823,7 @@ auto encoder = std::make_shared<av::AudioPacketEncoder>(); encoder->oparams = [a
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`AudioPacketEncoder`](#audiopacketencoder-1)  |  |
-|  | [`AudioPacketEncoder`](#audiopacketencoder-2)  |  |
+|  | [`AudioPacketEncoder`](#audiopacketencoder-2)  | Deleted constructor. |
 | `void` | [`process`](#process-1) `virtual` | [Process](base.md#process) an [AudioPacket](#audiopacket) or [PlanarAudioPacket](#planaraudiopacket) from the stream. Encodes the samples and emits the resulting compressed packet. |
 | `bool` | [`accepts`](#accepts) `virtual` | Accept [AudioPacket](#audiopacket) and [PlanarAudioPacket](#planaraudiopacket) types. |
 
@@ -828,6 +846,8 @@ AudioPacketEncoder(AVFormatContext * format)
 ```cpp
 AudioPacketEncoder(const AudioPacketEncoder &) = delete
 ```
+
+Deleted constructor.
 
 ---
 
@@ -939,18 +959,18 @@ NOTE: This signal may be emitted from a background thread (e.g. inotify thread o
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`DeviceManager`](#devicemanager-1)  |  |
-| `bool` | [`getCameras`](#getcameras) `const` | Populate `devices` with all connected video input (camera) devices.  |
-| `bool` | [`getMicrophones`](#getmicrophones) `const` | Populate `devices` with all connected audio input (microphone) devices.  |
-| `bool` | [`getSpeakers`](#getspeakers) `const` | Populate `devices` with all connected audio output (speaker) devices.  |
-| `bool` | [`getDefaultCamera`](#getdefaultcamera) `const` | Return the default (or first available) camera.  |
-| `bool` | [`getDefaultMicrophone`](#getdefaultmicrophone) `const` | Return the default (or first available) microphone.  |
-| `bool` | [`getDefaultSpeaker`](#getdefaultspeaker) `const` | Return the default (or first available) speaker.  |
-| `bool` | [`findCamera`](#findcamera) `const` | Find a camera by display name or device id.  |
-| `bool` | [`findMicrophone`](#findmicrophone) `const` | Find a microphone by display name or device id.  |
-| `bool` | [`findSpeaker`](#findspeaker) `const` | Find a speaker by display name or device id.  |
-| `bool` | [`getDeviceList`](#getdevicelist) `const` | Populate `devices` from the platform-specific backend for the given type.  |
+| `bool` | [`getCameras`](#getcameras) `const` | Populate `devices` with all connected video input (camera) devices. |
+| `bool` | [`getMicrophones`](#getmicrophones) `const` | Populate `devices` with all connected audio input (microphone) devices. |
+| `bool` | [`getSpeakers`](#getspeakers) `const` | Populate `devices` with all connected audio output (speaker) devices. |
+| `bool` | [`getDefaultCamera`](#getdefaultcamera) `const` | Return the default (or first available) camera. |
+| `bool` | [`getDefaultMicrophone`](#getdefaultmicrophone) `const` | Return the default (or first available) microphone. |
+| `bool` | [`getDefaultSpeaker`](#getdefaultspeaker) `const` | Return the default (or first available) speaker. |
+| `bool` | [`findCamera`](#findcamera) `const` | Find a camera by display name or device id. |
+| `bool` | [`findMicrophone`](#findmicrophone) `const` | Find a microphone by display name or device id. |
+| `bool` | [`findSpeaker`](#findspeaker) `const` | Find a speaker by display name or device id. |
+| `bool` | [`getDeviceList`](#getdevicelist) `const` | Populate `devices` from the platform-specific backend for the given type. |
 | `int` | [`getCapabilities`](#getcapabilities) `const` | #### Returns |
-| `void` | [`setWatcher`](#setwatcher)  | Replace the active device watcher. Takes ownership.  |
+| `void` | [`setWatcher`](#setwatcher)  | Replace the active device watcher. Takes ownership. |
 | `DeviceWatcher *` | [`watcher`](#watcher) `const` | #### Returns |
 | `void` | [`print`](#print-3) `const` | Print all devices to the output stream. |
 | `std::vector< HardwareCodec >` | [`getHardwareCodecs`](#gethardwarecodecs) `const` | Detect available hardware-accelerated codecs via FFmpeg. |
@@ -1458,9 +1478,9 @@ virtual inline void stop()
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`FormatRegistry`](#formatregistry-1)  |  |
-| `Format &` | [`get`](#get) `virtual` | Return the format with the given display name. Throws std::runtime_error if no format with that name is registered.  |
-| `Format &` | [`getByID`](#getbyid) `virtual` | Return the format with the given short ID (e.g. "mp4"). Throws std::runtime_error if no format with that ID is registered.  |
-| `Format &` | [`getOrDefault`](#getordefault) `virtual` | Return the format with the given name, or the default format if not found.  |
+| `Format &` | [`get`](#get) `virtual` | Return the format with the given display name. Throws std::runtime_error if no format with that name is registered. |
+| `Format &` | [`getByID`](#getbyid) `virtual` | Return the format with the given short ID (e.g. "mp4"). Throws std::runtime_error if no format with that ID is registered. |
+| `Format &` | [`getOrDefault`](#getordefault) `virtual` | Return the format with the given name, or the default format if not found. |
 | `Format &` | [`getDefault`](#getdefault) `virtual` | If a default has been specified it will be returned, other the format with the highest priority will take precedence. |
 | `void` | [`registerFormat`](#registerformat) `virtual` | Registers the given media format overriding existing media formats of the same name. |
 | `bool` | [`unregisterFormat`](#unregisterformat) `virtual` | Unregisters the media format matching the given name. |
@@ -1692,8 +1712,8 @@ std::mutex _mutex
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`FormatRegistry`](#formatregistry-2)  |  |
-|  | [`FormatRegistry`](#formatregistry-3)  |  |
+|  | [`FormatRegistry`](#formatregistry-2)  | Deleted constructor. |
+|  | [`FormatRegistry`](#formatregistry-3)  | Deleted constructor. |
 | `Format &` | [`findByName`](#findbyname)  |  |
 | `Format &` | [`defaultLocked`](#defaultlocked)  |  |
 
@@ -1707,6 +1727,8 @@ std::mutex _mutex
 FormatRegistry(const FormatRegistry &) = delete
 ```
 
+Deleted constructor.
+
 ---
 
 {#formatregistry-3}
@@ -1716,6 +1738,8 @@ FormatRegistry(const FormatRegistry &) = delete
 ```cpp
 FormatRegistry(FormatRegistry &&) = delete
 ```
+
+Deleted constructor.
 
 ---
 
@@ -1927,8 +1951,8 @@ PacketSignal emitter
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`FPSLimiter`](#fpslimiter-1) `inline` | Construct the limiter.  |
-| `void` | [`process`](#process-2) `virtual` `inline` | [Process](base.md#process) a packet: forward it if within the rate limit, drop it otherwise.  |
+|  | [`FPSLimiter`](#fpslimiter-1) `inline` | Construct the limiter. |
+| `void` | [`process`](#process-2) `virtual` `inline` | [Process](base.md#process) a packet: forward it if within the rate limit, drop it otherwise. |
 | `void` | [`onStreamStateChange`](#onstreamstatechange-1) `virtual` `inline` | Reset the FPS counter when the stream state changes. |
 
 ---
@@ -2053,13 +2077,13 @@ PacketSignal emitter
 |  | [`ICapture`](#icapture-1) `inline` |  |
 | `void` | [`start`](#start-2)  | Start capturing and emitting packets. |
 | `void` | [`stop`](#stop-2)  | Stop capturing and release device resources. |
-| `void` | [`openFile`](#openfile) `virtual` `inline` | Open a media file as the capture source.  |
+| `void` | [`openFile`](#openfile) `virtual` `inline` | Open a media file as the capture source. |
 | `void` | [`close`](#close-5) `virtual` `inline` | Release the capture source and any associated resources. |
-| `void` | [`getEncoderFormat`](#getencoderformat)  | Populate `iformat` with the encoder-ready format derived from this capture source.  |
-| `void` | [`getEncoderAudioCodec`](#getencoderaudiocodec) `virtual` `inline` | Populate `params` with the encoder-ready audio codec parameters.  |
-| `void` | [`getEncoderVideoCodec`](#getencodervideocodec) `virtual` `inline` | Populate `params` with the encoder-ready video codec parameters.  |
-| `void` | [`openAudio`](#openaudio-2) `virtual` `inline` | Open an audio capture device with the given parameters.  |
-| `void` | [`openVideo`](#openvideo) `virtual` `inline` | Open a video capture device with the given parameters.  |
+| `void` | [`getEncoderFormat`](#getencoderformat)  | Populate `iformat` with the encoder-ready format derived from this capture source. |
+| `void` | [`getEncoderAudioCodec`](#getencoderaudiocodec) `virtual` `inline` | Populate `params` with the encoder-ready audio codec parameters. |
+| `void` | [`getEncoderVideoCodec`](#getencodervideocodec) `virtual` `inline` | Populate `params` with the encoder-ready video codec parameters. |
+| `void` | [`openAudio`](#openaudio-2) `virtual` `inline` | Open an audio capture device with the given parameters. |
+| `void` | [`openVideo`](#openvideo) `virtual` `inline` | Open a video capture device with the given parameters. |
 | `void` | [`onStreamStateChange`](#onstreamstatechange-2) `virtual` `inline` | React to [PacketStream](base.md#packetstream) state transitions by starting or stopping capture. |
 
 ---
@@ -2265,7 +2289,7 @@ This is the abstract class for all encoders.
 | `EncoderOptions &` | [`options`](#options-1)  | #### Returns |
 | `void` | [`createVideo`](#createvideo) `virtual` `inline` | Initialise the video codec context and stream. |
 | `void` | [`freeVideo`](#freevideo) `virtual` `inline` | Free the video codec context and stream. |
-| `bool` | [`encodeVideo`](#encodevideo) `virtual` `inline` | Encode a single AVFrame of video.  |
+| `bool` | [`encodeVideo`](#encodevideo) `virtual` `inline` | Encode a single AVFrame of video. |
 | `void` | [`createAudio`](#createaudio) `virtual` `inline` | Initialise the audio codec context and stream. |
 | `void` | [`freeAudio`](#freeaudio) `virtual` `inline` | Free the audio codec context and stream. |
 | `void` | [`flush`](#flush-3) `virtual` `inline` | Flush any internally buffered packets to the output. |
@@ -2546,7 +2570,7 @@ Monitors device add/remove events via libudev.
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`LinuxDeviceWatcher`](#linuxdevicewatcher-1) `explicit` | #### Parameters |
-| `bool` | [`start`](#start-3) `virtual` | Begin monitoring via libudev inotify events.  |
+| `bool` | [`start`](#start-3) `virtual` | Begin monitoring via libudev inotify events. |
 | `void` | [`stop`](#stop-3) `virtual` | Stop monitoring and close the udev monitor. |
 
 ---
@@ -2657,16 +2681,16 @@ Signals that the capture thread is closing. This signal is emitted from the capt
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`MediaCapture`](#mediacapture-1)  |  |
-|  | [`MediaCapture`](#mediacapture-2)  |  |
-|  | [`MediaCapture`](#mediacapture-3)  |  |
-| `void` | [`openFile`](#openfile-1) `virtual` | Open a media file for decoding. Automatically detects video and audio streams.  |
+|  | [`MediaCapture`](#mediacapture-2)  | Deleted constructor. |
+|  | [`MediaCapture`](#mediacapture-3)  | Deleted constructor. |
+| `void` | [`openFile`](#openfile-1) `virtual` | Open a media file for decoding. Automatically detects video and audio streams. |
 | `void` | [`close`](#close-6) `virtual` | Stop the capture thread and close the media stream and all decoders. |
 | `void` | [`start`](#start-4) `virtual` | Start the background capture and decode thread. Throws std::runtime_error if no media streams have been opened. |
 | `void` | [`stop`](#stop-4) `virtual` | [Signal](base.md#signal) the capture thread to stop and join it before returning. |
 | `void` | [`run`](#run) `virtual` | Entry point for the background capture thread. Reads and decodes packets from the format context until EOF or [stop()](#stop-4) is called. |
-| `void` | [`getEncoderFormat`](#getencoderformat-1) `virtual` | Fill `format` with the combined encoder-ready video and audio codec parameters.  |
-| `void` | [`getEncoderAudioCodec`](#getencoderaudiocodec-1) `virtual` | Fill `params` with the decoder's output audio codec parameters. Throws std::runtime_error if audio parameters have not been initialised.  |
-| `void` | [`getEncoderVideoCodec`](#getencodervideocodec-1) `virtual` | Fill `params` with the decoder's output video codec parameters. Throws std::runtime_error if video parameters have not been initialised.  |
+| `void` | [`getEncoderFormat`](#getencoderformat-1) `virtual` | Fill `format` with the combined encoder-ready video and audio codec parameters. |
+| `void` | [`getEncoderAudioCodec`](#getencoderaudiocodec-1) `virtual` | Fill `params` with the decoder's output audio codec parameters. Throws std::runtime_error if audio parameters have not been initialised. |
+| `void` | [`getEncoderVideoCodec`](#getencodervideocodec-1) `virtual` | Fill `params` with the decoder's output video codec parameters. Throws std::runtime_error if video parameters have not been initialised. |
 | `void` | [`setLoopInput`](#setloopinput)  | Continuously loop the input file when set. |
 | `void` | [`setLimitFramerate`](#setlimitframerate)  | Limit playback to video FPS. |
 | `void` | [`setRealtimePTS`](#setrealtimepts)  | Set to use realtime PTS calculation. This is preferred when using live captures as FFmpeg-provided values are not always reliable. |
@@ -2696,6 +2720,8 @@ MediaCapture()
 MediaCapture(const MediaCapture &) = delete
 ```
 
+Deleted constructor.
+
 ---
 
 {#mediacapture-3}
@@ -2705,6 +2731,8 @@ MediaCapture(const MediaCapture &) = delete
 ```cpp
 MediaCapture(MediaCapture &&) = delete
 ```
+
+Deleted constructor.
 
 ---
 
@@ -3057,7 +3085,7 @@ std::atomic< bool > _ratelimit
 | Return | Name | Description |
 |--------|------|-------------|
 | `void` | [`openStream`](#openstream-1) `virtual` | Open the underlying media stream. |
-| `void` | [`emit`](#emit) `virtual` | Emit an existing packet directly onto the outgoing signal.  |
+| `void` | [`emit`](#emit) `virtual` | Emit an existing packet directly onto the outgoing signal. |
 
 ---
 
@@ -3145,9 +3173,9 @@ PacketSignal emitter
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`MultiplexEncoder`](#multiplexencoder-1)  | Construct the encoder with the given options.  |
-|  | [`MultiplexEncoder`](#multiplexencoder-2)  |  |
-|  | [`MultiplexEncoder`](#multiplexencoder-3)  |  |
+|  | [`MultiplexEncoder`](#multiplexencoder-1)  | Construct the encoder with the given options. |
+|  | [`MultiplexEncoder`](#multiplexencoder-2)  | Deleted constructor. |
+|  | [`MultiplexEncoder`](#multiplexencoder-3)  | Deleted constructor. |
 | `void` | [`init`](#init-1) `virtual` | Open the output container, create codec streams, and write the format header. |
 | `void` | [`uninit`](#uninit-1) `virtual` | Flush encoded packets, write the format trailer, and close the output container. |
 | `void` | [`cleanup`](#cleanup-1) `virtual` | Release all resources allocated by [init()](#init-1) without writing a trailer. |
@@ -3189,6 +3217,8 @@ Construct the encoder with the given options.
 MultiplexEncoder(const MultiplexEncoder &) = delete
 ```
 
+Deleted constructor.
+
 ---
 
 {#multiplexencoder-3}
@@ -3198,6 +3228,8 @@ MultiplexEncoder(const MultiplexEncoder &) = delete
 ```cpp
 MultiplexEncoder(MultiplexEncoder &&) = delete
 ```
+
+Deleted constructor.
 
 ---
 
@@ -3623,13 +3655,13 @@ Encodes and multiplexes a realtime video stream form audio / video capture sourc
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`MultiplexPacketEncoder`](#multiplexpacketencoder-1)  | Construct the encoder with the given options.  |
-|  | [`MultiplexPacketEncoder`](#multiplexpacketencoder-2)  |  |
-|  | [`MultiplexPacketEncoder`](#multiplexpacketencoder-3)  |  |
-| `void` | [`encode`](#encode-6) `virtual` | Encode a [VideoPacket](#videopacket), dispatching to the planar or interleaved encode path as appropriate.  |
-| `void` | [`encode`](#encode-7) `virtual` | Encode an [AudioPacket](#audiopacket), dispatching to the planar or interleaved encode path as appropriate.  |
+|  | [`MultiplexPacketEncoder`](#multiplexpacketencoder-1)  | Construct the encoder with the given options. |
+|  | [`MultiplexPacketEncoder`](#multiplexpacketencoder-2)  | Deleted constructor. |
+|  | [`MultiplexPacketEncoder`](#multiplexpacketencoder-3)  | Deleted constructor. |
+| `void` | [`encode`](#encode-6) `virtual` | Encode a [VideoPacket](#videopacket), dispatching to the planar or interleaved encode path as appropriate. |
+| `void` | [`encode`](#encode-7) `virtual` | Encode an [AudioPacket](#audiopacket), dispatching to the planar or interleaved encode path as appropriate. |
 | `bool` | [`accepts`](#accepts-1) `virtual` | #### Returns |
-| `void` | [`process`](#process-3) `virtual` | Dispatch the incoming packet to [encode(VideoPacket&)](#encode-6) or [encode(AudioPacket&)](#encode-7). Throws std::invalid_argument if the packet type is unrecognised.  |
+| `void` | [`process`](#process-3) `virtual` | Dispatch the incoming packet to [encode(VideoPacket&)](#encode-6) or [encode(AudioPacket&)](#encode-7). Throws std::invalid_argument if the packet type is unrecognised. |
 
 ---
 
@@ -3655,6 +3687,8 @@ Construct the encoder with the given options.
 MultiplexPacketEncoder(const MultiplexPacketEncoder &) = delete
 ```
 
+Deleted constructor.
+
 ---
 
 {#multiplexpacketencoder-3}
@@ -3664,6 +3698,8 @@ MultiplexPacketEncoder(const MultiplexPacketEncoder &) = delete
 ```cpp
 MultiplexPacketEncoder(MultiplexPacketEncoder &&) = delete
 ```
+
+Deleted constructor.
 
 ---
 
@@ -3782,8 +3818,8 @@ Packets are sorted by their `time` field on insertion. On each pop attempt the q
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`RealtimePacketQueue`](#realtimepacketqueue-1) `inline` | Construct the queue with a maximum capacity.  |
-| `void` | [`push`](#push) `virtual` `inline` | Insert a packet into the queue and re-sort by presentation timestamp.  |
+|  | [`RealtimePacketQueue`](#realtimepacketqueue-1) `inline` | Construct the queue with a maximum capacity. |
+| `void` | [`push`](#push) `virtual` `inline` | Insert a packet into the queue and re-sort by presentation timestamp. |
 | `int64_t` | [`realTime`](#realtime) `inline` | Return the elapsed time since stream activation in microseconds. |
 
 ---
@@ -3944,10 +3980,10 @@ Cross-platform video device capturer backed by FFmpeg avdevice.
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`VideoCapture`](#videocapture-1)  | Construct without opening a device. Call [openVideo()](#openvideo-1) before [start()](#start-4). |
-|  | [`VideoCapture`](#videocapture-2)  | Construct and immediately open the given video device using a [VideoCodec](#videocodec) params struct.  |
-|  | [`VideoCapture`](#videocapture-3)  | Construct and immediately open the given video device with individual parameters.  |
-| `void` | [`openVideo`](#openvideo-1) `virtual` | Open the given video device using a [VideoCodec](#videocodec) params struct.  |
-| `void` | [`openVideo`](#openvideo-2) `virtual` | Open the given video device with individual parameters. Configures the FFmpeg input format and passes device options via AVDictionary. If the device cannot satisfy the requested parameters, pixel format conversion and scaling will be applied by the decoder.  |
+|  | [`VideoCapture`](#videocapture-2)  | Construct and immediately open the given video device using a [VideoCodec](#videocodec) params struct. |
+|  | [`VideoCapture`](#videocapture-3)  | Construct and immediately open the given video device with individual parameters. |
+| `void` | [`openVideo`](#openvideo-1) `virtual` | Open the given video device using a [VideoCodec](#videocodec) params struct. |
+| `void` | [`openVideo`](#openvideo-2) `virtual` | Open the given video device with individual parameters. Configures the FFmpeg input format and passes device options via AVDictionary. If the device cannot satisfy the requested parameters, pixel format conversion and scaling will be applied by the decoder. |
 
 ---
 
@@ -4082,7 +4118,7 @@ auto encoder = std::make_shared<av::VideoPacketEncoder>(); encoder->iparams = ca
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`VideoPacketEncoder`](#videopacketencoder-1)  |  |
-|  | [`VideoPacketEncoder`](#videopacketencoder-2)  |  |
+|  | [`VideoPacketEncoder`](#videopacketencoder-2)  | Deleted constructor. |
 | `void` | [`process`](#process-4) `virtual` | [Process](base.md#process) a [VideoPacket](#videopacket) or [PlanarVideoPacket](#planarvideopacket) from the stream. Encodes the frame and emits the resulting compressed packet. |
 | `bool` | [`accepts`](#accepts-2) `virtual` | Accept [VideoPacket](#videopacket) and [PlanarVideoPacket](#planarvideopacket) types. |
 
@@ -4105,6 +4141,8 @@ VideoPacketEncoder(AVFormatContext * format)
 ```cpp
 VideoPacketEncoder(const VideoPacketEncoder &) = delete
 ```
+
+Deleted constructor.
 
 ---
 
@@ -4198,7 +4236,7 @@ Monitors device add/remove events via IMMNotificationClient (audio) and Register
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`WindowsDeviceWatcher`](#windowsdevicewatcher-1) `explicit` | #### Parameters |
-| `bool` | [`start`](#start-5) `virtual` | Begin monitoring via IMMNotificationClient and RegisterDeviceNotification.  |
+| `bool` | [`start`](#start-5) `virtual` | Begin monitoring via IMMNotificationClient and RegisterDeviceNotification. |
 | `void` | [`stop`](#stop-5) `virtual` | Stop monitoring and unregister all device notifications. |
 
 ---
@@ -4306,14 +4344,14 @@ Underlying FFmpeg audio FIFO handle.
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`AudioBuffer`](#audiobuffer-1)  |  |
-|  | [`AudioBuffer`](#audiobuffer-2)  |  |
-|  | [`AudioBuffer`](#audiobuffer-3)  |  |
+|  | [`AudioBuffer`](#audiobuffer-2)  | Deleted constructor. |
+|  | [`AudioBuffer`](#audiobuffer-3)  | Deleted constructor. |
 | `void` | [`alloc`](#alloc)  | Allocate the audio FIFO buffer. |
 | `void` | [`reset`](#reset)  | Discard all samples currently held in the FIFO without freeing the buffer. |
 | `void` | [`close`](#close)  | Free the underlying AVAudioFifo buffer. |
 | `void` | [`write`](#write)  | Write samples into the FIFO buffer. |
 | `bool` | [`read`](#read)  | Read samples from the FIFO buffer. |
-| `int` | [`available`](#available) `const` | Return the number of samples per channel currently available in the FIFO.  |
+| `int` | [`available`](#available) `const` | Return the number of samples per channel currently available in the FIFO. |
 
 ---
 
@@ -4335,6 +4373,8 @@ AudioBuffer()
 AudioBuffer(const AudioBuffer &) = delete
 ```
 
+Deleted constructor.
+
 ---
 
 {#audiobuffer-3}
@@ -4344,6 +4384,8 @@ AudioBuffer(const AudioBuffer &) = delete
 ```cpp
 AudioBuffer(AudioBuffer &&) = delete
 ```
+
+Deleted constructor.
 
 ---
 
@@ -4487,11 +4529,11 @@ One of: u8, s16, s32, flt, dbl, u8p, s16p, s32p, fltp, dblp.
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`AudioCodec`](#audiocodec-1)  | Construct a disabled audio codec with zeroed parameters. |
-|  | [`AudioCodec`](#audiocodec-2)  | Construct an anonymous audio codec from raw parameters.  |
-|  | [`AudioCodec`](#audiocodec-3)  | Construct a named audio codec.  |
-|  | [`AudioCodec`](#audiocodec-4)  | Construct a named audio codec with an explicit FFmpeg encoder name.  |
+|  | [`AudioCodec`](#audiocodec-2)  | Construct an anonymous audio codec from raw parameters. |
+|  | [`AudioCodec`](#audiocodec-3)  | Construct a named audio codec. |
+|  | [`AudioCodec`](#audiocodec-4)  | Construct a named audio codec with an explicit FFmpeg encoder name. |
 | `std::string` | [`toString`](#tostring) `virtual` `const` | #### Returns |
-| `void` | [`print`](#print) `virtual` | Print a multi-line human-readable description to the given stream.  |
+| `void` | [`print`](#print) `virtual` | Print a multi-line human-readable description to the given stream. |
 
 ---
 
@@ -4791,17 +4833,17 @@ error message
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`AudioContext`](#audiocontext-1)  |  |
-|  | [`AudioContext`](#audiocontext-2)  |  |
-|  | [`AudioContext`](#audiocontext-3)  |  |
+|  | [`AudioContext`](#audiocontext-2)  | Deleted constructor. |
+|  | [`AudioContext`](#audiocontext-3)  | Deleted constructor. |
 | `void` | [`create`](#create)  | Initialise the AVCodecContext with codec-specific defaults. Implemented by [AudioEncoder](#audioencoder) and [AudioDecoder](#audiodecoder). |
 | `void` | [`open`](#open) `virtual` | Open the codec and create the resampler if input/output parameters differ. Throws std::runtime_error if the codec context has not been created. |
 | `void` | [`close`](#close-1) `virtual` | Close the codec context, free the frame, and reset timestamps. |
-| `bool` | [`decode`](#decode) `virtual` | Decode a compressed audio packet and emit the resulting samples.  |
-| `bool` | [`encode`](#encode) `virtual` | Encode a buffer of interleaved audio samples.  |
-| `bool` | [`encode`](#encode-1) `virtual` | Encode a buffer of planar audio samples.  |
-| `bool` | [`encode`](#encode-2) `virtual` | Encode a single AVFrame.  |
+| `bool` | [`decode`](#decode) `virtual` | Decode a compressed audio packet and emit the resulting samples. |
+| `bool` | [`encode`](#encode) `virtual` | Encode a buffer of interleaved audio samples. |
+| `bool` | [`encode`](#encode-1) `virtual` | Encode a buffer of planar audio samples. |
+| `bool` | [`encode`](#encode-2) `virtual` | Encode a single AVFrame. |
 | `void` | [`flush`](#flush) `virtual` | Flush any frames buffered inside the codec and emit remaining output. |
-| `bool` | [`recreateResampler`](#recreateresampler) `virtual` | Recreate the [AudioResampler](#audioresampler) using the current iparams and oparams. Called automatically by [open()](#open) when format conversion is required.  |
+| `bool` | [`recreateResampler`](#recreateresampler) `virtual` | Recreate the [AudioResampler](#audioresampler) using the current iparams and oparams. Called automatically by [open()](#open) when format conversion is required. |
 
 ---
 
@@ -4823,6 +4865,8 @@ AudioContext()
 AudioContext(const AudioContext &) = delete
 ```
 
+Deleted constructor.
+
 ---
 
 {#audiocontext-3}
@@ -4832,6 +4876,8 @@ AudioContext(const AudioContext &) = delete
 ```cpp
 AudioContext(AudioContext &&) = delete
 ```
+
+Deleted constructor.
 
 ---
 
@@ -5003,10 +5049,10 @@ Decodes compressed audio packets into raw sample frames.
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`AudioDecoder`](#audiodecoder-1)  | Construct a decoder for the given stream. The codec parameters are read from the stream's codecpar.  |
+|  | [`AudioDecoder`](#audiodecoder-1)  | Construct a decoder for the given stream. The codec parameters are read from the stream's codecpar. |
 | `void` | [`create`](#create-1) `virtual` | Initialise the AVCodecContext from the stream's codec parameters. |
 | `void` | [`close`](#close-2) `virtual` | Close and free the AVCodecContext and associated resources. |
-| `bool` | [`decode`](#decode-1) `virtual` | Decode the given compressed audio packet and emit the decoded samples.  |
+| `bool` | [`decode`](#decode-1) `virtual` | Decode the given compressed audio packet and emit the decoded samples. |
 | `void` | [`flush`](#flush-1) `virtual` | Flush any frames buffered inside the decoder. Call this after the last packet to retrieve all remaining decoded output. |
 
 ---
@@ -5128,12 +5174,12 @@ AVFormatContext * format
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`AudioEncoder`](#audioencoder-1)  | Construct an encoder, optionally tied to an existing muxer context.  |
+|  | [`AudioEncoder`](#audioencoder-1)  | Construct an encoder, optionally tied to an existing muxer context. |
 | `void` | [`create`](#create-2) `virtual` | Initialise the AVCodecContext using oparams. Adds an audio stream to `format` if one was provided at construction. |
 | `void` | [`close`](#close-3) `virtual` | Close and free the AVCodecContext, FIFO buffer, and associated resources. |
 | `bool` | [`encode`](#encode-3) `virtual` | Encode interleaved audio samples. |
 | `bool` | [`encode`](#encode-4) `virtual` | Encode planar audio samples. |
-| `bool` | [`encode`](#encode-5) `virtual` | Encode a single AVFrame (typically from a decoder or resampler).  |
+| `bool` | [`encode`](#encode-5) `virtual` | Encode a single AVFrame (typically from a decoder or resampler). |
 | `void` | [`flush`](#flush-2) `virtual` | Flush remaining packets to be encoded. This method should be called once before stream closure. |
 
 ---
@@ -5301,7 +5347,7 @@ Non-owning pointer to the encoded AVPacket from FFmpeg. Set by [AudioEncoder](#a
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`AudioPacket`](#audiopacket-1) `inline` | Construct an audio packet with an interleaved sample buffer.  |
+|  | [`AudioPacket`](#audiopacket-1) `inline` | Construct an audio packet with an interleaved sample buffer. |
 | `std::unique_ptr< IPacket >` | [`clone`](#clone) `virtual` `const` `inline` | #### Returns |
 | `uint8_t *` | [`samples`](#samples) `virtual` `const` `inline` | #### Returns |
 | `const char *` | [`className`](#classname) `virtual` `const` `inline` | Returns the class name of this packet type for logging and diagnostics. |
@@ -5509,8 +5555,8 @@ output sample format
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`AudioResampler`](#audioresampler-1)  |  |
-|  | [`AudioResampler`](#audioresampler-2)  |  |
-|  | [`AudioResampler`](#audioresampler-3)  |  |
+|  | [`AudioResampler`](#audioresampler-2)  | Deleted constructor. |
+|  | [`AudioResampler`](#audioresampler-3)  | Deleted constructor. |
 | `void` | [`open`](#open-1)  | Initialise the libswresample context using iparams and oparams. Throws std::runtime_error if the context is already open or if required parameters (channels, sample rate, format) are missing. |
 | `void` | [`close`](#close-4)  | Free the libswresample context and release the output sample buffer. |
 | `int` | [`resample`](#resample)  | Convert the input samples to the output format. NOTE: Input buffers must be contiguous, therefore only interleaved input formats are accepted at this point. |
@@ -5535,6 +5581,8 @@ AudioResampler(const AudioCodec & iparams, const AudioCodec & oparams)
 AudioResampler(const AudioResampler &) = delete
 ```
 
+Deleted constructor.
+
 ---
 
 {#audioresampler-3}
@@ -5544,6 +5592,8 @@ AudioResampler(const AudioResampler &) = delete
 ```cpp
 AudioResampler(AudioResampler &&) = delete
 ```
+
+Deleted constructor.
 
 ---
 
@@ -5717,12 +5767,12 @@ Arbitrary encoder options passed to FFmpeg via av_opt_set(). Keys are FFmpeg opt
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`Codec`](#codec-2)  | Construct a disabled codec with zeroed parameters. |
-|  | [`Codec`](#codec-3)  | Construct a codec with a display name, sample rate, bit rate, and enabled flag.  |
-|  | [`Codec`](#codec-4)  | Construct a codec with an explicit FFmpeg encoder name.  |
+|  | [`Codec`](#codec-3)  | Construct a codec with a display name, sample rate, bit rate, and enabled flag. |
+|  | [`Codec`](#codec-4)  | Construct a codec with an explicit FFmpeg encoder name. |
 |  | [`~Codec`](#codec-5) `virtual` | Codec(const Codec& r);. |
-| `std::string` | [`toString`](#tostring-1) `virtual` `const` | Return a compact string representation of this codec.  |
+| `std::string` | [`toString`](#tostring-1) `virtual` `const` | Return a compact string representation of this codec. |
 | `bool` | [`specified`](#specified) `const` | Returns true when this codec explicitly names either an RTP/media codec or an FFmpeg encoder and is enabled for use. |
-| `void` | [`print`](#print-1) `virtual` | Print a multi-line human-readable description to the given stream.  |
+| `void` | [`print`](#print-1) `virtual` | Print a multi-line human-readable description to the given stream. |
 
 ---
 
@@ -5846,7 +5896,7 @@ Print a multi-line human-readable description to the given stream.
 #include <icy/av/ffmpeg.h>
 ```
 
-Utilites for RAII:
+RAII helpers for owning FFmpeg allocation types.
 
 [Deleter](#deleter-1) adaptor for functions like av_free that take a pointer.
 
@@ -6004,8 +6054,8 @@ std::vector< AudioCapability > audioCapabilities
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`Device`](#device-1)  | Construct a device with Unknown type and empty fields. |
-|  | [`Device`](#device-2)  | Construct a device with explicit fields.  |
-| `void` | [`print`](#print-2) `const` | Print device details (type, id, name, capabilities) to the given stream.  |
+|  | [`Device`](#device-2)  | Construct a device with explicit fields. |
+| `void` | [`print`](#print-2) `const` | Print device details (type, id, name, capabilities) to the given stream. |
 | `bool` | [`operator==`](#operator-2) `const` `inline` | Equality based on type, id, and name. |
 | `VideoCapability` | [`bestVideoCapability`](#bestvideocapability) `const` `inline` | Find the video capability closest to the requested parameters. |
 | `AudioCapability` | [`bestAudioCapability`](#bestaudiocapability) `const` `inline` | Find the audio capability closest to the requested parameters. |
@@ -6410,7 +6460,9 @@ enum Type
 #include <icy/av/format.h>
 ```
 
-Defines a media container format which is available through the [Format](#format-1) Registry for encoding/decoding. A format defined preferred default values for each codec.
+Defines a media container format which is available through the [FormatRegistry](#formatregistry) for encoding or decoding.
+
+A format bundles the preferred default audio and video codec settings for a named container such as MP4, MKV, or WAV.
 
 ### Public Attributes
 
@@ -6489,13 +6541,13 @@ The priority this format will be displayed on the list.
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`Format`](#format-2)  | Ctors/Dtors. |
-|  | [`Format`](#format-3)  | Construct a multiplex (audio + video) format.  |
-|  | [`Format`](#format-4)  | Construct a video-only format.  |
-|  | [`Format`](#format-5)  | Construct an audio-only format.  |
+|  | [`Format`](#format-3)  | Construct a multiplex (audio + video) format. |
+|  | [`Format`](#format-4)  | Construct a video-only format. |
+|  | [`Format`](#format-5)  | Construct an audio-only format. |
 |  | [`Format`](#format-6)  |  |
 | `Type` | [`type`](#type-4) `const` | Return the media type (None, Video, Audio, or Multiplex) derived from which codecs are enabled. |
 | `std::string` | [`toString`](#tostring-2) `virtual` `const` | #### Returns |
-| `void` | [`print`](#print-4) `virtual` | Print a multi-line human-readable description to the given stream.  |
+| `void` | [`print`](#print-4) `virtual` | Print a multi-line human-readable description to the given stream. |
 
 ---
 
@@ -6632,7 +6684,7 @@ Print a multi-line human-readable description to the given stream.
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `bool` | [`preferable`](#preferable) `static` `inline` | Comparator returning true if `first` has higher priority than `second`.  |
+| `bool` | [`preferable`](#preferable) `static` `inline` | Comparator returning true if `first` has higher priority than `second`. |
 
 ---
 
@@ -6713,8 +6765,8 @@ Presentation timestamp in microseconds.
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`MediaPacket`](#mediapacket-1) `inline` | Construct with a non-owning or owning mutable buffer.  |
-|  | [`MediaPacket`](#mediapacket-2) `inline` | Construct with const data (copied, owning).  |
+|  | [`MediaPacket`](#mediapacket-1) `inline` | Construct with a non-owning or owning mutable buffer. |
+|  | [`MediaPacket`](#mediapacket-2) `inline` | Construct with const data (copied, owning). |
 |  | [`MediaPacket`](#mediapacket-3) `inline` | Copy constructor. |
 | `std::unique_ptr< IPacket >` | [`clone`](#clone-1) `virtual` `const` `inline` | #### Returns |
 | `const char *` | [`className`](#classname-1) `virtual` `const` `inline` | Returns the class name of this packet type for logging and diagnostics. |
@@ -6889,7 +6941,7 @@ bool owns_buffer = false
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`PlanarAudioPacket`](#planaraudiopacket-1)  | Construct a planar audio packet, copying the plane pointers (not the sample data).  |
+|  | [`PlanarAudioPacket`](#planaraudiopacket-1)  | Construct a planar audio packet, copying the plane pointers (not the sample data). |
 |  | [`PlanarAudioPacket`](#planaraudiopacket-2)  | Copy constructor. Performs a deep copy of the owned buffer if owns_buffer is set. |
 | `std::unique_ptr< IPacket >` | [`clone`](#clone-2) `virtual` `const` `inline` | #### Returns |
 | `const char *` | [`className`](#classname-2) `virtual` `const` `inline` | Returns the class name of this packet type for logging and diagnostics. |
@@ -7048,7 +7100,7 @@ Non-owning pointer to the decoded AVFrame from FFmpeg. Set by [VideoDecoder](#vi
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`PlanarVideoPacket`](#planarvideopacket-1)  | Construct a planar video packet, copying the plane pointers (not the pixel data).  |
+|  | [`PlanarVideoPacket`](#planarvideopacket-1)  | Construct a planar video packet, copying the plane pointers (not the pixel data). |
 |  | [`PlanarVideoPacket`](#planarvideopacket-2)  | Copy constructor. Performs a deep copy of the owned buffer if owns_buffer is set. |
 | `std::unique_ptr< IPacket >` | [`clone`](#clone-3) `virtual` `const` `inline` | #### Returns |
 | `const char *` | [`className`](#classname-3) `virtual` `const` `inline` | Returns the class name of this packet type for logging and diagnostics. |
@@ -7184,12 +7236,12 @@ std::string pixelFmt
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`VideoCodec`](#videocodec-1)  | Construct a disabled video codec with zeroed parameters. |
-|  | [`VideoCodec`](#videocodec-2)  | Construct an anonymous video codec from raw parameters.  |
-|  | [`VideoCodec`](#videocodec-3)  | Construct a named video codec.  |
-|  | [`VideoCodec`](#videocodec-4)  | Construct a named video codec with an explicit FFmpeg encoder name.  |
+|  | [`VideoCodec`](#videocodec-2)  | Construct an anonymous video codec from raw parameters. |
+|  | [`VideoCodec`](#videocodec-3)  | Construct a named video codec. |
+|  | [`VideoCodec`](#videocodec-4)  | Construct a named video codec with an explicit FFmpeg encoder name. |
 |  | [`VideoCodec`](#videocodec-5)  |  |
 | `std::string` | [`toString`](#tostring-3) `virtual` `const` | #### Returns |
-| `void` | [`print`](#print-5) `virtual` | Print a multi-line human-readable description to the given stream.  |
+| `void` | [`print`](#print-5) `virtual` | Print a multi-line human-readable description to the given stream. |
 
 ---
 
@@ -7498,18 +7550,18 @@ error message
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`VideoContext`](#videocontext-1)  |  |
-|  | [`VideoContext`](#videocontext-2)  |  |
-|  | [`VideoContext`](#videocontext-3)  |  |
+|  | [`VideoContext`](#videocontext-2)  | Deleted constructor. |
+|  | [`VideoContext`](#videocontext-3)  | Deleted constructor. |
 | `void` | [`create`](#create-3) `virtual` | Initialise the AVCodecContext with codec-specific defaults. Overridden by [VideoEncoder](#videoencoder) and [VideoDecoder](#videodecoder). |
 | `void` | [`open`](#open-2) `virtual` | Open the codec and create the pixel format conversion context if required. Throws std::runtime_error if the codec context has not been created. |
 | `void` | [`close`](#close-7) `virtual` | Close the codec context, free the frame, and reset timestamps. |
-| `bool` | [`decode`](#decode-2) `virtual` | Decode a compressed video packet and emit the resulting frame.  |
-| `bool` | [`encode`](#encode-8) `virtual` | Encode a buffer of interleaved video data.  |
-| `bool` | [`encode`](#encode-9) `virtual` | Encode a planar video frame.  |
-| `bool` | [`encode`](#encode-10) `virtual` | Encode a single AVFrame.  |
+| `bool` | [`decode`](#decode-2) `virtual` | Decode a compressed video packet and emit the resulting frame. |
+| `bool` | [`encode`](#encode-8) `virtual` | Encode a buffer of interleaved video data. |
+| `bool` | [`encode`](#encode-9) `virtual` | Encode a planar video frame. |
+| `bool` | [`encode`](#encode-10) `virtual` | Encode a single AVFrame. |
 | `void` | [`flush`](#flush-5) `virtual` | Flush any frames buffered inside the codec and emit remaining output. |
 | `AVFrame *` | [`convert`](#convert) `virtual` | Convert the video frame and return the result. |
-| `bool` | [`recreateConverter`](#recreateconverter) `virtual` | Recreate the [VideoConverter](#videoconverter) if the input or output parameters have changed. Called automatically by [open()](#open-2) and [convert()](#convert).  |
+| `bool` | [`recreateConverter`](#recreateconverter) `virtual` | Recreate the [VideoConverter](#videoconverter) if the input or output parameters have changed. Called automatically by [open()](#open-2) and [convert()](#convert). |
 
 ---
 
@@ -7531,6 +7583,8 @@ VideoContext()
 VideoContext(const VideoContext &) = delete
 ```
 
+Deleted constructor.
+
 ---
 
 {#videocontext-3}
@@ -7540,6 +7594,8 @@ VideoContext(const VideoContext &) = delete
 ```cpp
 VideoContext(VideoContext &&) = delete
 ```
+
+Deleted constructor.
 
 ---
 
@@ -7785,11 +7841,11 @@ Target output video parameters.
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`VideoConverter`](#videoconverter-1)  |  |
-|  | [`VideoConverter`](#videoconverter-2)  |  |
-|  | [`VideoConverter`](#videoconverter-3)  |  |
+|  | [`VideoConverter`](#videoconverter-2)  | Deleted constructor. |
+|  | [`VideoConverter`](#videoconverter-3)  | Deleted constructor. |
 | `void` | [`create`](#create-4) `virtual` | Initialise the libswscale context and allocate the output frame. Uses iparams and oparams to configure the conversion pipeline. Throws std::runtime_error if already initialised or if parameters are invalid. |
 | `void` | [`close`](#close-8) `virtual` | Free the libswscale context and the output frame. |
-| `AVFrame *` | [`convert`](#convert-1) `virtual` | Convert `iframe` to the output pixel format and resolution. The returned frame is owned by this converter and is overwritten on the next call.  |
+| `AVFrame *` | [`convert`](#convert-1) `virtual` | Convert `iframe` to the output pixel format and resolution. The returned frame is owned by this converter and is overwritten on the next call. |
 
 ---
 
@@ -7811,6 +7867,8 @@ VideoConverter()
 VideoConverter(const VideoConverter &) = delete
 ```
 
+Deleted constructor.
+
 ---
 
 {#videoconverter-3}
@@ -7820,6 +7878,8 @@ VideoConverter(const VideoConverter &) = delete
 ```cpp
 VideoConverter(VideoConverter &&) = delete
 ```
+
+Deleted constructor.
 
 ---
 
@@ -7884,11 +7944,11 @@ Decodes compressed video packets into raw frames.
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`VideoDecoder`](#videodecoder-1)  | Construct a decoder for the given stream. The codec parameters are read from the stream's codecpar.  |
+|  | [`VideoDecoder`](#videodecoder-1)  | Construct a decoder for the given stream. The codec parameters are read from the stream's codecpar. |
 | `void` | [`create`](#create-5) `virtual` | Initialise the AVCodecContext from the stream's codec parameters. |
 | `void` | [`open`](#open-3) `virtual` | Open the codec and initialise any required pixel format conversion context. |
 | `void` | [`close`](#close-9) `virtual` | Close and free the AVCodecContext and associated resources. |
-| `bool` | [`decode`](#decode-3) `virtual` | Decode the given compressed video packet and emit the decoded frame. Input packets must use the raw AVStream time base; time base conversion to microseconds is performed internally.  |
+| `bool` | [`decode`](#decode-3) `virtual` | Decode the given compressed video packet and emit the decoded frame. Input packets must use the raw AVStream time base; time base conversion to microseconds is performed internally. |
 | `void` | [`flush`](#flush-6) `virtual` | Flush any frames buffered inside the decoder. Call repeatedly after the last packet until false is returned. |
 
 ---
@@ -8013,12 +8073,12 @@ AVFormatContext * format
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`VideoEncoder`](#videoencoder-1)  | Construct an encoder, optionally tied to an existing muxer context.  |
+|  | [`VideoEncoder`](#videoencoder-1)  | Construct an encoder, optionally tied to an existing muxer context. |
 | `void` | [`create`](#create-6) `virtual` | Initialise the AVCodecContext using oparams. Adds a video stream to `format` if one was provided at construction. |
 | `void` | [`close`](#close-10) `virtual` | Close and free the AVCodecContext and associated resources. |
 | `bool` | [`encode`](#encode-11) `virtual` | Encode a single video frame. This method is for interleaved video formats. |
 | `bool` | [`encode`](#encode-12) `virtual` | Encode a single video frame. This method is for planar video formats. |
-| `bool` | [`encode`](#encode-13) `virtual` | Encode a single AVFrame (typically from a decoder or converter).  |
+| `bool` | [`encode`](#encode-13) `virtual` | Encode a single AVFrame (typically from a decoder or converter). |
 | `void` | [`flush`](#flush-7) `virtual` | Flush remaining packets to be encoded. This method should be called once before stream closure. |
 
 ---
@@ -8212,7 +8272,7 @@ Non-owning pointer to the encoded AVPacket from FFmpeg. Set by [VideoEncoder](#v
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`VideoPacket`](#videopacket-1) `inline` | Construct a video packet with an interleaved buffer.  |
+|  | [`VideoPacket`](#videopacket-1) `inline` | Construct a video packet with an interleaved buffer. |
 |  | [`VideoPacket`](#videopacket-2) `inline` | Copy constructor. The avpacket pointer is shallow-copied (non-owning). |
 | `std::unique_ptr< IPacket >` | [`clone`](#clone-4) `virtual` `const` `inline` | #### Returns |
 | `const char *` | [`className`](#classname-4) `virtual` `const` `inline` | Returns the class name of this packet type for logging and diagnostics. |
@@ -8294,7 +8354,7 @@ Linux V4L2 device enumeration helpers.
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `bool` | [`getDeviceList`](#getdevicelist-1)  | Enumerate video input devices using V4L2. Populates device capabilities (resolutions, frame rates, pixel formats).  |
+| `bool` | [`getDeviceList`](#getdevicelist-1)  | Enumerate video input devices using V4L2. Populates device capabilities (resolutions, frame rates, pixel formats). |
 
 ---
 
@@ -8325,7 +8385,7 @@ Apple CoreAudio device enumeration helpers.
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `bool` | [`getDeviceList`](#getdevicelist-2)  | Enumerate audio input and output devices using CoreAudio. Populates audio capabilities (sample rates, channels).  |
+| `bool` | [`getDeviceList`](#getdevicelist-2)  | Enumerate audio input and output devices using CoreAudio. Populates audio capabilities (sample rates, channels). |
 
 ---
 
@@ -8437,7 +8497,7 @@ double fps
 | `void` | [`reset`](#reset-2) `inline` | Reset all counters to zero. |
 | `bool` | [`started`](#started) `inline` | #### Returns |
 | `void` | [`startFrame`](#startframe) `inline` | Record the frame start time. |
-| `double` | [`endFrame`](#endframe) `inline` | Record the frame end time and update the cumulative FPS average.  |
+| `double` | [`endFrame`](#endframe) `inline` | Record the frame end time and update the cumulative FPS average. |
 
 ---
 
@@ -8534,7 +8594,7 @@ Apple AVFoundation device enumeration helpers.
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `bool` | [`getDeviceList`](#getdevicelist-3)  | Enumerate video input devices using AVFoundation. Populates device capabilities (resolutions, frame rates, pixel formats).  |
+| `bool` | [`getDeviceList`](#getdevicelist-3)  | Enumerate video input devices using AVFoundation. Populates device capabilities (resolutions, frame rates, pixel formats). |
 
 ---
 
@@ -8565,7 +8625,7 @@ Windows Media Foundation device enumeration helpers.
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `bool` | [`getDeviceList`](#getdevicelist-4)  | Enumerate video and audio input devices using Media Foundation. Populates device capabilities (resolutions, frame rates, pixel formats).  |
+| `bool` | [`getDeviceList`](#getdevicelist-4)  | Enumerate video and audio input devices using Media Foundation. Populates device capabilities (resolutions, frame rates, pixel formats). |
 
 ---
 
@@ -8596,7 +8656,7 @@ Windows WASAPI device enumeration helpers.
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `bool` | [`getDeviceList`](#getdevicelist-5)  | Enumerate audio input and output devices using WASAPI. Populates audio capabilities (sample rates, channels, formats).  |
+| `bool` | [`getDeviceList`](#getdevicelist-5)  | Enumerate audio input and output devices using WASAPI. Populates audio capabilities (sample rates, channels, formats). |
 
 ---
 

@@ -88,7 +88,7 @@ Months of the year.
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `std::vector< sched::Task * >` | [`TaskList`](#tasklist)  |  |
+| `std::vector< sched::Task * >` | [`TaskList`](#tasklist)  | Ordered list of task pointers used by the scheduler. |
 
 ---
 
@@ -100,12 +100,14 @@ Months of the year.
 std::vector< sched::Task * > TaskList()
 ```
 
+Ordered list of task pointers used by the scheduler.
+
 ### Functions
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `std::unique_ptr< sched::Task >` | [`instantiateTask`](#instantiatetask)  |  |
-| `std::unique_ptr< sched::Trigger >` | [`instantiateTrigger`](#instantiatetrigger)  |  |
+| `std::unique_ptr< sched::Task >` | [`instantiateTask`](#instantiatetask)  | Instantiate a registered [Task](#task-1) subtype using its default constructor. |
+| `std::unique_ptr< sched::Trigger >` | [`instantiateTrigger`](#instantiatetrigger)  | Instantiate a registered [Trigger](#trigger-1) subtype using its default constructor. |
 
 ---
 
@@ -117,6 +119,8 @@ std::vector< sched::Task * > TaskList()
 template<typename T> std::unique_ptr< sched::Task > instantiateTask()
 ```
 
+Instantiate a registered [Task](#task-1) subtype using its default constructor.
+
 ---
 
 {#instantiatetrigger}
@@ -126,6 +130,8 @@ template<typename T> std::unique_ptr< sched::Task > instantiateTask()
 ```cpp
 template<typename T> std::unique_ptr< sched::Trigger > instantiateTrigger()
 ```
+
+Instantiate a registered [Trigger](#trigger-1) subtype using its default constructor.
 
 {#scheduler}
 
@@ -144,12 +150,12 @@ The [Scheduler](#scheduler) manages and runs tasks that need to be executed at s
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`Scheduler`](#scheduler-1)  |  |
-| `void` | [`schedule`](#schedule) `virtual` | Adds `task` to the scheduler and starts running it on its configured trigger. The scheduler takes ownership of the task.  |
-| `void` | [`cancel`](#cancel-4) `virtual` | Removes `task` from the scheduler and cancels any pending execution.  |
+| `void` | [`schedule`](#schedule) `virtual` | Adds `task` to the scheduler and starts running it on its configured trigger. The scheduler takes ownership of the task. |
+| `void` | [`cancel`](#cancel-4) `virtual` | Removes `task` from the scheduler and cancels any pending execution. |
 | `void` | [`clear`](#clear-2) `virtual` | Removes all scheduled tasks. |
-| `void` | [`serialize`](#serialize-3) `virtual` | Serializes all scheduled tasks and their triggers to `root`.  |
-| `void` | [`deserialize`](#deserialize-3) `virtual` | Reconstructs the task list from `root` using the [TaskFactory](#taskfactory). Skips entries that fail to deserialize and logs the error.  |
-| `void` | [`print`](#print-14) `virtual` | Writes a pretty-printed JSON representation of all tasks to `ost`.  |
+| `void` | [`serialize`](#serialize-3) `virtual` | Serializes all scheduled tasks and their triggers to `root`. |
+| `void` | [`deserialize`](#deserialize-3) `virtual` | Reconstructs the task list from `root` using the [TaskFactory](#taskfactory). Skips entries that fail to deserialize and logs the error. |
+| `void` | [`print`](#print-14) `virtual` | Writes a pretty-printed JSON representation of all tasks to `ost`. |
 | `bool` | [`cancel`](#cancel-5)  | Cancels a task. |
 
 ---
@@ -354,18 +360,18 @@ Scheduled task with an attached trigger and scheduler association.
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`Task`](#task-2)  | Constructs a detached task without an associated scheduler. A trigger must be set before scheduling.  |
-|  | [`Task`](#task-3)  | Constructs a task associated with the given scheduler.  |
+|  | [`Task`](#task-2)  | Constructs a detached task without an associated scheduler. A trigger must be set before scheduling. |
+|  | [`Task`](#task-3)  | Constructs a task associated with the given scheduler. |
 | `void` | [`serialize`](#serialize-4) `virtual` | Serializes the task to JSON. |
 | `void` | [`deserialize`](#deserialize-4) `virtual` | Deserializes the task from JSON. |
-| `T *` | [`createTrigger`](#createtrigger) `inline` | Creates a trigger of type T, attaches it to this task, and returns a raw pointer to it. Ownership of the trigger is transferred to this task.  |
-| `void` | [`setTrigger`](#settrigger)  | Replaces the current trigger with `trigger`.  |
+| `T *` | [`createTrigger`](#createtrigger) `inline` | Creates a trigger of type T, attaches it to this task, and returns a raw pointer to it. Ownership of the trigger is transferred to this task. |
+| `void` | [`setTrigger`](#settrigger)  | Replaces the current trigger with `trigger`. |
 | `sched::Trigger &` | [`trigger`](#trigger)  | Returns a reference to the associated [sched::Trigger](#trigger-1) or throws an exception. |
 | `Scheduler &` | [`scheduler`](#scheduler-2)  | Returns a reference to the associated [Scheduler](#scheduler) or throws an exception. |
 | `std::int64_t` | [`remaining`](#remaining) `const` | Returns the milliseconds remaining until the next scheduled timeout. An [sched::Trigger](#trigger-1) must be associated or an exception will be thrown. |
 | `std::string` | [`type`](#type-16) `const` | Returns the registered type string for this task. |
 | `std::string` | [`name`](#name-8) `const` | Returns the human-readable display name of this task. |
-| `void` | [`setName`](#setname-1)  | Sets the human-readable display name.  |
+| `void` | [`setName`](#setname-1)  | Sets the human-readable display name. |
 
 ---
 
@@ -660,13 +666,13 @@ The [TaskFactory](#taskfactory) can dynamically instantiate registered [sched::T
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `std::unique_ptr< sched::Task >` | [`createTask`](#createtask) `inline` | Instantiates and returns a registered task by type name.  |
-| `void` | [`registerTask`](#registertask) `inline` | Registers a task type T under the given name. Subsequent calls to [createTask()](#createtask) with this `type` will return a T instance.  |
-| `void` | [`unregisterTask`](#unregistertask) `inline` | Removes the task registration for `type`. No-op if not registered.  |
+| `std::unique_ptr< sched::Task >` | [`createTask`](#createtask) `inline` | Instantiates and returns a registered task by type name. |
+| `void` | [`registerTask`](#registertask) `inline` | Registers a task type T under the given name. Subsequent calls to [createTask()](#createtask) with this `type` will return a T instance. |
+| `void` | [`unregisterTask`](#unregistertask) `inline` | Removes the task registration for `type`. No-op if not registered. |
 | `TaskMap` | [`tasks`](#tasks-2) `const` `inline` | Returns a snapshot copy of the registered task map. |
-| `std::unique_ptr< sched::Trigger >` | [`createTrigger`](#createtrigger-1) `inline` | Instantiates and returns a registered trigger by type name.  |
-| `void` | [`registerTrigger`](#registertrigger) `inline` | Registers a trigger type T under the given name.  |
-| `void` | [`unregisterTrigger`](#unregistertrigger) `inline` | Removes the trigger registration for `type`. No-op if not registered.  |
+| `std::unique_ptr< sched::Trigger >` | [`createTrigger`](#createtrigger-1) `inline` | Instantiates and returns a registered trigger by type name. |
+| `void` | [`registerTrigger`](#registertrigger) `inline` | Registers a trigger type T under the given name. |
+| `void` | [`unregisterTrigger`](#unregistertrigger) `inline` | Removes the trigger registration for `type`. No-op if not registered. |
 | `TriggerMap` | [`triggers`](#triggers) `const` `inline` | Returns a snapshot copy of the registered trigger map. |
 
 ---
@@ -1026,8 +1032,8 @@ The maximum number of times the task will be run before it is destroyed. 0 for n
 |  | [`IntervalTrigger`](#intervaltrigger-1)  | Constructs the trigger with type "IntervalTrigger" and maxTimes = 0 (unlimited). |
 | `void` | [`update`](#update-3) `virtual` | Advances scheduleAt by one `interval` period. |
 | `bool` | [`expired`](#expired-2) `virtual` | Returns true when maxTimes > 0 and timesRun >= maxTimes. |
-| `void` | [`serialize`](#serialize-2) `virtual` | Serializes interval fields (days, hours, minutes, seconds) in addition to base fields.  |
-| `void` | [`deserialize`](#deserialize-2) `virtual` | Deserializes interval fields from `root`. Throws if the resulting interval is zero.  |
+| `void` | [`serialize`](#serialize-2) `virtual` | Serializes interval fields (days, hours, minutes, seconds) in addition to base fields. |
+| `void` | [`deserialize`](#deserialize-2) `virtual` | Deserializes interval fields from `root`. Throws if the resulting interval is zero. |
 
 ---
 
@@ -1266,8 +1272,8 @@ The time the task was last run.
 | `std::int64_t` | [`remaining`](#remaining-1) `virtual` | Returns the milliseconds remaining until the next scheduled timeout. |
 | `bool` | [`timeout`](#timeout-4) `virtual` | Returns true if the task is ready to be run, false otherwise. |
 | `bool` | [`expired`](#expired-4) `virtual` | Returns true if the task is expired and should be destroyed. Returns false by default. |
-| `void` | [`serialize`](#serialize-5) `virtual` | Serializes timing state (type, name, createdAt, scheduleAt, lastRunAt, timesRun) to `root`.  |
-| `void` | [`deserialize`](#deserialize-5) `virtual` | Deserializes timing state from `root`.  |
+| `void` | [`serialize`](#serialize-5) `virtual` | Serializes timing state (type, name, createdAt, scheduleAt, lastRunAt, timesRun) to `root`. |
+| `void` | [`deserialize`](#deserialize-5) `virtual` | Deserializes timing state from `root`. |
 
 ---
 

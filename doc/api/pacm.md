@@ -117,8 +117,8 @@ Keyed store of remote package metadata indexed by package ID.
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `std::string` | [`getInstallTaskNamesString`](#getinstalltasknamesstring) `inline` | Returns a comma-delimited string of display names from `packages`.  |
-| `void` | [`validatePathComponent`](#validatepathcomponent) `inline` | Validates that a string is safe to use as a path component. Rejects path traversal sequences (..), directory separators (/ and ), null bytes, and empty strings.  |
+| `std::string` | [`getInstallTaskNamesString`](#getinstalltasknamesstring) `inline` | Returns a comma-delimited string of display names from `packages`. |
+| `void` | [`validatePathComponent`](#validatepathcomponent) `inline` | Validates that a string is safe to use as a path component. Rejects path traversal sequences (..), directory separators (/ and ), null bytes, and empty strings. |
 
 ---
 
@@ -232,8 +232,8 @@ Signals on all tasks complete.
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`InstallMonitor`](#installmonitor-1)  |  |
-|  | [`InstallMonitor`](#installmonitor-2)  |  |
-|  | [`InstallMonitor`](#installmonitor-3)  |  |
+|  | [`InstallMonitor`](#installmonitor-2)  | Deleted constructor. |
+|  | [`InstallMonitor`](#installmonitor-3)  | Deleted constructor. |
 | `void` | [`addTask`](#addtask) `virtual` | Adds a task to monitor. |
 | `void` | [`startAll`](#startall) `virtual` | Starts all monitored tasks. |
 | `void` | [`cancelAll`](#cancelall) `virtual` | Cancels all monitored tasks. |
@@ -261,6 +261,8 @@ InstallMonitor()
 InstallMonitor(const InstallMonitor &) = delete
 ```
 
+Deleted constructor.
+
 ---
 
 {#installmonitor-3}
@@ -270,6 +272,8 @@ InstallMonitor(const InstallMonitor &) = delete
 ```cpp
 InstallMonitor(InstallMonitor &&) = delete
 ```
+
+Deleted constructor.
 
 ---
 
@@ -496,9 +500,9 @@ Signals on task completion for both success and failure cases.
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`InstallTask`](#installtask-1)  | #### Parameters |
-|  | [`InstallTask`](#installtask-2)  |  |
-|  | [`InstallTask`](#installtask-3)  |  |
-| `void` | [`start`](#start-10) `virtual` | Validates options, resolves the install directory, and launches the background runner.  |
+|  | [`InstallTask`](#installtask-2)  | Deleted constructor. |
+|  | [`InstallTask`](#installtask-3)  | Deleted constructor. |
+| `void` | [`start`](#start-10) `virtual` | Validates options, resolves the install directory, and launches the background runner. |
 | `void` | [`cancel`](#cancel-3) `virtual` | Transitions the task to the Cancelled state. |
 | `void` | [`doDownload`](#dodownload) `virtual` | Downloads the package archive from the server. |
 | `void` | [`doExtract`](#doextract) `virtual` | Extracts the downloaded package files to the intermediate directory. |
@@ -550,6 +554,8 @@ InstallTask(PackageManager & manager, LocalPackage * local, RemotePackage * remo
 InstallTask(const InstallTask &) = delete
 ```
 
+Deleted constructor.
+
 ---
 
 {#installtask-3}
@@ -559,6 +565,8 @@ InstallTask(const InstallTask &) = delete
 ```cpp
 InstallTask(InstallTask &&) = delete
 ```
+
+Deleted constructor.
 
 ---
 
@@ -1088,8 +1096,8 @@ Signals when a package installation tasks completes, either successfully or in e
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`PackageManager`](#packagemanager-1)  | #### Parameters |
-|  | [`PackageManager`](#packagemanager-2)  |  |
-|  | [`PackageManager`](#packagemanager-3)  |  |
+|  | [`PackageManager`](#packagemanager-2)  | Deleted constructor. |
+|  | [`PackageManager`](#packagemanager-3)  | Deleted constructor. |
 | `void` | [`initialize`](#initialize) `virtual` | Initialization Methods. |
 | `void` | [`uninitialize`](#uninitialize) `virtual` | Releases resources and cancels any in-progress tasks. |
 | `bool` | [`initialized`](#initialized-3) `virtual` `const` | Returns true if [initialize()](#initialize) has been called successfully. |
@@ -1097,7 +1105,7 @@ Signals when a package installation tasks completes, either successfully or in e
 | `void` | [`queryRemotePackages`](#queryremotepackages) `virtual` | Queries the server for a list of available packages. |
 | `void` | [`loadLocalPackages`](#loadlocalpackages) `virtual` | Loads all local package manifests from file system. Clears all in memory package manifests. |
 | `void` | [`loadLocalPackages`](#loadlocalpackages-1) `virtual` | Loads all local package manifests residing the the given directory. This method may be called multiple times for different paths because it does not clear in memory package manifests. |
-| `bool` | [`saveLocalPackages`](#savelocalpackages) `virtual` | Saves all local package manifests to the data directory.  |
+| `bool` | [`saveLocalPackages`](#savelocalpackages) `virtual` | Saves all local package manifests to the data directory. |
 | `bool` | [`saveLocalPackage`](#savelocalpackage) `virtual` | Saves the local package manifest to the file system. |
 | `void` | [`parseRemotePackages`](#parseremotepackages) `virtual` | Parse the remote packages from the given JSON data string. |
 | `InstallTask::Ptr` | [`installPackage`](#installpackage) `virtual` | [Package](#package) Installation Methods. |
@@ -1154,6 +1162,8 @@ PackageManager(const Options & options)
 PackageManager(const PackageManager &) = delete
 ```
 
+Deleted constructor.
+
 ---
 
 {#packagemanager-3}
@@ -1163,6 +1173,8 @@ PackageManager(const PackageManager &) = delete
 ```cpp
 PackageManager(PackageManager &&) = delete
 ```
+
+Deleted constructor.
 
 ---
 
@@ -1997,7 +2009,7 @@ inline Options(const std::string & root)
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `std::string` | [`str`](#str-2) `const` `inline` | Converts a state ID to its string representation.  |
+| `std::string` | [`str`](#str-2) `const` `inline` | Converts a state ID to its string representation. |
 
 ---
 
@@ -2133,7 +2145,7 @@ inline InstallOptions()
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`LocalPackage`](#localpackage-1)  | Constructs an empty local package. |
-|  | [`LocalPackage`](#localpackage-2)  | Constructs a local package from an existing JSON value.  |
+|  | [`LocalPackage`](#localpackage-2)  | Constructs a local package from an existing JSON value. |
 |  | [`LocalPackage`](#localpackage-3)  | Create the local package from the remote package reference with the following manipulations. 1) Add a local manifest element. 2) Remove asset mirror elements. |
 | `void` | [`setState`](#setstate-1) `virtual` | Set's the overall package state. Possible values are: Installing, Installed, Failed, Uninstalled. If the packages completes while still Installing, this means the package has yet to be finalized. |
 | `void` | [`setInstallState`](#setinstallstate) `virtual` | Set's the package installation state. See [InstallationState](#installationstate) for possible values. |
@@ -2155,7 +2167,7 @@ inline InstallOptions()
 | `bool` | [`verifyInstallManifest`](#verifyinstallmanifest) `virtual` |  |
 | `std::string` | [`getInstalledFilePath`](#getinstalledfilepath) `virtual` | Returns the full full path of the installed file. Thrown an exception if the install directory is unset. |
 | `json::Value &` | [`errors`](#errors-2) `virtual` | Returns a reference to the JSON array of accumulated error messages. |
-| `void` | [`addError`](#adderror) `virtual` | Appends `message` to the errors array.  |
+| `void` | [`addError`](#adderror) `virtual` | Appends `message` to the errors array. |
 | `std::string` | [`lastError`](#lasterror) `virtual` `const` | Returns the most recently added error message, or empty if none. |
 | `void` | [`clearErrors`](#clearerrors) `virtual` | Clears all recorded error messages. |
 | `bool` | [`valid`](#valid-3) `virtual` `const` | Returns true if id, name and type are all non-empty. |
@@ -2566,7 +2578,7 @@ json::Value & root
 |--------|------|-------------|
 |  | [`Manifest`](#manifest-2)  | #### Parameters |
 | `bool` | [`empty`](#empty-1) `virtual` `const` | Returns true if the manifest contains no file entries. |
-| `void` | [`addFile`](#addfile) `virtual` | Appends `path` to the manifest file list.  |
+| `void` | [`addFile`](#addfile) `virtual` | Appends `path` to the manifest file list. |
 
 ---
 
@@ -2629,7 +2641,7 @@ JSON-backed package metadata shared by local and remote package records.
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`Package`](#package-1)  | Constructs an empty package. |
-|  | [`Package`](#package-2)  | Constructs a package from an existing JSON value.  |
+|  | [`Package`](#package-2)  | Constructs a package from an existing JSON value. |
 | `std::string` | [`id`](#id-2) `virtual` `const` | Returns the package unique identifier. |
 | `std::string` | [`name`](#name-6) `virtual` `const` | Returns the package display name. |
 | `std::string` | [`type`](#type-11) `virtual` `const` | Returns the package type (e.g. "plugin", "asset"). |
@@ -2637,7 +2649,7 @@ JSON-backed package metadata shared by local and remote package records.
 | `std::string` | [`description`](#description) `virtual` `const` | Returns the package description string. |
 | `bool` | [`valid`](#valid-4) `virtual` `const` | Returns true if id, name and type are all non-empty. |
 | `json::Value` | [`toJson`](#tojson) `virtual` `const` | Returns a plain JSON copy of this package object. |
-| `void` | [`print`](#print-9) `virtual` `const` | Dumps the JSON representation of this package to `ost`.  |
+| `void` | [`print`](#print-9) `virtual` `const` | Dumps the JSON representation of this package to `ost`. |
 
 ---
 
@@ -2810,16 +2822,16 @@ json::Value & root
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`Asset`](#asset-2)  | #### Parameters |
-|  | [`Asset`](#asset-3)  |  |
+|  | [`Asset`](#asset-3)  | Defaulted constructor. |
 | `std::string` | [`fileName`](#filename-2) `virtual` `const` | Returns the archive file name (e.g. "my-plugin-1.0.0.zip"). |
 | `std::string` | [`version`](#version-5) `virtual` `const` | Returns the package version string (e.g. "1.0.0"). |
 | `std::string` | [`sdkVersion`](#sdkversion-1) `virtual` `const` | Returns the SDK version this asset was built against (e.g. "2.0.0"). |
 | `std::string` | [`checksum`](#checksum) `virtual` `const` | Returns the asset checksum string, or empty if none is set. |
-| `std::string` | [`url`](#url-8) `virtual` `const` | Returns the download URL from the mirror list at `index`.  |
+| `std::string` | [`url`](#url-8) `virtual` `const` | Returns the download URL from the mirror list at `index`. |
 | `int` | [`fileSize`](#filesize-1) `virtual` `const` | Returns the uncompressed file size in bytes, or 0 if not set. |
 | `bool` | [`valid`](#valid-5) `virtual` `const` | Returns true if the asset has the minimum required fields (file-name, version, mirrors). |
-| `void` | [`print`](#print-10) `virtual` `const` | Writes the raw JSON of this asset to `ost`.  |
-| `Asset &` | [`operator=`](#operator-18) `virtual` | Copies the backing JSON node from `r`.  |
+| `void` | [`print`](#print-10) `virtual` `const` | Writes the raw JSON of this asset to `ost`. |
+| `Asset &` | [`operator=`](#operator-18) `virtual` | Copies the backing JSON node from `r`. |
 | `bool` | [`operator==`](#operator-19) `virtual` `const` | Returns true if file name, version and checksum all match `r`. |
 
 ---
@@ -2844,6 +2856,8 @@ Asset(json::Value & src)
 ```cpp
 Asset(const Asset &) = default
 ```
+
+Defaulted constructor.
 
 ---
 
@@ -3143,7 +3157,7 @@ Returns the package author, preferring the local package if available.
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`RemotePackage`](#remotepackage-1)  | Constructs an empty remote package. |
-|  | [`RemotePackage`](#remotepackage-2)  | Constructs a remote package from an existing JSON value.  |
+|  | [`RemotePackage`](#remotepackage-2)  | Constructs a remote package from an existing JSON value. |
 | `json::Value &` | [`assets`](#assets) `virtual` | Returns a reference to the "assets" JSON array node. |
 | `Asset` | [`latestAsset`](#latestasset) `virtual` | Returns the latest asset for this package. For local packages this is the currently installed version. For remote packages this is the latest available version. Throws an exception if no asset exists. |
 | `Asset` | [`assetVersion`](#assetversion) `virtual` | Returns the latest asset for the given package version. Throws an exception if no asset exists. |

@@ -22,9 +22,9 @@ namespace icy {
 namespace net {
 
 
-/// Base class for network address implementations
+/// Base class for network address implementations.
 class Net_API AddressBase;
-/// Represents an IPv4 or IPv6 socket address with host and port
+/// Represents an IPv4 or IPv6 socket address with host and port.
 class Net_API Address
 {
 public:
@@ -38,19 +38,19 @@ public:
     /// Creates a wildcard (all zero) IPv4 Address.
     Address();
 
-    /// Creates a Address from an IP address and a port number.
+    /// Creates an Address from an IP address and a port number.
     ///
     /// The IP address must either be a domain name, or it must
     /// be in dotted decimal (IPv4) or hex string (IPv6) format.
     Address(const std::string& host, uint16_t port);
 
-    /// Creates a Address by copying another one.
+    /// Creates an Address by copying another one.
     Address(const Address& addr);
 
-    /// Creates a Address from a native socket address.
+    /// Creates an Address from a native socket address.
     Address(const struct sockaddr* addr, socklen_t length);
 
-    /// Creates a Address from an IP address and a
+    /// Creates an Address from an IP address and a
     /// service name or port number.
     ///
     /// The IP address must either be a domain name, or it must
@@ -60,7 +60,7 @@ public:
     /// a service name.
     Address(const std::string& host, const std::string& port);
 
-    /// Creates a Address from an IP address or host name and a
+    /// Creates an Address from an IP address or host name and a
     /// port number/service name. Host name/address and port number must
     /// be separated by a colon. In case of an IPv6 address,
     /// the address part must be enclosed in brackets.

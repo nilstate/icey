@@ -191,9 +191,10 @@ struct PacketInfo : public IPacketInfo
 //
 
 
-/// SocketPacket is the default packet type emitted by sockets.
-/// SocketPacket provides peer address information and a buffer
-/// reference for nocopy binary operations.
+/// Default packet type emitted by sockets.
+///
+/// SocketPacket carries the remote peer address plus a borrowed view of the
+/// received byte buffer for zero-copy processing inside the receive callback.
 ///
 /// The referenced packet buffer lifetime is only guaranteed
 /// for the duration of the receiver callback.

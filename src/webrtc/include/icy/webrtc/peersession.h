@@ -42,6 +42,7 @@ namespace wrtc {
 class WEBRTC_API PeerSession
 {
 public:
+    /// High-level lifecycle phases for a single peer-to-peer call session.
     enum class State
     {
         Idle,          ///< No active call
@@ -53,13 +54,13 @@ public:
         Ended          ///< Call ended (transient; auto-resets to Idle)
     };
 
-    /// Configuration for WebRTC peer session establishment
+    /// Configuration for WebRTC peer session establishment.
     struct Config
     {
-        rtc::Configuration rtcConfig;
-        MediaBridge::Options mediaOpts;
-        bool enableDataChannel = true;
-        std::string dataChannelLabel = "data";
+        rtc::Configuration rtcConfig;     ///< libdatachannel connection options, ICE servers, and transport settings.
+        MediaBridge::Options mediaOpts;   ///< Media tracks to create when the session negotiates media.
+        bool enableDataChannel = true;    ///< True to create a data channel on outgoing calls and accept one on incoming calls.
+        std::string dataChannelLabel = "data"; ///< Label to use for the application data channel.
     };
 
     /// Construct with any signalling implementation.
@@ -67,6 +68,7 @@ public:
     PeerSession(SignallingInterface& signaller, const Config& config);
     ~PeerSession();
 
+    /// Deleted copy constructor; PeerSession owns live signalling and RTC callbacks.
     PeerSession(const PeerSession&) = delete;
     PeerSession& operator=(const PeerSession&) = delete;
 

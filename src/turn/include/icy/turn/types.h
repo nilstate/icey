@@ -21,28 +21,28 @@ namespace icy {
 namespace turn {
 
 
-static constexpr int CLIENT_SOCK_BUF_SIZE = 65536;
-static constexpr int SERVER_SOCK_BUF_SIZE = CLIENT_SOCK_BUF_SIZE * 32;
+static constexpr int CLIENT_SOCK_BUF_SIZE = 65536; ///< Default socket buffer size for TURN client sockets.
+static constexpr int SERVER_SOCK_BUF_SIZE = CLIENT_SOCK_BUF_SIZE * 32; ///< Default socket buffer size for TURN server sockets.
 
 /// TURN protocol numbers
-static constexpr uint8_t kProtocolUDP = 17;
-static constexpr uint8_t kProtocolTCP = 6;
+static constexpr uint8_t kProtocolUDP = 17; ///< IP protocol number for UDP.
+static constexpr uint8_t kProtocolTCP = 6; ///< IP protocol number for TCP.
 
 /// TURN/STUN error codes used in this module
-static constexpr int kErrorTryAlternate = 300;
-static constexpr int kErrorBadRequest = 400;
-static constexpr int kErrorNotAuthorized = 401;
-static constexpr int kErrorForbidden = 403;
-static constexpr int kErrorUnknownAttribute = 420;
-static constexpr int kErrorUnsupportedTransport = 442;
-static constexpr int kErrorAllocationMismatch = 437;
-static constexpr int kErrorStaleNonce = 438;
-static constexpr int kErrorWrongCredentials = 441;
-static constexpr int kErrorConnectionAlreadyExists = 446;
-static constexpr int kErrorConnectionTimeoutOrFailure = 447;
-static constexpr int kErrorAllocationQuotaReached = 486;
-static constexpr int kErrorInsufficientCapacity = 508;
-static constexpr int kErrorOperationNotSupported = 600;
+static constexpr int kErrorTryAlternate = 300; ///< Client should retry against an alternate TURN server.
+static constexpr int kErrorBadRequest = 400; ///< Request was malformed or missing required attributes.
+static constexpr int kErrorNotAuthorized = 401; ///< Authentication failed or credentials were not accepted.
+static constexpr int kErrorForbidden = 403; ///< Request was understood but is not permitted for this client.
+static constexpr int kErrorUnknownAttribute = 420; ///< Request included an unsupported comprehension-required attribute.
+static constexpr int kErrorUnsupportedTransport = 442; ///< Requested transport protocol is not supported by the server.
+static constexpr int kErrorAllocationMismatch = 437; ///< Client attempted an allocation operation that conflicts with existing state.
+static constexpr int kErrorStaleNonce = 438; ///< Authentication nonce expired and must be refreshed.
+static constexpr int kErrorWrongCredentials = 441; ///< Supplied credentials were well formed but did not match the allocation.
+static constexpr int kErrorConnectionAlreadyExists = 446; ///< TURN TCP connection binding already exists.
+static constexpr int kErrorConnectionTimeoutOrFailure = 447; ///< TURN TCP peer connection attempt timed out or failed.
+static constexpr int kErrorAllocationQuotaReached = 486; ///< User or server allocation quota was exceeded.
+static constexpr int kErrorInsufficientCapacity = 508; ///< Server lacks capacity to satisfy the request.
+static constexpr int kErrorOperationNotSupported = 600; ///< Request is recognized but not implemented by this server.
 
 
 /// Result returned by ServerObserver::authenticateRequest() to control how

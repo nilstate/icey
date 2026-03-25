@@ -627,6 +627,7 @@ inline bool DateTime::isLeapYear(int year)
 }
 
 
+/// Exchange two DateTime values.
 inline void swap(DateTime& d1, DateTime& d2)
 {
     d1.swap(d2);
@@ -1039,6 +1040,7 @@ inline void LocalDateTime::adjustForTzd()
 }
 
 
+/// Exchange two LocalDateTime values.
 inline void swap(LocalDateTime& d1, LocalDateTime& d2)
 {
     d1.swap(d2);
@@ -1485,6 +1487,7 @@ inline Timestamp::TimeVal Timestamp::resolution()
 }
 
 
+/// Exchange two Timestamp values.
 inline void swap(Timestamp& s1, Timestamp& s2)
 {
     s1.swap(s2);
@@ -1640,6 +1643,7 @@ inline bool Timespan::operator<=(TimeDiff microseconds) const
 }
 
 
+/// Exchange two Timespan values.
 inline void swap(Timespan& s1, Timespan& s2)
 {
     s1.swap(s2);

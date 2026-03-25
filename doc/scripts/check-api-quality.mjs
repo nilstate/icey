@@ -30,8 +30,8 @@ const failures = [];
 for (const name of modules) {
   const path = join(apiDir, name);
   const lines = readFileSync(path, 'utf8').split('\n');
-  const overviewLimit = lines.findIndex((line) => line.trim() === '---');
-  const overview = overviewLimit === -1 ? lines : lines.slice(0, overviewLimit);
+  const firstTypeDetail = lines.findIndex((line) => /^##\s+/.test(line));
+  const overview = firstTypeDetail === -1 ? lines : lines.slice(0, firstTypeDetail);
 
   overview.forEach((line, index) => {
     if (blankRow.test(line)) {

@@ -38,21 +38,21 @@ namespace stun {
 
 
 // Following values correspond to RFC5389.
-constexpr int kAttributeHeaderSize = 4;
-constexpr int kMessageHeaderSize = 20;
-constexpr int kTransactionIdOffset = 8;
-constexpr int kTransactionIdLength = 12;
-constexpr uint32_t kMagicCookie = 0x2112A442;
-constexpr int kMagicCookieLength = sizeof(kMagicCookie);
+constexpr int kAttributeHeaderSize = 4;     ///< Bytes in a STUN attribute header.
+constexpr int kMessageHeaderSize = 20;      ///< Bytes in the fixed STUN message header.
+constexpr int kTransactionIdOffset = 8;     ///< Byte offset of the transaction ID inside the message header.
+constexpr int kTransactionIdLength = 12;    ///< Length in bytes of a STUN transaction ID.
+constexpr uint32_t kMagicCookie = 0x2112A442; ///< RFC 5389 magic cookie used by modern STUN/TURN messages.
+constexpr int kMagicCookieLength = sizeof(kMagicCookie); ///< Length in bytes of the magic cookie field.
 
 
 /// STUN address types as defined in RFC 5389.
 /// NB: Undefined is not part of the STUN spec.
 enum class AddressFamily : uint8_t
 {
-    Undefined = 0,
-    IPv4 = 1,
-    IPv6 = 2
+    Undefined = 0, ///< Not a valid STUN address family; used as a sentinel.
+    IPv4 = 1,      ///< IPv4 transport address.
+    IPv6 = 2       ///< IPv6 transport address.
 };
 
 

@@ -83,12 +83,15 @@ public:
         uint32_t videoSsrc = 0;   ///< 0 = auto-generate
         uint32_t audioSsrc = 0;   ///< 0 = auto-generate
         std::string cname;        ///< CNAME for RTCP (auto if empty)
-        unsigned nackBufferSize = 512;
+        unsigned nackBufferSize = 512; ///< Max RTP packets retained for video NACK retransmission.
     };
 
+    /// Construct a detached bridge with stable sender and receiver adapters.
     MediaBridge();
+    /// Destroy the bridge and release any attached PeerConnection state.
     ~MediaBridge();
 
+    /// Deleted copy constructor; MediaBridge owns live track and adapter state.
     MediaBridge(const MediaBridge&) = delete;
     MediaBridge& operator=(const MediaBridge&) = delete;
 

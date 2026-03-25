@@ -40,15 +40,15 @@ Alias for a `libuv` event loop instance.
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `Loop *` | [`defaultLoop`](#defaultloop) `inline` | Returns the process-wide default libuv event loop.  |
-| `void` | [`runLoop`](#runloop) `inline` | Runs the given event loop using the specified run mode. Blocks until the loop exits (when using `UV_RUN_DEFAULT`).  |
-| `void` | [`stopLoop`](#stoploop) `inline` | Stops the given event loop, causing `uv_run` to return after the current iteration.  |
-| `Loop *` | [`createLoop`](#createloop) `inline` | Allocates and initializes a new libuv event loop. The caller is responsible for closing and deleting the returned loop.  |
-| `bool` | [`closeLoop`](#closeloop) `inline` | Closes the given event loop, releasing internal resources. All handles must be closed before calling this.  |
-| `HandleStorage< T > *` | [`handleStorage`](#handlestorage) `inline` | Returns the extended storage wrapper that owns `handle`.  |
-| `void` | [`setHandleCloseCleanup`](#sethandleclosecleanup) `inline` | Registers a cleanup callback that runs when `handle` finally closes.  |
-| `void` | [`clearHandleCloseCleanup`](#clearhandleclosecleanup) `inline` | Clears any pending close-time cleanup callback registered on `handle`.  |
-| `auto` | [`withHandleContext`](#withhandlecontext) `inline` | Wraps `callback` so it only runs while the owning handle is still alive. Captures the intrusive `[Context](#context-1)` token, rehydrates the typed owner on entry, and suppresses invocation if the handle has already been deleted.  |
+| `Loop *` | [`defaultLoop`](#defaultloop) `inline` | Returns the process-wide default libuv event loop. |
+| `void` | [`runLoop`](#runloop) `inline` | Runs the given event loop using the specified run mode. Blocks until the loop exits (when using `UV_RUN_DEFAULT`). |
+| `void` | [`stopLoop`](#stoploop) `inline` | Stops the given event loop, causing `uv_run` to return after the current iteration. |
+| `Loop *` | [`createLoop`](#createloop) `inline` | Allocates and initializes a new libuv event loop. The caller is responsible for closing and deleting the returned loop. |
+| `bool` | [`closeLoop`](#closeloop) `inline` | Closes the given event loop, releasing internal resources. All handles must be closed before calling this. |
+| `HandleStorage< T > *` | [`handleStorage`](#handlestorage) `inline` | Returns the extended storage wrapper that owns `handle`. |
+| `void` | [`setHandleCloseCleanup`](#sethandleclosecleanup) `inline` | Registers a cleanup callback that runs when `handle` finally closes. |
+| `void` | [`clearHandleCloseCleanup`](#clearhandleclosecleanup) `inline` | Clears any pending close-time cleanup callback registered on `handle`. |
+| `auto` | [`withHandleContext`](#withhandlecontext) `inline` | Wraps `callback` so it only runs while the owning handle is still alive. Captures the intrusive `[Context](#context-1)` token, rehydrates the typed owner on entry, and suppresses invocation if the handle has already been deleted. |
 | `T &` | [`createRequest`](#createrequest) `inline` | Allocate a heap-owned `[Request](#request)` of type `T` and attach `callback` to it. |
 | `T &` | [`createRetainedRequest`](#createretainedrequest) `inline` | Allocate a heap-owned `[Request](#request)` of type `T` whose callback retains additional state until completion. |
 
@@ -779,7 +779,7 @@ Error _error
 | `void` | [`onError`](#onerror) `virtual` `inline` | Called by `[setError()](#seterror)` after the error state has been updated. |
 | `void` | [`onClose`](#onclose) `virtual` `inline` | Called by `[close()](#close-11)` after the context has been released. |
 |  | [`Handle`](#handle-4)  | NonCopyable and NonMovable. |
-|  | [`Handle`](#handle-5)  |  |
+|  | [`Handle`](#handle-5)  | Deleted constructor. |
 
 ---
 
@@ -838,6 +838,8 @@ NonCopyable and NonMovable.
 Handle(Handle &&) = delete
 ```
 
+Deleted constructor.
+
 ### Public Types
 
 | Name | Description |
@@ -888,9 +890,9 @@ Loop * loop
 |--------|------|-------------|
 |  | [`ScopedLoop`](#scopedloop-1) `inline` |  |
 |  | [`operator Loop *`](#operatorloop) `const` `inline` | Implicit conversion to `Loop*` for use with libuv APIs. |
-| `Loop *` | [`get`](#get-1) `const` `inline` | Returns the raw event loop pointer.  |
-|  | [`ScopedLoop`](#scopedloop-2)  |  |
-|  | [`ScopedLoop`](#scopedloop-3)  |  |
+| `Loop *` | [`get`](#get-1) `const` `inline` | Returns the raw event loop pointer. |
+|  | [`ScopedLoop`](#scopedloop-2)  | Deleted constructor. |
+|  | [`ScopedLoop`](#scopedloop-3)  | Deleted constructor. |
 
 ---
 
@@ -944,6 +946,8 @@ Pointer to the underlying `uv_loop_t`.
 ScopedLoop(const ScopedLoop &) = delete
 ```
 
+Deleted constructor.
+
 ---
 
 {#scopedloop-3}
@@ -953,6 +957,8 @@ ScopedLoop(const ScopedLoop &) = delete
 ```cpp
 ScopedLoop(ScopedLoop &&) = delete
 ```
+
+Deleted constructor.
 
 {#handlestorage-1}
 

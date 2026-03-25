@@ -186,10 +186,10 @@ struct AV_API Device
 /// Bitmask of media capabilities detected on this system.
 enum MediaCapabilities
 {
-    AUDIO_RECV = 1 << 0,
-    AUDIO_SEND = 1 << 1,
-    VIDEO_RECV = 1 << 2,
-    VIDEO_SEND = 1 << 3,
+    AUDIO_RECV = 1 << 0, ///< Audio capture or decode is available.
+    AUDIO_SEND = 1 << 1, ///< Audio playback or encode is available.
+    VIDEO_RECV = 1 << 2, ///< Video capture or decode is available.
+    VIDEO_SEND = 1 << 3, ///< Video render or encode is available.
 };
 
 
@@ -216,7 +216,7 @@ public:
 //
 
 
-/// Enumerates and manages system audio and video devices
+/// Enumerates and manages system audio and video devices.
 class AV_API DeviceManager
 {
 public:

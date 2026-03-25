@@ -220,12 +220,19 @@ protected:
 
 
 template <typename T>
+/// Write a single logging argument into the destination stream.
+/// @param o Destination stream.
+/// @param t Argument to append with operator<<.
 void logArgs(std::ostream& o, T&& t)
 {
     o << t; // << ' '; // << '\n';
 }
 
 template <typename T, typename... Args>
+/// Write multiple logging arguments into the destination stream in order.
+/// @param o Destination stream.
+/// @param t First argument to append.
+/// @param args Remaining arguments to append recursively.
 void logArgs(std::ostream& o, T&& t, Args&&... args) // recursive variadic function
 {
     logArgs(o, std::forward<T>(t));
@@ -529,21 +536,25 @@ protected:
 //
 
 
+/// Return a pointer to the null terminator of a C string.
 constexpr const char* str_end(const char* str)
 {
     return *str ? str_end(str + 1) : str;
 }
 
+/// Return true if the C string contains a forward or back slash.
 constexpr bool str_slant(const char* str)
 {
     return *str == '/' || *str == '\\' ? true : (*str ? str_slant(str + 1) : false);
 }
 
+/// Walk backward to the character after the last path separator.
 constexpr const char* r_slant(const char* str)
 {
     return *str == '/' || *str == '\\' ? (str + 1) : r_slant(str - 1);
 }
 
+/// Return the filename portion of a compile-time path string.
 constexpr const char* _fileName(const char* str)
 {
     return str_slant(str) ? r_slant(str_end(str)) : str;
@@ -560,6 +571,7 @@ constexpr const char* _fileName(const char* str)
 #if _MSC_VER
 #define __CLASS_FUNCTION__ __FUNCTION__
 #else
+/// Extract the class-qualified method name from a compiler pretty-function string.
 inline std::string _methodName(std::string_view fsig)
 {
     size_t colons = fsig.find("::");

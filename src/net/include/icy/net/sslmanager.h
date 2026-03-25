@@ -27,9 +27,7 @@ namespace net {
 class Net_API VerificationErrorDetails;
 
 
-/// SSLManager is a singleton for holding the default server/client
-/// Context and handling callbacks for certificate verification errors
-/// and private key passphrases.
+/// Singleton that owns the default client/server TLS contexts and related callbacks.
 class Net_API SSLManager
 {
 public:
@@ -40,10 +38,10 @@ public:
     /// SSLContext.
     void initializeClient(SSLContext::Ptr ptrContext);
 
-    /// Returns the default Context used by the server if initialized.
+    /// Returns the default context used by the server if initialized.
     SSLContext::Ptr defaultServerContext();
 
-    /// Returns the default Context used by the client if initialized.
+    /// Returns the default context used by the client if initialized.
     SSLContext::Ptr defaultClientContext();
 
     /// Fired whenever a certificate verification error is detected by the
@@ -54,11 +52,11 @@ public:
     /// client during a handshake.
     ThreadSignal<void(VerificationErrorDetails&)> ClientVerificationError;
 
-    /// Fired when a encrypted certificate is loaded. Not setting the password
+    /// Fired when an encrypted certificate or private key is loaded. Not setting the password
     /// in the event parameter will result in a failure to load the certificate.
     ThreadSignal<void(std::string&)> PrivateKeyPassphraseRequired;
 
-    /// Shuts down the SSLManager and releases the default Context
+    /// Shuts down the SSLManager and releases the default context
     /// objects. After a call to shutdown(), the SSLManager can no
     /// longer be used.
     ///
@@ -73,11 +71,11 @@ public:
     /// Shuts down and destroys the SSLManager singleton instance.
     static void destroy();
 
-    /// Initializes a default no verify client context that's useful for
+    /// Initializes a default no-verify client context that's useful for
     /// testing.
     static void initNoVerifyClient();
 
-    /// Initializes a default no verify server context that's useful for
+    /// Initializes a default no-verify server context that's useful for
     /// testing. Optionally accepts private key and certificate file paths
     /// for server identity; if omitted, no certificate is loaded.
     static void initNoVerifyServer(const std::string& privateKeyFile = "",
@@ -90,7 +88,7 @@ protected:
     static int verifyClientCallback(int ok, X509_STORE_CTX* pStore);
 
     /// The return value of this method defines how errors in
-    /// verification are handled. Return 0 to terminate the handshake,    '
+    /// verification are handled. Return 0 to terminate the handshake,
     /// or 1 to continue despite the error.
     static int verifyServerCallback(int ok, X509_STORE_CTX* pStore);
 

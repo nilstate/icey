@@ -212,6 +212,7 @@ enum class PacketFlags : unsigned
     Final = 0x02     ///< The final packet in the stream.
 };
 
+/// Combine PacketFlags values into a bitmask.
 constexpr unsigned operator|(PacketFlags lhs, PacketFlags rhs)
 {
     return static_cast<unsigned>(lhs) | static_cast<unsigned>(rhs);
