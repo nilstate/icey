@@ -23,6 +23,7 @@
 
 namespace icy {
 namespace av {
+/// Apple AVFoundation device enumeration helpers.
 namespace avfoundation {
 
 

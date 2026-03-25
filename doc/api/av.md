@@ -8,13 +8,13 @@ Audio/video encoding, decoding, device capture, and media formats.
 
 | Name | Description |
 |------|-------------|
-| [`av`](#av) |  |
-| [`v4l2`](#v4l2) |  |
-| [`coreaudio`](#coreaudio) |  |
-| [`legacy`](#legacy) |  |
-| [`avfoundation`](#avfoundation) |  |
-| [`mediafoundation`](#mediafoundation) |  |
-| [`wasapi`](#wasapi) |  |
+| [`av`](#av) | Audio/video codecs, capture devices, packet types, and media helpers. |
+| [`v4l2`](#v4l2) | Linux V4L2 device enumeration helpers. |
+| [`coreaudio`](#coreaudio) | Apple CoreAudio device enumeration helpers. |
+| [`legacy`](#legacy) | Legacy timing helpers kept for compatibility with older media pipelines. |
+| [`avfoundation`](#avfoundation) | Apple AVFoundation device enumeration helpers. |
+| [`mediafoundation`](#mediafoundation) | Windows Media Foundation device enumeration helpers. |
+| [`wasapi`](#wasapi) | Windows WASAPI device enumeration helpers. |
 
 ### Macros
 
@@ -50,6 +50,8 @@ MAX_ENCODE_DURATION()
 {#av}
 
 # av
+
+Audio/video codecs, capture devices, packet types, and media helpers.
 
 ### Classes
 
@@ -9081,6 +9083,8 @@ Returns the class name of this packet type for logging and diagnostics.
 
 # v4l2
 
+Linux V4L2 device enumeration helpers.
+
 ### Functions
 
 | Return | Name | Description |
@@ -9115,6 +9119,8 @@ True if enumeration succeeded.
 
 # coreaudio
 
+Apple CoreAudio device enumeration helpers.
+
 ### Functions
 
 | Return | Name | Description |
@@ -9148,6 +9154,8 @@ True if enumeration succeeded.
 {#legacy}
 
 # legacy
+
+Legacy timing helpers kept for compatibility with older media pipelines.
 
 ### Classes
 
@@ -9325,6 +9333,8 @@ The updated FPS value.
 
 # avfoundation
 
+Apple AVFoundation device enumeration helpers.
+
 ### Functions
 
 | Return | Name | Description |
@@ -9359,6 +9369,8 @@ True if enumeration succeeded.
 
 # mediafoundation
 
+Windows Media Foundation device enumeration helpers.
+
 ### Functions
 
 | Return | Name | Description |
@@ -9392,6 +9404,8 @@ True if enumeration succeeded.
 {#wasapi}
 
 # wasapi
+
+Windows WASAPI device enumeration helpers.
 
 ### Functions
 

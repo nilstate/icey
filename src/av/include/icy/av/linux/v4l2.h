@@ -22,6 +22,7 @@
 
 namespace icy {
 namespace av {
+/// Linux V4L2 device enumeration helpers.
 namespace v4l2 {
 
 

@@ -22,6 +22,7 @@
 
 namespace icy {
 namespace av {
+/// Windows Media Foundation device enumeration helpers.
 namespace mediafoundation {
 
 
@@ -36,6 +37,7 @@ bool getDeviceList(Device::Type type, std::vector<av::Device>& devices);
 } // namespace mediafoundation
 
 
+/// Windows WASAPI device enumeration helpers.
 namespace wasapi {
 
 

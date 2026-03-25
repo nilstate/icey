@@ -19,6 +19,7 @@
 
 
 namespace icy {
+/// Audio/video codecs, capture devices, packet types, and media helpers.
 namespace av {
 
 
@@ -78,6 +79,7 @@ public:
 };
 
 
+/// Legacy timing helpers kept for compatibility with older media pipelines.
 namespace legacy {
 
 /// Legacy frames-per-second counter

@@ -22,6 +22,7 @@
 
 namespace icy {
 namespace av {
+/// Apple CoreAudio device enumeration helpers.
 namespace coreaudio {
 
 
