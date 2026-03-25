@@ -656,7 +656,7 @@ std::mutex _mutex
 | Return | Name | Description |
 |--------|------|-------------|
 | `bool` | [`beforeRun`](#beforerun) `virtual` |  |
-| `void` | [`run`](#run-7)  | Called by the [TaskRunner](base.md#taskrunner) to run the task. Override this method to implement task action. Returning true means the true should be called again, and false will cause the task to be destroyed. The task will similarly be destroyed id [destroy()](base.md#classicy_1_1Task_1a639abe7ed51fd9294d6210e1d8264814) was called during the current task iteration. |
+| `void` | [`run`](#run-7)  | Called by the [TaskRunner](base.md#taskrunner) to run the task. Override this method to implement task action. Returning true means the task should be called again, and false will cause the task to be destroyed. The task will similarly be destroyed if [destroy()](base.md#classicy_1_1Task_1a639abe7ed51fd9294d6210e1d8264814) was called during the current task iteration. |
 | `bool` | [`afterRun`](#afterrun) `virtual` |  |
 
 ---
@@ -681,7 +681,7 @@ virtual bool beforeRun()
 void run()
 ```
 
-Called by the [TaskRunner](base.md#taskrunner) to run the task. Override this method to implement task action. Returning true means the true should be called again, and false will cause the task to be destroyed. The task will similarly be destroyed id [destroy()](base.md#classicy_1_1Task_1a639abe7ed51fd9294d6210e1d8264814) was called during the current task iteration.
+Called by the [TaskRunner](base.md#taskrunner) to run the task. Override this method to implement task action. Returning true means the task should be called again, and false will cause the task to be destroyed. The task will similarly be destroyed if [destroy()](base.md#classicy_1_1Task_1a639abe7ed51fd9294d6210e1d8264814) was called during the current task iteration.
 
 ---
 

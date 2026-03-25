@@ -26,7 +26,7 @@ namespace icy {
 class Base_API TaskRunner;
 
 
-/// Abstract class is for implementing any kind asyncronous task.
+/// Abstract base class for implementing asynchronous tasks.
 ///
 /// Tasks are designed to be run by a TaskRunner.
 class Base_API Task : public basic::Runnable
@@ -67,9 +67,9 @@ protected:
 
     /// Called by the TaskRunner to run the task.
     /// Override this method to implement task action.
-    /// Returning true means the true should be called again,
+    /// Returning true means the task should be called again,
     /// and false will cause the task to be destroyed.
-    /// The task will similarly be destroyed id destroy()
+    /// The task will similarly be destroyed if destroy()
     /// was called during the current task iteration.
     void run() override = 0;
 
@@ -116,7 +116,7 @@ public:
     /// Queues a task for destruction.
     virtual bool destroy(Task* task);
 
-    /// Returns weather or not a task exists.
+    /// Returns whether a task exists.
     virtual bool exists(Task* task) const;
 
     /// Returns the task pointer matching the given ID,

@@ -24,10 +24,11 @@ namespace icy {
 namespace net {
 
 
-/// SocketAdapter class that adds signal callbacks for sockets.
-/// Asde from adding a signal interface the class works as a wrapper for
-/// the socket instance, and is designed to be used the same way
-/// as a `std::unique_ptr` by overriding the ->() operator.
+/// SocketAdapter that exposes socket events as signals.
+///
+/// Aside from adding a signal interface, the class wraps the underlying
+/// socket instance and is designed to be used much like a
+/// `std::unique_ptr` by overriding the `->` operator.
 class Net_API SocketEmitter : public SocketAdapter
 {
 public:

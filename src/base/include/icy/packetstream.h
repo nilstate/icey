@@ -280,18 +280,18 @@ struct PacketStreamState : public State
 //
 
 
-/// This class is used for processing and boradcasting IPackets in a flexible
-/// way.
+/// Processes and broadcasts IPackets through a configurable adapter graph.
+///
 /// A PacketStream consists of one or many PacketSources, one or many
 /// PacketProcessors, and one or many delegate receivers.
 ///
 /// This class enables the developer to setup a processor chain in order
 /// to perform arbitrary processing on data packets using interchangeable
-/// packet adapters, and pump the output to any delegate function,/// or even
+/// packet adapters, and pump the output to any delegate function or even
 /// another PacketStream.
 ///
-/// Note that PacketStream itself inherits from PacketStreamAdapter,/// so a
-/// PacketStream be the source of another PacketStream.
+/// Note that PacketStream itself inherits from PacketStreamAdapter, so a
+/// PacketStream can be the source of another PacketStream.
 ///
 /// All PacketStream methods are thread-safe, but once the stream is
 /// running you will not be able to attach or detach stream adapters.

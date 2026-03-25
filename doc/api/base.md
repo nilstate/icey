@@ -76,7 +76,7 @@ The `base` module contains reusable cross platform tools and utilities.
 | [`RateLimiter`](#ratelimiter) | Token bucket rate limiter for throttling message send frequency. |
 | [`PacketStreamAdapter`](#packetstreamadapter) | This class is a wrapper for integrating external classes with the a [PacketStream](#packetstream)'s data flow and state machine. |
 | [`PacketProcessor`](#packetprocessor) | This class is a virtual interface for creating PacketStreamAdapters which process that and emit the [IPacket](#ipacket) type. |
-| [`PacketStream`](#packetstream) | This class is used for processing and boradcasting IPackets in a flexible way. A [PacketStream](#packetstream) consists of one or many PacketSources, one or many PacketProcessors, and one or many delegate receivers. |
+| [`PacketStream`](#packetstream) | Processes and broadcasts IPackets through a configurable adapter graph. |
 | [`Synchronizer`](#synchronizer) | [Synchronizer](#synchronizer) enables any thread to communicate with the associated event loop via synchronized callbacks. |
 | [`TimedManager`](#timedmanager) | Timed pointer manager |
 | [`IPacketCreationStrategy`](#ipacketcreationstrategy) | Abstract strategy for creating typed packets from raw buffer data. |
@@ -87,7 +87,7 @@ The `base` module contains reusable cross platform tools and utilities.
 | [`DiagnosticManager`](#diagnosticmanager) | Registry and manager for diagnostic providers. |
 | [`PacketTransaction`](#packettransaction) | Request/response transaction with timeout and retry logic. |
 | [`Base64PacketEncoder`](#base64packetencoder) | Packet processor that Base64-encodes packet data. |
-| [`Task`](#task) | Abstract class is for implementing any kind asyncronous task. |
+| [`Task`](#task) | Abstract base class for implementing asynchronous tasks. |
 | [`TaskRunner`](#taskrunner) | [Runner](#runner) for tasks that inherit the `[Task](#task)` interface. |
 | [`IPacket`](#ipacket) | The basic packet type which is passed around the Icey system. [IPacket](#ipacket) can be extended for each protocol to enable polymorphic processing and callbacks using [PacketStream](#packetstream) and friends. |
 | [`FlagPacket`](#flagpacket) | Packet for sending bitwise flags along the packet stream. |
@@ -22140,11 +22140,13 @@ virtual inline void operator<<(IPacket & packet)
 
 > **Inherits:** [`Stateful< PacketStreamState >`](#stateful)
 
-This class is used for processing and boradcasting IPackets in a flexible way. A [PacketStream](#packetstream) consists of one or many PacketSources, one or many PacketProcessors, and one or many delegate receivers.
+Processes and broadcasts IPackets through a configurable adapter graph.
 
-This class enables the developer to setup a processor chain in order to perform arbitrary processing on data packets using interchangeable packet adapters, and pump the output to any delegate function,/// or even another [PacketStream](#packetstream).
+A [PacketStream](#packetstream) consists of one or many PacketSources, one or many PacketProcessors, and one or many delegate receivers.
 
-Note that [PacketStream](#packetstream) itself inherits from [PacketStreamAdapter](#packetstreamadapter),/// so a [PacketStream](#packetstream) be the source of another [PacketStream](#packetstream).
+This class enables the developer to setup a processor chain in order to perform arbitrary processing on data packets using interchangeable packet adapters, and pump the output to any delegate function or even another [PacketStream](#packetstream).
+
+Note that [PacketStream](#packetstream) itself inherits from [PacketStreamAdapter](#packetstreamadapter), so a [PacketStream](#packetstream) can be the source of another [PacketStream](#packetstream).
 
 All [PacketStream](#packetstream) methods are thread-safe, but once the stream is running you will not be able to attach or detach stream adapters.
 
@@ -25295,7 +25297,7 @@ Base64-encodes the payload of an incoming `[RawPacket](#rawpacket)` and emits th
 > **Inherits:** [`Runnable`](#runnable)
 > **Subclassed by:** [`Task`](sched.md#task-1)
 
-Abstract class is for implementing any kind asyncronous task.
+Abstract base class for implementing asynchronous tasks.
 
 Tasks are designed to be run by a [TaskRunner](#taskrunner).
 
@@ -25450,7 +25452,7 @@ bool _destroyed
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `void` | [`run`](#run)  | Called by the [TaskRunner](#taskrunner) to run the task. Override this method to implement task action. Returning true means the true should be called again, and false will cause the task to be destroyed. The task will similarly be destroyed id [destroy()](#classicy_1_1Task_1a639abe7ed51fd9294d6210e1d8264814) was called during the current task iteration. |
+| `void` | [`run`](#run)  | Called by the [TaskRunner](#taskrunner) to run the task. Override this method to implement task action. Returning true means the task should be called again, and false will cause the task to be destroyed. The task will similarly be destroyed if [destroy()](#classicy_1_1Task_1a639abe7ed51fd9294d6210e1d8264814) was called during the current task iteration. |
 
 ---
 
@@ -25462,7 +25464,7 @@ bool _destroyed
 void run()
 ```
 
-Called by the [TaskRunner](#taskrunner) to run the task. Override this method to implement task action. Returning true means the true should be called again, and false will cause the task to be destroyed. The task will similarly be destroyed id [destroy()](#classicy_1_1Task_1a639abe7ed51fd9294d6210e1d8264814) was called during the current task iteration.
+Called by the [TaskRunner](#taskrunner) to run the task. Override this method to implement task action. Returning true means the task should be called again, and false will cause the task to be destroyed. The task will similarly be destroyed if [destroy()](#classicy_1_1Task_1a639abe7ed51fd9294d6210e1d8264814) was called during the current task iteration.
 
 {#taskrunner}
 
@@ -25522,7 +25524,7 @@ Signals when the `[TaskRunner](#taskrunner)` is shutting down.
 | `bool` | [`start`](#start) `virtual` | Starts a task, adding it if it doesn't exist. |
 | `bool` | [`cancel`](#cancel) `virtual` | Cancels a task. |
 | `bool` | [`destroy`](#destroy) `virtual` | Queues a task for destruction. |
-| `bool` | [`exists`](#exists) `virtual` `const` | Returns weather or not a task exists. |
+| `bool` | [`exists`](#exists) `virtual` `const` | Returns whether a task exists. |
 | `Task *` | [`get`](#get) `virtual` `const` | Returns the task pointer matching the given ID, or nullptr if no task exists. |
 | `void` | [`setRunner`](#setrunner) `virtual` | Set the asynchronous context for packet processing. This may be a [Thread](#thread) or another derivative of Async. Must be set before the stream is activated. |
 | `const char *` | [`className`](#classname) `virtual` `const` `inline` |  |
@@ -25632,7 +25634,7 @@ Queues a task for destruction.
 virtual bool exists(Task * task) const
 ```
 
-Returns weather or not a task exists.
+Returns whether a task exists.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|

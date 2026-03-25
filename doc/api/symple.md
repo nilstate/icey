@@ -27,7 +27,7 @@ Symple protocol messages, peers, client, and server helpers.
 | [`FormElement`](#formelement) | Base element within a Symple form. |
 | [`FormField`](#formfield) | [Form](#form) input field with typed values and selectable options. |
 | [`Message`](#message-10) | Base Symple protocol message with addressing, status, data, and notes. |
-| [`Peer`](#peer-1) | This class represents a peer on the network. A [Peer](#peer-1) object may also contain arbitrary data set by the client to share with other peers on the network. **See also**: [Address](#address-13) for further methods and [basic](base.md#basic) accessors. |
+| [`Peer`](#peer-1) | Symple peer record containing identity, presence, and custom fields. |
 | [`Presence`](#presence) | Symple presence message indicating a peer's online status. |
 | [`Roster`](#roster-1) | The [Roster](#roster-1) provides a registry for active network peers indexed by session ID. |
 | [`Server`](#server-9) | Symple v4 server. |
@@ -3180,7 +3180,9 @@ The packet data pointer for buffered packets.
 
 > **Inherits:** `Value`
 
-This class represents a peer on the network. A [Peer](#peer-1) object may also contain arbitrary data set by the client to share with other peers on the network. **See also**: [Address](#address-13) for further methods and [basic](base.md#basic) accessors.
+Symple peer record containing identity, presence, and custom fields.
+
+A [Peer](#peer-1) object may also contain arbitrary application data set by the client to share with other peers on the network. **See also**: [Address](#address-13) for further methods and [basic](base.md#basic) accessors.
 
 ### Public Methods
 

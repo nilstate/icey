@@ -22,8 +22,9 @@ namespace icy {
 namespace smpl {
 
 
-/// This class represents a peer on the network.
-/// A Peer object may also contain arbitrary data set by
+/// Symple peer record containing identity, presence, and custom fields.
+///
+/// A Peer object may also contain arbitrary application data set by
 /// the client to share with other peers on the network.
 /// @see Address for further methods and basic accessors.
 class Symple_API Peer : public json::Value

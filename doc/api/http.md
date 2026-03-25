@@ -31,7 +31,7 @@ HTTP request/response types, parsers, and server/client helpers.
 | [`ConnectionPool`](#connectionpool) | LIFO connection pool for reusing [ServerConnection](#serverconnection) objects. Avoids per-request heap allocation by resetting and reusing connections instead of destroying and recreating them. |
 | [`ConnectionStream`](#connectionstream) | Packet stream wrapper for a HTTP connection. |
 | [`Cookie`](#cookie) | This class represents a HTTP [Cookie](#cookie). |
-| [`FilePart`](#filepart) | An implementation of [FilePart](#filepart) for plain files. |
+| [`FilePart`](#filepart) | Form part backed by a file on disk. |
 | [`FormPart`](#formpart) | An implementation of [FormPart](#formpart). |
 | [`FormWriter`](#formwriter) | [FormWriter](#formwriter) is a HTTP client connection adapter for writing HTML forms. |
 | [`Message`](#message) | The base class for [Request](#request-4) and [Response](#response-1). |
@@ -45,7 +45,7 @@ HTTP request/response types, parsers, and server/client helpers.
 | [`ServerConnection`](#serverconnection) | HTTP server connection. |
 | [`ServerConnectionFactory`](#serverconnectionfactory) | This implementation of a [ServerConnectionFactory](#serverconnectionfactory) is used by HTTP [Server](#server) to create [ServerConnection](#serverconnection) objects. |
 | [`ServerResponder`](#serverresponder) | The abstract base class for HTTP ServerResponders created by HTTP [Server](#server). |
-| [`StringPart`](#stringpart) | An implementation of [StringPart](#stringpart) for plain files. |
+| [`StringPart`](#stringpart) | Form part backed by an in-memory string payload. |
 | [`URL`](#url) | An RFC 3986 based [URL](#url) parser. Constructors and assignment operators will throw a SyntaxException if the [URL](#url) is invalid. |
 | [`DateCache`](#datecache) | Caches the formatted Date header, updated once per second. Avoids per-request time formatting and string allocation. |
 | [`Method`](#method) | HTTP request methods. |
@@ -3935,7 +3935,7 @@ bool _httpOnly
 
 > **Inherits:** [`FormPart`](#formpart)
 
-An implementation of [FilePart](#filepart) for plain files.
+Form part backed by a file on disk.
 
 ### Public Methods
 
@@ -8983,7 +8983,7 @@ ServerResponder(const ServerResponder &) = delete
 
 > **Inherits:** [`FormPart`](#formpart)
 
-An implementation of [StringPart](#stringpart) for plain files.
+Form part backed by an in-memory string payload.
 
 ### Public Methods
 
@@ -9004,16 +9004,16 @@ An implementation of [StringPart](#stringpart) for plain files.
 #### StringPart
 
 ```cpp
-StringPart(const std::string & path)
+StringPart(const std::string & data)
 ```
 
 Creates a [StringPart](#stringpart) with the given data and default content type "application/octet-stream". 
 #### Parameters
-* `path` String data to send as this part.
+* `data` String data to send as this part.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `path` | `const std::string &` |  |
+| `data` | `const std::string &` |  |
 
 ---
 

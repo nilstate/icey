@@ -25,7 +25,7 @@ TCP/SSL/UDP networking, socket adapters, DNS resolution.
 | [`PacketSocketEmitter`](#packetsocketemitter) | [Socket](#socket-1) adapter that emits received data as packets. |
 | [`Socket`](#socket-1) | Base socket implementation from which all sockets derive. |
 | [`SocketAdapter`](#socketadapter) | [SocketAdapter](#socketadapter) is the abstract interface for all socket classes. A [SocketAdapter](#socketadapter) can also be attached to a [Socket](#socket-1) in order to override default [Socket](#socket-1) callbacks and behaviour, while still maintaining the default [Socket](#socket-1) interface (see Socket::setAdapter). |
-| [`SocketEmitter`](#socketemitter) | [SocketAdapter](#socketadapter) class that adds signal callbacks for sockets. Asde from adding a signal interface the class works as a wrapper for the socket instance, and is designed to be used the same way as a `std::unique_ptr` by overriding the ->() operator. |
+| [`SocketEmitter`](#socketemitter) | [SocketAdapter](#socketadapter) that exposes socket events as signals. |
 | [`SocketPacket`](#socketpacket) | [SocketPacket](#socketpacket) is the default packet type emitted by sockets. [SocketPacket](#socketpacket) provides peer address information and a buffer reference for nocopy binary operations. |
 | [`SSLAdapter`](#ssladapter) | Manages the OpenSSL context and BIO buffers for an SSL socket connection. |
 | [`SSLContext`](#sslcontext) | This class encapsulates context information for an SSL server or client, such as the certificate verification mode and the location of certificates and private key files, as well as the list of supported ciphers. |
@@ -1845,7 +1845,9 @@ bool alive
 > **Inherits:** [`SocketAdapter`](#socketadapter)
 > **Subclassed by:** [`WebSocketAdapter`](http.md#websocketadapter), [`PacketSocketEmitter`](#packetsocketemitter)
 
-[SocketAdapter](#socketadapter) class that adds signal callbacks for sockets. Asde from adding a signal interface the class works as a wrapper for the socket instance, and is designed to be used the same way as a `std::unique_ptr` by overriding the ->() operator.
+[SocketAdapter](#socketadapter) that exposes socket events as signals.
+
+Aside from adding a signal interface, the class wraps the underlying socket instance and is designed to be used much like a `std::unique_ptr` by overriding the `->` operator.
 
 ### Public Attributes
 

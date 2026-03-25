@@ -232,7 +232,7 @@ protected:
 //
 
 /// @ingroup http
-/// An implementation of FilePart for plain files.
+/// Form part backed by a file on disk.
 class HTTP_API FilePart : public FormPart
 {
 public:
@@ -302,13 +302,13 @@ protected:
 //
 
 /// @ingroup http
-/// An implementation of StringPart for plain files.
+/// Form part backed by an in-memory string payload.
 class HTTP_API StringPart : public FormPart
 {
 public:
     /// Creates a StringPart with the given data and default content type "application/octet-stream".
-    /// @param path String data to send as this part.
-    StringPart(const std::string& path);
+    /// @param data String data to send as this part.
+    StringPart(const std::string& data);
 
     /// Creates a StringPart with the given data and MIME content type.
     /// @param data String data to send as this part.
