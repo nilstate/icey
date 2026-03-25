@@ -20,6 +20,7 @@
 
 
 namespace icy {
+/// ZIP archive handling utilities and related helpers.
 namespace archo {
 
 

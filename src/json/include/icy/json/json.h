@@ -36,6 +36,7 @@
 
 
 namespace icy {
+/// JSON value aliases, serialization helpers, and file utilities built on nlohmann/json.
 namespace json {
 
 

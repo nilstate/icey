@@ -8,7 +8,7 @@ Archive and ZIP file handling.
 
 | Name | Description |
 |------|-------------|
-| [`archo`](#archo) |  |
+| [`archo`](#archo) | ZIP archive handling utilities and related helpers. |
 
 ### Macros
 
@@ -31,6 +31,8 @@ Shared library exports.
 {#archo}
 
 # archo
+
+ZIP archive handling utilities and related helpers.
 
 ### Classes
 

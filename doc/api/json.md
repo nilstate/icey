@@ -8,11 +8,13 @@ JSON serialization using nlohmann/json.
 
 | Name | Description |
 |------|-------------|
-| [`json`](#json) |  |
+| [`json`](#json) | JSON value aliases, serialization helpers, and file utilities built on nlohmann/json. |
 
 {#json}
 
 # json
+
+JSON value aliases, serialization helpers, and file utilities built on nlohmann/json.
 
 ### Classes
 
