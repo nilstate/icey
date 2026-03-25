@@ -68,6 +68,24 @@ using namespace icy;
 namespace {
 constexpr const char* kDemoTurnUsername = "icey";
 constexpr const char* kDemoTurnCredential = "icey";
+
+AVCodecID decoderCodecIdFor(const wrtc::CodecSpec& spec)
+{
+    switch (spec.id) {
+    case wrtc::CodecId::H264:
+        return AV_CODEC_ID_H264;
+    case wrtc::CodecId::H265:
+        return AV_CODEC_ID_HEVC;
+    case wrtc::CodecId::VP8:
+        return AV_CODEC_ID_VP8;
+    case wrtc::CodecId::VP9:
+        return AV_CODEC_ID_VP9;
+    case wrtc::CodecId::AV1:
+        return AV_CODEC_ID_AV1;
+    default:
+        throw std::runtime_error("Unsupported recorder video codec: " + spec.rtpName);
+    }
+}
 } // namespace
 
 
@@ -578,6 +596,7 @@ public:
         _decodeFormat.reset();
         _decodeStream = nullptr;
         _outputFile.clear();
+        _inputCodecName.clear();
         _recording = false;
         _waitingForKeyframe = true;
         _loggedWaitingForKeyframe = false;
@@ -609,6 +628,17 @@ private:
     {
         if (_decoder)
             return;
+        if (!_bridge)
+            throw std::runtime_error("Cannot create recorder decoder without a media bridge");
+
+        auto track = _bridge->videoTrack();
+        if (!track)
+            throw std::runtime_error("Cannot determine recorder codec before the video track exists");
+
+        auto trackSdp = std::string(track->description().generateSdp("\r\n", ""));
+        auto spec = wrtc::CodecNegotiator::detectCodec(trackSdp, wrtc::CodecMediaType::Video);
+        if (!spec)
+            throw std::runtime_error("Cannot determine negotiated recorder video codec");
 
         _decodeFormat.reset(avformat_alloc_context());
         if (!_decodeFormat)
@@ -620,7 +650,8 @@ private:
 
         _decodeStream->time_base = AVRational{1, 90000};
         _decodeStream->codecpar->codec_type = AVMEDIA_TYPE_VIDEO;
-        _decodeStream->codecpar->codec_id = AV_CODEC_ID_H264;
+        _decodeStream->codecpar->codec_id = decoderCodecIdFor(*spec);
+        _inputCodecName = spec->rtpName;
 
         _decoder = std::make_unique<av::VideoDecoder>(_decodeStream);
         _decoder->create();
@@ -662,7 +693,9 @@ private:
         }
         catch (const std::exception& exc) {
             if (_waitingForKeyframe && !_loggedWaitingForKeyframe) {
-                LWarn("Waiting for a decodable H.264 keyframe from ",
+                LWarn("Waiting for a decodable ",
+                      _inputCodecName.empty() ? std::string("video") : _inputCodecName,
+                      " keyframe from ",
                       _peerId,
                       ": ",
                       exc.what());
@@ -680,6 +713,7 @@ private:
     std::string _peerId;
     std::string _recordDir;
     std::string _outputFile;
+    std::string _inputCodecName;
     wrtc::MediaBridge* _bridge = nullptr;
     std::deque<av::VideoPacket> _preroll;
     size_t _prerollBytes = 0;
@@ -759,7 +793,8 @@ public:
             pc.mediaOpts.audioDirection = rtc::Description::Direction::SendOnly;
         }
         else if (config.mode == Config::Mode::Record) {
-            // Record mode only receives the remote published H.264 track.
+            // Record mode receives the browser's negotiated video track and
+            // re-encodes decoded frames into MP4 on the server.
             pc.mediaOpts.videoCodec = videoCodec;
             pc.mediaOpts.videoDirection = rtc::Description::Direction::RecvOnly;
             pc.mediaOpts.audioDirection = rtc::Description::Direction::Inactive;

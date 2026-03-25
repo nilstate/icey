@@ -171,8 +171,9 @@ async function launchBrowser() {
 }
 
 async function newPage(browser, baseUrl, label) {
+  const engine = selectedBrowserEngine()
   const contextOptions = {}
-  if (selectedBrowserEngine() !== 'firefox')
+  if (!['firefox', 'webkit'].includes(engine))
     contextOptions.permissions = ['camera', 'microphone']
 
   const context = await browser.newContext(contextOptions)
@@ -427,7 +428,13 @@ async function runRecordScenario(browser, webRoot) {
       try {
         await callPeer(page, 'Media Server', 'Broadcast')
         await waitForActive(page)
-        await delay(3000)
+        try {
+          await waitForRecording(recordDir)
+        } catch (err) {
+          const state = await capturePlaybackState(page)
+          err.message += `\nRecord state:\n${JSON.stringify(state, null, 2)}`
+          throw err
+        }
       } finally {
         await context.close()
       }

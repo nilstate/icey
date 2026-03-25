@@ -12,6 +12,8 @@
 #include "icy/logger.h"
 
 #include <rtc/rtc.hpp>
+#include <rtc/rtp.hpp>
+#include <rtc/rtpdepacketizer.hpp>
 
 #include <random>
 #include <stdexcept>
@@ -22,6 +24,95 @@ namespace wrtc {
 
 
 namespace {
+class Vp8RtpDepacketizer final : public rtc::VideoRtpDepacketizer
+{
+protected:
+    rtc::message_ptr reassemble(message_buffer& buffer) override
+    {
+        if (buffer.empty())
+            return nullptr;
+
+        auto first = *buffer.begin();
+        auto firstHeader = reinterpret_cast<const rtc::RtpHeader*>(first->data());
+        const auto payloadType = firstHeader->payloadType();
+        const auto timestamp = firstHeader->timestamp();
+
+        rtc::binary frame;
+        for (const auto& packet : buffer) {
+            auto rtpHeader = reinterpret_cast<const rtc::RtpHeader*>(packet->data());
+            auto rtpHeaderSize = rtpHeader->getSize() + rtpHeader->getExtensionHeaderSize();
+            size_t paddingSize = rtpHeader->padding()
+                ? std::to_integer<uint8_t>(packet->back())
+                : 0;
+
+            if (packet->size() <= rtpHeaderSize + paddingSize)
+                continue;
+
+            size_t payloadOffset = rtpHeaderSize;
+            const size_t payloadEnd = packet->size() - paddingSize;
+            if (!skipPayloadDescriptor(*packet, payloadOffset, payloadEnd))
+                continue;
+
+            frame.insert(frame.end(),
+                         packet->begin() + payloadOffset,
+                         packet->begin() + payloadEnd);
+        }
+
+        if (frame.empty())
+            return nullptr;
+
+        return rtc::make_message(std::move(frame), createFrameInfo(timestamp, payloadType));
+    }
+
+private:
+    static bool skipPayloadDescriptor(const rtc::Message& packet,
+                                      size_t& offset,
+                                      size_t payloadEnd)
+    {
+        if (offset >= payloadEnd)
+            return false;
+
+        const auto descriptor = std::to_integer<uint8_t>(packet.at(offset++));
+        if (!(descriptor & 0x80))
+            return offset <= payloadEnd;
+
+        if (offset >= payloadEnd)
+            return false;
+
+        const auto extension = std::to_integer<uint8_t>(packet.at(offset++));
+        const bool hasPictureId = extension & 0x80;
+        const bool hasTl0PicIdx = extension & 0x40;
+        const bool hasTid = extension & 0x20;
+        const bool hasKeyIdx = extension & 0x10;
+
+        if (hasPictureId) {
+            if (offset >= payloadEnd)
+                return false;
+            const auto pictureId = std::to_integer<uint8_t>(packet.at(offset++));
+            if ((pictureId & 0x80) != 0) {
+                if (offset >= payloadEnd)
+                    return false;
+                ++offset;
+            }
+        }
+
+        if (hasTl0PicIdx) {
+            if (offset >= payloadEnd)
+                return false;
+            ++offset;
+        }
+
+        if (hasTid || hasKeyIdx) {
+            if (offset >= payloadEnd)
+                return false;
+            ++offset;
+        }
+
+        return offset <= payloadEnd;
+    }
+};
+
+
 void stripUnsupportedReceiveFormats(rtc::Description::Media& media)
 {
     // We do not currently normalize auxiliary retransmission payloads back to
@@ -119,6 +210,8 @@ makeVideoDepacketizer(const CodecSpec& spec)
         return std::make_shared<rtc::H264RtpDepacketizer>();
     case CodecId::H265:
         return std::make_shared<rtc::H265RtpDepacketizer>();
+    case CodecId::VP8:
+        return std::make_shared<Vp8RtpDepacketizer>();
     default:
         return std::make_shared<rtc::RtpDepacketizer>(spec.clockRate ? spec.clockRate : 90000);
     }

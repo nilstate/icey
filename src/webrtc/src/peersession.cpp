@@ -76,6 +76,19 @@ bool iequalsAscii(std::string_view a, std::string_view b)
 }
 
 
+std::optional<CodecSpec> findSupportedCodecForMediaType(const std::string& sdp,
+                                                        std::string_view mediaType,
+                                                        CodecMediaType codecType)
+{
+    auto section = findMediaSection(sdp, mediaType);
+    if (!section)
+        return std::nullopt;
+
+    std::string_view sectionText(sdp.data() + section->begin, section->end - section->begin);
+    return CodecNegotiator::detectCodec(sectionText, codecType);
+}
+
+
 std::optional<int> findPayloadTypeForCodec(const std::string& sdp,
                                            std::string_view mediaType,
                                            std::string_view codecName)
@@ -153,6 +166,12 @@ bool receives(rtc::Description::Direction direction)
 }
 
 
+bool receiveOnly(rtc::Description::Direction direction)
+{
+    return receives(direction) && !sends(direction);
+}
+
+
 rtc::Description::Direction negotiateAnswerDirection(
     rtc::Description::Direction localDirection,
     rtc::Description::Direction remoteOfferDirection)
@@ -177,13 +196,31 @@ MediaBridge::Options offerScopedMediaOptions(const PeerSession::Config& config,
         opts.audioMid = *mid;
         if (auto direction = findDirectionForMediaType(offerSdp, "audio"))
             opts.audioDirection = negotiateAnswerDirection(opts.audioDirection, *direction);
-        if (opts.audioCodec.specified()) {
+        if (opts.audioCodec.specified() || receiveOnly(opts.audioDirection)) {
             auto spec = CodecNegotiator::specFromAudioCodec(opts.audioCodec);
             auto payloadType = spec
                 ? findPayloadTypeForCodec(offerSdp, "audio", spec->rtpName)
                 : std::nullopt;
             if (payloadType) {
                 opts.audioPayloadType = *payloadType;
+            }
+            else if (receiveOnly(opts.audioDirection)) {
+                auto fallback = findSupportedCodecForMediaType(
+                    offerSdp, "audio", CodecMediaType::Audio);
+                if (fallback) {
+                    opts.audioCodec = av::AudioCodec(
+                        fallback->rtpName,
+                        DEFAULT_AUDIO_CHANNELS,
+                        static_cast<int>(fallback->clockRate));
+                    opts.audioPayloadType = findPayloadTypeForCodec(
+                        offerSdp, "audio", fallback->rtpName).value_or(fallback->payloadType);
+                    LInfo("Negotiated receive-only audio codec: ", fallback->rtpName);
+                }
+                else {
+                    LWarn("Remote offer does not contain a supported audio codec");
+                    opts.audioCodec = {};
+                    opts.audioDirection = rtc::Description::Direction::Inactive;
+                }
             }
             else {
                 LWarn("Remote offer does not contain the configured audio codec");
@@ -200,13 +237,35 @@ MediaBridge::Options offerScopedMediaOptions(const PeerSession::Config& config,
         opts.videoMid = *mid;
         if (auto direction = findDirectionForMediaType(offerSdp, "video"))
             opts.videoDirection = negotiateAnswerDirection(opts.videoDirection, *direction);
-        if (opts.videoCodec.specified()) {
+        if (opts.videoCodec.specified() || receiveOnly(opts.videoDirection)) {
             auto spec = CodecNegotiator::specFromVideoCodec(opts.videoCodec);
             auto payloadType = spec
                 ? findPayloadTypeForCodec(offerSdp, "video", spec->rtpName)
                 : std::nullopt;
             if (payloadType) {
                 opts.videoPayloadType = *payloadType;
+            }
+            else if (receiveOnly(opts.videoDirection)) {
+                auto fallback = findSupportedCodecForMediaType(
+                    offerSdp, "video", CodecMediaType::Video);
+                if (fallback) {
+                    opts.videoCodec = av::VideoCodec(
+                        fallback->rtpName,
+                        opts.videoCodec.width,
+                        opts.videoCodec.height,
+                        opts.videoCodec.fps,
+                        opts.videoCodec.bitRate,
+                        static_cast<int>(fallback->clockRate),
+                        opts.videoCodec.pixelFmt);
+                    opts.videoPayloadType = findPayloadTypeForCodec(
+                        offerSdp, "video", fallback->rtpName).value_or(fallback->payloadType);
+                    LInfo("Negotiated receive-only video codec: ", fallback->rtpName);
+                }
+                else {
+                    LWarn("Remote offer does not contain a supported video codec");
+                    opts.videoCodec = {};
+                    opts.videoDirection = rtc::Description::Direction::Inactive;
+                }
             }
             else {
                 LWarn("Remote offer does not contain the configured video codec");

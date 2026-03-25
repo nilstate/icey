@@ -254,6 +254,44 @@ std::string chromeBrowserOffer(std::string_view audioDirection = "sendrecv",
     return offer;
 }
 
+std::string firefoxBrowserOffer(std::string_view videoDirection = "sendrecv")
+{
+    std::string offer;
+    offer.reserve(1024);
+    offer +=
+        "v=0\r\n"
+        "o=mozilla...THIS_IS_SDPARTA-99.0 6845983571921452419 0 IN IP4 0.0.0.0\r\n"
+        "s=-\r\n"
+        "t=0 0\r\n"
+        "a=group:BUNDLE 0\r\n"
+        "a=ice-options:trickle\r\n"
+        "a=msid-semantic:WMS *\r\n"
+        "m=video 9 UDP/TLS/RTP/SAVPF 120 121 99\r\n"
+        "c=IN IP4 0.0.0.0\r\n"
+        "a=ice-ufrag:abcd\r\n"
+        "a=ice-pwd:abcdefghijklmnopqrstuv\r\n"
+        "a=fingerprint:sha-256 11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00\r\n"
+        "a=setup:actpass\r\n"
+        "a=mid:0\r\n";
+    offer += "a=";
+    offer += videoDirection;
+    offer +=
+        "\r\n"
+        "a=rtcp-mux\r\n"
+        "a=rtcp-rsize\r\n"
+        "a=rtpmap:120 VP8/90000\r\n"
+        "a=rtcp-fb:120 nack\r\n"
+        "a=rtcp-fb:120 nack pli\r\n"
+        "a=rtpmap:121 VP9/90000\r\n"
+        "a=fmtp:121 profile-id=0\r\n"
+        "a=rtcp-fb:121 nack\r\n"
+        "a=rtcp-fb:121 nack pli\r\n"
+        "a=rtpmap:99 AV1/90000\r\n"
+        "a=rtcp-fb:99 nack\r\n"
+        "a=rtcp-fb:99 nack pli\r\n";
+    return offer;
+}
+
 const std::string& chromeBrowserCandidate()
 {
     static const std::string candidate =
@@ -1028,6 +1066,35 @@ int main(int argc, char** argv)
         expect(sdp.find("a=recvonly") != std::string::npos);
         expect(sdp.find("a=ssrc:") == std::string::npos);
         expect(sdp.find("a=msid:") == std::string::npos);
+    });
+
+    describe("peer session: recvonly answer falls back to offered browser codec", []() {
+        MockSignaller signaller;
+        PeerSession::Config config;
+        config.enableDataChannel = false;
+        config.mediaOpts.videoCodec = CodecNegotiator::resolveWebRtcVideoCodec(
+            av::VideoCodec("H264", "libx264", 640, 360, 30));
+        config.mediaOpts.videoDirection = rtc::Description::Direction::RecvOnly;
+        config.mediaOpts.audioCodec = {};
+        config.mediaOpts.audioDirection = rtc::Description::Direction::Inactive;
+        PeerSession session(signaller, config);
+
+        signaller.ControlReceived.emit("browser", "init", "");
+        session.accept();
+        signaller.SdpReceived.emit("browser", "offer",
+            firefoxBrowserOffer("sendonly"));
+
+        expect(icy::test::waitFor([&] {
+            return !signaller.sdps.empty();
+        }, 2000));
+
+        const auto& sdp = signaller.sdps.back().sdp;
+        expect(signaller.sdps.back().type == "answer");
+        expect(sdp.find("m=video 0") == std::string::npos);
+        expect(sdp.find("a=inactive") == std::string::npos);
+        expect(sdp.find("a=recvonly") != std::string::npos);
+        expect(sdp.find("a=rtpmap:120 VP8/90000") != std::string::npos);
+        expect(sdp.find("a=rtpmap:96 H264/90000") == std::string::npos);
     });
 
     describe("peer session: reentrant signaller preserves state order", []() {
