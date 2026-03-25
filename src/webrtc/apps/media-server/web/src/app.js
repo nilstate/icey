@@ -1,5 +1,5 @@
 import { SympleClient, Symple } from 'symple-client'
-import { CallManager } from 'symple-client-player'
+import { CallManager } from 'symple-player'
 
 // ---------------------------------------------------------------------------
 // DOM
@@ -30,6 +30,16 @@ let audioMuted = false
 let videoMuted = false
 let statsInterval = null
 
+window.__mediaServerState = {
+  get client () {
+    return client
+  },
+  get calls () {
+    return calls
+  },
+  runtimeConfig: null
+}
+
 // ---------------------------------------------------------------------------
 // Connection
 // ---------------------------------------------------------------------------
@@ -39,9 +49,55 @@ function getWsUrl () {
   return `${proto}//${location.host}`
 }
 
-function connect () {
+async function fetchRuntimeConfig () {
+  const response = await fetch('/api/config')
+  if (!response.ok) {
+    throw new Error(`Failed to load runtime config: ${response.status}`)
+  }
+
+  const config = await response.json()
+  if (!config || config.status !== 'ok') {
+    throw new Error('Invalid runtime config payload')
+  }
+
+  window.__mediaServerState.runtimeConfig = config
+  return config
+}
+
+function buildIceServers (config) {
+  const servers = []
+  const turn = config?.turn
+  if (turn?.enabled) {
+    const host = turn.host && turn.host !== '0.0.0.0' && turn.host !== '::'
+      ? turn.host
+      : location.hostname
+    const port = Number(turn.port) || 3478
+    const username = turn.username || 'icey'
+    const credential = turn.credential || 'icey'
+    servers.push({
+      urls: `turn:${host}:${port}?transport=udp`,
+      username,
+      credential
+    })
+    servers.push({
+      urls: `turn:${host}:${port}?transport=tcp`,
+      username,
+      credential
+    })
+  }
+
+  const stunUrls = Array.isArray(config?.stun?.urls) ? config.stun.urls : []
+  for (const url of stunUrls) {
+    servers.push({ urls: url })
+  }
+
+  return servers
+}
+
+async function connect () {
   const url = getWsUrl()
   $connInfo.textContent = `Connecting to ${url}...`
+  const runtimeConfig = await fetchRuntimeConfig()
 
   const user = 'viewer-' + Math.random().toString(36).slice(2, 6)
 
@@ -82,16 +138,13 @@ function connect () {
   // Set up call manager
   calls = new CallManager(client, $remoteVideo, {
     rtcConfig: {
-      iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' }
-      ]
+      iceServers: buildIceServers(runtimeConfig)
     },
     mediaConstraints: {
       audio: true,
       video: true
     },
-    // Receive-only when calling the media server (it sends, we watch)
-    localMedia: true
+    localMedia: false
   })
 
   calls.on('incoming', (peerId, msg) => {
@@ -140,7 +193,7 @@ function updatePeerList () {
   if (!client || !client.roster) return
 
   $peerList.innerHTML = ''
-  const peers = client.roster.peers()
+  const peers = client.roster.data
 
   for (const peer of peers) {
     // Skip self
@@ -181,16 +234,28 @@ function updatePeerList () {
       btn.textContent = 'Hangup'
       btn.className = 'hangup'
       btn.onclick = () => calls.hangup()
-    } else {
-      btn.textContent = 'Call'
-      btn.onclick = () => {
-        console.log('Calling', address)
-        calls.call(address)
+      li.appendChild(info)
+      li.appendChild(btn)
+      $peerList.appendChild(li)
+      continue
+    }
+
+    const actions = getPeerActions(peer)
+    const actionBar = document.createElement('div')
+    actionBar.className = 'peer-actions'
+    for (const action of actions) {
+      const actionBtn = document.createElement('button')
+      actionBtn.textContent = action.label
+      actionBtn.className = action.className || ''
+      actionBtn.onclick = () => {
+        console.log(`${action.label} ${address}`)
+        calls.call(address, action.options)
       }
+      actionBar.appendChild(actionBtn)
     }
 
     li.appendChild(info)
-    li.appendChild(btn)
+    li.appendChild(actionBar)
     $peerList.appendChild(li)
   }
 
@@ -200,6 +265,65 @@ function updatePeerList () {
     li.innerHTML = '<span class="peer-type">No peers online</span>'
     $peerList.appendChild(li)
   }
+}
+
+function getPeerActions (peer) {
+  const capabilities = Array.isArray(peer.capabilities) ? peer.capabilities : []
+  const mode = typeof peer.mode === 'string' ? peer.mode : ''
+  const publishConstraints = mode === 'record'
+    ? { audio: false, video: true }
+    : { audio: true, video: true }
+  const watchConstraints = { audio: true, video: true }
+
+  if (capabilities.includes('publish') && capabilities.includes('view')) {
+    return [
+      {
+        label: 'Broadcast',
+        options: {
+          localMedia: true,
+          receiveMedia: false,
+          mediaConstraints: publishConstraints
+        }
+      },
+      {
+        label: 'Watch',
+        options: {
+          localMedia: false,
+          mediaConstraints: watchConstraints
+        }
+      }
+    ]
+  }
+
+  if (capabilities.includes('publish')) {
+    return [{
+      label: 'Broadcast',
+      options: {
+        localMedia: true,
+        receiveMedia: false,
+        mediaConstraints: publishConstraints
+      }
+    }]
+  }
+
+  if (capabilities.includes('view')) {
+    return [{
+      label: 'Watch',
+      options: {
+        localMedia: false,
+        mediaConstraints: watchConstraints
+      }
+    }]
+  }
+
+  return [{
+      label: 'Call',
+      options: {
+        localMedia: true,
+        receiveMedia: true,
+        mediaConstraints: watchConstraints
+      }
+    }]
 }
 
 // ---------------------------------------------------------------------------
@@ -286,4 +410,7 @@ function setOnline (online) {
 // Boot
 // ---------------------------------------------------------------------------
 
-connect()
+connect().catch((err) => {
+  console.error('Failed to initialize media server UI:', err)
+  $connInfo.textContent = 'Initialization failed'
+})

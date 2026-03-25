@@ -42,7 +42,7 @@ struct WEBRTC_API TrackHandle
 ///
 /// The packetizer is selected based on the codec:
 ///   H264 → H264RtpPacketizer (Annex-B long start sequence)
-///   H265 → H265RtpPacketizer
+///   H265 → H265RtpPacketizer (Annex-B long start sequence)
 ///   VP8/VP9/other → generic RtpPacketizer
 ///
 /// @param pc           PeerConnection to add the track to.
@@ -50,20 +50,27 @@ struct WEBRTC_API TrackHandle
 ///                     encoder (e.g. "H264" or "libx264").
 /// @param ssrc         RTP SSRC. 0 = auto-generate.
 /// @param cname        RTCP CNAME. Empty = "icey".
+/// @param mid          MID to use for the track when answering an existing offer.
+/// @param direction    Direction to advertise for the negotiated m-line.
 /// @param nackBuffer   Max packets stored for NACK retransmission.
 /// @param onPli        Callback when remote peer requests a keyframe.
 ///                     Connect to your encoder to force IDR.
 /// @param onRemb       Callback when remote peer reports bandwidth estimate.
 ///                     Bitrate in bits/sec.
+/// @param payloadType  Explicit RTP payload type to reuse when answering
+///                     an offer. -1 = use the codec's default/preferred type.
 /// @return             TrackHandle with the track and its RTP config.
 [[nodiscard]] WEBRTC_API TrackHandle createVideoTrack(
     std::shared_ptr<rtc::PeerConnection> pc,
     const av::VideoCodec& codec,
     uint32_t ssrc = 0,
     const std::string& cname = {},
+    const std::string& mid = {},
+    rtc::Description::Direction direction = rtc::Description::Direction::SendRecv,
     unsigned nackBuffer = 512,
     std::function<void()> onPli = nullptr,
-    std::function<void(unsigned int)> onRemb = nullptr);
+    std::function<void(unsigned int)> onRemb = nullptr,
+    int payloadType = -1);
 
 
 /// Create an audio send track on a PeerConnection.
@@ -79,12 +86,43 @@ struct WEBRTC_API TrackHandle
 ///                     encoder (e.g. "opus" or "libopus").
 /// @param ssrc         RTP SSRC. 0 = auto-generate.
 /// @param cname        RTCP CNAME. Empty = "icey".
+/// @param mid          MID to use for the track when answering an existing offer.
+/// @param direction    Direction to advertise for the negotiated m-line.
+/// @param payloadType  Explicit RTP payload type to reuse when answering
+///                     an offer. -1 = use the codec's default/preferred type.
 /// @return             TrackHandle with the track and its RTP config.
 [[nodiscard]] WEBRTC_API TrackHandle createAudioTrack(
     std::shared_ptr<rtc::PeerConnection> pc,
     const av::AudioCodec& codec,
     uint32_t ssrc = 0,
-    const std::string& cname = {});
+    const std::string& cname = {},
+    const std::string& mid = {},
+    rtc::Description::Direction direction = rtc::Description::Direction::SendRecv,
+    int payloadType = -1);
+
+
+/// Create a pure receive-side video track on a PeerConnection.
+///
+/// Unlike createVideoTrack(), this does not add a local SSRC or sender
+/// packetizer chain. It is for answers that only receive remote media.
+[[nodiscard]] WEBRTC_API std::shared_ptr<rtc::Track> createVideoReceiveTrack(
+    std::shared_ptr<rtc::PeerConnection> pc,
+    const av::VideoCodec& codec,
+    const std::string& mid = {},
+    rtc::Description::Direction direction = rtc::Description::Direction::RecvOnly,
+    int payloadType = -1);
+
+
+/// Create a pure receive-side audio track on a PeerConnection.
+///
+/// Unlike createAudioTrack(), this does not add a local SSRC or sender
+/// packetizer chain. It is for answers that only receive remote media.
+[[nodiscard]] WEBRTC_API std::shared_ptr<rtc::Track> createAudioReceiveTrack(
+    std::shared_ptr<rtc::PeerConnection> pc,
+    const av::AudioCodec& codec,
+    const std::string& mid = {},
+    rtc::Description::Direction direction = rtc::Description::Direction::RecvOnly,
+    int payloadType = -1);
 
 
 /// Set up the receive-side media handler chain on a remote track.

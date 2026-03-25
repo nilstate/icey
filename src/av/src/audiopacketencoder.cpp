@@ -57,8 +57,10 @@ void AudioPacketEncoder::process(IPacket& packet)
     std::lock_guard<std::mutex> guard(_mutex);
 
     auto* ap = dynamic_cast<AudioPacket*>(&packet);
-    if (!ap)
+    if (!ap) {
+        emit(packet);
         return;
+    }
 
     auto* planar = dynamic_cast<PlanarAudioPacket*>(ap);
     if (planar) {

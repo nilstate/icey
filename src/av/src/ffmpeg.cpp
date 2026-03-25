@@ -16,6 +16,8 @@
 #ifdef HAVE_FFMPEG
 
 #include <iostream>
+#include <cstring>
+#include <limits>
 #include <mutex>
 #include <stdexcept>
 
@@ -102,6 +104,40 @@ std::string averror(const int error)
     char error_buffer[255];
     av_strerror(error, error_buffer, sizeof(error_buffer));
     return error_buffer;
+}
+
+
+AVPacketHolder makeOwnedPacket(const MediaPacket& packet,
+                               int streamIndex,
+                               AVRational timeBase)
+{
+    AVPacketHolder ffpacket(av_packet_alloc());
+    if (!ffpacket)
+        throw std::runtime_error("Cannot allocate FFmpeg packet");
+
+    const auto size = packet.size();
+    if (size > static_cast<size_t>(std::numeric_limits<int>::max()))
+        throw std::runtime_error("FFmpeg packet too large");
+
+    int ret = av_new_packet(ffpacket.get(), static_cast<int>(size));
+    if (ret < 0)
+        throw std::runtime_error("Cannot allocate FFmpeg packet data: " + averror(ret));
+
+    if (size > 0)
+        std::memcpy(ffpacket->data, packet.constData(), size);
+
+    ffpacket->stream_index = streamIndex;
+    if (packet.time > 0) {
+        ffpacket->pts = av_rescale_q(packet.time, AVRational{1, AV_TIME_BASE},
+                                     timeBase);
+        ffpacket->dts = ffpacket->pts;
+    }
+    else {
+        ffpacket->pts = AV_NOPTS_VALUE;
+        ffpacket->dts = AV_NOPTS_VALUE;
+    }
+
+    return ffpacket;
 }
 
 

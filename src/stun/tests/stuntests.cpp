@@ -1,4 +1,5 @@
 #include "icy/base.h"
+#include "icy/crypto/hmac.h"
 #include "icy/logger.h"
 #include "icy/stun/message.h"
 #include "icy/test.h"
@@ -42,6 +43,58 @@ int main(int argc, char** argv)
         auto* integrity = response.get<stun::MessageIntegrity>();
         expect(integrity != nullptr);
         expect(integrity->verifyHmac(password));
+    });
+
+    describe("message integrity uses RFC framing and ignores following attributes", []() {
+        std::string username("someuser");
+        std::string password("somepass");
+
+        stun::Message request(stun::Message::Request, stun::Message::Allocate);
+        request.add<stun::Username>().copyBytes(username.c_str(), username.size());
+        request.add<stun::MessageIntegrity>().setKey(password);
+        request.add<stun::Fingerprint>();
+
+        Buffer buf;
+        request.write(buf);
+
+        const auto* bytes = reinterpret_cast<const uint8_t*>(buf.data());
+        const size_t size = buf.size();
+        size_t pos = stun::kMessageHeaderSize;
+        size_t miHeaderOffset = std::string::npos;
+        size_t miValueOffset = std::string::npos;
+        std::string actualHmac;
+
+        while (pos + stun::kAttributeHeaderSize <= size) {
+            uint16_t type = (uint16_t(bytes[pos]) << 8) | uint16_t(bytes[pos + 1]);
+            uint16_t attrSize = (uint16_t(bytes[pos + 2]) << 8) | uint16_t(bytes[pos + 3]);
+            size_t valueOffset = pos + stun::kAttributeHeaderSize;
+            size_t paddedSize = (attrSize + 3) & ~size_t(3);
+            if (valueOffset + paddedSize > size)
+                break;
+            if (type == stun::Attribute::MessageIntegrity) {
+                miHeaderOffset = pos;
+                miValueOffset = valueOffset;
+                actualHmac.assign(reinterpret_cast<const char*>(bytes + valueOffset),
+                                  stun::MessageIntegrity::Size);
+                break;
+            }
+            pos = valueOffset + paddedSize;
+        }
+
+        expect(miHeaderOffset != std::string::npos);
+        expect(miValueOffset != std::string::npos);
+
+        std::string input(reinterpret_cast<const char*>(bytes),
+                          reinterpret_cast<const char*>(bytes + miHeaderOffset));
+
+        const uint16_t messageLength =
+            static_cast<uint16_t>(
+                miHeaderOffset + stun::kAttributeHeaderSize +
+                stun::MessageIntegrity::Size - stun::kMessageHeaderSize);
+        input[2] = static_cast<char>((messageLength >> 8) & 0xFF);
+        input[3] = static_cast<char>(messageLength & 0xFF);
+
+        expect(crypto::computeHMAC(input, password) == actualHmac);
     });
 
     // =========================================================================

@@ -21,6 +21,7 @@ int main(int argc, char** argv)
     describe("video encoder", new VideoEncoderTest);
     describe("video packet encoder timestamps", new VideoPacketEncoderTimestampTest);
     describe("video decoder", new VideoDecoderTest);
+    describe("video decoder negotiated stream", new VideoDecoderNegotiatedStreamTest);
     describe("audio decoder", new AudioDecoderTest);
     describe("h264 video file transcoder", new VideoFileTranscoderTest);
     describe("h264 multiplex capture encoder", new MultiplexCaptureEncoderTest);

@@ -797,19 +797,20 @@ bool MessageIntegrity::verifyHmac(std::string_view key) const
 
 void MessageIntegrity::read(BitReader& reader)
 {
-    int sizeBeforeMessageIntegrity = reader.position() - kAttributeHeaderSize;
+    const size_t hmacValueOffset = reader.position();
+    const size_t hmacHeaderOffset = hmacValueOffset - kAttributeHeaderSize;
 
-    // Get the message prior to the current attribute and fill the
-    // attribute with dummy content.
+    // RFC 5389 section 15.4: the HMAC input stops before the
+    // MESSAGE-INTEGRITY attribute, but the STUN header length must be
+    // adjusted as if the attribute were present.
     Buffer hmacBuf;
-    hmacBuf.reserve(std::max(sizeBeforeMessageIntegrity, 256));
+    hmacBuf.reserve(std::max(hmacHeaderOffset, size_t(256)));
     BitWriter hmacWriter(hmacBuf.data(), hmacBuf.capacity());
+    hmacWriter.put(reader.begin(), hmacHeaderOffset);
 
-    hmacWriter.put(reader.begin(), reader.position() - kAttributeHeaderSize);
-
-    // Ensure the STUN message size reflects the message up to and
-    // including the MessageIntegrity attribute.
-    hmacWriter.updateU16(static_cast<uint16_t>(sizeBeforeMessageIntegrity + MessageIntegrity::Size), 2);
+    const size_t messageLength =
+        hmacHeaderOffset + kAttributeHeaderSize + MessageIntegrity::Size - kMessageHeaderSize;
+    hmacWriter.updateU16(static_cast<uint16_t>(messageLength), 2);
     _input.assign(hmacWriter.begin(), hmacWriter.position());
 
     _hmac.assign(reader.current(), MessageIntegrity::Size);
@@ -824,35 +825,23 @@ void MessageIntegrity::write(BitWriter& writer) const
     // for the current message, otherwise the attribute content
     // will be copied.
     if (!_key.empty()) {
+        const size_t hmacValueOffset = writer.position();
+        const size_t hmacHeaderOffset = hmacValueOffset - kAttributeHeaderSize;
 
-        // The hash used to construct MESSAGE-INTEGRITY includes the length
-        // field from the STUN message header.
-        // Prior to performing the hash, the MESSAGE-INTEGRITY attribute MUST be
-        // inserted into the message (with dummy content).
-        int sizeBeforeMessageIntegrity = writer.position() - kAttributeHeaderSize;
-
-        // Get the message prior to the current attribute and
-        // fill the attribute with dummy content.
         Buffer hmacBuf;
-        hmacBuf.reserve(std::max(sizeBeforeMessageIntegrity, 256));
+        hmacBuf.reserve(std::max(hmacHeaderOffset, size_t(256)));
         BitWriter hmacWriter(hmacBuf.data(), hmacBuf.capacity());
-        hmacWriter.put(writer.begin(), sizeBeforeMessageIntegrity);
+        hmacWriter.put(writer.begin(), hmacHeaderOffset);
 
-        // The length MUST then
-        // be set to point to the length of the message up to, and including,
-        // the MESSAGE-INTEGRITY attribute itself, but excluding any attributes
-        // after it.  Once the computation is performed, the value of the
-        // MESSAGE-INTEGRITY attribute can be filled in, and the value of the
-        // length in the STUN header can be set to its correct value -- the
-        // length of the entire message.  Similarly, when validating the
-        // MESSAGE-INTEGRITY, the length field should be adjusted to point to
-        // the end of the MESSAGE-INTEGRITY attribute prior to calculating the
-        // HMAC.  Such adjustment is necessary when attributes, such as
-        // FINGERPRINT, appear after MESSAGE-INTEGRITY.
-        hmacWriter.updateU16(static_cast<uint16_t>(sizeBeforeMessageIntegrity + MessageIntegrity::Size), 2);
+        // RFC 5389 section 15.4: hash the message up to the attribute
+        // preceding MESSAGE-INTEGRITY, but set the STUN header length as if
+        // MESSAGE-INTEGRITY were present and no following attributes existed.
+        const size_t messageLength =
+            hmacHeaderOffset + kAttributeHeaderSize + MessageIntegrity::Size - kMessageHeaderSize;
+        hmacWriter.updateU16(static_cast<uint16_t>(messageLength), 2);
 
         std::string input(hmacWriter.begin(), hmacWriter.position());
-        if (input.size() != static_cast<size_t>(sizeBeforeMessageIntegrity))
+        if (input.size() != hmacHeaderOffset)
             throw std::runtime_error("MessageIntegrity::write: input size mismatch");
 
         std::string hmac(crypto::computeHMAC(input, _key));

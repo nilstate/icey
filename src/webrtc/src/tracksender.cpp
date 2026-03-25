@@ -55,9 +55,16 @@ void WebRtcTrackSender::process(IPacket& packet)
     if (!_track || !_track->isOpen() || !_rtpConfig)
         return;
 
-    auto* mp = dynamic_cast<av::MediaPacket*>(&packet);
-    if (!mp)
+    av::MediaPacket* mp = nullptr;
+    if (_isVideo)
+        mp = dynamic_cast<av::VideoPacket*>(&packet);
+    else
+        mp = dynamic_cast<av::AudioPacket*>(&packet);
+
+    if (!mp) {
+        emit(packet);
         return;
+    }
 
     // Convert FFmpeg timestamp (microseconds) to RTP timestamp
     // using the clock rate from the RTP config.
@@ -80,8 +87,9 @@ void WebRtcTrackSender::process(IPacket& packet)
 
 bool WebRtcTrackSender::accepts(IPacket* packet)
 {
-    // Accept any MediaPacket derivative (VideoPacket, AudioPacket, etc.)
-    return dynamic_cast<av::MediaPacket*>(packet) != nullptr;
+    if (_isVideo)
+        return dynamic_cast<av::VideoPacket*>(packet) != nullptr;
+    return dynamic_cast<av::AudioPacket*>(packet) != nullptr;
 }
 
 

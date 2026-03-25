@@ -127,14 +127,22 @@ AVFrame* VideoContext::convert(AVFrame* iframe)
     if (!iframe)
         return nullptr;
 
-    if (iframe->width != iparams.width || iframe->height != iparams.height)
-        throw std::runtime_error("Input frame dimensions mismatch");
-
     // Recreate the video conversion context on the fly
     // if the input resolution changes.
     iparams.width = iframe->width;
     iparams.height = iframe->height;
-    iparams.pixelFmt = av_get_pix_fmt_name((AVPixelFormat)iframe->format);
+    if (const char* pixelFmt = av_get_pix_fmt_name((AVPixelFormat)iframe->format))
+        iparams.pixelFmt = pixelFmt;
+    else
+        iparams.pixelFmt.clear();
+
+    if (oparams.width == 0)
+        oparams.width = iparams.width;
+    if (oparams.height == 0)
+        oparams.height = iparams.height;
+    if (oparams.pixelFmt.empty())
+        oparams.pixelFmt = iparams.pixelFmt;
+
     recreateConverter();
 
     // Return the input frame if no conversion is required
@@ -224,7 +232,10 @@ void initVideoCodecFromContext(const AVStream* stream, const AVCodecContext* ctx
 {
     params.enabled = true;
     params.encoder = avcodec_get_name(ctx->codec_id);
-    params.pixelFmt = av_get_pix_fmt_name(ctx->pix_fmt);
+    if (const char* pixelFmt = av_get_pix_fmt_name(ctx->pix_fmt))
+        params.pixelFmt = pixelFmt;
+    else
+        params.pixelFmt.clear();
     params.width = ctx->width;
     params.height = ctx->height;
     params.sampleRate = ctx->sample_rate;

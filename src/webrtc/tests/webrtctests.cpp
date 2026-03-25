@@ -201,9 +201,12 @@ struct LoopbackSignaller : SignallingInterface
 #ifdef HAVE_FFMPEG
 namespace {
 
-const std::string& chromeBrowserOffer()
+std::string chromeBrowserOffer(std::string_view audioDirection = "sendrecv",
+                               std::string_view videoDirection = "sendrecv")
 {
-    static const std::string offer =
+    std::string offer;
+    offer.reserve(1024);
+    offer +=
         "v=0\r\n"
         "o=- 4611739175949513388 2 IN IP4 127.0.0.1\r\n"
         "s=-\r\n"
@@ -218,8 +221,11 @@ const std::string& chromeBrowserOffer()
         "a=ice-options:trickle\r\n"
         "a=fingerprint:sha-256 11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00\r\n"
         "a=setup:actpass\r\n"
-        "a=mid:0\r\n"
-        "a=sendrecv\r\n"
+        "a=mid:0\r\n";
+    offer += "a=";
+    offer += audioDirection;
+    offer +=
+        "\r\n"
         "a=rtcp-mux\r\n"
         "a=rtcp-rsize\r\n"
         "a=rtpmap:111 opus/48000/2\r\n"
@@ -234,8 +240,11 @@ const std::string& chromeBrowserOffer()
         "a=ice-options:trickle\r\n"
         "a=fingerprint:sha-256 11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00\r\n"
         "a=setup:actpass\r\n"
-        "a=mid:1\r\n"
-        "a=sendrecv\r\n"
+        "a=mid:1\r\n";
+    offer += "a=";
+    offer += videoDirection;
+    offer +=
+        "\r\n"
         "a=rtcp-mux\r\n"
         "a=rtcp-rsize\r\n"
         "a=rtpmap:102 H264/90000\r\n"
@@ -625,7 +634,8 @@ int main(int argc, char** argv)
         auto pc = std::make_shared<rtc::PeerConnection>(config);
 
         bool pliFired = false;
-        auto vh = createVideoTrack(pc, av::VideoCodec("H264", "libx264", 640, 480, 30), 0, {}, 512,
+        auto vh = createVideoTrack(pc, av::VideoCodec("H264", "libx264", 640, 480, 30), 0, {}, {},
+            rtc::Description::Direction::SendRecv, 512,
             [&]() { pliFired = true; });
 
         expect(vh.track != nullptr);
@@ -918,24 +928,19 @@ int main(int argc, char** argv)
         expect(signaller.controls.size() == 1);
         expect(signaller.controls[0].type == "accept");
         expect(session.state() == PeerSession::State::Negotiating);
-        expect(session.peerConnection() != nullptr);
+        expect(session.peerConnection() == nullptr);
         expect(session.dataChannel() == nullptr);
     });
 
-    describe("peer session: accept creates peer connection before signalling", []() {
+    describe("peer session: accept defers peer connection until offer", []() {
         MockSignaller signaller;
         PeerSession session(signaller, {});
-        bool pcWasReadyDuringAccept = false;
-
-        signaller.onSendControl = [&](const std::string&, const std::string& type, const std::string&) {
-            if (type == "accept")
-                pcWasReadyDuringAccept = session.peerConnection() != nullptr;
-        };
 
         signaller.ControlReceived.emit("peer", "init", "");
         session.accept();
 
-        expect(pcWasReadyDuringAccept);
+        expect(session.peerConnection() == nullptr);
+        signaller.SdpReceived.emit("peer", "offer", chromeBrowserOffer());
         expect(session.peerConnection() != nullptr);
     });
 
@@ -960,6 +965,8 @@ int main(int argc, char** argv)
         config.enableDataChannel = false;
         configureLoopbackAudioCodec(config);
         configureLoopbackVideoCodec(config, 640, 360, 30);
+        config.mediaOpts.audioDirection = rtc::Description::Direction::SendOnly;
+        config.mediaOpts.videoDirection = rtc::Description::Direction::SendOnly;
         PeerSession session(signaller, config);
 
         signaller.ControlReceived.emit("browser", "init", "");
@@ -969,7 +976,8 @@ int main(int argc, char** argv)
         expect(session.state() == PeerSession::State::Negotiating);
 
         signaller.CandidateReceived.emit("browser", chromeBrowserCandidate(), "0");
-        signaller.SdpReceived.emit("browser", "offer", chromeBrowserOffer());
+        signaller.SdpReceived.emit("browser", "offer",
+            chromeBrowserOffer("recvonly", "recvonly"));
 
         expect(icy::test::waitFor([&] {
             return !signaller.sdps.empty();
@@ -978,11 +986,48 @@ int main(int argc, char** argv)
         expect(signaller.sdps.back().peerId == "browser");
         expect(signaller.sdps.back().type == "answer");
         expect(!signaller.sdps.back().sdp.empty());
+        expect(signaller.sdps.back().sdp.find("m=audio 0") == std::string::npos);
+        expect(signaller.sdps.back().sdp.find("m=video 0") == std::string::npos);
+        expect(signaller.sdps.back().sdp.find("a=mid:0") != std::string::npos);
+        expect(signaller.sdps.back().sdp.find("a=mid:1") != std::string::npos);
+        expect(signaller.sdps.back().sdp.find("a=sendonly") != std::string::npos);
+        expect(signaller.sdps.back().sdp.find("a=sendrecv") == std::string::npos);
+        expect(signaller.sdps.back().sdp.find("a=msid:") != std::string::npos);
+        expect(signaller.sdps.back().sdp.find("a=rtpmap:111 opus/48000/2") != std::string::npos);
+        expect(signaller.sdps.back().sdp.find("a=rtpmap:102 H264/90000") != std::string::npos);
+        expect(signaller.sdps.back().sdp.find("a=rtpmap:96 H264/90000") == std::string::npos);
 
         session.hangup("done");
         expect(icy::test::waitFor([&] {
             return session.state() == PeerSession::State::Idle;
         }, 3000));
+    });
+
+    describe("peer session: sendonly browser offer yields pure recvonly answer", []() {
+        MockSignaller signaller;
+        PeerSession::Config config;
+        config.enableDataChannel = false;
+        config.mediaOpts.videoCodec = CodecNegotiator::resolveWebRtcVideoCodec(
+            av::VideoCodec("H264", "libx264", 640, 360, 30));
+        PeerSession session(signaller, config);
+
+        signaller.ControlReceived.emit("browser", "init", "");
+        session.accept();
+        signaller.SdpReceived.emit("browser", "offer",
+            chromeBrowserOffer("sendonly", "sendonly"));
+
+        expect(icy::test::waitFor([&] {
+            return !signaller.sdps.empty();
+        }, 2000));
+
+        const auto& sdp = signaller.sdps.back().sdp;
+        expect(signaller.sdps.back().type == "answer");
+        expect(sdp.find("m=video 9 UDP/TLS/RTP/SAVPF 102") != std::string::npos);
+        expect(sdp.find("a=rtpmap:97 rtx/90000") == std::string::npos);
+        expect(sdp.find("a=fmtp:97 apt=102") == std::string::npos);
+        expect(sdp.find("a=recvonly") != std::string::npos);
+        expect(sdp.find("a=ssrc:") == std::string::npos);
+        expect(sdp.find("a=msid:") == std::string::npos);
     });
 
     describe("peer session: reentrant signaller preserves state order", []() {
@@ -1187,6 +1232,199 @@ int main(int argc, char** argv)
         }, 3000));
     });
 
+    describe("peer session: sendonly caller reaches recvonly callee", []() {
+        LoopbackSignaller publisherSig("publisher");
+        LoopbackSignaller recorderSig("recorder");
+        publisherSig.connect(recorderSig);
+        const auto ownerThread = std::this_thread::get_id();
+
+        PeerSession::Config publisherConfig;
+        publisherConfig.enableDataChannel = false;
+        configureLoopbackVideoCodec(publisherConfig, 160, 120, 30);
+        publisherConfig.mediaOpts.videoDirection = rtc::Description::Direction::SendOnly;
+        publisherConfig.mediaOpts.audioCodec = {};
+        publisherConfig.mediaOpts.audioDirection = rtc::Description::Direction::Inactive;
+
+        PeerSession::Config recorderConfig;
+        recorderConfig.enableDataChannel = false;
+        configureLoopbackVideoCodec(recorderConfig, 160, 120, 30);
+        recorderConfig.mediaOpts.videoDirection = rtc::Description::Direction::RecvOnly;
+        recorderConfig.mediaOpts.audioCodec = {};
+        recorderConfig.mediaOpts.audioDirection = rtc::Description::Direction::Inactive;
+
+        PeerSession publisher(publisherSig, publisherConfig);
+        PeerSession recorder(recorderSig, recorderConfig);
+
+        recorder.IncomingCall += [&](const std::string& peerId) {
+            expect(peerId == "publisher");
+            recorder.accept();
+        };
+
+        std::atomic<int> receivedPackets{0};
+        std::atomic<size_t> lastReceivedSize{0};
+        std::atomic<bool> receiverAttached{false};
+        recorder.StateChanged += [&](PeerSession::State state) {
+            if (state != PeerSession::State::Active || receiverAttached.exchange(true))
+                return;
+            expect(std::this_thread::get_id() == ownerThread);
+            recorder.media().videoReceiver().emitter += [&](IPacket& packet) {
+                auto* video = dynamic_cast<av::VideoPacket*>(&packet);
+                if (!video)
+                    return;
+                receivedPackets.fetch_add(1);
+                lastReceivedSize.store(video->size());
+            };
+        };
+
+        publisher.call("recorder");
+
+        expect(icy::test::waitFor([&] {
+            return publisher.state() == PeerSession::State::Active &&
+                   recorder.state() == PeerSession::State::Active;
+        }, 8000));
+        expect(receiverAttached.load());
+
+        expect(publisher.media().hasVideo());
+        expect(recorder.media().hasVideo());
+        expect(!recorder.media().hasAudio());
+
+        av::VideoPacketEncoder encoder;
+        encoder.iparams.width = 160;
+        encoder.iparams.height = 120;
+        encoder.iparams.pixelFmt = "yuv420p";
+        encoder.oparams = publisherConfig.mediaOpts.videoCodec;
+        encoder.emitter += [&](IPacket& packet) {
+            publisher.media().videoSender().process(packet);
+        };
+        encoder.create();
+        encoder.open();
+
+        for (int i = 0; i < 24 && receivedPackets.load() == 0; ++i) {
+            av::AVFrameHolder frame(av::createVideoFrame(AV_PIX_FMT_YUV420P, 160, 120));
+            expect(static_cast<bool>(frame));
+            fillLoopbackVideoFrame(frame.get(), i);
+
+            av::PlanarVideoPacket packet(frame->data, frame->linesize,
+                                         "yuv420p", 160, 120,
+                                         static_cast<int64_t>(i) * 33333);
+            encoder.process(packet);
+            std::this_thread::sleep_for(std::chrono::milliseconds(20));
+        }
+
+        encoder.flush();
+        encoder.close();
+
+        expect(icy::test::waitFor([&] {
+            return receivedPackets.load() > 0;
+        }, 5000));
+        expect(lastReceivedSize.load() > 0);
+
+        publisher.hangup("done");
+        expect(icy::test::waitFor([&] {
+            return publisher.state() == PeerSession::State::Idle &&
+                   recorder.state() == PeerSession::State::Idle;
+        }, 3000));
+    });
+
+    describe("peer session: shared av stream graph routes audio and video correctly", []() {
+        LoopbackSignaller aliceSig("alice");
+        LoopbackSignaller bobSig("bob");
+        aliceSig.connect(bobSig);
+
+        PeerSession::Config config;
+        config.enableDataChannel = false;
+        configureLoopbackAudioCodec(config);
+        configureLoopbackVideoCodec(config, 160, 120, 30);
+
+        PeerSession alice(aliceSig, config);
+        PeerSession bob(bobSig, config);
+
+        bob.IncomingCall += [&](const std::string& peerId) {
+            expect(peerId == "alice");
+            bob.accept();
+        };
+
+        std::atomic<int> receivedAudio{0};
+        std::atomic<int> receivedVideo{0};
+
+        bob.media().audioReceiver().emitter += [&](IPacket& packet) {
+            if (dynamic_cast<av::AudioPacket*>(&packet))
+                receivedAudio.fetch_add(1);
+        };
+        bob.media().videoReceiver().emitter += [&](IPacket& packet) {
+            if (dynamic_cast<av::VideoPacket*>(&packet))
+                receivedVideo.fetch_add(1);
+        };
+
+        alice.call("bob");
+
+        expect(icy::test::waitFor([&] {
+            return alice.state() == PeerSession::State::Active &&
+                   bob.state() == PeerSession::State::Active;
+        }, 8000));
+
+        PacketSignal source;
+        PacketStream stream;
+        av::VideoPacketEncoder videoEncoder;
+        av::AudioPacketEncoder audioEncoder;
+
+        videoEncoder.iparams.width = 160;
+        videoEncoder.iparams.height = 120;
+        videoEncoder.iparams.pixelFmt = "yuv420p";
+        videoEncoder.oparams = config.mediaOpts.videoCodec;
+
+        audioEncoder.iparams.channels = config.mediaOpts.audioCodec.channels;
+        audioEncoder.iparams.sampleRate = config.mediaOpts.audioCodec.sampleRate;
+        audioEncoder.iparams.sampleFmt = "flt";
+        audioEncoder.oparams = config.mediaOpts.audioCodec;
+
+        stream.attachSource(source);
+        stream.attach(&videoEncoder, 1, false);
+        stream.attach(&audioEncoder, 2, false);
+        stream.attach(&alice.media().videoSender(), 5, false);
+        stream.attach(&alice.media().audioSender(), 6, false);
+        stream.start();
+
+        for (int i = 0; i < 24; ++i) {
+            av::AVFrameHolder frame(av::createVideoFrame(AV_PIX_FMT_YUV420P, 160, 120));
+            expect(static_cast<bool>(frame));
+            fillLoopbackVideoFrame(frame.get(), i);
+
+            av::PlanarVideoPacket video(frame->data, frame->linesize,
+                                        "yuv420p", 160, 120,
+                                        static_cast<int64_t>(i) * 33333);
+            source.emit(video);
+
+            auto samples = makeLoopbackAudioSamples(
+                config.mediaOpts.audioCodec.channels,
+                960,
+                config.mediaOpts.audioCodec.sampleRate,
+                i * 960);
+            av::AudioPacket audio(
+                reinterpret_cast<uint8_t*>(samples.data()),
+                samples.size() * sizeof(float),
+                960,
+                static_cast<int64_t>(i) * 20000);
+            source.emit(audio);
+
+            if (receivedAudio.load() > 0 && receivedVideo.load() > 0)
+                break;
+
+            std::this_thread::sleep_for(std::chrono::milliseconds(20));
+        }
+
+        expect(icy::test::waitFor([&] {
+            return receivedAudio.load() > 0 && receivedVideo.load() > 0;
+        }, 5000));
+
+        stream.stop();
+        alice.hangup("done");
+        expect(icy::test::waitFor([&] {
+            return alice.state() == PeerSession::State::Idle &&
+                   bob.state() == PeerSession::State::Idle;
+        }, 3000));
+    });
+
     describe("peer session: encoded relay path forwards media between sessions", []() {
         LoopbackSignaller publisherSig("publisher");
         LoopbackSignaller ingressSig("relay-ingress");
@@ -1196,14 +1434,38 @@ int main(int argc, char** argv)
         LoopbackSignaller egressSig("relay-egress");
         viewerSig.connect(egressSig);
 
-        PeerSession::Config config;
-        config.enableDataChannel = false;
-        configureLoopbackVideoCodec(config, 160, 120, 30);
+        PeerSession::Config publisherConfig;
+        publisherConfig.enableDataChannel = false;
+        configureLoopbackVideoCodec(publisherConfig, 160, 120, 30);
+        publisherConfig.mediaOpts.videoDirection = rtc::Description::Direction::SendOnly;
+        publisherConfig.mediaOpts.audioCodec = {};
+        publisherConfig.mediaOpts.audioDirection = rtc::Description::Direction::Inactive;
 
-        PeerSession publisher(publisherSig, config);
-        PeerSession relayIngress(ingressSig, config);
-        PeerSession relayEgress(egressSig, config);
-        PeerSession viewer(viewerSig, config);
+        PeerSession::Config relayIngressConfig;
+        relayIngressConfig.enableDataChannel = false;
+        configureLoopbackVideoCodec(relayIngressConfig, 160, 120, 30);
+        relayIngressConfig.mediaOpts.videoDirection = rtc::Description::Direction::RecvOnly;
+        relayIngressConfig.mediaOpts.audioCodec = {};
+        relayIngressConfig.mediaOpts.audioDirection = rtc::Description::Direction::Inactive;
+
+        PeerSession::Config relayEgressConfig;
+        relayEgressConfig.enableDataChannel = false;
+        configureLoopbackVideoCodec(relayEgressConfig, 160, 120, 30);
+        relayEgressConfig.mediaOpts.videoDirection = rtc::Description::Direction::SendOnly;
+        relayEgressConfig.mediaOpts.audioCodec = {};
+        relayEgressConfig.mediaOpts.audioDirection = rtc::Description::Direction::Inactive;
+
+        PeerSession::Config viewerConfig;
+        viewerConfig.enableDataChannel = false;
+        configureLoopbackVideoCodec(viewerConfig, 160, 120, 30);
+        viewerConfig.mediaOpts.videoDirection = rtc::Description::Direction::RecvOnly;
+        viewerConfig.mediaOpts.audioCodec = {};
+        viewerConfig.mediaOpts.audioDirection = rtc::Description::Direction::Inactive;
+
+        PeerSession publisher(publisherSig, publisherConfig);
+        PeerSession relayIngress(ingressSig, relayIngressConfig);
+        PeerSession relayEgress(egressSig, relayEgressConfig);
+        PeerSession viewer(viewerSig, viewerConfig);
 
         relayIngress.IncomingCall += [&](const std::string& peerId) {
             expect(peerId == "publisher");
@@ -1237,12 +1499,20 @@ int main(int argc, char** argv)
                    relayEgress.state() == PeerSession::State::Active &&
                    viewer.state() == PeerSession::State::Active;
         }, 8000));
+        expect(publisher.media().hasVideo());
+        expect(!publisher.media().hasAudio());
+        expect(relayIngress.media().hasVideo());
+        expect(!relayIngress.media().hasAudio());
+        expect(relayEgress.media().hasVideo());
+        expect(!relayEgress.media().hasAudio());
+        expect(viewer.media().hasVideo());
+        expect(!viewer.media().hasAudio());
 
         av::VideoPacketEncoder encoder;
         encoder.iparams.width = 160;
         encoder.iparams.height = 120;
         encoder.iparams.pixelFmt = "yuv420p";
-        encoder.oparams = config.mediaOpts.videoCodec;
+        encoder.oparams = publisherConfig.mediaOpts.videoCodec;
         encoder.emitter += [&](IPacket& packet) {
             publisher.media().videoSender().process(packet);
         };
@@ -1288,14 +1558,38 @@ int main(int argc, char** argv)
         LoopbackSignaller egressSig("relay-egress");
         viewerSig.connect(egressSig);
 
-        PeerSession::Config config;
-        config.enableDataChannel = false;
-        configureLoopbackAudioCodec(config);
+        PeerSession::Config publisherConfig;
+        publisherConfig.enableDataChannel = false;
+        configureLoopbackAudioCodec(publisherConfig);
+        publisherConfig.mediaOpts.audioDirection = rtc::Description::Direction::SendOnly;
+        publisherConfig.mediaOpts.videoCodec = {};
+        publisherConfig.mediaOpts.videoDirection = rtc::Description::Direction::Inactive;
 
-        PeerSession publisher(publisherSig, config);
-        PeerSession relayIngress(ingressSig, config);
-        PeerSession relayEgress(egressSig, config);
-        PeerSession viewer(viewerSig, config);
+        PeerSession::Config relayIngressConfig;
+        relayIngressConfig.enableDataChannel = false;
+        configureLoopbackAudioCodec(relayIngressConfig);
+        relayIngressConfig.mediaOpts.audioDirection = rtc::Description::Direction::RecvOnly;
+        relayIngressConfig.mediaOpts.videoCodec = {};
+        relayIngressConfig.mediaOpts.videoDirection = rtc::Description::Direction::Inactive;
+
+        PeerSession::Config relayEgressConfig;
+        relayEgressConfig.enableDataChannel = false;
+        configureLoopbackAudioCodec(relayEgressConfig);
+        relayEgressConfig.mediaOpts.audioDirection = rtc::Description::Direction::SendOnly;
+        relayEgressConfig.mediaOpts.videoCodec = {};
+        relayEgressConfig.mediaOpts.videoDirection = rtc::Description::Direction::Inactive;
+
+        PeerSession::Config viewerConfig;
+        viewerConfig.enableDataChannel = false;
+        configureLoopbackAudioCodec(viewerConfig);
+        viewerConfig.mediaOpts.audioDirection = rtc::Description::Direction::RecvOnly;
+        viewerConfig.mediaOpts.videoCodec = {};
+        viewerConfig.mediaOpts.videoDirection = rtc::Description::Direction::Inactive;
+
+        PeerSession publisher(publisherSig, publisherConfig);
+        PeerSession relayIngress(ingressSig, relayIngressConfig);
+        PeerSession relayEgress(egressSig, relayEgressConfig);
+        PeerSession viewer(viewerSig, viewerConfig);
 
         relayIngress.IncomingCall += [&](const std::string& peerId) {
             expect(peerId == "publisher");
@@ -1331,9 +1625,17 @@ int main(int argc, char** argv)
                    relayEgress.state() == PeerSession::State::Active &&
                    viewer.state() == PeerSession::State::Active;
         }, 8000));
+        expect(!publisher.media().hasVideo());
+        expect(publisher.media().hasAudio());
+        expect(!relayIngress.media().hasVideo());
+        expect(relayIngress.media().hasAudio());
+        expect(!relayEgress.media().hasVideo());
+        expect(relayEgress.media().hasAudio());
+        expect(!viewer.media().hasVideo());
+        expect(viewer.media().hasAudio());
 
         sendLoopbackAudioFrames(
-            config.mediaOpts.audioCodec,
+            publisherConfig.mediaOpts.audioCodec,
             32,
             0,
             [&](IPacket& packet) {
@@ -1369,16 +1671,40 @@ int main(int argc, char** argv)
         LoopbackSignaller egressSig("relay-egress");
         viewerSig.connect(egressSig);
 
-        PeerSession::Config config;
-        config.enableDataChannel = false;
-        configureLoopbackAudioCodec(config);
+        PeerSession::Config publisherConfig;
+        publisherConfig.enableDataChannel = false;
+        configureLoopbackAudioCodec(publisherConfig);
+        publisherConfig.mediaOpts.audioDirection = rtc::Description::Direction::SendOnly;
+        publisherConfig.mediaOpts.videoCodec = {};
+        publisherConfig.mediaOpts.videoDirection = rtc::Description::Direction::Inactive;
 
-        PeerSession publisherA(publisherASig, config);
-        PeerSession relayIngressA(ingressASig, config);
-        PeerSession publisherB(publisherBSig, config);
-        PeerSession relayIngressB(ingressBSig, config);
-        PeerSession relayEgress(egressSig, config);
-        PeerSession viewer(viewerSig, config);
+        PeerSession::Config ingressConfig;
+        ingressConfig.enableDataChannel = false;
+        configureLoopbackAudioCodec(ingressConfig);
+        ingressConfig.mediaOpts.audioDirection = rtc::Description::Direction::RecvOnly;
+        ingressConfig.mediaOpts.videoCodec = {};
+        ingressConfig.mediaOpts.videoDirection = rtc::Description::Direction::Inactive;
+
+        PeerSession::Config egressConfig;
+        egressConfig.enableDataChannel = false;
+        configureLoopbackAudioCodec(egressConfig);
+        egressConfig.mediaOpts.audioDirection = rtc::Description::Direction::SendOnly;
+        egressConfig.mediaOpts.videoCodec = {};
+        egressConfig.mediaOpts.videoDirection = rtc::Description::Direction::Inactive;
+
+        PeerSession::Config viewerConfig;
+        viewerConfig.enableDataChannel = false;
+        configureLoopbackAudioCodec(viewerConfig);
+        viewerConfig.mediaOpts.audioDirection = rtc::Description::Direction::RecvOnly;
+        viewerConfig.mediaOpts.videoCodec = {};
+        viewerConfig.mediaOpts.videoDirection = rtc::Description::Direction::Inactive;
+
+        PeerSession publisherA(publisherASig, publisherConfig);
+        PeerSession relayIngressA(ingressASig, ingressConfig);
+        PeerSession publisherB(publisherBSig, publisherConfig);
+        PeerSession relayIngressB(ingressBSig, ingressConfig);
+        PeerSession relayEgress(egressSig, egressConfig);
+        PeerSession viewer(viewerSig, viewerConfig);
 
         relayIngressA.IncomingCall += [&](const std::string& peerId) {
             expect(peerId == "publisher-a");
@@ -1425,9 +1751,21 @@ int main(int argc, char** argv)
                    relayEgress.state() == PeerSession::State::Active &&
                    viewer.state() == PeerSession::State::Active;
         }, 10000));
+        expect(!publisherA.media().hasVideo());
+        expect(publisherA.media().hasAudio());
+        expect(!relayIngressA.media().hasVideo());
+        expect(relayIngressA.media().hasAudio());
+        expect(!publisherB.media().hasVideo());
+        expect(publisherB.media().hasAudio());
+        expect(!relayIngressB.media().hasVideo());
+        expect(relayIngressB.media().hasAudio());
+        expect(!relayEgress.media().hasVideo());
+        expect(relayEgress.media().hasAudio());
+        expect(!viewer.media().hasVideo());
+        expect(viewer.media().hasAudio());
 
         sendLoopbackAudioFrames(
-            config.mediaOpts.audioCodec,
+            publisherConfig.mediaOpts.audioCodec,
             16,
             0,
             [&](IPacket& packet) {
@@ -1447,7 +1785,7 @@ int main(int argc, char** argv)
 
         activeSource.store(2, std::memory_order_relaxed);
         sendLoopbackAudioFrames(
-            config.mediaOpts.audioCodec,
+            publisherConfig.mediaOpts.audioCodec,
             24,
             10000000,
             [&](IPacket& packet) {

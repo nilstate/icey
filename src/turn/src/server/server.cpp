@@ -12,6 +12,7 @@
 #include "icy/turn/server/server.h"
 #include "icy/buffer.h"
 #include "icy/logger.h"
+#include "icy/net/util.h"
 
 #include <algorithm>
 #include <memory>
@@ -24,6 +25,68 @@ using namespace icy::net;
 
 namespace icy {
 namespace turn {
+
+namespace {
+
+bool isWildcardHost(std::string_view host)
+{
+    return host.empty() || host == "0.0.0.0" || host == "::";
+}
+
+bool isLoopbackHost(std::string_view host)
+{
+    return host == "127.0.0.1" || host == "::1";
+}
+
+bool familyMatches(const net::Address& address, net::Address::Family family)
+{
+    return address.family() == family;
+}
+
+std::string resolveRelayHost(const ServerOptions& options,
+                             const Request& request,
+                             const net::Address& relayAddress)
+{
+    if (!options.externalIP.empty())
+        return options.externalIP;
+
+    std::string relayHost = relayAddress.host();
+    if (!isWildcardHost(relayHost))
+        return relayHost;
+
+    std::string localHost = request.localAddress.host();
+    if (!isWildcardHost(localHost))
+        return localHost;
+
+    std::string listenHost = options.listenAddr.host();
+    if (!isWildcardHost(listenHost))
+        return listenHost;
+
+    std::string remoteHost = request.remoteAddress.host();
+    if (isLoopbackHost(remoteHost))
+        return remoteHost;
+
+    std::vector<net::Address> interfaces;
+    net::getNetworkInterfaces(interfaces);
+    for (const auto& iface : interfaces) {
+        if (!familyMatches(iface, relayAddress.family()))
+            continue;
+        auto host = iface.host();
+        if (!isWildcardHost(host) && !isLoopbackHost(host))
+            return host;
+    }
+    for (const auto& iface : interfaces) {
+        if (!familyMatches(iface, relayAddress.family()))
+            continue;
+        auto host = iface.host();
+        if (!isWildcardHost(host))
+            return host;
+    }
+
+    return relayHost;
+}
+
+} // namespace
 
 
 Server::Server(ServerObserver& observer, const ServerOptions& options)
@@ -408,13 +471,12 @@ void Server::handleAllocateRequest(Request& request)
 
     // Use the externalIP if configured (to overcome NAT), otherwise
     // fall back to the relay socket's local address.
-    std::string relayHost(options().externalIP);
-    if (relayHost.empty()) {
-        relayHost.assign(allocation->relayedAddress().host());
-    }
+    const auto allocationRelayAddress = allocation->relayedAddress();
+    const std::string relayHost =
+        resolveRelayHost(options(), request, allocationRelayAddress);
 
     auto& relayAddr = response.add<stun::XorRelayedAddress>();
-    relayAddr.setAddress(net::Address(relayHost, allocation->relayedAddress().port()));
+    relayAddr.setAddress(net::Address(relayHost, allocationRelayAddress.port()));
 
     response.add<stun::Lifetime>().setValue(lifetime);
 

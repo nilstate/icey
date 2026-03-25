@@ -57,8 +57,10 @@ void VideoPacketEncoder::process(IPacket& packet)
     std::lock_guard<std::mutex> guard(_mutex);
 
     auto* vp = dynamic_cast<VideoPacket*>(&packet);
-    if (!vp)
+    if (!vp) {
+        emit(packet);
         return;
+    }
 
     auto* planar = dynamic_cast<PlanarVideoPacket*>(vp);
     if (planar) {

@@ -105,6 +105,11 @@ aside h2 {
   gap: 0.5rem;
 }
 
+.peer-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
 .peer-dot {
   width: 8px;
   height: 8px;

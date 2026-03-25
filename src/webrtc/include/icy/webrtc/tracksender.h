@@ -49,9 +49,9 @@ namespace wrtc {
 /// Only emits the packet downstream on successful send, so a
 /// chained recorder won't record frames that failed to transmit.
 ///
-/// Accepts both VideoPacket and AudioPacket. It determines which
-/// to handle based on the track type (video or audio) set at
-/// construction.
+/// Accepts only the packet type that matches the bound track.
+/// Non-matching packets are passed through unchanged so mixed
+/// audio/video PacketStream chains can share one source cleanly.
 class WEBRTC_API WebRtcTrackSender : public PacketProcessor
 {
 public:
@@ -76,7 +76,7 @@ public:
     ///                encoded frame data and a microsecond timestamp.
     void process(IPacket& packet) override;
 
-    /// Return true if packet is an av::MediaPacket (VideoPacket or AudioPacket).
+    /// Return true only for the packet type that matches the bound track.
     /// @param packet  Packet to test. May be nullptr.
     /// @return        True if the packet can be processed by this sender.
     bool accepts(IPacket* packet) override;

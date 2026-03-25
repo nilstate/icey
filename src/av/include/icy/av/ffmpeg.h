@@ -13,6 +13,7 @@
 
 
 #include "icy/base.h"
+#include "icy/av/packet.h"
 #include <memory>
 #include <string>
 
@@ -105,6 +106,13 @@ using AVDictionaryCleanup = std::unique_ptr<
 using AVPacketHolder = std::unique_ptr<
     AVPacket, Deleterp<AVPacket, void, av_packet_free>>;
 ///< Owning AVPacket pointer released with av_packet_free().
+
+/// Allocate an owning AVPacket with FFmpeg-required padding and timestamp metadata.
+/// The packet payload is copied into FFmpeg-managed storage, which is required by
+/// decoders such as H.264 that may overread AV_INPUT_BUFFER_PADDING_SIZE bytes.
+AVPacketHolder makeOwnedPacket(const MediaPacket& packet,
+                               int streamIndex,
+                               AVRational timeBase);
 
 #endif
 

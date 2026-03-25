@@ -2159,6 +2159,46 @@ class VideoDecoderTest : public Test
 };
 
 
+class VideoDecoderNegotiatedStreamTest : public Test
+{
+    void run()
+    {
+        av::AVFormatContextHolder formatCtx(avformat_alloc_context());
+        expect(static_cast<bool>(formatCtx));
+
+        AVStream* stream = avformat_new_stream(formatCtx.get(), nullptr);
+        expect(stream != nullptr);
+
+        stream->time_base = AVRational{1, 90000};
+        stream->r_frame_rate = AVRational{0, 1};
+        stream->codecpar->codec_type = AVMEDIA_TYPE_VIDEO;
+        stream->codecpar->codec_id = AV_CODEC_ID_H264;
+
+        av::VideoDecoder decoder(stream);
+        decoder.create();
+        decoder.open();
+
+        expect(decoder.oparams.enabled);
+        expect(decoder.oparams.encoder == "h264");
+        expect(decoder.oparams.pixelFmt.empty());
+        expect(decoder.oparams.width == 0);
+        expect(decoder.oparams.height == 0);
+
+        av::AVFrameHolder frame(av::createVideoFrame(AV_PIX_FMT_YUV420P, 320, 240));
+        expect(static_cast<bool>(frame));
+
+        AVFrame* converted = decoder.convert(frame.get());
+        expect(converted == frame.get());
+        expect(decoder.iparams.width == 320);
+        expect(decoder.iparams.height == 240);
+        expect(decoder.iparams.pixelFmt == "yuv420p");
+        expect(decoder.oparams.width == 320);
+        expect(decoder.oparams.height == 240);
+        expect(decoder.oparams.pixelFmt == "yuv420p");
+    }
+};
+
+
 // =============================================================================
 // Standalone Audio Decoder Test
 //

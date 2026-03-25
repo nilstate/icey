@@ -17,9 +17,12 @@
 #include "icy/webrtc/webrtc.h"
 
 #include "icy/signal.h"
+#include "icy/synchronizer.h"
 
 #include <rtc/rtc.hpp>
 
+#include <deque>
+#include <functional>
 #include <memory>
 #include <atomic>
 #include <mutex>
@@ -152,13 +155,17 @@ private:
     void onCandidateReceived(const std::string& peerId, const std::string& candidate, const std::string& mid);
     void onControlReceived(const std::string& peerId, const std::string& type, const std::string& reason);
 
-    std::shared_ptr<rtc::PeerConnection> createPeerConnection(bool createDataChannel);
+    std::shared_ptr<rtc::PeerConnection> createPeerConnection(
+        bool createDataChannel,
+        const MediaBridge::Options* mediaOpts = nullptr);
     void setupPeerConnectionCallbacks(const std::shared_ptr<rtc::PeerConnection>& pc);
     void beginEndCall(const std::string& reason,
                       std::shared_ptr<rtc::PeerConnection>& pc,
                       std::shared_ptr<rtc::DataChannel>& dc);
     void finishEndCall();
     void transitionEndedToIdle();
+    void enqueueCallback(std::function<void()> callback);
+    void drainCallbacks();
 
     SignallingInterface& _signaller;
     Config _config;
@@ -170,6 +177,9 @@ private:
     std::shared_ptr<CallbackGuard> _callbackGuard = std::make_shared<CallbackGuard>();
     bool _remoteDescriptionSet = false;
     std::vector<PendingCandidate> _pendingRemoteCandidates;
+    Synchronizer _callbackSync;
+    std::deque<std::function<void()>> _pendingCallbacks;
+    mutable std::mutex _callbackMutex;
     mutable std::mutex _mutex;
 };
 

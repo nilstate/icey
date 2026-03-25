@@ -17,10 +17,14 @@
 #include "icy/av/packet.h"
 #include "icy/packetsignal.h"
 #include "icy/packetstream.h"
+#include "icy/synchronizer.h"
 
 #include <rtc/rtc.hpp>
 
+#include <atomic>
+#include <deque>
 #include <memory>
+#include <mutex>
 
 
 namespace icy {
@@ -53,6 +57,7 @@ class WEBRTC_API WebRtcTrackReceiver : public PacketStreamAdapter
 public:
     /// Construct an unbound receiver. Call bind() to attach a remote track.
     WebRtcTrackReceiver();
+    ~WebRtcTrackReceiver() override;
 
     /// Bind to a remote track. Must be called after setupReceiveTrack()
     /// returned true.
@@ -63,6 +68,22 @@ public:
     void bind(std::shared_ptr<rtc::Track> track);
 
     PacketSignal emitter;
+
+private:
+    struct DispatchState
+    {
+        std::atomic<bool> alive{true};
+        std::atomic<uint64_t> generation{0};
+    };
+
+    void enqueue(std::unique_ptr<IPacket> packet);
+    void flushPending();
+
+    Synchronizer _dispatch;
+    std::mutex _mutex;
+    std::deque<std::unique_ptr<IPacket>> _pending;
+    std::shared_ptr<DispatchState> _state = std::make_shared<DispatchState>();
+    uint64_t _generation = 0;
 };
 
 

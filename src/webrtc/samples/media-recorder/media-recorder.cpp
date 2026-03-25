@@ -191,23 +191,9 @@ private:
         if (!_decoder || !_decodeStream)
             return;
 
-        av::AVPacketHolder ffpacket(av_packet_alloc());
-        if (!ffpacket)
-            throw std::runtime_error("Cannot allocate FFmpeg packet");
-
-        ffpacket->data = reinterpret_cast<uint8_t*>(packet.data());
-        ffpacket->size = static_cast<int>(packet.size());
-        ffpacket->stream_index = _decodeStream->index;
-
-        if (packet.time > 0) {
-            ffpacket->pts = av_rescale_q(packet.time, AVRational{1, AV_TIME_BASE},
-                                         _decodeStream->time_base);
-            ffpacket->dts = ffpacket->pts;
-        }
-        else {
-            ffpacket->pts = AV_NOPTS_VALUE;
-            ffpacket->dts = AV_NOPTS_VALUE;
-        }
+        auto ffpacket = av::makeOwnedPacket(packet,
+                                            _decodeStream->index,
+                                            _decodeStream->time_base);
 
         try {
             bool decoded = _decoder->decode(*ffpacket);

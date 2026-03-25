@@ -235,6 +235,9 @@ public:
     /// Access the underlying HTTP server (e.g. to serve static files).
     [[nodiscard]] http::Server& httpServer() { return *_http; }
 
+    /// Event loop that owns the Symple server and all peer connections.
+    [[nodiscard]] uv::Loop* loop() const { return _loop; }
+
 private:
     /// Handler for incoming Symple protocol messages
     class Responder;

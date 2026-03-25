@@ -82,7 +82,13 @@ public:
 
         uint32_t videoSsrc = 0;   ///< 0 = auto-generate
         uint32_t audioSsrc = 0;   ///< 0 = auto-generate
+        int videoPayloadType = -1; ///< Reuse negotiated offer payload type when answering, -1 = default.
+        int audioPayloadType = -1; ///< Reuse negotiated offer payload type when answering, -1 = default.
         std::string cname;        ///< CNAME for RTCP (auto if empty)
+        std::string videoMid;     ///< Explicit MID for the negotiated video m-line when answering an offer.
+        std::string audioMid;     ///< Explicit MID for the negotiated audio m-line when answering an offer.
+        rtc::Description::Direction videoDirection = rtc::Description::Direction::SendRecv;
+        rtc::Description::Direction audioDirection = rtc::Description::Direction::SendRecv;
         unsigned nackBufferSize = 512; ///< Max RTP packets retained for video NACK retransmission.
     };
 
@@ -175,6 +181,8 @@ private:
     // Receive side (one per track, created on onTrack)
     WebRtcTrackReceiver _videoReceiver;
     WebRtcTrackReceiver _audioReceiver;
+    std::shared_ptr<rtc::Track> _videoReceiveTrack;
+    std::shared_ptr<rtc::Track> _audioReceiveTrack;
 
     mutable std::mutex _mutex;
 };

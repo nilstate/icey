@@ -22,6 +22,29 @@ namespace wrtc {
 
 
 namespace {
+void stripUnsupportedReceiveFormats(rtc::Description::Media& media)
+{
+    // We do not currently normalize auxiliary retransmission payloads back to
+    // the original codec payload on the receive path. Do not negotiate any
+    // codec entry that depends on another payload type via apt=.
+    std::vector<int> auxPayloadTypes;
+    for (int pt : media.payloadTypes()) {
+        const auto* map = media.rtpMap(pt);
+        if (!map)
+            continue;
+        for (const auto& fmtp : map->fmtps) {
+            if (fmtp.rfind("apt=", 0) == 0) {
+                auxPayloadTypes.push_back(pt);
+                break;
+            }
+        }
+    }
+
+    for (int pt : auxPayloadTypes)
+        media.removeRtpMap(pt);
+}
+
+
 void addVideoCodec(rtc::Description::Video& media, const CodecSpec& spec)
 {
     switch (spec.id) {
@@ -170,20 +193,27 @@ TrackHandle createVideoTrack(
     const av::VideoCodec& codec,
     uint32_t ssrc,
     const std::string& cname,
+    const std::string& mid,
+    rtc::Description::Direction direction,
     unsigned nackBuffer,
     std::function<void()> onPli,
-    std::function<void(unsigned int)> onRemb)
+    std::function<void(unsigned int)> onRemb,
+    int payloadType)
 {
     auto spec = CodecNegotiator::requireVideoSpec(codec);
+    if (payloadType >= 0)
+        spec.payloadType = payloadType;
 
     if (ssrc == 0)
         ssrc = generateSsrc();
     std::string cn = cname.empty() ? "icey" : cname;
 
     // Build SDP media description.
-    rtc::Description::Video media("video", rtc::Description::Direction::SendRecv);
+    rtc::Description::Video media(
+        mid.empty() ? "video" : mid,
+        direction);
     addVideoCodec(media, spec);
-    media.addSSRC(ssrc, cn);
+    media.addSSRC(ssrc, cn, cn, mid.empty() ? "video" : mid);
 
     // Add track to PeerConnection.
     auto track = pc->addTrack(media);
@@ -207,17 +237,24 @@ TrackHandle createAudioTrack(
     std::shared_ptr<rtc::PeerConnection> pc,
     const av::AudioCodec& codec,
     uint32_t ssrc,
-    const std::string& cname)
+    const std::string& cname,
+    const std::string& mid,
+    rtc::Description::Direction direction,
+    int payloadType)
 {
     auto spec = CodecNegotiator::requireAudioSpec(codec);
+    if (payloadType >= 0)
+        spec.payloadType = payloadType;
 
     if (ssrc == 0)
         ssrc = generateSsrc();
     std::string cn = cname.empty() ? "icey" : cname;
 
-    rtc::Description::Audio media("audio", rtc::Description::Direction::SendRecv);
+    rtc::Description::Audio media(
+        mid.empty() ? "audio" : mid,
+        direction);
     addAudioCodec(media, spec);
-    media.addSSRC(ssrc, cn);
+    media.addSSRC(ssrc, cn, cn, mid.empty() ? "audio" : mid);
 
     auto track = pc->addTrack(media);
 
@@ -231,9 +268,61 @@ TrackHandle createAudioTrack(
 }
 
 
+std::shared_ptr<rtc::Track> createVideoReceiveTrack(
+    std::shared_ptr<rtc::PeerConnection> pc,
+    const av::VideoCodec& codec,
+    const std::string& mid,
+    rtc::Description::Direction direction,
+    int payloadType)
+{
+    auto spec = CodecNegotiator::requireVideoSpec(codec);
+    if (payloadType >= 0)
+        spec.payloadType = payloadType;
+
+    rtc::Description::Video media(
+        mid.empty() ? "video" : mid,
+        direction);
+    addVideoCodec(media, spec);
+
+    auto track = pc->addTrack(media);
+    if (!setupReceiveTrack(track))
+        throw std::runtime_error("Unsupported negotiated video codec");
+
+    LInfo("Video receive track created: ", spec.rtpName, " PT=", spec.payloadType);
+    return track;
+}
+
+
+std::shared_ptr<rtc::Track> createAudioReceiveTrack(
+    std::shared_ptr<rtc::PeerConnection> pc,
+    const av::AudioCodec& codec,
+    const std::string& mid,
+    rtc::Description::Direction direction,
+    int payloadType)
+{
+    auto spec = CodecNegotiator::requireAudioSpec(codec);
+    if (payloadType >= 0)
+        spec.payloadType = payloadType;
+
+    rtc::Description::Audio media(
+        mid.empty() ? "audio" : mid,
+        direction);
+    addAudioCodec(media, spec);
+
+    auto track = pc->addTrack(media);
+    if (!setupReceiveTrack(track))
+        throw std::runtime_error("Unsupported negotiated audio codec");
+
+    LInfo("Audio receive track created: ", spec.rtpName, " PT=", spec.payloadType);
+    return track;
+}
+
+
 bool setupReceiveTrack(std::shared_ptr<rtc::Track> track)
 {
     auto desc = track->description();
+    stripUnsupportedReceiveFormats(desc);
+    track->setDescription(desc);
     auto sdp = std::string(desc.generateSdp("\r\n", ""));
 
     if (desc.type() == "video") {

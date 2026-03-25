@@ -14,7 +14,7 @@ Built automatically when `-DBUILD_SAMPLES=ON` is passed to CMake and the `webrtc
 
 - FFmpeg
 - Running Symple server
-- A browser peer sending video (e.g. using `symple-client-player`)
+- A browser peer sending video (e.g. using `symple-player`)
 
 ## Usage
 

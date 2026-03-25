@@ -8,18 +8,227 @@
 
 
 #include "icy/webrtc/peersession.h"
+#include "icy/webrtc/codecnegotiator.h"
 #include "icy/logger.h"
 
+#include <optional>
 #include <stdexcept>
+#include <string_view>
 
 
 namespace icy {
 namespace wrtc {
 
+namespace {
+
+struct MediaSectionBounds
+{
+    size_t begin = std::string::npos;
+    size_t end = std::string::npos;
+};
+
+
+std::optional<MediaSectionBounds> findMediaSection(const std::string& sdp,
+                                                   std::string_view mediaType)
+{
+    std::string sectionHeader = "m=" + std::string(mediaType) + " ";
+    size_t section = sdp.find(sectionHeader);
+    if (section == std::string::npos)
+        return std::nullopt;
+
+    size_t sectionEnd = sdp.find("\r\nm=", section + 2);
+    return MediaSectionBounds{section, sectionEnd == std::string::npos ? sdp.size() : sectionEnd};
+}
+
+
+std::optional<std::string> findSectionValue(const std::string& sdp,
+                                            const MediaSectionBounds& section,
+                                            std::string_view prefix)
+{
+    size_t searchPos = section.begin;
+    while (true) {
+        size_t valuePos = sdp.find(prefix, searchPos);
+        if (valuePos == std::string::npos || valuePos >= section.end)
+            break;
+
+        size_t valueStart = valuePos + prefix.size();
+        size_t valueEnd = sdp.find("\r\n", valueStart);
+        if (valueEnd == std::string::npos)
+            valueEnd = sdp.size();
+        return sdp.substr(valueStart, valueEnd - valueStart);
+    }
+
+    return std::nullopt;
+}
+
+
+bool iequalsAscii(std::string_view a, std::string_view b)
+{
+    if (a.size() != b.size())
+        return false;
+    for (size_t i = 0; i < a.size(); ++i) {
+        if (std::tolower(static_cast<unsigned char>(a[i])) !=
+            std::tolower(static_cast<unsigned char>(b[i]))) {
+            return false;
+        }
+    }
+    return true;
+}
+
+
+std::optional<int> findPayloadTypeForCodec(const std::string& sdp,
+                                           std::string_view mediaType,
+                                           std::string_view codecName)
+{
+    auto section = findMediaSection(sdp, mediaType);
+    if (!section)
+        return std::nullopt;
+
+    size_t lineStart = section->begin;
+    while (lineStart < section->end) {
+        size_t lineEnd = sdp.find("\r\n", lineStart);
+        if (lineEnd == std::string::npos || lineEnd > section->end)
+            lineEnd = section->end;
+
+        std::string_view line(sdp.data() + lineStart, lineEnd - lineStart);
+        constexpr std::string_view prefix = "a=rtpmap:";
+        if (line.substr(0, prefix.size()) == prefix) {
+            auto space = line.find(' ', prefix.size());
+            auto slash = line.find('/', space == std::string_view::npos ? prefix.size() : space + 1);
+            if (space != std::string_view::npos && slash != std::string_view::npos) {
+                auto ptText = line.substr(prefix.size(), space - prefix.size());
+                auto name = line.substr(space + 1, slash - space - 1);
+                if (iequalsAscii(name, codecName))
+                    return std::stoi(std::string(ptText));
+            }
+        }
+
+        lineStart = lineEnd + 2;
+    }
+
+    return std::nullopt;
+}
+
+
+std::optional<std::string> findMidForMediaType(const std::string& sdp,
+                                               std::string_view mediaType)
+{
+    auto section = findMediaSection(sdp, mediaType);
+    if (!section)
+        return std::nullopt;
+    return findSectionValue(sdp, *section, "\r\na=mid:");
+}
+
+
+std::optional<rtc::Description::Direction> findDirectionForMediaType(
+    const std::string& sdp,
+    std::string_view mediaType)
+{
+    auto section = findMediaSection(sdp, mediaType);
+    if (!section)
+        return std::nullopt;
+
+    std::string_view sectionText(sdp.data() + section->begin, section->end - section->begin);
+    if (sectionText.find("\r\na=sendonly") != std::string_view::npos)
+        return rtc::Description::Direction::SendOnly;
+    if (sectionText.find("\r\na=recvonly") != std::string_view::npos)
+        return rtc::Description::Direction::RecvOnly;
+    if (sectionText.find("\r\na=inactive") != std::string_view::npos)
+        return rtc::Description::Direction::Inactive;
+    return rtc::Description::Direction::SendRecv;
+}
+
+
+bool sends(rtc::Description::Direction direction)
+{
+    return direction == rtc::Description::Direction::SendRecv ||
+           direction == rtc::Description::Direction::SendOnly;
+}
+
+
+bool receives(rtc::Description::Direction direction)
+{
+    return direction == rtc::Description::Direction::SendRecv ||
+           direction == rtc::Description::Direction::RecvOnly;
+}
+
+
+rtc::Description::Direction negotiateAnswerDirection(
+    rtc::Description::Direction localDirection,
+    rtc::Description::Direction remoteOfferDirection)
+{
+    const bool localCanSend = sends(localDirection) && receives(remoteOfferDirection);
+    const bool localCanReceive = receives(localDirection) && sends(remoteOfferDirection);
+    if (localCanSend && localCanReceive)
+        return rtc::Description::Direction::SendRecv;
+    if (localCanSend)
+        return rtc::Description::Direction::SendOnly;
+    if (localCanReceive)
+        return rtc::Description::Direction::RecvOnly;
+    return rtc::Description::Direction::Inactive;
+}
+
+
+MediaBridge::Options offerScopedMediaOptions(const PeerSession::Config& config,
+                                             const std::string& offerSdp)
+{
+    auto opts = config.mediaOpts;
+    if (auto mid = findMidForMediaType(offerSdp, "audio")) {
+        opts.audioMid = *mid;
+        if (auto direction = findDirectionForMediaType(offerSdp, "audio"))
+            opts.audioDirection = negotiateAnswerDirection(opts.audioDirection, *direction);
+        if (opts.audioCodec.specified()) {
+            auto spec = CodecNegotiator::specFromAudioCodec(opts.audioCodec);
+            auto payloadType = spec
+                ? findPayloadTypeForCodec(offerSdp, "audio", spec->rtpName)
+                : std::nullopt;
+            if (payloadType) {
+                opts.audioPayloadType = *payloadType;
+            }
+            else {
+                LWarn("Remote offer does not contain the configured audio codec");
+                opts.audioCodec = {};
+                opts.audioDirection = rtc::Description::Direction::Inactive;
+            }
+        }
+    }
+    else {
+        opts.audioCodec = {};
+        opts.audioDirection = rtc::Description::Direction::Inactive;
+    }
+    if (auto mid = findMidForMediaType(offerSdp, "video")) {
+        opts.videoMid = *mid;
+        if (auto direction = findDirectionForMediaType(offerSdp, "video"))
+            opts.videoDirection = negotiateAnswerDirection(opts.videoDirection, *direction);
+        if (opts.videoCodec.specified()) {
+            auto spec = CodecNegotiator::specFromVideoCodec(opts.videoCodec);
+            auto payloadType = spec
+                ? findPayloadTypeForCodec(offerSdp, "video", spec->rtpName)
+                : std::nullopt;
+            if (payloadType) {
+                opts.videoPayloadType = *payloadType;
+            }
+            else {
+                LWarn("Remote offer does not contain the configured video codec");
+                opts.videoCodec = {};
+                opts.videoDirection = rtc::Description::Direction::Inactive;
+            }
+        }
+    }
+    else {
+        opts.videoCodec = {};
+        opts.videoDirection = rtc::Description::Direction::Inactive;
+    }
+    return opts;
+}
+
+} // namespace
+
 
 PeerSession::PeerSession(SignallingInterface& signaller, const Config& config)
     : _signaller(signaller)
     , _config(config)
+    , _callbackSync([this]() { drainCallbacks(); })
 {
     // PeerSession owns SDP exchange explicitly through SignallingInterface.
     // Auto-negotiation races against the init/accept/offer protocol and can
@@ -35,6 +244,11 @@ PeerSession::PeerSession(SignallingInterface& signaller, const Config& config)
 PeerSession::~PeerSession()
 {
     _callbackGuard->alive.store(false, std::memory_order_release);
+    {
+        std::lock_guard lock(_callbackMutex);
+        _pendingCallbacks.clear();
+    }
+    _callbackSync.close();
 
     _signaller.SdpReceived.detach(this);
     _signaller.CandidateReceived.detach(this);
@@ -62,7 +276,7 @@ void PeerSession::call(const std::string& peerId)
         remotePeerId = _remotePeerId;
         _state = State::OutgoingInit;
     }
-    StateChanged.emit(State::OutgoingInit);
+    enqueueCallback([this]() { StateChanged.emit(State::OutgoingInit); });
     _signaller.sendControl(remotePeerId, "init");
 }
 
@@ -77,10 +291,11 @@ void PeerSession::accept()
 
         LInfo("Accepting call from ", _remotePeerId);
         _state = State::Negotiating;
+        _remoteDescriptionSet = false;
+        _pendingRemoteCandidates.clear();
         remotePeerId = _remotePeerId;
     }
-    createPeerConnection(false);
-    StateChanged.emit(State::Negotiating);
+    enqueueCallback([this]() { StateChanged.emit(State::Negotiating); });
     _signaller.sendControl(remotePeerId, "accept");
 }
 
@@ -99,14 +314,14 @@ void PeerSession::reject(const std::string& reason)
         remotePeerId = _remotePeerId;
         beginEndCall("rejected", pc, dc);
     }
-    StateChanged.emit(State::Ending);
+    enqueueCallback([this]() { StateChanged.emit(State::Ending); });
     _signaller.sendControl(remotePeerId, "reject", reason);
     if (dc)
         dc->close();
     if (pc)
         pc->close();
     finishEndCall();
-    StateChanged.emit(State::Ended);
+    enqueueCallback([this]() { StateChanged.emit(State::Ended); });
     transitionEndedToIdle();
 }
 
@@ -125,7 +340,7 @@ void PeerSession::hangup(const std::string& reason)
         remotePeerId = _remotePeerId;
         beginEndCall(reason, pc, dc);
     }
-    StateChanged.emit(State::Ending);
+    enqueueCallback([this]() { StateChanged.emit(State::Ending); });
     if (!remotePeerId.empty())
         _signaller.sendControl(remotePeerId, "hangup", reason);
     if (dc)
@@ -133,7 +348,7 @@ void PeerSession::hangup(const std::string& reason)
     if (pc)
         pc->close();
     finishEndCall();
-    StateChanged.emit(State::Ended);
+    enqueueCallback([this]() { StateChanged.emit(State::Ended); });
     transitionEndedToIdle();
 }
 
@@ -208,8 +423,8 @@ void PeerSession::onControlReceived(const std::string& peerId,
             _signaller.sendControl(peerId, "reject", "busy");
             return;
         }
-        StateChanged.emit(State::IncomingInit);
-        IncomingCall.emit(peerId);
+        enqueueCallback([this]() { StateChanged.emit(State::IncomingInit); });
+        enqueueCallback([this, peerId]() { IncomingCall.emit(peerId); });
     }
     else if (type == "accept") {
         bool shouldConnect = false;
@@ -228,7 +443,7 @@ void PeerSession::onControlReceived(const std::string& peerId,
                 pc->setLocalDescription(rtc::Description::Type::Offer);
             }
         }
-        StateChanged.emit(State::Negotiating);
+        enqueueCallback([this]() { StateChanged.emit(State::Negotiating); });
     }
     else if (type == "reject") {
         std::shared_ptr<rtc::PeerConnection> pc;
@@ -241,13 +456,13 @@ void PeerSession::onControlReceived(const std::string& peerId,
             LInfo("Remote rejected call: ", reason);
             beginEndCall("rejected", pc, dc);
         }
-        StateChanged.emit(State::Ending);
+        enqueueCallback([this]() { StateChanged.emit(State::Ending); });
         if (dc)
             dc->close();
         if (pc)
             pc->close();
         finishEndCall();
-        StateChanged.emit(State::Ended);
+        enqueueCallback([this]() { StateChanged.emit(State::Ended); });
         transitionEndedToIdle();
     }
     else if (type == "hangup") {
@@ -261,13 +476,13 @@ void PeerSession::onControlReceived(const std::string& peerId,
             LInfo("Remote hung up: ", reason);
             beginEndCall(reason, pc, dc);
         }
-        StateChanged.emit(State::Ending);
+        enqueueCallback([this]() { StateChanged.emit(State::Ending); });
         if (dc)
             dc->close();
         if (pc)
             pc->close();
         finishEndCall();
-        StateChanged.emit(State::Ended);
+        enqueueCallback([this]() { StateChanged.emit(State::Ended); });
         transitionEndedToIdle();
     }
 }
@@ -278,13 +493,30 @@ void PeerSession::onSdpReceived(const std::string& peerId,
                                  const std::string& sdp)
 {
     std::shared_ptr<rtc::PeerConnection> pc;
+    bool createIncomingPc = false;
+    std::optional<MediaBridge::Options> mediaOpts;
     {
         std::lock_guard lock(_mutex);
-        if (peerId != _remotePeerId || !_pc)
+        if (peerId != _remotePeerId)
             return;
         if (_state != State::Negotiating && _state != State::Active)
             return;
-        pc = _pc;
+
+        if (!_pc) {
+            if (type != "offer" || _state != State::Negotiating)
+                return;
+            createIncomingPc = true;
+            mediaOpts = offerScopedMediaOptions(_config, sdp);
+        }
+        else {
+            pc = _pc;
+        }
+    }
+
+    if (createIncomingPc) {
+        pc = createPeerConnection(false, mediaOpts ? &*mediaOpts : nullptr);
+        if (!pc)
+            return;
     }
 
     std::vector<PendingCandidate> pendingCandidates;
@@ -321,12 +553,12 @@ void PeerSession::onCandidateReceived(const std::string& peerId,
     bool defer = false;
     {
         std::lock_guard lock(_mutex);
-        if (peerId != _remotePeerId || !_pc)
+        if (peerId != _remotePeerId)
             return;
         if (_state != State::Negotiating && _state != State::Active)
             return;
         pc = _pc;
-        if (!_remoteDescriptionSet) {
+        if (!_pc || !_remoteDescriptionSet) {
             _pendingRemoteCandidates.push_back({candidate, mid});
             defer = true;
         }
@@ -346,7 +578,9 @@ void PeerSession::onCandidateReceived(const std::string& peerId,
 // Internal
 // ---------------------------------------------------------------------------
 
-std::shared_ptr<rtc::PeerConnection> PeerSession::createPeerConnection(bool createDataChannel)
+std::shared_ptr<rtc::PeerConnection> PeerSession::createPeerConnection(
+    bool createDataChannel,
+    const MediaBridge::Options* mediaOpts)
 {
     auto pc = std::make_shared<rtc::PeerConnection>(_config.rtcConfig);
     std::shared_ptr<rtc::DataChannel> dc;
@@ -363,7 +597,9 @@ std::shared_ptr<rtc::PeerConnection> PeerSession::createPeerConnection(bool crea
         dc->onMessage([this, callbackGuard](rtc::message_variant msg) {
             if (!callbackGuard->alive.load(std::memory_order_acquire))
                 return;
-            DataReceived.emit(std::move(msg));
+            enqueueCallback([this, msg = std::move(msg)]() mutable {
+                DataReceived.emit(std::move(msg));
+            });
         });
     }
 
@@ -379,7 +615,9 @@ std::shared_ptr<rtc::PeerConnection> PeerSession::createPeerConnection(bool crea
         _dc->onMessage([this, callbackGuard](rtc::message_variant msg) {
             if (!callbackGuard->alive.load(std::memory_order_acquire))
                 return;
-            DataReceived.emit(std::move(msg));
+            enqueueCallback([this, msg = std::move(msg)]() mutable {
+                DataReceived.emit(std::move(msg));
+            });
         });
     });
 
@@ -393,7 +631,7 @@ std::shared_ptr<rtc::PeerConnection> PeerSession::createPeerConnection(bool crea
     }
 
     if (!_media.attached())
-        _media.attach(pc, _config.mediaOpts);
+        _media.attach(pc, mediaOpts ? *mediaOpts : _config.mediaOpts);
 
     return pc;
 }
@@ -490,10 +728,10 @@ void PeerSession::setupPeerConnectionCallbacks(const std::shared_ptr<rtc::PeerCo
             endedPc->close();
 
         if (changed) {
-            StateChanged.emit(newState);
+            enqueueCallback([this, newState]() { StateChanged.emit(newState); });
             if (shouldFinish) {
                 finishEndCall();
-                StateChanged.emit(State::Ended);
+                enqueueCallback([this]() { StateChanged.emit(State::Ended); });
                 transitionEndedToIdle();
             }
         }
@@ -538,7 +776,39 @@ void PeerSession::transitionEndedToIdle()
     }
 
     if (changed)
-        StateChanged.emit(State::Idle);
+        enqueueCallback([this]() { StateChanged.emit(State::Idle); });
+}
+
+
+void PeerSession::enqueueCallback(std::function<void()> callback)
+{
+    if (!_callbackGuard->alive.load(std::memory_order_acquire))
+        return;
+
+    {
+        std::lock_guard lock(_callbackMutex);
+        _pendingCallbacks.emplace_back(std::move(callback));
+    }
+    _callbackSync.post();
+}
+
+
+void PeerSession::drainCallbacks()
+{
+    std::deque<std::function<void()>> pending;
+    {
+        std::lock_guard lock(_callbackMutex);
+        pending.swap(_pendingCallbacks);
+    }
+
+    if (!_callbackGuard->alive.load(std::memory_order_acquire))
+        return;
+
+    for (auto& callback : pending) {
+        if (!_callbackGuard->alive.load(std::memory_order_acquire))
+            return;
+        callback();
+    }
 }
 
 

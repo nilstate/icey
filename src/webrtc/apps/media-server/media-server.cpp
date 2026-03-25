@@ -42,6 +42,9 @@
 #include "icy/logger.h"
 #include "icy/packetsignal.h"
 #include "icy/packetstream.h"
+#include "icy/crypto/hash.h"
+#include "icy/synchronizer.h"
+#include "icy/symple/address.h"
 #include "icy/symple/server.h"
 #include "icy/turn/server/server.h"
 #include "icy/webrtc/codecnegotiator.h"
@@ -49,15 +52,23 @@
 
 #include <chrono>
 #include <cctype>
+#include <deque>
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <mutex>
 #include <string>
+#include <thread>
 #include <unordered_map>
 #include <vector>
 
 
 using namespace icy;
+
+namespace {
+constexpr const char* kDemoTurnUsername = "icey";
+constexpr const char* kDemoTurnCredential = "icey";
+} // namespace
 
 
 // ---------------------------------------------------------------------------
@@ -255,8 +266,17 @@ private:
 class HttpFactory : public http::ServerConnectionFactory
 {
 public:
-    HttpFactory(const std::string& webRoot)
+    struct RuntimeConfig
+    {
+        bool enableTurn = true;
+        uint16_t turnPort = 3478;
+        std::string turnExternalIP;
+        std::string host;
+    };
+
+    HttpFactory(const std::string& webRoot, RuntimeConfig runtimeConfig)
         : _webRoot(webRoot)
+        , _runtimeConfig(std::move(runtimeConfig))
     {
     }
 
@@ -278,23 +298,48 @@ private:
         class ApiResponder : public http::ServerResponder
         {
         public:
-            using http::ServerResponder::ServerResponder;
-            void onRequest(http::Request&, http::Response& response) override
+            ApiResponder(http::ServerConnection& conn,
+                         RuntimeConfig runtimeConfig)
+                : http::ServerResponder(conn)
+                , _runtimeConfig(std::move(runtimeConfig))
+            {
+            }
+
+            void onRequest(http::Request& request, http::Response& response) override
             {
                 json::Value j;
-                j["status"] = "ok";
-                j["version"] = "1.0.0";
+                if (request.getURI() == "/api/config") {
+                    j["status"] = "ok";
+                    j["turn"]["enabled"] = _runtimeConfig.enableTurn;
+                    j["turn"]["host"] = _runtimeConfig.turnExternalIP.empty()
+                        ? _runtimeConfig.host
+                        : _runtimeConfig.turnExternalIP;
+                    j["turn"]["port"] = _runtimeConfig.turnPort;
+                    j["turn"]["username"] = kDemoTurnUsername;
+                    j["turn"]["credential"] = kDemoTurnCredential;
+                    j["stun"]["urls"] = json::Value::array({
+                        "stun:stun.l.google.com:19302"
+                    });
+                }
+                else {
+                    j["status"] = "ok";
+                    j["version"] = "1.0.0";
+                }
                 auto body = j.dump();
                 response.setContentType("application/json");
                 response.setContentLength(body.size());
                 connection().sendHeader();
                 connection().send(body.data(), body.size());
             }
+
+        private:
+            RuntimeConfig _runtimeConfig;
         };
-        return std::make_unique<ApiResponder>(conn);
+        return std::make_unique<ApiResponder>(conn, _runtimeConfig);
     }
 
     std::string _webRoot;
+    RuntimeConfig _runtimeConfig;
 };
 
 
@@ -308,10 +353,24 @@ private:
 class ServerSignaller : public wrtc::SignallingInterface
 {
 public:
-    ServerSignaller(smpl::Server& server, const std::string& serverPeerId)
+    ServerSignaller(smpl::Server& server,
+                    const std::string& serverPeerId,
+                    std::string remotePeerId = {})
         : _server(server)
         , _serverPeerId(serverPeerId)
+        , _remotePeerId(std::move(remotePeerId))
+        , _dispatch([this]() { flushPending(); }, server.loop())
     {
+    }
+
+    ~ServerSignaller() override
+    {
+        {
+            std::lock_guard lock(_mutex);
+            _closing = true;
+            _pending.clear();
+        }
+        _dispatch.close();
     }
 
     void sendSdp(const std::string& peerId,
@@ -362,10 +421,14 @@ public:
         std::string peerId;
         auto fromIt = msg.find("from");
         if (fromIt != msg.end()) {
-            if (fromIt->is_string())
-                peerId = fromIt->get<std::string>();
+            if (fromIt->is_string()) {
+                smpl::Address from(fromIt->get_ref<const std::string&>());
+                peerId = from.id.empty() ? from.user : from.id;
+            }
         }
         if (peerId.empty())
+            return;
+        if (!_remotePeerId.empty() && peerId != _remotePeerId)
             return;
 
         LDebug("Server signaller: ", subtype, " from ", peerId);
@@ -392,6 +455,12 @@ public:
     }
 
 private:
+    struct OutboundMessage
+    {
+        std::string peerId;
+        json::Value msg;
+    };
+
     void send(const std::string& subtype,
               const std::string& to,
               const json::Value& data)
@@ -404,11 +473,39 @@ private:
         if (!data.empty())
             msg["data"] = data;
 
-        _server.sendTo(to, msg);
+        if (std::this_thread::get_id() == _dispatch.tid()) {
+            _server.sendTo(to, msg);
+            return;
+        }
+
+        {
+            std::lock_guard lock(_mutex);
+            if (_closing)
+                return;
+            _pending.push_back({to, std::move(msg)});
+        }
+        _dispatch.post();
+    }
+
+    void flushPending()
+    {
+        std::deque<OutboundMessage> pending;
+        {
+            std::lock_guard lock(_mutex);
+            pending.swap(_pending);
+        }
+
+        for (auto& outbound : pending)
+            _server.sendTo(outbound.peerId, outbound.msg);
     }
 
     smpl::Server& _server;
     std::string _serverPeerId;
+    std::string _remotePeerId;
+    Synchronizer _dispatch;
+    std::mutex _mutex;
+    std::deque<OutboundMessage> _pending;
+    bool _closing = false;
 };
 
 
@@ -419,10 +516,23 @@ private:
 class VideoRecorder
 {
 public:
+    static constexpr size_t MAX_PREROLL_BYTES = 2 * 1024 * 1024;
+
     VideoRecorder(std::string peerId, std::string recordDir)
         : _peerId(std::move(peerId))
         , _recordDir(std::move(recordDir))
     {
+    }
+
+    void arm(wrtc::MediaBridge& media)
+    {
+        if (_bridge == &media)
+            return;
+        if (_bridge)
+            _bridge->videoReceiver().emitter -= this;
+        _bridge = &media;
+        _bridge->videoReceiver().emitter +=
+            packetSlot(this, &VideoRecorder::onBufferedVideo);
     }
 
     void start(wrtc::MediaBridge& media)
@@ -430,15 +540,20 @@ public:
         if (_recording)
             return;
 
+        arm(media);
         ensureDecoder();
-
-        _bridge = &media;
         _outputFile = makeRecordingPath(_recordDir, _peerId);
 
         _bridge->videoReceiver().emitter +=
             packetSlot(this, &VideoRecorder::onEncodedVideo);
         _decoder->emitter += packetSlot(this, &VideoRecorder::onDecodedVideo);
         _recording = true;
+
+        auto buffered = std::move(_preroll);
+        _preroll.clear();
+        _prerollBytes = 0;
+        for (auto& packet : buffered)
+            onEncodedVideo(packet);
 
         std::cout << "Recording " << _peerId << " to " << _outputFile << '\n';
     }
@@ -466,6 +581,8 @@ public:
         _recording = false;
         _waitingForKeyframe = true;
         _loggedWaitingForKeyframe = false;
+        _preroll.clear();
+        _prerollBytes = 0;
 
         if (wroteFile)
             std::cout << "Recording saved to " << outputFile << '\n';
@@ -475,6 +592,19 @@ public:
     }
 
 private:
+    void onBufferedVideo(av::VideoPacket& packet)
+    {
+        if (_recording || packet.size() == 0)
+            return;
+
+        _preroll.emplace_back(packet);
+        _prerollBytes += packet.size();
+        while (_prerollBytes > MAX_PREROLL_BYTES && !_preroll.empty()) {
+            _prerollBytes -= _preroll.front().size();
+            _preroll.pop_front();
+        }
+    }
+
     void ensureDecoder()
     {
         if (_decoder)
@@ -519,23 +649,9 @@ private:
         if (!_decoder || !_decodeStream)
             return;
 
-        av::AVPacketHolder ffpacket(av_packet_alloc());
-        if (!ffpacket)
-            throw std::runtime_error("Cannot allocate FFmpeg packet");
-
-        ffpacket->data = reinterpret_cast<uint8_t*>(packet.data());
-        ffpacket->size = static_cast<int>(packet.size());
-        ffpacket->stream_index = _decodeStream->index;
-
-        if (packet.time > 0) {
-            ffpacket->pts = av_rescale_q(packet.time, AVRational{1, AV_TIME_BASE},
-                                         _decodeStream->time_base);
-            ffpacket->dts = ffpacket->pts;
-        }
-        else {
-            ffpacket->pts = AV_NOPTS_VALUE;
-            ffpacket->dts = AV_NOPTS_VALUE;
-        }
+        auto ffpacket = av::makeOwnedPacket(packet,
+                                            _decodeStream->index,
+                                            _decodeStream->time_base);
 
         try {
             bool decoded = _decoder->decode(*ffpacket);
@@ -544,10 +660,12 @@ private:
                 _loggedWaitingForKeyframe = false;
             }
         }
-        catch (const std::exception&) {
+        catch (const std::exception& exc) {
             if (_waitingForKeyframe && !_loggedWaitingForKeyframe) {
-                std::cout << "Waiting for a decodable H.264 keyframe from "
-                          << _peerId << "..." << '\n';
+                LWarn("Waiting for a decodable H.264 keyframe from ",
+                      _peerId,
+                      ": ",
+                      exc.what());
                 _loggedWaitingForKeyframe = true;
             }
         }
@@ -563,6 +681,8 @@ private:
     std::string _recordDir;
     std::string _outputFile;
     wrtc::MediaBridge* _bridge = nullptr;
+    std::deque<av::VideoPacket> _preroll;
+    size_t _prerollBytes = 0;
     av::AVFormatContextHolder _decodeFormat;
     AVStream* _decodeStream = nullptr;
     std::unique_ptr<av::VideoDecoder> _decoder;
@@ -613,7 +733,8 @@ class MediaSession : public std::enable_shared_from_this<MediaSession>
 {
 public:
     MediaSession(const std::string& peerId,
-                 wrtc::SignallingInterface& signaller,
+                 smpl::Server& server,
+                 const std::string& serverPeerId,
                  const Config& config,
                  RelayController* relay)
         : _peerId(peerId)
@@ -626,29 +747,27 @@ public:
 
         wrtc::PeerSession::Config pc;
 
-        // ICE servers: embedded TURN (using externalIP if set, else localhost)
-        // plus Google's public STUN as fallback for server-reflexive candidates.
-        if (config.enableTurn) {
-            std::string turnHost = config.turnExternalIP.empty()
-                ? "127.0.0.1" : config.turnExternalIP;
-            std::string turnUri = "turn:" + turnHost + ":" +
-                std::to_string(config.turnPort);
-            pc.rtcConfig.iceServers.emplace_back(turnUri);
-        }
+        // The browser may use the embedded TURN server, but the media server
+        // itself should advertise direct host/srflx candidates instead of
+        // relaying through its own TURN instance.
         pc.rtcConfig.iceServers.emplace_back("stun:stun.l.google.com:19302");
 
         if (config.mode == Config::Mode::Stream) {
             pc.mediaOpts.videoCodec = videoCodec;
             pc.mediaOpts.audioCodec = audioCodec;
+            pc.mediaOpts.videoDirection = rtc::Description::Direction::SendOnly;
+            pc.mediaOpts.audioDirection = rtc::Description::Direction::SendOnly;
         }
         else if (config.mode == Config::Mode::Record) {
-            // Create a recvonly-capable video m-line so browser peers can
-            // send us H.264 even though we do not publish media back.
+            // Record mode only receives the remote published H.264 track.
             pc.mediaOpts.videoCodec = videoCodec;
+            pc.mediaOpts.videoDirection = rtc::Description::Direction::RecvOnly;
+            pc.mediaOpts.audioDirection = rtc::Description::Direction::Inactive;
         }
         else if (config.mode == Config::Mode::Relay) {
             // Relay mode receives browser media on the incoming tracks and
             // republishes the active source on the server's own outbound tracks.
+            // The final answer direction is scoped against the browser offer.
             pc.mediaOpts.videoCodec = videoCodec;
             pc.mediaOpts.audioCodec = audioCodec;
         }
@@ -656,9 +775,12 @@ public:
         pc.enableDataChannel = true;
         pc.dataChannelLabel = "control";
 
-        _session = std::make_unique<wrtc::PeerSession>(signaller, pc);
-        if (_config.mode == Config::Mode::Record)
+        _signaller = std::make_unique<ServerSignaller>(server, serverPeerId, peerId);
+        _session = std::make_unique<wrtc::PeerSession>(*_signaller, pc);
+        if (_config.mode == Config::Mode::Record) {
             _recorder = std::make_unique<VideoRecorder>(_peerId, _config.recordDir);
+            _recorder->arm(_session->media());
+        }
 
         _session->IncomingCall += [this](const std::string& peer) {
             LInfo("Auto-accepting call from ", peer);
@@ -671,6 +793,8 @@ public:
                 startStreaming();
                 startRecording();
                 startRelay();
+                if (_config.mode == Config::Mode::Record)
+                    _session->media().requestKeyframe();
                 if (_relay)
                     _relay->onSessionActive(_peerId);
             }
@@ -724,6 +848,11 @@ public:
 
     wrtc::PeerSession& session() { return *_session; }
     const std::string& peerId() const { return _peerId; }
+    void onSignallingMessage(const json::Value& msg)
+    {
+        if (_signaller)
+            _signaller->onMessage(msg);
+    }
     bool active() const
     {
         return _session && _session->state() == wrtc::PeerSession::State::Active;
@@ -829,7 +958,13 @@ private:
         if (_config.mode != Config::Mode::Record || !_recorder || !_session)
             return;
 
-        _recorder->start(_session->media());
+        try {
+            _recorder->start(_session->media());
+        }
+        catch (const std::exception& exc) {
+            LError("MediaSession startRecording failed: ", exc.what());
+            throw;
+        }
     }
 
     void stopRecording()
@@ -884,6 +1019,7 @@ private:
     bool _streamReady = false;
     bool _relayAttached = false;
     std::unique_ptr<VideoRecorder> _recorder;
+    std::unique_ptr<ServerSignaller> _signaller;
     std::unique_ptr<wrtc::PeerSession> _session;
     mutable std::mutex _mutex;
 };
@@ -1142,10 +1278,11 @@ class EmbeddedTurn : public turn::ServerObserver
 {
 public:
     EmbeddedTurn(const Config& config)
+        : _realm(config.turnRealm)
     {
         turn::ServerOptions opts;
         opts.software = "Icey Media Server TURN [rfc5766]";
-        opts.realm = config.turnRealm;
+        opts.realm = _realm;
         opts.listenAddr = net::Address(config.host, config.turnPort);
         opts.externalIP = config.turnExternalIP;
         opts.enableTCP = true;
@@ -1159,10 +1296,50 @@ public:
     void stop() { _server->stop(); }
 
     turn::AuthenticationState authenticateRequest(
-        turn::Server*, turn::Request&) override
+        turn::Server*, turn::Request& request) override
     {
-        // Open access for the demo; production should check credentials.
-        return turn::AuthenticationState::Authorized;
+        // TURN Allocate/CreatePermission/Refresh must use long-term
+        // credentials for browser ICE agents to accept the transactions.
+        // Binding and Send indications cannot be challenged.
+        if (request.methodType() == stun::Message::Binding ||
+            request.methodType() == stun::Message::SendIndication) {
+            return turn::AuthenticationState::Authorized;
+        }
+
+        auto usernameAttr = request.get<stun::Username>();
+        auto realmAttr = request.get<stun::Realm>();
+        auto nonceAttr = request.get<stun::Nonce>();
+        auto integrityAttr = request.get<stun::MessageIntegrity>();
+        if (!usernameAttr || !realmAttr || !nonceAttr || !integrityAttr) {
+            LDebug("TURN auth challenge: method=",
+                   request.methodString(),
+                   " user=",
+                   usernameAttr ? usernameAttr->asString() : "<none>",
+                   " realm=",
+                   realmAttr ? realmAttr->asString() : "<none>",
+                   " nonce=",
+                   nonceAttr ? "<present>" : "<none>",
+                   " integrity=",
+                   integrityAttr ? "<present>" : "<none>");
+            return turn::AuthenticationState::NotAuthorized;
+        }
+
+        const std::string username = usernameAttr->asString();
+        const std::string realm = realmAttr->asString();
+        if (username != kDemoTurnUsername || realm != _realm) {
+            LWarn("TURN auth mismatch: user=", username, " realm=", realm);
+            return turn::AuthenticationState::NotAuthorized;
+        }
+
+        crypto::Hash engine("md5");
+        engine.update(username + ":" + realm + ":" + kDemoTurnCredential);
+        request.hash = engine.digestStr();
+
+        const bool ok = integrityAttr->verifyHmac(request.hash);
+        if (!ok)
+            LWarn("TURN integrity check failed for user=", username);
+        return ok ? turn::AuthenticationState::Authorized
+                  : turn::AuthenticationState::NotAuthorized;
     }
 
     void onServerAllocationCreated(
@@ -1178,6 +1355,7 @@ public:
     }
 
 private:
+    std::string _realm;
     std::unique_ptr<turn::Server> _server;
 };
 
@@ -1246,13 +1424,18 @@ public:
         };
 
         _symple.start(symOpts,
-                       std::make_unique<HttpFactory>(_config.webRoot));
+                       std::make_unique<HttpFactory>(
+                           _config.webRoot,
+                           HttpFactory::RuntimeConfig{
+                               _config.enableTurn,
+                               _config.turnPort,
+                               _config.turnExternalIP,
+                               _config.host
+                           }));
 
         // Register as virtual peer
         _serverPeerId = "media-server";
         _serverAddress = "media-server|" + _serverPeerId;
-
-        _signaller = std::make_unique<ServerSignaller>(_symple, _serverAddress);
 
         // When a call:init arrives, create a session for that peer
         smpl::Peer vpeer;
@@ -1261,21 +1444,44 @@ public:
         vpeer.setName("Media Server");
         vpeer.setType("media-server");
         vpeer["online"] = true;
+        switch (_config.mode) {
+        case Config::Mode::Stream:
+            vpeer["mode"] = "stream";
+            vpeer["capabilities"] = json::Value::array({"view"});
+            break;
+        case Config::Mode::Record:
+            vpeer["mode"] = "record";
+            vpeer["capabilities"] = json::Value::array({"publish"});
+            break;
+        case Config::Mode::Relay:
+            vpeer["mode"] = "relay";
+            vpeer["capabilities"] = json::Value::array({"publish", "view"});
+            break;
+        }
 
         _symple.addVirtualPeer(vpeer, {"public"},
             [this](const json::Value& msg) {
-                // Create session before forwarding call:init so that
-                // PeerSession is subscribed when ControlReceived fires.
                 auto it = msg.find("subtype");
-                if (it != msg.end() && it->get<std::string>() == "call:init") {
-                    auto from = msg.value("from", "");
-                    auto sep = from.find('|');
-                    auto peerId = (sep != std::string::npos)
-                        ? from.substr(sep + 1) : from;
-                    if (!peerId.empty())
-                        createSession(peerId);
+                if (it == msg.end())
+                    return;
+
+                smpl::Address from(msg.value("from", ""));
+                auto peerId = from.id.empty() ? from.user : from.id;
+                if (peerId.empty())
+                    return;
+
+                std::shared_ptr<MediaSession> session;
+                const auto& subtype = it->get_ref<const std::string&>();
+                if (subtype == "call:init") {
+                    session = ensureSession(peerId);
                 }
-                _signaller->onMessage(msg);
+                else {
+                    auto found = _sessions.find(peerId);
+                    if (found != _sessions.end())
+                        session = found->second;
+                }
+                if (session)
+                    session->onSignallingMessage(msg);
             });
 
         std::cout << "Media server listening on "
@@ -1295,30 +1501,28 @@ public:
         _sessions.clear();
         _relay.clear();
         _symple.removeVirtualPeer(_serverPeerId);
-        _signaller.reset();
         _symple.shutdown();
         if (_turn)
             _turn->stop();
     }
 
 private:
-    void createSession(const std::string& peerId)
+    std::shared_ptr<MediaSession> ensureSession(const std::string& peerId)
     {
-        if (_sessions.count(peerId)) {
-            LWarn("Session already exists for ", peerId);
-            return;
-        }
+        auto it = _sessions.find(peerId);
+        if (it != _sessions.end())
+            return it->second;
 
         LInfo("Creating session for ", peerId);
         auto session = std::make_shared<MediaSession>(
-            peerId, *_signaller, _config, &_relay);
+            peerId, _symple, _serverAddress, _config, &_relay);
         _relay.registerSession(session);
-        _sessions[peerId] = std::move(session);
+        _sessions[peerId] = session;
+        return session;
     }
 
     Config _config;
     smpl::Server _symple;
-    std::unique_ptr<ServerSignaller> _signaller;
     std::unique_ptr<EmbeddedTurn> _turn;
     std::string _serverPeerId;
     std::string _serverAddress;

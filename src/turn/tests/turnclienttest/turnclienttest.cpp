@@ -96,8 +96,8 @@ int main(int argc, char** argv)
         so.allocationDefaultLifetime = 1 * 60 * 1000;
         so.allocationMaxLifetime = 15 * 60 * 1000;
         so.timerInterval = 5 * 1000;
-        so.listenAddr = net::Address("127.0.0.1", 3479); // different port
-        so.externalIP = TURN_SERVER_EXTERNAL_IP;
+        so.listenAddr = net::Address("0.0.0.0", 3479); // wildcard bind exercises relay host resolution
+        so.externalIP = "";
         TestServer srv(so);
         srv.start();
 
@@ -112,6 +112,7 @@ int main(int argc, char** argv)
 
         initiator.AllocationCreated += [&]() {
             LDebug("Initiator allocation created");
+            expect(initiator.client.relayedAddress().host() == "127.0.0.1");
             responder.connect(initiator.client.relayedAddress());
             initiator.responderAddress = net::Address(
                 TURN_AUTHORIZE_PEER_IP, responder.socket.address().port());
