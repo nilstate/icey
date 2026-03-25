@@ -22,7 +22,7 @@
 namespace icy {
 namespace av {
 
-/// This class implements a cross platform audio capturer.
+/// Cross-platform audio capture device backed by FFmpeg input devices.
 class AV_API AudioCapture : public MediaCapture
 {
 public:

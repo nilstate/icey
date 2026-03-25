@@ -56,18 +56,18 @@ MAX_ENCODE_DURATION()
 | Name | Description |
 |------|-------------|
 | [`AppleDeviceWatcher`](#appledevicewatcher) | Monitors device add/remove events via AVFoundation notifications and CoreAudio property listeners. |
-| [`AudioCapture`](#audiocapture) | This class implements a cross platform audio capturer. |
+| [`AudioCapture`](#audiocapture) | Cross-platform audio capture device backed by FFmpeg input devices. |
 | [`AudioPacketEncoder`](#audiopacketencoder) | [PacketProcessor](base.md#packetprocessor) that encodes raw audio samples ([PlanarAudioPacket](#planaraudiopacket) or [AudioPacket](#audiopacket)) into compressed packets via [AudioEncoder](#audioencoder). |
 | [`DeviceManager`](#devicemanager) | Enumerates and manages system audio and video devices. |
 | [`DeviceWatcher`](#devicewatcher) | Base class for platform-specific device change monitors. |
 | [`FormatRegistry`](#formatregistry) | [Singleton](base.md#singleton) registry of available media container formats for encoding and decoding. |
 | [`FPSCounter`](#fpscounter) | FPS counter based on the simple moving average (SMA) algorithm. |
-| [`FPSLimiter`](#fpslimiter) | This class limits the throughput rate of IPackets in a [PacketStream](base.md#packetstream). If the throughput rate exceeds the max specified FPS then packets will be dropped. |
+| [`FPSLimiter`](#fpslimiter) | [PacketStream](base.md#packetstream) processor that caps packet throughput to a maximum FPS. |
 | [`ICapture`](#icapture) | Abstract interface for audio and video capture devices. |
 | [`IEncoder`](#iencoder) | This is the abstract class for all encoders. |
 | [`LinuxDeviceWatcher`](#linuxdevicewatcher) | Monitors device add/remove events via libudev. |
-| [`MediaCapture`](#mediacapture) | This class implements a cross platform audio, video, screen and video file capturer. |
-| [`MultiplexEncoder`](#multiplexencoder) | This class implements a multiplex audio and video encoder. |
+| [`MediaCapture`](#mediacapture) | Unified capture and decode source for files and live media devices. |
+| [`MultiplexEncoder`](#multiplexencoder) | Multiplexing encoder that writes synchronized audio and video streams. |
 | [`MultiplexPacketEncoder`](#multiplexpacketencoder) | Encodes and multiplexes a realtime video stream form audio / video capture sources. FFmpeg is used for encoding. |
 | [`RealtimePacketQueue`](#realtimepacketqueue) | [Queue](base.md#queue) that emits media packets in presentation-timestamp order relative to a realtime clock. |
 | [`VideoCapture`](#videocapture) | Cross-platform video device capturer backed by FFmpeg avdevice. |
@@ -741,7 +741,7 @@ DeviceManager * _manager
 
 > **Inherits:** [`MediaCapture`](#mediacapture)
 
-This class implements a cross platform audio capturer.
+Cross-platform audio capture device backed by FFmpeg input devices.
 
 ### Public Methods
 
@@ -2115,9 +2115,11 @@ inline double updateAvg(clock_t newTick)
 
 > **Inherits:** [`PacketProcessor`](base.md#packetprocessor)
 
-This class limits the throughput rate of IPackets in a [PacketStream](base.md#packetstream). If the throughput rate exceeds the max specified FPS then packets will be dropped.
+[PacketStream](base.md#packetstream) processor that caps packet throughput to a maximum FPS.
 
-Note that revious processors must not fragment packets otherwise this class will not be accurate, and the packet drop rate will be too high.
+If the observed frame rate exceeds the configured FPS budget, packets are dropped until the rate falls back under the limit.
+
+Note that previous processors must not fragment packets, otherwise this class will not be accurate, and the packet drop rate will be too high.
 
 ### Public Attributes
 
@@ -2897,13 +2899,13 @@ DeviceManager * _manager
 > **Inherits:** [`ICapture`](#icapture), [`Runnable`](base.md#runnable)
 > **Subclassed by:** [`AudioCapture`](#audiocapture), [`VideoCapture`](#videocapture)
 
-This class implements a cross platform audio, video, screen and video file capturer.
+Unified capture and decode source for files and live media devices.
 
 ### Public Attributes
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `NullSignal` | [`Closing`](#closing)  | Signals that the capture thread is closing. Careful, this signal is emitted from inside the tread contect. |
+| `NullSignal` | [`Closing`](#closing)  | Signals that the capture thread is closing. This signal is emitted from the capture thread context. |
 
 ---
 
@@ -2915,7 +2917,7 @@ This class implements a cross platform audio, video, screen and video file captu
 NullSignal Closing
 ```
 
-Signals that the capture thread is closing. Careful, this signal is emitted from inside the tread contect.
+Signals that the capture thread is closing. This signal is emitted from the capture thread context.
 
 ### Public Methods
 
@@ -2934,7 +2936,7 @@ Signals that the capture thread is closing. Careful, this signal is emitted from
 | `void` | [`getEncoderVideoCodec`](#getencodervideocodec-1) `virtual` | Fill `params` with the decoder's output video codec parameters. Throws std::runtime_error if video parameters have not been initialised.  |
 | `void` | [`setLoopInput`](#setloopinput)  | Continuously loop the input file when set. |
 | `void` | [`setLimitFramerate`](#setlimitframerate)  | Limit playback to video FPS. |
-| `void` | [`setRealtimePTS`](#setrealtimepts)  | Set to use realtime PTS calculation. This is preferred when sing live captures as FFmpeg provided values are not always reliable. |
+| `void` | [`setRealtimePTS`](#setrealtimepts)  | Set to use realtime PTS calculation. This is preferred when using live captures as FFmpeg-provided values are not always reliable. |
 | `AVFormatContext *` | [`formatCtx`](#formatctx) `const` | #### Returns |
 | `VideoDecoder *` | [`video`](#video-1) `const` | #### Returns |
 | `AudioDecoder *` | [`audio`](#audio-1) `const` | #### Returns |
@@ -3149,7 +3151,7 @@ Limit playback to video FPS.
 void setRealtimePTS(bool flag)
 ```
 
-Set to use realtime PTS calculation. This is preferred when sing live captures as FFmpeg provided values are not always reliable.
+Set to use realtime PTS calculation. This is preferred when using live captures as FFmpeg-provided values are not always reliable.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -3426,7 +3428,7 @@ std::shared_ptr< MediaCapture > Ptr()
 > **Inherits:** [`IEncoder`](#iencoder)
 > **Subclassed by:** [`MultiplexPacketEncoder`](#multiplexpacketencoder)
 
-This class implements a multiplex audio and video encoder.
+Multiplexing encoder that writes synchronized audio and video streams.
 
 ### Public Attributes
 
@@ -3456,8 +3458,8 @@ PacketSignal emitter
 | `void` | [`cleanup`](#cleanup-1) `virtual` | Release all resources allocated by [init()](#init-1) without writing a trailer. |
 | `void` | [`createVideo`](#createvideo-1) `virtual` | Create the video encoder and add the stream to the output container. |
 | `void` | [`freeVideo`](#freevideo-1) `virtual` | Flush and free the video encoder and its stream. |
-| `bool` | [`encodeVideo`](#encodevideo-1) `virtual` | Encode a single video frame. All frame values must be set, such as size, pizel format and PTS. |
-| `bool` | [`encodeVideo`](#encodevideo-2) `virtual` | Encode a single interleaved video frame. If the frame time is specified it should be the microseconds offset since the start of the input stream. If no time is specified a realtime time value will be assigned to the frame. |
+| `bool` | [`encodeVideo`](#encodevideo-1) `virtual` | Encode a single video frame. All frame values must be set, such as size, pixel format, and PTS. |
+| `bool` | [`encodeVideo`](#encodevideo-2) `virtual` | Encode a single interleaved video frame. If the frame time is specified it should be the microseconds offset since the start of the input stream. If no time is specified a real-time value will be assigned to the frame. |
 | `bool` | [`encodeVideo`](#encodevideo-3) `virtual` | Encode a single planar video frame. |
 | `void` | [`createAudio`](#createaudio-1) `virtual` | Create the audio encoder and add the stream to the output container. |
 | `void` | [`freeAudio`](#freeaudio-1) `virtual` | Flush and free the audio encoder and its stream. |
@@ -3588,7 +3590,7 @@ Flush and free the video encoder and its stream.
 virtual bool encodeVideo(AVFrame * frame)
 ```
 
-Encode a single video frame. All frame values must be set, such as size, pizel format and PTS.
+Encode a single video frame. All frame values must be set, such as size, pixel format, and PTS.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -3606,7 +3608,7 @@ Encode a single video frame. All frame values must be set, such as size, pizel f
 virtual bool encodeVideo(uint8_t * buffer, int bufferSize, int width, int height, int64_t time)
 ```
 
-Encode a single interleaved video frame. If the frame time is specified it should be the microseconds offset since the start of the input stream. If no time is specified a realtime time value will be assigned to the frame.
+Encode a single interleaved video frame. If the frame time is specified it should be the microseconds offset since the start of the input stream. If no time is specified a real-time value will be assigned to the frame.
 
 #### Parameters
 * `buffer` The raw video frame buffer. 

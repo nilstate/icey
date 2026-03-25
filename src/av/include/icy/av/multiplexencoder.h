@@ -37,7 +37,7 @@ namespace icy {
 namespace av {
 
 
-/// This class implements a multiplex audio and video encoder.
+/// Multiplexing encoder that writes synchronized audio and video streams.
 class AV_API MultiplexEncoder : public IEncoder
 {
 public:
@@ -67,13 +67,13 @@ public:
     void freeVideo() override;
 
     /// Encode a single video frame.
-    /// All frame values must be set, such as size, pizel format and PTS.
+    /// All frame values must be set, such as size, pixel format, and PTS.
     [[nodiscard]] bool encodeVideo(AVFrame* frame) override;
 
     /// Encode a single interleaved video frame.
     /// If the frame time is specified it should be the microseconds
     /// offset since the start of the input stream. If no time is specified
-    /// a realtime time value will be assigned to the frame.
+    /// a real-time value will be assigned to the frame.
     ///
     /// @param buffer      The raw video frame buffer.
     /// @param bufferSize  The buffer size in bytes.

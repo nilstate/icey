@@ -139,11 +139,12 @@ struct FPSCounter
 } // namespace legacy
 
 
-/// This class limits the throughput rate of IPackets
-/// in a PacketStream. If the throughput rate exceeds the
-/// max specified FPS then packets will be dropped.
+/// PacketStream processor that caps packet throughput to a maximum FPS.
 ///
-/// Note that revious processors must not fragment packets
+/// If the observed frame rate exceeds the configured FPS budget, packets
+/// are dropped until the rate falls back under the limit.
+///
+/// Note that previous processors must not fragment packets,
 /// otherwise this class will not be accurate, and the packet
 /// drop rate will be too high.
 class AV_API FPSLimiter : public PacketProcessor

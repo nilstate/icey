@@ -31,8 +31,7 @@ namespace icy {
 namespace av {
 
 
-/// This class implements a cross platform audio, video, screen and
-/// video file capturer.
+/// Unified capture and decode source for files and live media devices.
 class AV_API MediaCapture : public ICapture
     , public basic::Runnable
 {
@@ -90,7 +89,7 @@ public:
     void setLimitFramerate(bool flag);
 
     /// Set to use realtime PTS calculation.
-    /// This is preferred when sing live captures as FFmpeg provided values are
+    /// This is preferred when using live captures as FFmpeg-provided values are
     /// not always reliable.
     void setRealtimePTS(bool flag);
 
@@ -110,7 +109,7 @@ public:
     std::string error() const;
 
     /// Signals that the capture thread is closing.
-    /// Careful, this signal is emitted from inside the tread contect.
+    /// This signal is emitted from the capture thread context.
     NullSignal Closing;
 
 protected:
