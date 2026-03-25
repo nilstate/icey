@@ -209,6 +209,7 @@ IntrusivePtr<T> makeIntrusive(Args&&... args)
 }
 
 
+/// Deleter helpers for objects managed through custom destruction routines.
 namespace deleter {
 
 

@@ -8,12 +8,14 @@ HTTP client/server, WebSocket support, form handling, cookies, URL parsing.
 
 | Name | Description |
 |------|-------------|
-| [`http`](#http) |  |
-| [`ws`](#ws) |  |
+| [`http`](#http) | HTTP request/response types, parsers, and server/client helpers. |
+| [`ws`](#ws) | [WebSocket](#websocket) framing, handshakes, and connection helpers. |
 
 {#http}
 
 # http
+
+HTTP request/response types, parsers, and server/client helpers.
 
 ### Classes
 
@@ -53,8 +55,8 @@ HTTP client/server, WebSocket support, form handling, cookies, URL parsing.
 | Name | Description |
 |------|-------------|
 | [`StatusCode`](#statuscode)  | HTTP [Response](#response-1) Status Codes. |
-| [`ServerConnectionState`](#serverconnectionstate)  |  |
-| [`ServerConnectionMode`](#serverconnectionmode)  |  |
+| [`ServerConnectionState`](#serverconnectionstate)  | HTTP server-side lifecycle phases used by the keep-alive state machine. |
+| [`ServerConnectionMode`](#serverconnectionmode)  | Transport mode for server connections before and after protocol upgrade. |
 
 ---
 
@@ -123,15 +125,17 @@ HTTP [Response](#response-1) Status Codes.
 enum ServerConnectionState
 ```
 
+HTTP server-side lifecycle phases used by the keep-alive state machine.
+
 | Value | Description |
 |-------|-------------|
-| `ReceivingHeaders` |  |
-| `ReceivingBody` |  |
-| `DispatchingOrSending` |  |
-| `Streaming` |  |
-| `Upgraded` |  |
-| `Closing` |  |
-| `Closed` |  |
+| `ReceivingHeaders` | Parsing request headers. |
+| `ReceivingBody` | Receiving request body bytes. |
+| `DispatchingOrSending` | Dispatching the responder or sending a normal response. |
+| `Streaming` | Sending a long-lived streaming response. |
+| `Upgraded` | Upgraded to a non-HTTP protocol such as WebSocket. |
+| `Closing` | Close has been requested and teardown is in progress. |
+| `Closed` | [Connection](#connection-1) has fully closed. |
 
 ---
 
@@ -143,10 +147,12 @@ enum ServerConnectionState
 enum ServerConnectionMode
 ```
 
+Transport mode for server connections before and after protocol upgrade.
+
 | Value | Description |
 |-------|-------------|
-| `Http` |  |
-| `Upgraded` |  |
+| `Http` | Standard HTTP request/response mode. |
+| `Upgraded` | Upgraded transport mode owned by another protocol adapter. |
 
 ### Typedefs
 
@@ -10030,6 +10036,8 @@ const std::string Connect
 {#ws}
 
 # ws
+
+[WebSocket](#websocket) framing, handshakes, and connection helpers.
 
 ### Classes
 

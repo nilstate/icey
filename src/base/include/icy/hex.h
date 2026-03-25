@@ -21,6 +21,7 @@
 
 
 namespace icy {
+/// Hexadecimal encoding and decoding helpers.
 namespace hex {
 
 

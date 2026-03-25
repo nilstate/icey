@@ -24,6 +24,7 @@
 
 
 namespace icy {
+/// Base64 encoding and decoding helpers.
 namespace base64 {
 
 

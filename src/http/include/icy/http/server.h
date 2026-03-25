@@ -26,6 +26,7 @@
 
 
 namespace icy {
+/// HTTP request/response types, parsers, and server/client helpers.
 namespace http {
 
 
@@ -33,22 +34,24 @@ class HTTP_API Server;
 class HTTP_API ServerResponder;
 
 
+/// HTTP server-side lifecycle phases used by the keep-alive state machine.
 enum class ServerConnectionState : uint8_t
 {
-    ReceivingHeaders,
-    ReceivingBody,
-    DispatchingOrSending,
-    Streaming,
-    Upgraded,
-    Closing,
-    Closed,
+    ReceivingHeaders,     ///< Parsing request headers.
+    ReceivingBody,        ///< Receiving request body bytes.
+    DispatchingOrSending, ///< Dispatching the responder or sending a normal response.
+    Streaming,            ///< Sending a long-lived streaming response.
+    Upgraded,             ///< Upgraded to a non-HTTP protocol such as WebSocket.
+    Closing,              ///< Close has been requested and teardown is in progress.
+    Closed,               ///< Connection has fully closed.
 };
 
 
+/// Transport mode for server connections before and after protocol upgrade.
 enum class ServerConnectionMode : uint8_t
 {
-    Http,
-    Upgraded,
+    Http,     ///< Standard HTTP request/response mode.
+    Upgraded, ///< Upgraded transport mode owned by another protocol adapter.
 };
 
 

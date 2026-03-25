@@ -24,41 +24,45 @@
 
 
 namespace icy {
+/// WebRTC codec negotiation and track setup helpers.
 namespace wrtc {
 
 
+/// Whether a codec carries audio or video media.
 enum class CodecMediaType
 {
-    Video,
-    Audio
+    Video, ///< Video RTP payload.
+    Audio  ///< Audio RTP payload.
 };
 
 
+/// Stable codec identifiers used across negotiation and track setup.
 enum class CodecId
 {
-    Unknown,
-    H264,
-    H265,
-    VP8,
-    VP9,
-    AV1,
-    Opus,
-    PCMU,
-    PCMA,
-    G722,
-    AAC
+    Unknown, ///< Unrecognized or unsupported codec.
+    H264,    ///< H.264 / AVC.
+    H265,    ///< H.265 / HEVC.
+    VP8,     ///< Google VP8.
+    VP9,     ///< Google VP9.
+    AV1,     ///< AOMedia AV1.
+    Opus,    ///< Opus audio.
+    PCMU,    ///< G.711 mu-law audio.
+    PCMA,    ///< G.711 A-law audio.
+    G722,    ///< G.722 wideband audio.
+    AAC      ///< AAC audio.
 };
 
 
+/// Canonical description of a codec supported by Icey's WebRTC helpers.
 struct WEBRTC_API CodecSpec
 {
-    CodecId id = CodecId::Unknown;
-    CodecMediaType mediaType = CodecMediaType::Video;
-    std::string rtpName;
-    std::string ffmpegName;
-    uint32_t clockRate = 0;
-    int payloadType = 0;
-    std::string fmtp;
+    CodecId id = CodecId::Unknown;             ///< Stable codec identifier.
+    CodecMediaType mediaType = CodecMediaType::Video; ///< Audio or video media kind.
+    std::string rtpName;                       ///< Canonical RTP codec name.
+    std::string ffmpegName;                    ///< Preferred FFmpeg encoder name.
+    uint32_t clockRate = 0;                    ///< RTP clock rate in Hz.
+    int payloadType = 0;                       ///< Default static or preferred dynamic payload type.
+    std::string fmtp;                          ///< Canonical fmtp line for SDP generation.
 
     [[nodiscard]] bool valid() const { return id != CodecId::Unknown; }
 };

@@ -20,6 +20,7 @@
 
 
 namespace icy {
+/// Cross-platform filesystem path and file helpers.
 namespace fs {
 
 

@@ -33,14 +33,15 @@
 namespace icy {
 
 
+/// Logging severity levels used by Logger and LogChannel.
 enum class Level
 {
-    Trace = 0,
-    Debug = 1,
-    Info = 2,
-    Warn = 3,
-    Error = 4,
-    Fatal = 5,
+    Trace = 0, ///< Most verbose diagnostic output.
+    Debug = 1, ///< Debug-only diagnostic output.
+    Info = 2,  ///< Normal informational output.
+    Warn = 3,  ///< Warning output for recoverable problems.
+    Error = 4, ///< Error output for failed operations.
+    Fatal = 5, ///< Fatal output immediately before termination.
 };
 
 
@@ -89,7 +90,7 @@ inline const char* getStringFromLevel(Level level)
 }
 
 
-/// Log output stream for formatted logging
+/// Mutable log record accumulated before it is dispatched to a LogChannel.
 struct Base_API LogStream;
 class Base_API LogChannel;
 
@@ -239,6 +240,7 @@ void logArgs(std::ostream& o, T&& t, Args&&... args) // recursive variadic funct
 
 #ifdef ICY_ENABLE_LOGGING
 
+/// Mutable log record accumulated before it is dispatched to a LogChannel.
 struct LogStream
 {
     Level level;
@@ -301,6 +303,7 @@ struct LogStream
 
 #else
 
+/// No-op log record used when logging is compiled out.
 struct LogStream
 {
     LogStream(Level level, std::string realm, int line, const char* channel = nullptr) {}

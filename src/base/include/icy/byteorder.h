@@ -27,6 +27,7 @@
 namespace icy {
 
 
+/// Byte-order policy used when reading or writing multi-byte integers.
 enum class ByteOrder
 {
     Network = 0, ///< Default, use network byte order (big endian).

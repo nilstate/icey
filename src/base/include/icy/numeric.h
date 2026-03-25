@@ -17,6 +17,7 @@
 
 
 namespace icy {
+/// Integer parsing and formatting helpers.
 namespace numeric {
 
 

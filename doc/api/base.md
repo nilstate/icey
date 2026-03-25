@@ -8,16 +8,16 @@ The `base` module contains reusable cross platform tools and utilities.
 
 | Name | Description |
 |------|-------------|
-| [`hex`](#hex) |  |
+| [`hex`](#hex) | Hexadecimal encoding and decoding helpers. |
 | [`ipc`](#ipc) | Classes for inter-process communication. |
 | [`test`](#test) | Modern unit testing framework. |
 | [`time`](#time-3) | Classes and functions for handling time. |
-| [`base64`](#base64) |  |
-| [`deleter`](#deleter-2) |  |
-| [`numeric`](#numeric) |  |
+| [`base64`](#base64) | Base64 encoding and decoding helpers. |
+| [`deleter`](#deleter-2) | Deleter helpers for objects managed through custom destruction routines. |
+| [`numeric`](#numeric) | Integer parsing and formatting helpers. |
 | [`basic`](#basic) | Interface classes. |
-| [`fs`](#fs) |  |
-| [`util`](#util) |  |
+| [`fs`](#fs) | Cross-platform filesystem path and file helpers. |
+| [`util`](#util) | Miscellaneous string, parsing, and version utilities. |
 
 ### Classes
 
@@ -95,7 +95,7 @@ The `base` module contains reusable cross platform tools and utilities.
 | [`Configuration`](#configuration) | [Configuration](#configuration) is an abstract base class for managing different kinds of configuration storage back ends such as JSON, XML, or database. |
 | [`ScopedConfiguration`](#scopedconfiguration) | [ScopedConfiguration](#scopedconfiguration) provides multiple levels of configuration for a module. Multiple levels means that there is a module level scope, and a default scope. When a property is accessed, the module scope value will be used if available, otherwise the default scope value will be used. |
 | [`Error`](#error) | Basic error type. |
-| [`LogStream`](#logstream) |  |
+| [`LogStream`](#logstream) | No-op log record used when logging is compiled out. |
 | [`NullSharedMutex`](#nullsharedmutex) | No-op mutex for single-threaded signal usage. When all signal operations occur on a single libuv event loop thread, the shared_mutex is unnecessary overhead. |
 | [`Bitwise`](#bitwise) | Container for smart management of bitwise integer flags. |
 | [`AbstractDelegate`](#abstractdelegate) | Abstract delegate interface. |
@@ -117,8 +117,8 @@ The `base` module contains reusable cross platform tools and utilities.
 
 | Name | Description |
 |------|-------------|
-| [`Level`](#level)  |  |
-| [`ByteOrder`](#byteorder)  |  |
+| [`Level`](#level)  | Logging severity levels used by [Logger](#logger) and [LogChannel](#logchannel). |
+| [`ByteOrder`](#byteorder)  | Byte-order policy used when reading or writing multi-byte integers. |
 | [`PacketRetention`](#packetretention)  | Describes how an adapter treats incoming packet lifetime beyond the current synchronous call chain. |
 | [`PacketFlags`](#packetflags)  | Flags which determine how the packet is handled by the [PacketStream](#packetstream). |
 
@@ -132,14 +132,16 @@ The `base` module contains reusable cross platform tools and utilities.
 enum Level
 ```
 
+Logging severity levels used by [Logger](#logger) and [LogChannel](#logchannel).
+
 | Value | Description |
 |-------|-------------|
-| `Trace` |  |
-| `Debug` |  |
-| `Info` |  |
-| `Warn` |  |
-| `Error` |  |
-| `Fatal` |  |
+| `Trace` | Most verbose diagnostic output. |
+| `Debug` | Debug-only diagnostic output. |
+| `Info` | Normal informational output. |
+| `Warn` | Warning output for recoverable problems. |
+| `Error` | [Error](#error) output for failed operations. |
+| `Fatal` | Fatal output immediately before termination. |
 
 ---
 
@@ -150,6 +152,8 @@ enum Level
 ```cpp
 enum ByteOrder
 ```
+
+Byte-order policy used when reading or writing multi-byte integers.
 
 | Value | Description |
 |-------|-------------|
@@ -2071,6 +2075,8 @@ Constructs an owning [RawPacket](#rawpacket) from a const char pointer (data is 
 
 # hex
 
+Hexadecimal encoding and decoding helpers.
+
 ### Classes
 
 | Name | Description |
@@ -3753,6 +3759,8 @@ Examples: 2005-01-01T12:00:00+01:00 2005-01-01T11:00:00Z
 
 # base64
 
+Base64 encoding and decoding helpers.
+
 ### Classes
 
 | Name | Description |
@@ -4202,6 +4210,8 @@ Sets the line wrap length for encoded output (0 disables line wrapping).
 
 # deleter
 
+Deleter helpers for objects managed through custom destruction routines.
+
 ### Classes
 
 | Name | Description |
@@ -4276,6 +4286,8 @@ Calls ptr->dispose() if ptr is non-null.
 {#numeric}
 
 # numeric
+
+Integer parsing and formatting helpers.
 
 ### Functions
 
@@ -5357,6 +5369,8 @@ Stops the object (e.g. halts processing or closes resources).
 
 # fs
 
+Cross-platform filesystem path and file helpers.
+
 ### Functions
 
 | Return | Name | Description |
@@ -5820,6 +5834,8 @@ The platform specific path separator character: '/' on unix and '\' on windows.
 {#util}
 
 # util
+
+Miscellaneous string, parsing, and version utilities.
 
 ### Classes
 
@@ -27623,6 +27639,8 @@ Re-throws the stored exception pointer if one is set. Has no effect if `exceptio
 ```cpp
 #include <icy/logger.h>
 ```
+
+No-op log record used when logging is compiled out.
 
 ### Public Methods
 

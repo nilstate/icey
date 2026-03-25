@@ -27,6 +27,7 @@
 
 namespace icy {
 namespace http {
+/// WebSocket framing, handshakes, and connection helpers.
 namespace ws {
 
 

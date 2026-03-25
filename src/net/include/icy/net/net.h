@@ -82,6 +82,7 @@ using socklen_t = int;
 
 
 namespace icy {
+/// Socket transports, adapters, and address helpers.
 namespace net {
 
 
@@ -101,6 +102,7 @@ enum TransportType
 };
 
 
+/// Transport mode for socket adapters and accepted connections.
 enum SocketMode
 {
     ServerSide, ///< Server-side adapter.

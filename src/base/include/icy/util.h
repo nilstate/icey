@@ -29,6 +29,7 @@
 
 
 namespace icy {
+/// Miscellaneous string, parsing, and version utilities.
 namespace util {
 
 

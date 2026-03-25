@@ -8,11 +8,13 @@ WebRTC media transport via libdatachannel; peer sessions, media bridge, codec ne
 
 | Name | Description |
 |------|-------------|
-| [`wrtc`](#wrtc) |  |
+| [`wrtc`](#wrtc) | WebRTC codec negotiation and track setup helpers. |
 
 {#wrtc}
 
 # wrtc
+
+WebRTC codec negotiation and track setup helpers.
 
 ### Classes
 
@@ -24,7 +26,7 @@ WebRTC media transport via libdatachannel; peer sessions, media bridge, codec ne
 | [`SignallingInterface`](#signallinginterface) | Transport-agnostic signalling interface for WebRTC session setup. |
 | [`WebRtcTrackReceiver`](#webrtctrackreceiver) | [PacketStreamAdapter](base.md#packetstreamadapter) that receives depacketized frames from a single remote libdatachannel Track and emits them as VideoPacket or AudioPacket into a [PacketStream](base.md#packetstream). |
 | [`WebRtcTrackSender`](#webrtctracksender) | [PacketProcessor](base.md#packetprocessor) that sends encoded media to a single libdatachannel Track via sendFrame(). |
-| [`CodecSpec`](#codecspec) |  |
+| [`CodecSpec`](#codecspec) | Canonical description of a codec supported by Icey's WebRTC helpers. |
 | [`NegotiatedCodec`](#negotiatedcodec) | Result of codec negotiation between a remote SDP offer and the local FFmpeg codec inventory. |
 | [`TrackHandle`](#trackhandle) | Result of creating a track: the track itself plus its RTP config. Keep the config around - you need it for [WebRtcTrackSender](#webrtctracksender). |
 
@@ -32,8 +34,8 @@ WebRTC media transport via libdatachannel; peer sessions, media bridge, codec ne
 
 | Name | Description |
 |------|-------------|
-| [`CodecMediaType`](#codecmediatype)  |  |
-| [`CodecId`](#codecid)  |  |
+| [`CodecMediaType`](#codecmediatype)  | Whether a codec carries audio or video media. |
+| [`CodecId`](#codecid)  | Stable codec identifiers used across negotiation and track setup. |
 
 ---
 
@@ -45,10 +47,12 @@ WebRTC media transport via libdatachannel; peer sessions, media bridge, codec ne
 enum CodecMediaType
 ```
 
+Whether a codec carries audio or video media.
+
 | Value | Description |
 |-------|-------------|
-| `Video` |  |
-| `Audio` |  |
+| `Video` | Video RTP payload. |
+| `Audio` | Audio RTP payload. |
 
 ---
 
@@ -60,19 +64,21 @@ enum CodecMediaType
 enum CodecId
 ```
 
+Stable codec identifiers used across negotiation and track setup.
+
 | Value | Description |
 |-------|-------------|
-| `Unknown` |  |
-| `H264` |  |
-| `H265` |  |
-| `VP8` |  |
-| `VP9` |  |
-| `AV1` |  |
-| `Opus` |  |
-| `PCMU` |  |
-| `PCMA` |  |
-| `G722` |  |
-| `AAC` |  |
+| `Unknown` | Unrecognized or unsupported codec. |
+| `H264` | H.264 / AVC. |
+| `H265` | H.265 / HEVC. |
+| `VP8` | Google VP8. |
+| `VP9` | Google VP9. |
+| `AV1` | AOMedia AV1. |
+| `Opus` | Opus audio. |
+| `PCMU` | G.711 mu-law audio. |
+| `PCMA` | G.711 A-law audio. |
+| `G722` | G.722 wideband audio. |
+| `AAC` | AAC audio. |
 
 ### Functions
 
@@ -2167,17 +2173,19 @@ std::mutex _mutex
 #include <icy/webrtc/codecnegotiator.h>
 ```
 
+Canonical description of a codec supported by Icey's WebRTC helpers.
+
 ### Public Attributes
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `CodecId` | [`id`](#id-9)  |  |
-| `CodecMediaType` | [`mediaType`](#mediatype)  |  |
-| `std::string` | [`rtpName`](#rtpname)  |  |
-| `std::string` | [`ffmpegName`](#ffmpegname)  |  |
-| `uint32_t` | [`clockRate`](#clockrate-1)  |  |
-| `int` | [`payloadType`](#payloadtype)  |  |
-| `std::string` | [`fmtp`](#fmtp)  |  |
+| `CodecId` | [`id`](#id-9)  | Stable codec identifier. |
+| `CodecMediaType` | [`mediaType`](#mediatype)  | Audio or video media kind. |
+| `std::string` | [`rtpName`](#rtpname)  | Canonical RTP codec name. |
+| `std::string` | [`ffmpegName`](#ffmpegname)  | Preferred FFmpeg encoder name. |
+| `uint32_t` | [`clockRate`](#clockrate-1)  | RTP clock rate in Hz. |
+| `int` | [`payloadType`](#payloadtype)  | Default static or preferred dynamic payload type. |
+| `std::string` | [`fmtp`](#fmtp)  | Canonical fmtp line for SDP generation. |
 
 ---
 
@@ -2189,6 +2197,8 @@ std::mutex _mutex
 CodecId id = 
 ```
 
+Stable codec identifier.
+
 ---
 
 {#mediatype}
@@ -2198,6 +2208,8 @@ CodecId id =
 ```cpp
 CodecMediaType mediaType = 
 ```
+
+Audio or video media kind.
 
 ---
 
@@ -2209,6 +2221,8 @@ CodecMediaType mediaType =
 std::string rtpName
 ```
 
+Canonical RTP codec name.
+
 ---
 
 {#ffmpegname}
@@ -2218,6 +2232,8 @@ std::string rtpName
 ```cpp
 std::string ffmpegName
 ```
+
+Preferred FFmpeg encoder name.
 
 ---
 
@@ -2229,6 +2245,8 @@ std::string ffmpegName
 uint32_t clockRate = 0
 ```
 
+RTP clock rate in Hz.
+
 ---
 
 {#payloadtype}
@@ -2239,6 +2257,8 @@ uint32_t clockRate = 0
 int payloadType = 0
 ```
 
+Default static or preferred dynamic payload type.
+
 ---
 
 {#fmtp}
@@ -2248,6 +2268,8 @@ int payloadType = 0
 ```cpp
 std::string fmtp
 ```
+
+Canonical fmtp line for SDP generation.
 
 ### Public Methods
 

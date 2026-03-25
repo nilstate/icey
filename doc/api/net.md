@@ -8,12 +8,14 @@ TCP/SSL/UDP networking, socket adapters, DNS resolution.
 
 | Name | Description |
 |------|-------------|
-| [`net`](#net) |  |
+| [`net`](#net) | [Socket](#socket-1) transports, adapters, and address helpers. |
 | [`dns`](#dns) | DNS utilities. |
 
 {#net}
 
 # net
+
+[Socket](#socket-1) transports, adapters, and address helpers.
 
 ### Classes
 
@@ -41,7 +43,7 @@ TCP/SSL/UDP networking, socket adapters, DNS resolution.
 | Name | Description |
 |------|-------------|
 | [`TransportType`](#transporttype)  | Transport protocol identifier used to distinguish socket types at runtime. |
-| [`SocketMode`](#socketmode)  |  |
+| [`SocketMode`](#socketmode)  | Transport mode for socket adapters and accepted connections. |
 
 ---
 
@@ -70,6 +72,8 @@ Transport protocol identifier used to distinguish socket types at runtime.
 ```cpp
 enum SocketMode
 ```
+
+Transport mode for socket adapters and accepted connections.
 
 | Value | Description |
 |-------|-------------|
