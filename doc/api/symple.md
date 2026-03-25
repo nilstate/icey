@@ -2405,7 +2405,7 @@ Base Symple protocol message with addressing, status, data, and notes.
 | `bool` | [`isRequest`](#isrequest) `const` | Returns true if no status code has been set (i.e. [status()](#status-3) == -1). |
 | `size_t` | [`size`](#size-11) `virtual` `const` | Returns the serialised JSON size in bytes. |
 | `void` | [`print`](#print-16) `virtual` `const` | Pretty-prints the message JSON to the given stream.  |
-| `const char *` | [`className`](#classname-8) `virtual` `const` `inline` | Returns the class name of this packet type for logging and diagnostics. |
+| `const char *` | [`className`](#classname-9) `virtual` `const` `inline` | Returns the class name of this packet type for logging and diagnostics. |
 | `char *` | [`data`](#data-5) `virtual` `const` `inline` | The packet data pointer for buffered packets. |
 
 ---
@@ -3144,7 +3144,7 @@ Pretty-prints the message JSON to the given stream.
 
 ---
 
-{#classname-8}
+{#classname-9}
 
 #### className
 
@@ -3205,7 +3205,7 @@ A [Peer](#peer-1) object may also contain arbitrary application data set by the 
 | `void` | [`setHost`](#sethost-2)  | Sets the host address field.  |
 | `bool` | [`valid`](#valid-14) `virtual` | Updates the peer from the given data object. |
 | `void` | [`print`](#print-17) `const` | Writes the peer's JSON representation to the given stream.  |
-| `const char *` | [`className`](#classname-9) `virtual` `const` `inline` |  |
+| `const char *` | [`className`](#classname-10) `virtual` `const` `inline` |  |
 
 ---
 
@@ -3487,7 +3487,7 @@ Writes the peer's JSON representation to the given stream.
 
 ---
 
-{#classname-9}
+{#classname-10}
 
 #### className
 
@@ -3648,7 +3648,7 @@ Signal< void(constPeer &)> PeerRemoved
 | `Peer *` | [`getByHost`](#getbyhost)  | Returns the first peer which matches the given host address. |
 | `Map` | [`peers`](#peers) `const` | Returns a deep copy of the peer map. |
 | `void` | [`print`](#print-18) `const` |  |
-| `constchar *` | [`className`](#classname-10) `virtual` `const` `inline` |  |
+| `constchar *` | [`className`](#classname-11) `virtual` `const` `inline` |  |
 
 ---
 
@@ -3708,7 +3708,7 @@ void print(std::ostream & os) const
 
 ---
 
-{#classname-10}
+{#classname-11}
 
 #### className
 

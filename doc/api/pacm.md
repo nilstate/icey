@@ -8,36 +8,38 @@ Package manager for distributing and installing plugins.
 
 | Name | Description |
 |------|-------------|
-| [`pacm`](#pacm) |  |
+| [`pacm`](#pacm) | [Package](#package) manifests, install tasks, and repository management helpers. |
 
 {#pacm}
 
 # pacm
 
+[Package](#package) manifests, install tasks, and repository management helpers.
+
 ### Classes
 
 | Name | Description |
 |------|-------------|
-| [`InstallMonitor`](#installmonitor) | Progress monitor for package installation operations. |
-| [`InstallTask`](#installtask) | This class implements the package installation procedure. |
-| [`PackageManager`](#packagemanager) | The [Package](#package) Manager provides an interface for managing, installing, updating and uninstalling Pacm packages. |
+| [`InstallMonitor`](#installmonitor) | Aggregates multiple install tasks and reports overall progress. |
+| [`InstallTask`](#installtask) | Downloads, extracts, and finalizes a single package installation. |
+| [`PackageManager`](#packagemanager) | Loads package manifests and coordinates install, update, and uninstall workflows. |
 | [`InstallationState`](#installationstate) | [State](base.md#state) machine states for package installation. |
 | [`InstallOptions`](#installoptions) | [Package](#package) installation options. |
-| [`LocalPackage`](#localpackage) | This class is a JSON representation of an installed local package that exists on the file system. |
-| [`Package`](#package) | This class is a JSON representation of an package belonging to the [PackageManager](#packagemanager). |
-| [`PackagePair`](#packagepair) | This class provides pairing of a local and a remote package. |
-| [`RemotePackage`](#remotepackage) | This class is a JSON representation of an package existing on the remote server that may be downloaded and installed. |
+| [`LocalPackage`](#localpackage) | [Package](#package) metadata for an installed package on the local filesystem. |
+| [`Package`](#package) | JSON-backed package metadata shared by local and remote package records. |
+| [`PackagePair`](#packagepair) | Pairing of the installed and remote metadata for the same package ID. |
+| [`RemotePackage`](#remotepackage) | [Package](#package) metadata loaded from the remote package index. |
 
 ### Typedefs
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `std::vector< LocalPackage * >` | [`LocalPackageVec`](#localpackagevec)  |  |
-| `std::vector< InstallTask * >` | [`InstallTaskVec`](#installtaskvec)  |  |
-| `std::vector< InstallTask::Ptr >` | [`InstallTaskPtrVec`](#installtaskptrvec)  |  |
-| `std::vector< PackagePair >` | [`PackagePairVec`](#packagepairvec)  |  |
-| `KeyedStore< std::string, LocalPackage >` | [`LocalPackageStore`](#localpackagestore)  |  |
-| `KeyedStore< std::string, RemotePackage >` | [`RemotePackageStore`](#remotepackagestore)  |  |
+| `std::vector< LocalPackage * >` | [`LocalPackageVec`](#localpackagevec)  | Vector of local package pointers used by install monitor progress snapshots. |
+| `std::vector< InstallTask * >` | [`InstallTaskVec`](#installtaskvec)  | Vector of raw install task pointers used for transient iteration. |
+| `std::vector< InstallTask::Ptr >` | [`InstallTaskPtrVec`](#installtaskptrvec)  | Vector of shared install task handles retained across async workflows. |
+| `std::vector< PackagePair >` | [`PackagePairVec`](#packagepairvec)  | Vector of local/remote package pairs used for reconciliation and update checks. |
+| `KeyedStore< std::string, LocalPackage >` | [`LocalPackageStore`](#localpackagestore)  | Keyed store of installed packages indexed by package ID. |
+| `KeyedStore< std::string, RemotePackage >` | [`RemotePackageStore`](#remotepackagestore)  | Keyed store of remote package metadata indexed by package ID. |
 
 ---
 
@@ -49,6 +51,8 @@ Package manager for distributing and installing plugins.
 std::vector< LocalPackage * > LocalPackageVec()
 ```
 
+Vector of local package pointers used by install monitor progress snapshots.
+
 ---
 
 {#installtaskvec}
@@ -58,6 +62,8 @@ std::vector< LocalPackage * > LocalPackageVec()
 ```cpp
 std::vector< InstallTask * > InstallTaskVec()
 ```
+
+Vector of raw install task pointers used for transient iteration.
 
 ---
 
@@ -69,6 +75,8 @@ std::vector< InstallTask * > InstallTaskVec()
 std::vector< InstallTask::Ptr > InstallTaskPtrVec()
 ```
 
+Vector of shared install task handles retained across async workflows.
+
 ---
 
 {#packagepairvec}
@@ -78,6 +86,8 @@ std::vector< InstallTask::Ptr > InstallTaskPtrVec()
 ```cpp
 std::vector< PackagePair > PackagePairVec()
 ```
+
+Vector of local/remote package pairs used for reconciliation and update checks.
 
 ---
 
@@ -89,6 +99,8 @@ std::vector< PackagePair > PackagePairVec()
 KeyedStore< std::string, LocalPackage > LocalPackageStore()
 ```
 
+Keyed store of installed packages indexed by package ID.
+
 ---
 
 {#remotepackagestore}
@@ -98,6 +110,8 @@ KeyedStore< std::string, LocalPackage > LocalPackageStore()
 ```cpp
 KeyedStore< std::string, RemotePackage > RemotePackageStore()
 ```
+
+Keyed store of remote package metadata indexed by package ID.
 
 ### Functions
 
@@ -163,7 +177,7 @@ Validates that a string is safe to use as a path component. Rejects path travers
 #include <icy/pacm/installmonitor.h>
 ```
 
-Progress monitor for package installation operations.
+Aggregates multiple install tasks and reports overall progress.
 
 ### Public Attributes
 
@@ -471,7 +485,7 @@ virtual void setProgress(int value)
 
 > **Inherits:** [`Runnable`](base.md#runnable), [`Stateful< InstallationState >`](base.md#stateful)
 
-This class implements the package installation procedure.
+Downloads, extracts, and finalizes a single package installation.
 
 ### Public Attributes
 
@@ -1060,7 +1074,7 @@ std::shared_ptr< InstallTask > Ptr()
 #include <icy/pacm/packagemanager.h>
 ```
 
-The [Package](#package) Manager provides an interface for managing, installing, updating and uninstalling Pacm packages.
+Loads package manifests and coordinates install, update, and uninstall workflows.
 
 ### Public Attributes
 
@@ -1974,7 +1988,7 @@ Callbacks.
 #include <icy/pacm/packagemanager.h>
 ```
 
-[Package](#package) manager initialization options.
+Startup configuration for repository endpoints, credentials, and directories.
 
 ### Public Attributes
 
@@ -2295,7 +2309,7 @@ inline InstallOptions()
 
 > **Inherits:** [`Package`](#package)
 
-This class is a JSON representation of an installed local package that exists on the file system.
+[Package](#package) metadata for an installed package on the local filesystem.
 
 ### Public Methods
 
@@ -2760,7 +2774,7 @@ Returns true if id, name and type are all non-empty.
 #include <icy/pacm/package.h>
 ```
 
-This class provides a list of all package files and their location on the file system.
+[Manifest](#manifest-1) of installed files recorded for a local package.
 
 ### Public Attributes
 
@@ -2848,7 +2862,7 @@ Appends `path` to the manifest file list.
 > **Inherits:** `Value`
 > **Subclassed by:** [`LocalPackage`](#localpackage), [`RemotePackage`](#remotepackage)
 
-This class is a JSON representation of an package belonging to the [PackageManager](#packagemanager).
+JSON-backed package metadata shared by local and remote package records.
 
 ### Public Methods
 
@@ -3021,7 +3035,7 @@ Dumps the JSON representation of this package to `ost`.
 #include <icy/pacm/package.h>
 ```
 
-This class represents a archived file asset containing files belonging to the parent package.
+Archive asset metadata for a specific package build.
 
 ### Public Attributes
 
@@ -3253,7 +3267,7 @@ Returns true if file name, version and checksum all match `r`.
 #include <icy/pacm/package.h>
 ```
 
-This class provides pairing of a local and a remote package.
+Pairing of the installed and remote metadata for the same package ID.
 
 ### Public Attributes
 
@@ -3395,7 +3409,7 @@ Returns the package author, preferring the local package if available.
 
 > **Inherits:** [`Package`](#package)
 
-This class is a JSON representation of an package existing on the remote server that may be downloaded and installed.
+[Package](#package) metadata loaded from the remote package index.
 
 ### Public Methods
 
