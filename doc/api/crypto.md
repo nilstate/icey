@@ -8,11 +8,13 @@ Cryptographic operations; hashing, HMAC, RSA, X509 certificates.
 
 | Name | Description |
 |------|-------------|
-| [`crypto`](#crypto) |  |
+| [`crypto`](#crypto) | Cryptographic primitives, key helpers, and certificate utilities backed by OpenSSL. |
 
 {#crypto}
 
 # crypto
+
+Cryptographic primitives, key helpers, and certificate utilities backed by OpenSSL.
 
 ### Classes
 

@@ -21,6 +21,7 @@
 
 
 namespace icy {
+/// Deferred and periodic job scheduling primitives.
 namespace sched {
 
 

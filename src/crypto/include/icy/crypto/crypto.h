@@ -42,6 +42,7 @@
 
 
 namespace icy {
+/// Cryptographic primitives, key helpers, and certificate utilities backed by OpenSSL.
 namespace crypto {
 
 

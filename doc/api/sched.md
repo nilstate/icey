@@ -8,11 +8,13 @@ Task scheduler for deferred and periodic jobs.
 
 | Name | Description |
 |------|-------------|
-| [`sched`](#sched) |  |
+| [`sched`](#sched) | Deferred and periodic job scheduling primitives. |
 
 {#sched}
 
 # sched
+
+Deferred and periodic job scheduling primitives.
 
 ### Classes
 
