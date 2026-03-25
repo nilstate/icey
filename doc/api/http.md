@@ -207,10 +207,6 @@ Returns true if the given Authorization header value uses HTTP Basic authenticat
 #### Parameters
 * `header` Value of the Authorization or WWW-Authenticate header.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `header` | `std::string_view` |  |
-
 ---
 
 {#isdigestcredentials}
@@ -224,10 +220,6 @@ bool isDigestCredentials(std::string_view header)
 Returns true if the given Authorization header value uses HTTP Digest authentication. 
 #### Parameters
 * `header` Value of the Authorization or WWW-Authenticate header.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `header` | `std::string_view` |  |
 
 ---
 
@@ -243,10 +235,6 @@ Returns true if the request contains a Basic Authorization header.
 #### Parameters
 * `request` HTTP request to inspect.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `request` | `const [http::Request](#request-4) &` |  |
-
 ---
 
 {#hasdigestcredentials}
@@ -260,10 +248,6 @@ bool hasDigestCredentials(const http::Request & request)
 Returns true if the request contains a Digest Authorization header. 
 #### Parameters
 * `request` HTTP request to inspect.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `request` | `const [http::Request](#request-4) &` |  |
 
 ---
 
@@ -279,10 +263,6 @@ Returns true if the request contains a Basic Proxy-Authorization header.
 #### Parameters
 * `request` HTTP request to inspect.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `request` | `const [http::Request](#request-4) &` |  |
-
 ---
 
 {#hasproxydigestcredentials}
@@ -296,10 +276,6 @@ bool hasProxyDigestCredentials(const http::Request & request)
 Returns true if the request contains a Digest Proxy-Authorization header. 
 #### Parameters
 * `request` HTTP request to inspect.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `request` | `const [http::Request](#request-4) &` |  |
 
 ---
 
@@ -319,12 +295,6 @@ Splits a "user:password" user-info string into separate username and password st
 
 * `password` Receives the extracted password.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `userInfo` | `std::string_view` |  |
-| `username` | `std::string &` |  |
-| `password` | `std::string &` |  |
-
 ---
 
 {#extractcredentials-1}
@@ -342,12 +312,6 @@ Extracts username and password from the user-info component of a [URL](#url). Do
 * `username` Receives the extracted username. 
 
 * `password` Receives the extracted password.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `uri` | `const [http::URL](#url) &` |  |
-| `username` | `std::string &` |  |
-| `password` | `std::string &` |  |
 
 ---
 
@@ -385,11 +349,6 @@ Shared pointer to the created connection.
 #### Exceptions
 * `std::runtime_error` if the [URL](#url) scheme is not recognised.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `url` | `const [URL](#url) &` |  |
-| `loop` | `[uv::Loop](uv.md#loop) *` |  |
-
 ---
 
 {#createconnection}
@@ -413,12 +372,6 @@ Creates a [ClientConnection](#clientconnection) for the given [URL](#url) and op
 #### Returns
 Shared pointer to the created connection.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `url` | `const [URL](#url) &` |  |
-| `client` | `[http::Client](#client) *` |  |
-| `loop` | `[uv::Loop](uv.md#loop) *` |  |
-
 ---
 
 {#getstatuscodereason}
@@ -435,10 +388,6 @@ Returns the standard reason phrase for the given HTTP status code (e.g. "OK" for
 
 #### Returns
 Null-terminated reason phrase string.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `status` | `[StatusCode](#statuscode)` |  |
 
 ---
 
@@ -457,10 +406,6 @@ Returns a combined "NNN Reason" string for the given HTTP status code (e.g. "200
 #### Returns
 Null-terminated status code string.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `status` | `[StatusCode](#statuscode)` |  |
-
 ---
 
 {#parseuri}
@@ -477,10 +422,6 @@ Extracts the URI (path and query) from a raw HTTP request line.
 
 #### Returns
 The URI portion (e.g. "/path?q=1").
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `request` | `std::string_view` |  |
 
 ---
 
@@ -501,11 +442,6 @@ Tests whether a URI matches a glob-style expression.
 #### Returns
 true if the URI matches the expression.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `uri` | `std::string_view` |  |
-| `expression` | `std::string_view` |  |
-
 ---
 
 {#parsecookieitem}
@@ -525,11 +461,6 @@ Extracts a named attribute from a [Cookie](#cookie) header value.
 #### Returns
 The value of the named attribute, or an empty string if not found.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `cookie` | `std::string_view` |  |
-| `item` | `std::string_view` |  |
-
 ---
 
 {#splituriparameters}
@@ -548,11 +479,6 @@ Parses [URL](#url) query parameters from a URI into key-value pairs. Handles per
 
 #### Returns
 true if at least one parameter was parsed; false otherwise.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `uri` | `std::string_view` |  |
-| `out` | `[NVCollection](base.md#nvcollection) &` |  |
 
 ---
 
@@ -575,12 +501,6 @@ Example input: "multipart/mixed; boundary=\"boundary-01234567\"" Output value: "
 
 * `parameters` Receives the parsed attribute key-value pairs.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `s` | `const std::string &` |  |
-| `value` | `std::string &` |  |
-| `parameters` | `[NVCollection](base.md#nvcollection) &` |  |
-
 ---
 
 {#splitparameters-1}
@@ -598,12 +518,6 @@ Splits a substring (defined by iterators) into named attributes. Attributes are 
 * `end` Iterator past the end of the string to parse. 
 
 * `parameters` Receives the parsed attribute key-value pairs.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `begin` | `const std::string::const_iterator &` |  |
-| `end` | `const std::string::const_iterator &` |  |
-| `parameters` | `[NVCollection](base.md#nvcollection) &` |  |
 
 {#authenticator}
 
@@ -659,11 +573,6 @@ Authenticator(const std::string & username, const std::string & password)
 
 Creates an authenticator with the given username and password.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `username` | `const std::string &` |  |
-| `password` | `const std::string &` |  |
-
 ---
 
 {#authenticator-3}
@@ -688,10 +597,6 @@ void fromUserInfo(std::string_view userInfo)
 
 Parses username:password std::string and sets username and password of the credentials object. Throws SyntaxException on invalid user information.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `userInfo` | `std::string_view` |  |
-
 ---
 
 {#fromuri}
@@ -704,10 +609,6 @@ void fromURI(const http::URL & uri)
 
 Extracts username and password from the given URI and sets username and password of the credentials object. Does nothing if URI has no user info part.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `uri` | `const [http::URL](#url) &` |  |
-
 ---
 
 {#setusername}
@@ -719,10 +620,6 @@ void setUsername(const std::string & username)
 ```
 
 Sets the username.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `username` | `const std::string &` |  |
 
 ---
 
@@ -750,10 +647,6 @@ void setPassword(const std::string & password)
 
 Sets the password.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `password` | `const std::string &` |  |
-
 ---
 
 {#password}
@@ -780,11 +673,6 @@ void authenticate(http::Request & request, const http::Response & response)
 
 Inspects WWW-Authenticate header of the response, initializes the internal state (in case of digest authentication) and adds required information to the given [http::Request](http::Request).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `request` | `[http::Request](#request-4) &` |  |
-| `response` | `const [http::Response](#response-1) &` |  |
-
 ---
 
 {#updateauthinfo}
@@ -796,10 +684,6 @@ void updateAuthInfo(http::Request & request)
 ```
 
 Updates internal state (in case of digest authentication) and replaces authentication information in the request accordingly.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `request` | `[http::Request](#request-4) &` |  |
 
 ---
 
@@ -813,11 +697,6 @@ void proxyAuthenticate(http::Request & request, const http::Response & response)
 
 Inspects Proxy-Authenticate header of the response, initializes the internal state (in case of digest authentication) and adds required information to the given [http::Request](http::Request).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `request` | `[http::Request](#request-4) &` |  |
-| `response` | `const [http::Response](#response-1) &` |  |
-
 ---
 
 {#updateproxyauthinfo}
@@ -829,10 +708,6 @@ void updateProxyAuthInfo(http::Request & request)
 ```
 
 Updates internal state (in case of digest authentication) and replaces proxy authentication information in the request accordingly.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `request` | `[http::Request](#request-4) &` |  |
 
 ### Private Attributes
 
@@ -927,11 +802,6 @@ BasicAuthenticator(const std::string & username, const std::string & password)
 
 Creates a basic authenticator with the given username and password.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `username` | `const std::string &` |  |
-| `password` | `const std::string &` |  |
-
 ---
 
 {#basicauthenticator-3}
@@ -948,10 +818,6 @@ Extracts basic authentication credentials from the given request.
 
 Throws a NotAuthenticatedException if the request does not contain basic authentication information.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `request` | `const [http::Request](#request-4) &` |  |
-
 ---
 
 {#basicauthenticator-4}
@@ -965,10 +831,6 @@ explicit BasicAuthenticator(const std::string & authInfo)
 ```
 
 Parses a raw Basic authentication payload string. The value can be extracted from a request via `[Request::getCredentials()](#getcredentials)`.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `authInfo` | `const std::string &` |  |
 
 ---
 
@@ -993,10 +855,6 @@ void setUsername(const std::string & username)
 ```
 
 Sets the username.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `username` | `const std::string &` |  |
 
 ---
 
@@ -1023,10 +881,6 @@ void setPassword(const std::string & password)
 ```
 
 Sets the password.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `password` | `const std::string &` |  |
 
 ---
 
@@ -1056,10 +910,6 @@ void authenticate(http::Request & request) const
 
 Adds authentication information to the given [http::Request](http::Request).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `request` | `[http::Request](#request-4) &` |  |
-
 ---
 
 {#proxyauthenticate-1}
@@ -1073,10 +923,6 @@ void proxyAuthenticate(http::Request & request) const
 ```
 
 Adds proxy authentication information to the given [http::Request](http::Request).
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `request` | `[http::Request](#request-4) &` |  |
 
 ### Protected Methods
 
@@ -1095,10 +941,6 @@ void parseAuthInfo(std::string_view authInfo)
 ```
 
 Extracts username and password from Basic authentication info by base64-decoding authInfo and splitting the resulting std::string at the ':' delimiter.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `authInfo` | `std::string_view` |  |
 
 ### Private Attributes
 
@@ -1265,12 +1107,6 @@ Creates a [ChunkedAdapter](#chunkedadapter) that sends its initial response head
 
 * `nocopy` If true, header and payload are emitted as separate packets (avoids copies).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `connection` | `[Connection::Ptr](#ptr-12)` |  |
-| `frameSeparator` | `const std::string &` |  |
-| `nocopy` | `bool` |  |
-
 ---
 
 {#chunkedadapter-2}
@@ -1290,12 +1126,6 @@ Creates a [ChunkedAdapter](#chunkedadapter) that emits its own raw HTTP/1.1 200 
 * `frameSeparator` Optional data prepended to each chunk payload. 
 
 * `nocopy` If true, header and payload are emitted as separate packets.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `contentType` | `const std::string &` |  |
-| `frameSeparator` | `const std::string &` |  |
-| `nocopy` | `bool` |  |
 
 ---
 
@@ -1329,10 +1159,6 @@ Encodes an incoming packet as a chunked transfer encoding chunk and emits it. Em
 
 #### Exceptions
 * `std::invalid_argument` if the packet does not carry data.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `packet` | `[IPacket](base.md#ipacket) &` |  |
 
 {#client}
 
@@ -1417,11 +1243,6 @@ Creates and registers a typed client connection for the given [URL](#url). The c
 #### Returns
 Shared pointer to the created connection.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `url` | `const [URL](#url) &` |  |
-| `loop` | `[uv::Loop](uv.md#loop) *` |  |
-
 ---
 
 {#createconnection-1}
@@ -1443,11 +1264,6 @@ Creates and registers a [ClientConnection](#clientconnection) for the given [URL
 #### Returns
 Shared pointer to the created connection.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `url` | `const [URL](#url) &` |  |
-| `loop` | `[uv::Loop](uv.md#loop) *` |  |
-
 ---
 
 {#addconnection}
@@ -1463,10 +1279,6 @@ virtual void addConnection(ClientConnection::Ptr conn)
 Registers a connection with this client so it is tracked and cleaned up on shutdown. 
 #### Parameters
 * `conn` The connection to add.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `conn` | `[ClientConnection::Ptr](#ptr-11)` |  |
 
 ---
 
@@ -1486,10 +1298,6 @@ Removes a previously registered connection from the client.
 
 #### Exceptions
 * `std::logic_error` if the connection is not tracked by this client.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `conn` | `[ClientConnection](#clientconnection) *` |  |
 
 ### Public Static Methods
 
@@ -1557,10 +1365,6 @@ ClientConnectionPtrVec _connections
 ```cpp
 void onConnectionClose(Connection & conn)
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `conn` | `[Connection](#connection-1) &` |  |
 
 {#clientconnection}
 
@@ -1699,11 +1503,6 @@ Creates a [ClientConnection](#clientconnection) to the given [URL](#url), pre-po
 
 * `socket` TCP socket to use. Defaults to a plain TCPSocket; pass an SSLSocket for HTTPS.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `url` | `const [URL](#url) &` |  |
-| `socket` | `const [net::TCPSocket::Ptr](net.md#ptr-9) &` |  |
-
 ---
 
 {#submit}
@@ -1743,10 +1542,6 @@ Calls [connect()](#connect-12) internally if the socket is not already connectin
 #### Exceptions
 * `std::runtime_error` if already connecting.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `req` | `[http::Request](#request-4) &` |  |
-
 ---
 
 {#send-10}
@@ -1770,12 +1565,6 @@ Sends raw data to the peer, initiating a connection first if needed. Data is buf
 #### Returns
 Number of bytes sent or buffered.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `const char *` |  |
-| `len` | `size_t` |  |
-| `flags` | `int` |  |
-
 ---
 
 {#setreadstream}
@@ -1794,10 +1583,6 @@ Sets the output stream to which incoming response body data is written. The stre
 
 #### Exceptions
 * `std::runtime_error` if already connecting.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `os` | `std::ostream *` |  |
 
 ---
 
@@ -1959,10 +1744,6 @@ virtual bool onSocketConnect(net::Socket & socket)
 
 [net::SocketAdapter](net.md#socketadapter) interface
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `socket` | `[net::Socket](net.md#socket-1) &` |  |
-
 ### Public Types
 
 | Name | Description |
@@ -2017,10 +1798,6 @@ virtual void onPayload(const MutableBuffer & buffer)
 ```
 
 Called for each chunk of incoming response body data.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `buffer` | `const [MutableBuffer](base.md#mutablebuffer) &` |  |
 
 ---
 
@@ -2142,10 +1919,6 @@ Creates a [Connection](#connection-1) using the given TCP socket.
 #### Parameters
 * `socket` The TCP socket to use for I/O. Defaults to a new TCPSocket.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `socket` | `const [net::TCPSocket::Ptr](net.md#ptr-9) &` |  |
-
 ---
 
 {#onheaders-1}
@@ -2171,10 +1944,6 @@ void onPayload(const MutableBuffer & buffer)
 Called for each chunk of incoming body data after headers are complete. 
 #### Parameters
 * `buffer` Buffer containing the received data chunk.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `buffer` | `const [MutableBuffer](base.md#mutablebuffer) &` |  |
 
 ---
 
@@ -2216,12 +1985,6 @@ Send raw data to the peer.
 
 This is the zero-copy fast path. The caller retains ownership of the payload until the underlying async write completes.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `const char *` |  |
-| `len` | `size_t` |  |
-| `flags` | `int` |  |
-
 ---
 
 {#sendowned-10}
@@ -2237,11 +2000,6 @@ virtual ssize_t sendOwned(Buffer && buffer, int flags)
 Send an owned payload buffer to the peer.
 
 Use this when the payload does not naturally outlive the current scope.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `buffer` | `[Buffer](base.md#buffer-2) &&` |  |
-| `flags` | `int` |  |
 
 ---
 
@@ -2367,10 +2125,6 @@ void setHeaderAutoSendEnabled(bool enabled)
 
 Enable or disable automatic header emission for the next outgoing send path.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `enabled` | `bool` |  |
-
 ---
 
 {#replaceadapter}
@@ -2384,10 +2138,6 @@ virtual void replaceAdapter(std::unique_ptr< net::SocketAdapter > adapter)
 ```
 
 Assign the new [ConnectionAdapter](#connectionadapter) and setup the chain. The flow is: [Connection](#connection-1) <-> [ConnectionAdapter](#connectionadapter) <-> Socket. Takes ownership of the adapter (deferred deletion via uv loop).
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `adapter` | `std::unique_ptr< [net::SocketAdapter](net.md#socketadapter) >` |  |
 
 ---
 
@@ -2597,10 +2347,6 @@ virtual void setError(const icy::Error & err)
 
 Set the internal error. Note: Setting the error does not `[close()](#close-20)` the connection.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `err` | `const [icy::Error](base.md#error) &` |  |
-
 ---
 
 {#onsocketconnect-3}
@@ -2614,10 +2360,6 @@ virtual bool onSocketConnect(net::Socket & socket)
 ```
 
 [net::SocketAdapter](net.md#socketadapter) interface
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `socket` | `[net::Socket](net.md#socket-1) &` |  |
 
 ---
 
@@ -2642,12 +2384,6 @@ Called when data is received from the socket. Forwards the event to all register
 #### Returns
 true to stop propagation to subsequent receivers.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `socket` | `[net::Socket](net.md#socket-1) &` |  |
-| `buffer` | `const [MutableBuffer](base.md#mutablebuffer) &` |  |
-| `peerAddress` | `const [net::Address](net.md#address) &` |  |
-
 ---
 
 {#onsocketerror-2}
@@ -2669,11 +2405,6 @@ Called when the socket encounters an error. Forwards the event to all registered
 #### Returns
 true to stop propagation to subsequent receivers.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `socket` | `[net::Socket](net.md#socket-1) &` |  |
-| `error` | `const [icy::Error](base.md#error) &` |  |
-
 ---
 
 {#onsocketclose-2}
@@ -2692,10 +2423,6 @@ Called when the socket is closed. Forwards the event to all registered receivers
 
 #### Returns
 true to stop propagation to subsequent receivers.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `socket` | `[net::Socket](net.md#socket-1) &` |  |
 
 ### Public Types
 
@@ -2753,11 +2480,6 @@ Creates a [ConnectionAdapter](#connectionadapter) for the given connection.
 
 * `type` [Parser](#parser-1) type: HTTP_REQUEST for server side, HTTP_RESPONSE for client side.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `connection` | `[Connection](#connection-1) *` |  |
-| `type` | `llhttp_type_t` |  |
-
 ---
 
 {#send-12}
@@ -2781,12 +2503,6 @@ Sends data to the peer, flushing the outgoing HTTP header first if needed.
 #### Returns
 Number of bytes sent, or -1 on error.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `const char *` |  |
-| `len` | `size_t` |  |
-| `flags` | `int` |  |
-
 ---
 
 {#sendowned-11}
@@ -2803,11 +2519,6 @@ Sends an owned payload buffer to the connected peer.
 
 The buffer is moved through the adapter chain and retained by the transport layer until async write completion.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `buffer` | `[Buffer](base.md#buffer-2) &&` |  |
-| `flags` | `int` |  |
-
 ---
 
 {#removereceiver-2}
@@ -2821,10 +2532,6 @@ void removeReceiver(SocketAdapter * adapter)
 Remove the given receiver.
 
 By default this function does nothing unless the given receiver matches the current receiver.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `adapter` | `[SocketAdapter](net.md#socketadapter-1) *` |  |
 
 ---
 
@@ -2865,11 +2572,6 @@ Resets the adapter for reuse with a new socket and request. Clears the parser st
 * `sender` New socket adapter to send data through. 
 
 * `request` New HTTP request object for the parser to populate.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `sender` | `[net::SocketAdapter](net.md#socketadapter) *` |  |
-| `request` | `[http::Request](#request-4) *` |  |
 
 ### Protected Attributes
 
@@ -2923,12 +2625,6 @@ virtual bool onSocketRecv(net::Socket & socket, const MutableBuffer & buffer, co
 
 SocketAdapter interface.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `socket` | `[net::Socket](net.md#socket-1) &` |  |
-| `buffer` | `const [MutableBuffer](base.md#mutablebuffer) &` |  |
-| `peerAddress` | `const [net::Address](net.md#address) &` |  |
-
 ---
 
 {#onparserheader}
@@ -2942,11 +2638,6 @@ virtual void onParserHeader(const std::string & name, const std::string & value)
 ```
 
 HTTP [Parser](#parser-1) interface.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `const std::string &` |  |
-| `value` | `const std::string &` |  |
 
 ---
 
@@ -2963,10 +2654,6 @@ virtual void onParserHeadersEnd(bool upgrade)
 Called when all HTTP headers have been parsed. 
 #### Parameters
 * `upgrade` True if the connection should be upgraded (e.g. to WebSocket).
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `upgrade` | `bool` |  |
 
 ---
 
@@ -2986,11 +2673,6 @@ Called for each chunk of body data received.
 
 * `len` Length of the chunk in bytes.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `const char *` |  |
-| `len` | `size_t` |  |
-
 ---
 
 {#onparsererror}
@@ -3006,10 +2688,6 @@ virtual void onParserError(const icy::Error & err)
 Called when a parse error occurs. 
 #### Parameters
 * `err` [Error](base.md#error) details from llhttp.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `err` | `const [icy::Error](base.md#error) &` |  |
 
 ---
 
@@ -3079,10 +2757,6 @@ Returns a connection to the pool after use.
 #### Returns
 true if accepted into the pool; false if the pool is full.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `conn` | `[ServerConnection::Ptr](#ptr-13) &` |  |
-
 ---
 
 {#setmaxsize}
@@ -3098,10 +2772,6 @@ inline void setMaxSize(size_t n)
 Sets the maximum number of connections the pool will hold. 
 #### Parameters
 * `n` Maximum pool capacity.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `n` | `size_t` |  |
 
 ---
 
@@ -3237,10 +2907,6 @@ Creates a [ConnectionStream](#connectionstream) wrapping the given HTTP connecti
 #### Parameters
 * `connection` The HTTP connection to wrap.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `connection` | `[Connection::Ptr](#ptr-12)` |  |
-
 ---
 
 {#send-13}
@@ -3254,12 +2920,6 @@ virtual ssize_t send(const char * data, size_t len, int flags)
 ```
 
 Send data via the Outgoing stream.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `const char *` |  |
-| `len` | `size_t` |  |
-| `flags` | `int` |  |
 
 ---
 
@@ -3317,12 +2977,6 @@ Called when data is received from the socket. Forwards the event to all register
 
 #### Returns
 true to stop propagation to subsequent receivers.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `socket` | `[net::Socket](net.md#socket-1) &` |  |
-| `buffer` | `const [MutableBuffer](base.md#mutablebuffer) &` |  |
-| `peerAddress` | `const [net::Address](net.md#address) &` |  |
 
 {#cookie}
 
@@ -3397,10 +3051,6 @@ explicit Cookie(const std::string & name)
 
 Creates a cookie with the given name. The cookie never expires.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `const std::string &` |  |
-
 ---
 
 {#cookie-3}
@@ -3414,10 +3064,6 @@ explicit Cookie(const NVCollection & nvc)
 ```
 
 Creates a cookie from the given [NVCollection](base.md#nvcollection).
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `nvc` | `const [NVCollection](base.md#nvcollection) &` |  |
 
 ---
 
@@ -3433,11 +3079,6 @@ Creates a cookie with the given name and value. The cookie never expires.
 
 Note: If value contains whitespace or non-alphanumeric characters, the value should be escaped by calling [escape()](#escape) before passing it to the constructor.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `const std::string &` |  |
-| `value` | `const std::string &` |  |
-
 ---
 
 {#cookie-5}
@@ -3449,10 +3090,6 @@ Cookie(const Cookie & cookie)
 ```
 
 Creates the [Cookie](#cookie) by copying another one.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `cookie` | `const [Cookie](#cookie) &` |  |
 
 ---
 
@@ -3478,10 +3115,6 @@ Cookie & operator=(const Cookie & cookie)
 
 Assigns a cookie.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `cookie` | `const [Cookie](#cookie) &` |  |
-
 ---
 
 {#setversion}
@@ -3495,10 +3128,6 @@ void setVersion(int version)
 Sets the version of the cookie.
 
 Version must be either 0 (denoting a Netscape cookie) or 1 (denoting a RFC 2109 cookie).
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `version` | `int` |  |
 
 ---
 
@@ -3525,10 +3154,6 @@ void setName(const std::string & name)
 ```
 
 Sets the name of the cookie.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `const std::string &` |  |
 
 ---
 
@@ -3560,10 +3185,6 @@ According to the cookie specification, the size of the value should not exceed 4
 
 Note: If value contains whitespace or non-alphanumeric characters, the value should be escaped by calling [escape()](#escape) prior to passing it to [setName()](#setname).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `value` | `const std::string &` |  |
-
 ---
 
 {#getvalue}
@@ -3592,10 +3213,6 @@ Sets the comment for the cookie.
 
 Comments are only supported for version 1 cookies.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `comment` | `const std::string &` |  |
-
 ---
 
 {#getcomment}
@@ -3621,10 +3238,6 @@ void setDomain(const std::string & domain)
 ```
 
 Sets the domain for the cookie.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `domain` | `const std::string &` |  |
 
 ---
 
@@ -3652,10 +3265,6 @@ void setPath(const std::string & path)
 
 Sets the path for the cookie.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `path` | `const std::string &` |  |
-
 ---
 
 {#getpath}
@@ -3681,10 +3290,6 @@ void setSecure(bool secure)
 ```
 
 Sets the value of the secure flag for the cookie.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `secure` | `bool` |  |
 
 ---
 
@@ -3716,10 +3321,6 @@ A value of -1 causes the cookie to never expire on the client.
 
 A value of 0 deletes the cookie on the client.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `maxAge` | `int` |  |
-
 ---
 
 {#getmaxage}
@@ -3745,10 +3346,6 @@ void setHttpOnly(bool flag)
 ```
 
 Sets the HttpOnly flag for the cookie.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `flag` | `bool` |  |
 
 ---
 
@@ -3799,10 +3396,6 @@ static std::string escape(std::string_view str)
 
 Escapes the given std::string by replacing all non-alphanumeric characters with escape sequences in the form xx, where xx is the hexadecimal character code.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string_view` |  |
-
 ---
 
 {#unescape}
@@ -3816,10 +3409,6 @@ static std::string unescape(std::string_view str)
 ```
 
 Unescapes the given std::string by replacing all escape sequences in the form xx with the respective characters.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string_view` |  |
 
 ### Private Attributes
 
@@ -3970,10 +3559,6 @@ The MIME type is set to application/octet-stream.
 
 Throws an FileException if the file cannot be opened.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `path` | `const std::string &` |  |
-
 ---
 
 {#filepart-2}
@@ -3988,11 +3573,6 @@ Creates the [FilePart](#filepart) for the given path and MIME type.
 
 Throws an FileException if the file cannot be opened.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `path` | `const std::string &` |  |
-| `contentType` | `const std::string &` |  |
-
 ---
 
 {#filepart-3}
@@ -4006,12 +3586,6 @@ FilePart(const std::string & path, const std::string & filename, const std::stri
 Creates the [FilePart](#filepart) for the given path and MIME type. The given filename is used as part filename (see [filename()](#filename-1)) only.
 
 Throws an FileException if the file cannot be opened.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `path` | `const std::string &` |  |
-| `filename` | `const std::string &` |  |
-| `contentType` | `const std::string &` |  |
 
 ---
 
@@ -4076,10 +3650,6 @@ Writes the next chunk of the file to the [FormWriter](#formwriter).
 #### Returns
 true if more data remains; false when the file is fully sent.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `writer` | `[FormWriter](#formwriter) &` |  |
-
 ---
 
 {#write-2}
@@ -4096,10 +3666,6 @@ Writes the entire file content to the [FormWriter](#formwriter).
 #### Parameters
 * `writer` The [FormWriter](#formwriter) to send data through.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `writer` | `[FormWriter](#formwriter) &` |  |
-
 ---
 
 {#write-3}
@@ -4115,10 +3681,6 @@ virtual void write(std::ostream & ostr)
 Writes the entire file content to an output stream (used for content-length calculation). 
 #### Parameters
 * `ostr` Output stream to write to.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ostr` | `std::ostream &` |  |
 
 ---
 
@@ -4250,10 +3812,6 @@ Creates the [FormPart](#formpart) with the given MIME content type.
 #### Parameters
 * `contentType` MIME type for this part (default: "application/octet-stream").
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `contentType` | `const std::string &` |  |
-
 ---
 
 {#formpart-2}
@@ -4299,10 +3857,6 @@ Writes the next chunk of data to the [FormWriter](#formwriter).
 #### Returns
 true if more data remains to be written; false when complete.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `writer` | `[FormWriter](#formwriter) &` |  |
-
 ---
 
 {#write-4}
@@ -4317,10 +3871,6 @@ Writes the entire part data to the [FormWriter](#formwriter) in one call.
 #### Parameters
 * `writer` The [FormWriter](#formwriter) to send data through.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `writer` | `[FormWriter](#formwriter) &` |  |
-
 ---
 
 {#write-5}
@@ -4334,10 +3884,6 @@ void write(std::ostream & ostr)
 Writes the entire part data to an output stream (used for content-length calculation). 
 #### Parameters
 * `ostr` Output stream to write to.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ostr` | `std::ostream &` |  |
 
 ---
 
@@ -4527,11 +4073,6 @@ The [FormWriter](#formwriter) takes ownership of `part` and deletes it when done
 
 * `part` [Part](#part) to add. Ownership is transferred.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `const std::string &` |  |
-| `part` | `[FormPart](#formpart) *` |  |
-
 ---
 
 {#start-8}
@@ -4628,10 +4169,6 @@ Writes the complete "application/x-www-form-urlencoded" encoded body to `ostr`. 
 #### Parameters
 * `ostr` Output stream to write to.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ostr` | `std::ostream &` |  |
-
 ---
 
 {#writemultipartchunk}
@@ -4670,10 +4207,6 @@ Sets the MIME encoding used for submitting the form. Must be set before [prepare
 #### Parameters
 * `encoding` MIME type: ENCODING_URL or ENCODING_MULTIPART_FORM.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `encoding` | `const std::string &` |  |
-
 ---
 
 {#encoding}
@@ -4701,10 +4234,6 @@ void setBoundary(const std::string & boundary)
 Sets the MIME boundary string used to delimit multipart form parts. If not set, a random boundary is generated by [prepareSubmit()](#preparesubmit). Must be set before [prepareSubmit()](#preparesubmit) is called. 
 #### Parameters
 * `boundary` Boundary string (without leading "--").
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `boundary` | `const std::string &` |  |
 
 ---
 
@@ -4810,11 +4339,6 @@ Encoding must be either "application/x-www-form-urlencoded" (which is the defaul
 
 #### Returns
 Heap-allocated [FormWriter](#formwriter). The caller owns the returned pointer.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `conn` | `[ConnectionStream](#connectionstream) &` |  |
-| `encoding` | `const std::string &` |  |
 
 ### Protected Attributes
 
@@ -4943,12 +4467,6 @@ FormWriter(ConnectionStream & conn, std::shared_ptr< Runner > runner, const std:
 
 Creates the [FormWriter](#formwriter) that uses the given encoding.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `conn` | `[ConnectionStream](#connectionstream) &` |  |
-| `runner` | `std::shared_ptr< [Runner](base.md#runner) >` |  |
-| `encoding` | `const std::string &` |  |
-
 ---
 
 {#formwriter-3}
@@ -4981,11 +4499,6 @@ void writePartHeader(const NVCollection & header, std::ostream & ostr)
 
 Writes the message boundary std::string, followed by the message header to the output stream.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `header` | `const [NVCollection](base.md#nvcollection) &` |  |
-| `ostr` | `std::ostream &` |  |
-
 ---
 
 {#writeend}
@@ -4997,10 +4510,6 @@ void writeEnd(std::ostream & ostr)
 ```
 
 Writes the final boundary std::string to the output stream.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ostr` | `std::ostream &` |  |
 
 ---
 
@@ -5015,10 +4524,6 @@ virtual void updateProgress(int nread)
 ```
 
 Updates the upload progress via the associated [ConnectionStream](#connectionstream) object.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `nread` | `int` |  |
 
 {#part}
 
@@ -5105,10 +4610,6 @@ void setVersion(const std::string & version)
 
 Sets the HTTP version for this message.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `version` | `const std::string &` |  |
-
 ---
 
 {#getversion-1}
@@ -5136,10 +4637,6 @@ void setContentLength(uint64_t length)
 Sets the Content-Length header.
 
 If length is UNKNOWN_CONTENT_LENGTH, removes the Content-Length header.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `length` | `uint64_t` |  |
 
 ---
 
@@ -5183,10 +4680,6 @@ Sets the transfer encoding for this message.
 
 The value should be either IDENTITY_TRANSFER_CODING or CHUNKED_TRANSFER_CODING.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `transferEncoding` | `const std::string &` |  |
-
 ---
 
 {#gettransferencoding}
@@ -5215,10 +4708,6 @@ void setChunkedTransferEncoding(bool flag)
 
 If flag is true, sets the Transfer-Encoding header to chunked. Otherwise, removes the Transfer-Encoding header.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `flag` | `bool` |  |
-
 ---
 
 {#ischunkedtransferencoding}
@@ -5246,10 +4735,6 @@ void setContentType(const std::string & contentType)
 Sets the content type for this message.
 
 Specify NO_CONTENT_TYPE to remove the Content-Type header.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `contentType` | `const std::string &` |  |
 
 ---
 
@@ -5280,10 +4765,6 @@ void setKeepAlive(bool keepAlive)
 Sets the value of the [Connection](#connection-1) header field.
 
 The value is set to "Keep-Alive" if keepAlive is true, or to "Close" otherwise.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `keepAlive` | `bool` |  |
 
 ---
 
@@ -5319,10 +4800,6 @@ Writes the message header to the given output stream.
 
 The format is one name-value pair per line, with name and value separated by a colon and lines delimited by a carriage return and a linefeed character. See RFC 2822 for details.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ostr` | `std::ostream &` |  |
-
 ---
 
 {#write-7}
@@ -5337,10 +4814,6 @@ virtual void write(std::string & str) const
 
 Writes the message header to the given output string.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
-
 ---
 
 {#write-8}
@@ -5354,10 +4827,6 @@ virtual void write(Buffer & buf) const
 ```
 
 Writes the message header directly into a byte buffer.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `buf` | `[Buffer](base.md#buffer-2) &` |  |
 
 ### Public Static Attributes
 
@@ -5581,10 +5050,6 @@ Message(const std::string & version)
 
 Creates the [Message](#message) and sets the version.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `version` | `const std::string &` |  |
-
 ---
 
 {#message-3}
@@ -5707,11 +5172,6 @@ Creates a [MultipartAdapter](#multipartadapter) that sends headers through the g
 
 * `[base64](base.md#base64)` If true, indicates parts are base64-encoded.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `connection` | `[Connection::Ptr](#ptr-12)` |  |
-| `base64` | `bool` |  |
-
 ---
 
 {#multipartadapter-2}
@@ -5729,11 +5189,6 @@ Creates a [MultipartAdapter](#multipartadapter) that emits its own raw HTTP/1.1 
 * `contentType` Content-Type for each multipart part. 
 
 * `[base64](base.md#base64)` If true, indicates parts are base64-encoded.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `contentType` | `const std::string &` |  |
-| `base64` | `bool` |  |
 
 ---
 
@@ -5778,10 +5233,6 @@ virtual inline void process(IPacket & packet)
 Wraps the incoming packet as a multipart chunk and emits it downstream. Emits the multipart HTTP response headers on the first call. 
 #### Parameters
 * `packet` Packet containing the raw payload data.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `packet` | `[IPacket](base.md#ipacket) &` |  |
 
 {#parser-1}
 
@@ -5829,10 +5280,6 @@ Creates a response parser. The response object is populated as data is parsed.
 #### Parameters
 * `response` HTTP response object to populate.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `response` | `[http::Response](#response-1) *` |  |
-
 ---
 
 {#parser-3}
@@ -5847,10 +5294,6 @@ Creates a request parser. The request object is populated as data is parsed.
 #### Parameters
 * `request` HTTP request object to populate.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `request` | `[http::Request](#request-4) *` |  |
-
 ---
 
 {#parser-4}
@@ -5864,10 +5307,6 @@ Parser(llhttp_type_t type)
 Creates a parser of the given type without binding a message object. 
 #### Parameters
 * `type` Either HTTP_REQUEST or HTTP_RESPONSE.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `type` | `llhttp_type_t` |  |
 
 ---
 
@@ -5909,11 +5348,6 @@ May be called multiple times for streaming data. The parser state persists betwe
 
 #### Returns
 Structured parse result including bytes consumed and terminal state.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `const char *` |  |
-| `length` | `size_t` |  |
 
 ---
 
@@ -5995,10 +5429,6 @@ Binds an HTTP request object to populate during parsing. Must only be called whe
 #### Parameters
 * `request` The request object to populate.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `request` | `[http::Request](#request-4) *` |  |
-
 ---
 
 {#setresponse}
@@ -6013,10 +5443,6 @@ Binds an HTTP response object to populate during parsing. Must only be called wh
 #### Parameters
 * `response` The response object to populate.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `response` | `[http::Response](#response-1) *` |  |
-
 ---
 
 {#setobserver}
@@ -6030,10 +5456,6 @@ void setObserver(ParserObserver * observer)
 Sets the observer that receives parser events. 
 #### Parameters
 * `observer` Observer to notify. May be nullptr to clear.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `observer` | `[ParserObserver](#parserobserver) *` |  |
 
 ---
 
@@ -6287,11 +5709,6 @@ void clearBoundMessage()
 void storeHeader(std::string name, std::string value)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `std::string` |  |
-| `value` | `std::string` |  |
-
 ---
 
 {#applyscratchtoboundmessage}
@@ -6314,11 +5731,6 @@ void onHeader(std::string name, std::string value)
 
 Callbacks.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `std::string` |  |
-| `value` | `std::string` |  |
-
 ---
 
 {#onheadersend}
@@ -6339,11 +5751,6 @@ void onHeadersEnd()
 void onBody(const char * buf, size_t len)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `buf` | `const char *` |  |
-| `len` | `size_t` |  |
-
 ---
 
 {#onmessageend}
@@ -6363,11 +5770,6 @@ void onMessageEnd()
 ```cpp
 void onError(llhttp_errno_t errnum, const std::string & message)
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `errnum` | `llhttp_errno_t` |  |
-| `message` | `const std::string &` |  |
 
 {#messagescratch}
 
@@ -6579,11 +5981,6 @@ Called for each parsed HTTP header name/value pair.
 
 * `value` Header field value.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `const std::string &` |  |
-| `value` | `const std::string &` |  |
-
 ---
 
 {#onparserheadersend-1}
@@ -6597,10 +5994,6 @@ void onParserHeadersEnd(bool upgrade)
 Called when all HTTP headers have been parsed. 
 #### Parameters
 * `upgrade` True if the connection should be upgraded (e.g. to WebSocket).
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `upgrade` | `bool` |  |
 
 ---
 
@@ -6617,11 +6010,6 @@ Called for each chunk of body data received.
 * `data` Pointer to the body data chunk. 
 
 * `len` Length of the chunk in bytes.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `const char *` |  |
-| `len` | `size_t` |  |
 
 ---
 
@@ -6648,10 +6036,6 @@ void onParserError(const Error & err)
 Called when a parse error occurs. 
 #### Parameters
 * `err` [Error](base.md#error) details from llhttp.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `err` | `const [Error](base.md#error) &` |  |
 
 {#progresssignal}
 
@@ -6764,10 +6148,6 @@ Advances the progress counter by `nread` bytes and emits the updated percentage.
 #### Exceptions
 * `std::runtime_error` if current would exceed total.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `nread` | `int` |  |
-
 {#request-4}
 
 ## Request
@@ -6836,10 +6216,6 @@ Request(const std::string & version)
 
 Creates a GET / HTTP/1.x request with the given version (HTTP/1.0 or HTTP/1.1).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `version` | `const std::string &` |  |
-
 ---
 
 {#request-7}
@@ -6852,11 +6228,6 @@ Request(const std::string & method, const std::string & uri)
 
 Creates an HTTP/1.0 request with the given method and URI.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `method` | `const std::string &` |  |
-| `uri` | `const std::string &` |  |
-
 ---
 
 {#request-8}
@@ -6868,12 +6239,6 @@ Request(const std::string & method, const std::string & uri, const std::string &
 ```
 
 Creates an HTTP request with the given method, URI and version.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `method` | `const std::string &` |  |
-| `uri` | `const std::string &` |  |
-| `version` | `const std::string &` |  |
 
 ---
 
@@ -6901,10 +6266,6 @@ void setMethod(const std::string & method)
 
 Sets the method.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `method` | `const std::string &` |  |
-
 ---
 
 {#getmethod}
@@ -6931,10 +6292,6 @@ void setURI(std::string uri)
 
 Sets the request URI.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `uri` | `std::string` |  |
-
 ---
 
 {#appenduri}
@@ -6946,10 +6303,6 @@ void appendURI(std::string_view uri)
 ```
 
 Appends a fragment to the request URI. Used by the parser when llhttp splits the [URL](#url) across callbacks.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `uri` | `std::string_view` |  |
 
 ---
 
@@ -6977,10 +6330,6 @@ void setHost(const std::string & host)
 
 Sets the value of the Host header field.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `host` | `const std::string &` |  |
-
 ---
 
 {#sethost-1}
@@ -6994,11 +6343,6 @@ void setHost(const std::string & host, uint16_t port)
 Sets the value of the Host header field.
 
 If the given port number is a non-standard port number (other than 80 or 443), it is included in the Host header field.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `host` | `const std::string &` |  |
-| `port` | `uint16_t` |  |
 
 ---
 
@@ -7028,10 +6372,6 @@ void setCookies(const NVCollection & cookies)
 
 Adds a [Cookie](#cookie) header with the names and values from cookies.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `cookies` | `const [NVCollection](base.md#nvcollection) &` |  |
-
 ---
 
 {#getcookies}
@@ -7046,10 +6386,6 @@ void getCookies(NVCollection & cookies) const
 
 Fills cookies with the cookies extracted from the [Cookie](#cookie) headers in the request.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `cookies` | `[NVCollection](base.md#nvcollection) &` |  |
-
 ---
 
 {#geturiparameters}
@@ -7063,10 +6399,6 @@ void getURIParameters(NVCollection & params) const
 ```
 
 Returns the request URI parameters.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `params` | `[NVCollection](base.md#nvcollection) &` |  |
 
 ---
 
@@ -7098,11 +6430,6 @@ Returns the authentication scheme and additional authentication information cont
 
 Throws a std::exception if no authentication information is contained in the request.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `scheme` | `std::string &` |  |
-| `authInfo` | `std::string &` |  |
-
 ---
 
 {#setcredentials}
@@ -7114,11 +6441,6 @@ void setCredentials(std::string_view scheme, std::string_view authInfo)
 ```
 
 Sets the authentication scheme and information for this request.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `scheme` | `std::string_view` |  |
-| `authInfo` | `std::string_view` |  |
 
 ---
 
@@ -7150,11 +6472,6 @@ Returns the proxy authentication scheme and additional proxy authentication info
 
 Throws a std::exception if no proxy authentication information is contained in the request.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `scheme` | `std::string &` |  |
-| `authInfo` | `std::string &` |  |
-
 ---
 
 {#setproxycredentials}
@@ -7166,11 +6483,6 @@ void setProxyCredentials(std::string_view scheme, std::string_view authInfo)
 ```
 
 Sets the proxy authentication scheme and information for this request.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `scheme` | `std::string_view` |  |
-| `authInfo` | `std::string_view` |  |
 
 ---
 
@@ -7186,10 +6498,6 @@ virtual void write(std::ostream & ostr) const
 
 Writes the HTTP request to the given output stream.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ostr` | `std::ostream &` |  |
-
 ---
 
 {#write-10}
@@ -7204,10 +6512,6 @@ virtual void write(std::string & str) const
 
 Writes the HTTP request to the given output string.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
-
 ---
 
 {#write-11}
@@ -7221,10 +6525,6 @@ virtual void write(Buffer & buf) const
 ```
 
 Writes the HTTP request directly into a byte buffer.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `buf` | `[Buffer](base.md#buffer-2) &` |  |
 
 ### Protected Methods
 
@@ -7249,12 +6549,6 @@ Returns the authentication scheme and additional authentication information cont
 
 Throws a NotAuthenticatedException if no authentication information is contained in the request.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `header` | `const std::string &` |  |
-| `scheme` | `std::string &` |  |
-| `authInfo` | `std::string &` |  |
-
 ---
 
 {#setcredentials-1}
@@ -7266,12 +6560,6 @@ void setCredentials(const std::string & header, std::string_view scheme, std::st
 ```
 
 Writes the authentication scheme and information for this request to the given header.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `header` | `const std::string &` |  |
-| `scheme` | `std::string_view` |  |
-| `authInfo` | `std::string_view` |  |
 
 ### Private Attributes
 
@@ -7360,11 +6648,6 @@ Response(StatusCode status, const std::string & reason)
 
 Creates the [Response](#response-1) with the given status and reason phrase.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `status` | `[StatusCode](#statuscode)` |  |
-| `reason` | `const std::string &` |  |
-
 ---
 
 {#response-4}
@@ -7376,12 +6659,6 @@ Response(const std::string & version, StatusCode status, const std::string & rea
 ```
 
 Creates the [Response](#response-1) with the given version, status and reason phrase.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `version` | `const std::string &` |  |
-| `status` | `[StatusCode](#statuscode)` |  |
-| `reason` | `const std::string &` |  |
 
 ---
 
@@ -7395,10 +6672,6 @@ Response(StatusCode status)
 
 Creates the [Response](#response-1) with the given status and an appropriate reason phrase.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `status` | `[StatusCode](#statuscode)` |  |
-
 ---
 
 {#response-6}
@@ -7410,11 +6683,6 @@ Response(const std::string & version, StatusCode status)
 ```
 
 Creates the [Response](#response-1) with the given version, status and an appropriate reason phrase.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `version` | `const std::string &` |  |
-| `status` | `[StatusCode](#statuscode)` |  |
 
 ---
 
@@ -7444,10 +6712,6 @@ Sets the HTTP status code.
 
 The reason phrase is set according to the status code.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `status` | `[StatusCode](#statuscode)` |  |
-
 ---
 
 {#getstatus}
@@ -7473,10 +6737,6 @@ void setReason(const std::string & reason)
 ```
 
 Sets the HTTP reason phrase.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `reason` | `const std::string &` |  |
 
 ---
 
@@ -7504,11 +6764,6 @@ void setStatusAndReason(StatusCode status, const std::string & reason)
 
 Sets the HTTP status code and reason phrase.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `status` | `[StatusCode](#statuscode)` |  |
-| `reason` | `const std::string &` |  |
-
 ---
 
 {#setdate}
@@ -7520,10 +6775,6 @@ void setDate(const Timestamp & dateTime)
 ```
 
 Sets the Date header to the given date/time value.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `dateTime` | `const [Timestamp](base.md#timestamp) &` |  |
 
 ---
 
@@ -7551,10 +6802,6 @@ void addCookie(const Cookie & cookie)
 
 Adds the cookie to the response by adding a Set-Cookie header.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `cookie` | `const [Cookie](#cookie) &` |  |
-
 ---
 
 {#getcookies-1}
@@ -7571,10 +6818,6 @@ Returns a vector with all the cookies set in the response header.
 
 May throw an exception in case of a malformed Set-Cookie header.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `cookies` | `std::vector< [Cookie](#cookie) > &` |  |
-
 ---
 
 {#write-12}
@@ -7588,10 +6831,6 @@ virtual void write(std::ostream & ostr) const
 ```
 
 Writes the HTTP response headers to the given output stream.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ostr` | `std::ostream &` |  |
 
 ---
 
@@ -7607,10 +6846,6 @@ virtual void write(std::string & str) const
 
 Writes the HTTP response headers to the given output string.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
-
 ---
 
 {#write-14}
@@ -7624,10 +6859,6 @@ virtual void write(Buffer & buf) const
 ```
 
 Writes the HTTP response headers directly into a byte buffer.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `buf` | `[Buffer](base.md#buffer-2) &` |  |
 
 ---
 
@@ -7752,13 +6983,6 @@ Constructs an HTTP server on the given host and port using an internally created
 
 * `factory` [Connection](#connection-1) and responder factory. Defaults to the base factory.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `host` | `const std::string &` |  |
-| `port` | `short` |  |
-| `loop` | `[uv::Loop](uv.md#loop) *` |  |
-| `factory` | `std::unique_ptr< [ServerConnectionFactory](#serverconnectionfactory) >` |  |
-
 ---
 
 {#server-2}
@@ -7776,12 +7000,6 @@ Constructs an HTTP server on the given address using an internally created TCP s
 * `loop` Event loop to use. Defaults to the default libuv loop. 
 
 * `factory` [Connection](#connection-1) and responder factory.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `address` | `const [net::Address](net.md#address) &` |  |
-| `loop` | `[uv::Loop](uv.md#loop) *` |  |
-| `factory` | `std::unique_ptr< [ServerConnectionFactory](#serverconnectionfactory) >` |  |
 
 ---
 
@@ -7803,13 +7021,6 @@ Constructs an HTTP server on the given host and port using a caller-supplied soc
 
 * `factory` [Connection](#connection-1) and responder factory.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `host` | `const std::string &` |  |
-| `port` | `short` |  |
-| `socket` | `[net::TCPSocket::Ptr](net.md#ptr-9)` |  |
-| `factory` | `std::unique_ptr< [ServerConnectionFactory](#serverconnectionfactory) >` |  |
-
 ---
 
 {#server-4}
@@ -7827,12 +7038,6 @@ Constructs an HTTP server on the given address using a caller-supplied socket. T
 * `socket` Pre-created socket (e.g. SSLSocket for HTTPS). 
 
 * `factory` [Connection](#connection-1) and responder factory.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `address` | `const [net::Address](net.md#address) &` |  |
-| `socket` | `[net::TCPSocket::Ptr](net.md#ptr-9)` |  |
-| `factory` | `std::unique_ptr< [ServerConnectionFactory](#serverconnectionfactory) >` |  |
 
 ---
 
@@ -7872,10 +7077,6 @@ inline void setReusePort(bool enable)
 
 Enable SO_REUSEPORT for multicore server instances. Must be called before [start()](#start-9). Allows multiple server instances to bind the same address:port with kernel-level load balancing (Linux 3.9+).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `enable` | `bool` |  |
-
 ---
 
 {#setmaxpooledconnections}
@@ -7890,10 +7091,6 @@ inline void setMaxPooledConnections(size_t n)
 
 Set the maximum number of pooled connections (default 128). Set to 0 to disable connection pooling entirely.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `n` | `size_t` |  |
-
 ---
 
 {#setkeepalivetimeout}
@@ -7907,10 +7104,6 @@ inline void setKeepAliveTimeout(int seconds)
 ```
 
 Set the keep-alive idle timeout in seconds (default 30). Connections idle longer than this are closed by the timer. Set to 0 to disable idle timeout.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `seconds` | `int` |  |
 
 ---
 
@@ -8089,10 +7282,6 @@ bool _reusePort {false}
 std::unique_ptr< ServerResponder > createResponder(ServerConnection & conn)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `conn` | `[ServerConnection](#serverconnection) &` |  |
-
 ---
 
 {#onclientsocketaccept}
@@ -8102,10 +7291,6 @@ std::unique_ptr< ServerResponder > createResponder(ServerConnection & conn)
 ```cpp
 void onClientSocketAccept(const net::TCPSocket::Ptr & socket)
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `socket` | `const [net::TCPSocket::Ptr](net.md#ptr-9) &` |  |
 
 ---
 
@@ -8117,10 +7302,6 @@ void onClientSocketAccept(const net::TCPSocket::Ptr & socket)
 void onConnectionReady(ServerConnection & conn)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `conn` | `[ServerConnection](#serverconnection) &` |  |
-
 ---
 
 {#onconnectionclose-1}
@@ -8130,10 +7311,6 @@ void onConnectionReady(ServerConnection & conn)
 ```cpp
 void onConnectionClose(ServerConnection & conn)
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `conn` | `[ServerConnection](#serverconnection) &` |  |
 
 ---
 
@@ -8153,10 +7330,6 @@ Called when the socket is closed. Forwards the event to all registered receivers
 
 #### Returns
 true to stop propagation to subsequent receivers.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `socket` | `[net::Socket](net.md#socket-1) &` |  |
 
 ---
 
@@ -8262,11 +7435,6 @@ Creates a [ServerConnection](#serverconnection) attached to the given server and
 * `server` The owning HTTP server instance. 
 
 * `socket` The accepted TCP socket for this connection.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `server` | `[Server](#server) &` |  |
-| `socket` | `[net::TCPSocket::Ptr](net.md#ptr-9)` |  |
 
 ---
 
@@ -8390,10 +7558,6 @@ void reset(net::TCPSocket::Ptr socket)
 
 Reset this connection for reuse with a new socket. Called by the connection pool to avoid allocating a new [ServerConnection](#serverconnection).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `socket` | `[net::TCPSocket::Ptr](net.md#ptr-9)` |  |
-
 ---
 
 {#touch}
@@ -8459,10 +7623,6 @@ Exit streaming mode and return to the given HTTP state.
 ```cpp
 void endStreaming(ServerConnectionState nextState)
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `nextState` | `[ServerConnectionState](#serverconnectionstate)` |  |
 
 ---
 
@@ -8596,10 +7756,6 @@ Called for each chunk of incoming body data after headers are complete.
 #### Parameters
 * `buffer` Buffer containing the received data chunk.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `buffer` | `const [MutableBuffer](base.md#mutablebuffer) &` |  |
-
 ---
 
 {#oncomplete-2}
@@ -8665,10 +7821,6 @@ Returns the outgoing HTTP message header (request or response depending on role)
 ```cpp
 void setState(ServerConnectionState state)
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `state` | `[ServerConnectionState](#serverconnectionstate)` |  |
 
 ---
 
@@ -8752,11 +7904,6 @@ virtual inline ServerConnection::Ptr createConnection(Server & server, const net
 
 Creates the `[ServerConnection](#serverconnection)` wrapper for an accepted TCP socket.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `server` | `[Server](#server) &` |  |
-| `socket` | `const [net::TCPSocket::Ptr](net.md#ptr-9) &` |  |
-
 ---
 
 {#createresponder-1}
@@ -8770,10 +7917,6 @@ virtual inline std::unique_ptr< ServerResponder > createResponder(ServerConnecti
 ```
 
 Creates the responder for the current request on `connection`.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `connection` | `[ServerConnection](#serverconnection) &` |  |
 
 {#serverresponder}
 
@@ -8814,10 +7957,6 @@ Creates a [ServerResponder](#serverresponder) for the given connection.
 #### Parameters
 * `connection` The server connection this responder handles.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `connection` | `[ServerConnection](#serverconnection) &` |  |
-
 ---
 
 {#onheaders-3}
@@ -8834,10 +7973,6 @@ Called when the incoming request headers have been parsed.
 #### Parameters
 * `request` The parsed HTTP request with headers populated.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `request` | `[Request](#request-4) &` |  |
-
 ---
 
 {#onpayload-3}
@@ -8853,10 +7988,6 @@ virtual inline void onPayload(const MutableBuffer & body)
 Called for each chunk of incoming request body data. 
 #### Parameters
 * `body` Buffer containing a chunk of the request body.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `body` | `const [MutableBuffer](base.md#mutablebuffer) &` |  |
 
 ---
 
@@ -8875,11 +8006,6 @@ Called when the complete HTTP request has been received. Derived classes should 
 * `request` The fully received HTTP request. 
 
 * `response` The HTTP response to populate and send.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `request` | `[Request](#request-4) &` |  |
-| `response` | `[Response](#response-1) &` |  |
 
 ---
 
@@ -9007,10 +8133,6 @@ Creates a [StringPart](#stringpart) with the given data and default content type
 #### Parameters
 * `data` String data to send as this part.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `const std::string &` |  |
-
 ---
 
 {#stringpart-2}
@@ -9026,11 +8148,6 @@ Creates a [StringPart](#stringpart) with the given data and MIME content type.
 * `data` String data to send as this part. 
 
 * `contentType` MIME type for this part.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `const std::string &` |  |
-| `contentType` | `const std::string &` |  |
 
 ---
 
@@ -9065,10 +8182,6 @@ Writes the string data as a single chunk to the [FormWriter](#formwriter).
 #### Returns
 false always (string data is sent in a single chunk).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `writer` | `[FormWriter](#formwriter) &` |  |
-
 ---
 
 {#write-15}
@@ -9085,10 +8198,6 @@ Writes the string data to the [FormWriter](#formwriter).
 #### Parameters
 * `writer` The [FormWriter](#formwriter) to send data through.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `writer` | `[FormWriter](#formwriter) &` |  |
-
 ---
 
 {#write-16}
@@ -9104,10 +8213,6 @@ virtual void write(std::ostream & ostr)
 Writes the string data to an output stream. 
 #### Parameters
 * `ostr` Output stream to write to.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ostr` | `std::ostream &` |  |
 
 ---
 
@@ -9209,10 +8314,6 @@ Parses the [URL](#url) from a null-terminated string.
 #### Parameters
 * `url` Null-terminated [URL](#url) string to parse.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `url` | `const char *` |  |
-
 ---
 
 {#url-3}
@@ -9226,10 +8327,6 @@ URL(const std::string & url)
 Parses the [URL](#url) from a std::string. 
 #### Parameters
 * `url` [URL](#url) string to parse.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `url` | `const std::string &` |  |
 
 ---
 
@@ -9246,11 +8343,6 @@ Constructs a [URL](#url) from scheme and authority components.
 * `scheme` [URL](#url) scheme (e.g. "http", "https"). 
 
 * `authority` Host and optional port (e.g. "example.com:8080").
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `scheme` | `const std::string &` |  |
-| `authority` | `const std::string &` |  |
 
 ---
 
@@ -9269,12 +8361,6 @@ Constructs a [URL](#url) from scheme, authority, and path+query+fragment.
 * `authority` Host and optional port. 
 
 * `pathEtc` Path, query and fragment combined (e.g. "/path?q=1#frag").
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `scheme` | `const std::string &` |  |
-| `authority` | `const std::string &` |  |
-| `pathEtc` | `const std::string &` |  |
 
 ---
 
@@ -9297,14 +8383,6 @@ Constructs a [URL](#url) from individual components.
 * `query` Query string without leading '?' (e.g. "key=value"). 
 
 * `fragment` Fragment identifier without leading '#'.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `scheme` | `const std::string &` |  |
-| `authority` | `const std::string &` |  |
-| `path` | `const std::string &` |  |
-| `query` | `const std::string &` |  |
-| `fragment` | `const std::string &` |  |
 
 ---
 
@@ -9333,10 +8411,6 @@ Assigns a [URL](#url) from another [URL](#url) instance.
 #### Returns
 Reference to this [URL](#url).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `uri` | `const [URL](#url) &` |  |
-
 ---
 
 {#operator-16}
@@ -9354,10 +8428,6 @@ Assigns a [URL](#url) from a null-terminated string.
 #### Returns
 Reference to this [URL](#url).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `uri` | `const char *` |  |
-
 ---
 
 {#operator-17}
@@ -9374,10 +8444,6 @@ Assigns a [URL](#url) from a std::string.
 
 #### Returns
 Reference to this [URL](#url).
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `uri` | `const std::string &` |  |
 
 ---
 
@@ -9397,11 +8463,6 @@ Parses and assigns a [URL](#url) from the given string view, resetting all compo
 
 #### Returns
 true if the [URL](#url) was parsed successfully; false if invalid and whiny is false.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `url` | `std::string_view` |  |
-| `whiny` | `bool` |  |
 
 ---
 
@@ -9681,10 +8742,6 @@ Percent-encodes a string per RFC 3986, preserving unreserved characters (A-Z, a-
 #### Returns
 Percent-encoded string.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string_view` |  |
-
 ---
 
 {#decode-10}
@@ -9703,10 +8760,6 @@ Decodes a percent-encoded string per RFC 3986. Equivalent to JavaScript's decode
 
 #### Returns
 Decoded string.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string_view` |  |
 
 ### Protected Attributes
 
@@ -10294,11 +9347,6 @@ Creates a [ConnectionAdapter](#connectionadapter-2) for upgrading an existing HT
 
 * `mode` ServerSide or ClientSide.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `connection` | `[Connection](#connection-1) *` |  |
-| `mode` | `[ws::Mode](#mode-2)` |  |
-
 ---
 
 {#onhandshakecomplete}
@@ -10360,10 +9408,6 @@ WebSocket(const net::Socket::Ptr & socket)
 ```
 
 Creates the [WebSocket](#websocket) with the given Socket. The Socket should be a TCPSocket or a SSLSocket, depending on the protocol used (ws or wss).
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `socket` | `const [net::Socket::Ptr](net.md#ptr-4) &` |  |
 
 ---
 
@@ -10498,13 +9542,6 @@ Creates a [WebSocketAdapter](#websocketadapter) using the given socket, mode and
 
 * `response` HTTP response used for the handshake.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `socket` | `const [net::Socket::Ptr](net.md#ptr-4) &` |  |
-| `mode` | `[ws::Mode](#mode-2)` |  |
-| `request` | `[http::Request](#request-4) &` |  |
-| `response` | `[http::Response](#response-1) &` |  |
-
 ---
 
 {#send-14}
@@ -10527,12 +9564,6 @@ Frames and sends data to the peer's address.
 
 #### Returns
 Number of bytes sent, or -1 on error.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `const char *` |  |
-| `len` | `size_t` |  |
-| `flags` | `int` |  |
 
 ---
 
@@ -10559,13 +9590,6 @@ Frames and sends data to a specific peer address (for UDP-backed sockets).
 #### Returns
 Number of bytes sent, or -1 on error.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `const char *` |  |
-| `len` | `size_t` |  |
-| `peerAddr` | `const [net::Address](net.md#address) &` |  |
-| `flags` | `int` |  |
-
 ---
 
 {#sendowned-12}
@@ -10582,11 +9606,6 @@ Sends an owned payload buffer to the connected peer.
 
 The buffer is moved through the adapter chain and retained by the transport layer until async write completion.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `buffer` | `[Buffer](base.md#buffer-2) &&` |  |
-| `flags` | `int` |  |
-
 ---
 
 {#sendowned-13}
@@ -10598,12 +9617,6 @@ The buffer is moved through the adapter chain and retained by the transport laye
 ```cpp
 virtual ssize_t sendOwned(Buffer && buffer, const net::Address & peerAddr, int flags)
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `buffer` | `[Buffer](base.md#buffer-2) &&` |  |
-| `peerAddr` | `const [net::Address](net.md#address) &` |  |
-| `flags` | `int` |  |
 
 ---
 
@@ -10625,11 +9638,6 @@ Sends a [WebSocket](#websocket) CLOSE frame with the given status code and messa
 
 #### Returns
 true if the close frame was sent successfully.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `statusCode` | `uint16_t` |  |
-| `statusMessage` | `const std::string &` |  |
 
 ---
 
@@ -10665,11 +9673,6 @@ Parses the server's HTTP upgrade response and completes the handshake. Any data 
 
 * `peerAddr` Address of the peer.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `buffer` | `const [MutableBuffer](base.md#mutablebuffer) &` |  |
-| `peerAddr` | `const [net::Address](net.md#address) &` |  |
-
 ---
 
 {#handleserverrequest}
@@ -10689,11 +9692,6 @@ Parses the client's HTTP upgrade request and sends the 101 response.
 * `buffer` Buffer containing the client's HTTP upgrade request. 
 
 * `peerAddr` Address of the peer.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `buffer` | `const [MutableBuffer](base.md#mutablebuffer) &` |  |
-| `peerAddr` | `const [net::Address](net.md#address) &` |  |
 
 ---
 
@@ -10775,13 +9773,6 @@ ws::CloseState _closeState {}
 bool sendControlFrame(ws::Opcode opcode, const char * payload, size_t payloadLen, const net::Address & peerAddr)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `opcode` | `[ws::Opcode](#opcode)` |  |
-| `payload` | `const char *` |  |
-| `payloadLen` | `size_t` |  |
-| `peerAddr` | `const [net::Address](net.md#address) &` |  |
-
 ---
 
 {#resetframestate}
@@ -10814,10 +9805,6 @@ virtual bool onSocketConnect(net::Socket & socket)
 
 Called by the socket on connect; initiates the client handshake.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `socket` | `[net::Socket](net.md#socket-1) &` |  |
-
 ---
 
 {#onsocketrecv-6}
@@ -10832,12 +9819,6 @@ virtual bool onSocketRecv(net::Socket & socket, const MutableBuffer & buffer, co
 
 Called by the socket on each received buffer; handles handshake or frame parsing depending on state.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `socket` | `[net::Socket](net.md#socket-1) &` |  |
-| `buffer` | `const [MutableBuffer](base.md#mutablebuffer) &` |  |
-| `peerAddress` | `const [net::Address](net.md#address) &` |  |
-
 ---
 
 {#onsocketclose-4}
@@ -10851,10 +9832,6 @@ virtual bool onSocketClose(net::Socket & socket)
 ```
 
 Called by the socket on close; resets framer state.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `socket` | `[net::Socket](net.md#socket-1) &` |  |
 
 {#websocketexception}
 
@@ -10886,12 +9863,6 @@ Called by the socket on close; resets framer state.
 ```cpp
 inline WebSocketException(ErrorCode code, std::string message, uint16_t closeStatus)
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `code` | `[ErrorCode](#errorcode)` |  |
-| `message` | `std::string` |  |
-| `closeStatus` | `uint16_t` |  |
 
 ---
 
@@ -10993,10 +9964,6 @@ Creates a [WebSocketFramer](#websocketframer) operating in the given endpoint mo
 #### Parameters
 * `mode` ServerSide or ClientSide.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `mode` | `[ws::Mode](#mode-2)` |  |
-
 ---
 
 {#writeframe}
@@ -11021,13 +9988,6 @@ Encodes `data` into a [WebSocket](#websocket) frame and writes it to `frame`.
 
 #### Returns
 Total number of bytes written to the frame buffer (header + payload).
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `const char *` |  |
-| `len` | `size_t` |  |
-| `flags` | `int` |  |
-| `frame` | `[BitWriter](base.md#bitwriter) &` |  |
 
 ---
 
@@ -11055,11 +10015,6 @@ Payload length in bytes.
 
 #### Exceptions
 * `std::runtime_error` on protocol violations or if the buffer is too small.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `frame` | `[BitReader](base.md#bitreader) &` |  |
-| `payload` | `char *&` |  |
 
 ---
 
@@ -11096,11 +10051,6 @@ Validates the client upgrade request and writes a 101 Switching Protocols respon
 #### Exceptions
 * `std::runtime_error` if the request is not a valid [WebSocket](#websocket) upgrade.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `request` | `[http::Request](#request-4) &` |  |
-| `response` | `[http::Response](#response-1) &` |  |
-
 ---
 
 {#createclienthandshakerequest}
@@ -11116,10 +10066,6 @@ void createClientHandshakeRequest(http::Request & request)
 Populates `request` with the [WebSocket](#websocket) upgrade headers ([Connection](#connection-1), Upgrade, Sec-WebSocket-Key, Sec-WebSocket-Version) to initiate the handshake. 
 #### Parameters
 * `request` HTTP request to add upgrade headers to.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `request` | `[http::Request](#request-4) &` |  |
 
 ---
 
@@ -11141,10 +10087,6 @@ true if the handshake succeeded and data can flow.
 #### Exceptions
 * `std::runtime_error` if the server rejected or mishandled the upgrade.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `response` | `[http::Response](#response-1) &` |  |
-
 ---
 
 {#completeclienthandshake}
@@ -11161,10 +10103,6 @@ Completes the client-side handshake by verifying [Connection](#connection-1), Up
 
 #### Exceptions
 * `std::runtime_error` if any required header is missing or incorrect.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `response` | `[http::Response](#response-1) &` |  |
 
 ### Protected Methods
 

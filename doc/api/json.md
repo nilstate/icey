@@ -73,11 +73,6 @@ Serializes `pObj` to a pretty-printed JSON string.
 #### Returns
 true on success, false if `pObj` is null.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `pObj` | `[ISerializable](#iserializable) *` |  |
-| `output` | `std::string &` |  |
-
 ---
 
 {#deserialize}
@@ -99,11 +94,6 @@ Deserializes `pObj` from a JSON string.
 #### Returns
 true on success, false if `pObj` is null or parsing fails.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `pObj` | `[ISerializable](#iserializable) *` |  |
-| `input` | `std::string &` |  |
-
 ---
 
 {#loadfile}
@@ -117,11 +107,6 @@ inline void loadFile(const std::string & path, json::Value & root)
 ```
 
 Load a JSON file into a value. Throws on missing file or parse error.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `path` | `const std::string &` |  |
-| `root` | `[json::Value](#value) &` |  |
 
 ---
 
@@ -137,12 +122,6 @@ inline void saveFile(const std::string & path, const json::Value & root, int ind
 
 Save a JSON value to a file. Throws on write error.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `path` | `const std::string &` |  |
-| `root` | `const [json::Value](#value) &` |  |
-| `indent` | `int` |  |
-
 ---
 
 {#assertmember}
@@ -156,11 +135,6 @@ inline void assertMember(const json::Value & root, const std::string & name)
 ```
 
 Assert that a required member exists. Throws if missing.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `root` | `const [json::Value](#value) &` |  |
-| `name` | `const std::string &` |  |
 
 ---
 
@@ -176,12 +150,6 @@ inline void countNestedKeys(const json::Value & root, const std::string & key, i
 
 Count how many nested objects contain the given key.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `root` | `const [json::Value](#value) &` |  |
-| `key` | `const std::string &` |  |
-| `count` | `int &` |  |
-
 ---
 
 {#hasnestedkey}
@@ -195,11 +163,6 @@ inline bool hasNestedKey(const json::Value & root, const std::string & key)
 ```
 
 Return true if any nested object contains the given key.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `root` | `const [json::Value](#value) &` |  |
-| `key` | `const std::string &` |  |
 
 ---
 
@@ -218,15 +181,6 @@ Find a nested object whose property matches the given key/value.
 Key or value may be empty for wildcard matching. If partial is true, substring matches are accepted for string values. The index parameter selects the Nth match (0 = first).
 
 Returns true if found, with result pointing to the matching object.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `root` | `[json::Value](#value) &` |  |
-| `result` | `[json::Value](#value) *&` |  |
-| `key` | `std::string_view` |  |
-| `value` | `std::string_view` |  |
-| `partial` | `bool` |  |
-| `index` | `int` |  |
 
 {#configuration-1}
 
@@ -320,11 +274,6 @@ Sets the file path and loads the configuration.
 #### Exceptions
 * `std::runtime_error` if the path is empty.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `path` | `const std::string &` |  |
-| `create` | `bool` |  |
-
 ---
 
 {#load-1}
@@ -343,10 +292,6 @@ Reloads the configuration from the previously set path. Silently ignores parse e
 
 #### Exceptions
 * `std::runtime_error` if the path has not been set.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `create` | `bool` |  |
 
 ---
 
@@ -383,10 +328,6 @@ Removes the top-level key `key` from the JSON root.
 #### Returns
 true if the key existed and was removed.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `const std::string &` |  |
-
 ---
 
 {#removeall}
@@ -402,10 +343,6 @@ virtual void removeAll(const std::string & baseKey)
 Removes all top-level keys whose names contain `baseKey` as a substring. 
 #### Parameters
 * `baseKey` Substring to match against key names.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `baseKey` | `const std::string &` |  |
 
 ---
 
@@ -425,11 +362,6 @@ Performs a global string substitution on the serialized JSON, replacing all occu
 
 * `to` Replacement string.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `from` | `const std::string &` |  |
-| `to` | `const std::string &` |  |
-
 ---
 
 {#keys}
@@ -448,11 +380,6 @@ Populates `keys` with all top-level key names containing `baseKey` as a substrin
 
 * `baseKey` Filter substring; empty string matches all keys.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `keys` | `std::vector< std::string > &` |  |
-| `baseKey` | `const std::string &` |  |
-
 ---
 
 {#print-8}
@@ -468,10 +395,6 @@ virtual void print(std::ostream & ost)
 Writes the pretty-printed JSON to `ost` with 4-space indentation. 
 #### Parameters
 * `ost` Output stream.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ost` | `std::ostream &` |  |
 
 ---
 
@@ -567,11 +490,6 @@ Retrieves the string value for `key` from the JSON root.
 #### Returns
 true if the key was found, false otherwise.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `const std::string &` |  |
-| `value` | `std::string &` |  |
-
 ---
 
 {#setraw}
@@ -589,11 +507,6 @@ Stores `value` under `key` in the JSON root and emits PropertyChanged.
 * `key` Top-level JSON key. 
 
 * `value` String value to store.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `const std::string &` |  |
-| `value` | `const std::string &` |  |
 
 {#iserializable}
 
@@ -628,10 +541,6 @@ Serializes this object's state into `root`.
 #### Parameters
 * `root` JSON object to populate.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `root` | `[json::Value](#value) &` |  |
-
 ---
 
 {#deserialize-1}
@@ -645,8 +554,4 @@ void deserialize(json::Value & root)
 Populates this object's state from `root`. 
 #### Parameters
 * `root` JSON object previously produced by [serialize()](#serialize-1).
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `root` | `[json::Value](#value) &` |  |
 

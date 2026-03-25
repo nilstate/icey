@@ -139,10 +139,6 @@ Returns a comma-delimited string of display names from `packages`.
 #### Returns
 Comma-separated name string, e.g. "PluginA, PluginB".
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `packages` | `[LocalPackageVec](#localpackagevec) &` |  |
-
 ---
 
 {#validatepathcomponent}
@@ -163,11 +159,6 @@ Validates that a string is safe to use as a path component. Rejects path travers
 
 #### Exceptions
 * `std::invalid_argument` if `name` fails any validation check.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `std::string_view` |  |
-| `context` | `std::string_view` |  |
 
 {#installmonitor}
 
@@ -293,10 +284,6 @@ virtual void addTask(InstallTask::Ptr task)
 ```
 
 Adds a task to monitor.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `task` | `[InstallTask::Ptr](#ptr-14)` |  |
 
 ---
 
@@ -437,12 +424,6 @@ int _progress
 virtual void onInstallStateChange(void * sender, InstallationState & state, const InstallationState & oldState)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `sender` | `void *` |  |
-| `state` | `[InstallationState](#installationstate) &` |  |
-| `oldState` | `const [InstallationState](#installationstate) &` |  |
-
 ---
 
 {#oninstallcomplete}
@@ -455,10 +436,6 @@ virtual void onInstallStateChange(void * sender, InstallationState & state, cons
 virtual void onInstallComplete(InstallTask & task)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `task` | `[InstallTask](#installtask) &` |  |
-
 ---
 
 {#setprogress}
@@ -470,10 +447,6 @@ virtual void onInstallComplete(InstallTask & task)
 ```cpp
 virtual void setProgress(int value)
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `value` | `int` |  |
 
 {#installtask}
 
@@ -566,14 +539,6 @@ InstallTask(PackageManager & manager, LocalPackage * local, RemotePackage * remo
 
 #### Exceptions
 * `std::runtime_error` if the task configuration is invalid.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `manager` | `[PackageManager](#packagemanager) &` |  |
-| `local` | `[LocalPackage](#localpackage) *` |  |
-| `remote` | `[RemotePackage](#remotepackage) *` |  |
-| `options` | `const [InstallOptions](#installoptions) &` |  |
-| `loop` | `[uv::Loop](uv.md#loop) *` |  |
 
 ---
 
@@ -997,11 +962,6 @@ Called asynchronously by the thread to do the work.
 virtual void onStateChange(InstallationState & state, const InstallationState & oldState)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `state` | `[InstallationState](#installationstate) &` |  |
-| `oldState` | `const [InstallationState](#installationstate) &` |  |
-
 ---
 
 {#ondownloadprogress}
@@ -1013,10 +973,6 @@ virtual void onStateChange(InstallationState & state, const InstallationState & 
 ```cpp
 virtual void onDownloadProgress(const double & progress)
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `progress` | `const double &` |  |
 
 ---
 
@@ -1030,10 +986,6 @@ virtual void onDownloadProgress(const double & progress)
 virtual void onDownloadComplete(const http::Response & response)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `response` | `const [http::Response](http.md#response-1) &` |  |
-
 ---
 
 {#setprogress-1}
@@ -1045,10 +997,6 @@ virtual void onDownloadComplete(const http::Response & response)
 ```cpp
 virtual void setProgress(int value)
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `value` | `int` |  |
 
 ### Public Types
 
@@ -1196,10 +1144,6 @@ PackageManager(const Options & options)
 #### Parameters
 * `options` [Configuration](base.md#configuration) for directories, endpoints, and credentials.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `options` | `const [Options](#options-6) &` |  |
-
 ---
 
 {#packagemanager-2}
@@ -1320,10 +1264,6 @@ virtual void loadLocalPackages(const std::string & dir)
 
 Loads all local package manifests residing the the given directory. This method may be called multiple times for different paths because it does not clear in memory package manifests.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `dir` | `const std::string &` |  |
-
 ---
 
 {#savelocalpackages}
@@ -1343,10 +1283,6 @@ Saves all local package manifests to the data directory.
 #### Returns
 true on success.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `whiny` | `bool` |  |
-
 ---
 
 {#savelocalpackage}
@@ -1361,11 +1297,6 @@ virtual bool saveLocalPackage(LocalPackage & package, bool whiny)
 
 Saves the local package manifest to the file system.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `package` | `[LocalPackage](#localpackage) &` |  |
-| `whiny` | `bool` |  |
-
 ---
 
 {#parseremotepackages}
@@ -1379,10 +1310,6 @@ virtual void parseRemotePackages(const std::string & data)
 ```
 
 Parse the remote packages from the given JSON data string.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `const std::string &` |  |
 
 ---
 
@@ -1400,11 +1327,6 @@ virtual InstallTask::Ptr installPackage(const std::string & name, const InstallO
 
 Installs a single package. The returned [InstallTask](#installtask) must be started. If the package is already up-to-date, a nullptr will be returned. Any other error will throw a std::runtime_error.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `const std::string &` |  |
-| `options` | `const [InstallOptions](#installoptions) &` |  |
-
 ---
 
 {#installpackages}
@@ -1418,13 +1340,6 @@ virtual bool installPackages(const StringVec & ids, const InstallOptions & optio
 ```
 
 Installs multiple packages. The same options will be passed to each task. If a [InstallMonitor](#installmonitor) instance was passed in the tasks will need to be started, otherwise they will be auto-started. The [PackageManager](#packagemanager) does not take ownership of the [InstallMonitor](#installmonitor).
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ids` | `const [StringVec](base.md#stringvec) &` |  |
-| `options` | `const [InstallOptions](#installoptions) &` |  |
-| `monitor` | `[InstallMonitor](#installmonitor) *` |  |
-| `whiny` | `bool` |  |
 
 ---
 
@@ -1440,11 +1355,6 @@ virtual InstallTask::Ptr updatePackage(const std::string & name, const InstallOp
 
 Updates a single package. Throws an exception if the package does not exist. The returned [InstallTask](#installtask) must be started.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `const std::string &` |  |
-| `options` | `const [InstallOptions](#installoptions) &` |  |
-
 ---
 
 {#updatepackages}
@@ -1458,13 +1368,6 @@ virtual bool updatePackages(const StringVec & ids, const InstallOptions & option
 ```
 
 Updates multiple packages. Throws an exception if the package does not exist. If a [InstallMonitor](#installmonitor) instance was passed in the tasks will need to be started, otherwise they will be auto-started. The [PackageManager](#packagemanager) does not take ownership of the [InstallMonitor](#installmonitor).
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ids` | `const [StringVec](base.md#stringvec) &` |  |
-| `options` | `const [InstallOptions](#installoptions) &` |  |
-| `monitor` | `[InstallMonitor](#installmonitor) *` |  |
-| `whiny` | `bool` |  |
 
 ---
 
@@ -1480,10 +1383,6 @@ virtual bool updateAllPackages(bool whiny)
 
 Updates all installed packages.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `whiny` | `bool` |  |
-
 ---
 
 {#uninstallpackages}
@@ -1498,11 +1397,6 @@ virtual bool uninstallPackages(const StringVec & ids, bool whiny)
 
 Uninstalls multiple packages.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ids` | `const [StringVec](base.md#stringvec) &` |  |
-| `whiny` | `bool` |  |
-
 ---
 
 {#uninstallpackage}
@@ -1516,11 +1410,6 @@ virtual bool uninstallPackage(const std::string & id, bool whiny)
 ```
 
 Uninstalls a single package.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `id` | `const std::string &` |  |
-| `whiny` | `bool` |  |
 
 ---
 
@@ -1550,10 +1439,6 @@ virtual bool finalizeInstallations(bool whiny)
 
 Finalizes active installations by moving all package files to their target destination. If files are to be overwritten they must not be in use or finalization will fail.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `whiny` | `bool` |  |
-
 ---
 
 {#getinstalltask}
@@ -1569,10 +1454,6 @@ virtual InstallTask::Ptr getInstallTask(const std::string & id) const
 [Task](base.md#task) Helper Methods.
 
 Gets the install task for the given package ID.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `id` | `const std::string &` |  |
 
 ---
 
@@ -1646,11 +1527,6 @@ virtual PackagePair getPackagePair(const std::string & id, bool whiny) const
 
 Returns a local and remote package pair. An exception will be thrown if either the local or remote packages aren't available or are invalid.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `id` | `const std::string &` |  |
-| `whiny` | `bool` |  |
-
 ---
 
 {#getorcreatepackagepair}
@@ -1664,10 +1540,6 @@ virtual PackagePair getOrCreatePackagePair(const std::string & id)
 ```
 
 Returns a local and remote package pair. If the local package doesn't exist it will be created from the remote package. If the remote package doesn't exist a NotFoundException will be thrown.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `id` | `const std::string &` |  |
 
 ---
 
@@ -1683,11 +1555,6 @@ virtual InstallTask::Ptr createInstallTask(PackagePair & pair, const InstallOpti
 
 Creates a package installation task for the given pair.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `pair` | `[PackagePair](#packagepair) &` |  |
-| `options` | `const [InstallOptions](#installoptions) &` |  |
-
 ---
 
 {#installedpackageversion}
@@ -1701,10 +1568,6 @@ virtual std::string installedPackageVersion(const std::string & id) const
 ```
 
 Returns the version number of an installed package. Exceptions will be thrown if the package does not exist, or is not fully installed.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `id` | `const std::string &` |  |
 
 ---
 
@@ -1720,11 +1583,6 @@ virtual Package::Asset getLatestInstallableAsset(const PackagePair & pair, const
 
 Returns the best asset to install, or throws a descriptive exception if no updates are available, or if the package is already up-to-date. This method takes version and SDK locks into consideration.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `pair` | `const [PackagePair](#packagepair) &` |  |
-| `options` | `const [InstallOptions](#installoptions) &` |  |
-
 ---
 
 {#hasavailableupdates}
@@ -1738,10 +1596,6 @@ virtual bool hasAvailableUpdates(const PackagePair & pair) const
 ```
 
 Returns true if there are updates available for this package, false otherwise.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `pair` | `const [PackagePair](#packagepair) &` |  |
 
 ---
 
@@ -1769,10 +1623,6 @@ bool clearPackageCache(LocalPackage & package)
 
 Clears a package archive from the local cache.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `package` | `[LocalPackage](#localpackage) &` |  |
-
 ---
 
 {#clearcachefile}
@@ -1784,11 +1634,6 @@ bool clearCacheFile(std::string_view fileName, bool whiny)
 ```
 
 Clears a file from the local cache.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `fileName` | `std::string_view` |  |
-| `whiny` | `bool` |  |
 
 ---
 
@@ -1802,10 +1647,6 @@ bool hasCachedFile(Package::Asset & asset)
 
 Checks if a package archive exists in the local cache.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `asset` | `[Package::Asset](#asset-1) &` |  |
-
 ---
 
 {#issupportedfiletype}
@@ -1817,10 +1658,6 @@ bool isSupportedFileType(std::string_view fileName)
 ```
 
 Checks if the file type is a supported package archive.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `fileName` | `std::string_view` |  |
 
 ---
 
@@ -1834,10 +1671,6 @@ std::string getCacheFilePath(std::string_view fileName)
 
 Returns the full path of the cached file if it exists, or an empty path if the file doesn't exist.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `fileName` | `std::string_view` |  |
-
 ---
 
 {#getpackagedatadir}
@@ -1849,10 +1682,6 @@ std::string getPackageDataDir(std::string_view id)
 ```
 
 Returns the package data directory for the given package ID.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `id` | `std::string_view` |  |
 
 ---
 
@@ -1975,10 +1804,6 @@ void onPackageInstallComplete(InstallTask & task)
 ```
 
 Callbacks.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `task` | `[InstallTask](#installtask) &` |  |
 
 {#options-6}
 
@@ -2156,10 +1981,6 @@ This flag tells the package manager weather or not to clear the package cache if
 inline Options(const std::string & root)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `root` | `const std::string &` |  |
-
 {#installationstate}
 
 ## InstallationState
@@ -2196,10 +2017,6 @@ Converts a state ID to its string representation.
 
 #### Returns
 Human-readable state name, or "undefined" for unknown values.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `id` | `unsigned int` |  |
 
 ### Public Types
 
@@ -2369,10 +2186,6 @@ Constructs a local package from an existing JSON value.
 #### Parameters
 * `src` JSON object containing local package fields.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `src` | `const [json::Value](json.md#value) &` |  |
-
 ---
 
 {#localpackage-3}
@@ -2384,10 +2197,6 @@ LocalPackage(const RemotePackage & src)
 ```
 
 Create the local package from the remote package reference with the following manipulations. 1) Add a local manifest element. 2) Remove asset mirror elements.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `src` | `const [RemotePackage](#remotepackage) &` |  |
 
 ---
 
@@ -2403,10 +2212,6 @@ virtual void setState(const std::string & state)
 
 Set's the overall package state. Possible values are: Installing, Installed, Failed, Uninstalled. If the packages completes while still Installing, this means the package has yet to be finalized.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `state` | `const std::string &` |  |
-
 ---
 
 {#setinstallstate}
@@ -2420,10 +2225,6 @@ virtual void setInstallState(const std::string & state)
 ```
 
 Set's the package installation state. See [InstallationState](#installationstate) for possible values.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `state` | `const std::string &` |  |
 
 ---
 
@@ -2439,10 +2240,6 @@ virtual void setInstallDir(const std::string & dir)
 
 Set's the installation directory for this package.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `dir` | `const std::string &` |  |
-
 ---
 
 {#setinstalledasset}
@@ -2456,10 +2253,6 @@ virtual void setInstalledAsset(const Package::Asset & installedRemoteAsset)
 ```
 
 Sets the installed asset, once installed. This method also sets the version.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `installedRemoteAsset` | `const [Package::Asset](#asset-1) &` |  |
 
 ---
 
@@ -2475,10 +2268,6 @@ virtual void setVersion(const std::string & version)
 
 Sets the current version of the local package. Installation must be complete.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `version` | `const std::string &` |  |
-
 ---
 
 {#setversionlock}
@@ -2493,10 +2282,6 @@ virtual void setVersionLock(const std::string & version)
 
 Locks the package at the given version. Once set this package will not be updated past the given version. Pass an empty string to remove the lock.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `version` | `const std::string &` |  |
-
 ---
 
 {#setsdkversionlock}
@@ -2510,10 +2295,6 @@ virtual void setSDKVersionLock(const std::string & version)
 ```
 
 Locks the package at the given SDK version. Once set this package will only update to the most recent version with given SDK version. Pass an empty string to remove the lock.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `version` | `const std::string &` |  |
 
 ---
 
@@ -2667,10 +2448,6 @@ Returns the installation manifest.
 virtual bool verifyInstallManifest(bool allowEmpty)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `allowEmpty` | `bool` |  |
-
 ---
 
 {#getinstalledfilepath}
@@ -2684,11 +2461,6 @@ virtual std::string getInstalledFilePath(const std::string & fileName, bool whin
 ```
 
 Returns the full full path of the installed file. Thrown an exception if the install directory is unset.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `fileName` | `const std::string &` |  |
-| `whiny` | `bool` |  |
 
 ---
 
@@ -2719,10 +2491,6 @@ virtual void addError(const std::string & message)
 Appends `message` to the errors array. 
 #### Parameters
 * `message` [Error](base.md#error) description to record.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `message` | `const std::string &` |  |
 
 ---
 
@@ -2813,10 +2581,6 @@ Manifest(json::Value & src)
 #### Parameters
 * `src` JSON array node that backs this manifest.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `src` | `[json::Value](json.md#value) &` |  |
-
 ---
 
 {#empty-1}
@@ -2846,10 +2610,6 @@ virtual void addFile(const std::string & path)
 Appends `path` to the manifest file list. 
 #### Parameters
 * `path` Relative path of an installed file.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `path` | `const std::string &` |  |
 
 {#package}
 
@@ -2904,10 +2664,6 @@ Package(const json::Value & src)
 Constructs a package from an existing JSON value. 
 #### Parameters
 * `src` JSON object containing package fields.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `src` | `const [json::Value](json.md#value) &` |  |
 
 ---
 
@@ -3023,10 +2779,6 @@ Dumps the JSON representation of this package to `ost`.
 #### Parameters
 * `ost` Output stream.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ost` | `std::ostream &` |  |
-
 {#asset-1}
 
 ## Asset
@@ -3082,10 +2834,6 @@ Asset(json::Value & src)
 
 #### Parameters
 * `src` JSON object node that backs this asset.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `src` | `[json::Value](json.md#value) &` |  |
 
 ---
 
@@ -3169,10 +2917,6 @@ Returns the download URL from the mirror list at `index`.
 #### Parameters
 * `index` Zero-based index into the mirrors array.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `index` | `int` |  |
-
 ---
 
 {#filesize-1}
@@ -3217,10 +2961,6 @@ Writes the raw JSON of this asset to `ost`.
 #### Parameters
 * `ost` Output stream.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ost` | `std::ostream &` |  |
-
 ---
 
 {#operator-18}
@@ -3237,10 +2977,6 @@ Copies the backing JSON node from `r`.
 #### Parameters
 * `r` Source asset to copy from.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `r` | `const [Asset](#asset-1) &` |  |
-
 ---
 
 {#operator-19}
@@ -3254,10 +2990,6 @@ virtual bool operator==(const Asset & r) const
 ```
 
 Returns true if file name, version and checksum all match `r`.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `r` | `const [Asset](#asset-1) &` |  |
 
 {#packagepair}
 
@@ -3323,11 +3055,6 @@ PackagePair(LocalPackage * local, RemotePackage * remote)
 * `local` Pointer to the locally installed package, or nullptr if not installed. 
 
 * `remote` Pointer to the remote package record, or nullptr if not known.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `local` | `[LocalPackage](#localpackage) *` |  |
-| `remote` | `[RemotePackage](#remotepackage) *` |  |
 
 ---
 
@@ -3448,10 +3175,6 @@ Constructs a remote package from an existing JSON value.
 #### Parameters
 * `src` JSON object containing remote package fields.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `src` | `const [json::Value](json.md#value) &` |  |
-
 ---
 
 {#assets}
@@ -3494,10 +3217,6 @@ virtual Asset assetVersion(const std::string & version)
 
 Returns the latest asset for the given package version. Throws an exception if no asset exists.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `version` | `const std::string &` |  |
-
 ---
 
 {#latestsdkasset}
@@ -3511,8 +3230,4 @@ virtual Asset latestSDKAsset(const std::string & version)
 ```
 
 Returns the latest asset for the given SDK version. This method is for safely installing plug-ins which must be compiled against a specific SDK version. The package JSON must have a "sdk-version" member for this function to work as intended. Throws an exception if no asset exists.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `version` | `const std::string &` |  |
 

@@ -107,10 +107,6 @@ Convert a [PeerSession::State](#state-4) to a lowercase C string for logging.
 #### Returns
 One of: "idle", "outgoing-init", "incoming-init", "negotiating", "active", "ending", "ended".
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `state` | `[PeerSession::State](#state-4)` |  |
-
 ---
 
 {#createvideotrack}
@@ -145,16 +141,6 @@ The packetizer is selected based on the codec: H264 → H264RtpPacketizer (Annex
 #### Returns
 [TrackHandle](#trackhandle) with the track and its RTP config.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `pc` | `std::shared_ptr< rtc::PeerConnection >` |  |
-| `codec` | `const [av::VideoCodec](av.md#videocodec) &` |  |
-| `ssrc` | `uint32_t` |  |
-| `cname` | `const std::string &` |  |
-| `nackBuffer` | `unsigned` |  |
-| `onPli` | `std::function< void()>` |  |
-| `onRemb` | `std::function< void(unsigned int)>` |  |
-
 ---
 
 {#createaudiotrack}
@@ -183,13 +169,6 @@ The packetizer clock rate is selected based on codec: opus → 48kHz, PCMU/PCMA 
 #### Returns
 [TrackHandle](#trackhandle) with the track and its RTP config.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `pc` | `std::shared_ptr< rtc::PeerConnection >` |  |
-| `codec` | `const [av::AudioCodec](av.md#audiocodec) &` |  |
-| `ssrc` | `uint32_t` |  |
-| `cname` | `const std::string &` |  |
-
 ---
 
 {#setupreceivetrack}
@@ -213,10 +192,6 @@ Call this from PeerConnection::onTrack() before binding a [WebRtcTrackReceiver](
 
 #### Returns
 True when a supported depacketizer was installed.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `track` | `std::shared_ptr< rtc::Track >` |  |
 
 ---
 
@@ -277,10 +252,6 @@ static std::optional< NegotiatedCodec > negotiateVideo(const std::vector< std::s
 
 Negotiate the best video codec from a list of offered RTP codec names. Returns the first match that FFmpeg can encode, in preference order: H264 > VP8 > VP9 > AV1 > H265
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `offeredCodecs` | `const std::vector< std::string > &` |  |
-
 ---
 
 {#negotiateaudio}
@@ -294,10 +265,6 @@ static std::optional< NegotiatedCodec > negotiateAudio(const std::vector< std::s
 ```
 
 Negotiate the best audio codec from a list of offered RTP codec names. Returns the first match that FFmpeg can encode, in preference order: opus > PCMU > PCMA
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `offeredCodecs` | `const std::vector< std::string > &` |  |
 
 ---
 
@@ -313,10 +280,6 @@ static bool hasEncoder(const std::string & name)
 
 Check if FFmpeg has an encoder for the given codec name. Accepts both FFmpeg names ("libx264") and RTP names ("H264").
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `const std::string &` |  |
-
 ---
 
 {#rtptoffmpeg}
@@ -330,10 +293,6 @@ static std::string rtpToFfmpeg(const std::string & rtpName)
 ```
 
 Map an RTP codec name to the preferred FFmpeg encoder name. Returns empty string if no mapping exists.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `rtpName` | `const std::string &` |  |
 
 ---
 
@@ -349,10 +308,6 @@ static std::string ffmpegToRtp(const std::string & ffmpegName)
 
 Map an FFmpeg encoder name to the RTP codec name. Returns empty string if no mapping exists.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ffmpegName` | `const std::string &` |  |
-
 ---
 
 {#clockrate}
@@ -366,10 +321,6 @@ static uint32_t clockRate(const std::string & rtpName)
 ```
 
 Get the standard RTP clock rate for a codec.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `rtpName` | `const std::string &` |  |
 
 ---
 
@@ -385,10 +336,6 @@ static int defaultPayloadType(const std::string & rtpName)
 
 Get the default RTP payload type for a codec. Returns 0 for dynamic payload types (caller should assign).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `rtpName` | `const std::string &` |  |
-
 ---
 
 {#specfromrtp}
@@ -402,10 +349,6 @@ static std::optional< CodecSpec > specFromRtp(const std::string & rtpName)
 ```
 
 Return the canonical codec spec for an RTP name, if known.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `rtpName` | `const std::string &` |  |
 
 ---
 
@@ -421,10 +364,6 @@ static std::optional< CodecSpec > specFromFfmpeg(const std::string & ffmpegName)
 
 Return the canonical codec spec for an FFmpeg encoder name, if known.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ffmpegName` | `const std::string &` |  |
-
 ---
 
 {#specfromvideocodec}
@@ -438,10 +377,6 @@ static std::optional< CodecSpec > specFromVideoCodec(const av::VideoCodec & code
 ```
 
 Resolve the canonical codec spec from an explicit video codec config. Prefers the FFmpeg encoder when present, otherwise falls back to RTP name.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `codec` | `const [av::VideoCodec](av.md#videocodec) &` |  |
 
 ---
 
@@ -457,10 +392,6 @@ static std::optional< CodecSpec > specFromAudioCodec(const av::AudioCodec & code
 
 Resolve the canonical codec spec from an explicit audio codec config. Prefers the FFmpeg encoder when present, otherwise falls back to RTP name.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `codec` | `const [av::AudioCodec](av.md#audiocodec) &` |  |
-
 ---
 
 {#requirevideospec}
@@ -474,10 +405,6 @@ static CodecSpec requireVideoSpec(const av::VideoCodec & codec)
 ```
 
 Resolve a strict canonical video codec spec or throw.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `codec` | `const [av::VideoCodec](av.md#videocodec) &` |  |
 
 ---
 
@@ -493,10 +420,6 @@ static CodecSpec requireAudioSpec(const av::AudioCodec & codec)
 
 Resolve a strict canonical audio codec spec or throw.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `codec` | `const [av::AudioCodec](av.md#audiocodec) &` |  |
-
 ---
 
 {#resolvewebrtcvideocodec}
@@ -510,10 +433,6 @@ static av::VideoCodec resolveWebRtcVideoCodec(const av::VideoCodec & codec)
 ```
 
 Resolve a browser-safe WebRTC video codec config from an explicit codec.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `codec` | `const [av::VideoCodec](av.md#videocodec) &` |  |
 
 ---
 
@@ -529,10 +448,6 @@ static av::AudioCodec resolveWebRtcAudioCodec(const av::AudioCodec & codec)
 
 Resolve a browser-safe WebRTC audio codec config from an explicit codec.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `codec` | `const [av::AudioCodec](av.md#audiocodec) &` |  |
-
 ---
 
 {#detectcodec}
@@ -546,11 +461,6 @@ static std::optional< CodecSpec > detectCodec(std::string_view sdp, CodecMediaTy
 ```
 
 Detect the first known codec present in an SDP snippet for the given media type.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `sdp` | `std::string_view` |  |
-| `mediaType` | `[CodecMediaType](#codecmediatype)` |  |
 
 {#mediabridge}
 
@@ -663,11 +573,6 @@ void attach(std::shared_ptr< rtc::PeerConnection > pc, const Options & opts)
 
 Create tracks on the PeerConnection and set up handler chains. Only creates tracks for codecs with a non-empty encoder name.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `pc` | `std::shared_ptr< rtc::PeerConnection >` |  |
-| `opts` | `const [Options](#options-16) &` |  |
-
 ---
 
 {#detach}
@@ -705,10 +610,6 @@ void requestBitrate(unsigned int bitrate)
 Request that the remote sender reduce to a target bitrate. Sends a TMMBR RTCP message on the video track. 
 #### Parameters
 * `bitrate` Target bitrate in bits per second.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `bitrate` | `unsigned int` |  |
 
 ---
 
@@ -1101,11 +1002,6 @@ PeerSession(SignallingInterface & signaller, const Config & config)
 
 Construct with any signalling implementation. The signaller must outlive this [PeerSession](#peersession).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `signaller` | `[SignallingInterface](#signallinginterface) &` |  |
-| `config` | `const [Config](#config) &` |  |
-
 ---
 
 {#peersession-2}
@@ -1132,10 +1028,6 @@ Initiate an outgoing call to a remote peer. Sends a "init" control message and t
 
 #### Exceptions
 * `std::logic_error` if not currently in the Idle state.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `peerId` | `const std::string &` |  |
 
 ---
 
@@ -1168,10 +1060,6 @@ Reject an incoming call. Sends a "reject" control message and transitions to End
 #### Exceptions
 * `std::logic_error` if not currently in the IncomingInit state.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `reason` | `const std::string &` |  |
-
 ---
 
 {#hangup}
@@ -1186,10 +1074,6 @@ Terminate any non-idle call phase. Sends a "hangup" control message, closes the 
 #### Parameters
 * `reason` Human-readable reason string forwarded to the remote peer.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `reason` | `const std::string &` |  |
-
 ---
 
 {#senddata-2}
@@ -1203,10 +1087,6 @@ void sendData(const std::string & message)
 Send a UTF-8 string message over the data channel. Silently dropped if the data channel is not open. 
 #### Parameters
 * `message` String to send.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `message` | `const std::string &` |  |
 
 ---
 
@@ -1223,11 +1103,6 @@ Send raw binary data over the data channel. Silently dropped if the data channel
 * `data` Pointer to the byte buffer. 
 
 * `size` Number of bytes to send.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `const std::byte *` |  |
-| `size` | `size_t` |  |
 
 ---
 
@@ -1482,12 +1357,6 @@ std::mutex _mutex
 void onSdpReceived(const std::string & peerId, const std::string & type, const std::string & sdp)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `peerId` | `const std::string &` |  |
-| `type` | `const std::string &` |  |
-| `sdp` | `const std::string &` |  |
-
 ---
 
 {#oncandidatereceived}
@@ -1497,12 +1366,6 @@ void onSdpReceived(const std::string & peerId, const std::string & type, const s
 ```cpp
 void onCandidateReceived(const std::string & peerId, const std::string & candidate, const std::string & mid)
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `peerId` | `const std::string &` |  |
-| `candidate` | `const std::string &` |  |
-| `mid` | `const std::string &` |  |
 
 ---
 
@@ -1514,12 +1377,6 @@ void onCandidateReceived(const std::string & peerId, const std::string & candida
 void onControlReceived(const std::string & peerId, const std::string & type, const std::string & reason)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `peerId` | `const std::string &` |  |
-| `type` | `const std::string &` |  |
-| `reason` | `const std::string &` |  |
-
 ---
 
 {#createpeerconnection}
@@ -1529,10 +1386,6 @@ void onControlReceived(const std::string & peerId, const std::string & type, con
 ```cpp
 std::shared_ptr< rtc::PeerConnection > createPeerConnection(bool createDataChannel)
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `createDataChannel` | `bool` |  |
 
 ---
 
@@ -1544,10 +1397,6 @@ std::shared_ptr< rtc::PeerConnection > createPeerConnection(bool createDataChann
 void setupPeerConnectionCallbacks(const std::shared_ptr< rtc::PeerConnection > & pc)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `pc` | `const std::shared_ptr< rtc::PeerConnection > &` |  |
-
 ---
 
 {#beginendcall}
@@ -1557,12 +1406,6 @@ void setupPeerConnectionCallbacks(const std::shared_ptr< rtc::PeerConnection > &
 ```cpp
 void beginEndCall(const std::string & reason, std::shared_ptr< rtc::PeerConnection > & pc, std::shared_ptr< rtc::DataChannel > & dc)
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `reason` | `const std::string &` |  |
-| `pc` | `std::shared_ptr< rtc::PeerConnection > &` |  |
-| `dc` | `std::shared_ptr< rtc::DataChannel > &` |  |
 
 ---
 
@@ -1786,12 +1629,6 @@ Send an SDP offer or answer to the remote peer.
 
 * `sdp` The SDP string.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `peerId` | `const std::string &` |  |
-| `type` | `const std::string &` |  |
-| `sdp` | `const std::string &` |  |
-
 ---
 
 {#sendcandidate}
@@ -1810,12 +1647,6 @@ Send an ICE candidate to the remote peer.
 
 * `mid` The sdpMid value.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `peerId` | `const std::string &` |  |
-| `candidate` | `const std::string &` |  |
-| `mid` | `const std::string &` |  |
-
 ---
 
 {#sendcontrol}
@@ -1833,12 +1664,6 @@ Send a control message to the remote peer.
 * `type` Control type: "init", "accept", "reject", "hangup". 
 
 * `reason` Optional reason string (for reject/hangup).
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `peerId` | `const std::string &` |  |
-| `type` | `const std::string &` |  |
-| `reason` | `const std::string &` |  |
 
 {#webrtctrackreceiver}
 
@@ -1910,10 +1735,6 @@ void bind(std::shared_ptr< rtc::Track > track)
 Bind to a remote track. Must be called after [setupReceiveTrack()](#setupreceivetrack) returned true. Installs an onFrame callback that converts each depacketized frame to a VideoPacket or AudioPacket and emits it on the [PacketStream](base.md#packetstream). The track type (video/audio) is detected from the SDP description. 
 #### Parameters
 * `track` Remote track from the PeerConnection::onTrack callback.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `track` | `std::shared_ptr< rtc::Track >` |  |
 
 {#webrtctracksender}
 
@@ -1993,10 +1814,6 @@ explicit WebRtcTrackSender(const TrackHandle & handle)
 
 Construct bound to a track handle from [createVideoTrack()](#createvideotrack) or [createAudioTrack()](#createaudiotrack).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `handle` | `const [TrackHandle](#trackhandle) &` |  |
-
 ---
 
 {#bind-6}
@@ -2008,10 +1825,6 @@ void bind(const TrackHandle & handle)
 ```
 
 Bind to a track. Can be called to rebind to a different track.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `handle` | `const [TrackHandle](#trackhandle) &` |  |
 
 ---
 
@@ -2041,10 +1854,6 @@ Send an encoded media frame to the bound WebRTC track. Converts the FFmpeg micro
 #### Parameters
 * `packet` An [av::VideoPacket](av.md#videopacket) or [av::AudioPacket](av.md#audiopacket) carrying the encoded frame data and a microsecond timestamp.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `packet` | `[IPacket](base.md#ipacket) &` |  |
-
 ---
 
 {#accepts-3}
@@ -2064,10 +1873,6 @@ Return true if packet is an [av::MediaPacket](av.md#mediapacket) (VideoPacket or
 #### Returns
 True if the packet can be processed by this sender.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `packet` | `[IPacket](base.md#ipacket) *` |  |
-
 ---
 
 {#onstreamstatechange-6}
@@ -2083,10 +1888,6 @@ virtual void onStreamStateChange(const PacketStreamState & state)
 Called by the [PacketStream](base.md#packetstream) when stream state changes. Logs when the stream is stopping; no other action is taken. 
 #### Parameters
 * `state` New [PacketStream](base.md#packetstream) state.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `state` | `const [PacketStreamState](base.md#packetstreamstate) &` |  |
 
 ---
 
@@ -2392,12 +2193,6 @@ av::VideoCodec toVideoCodec(int width, int height, double fps) const
 
 Create an [av::VideoCodec](av.md#videocodec) from this negotiation result. Width, height, fps default to 0 (caller should set these).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `width` | `int` |  |
-| `height` | `int` |  |
-| `fps` | `double` |  |
-
 ---
 
 {#towebrtcvideocodec}
@@ -2411,12 +2206,6 @@ av::VideoCodec toWebRtcVideoCodec(int width, int height, double fps) const
 ```
 
 Create an [av::VideoCodec](av.md#videocodec) configured for WebRTC browser playback. Sets low-latency options: ultrafast preset, zerolatency tune, constrained baseline profile for H.264, and appropriate defaults for VP8/VP9/AV1.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `width` | `int` |  |
-| `height` | `int` |  |
-| `fps` | `double` |  |
 
 ---
 
@@ -2432,11 +2221,6 @@ av::AudioCodec toAudioCodec(int channels, int sampleRate) const
 
 Create an [av::AudioCodec](av.md#audiocodec) from this negotiation result. Channels default to 2, sampleRate to the RTP clock rate.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `channels` | `int` |  |
-| `sampleRate` | `int` |  |
-
 ---
 
 {#towebrtcaudiocodec}
@@ -2450,10 +2234,6 @@ av::AudioCodec toWebRtcAudioCodec(int channels) const
 ```
 
 Create an [av::AudioCodec](av.md#audiocodec) configured for WebRTC browser playback. Forces 48000 Hz for Opus, sets appropriate options.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `channels` | `int` |  |
 
 {#trackhandle}
 

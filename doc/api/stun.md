@@ -114,10 +114,6 @@ Returns true if `methodType` corresponds to a recognised STUN/TURN method. Used 
 #### Returns
 true if the method is one of the defined MethodType values.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `methodType` | `uint16_t` |  |
-
 ### Variables
 
 | Return | Name | Description |
@@ -230,11 +226,6 @@ AddressAttribute(uint16_t type, bool ipv4)
 
 * `ipv4` When true, initialises the size for IPv4; otherwise IPv6.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `type` | `uint16_t` |  |
-| `ipv4` | `bool` |  |
-
 ---
 
 {#addressattribute-2}
@@ -246,10 +237,6 @@ AddressAttribute(const AddressAttribute & r)
 ```
 
 Copy constructor; duplicates the stored address.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `r` | `const [AddressAttribute](#addressattribute) &` |  |
 
 ---
 
@@ -311,10 +298,6 @@ Reads the body (not the type or size) for this type of attribute from the given 
 #### Parameters
 * `reader` Source bit reader positioned at the attribute body.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `reader` | `[BitReader](base.md#bitreader) &` |  |
-
 ---
 
 {#write-17}
@@ -331,10 +314,6 @@ Writes the body (not the type or size) to the given buffer.
 #### Parameters
 * `writer` Destination bit writer.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `writer` | `[BitWriter](base.md#bitwriter) &` |  |
-
 ---
 
 {#setaddress}
@@ -350,10 +329,6 @@ virtual inline void setAddress(const net::Address & addr)
 Sets the address to encode into this attribute. 
 #### Parameters
 * `addr` Address to store.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `addr` | `const [net::Address](net.md#address) &` |  |
 
 ---
 
@@ -470,10 +445,6 @@ Reads the body (not the type or size) for this type of attribute from the given 
 #### Parameters
 * `reader` Source bit reader positioned at the attribute body.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `reader` | `[BitReader](base.md#bitreader) &` |  |
-
 ---
 
 {#write-18}
@@ -489,10 +460,6 @@ void write(BitWriter & writer) const
 Writes the body (not the type or size) to the given buffer. 
 #### Parameters
 * `writer` Destination bit writer.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `writer` | `[BitWriter](base.md#bitwriter) &` |  |
 
 ---
 
@@ -570,10 +537,6 @@ Advances the reader past any 4-byte alignment padding that follows this attribut
 #### Parameters
 * `reader` Reader to advance.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `reader` | `[BitReader](base.md#bitreader) &` |  |
-
 ---
 
 {#writepadding}
@@ -589,10 +552,6 @@ void writePadding(BitWriter & writer) const
 Writes zero-fill padding bytes to align this attribute to a 4-byte boundary. 
 #### Parameters
 * `writer` Writer to append padding to.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `writer` | `[BitWriter](base.md#bitwriter) &` |  |
 
 ---
 
@@ -655,11 +614,6 @@ Creates an attribute of the given wire type and body size. Returns nullptr if th
 #### Returns
 Owning pointer to the new attribute, or nullptr on failure.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `type` | `uint16_t` |  |
-| `size` | `uint16_t` |  |
-
 ---
 
 {#paddingbytes-1}
@@ -674,10 +628,6 @@ static inline constexpr uint16_t paddingBytes(uint16_t size)
 
 Returns the 4-byte alignment padding required for a body of `size` bytes.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `size` | `uint16_t` |  |
-
 ---
 
 {#paddedbytes-1}
@@ -691,10 +641,6 @@ static inline constexpr uint16_t paddedBytes(uint16_t size)
 ```
 
 Returns the body length including 4-byte alignment padding.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `size` | `uint16_t` |  |
 
 ---
 
@@ -713,10 +659,6 @@ static std::string typeString(uint16_t type)
 
 #### Returns
 Human-readable name for the given type code.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `type` | `uint16_t` |  |
 
 ### Protected Attributes
 
@@ -767,11 +709,6 @@ Attribute(uint16_t type, uint16_t size)
 
 * `size` Initial body length in bytes.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `type` | `uint16_t` |  |
-| `size` | `uint16_t` |  |
-
 ---
 
 {#setlength}
@@ -785,10 +722,6 @@ void setLength(uint16_t size)
 Updates the stored body length. 
 #### Parameters
 * `size` New body length in bytes.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `size` | `uint16_t` |  |
 
 ### Public Types
 
@@ -886,10 +819,6 @@ ErrorCode(uint16_t size)
 #### Parameters
 * `size` Initial body length in bytes (must be >= MinSize).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `size` | `uint16_t` |  |
-
 ---
 
 {#errorcode-3}
@@ -901,10 +830,6 @@ ErrorCode(const ErrorCode & r)
 ```
 
 Copy constructor.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `r` | `const [ErrorCode](#errorcode-1) &` |  |
 
 ---
 
@@ -934,10 +859,6 @@ Sets the error code, splitting it into class and number fields.
 #### Parameters
 * `code` 3-digit error code (e.g. 401, 438).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `code` | `int` |  |
-
 ---
 
 {#setreason-1}
@@ -951,10 +872,6 @@ void setReason(const std::string & reason)
 Sets the UTF-8 reason phrase and updates the attribute size. 
 #### Parameters
 * `reason` Human-readable error description.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `reason` | `const std::string &` |  |
 
 ---
 
@@ -1032,10 +949,6 @@ Reads the body (not the type or size) for this type of attribute from the given 
 #### Parameters
 * `reader` Source bit reader positioned at the attribute body.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `reader` | `[BitReader](base.md#bitreader) &` |  |
-
 ---
 
 {#write-19}
@@ -1051,10 +964,6 @@ virtual void write(BitWriter & writer) const
 Writes the body (not the type or size) to the given buffer. 
 #### Parameters
 * `writer` Destination bit writer.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `writer` | `[BitWriter](base.md#bitwriter) &` |  |
 
 ### Public Static Attributes
 
@@ -1160,10 +1069,6 @@ FlagAttribute(uint16_t type)
 
 #### Parameters
 * `type` Wire type code for the concrete attribute.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `type` | `uint16_t` |  |
 
 ---
 
@@ -1297,11 +1202,6 @@ Constructs a message with explicit class and method.
 
 * `meth` [Message](#message-5) method (Binding, Allocate, Refresh, etc.).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `clss` | `[ClassType](#classtype-1)` |  |
-| `meth` | `[MethodType](#methodtype-1)` |  |
-
 ---
 
 {#message-8}
@@ -1313,10 +1213,6 @@ Message(const Message & that)
 ```
 
 Deep-copy constructor; clones all attributes.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `that` | `const [Message](#message-5) &` |  |
 
 ---
 
@@ -1330,10 +1226,6 @@ Message(Message && that) noexcept
 
 Move constructor.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `that` | `[Message](#message-5) &&` |  |
-
 ---
 
 {#operator-23}
@@ -1346,10 +1238,6 @@ Message & operator=(const Message & that)
 
 Deep-copy assignment; clones all attributes from `that`.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `that` | `const [Message](#message-5) &` |  |
-
 ---
 
 {#operator-24}
@@ -1361,10 +1249,6 @@ Message & operator=(Message && that) noexcept
 ```
 
 Move assignment.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `that` | `[Message](#message-5) &&` |  |
 
 ---
 
@@ -1395,10 +1279,6 @@ Sets the message class field.
 #### Parameters
 * `type` One of Request, Indication, SuccessResponse, ErrorResponse.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `type` | `[ClassType](#classtype-1)` |  |
-
 ---
 
 {#setmethod-1}
@@ -1413,10 +1293,6 @@ Sets the message method field.
 #### Parameters
 * `type` One of the MethodType enumerators.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `type` | `[MethodType](#methodtype-1)` |  |
-
 ---
 
 {#settransactionid}
@@ -1430,10 +1306,6 @@ void setTransactionID(const std::string & id)
 Sets the 12-byte transaction ID. 
 #### Parameters
 * `id` Must be exactly kTransactionIdLength (12) bytes.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `id` | `const std::string &` |  |
 
 ---
 
@@ -1544,10 +1416,6 @@ Maps a numeric error code to its canonical string description.
 #### Returns
 Human-readable error string, or "UnknownError" if not recognised.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `errorCode` | `uint16_t` |  |
-
 ---
 
 {#add-1}
@@ -1581,10 +1449,6 @@ Appends an attribute to the message, taking ownership via unique_ptr.
 #### Parameters
 * `attr` [Attribute](#attribute) to add.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `attr` | `std::unique_ptr< [Attribute](#attribute) >` |  |
-
 ---
 
 {#get-5}
@@ -1605,11 +1469,6 @@ Returns the Nth attribute of the given type, or nullptr if not found.
 
 #### Returns
 Raw pointer to the attribute (owned by this message), or nullptr.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `type` | `[Attribute::Type](#type-15)` |  |
-| `index` | `int` |  |
 
 ---
 
@@ -1633,10 +1492,6 @@ Type-safe attribute accessor using the concrete attribute's TypeID.
 #### Returns
 Pointer to T, or nullptr if the attribute is absent.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `index` | `int` |  |
-
 ---
 
 {#read-6}
@@ -1656,10 +1511,6 @@ Parses a STUN/TURN packet from the given buffer.
 #### Returns
 Number of bytes consumed, or 0 on parse failure.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `buf` | `const [ConstBuffer](base.md#constbuffer) &` |  |
-
 ---
 
 {#write-21}
@@ -1675,10 +1526,6 @@ virtual void write(Buffer & buf) const
 Serialises this message into a STUN/TURN wire-format packet. 
 #### Parameters
 * `buf` Destination buffer; data is appended.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `buf` | `[Buffer](base.md#buffer-2) &` |  |
 
 ---
 
@@ -1710,10 +1557,6 @@ virtual void print(std::ostream & os) const
 Writes the same representation as [toString()](#tostring-8) to the given stream. 
 #### Parameters
 * `os` Output stream.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `os` | `std::ostream &` |  |
 
 ---
 
@@ -1942,10 +1785,6 @@ MessageIntegrity()
 MessageIntegrity(const MessageIntegrity & r)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `r` | `const [MessageIntegrity](#messageintegrity) &` |  |
-
 ---
 
 {#clone-12}
@@ -1978,10 +1817,6 @@ Verifies the stored HMAC against the stored input bytes using `key`.
 
 #### Returns
 true if the computed HMAC matches the stored HMAC.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `std::string_view` |  |
 
 ---
 
@@ -2044,10 +1879,6 @@ Sets the raw message bytes used as HMAC input during verification.
 #### Parameters
 * `input` Byte string of the message up to this attribute.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `input` | `const std::string &` |  |
-
 ---
 
 {#sethmac}
@@ -2063,10 +1894,6 @@ inline void setHmac(const std::string & hmac)
 Sets the raw HMAC value (used when copying a received attribute). 
 #### Parameters
 * `hmac` 20-byte HMAC string.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `hmac` | `const std::string &` |  |
 
 ---
 
@@ -2084,10 +1911,6 @@ Sets the HMAC key; triggers HMAC computation on [write()](#write-22).
 #### Parameters
 * `key` MD5 digest of the long-term credential (username:realm:password).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `const std::string &` |  |
-
 ---
 
 {#read-7}
@@ -2104,10 +1927,6 @@ Reads the body (not the type or size) for this type of attribute from the given 
 #### Parameters
 * `reader` Source bit reader positioned at the attribute body.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `reader` | `[BitReader](base.md#bitreader) &` |  |
-
 ---
 
 {#write-22}
@@ -2123,10 +1942,6 @@ virtual void write(BitWriter & writer) const
 Writes the body (not the type or size) to the given buffer. 
 #### Parameters
 * `writer` Destination bit writer.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `writer` | `[BitWriter](base.md#bitwriter) &` |  |
 
 ### Public Static Attributes
 
@@ -2243,11 +2058,6 @@ StringAttribute(uint16_t type, uint16_t size)
 
 * `size` Initial body length in bytes (0 for variable-length attributes).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `type` | `uint16_t` |  |
-| `size` | `uint16_t` |  |
-
 ---
 
 {#stringattribute-2}
@@ -2259,10 +2069,6 @@ StringAttribute(const StringAttribute & r)
 ```
 
 Copy constructor; duplicates stored bytes.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `r` | `const [StringAttribute](#stringattribute) &` |  |
 
 ---
 
@@ -2309,11 +2115,6 @@ Replaces the stored bytes with a copy of the given buffer and updates the attrib
 
 * `size` Number of bytes to copy.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `bytes` | `const char *` |  |
-| `size` | `unsigned` |  |
-
 ---
 
 {#asstring}
@@ -2343,10 +2144,6 @@ Copies a null-terminated string into the attribute, using strlen to determine th
 #### Parameters
 * `bytes` Null-terminated source string.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `bytes` | `const char *` |  |
-
 ---
 
 {#copybytes-1}
@@ -2362,11 +2159,6 @@ Copies an arbitrary block of memory into the attribute.
 * `bytes` Source data pointer. 
 
 * `size` Number of bytes to copy.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `bytes` | `const void *` |  |
-| `size` | `unsigned` |  |
 
 ---
 
@@ -2387,10 +2179,6 @@ Returns a single byte from the stored buffer.
 #### Returns
 The byte value at `index`.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `index` | `int` |  |
-
 ---
 
 {#setbyte}
@@ -2406,11 +2194,6 @@ Overwrites a single byte in the stored buffer.
 * `index` Zero-based byte offset. 
 
 * `value` New value to write.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `index` | `int` |  |
-| `value` | `uint8_t` |  |
 
 ---
 
@@ -2428,10 +2211,6 @@ Reads the body (not the type or size) for this type of attribute from the given 
 #### Parameters
 * `reader` Source bit reader positioned at the attribute body.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `reader` | `[BitReader](base.md#bitreader) &` |  |
-
 ---
 
 {#write-23}
@@ -2447,10 +2226,6 @@ virtual void write(BitWriter & writer) const
 Writes the body (not the type or size) to the given buffer. 
 #### Parameters
 * `writer` Destination bit writer.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `writer` | `[BitWriter](base.md#bitwriter) &` |  |
 
 ### Private Attributes
 
@@ -2510,13 +2285,6 @@ Constructs a STUN transaction bound to a specific socket and peer.
 
 * `retries` Number of send retries before declaring failure (default 1).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `socket` | `const [net::Socket::Ptr](net.md#ptr-4) &` |  |
-| `peerAddress` | `const [net::Address](net.md#address) &` |  |
-| `timeout` | `long` |  |
-| `retries` | `int` |  |
-
 ---
 
 {#checkresponse-1}
@@ -2533,10 +2301,6 @@ Checks that `message` is a valid response for the pending request. In addition t
 
 #### Returns
 true if `message` is the expected response.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `message` | `const [Message](#message-5) &` |  |
 
 ---
 
@@ -2609,11 +2373,6 @@ UInt16ListAttribute(uint16_t type, uint16_t size)
 
 * `size` Initial body length in bytes.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `type` | `uint16_t` |  |
-| `size` | `uint16_t` |  |
-
 ---
 
 {#uint16listattribute-2}
@@ -2625,10 +2384,6 @@ UInt16ListAttribute(const UInt16ListAttribute & r)
 ```
 
 Copy constructor; duplicates the type list.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `r` | `const [UInt16ListAttribute](#uint16listattribute) &` |  |
 
 ---
 
@@ -2678,10 +2433,6 @@ Returns the type code at the given list position.
 #### Returns
 [Attribute](#attribute) type code at `index`.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `index` | `int` |  |
-
 ---
 
 {#settype}
@@ -2698,11 +2449,6 @@ Overwrites the type code at the given list position.
 
 * `value` New attribute type code.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `index` | `int` |  |
-| `value` | `uint16_t` |  |
-
 ---
 
 {#addtype}
@@ -2716,10 +2462,6 @@ void addType(uint16_t value)
 Appends a type code to the list and updates the attribute size. 
 #### Parameters
 * `value` [Attribute](#attribute) type code to append.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `value` | `uint16_t` |  |
 
 ---
 
@@ -2737,10 +2479,6 @@ Reads the body (not the type or size) for this type of attribute from the given 
 #### Parameters
 * `reader` Source bit reader positioned at the attribute body.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `reader` | `[BitReader](base.md#bitreader) &` |  |
-
 ---
 
 {#write-24}
@@ -2756,10 +2494,6 @@ virtual void write(BitWriter & writer) const
 Writes the body (not the type or size) to the given buffer. 
 #### Parameters
 * `writer` Destination bit writer.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `writer` | `[BitWriter](base.md#bitwriter) &` |  |
 
 ### Private Attributes
 
@@ -2816,10 +2550,6 @@ UInt32Attribute(uint16_t type)
 #### Parameters
 * `type` Wire type code for the concrete attribute.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `type` | `uint16_t` |  |
-
 ---
 
 {#uint32attribute-2}
@@ -2831,10 +2561,6 @@ UInt32Attribute(const UInt32Attribute & r)
 ```
 
 Copy constructor.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `r` | `const [UInt32Attribute](#uint32attribute) &` |  |
 
 ---
 
@@ -2881,10 +2607,6 @@ Sets the stored 32-bit value.
 #### Parameters
 * `bits` Value to store.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `bits` | `uint32_t` |  |
-
 ---
 
 {#getbit}
@@ -2904,10 +2626,6 @@ Returns the state of a single bit within the stored word.
 #### Returns
 true if the bit is set.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `index` | `int` |  |
-
 ---
 
 {#setbit}
@@ -2923,11 +2641,6 @@ Sets or clears a single bit within the stored word.
 * `index` Bit position (0 = LSB, 31 = MSB). 
 
 * `value` true to set, false to clear.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `index` | `int` |  |
-| `value` | `bool` |  |
 
 ---
 
@@ -2945,10 +2658,6 @@ Reads the body (not the type or size) for this type of attribute from the given 
 #### Parameters
 * `reader` Source bit reader positioned at the attribute body.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `reader` | `[BitReader](base.md#bitreader) &` |  |
-
 ---
 
 {#write-25}
@@ -2964,10 +2673,6 @@ virtual void write(BitWriter & writer) const
 Writes the body (not the type or size) to the given buffer. 
 #### Parameters
 * `writer` Destination bit writer.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `writer` | `[BitWriter](base.md#bitwriter) &` |  |
 
 ### Public Static Attributes
 
@@ -3042,10 +2747,6 @@ UInt64Attribute(uint16_t type)
 #### Parameters
 * `type` Wire type code for the concrete attribute.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `type` | `uint16_t` |  |
-
 ---
 
 {#uint64attribute-2}
@@ -3057,10 +2758,6 @@ UInt64Attribute(const UInt64Attribute & r)
 ```
 
 Copy constructor.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `r` | `const [UInt64Attribute](#uint64attribute) &` |  |
 
 ---
 
@@ -3107,10 +2804,6 @@ Sets the stored 64-bit value.
 #### Parameters
 * `bits` Value to store.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `bits` | `uint64_t` |  |
-
 ---
 
 {#getbit-1}
@@ -3130,10 +2823,6 @@ Returns the state of a single bit within the stored quad-word.
 #### Returns
 true if the bit is set.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `index` | `int` |  |
-
 ---
 
 {#setbit-1}
@@ -3149,11 +2838,6 @@ Sets or clears a single bit within the stored quad-word.
 * `index` Bit position (0 = LSB, 63 = MSB). 
 
 * `value` true to set, false to clear.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `index` | `int` |  |
-| `value` | `bool` |  |
 
 ---
 
@@ -3171,10 +2855,6 @@ Reads the body (not the type or size) for this type of attribute from the given 
 #### Parameters
 * `reader` Source bit reader positioned at the attribute body.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `reader` | `[BitReader](base.md#bitreader) &` |  |
-
 ---
 
 {#write-26}
@@ -3190,10 +2870,6 @@ virtual void write(BitWriter & writer) const
 Writes the body (not the type or size) to the given buffer. 
 #### Parameters
 * `writer` Destination bit writer.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `writer` | `[BitWriter](base.md#bitwriter) &` |  |
 
 ### Public Static Attributes
 
@@ -3268,10 +2944,6 @@ UInt8Attribute(uint16_t type)
 #### Parameters
 * `type` Wire type code for the concrete attribute.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `type` | `uint16_t` |  |
-
 ---
 
 {#uint8attribute-2}
@@ -3283,10 +2955,6 @@ UInt8Attribute(const UInt8Attribute & r)
 ```
 
 Copy constructor.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `r` | `const [UInt8Attribute](#uint8attribute) &` |  |
 
 ---
 
@@ -3333,10 +3001,6 @@ Sets the stored 8-bit value.
 #### Parameters
 * `bits` Value to store.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `bits` | `uint8_t` |  |
-
 ---
 
 {#getbit-2}
@@ -3356,10 +3020,6 @@ Returns the state of a single bit within the stored byte.
 #### Returns
 true if the bit is set.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `index` | `int` |  |
-
 ---
 
 {#setbit-2}
@@ -3375,11 +3035,6 @@ Sets or clears a single bit within the stored byte.
 * `index` Bit position (0 = LSB, 7 = MSB). 
 
 * `value` true to set, false to clear.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `index` | `int` |  |
-| `value` | `bool` |  |
 
 ---
 
@@ -3397,10 +3052,6 @@ Reads the body (not the type or size) for this type of attribute from the given 
 #### Parameters
 * `reader` Source bit reader positioned at the attribute body.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `reader` | `[BitReader](base.md#bitreader) &` |  |
-
 ---
 
 {#write-27}
@@ -3416,10 +3067,6 @@ virtual void write(BitWriter & writer) const
 Writes the body (not the type or size) to the given buffer. 
 #### Parameters
 * `writer` Destination bit writer.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `writer` | `[BitWriter](base.md#bitwriter) &` |  |
 
 ### Public Static Attributes
 

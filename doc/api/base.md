@@ -514,12 +514,6 @@ Schedules func to run once at the beginning of the next event loop iteration. Us
 
 * `args` Arguments forwarded to func.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `loop` | `[uv::Loop](uv.md#loop) *` |  |
-| `func` | `Function &&` |  |
-| `args` | `Args &&...` |  |
-
 ---
 
 {#formaterror}
@@ -541,11 +535,6 @@ Formats a human-readable error string from a message and a libuv error code. If 
 #### Returns
 Formatted error string.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `message` | `std::string_view` |  |
-| `err` | `int` |  |
-
 ---
 
 {#throwerror}
@@ -563,11 +552,6 @@ Throws a `std::runtime_error` with a formatted error message.
 * `message` Descriptive context for the error. 
 
 * `err` libuv error code to append. Defaults to `UV_UNKNOWN`.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `message` | `std::string_view` |  |
-| `err` | `int` |  |
 
 ---
 
@@ -593,11 +577,6 @@ Creates a `[MutableBuffer](#mutablebuffer)` from an arbitrary pointer and size.
 #### Returns
 `[MutableBuffer](#mutablebuffer)` referencing the given memory.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `T` |  |
-| `size` | `size_t` |  |
-
 ---
 
 {#mutablebuffer-2}
@@ -617,10 +596,6 @@ Creates a `[MutableBuffer](#mutablebuffer)` from a `std::string`.
 #### Returns
 `[MutableBuffer](#mutablebuffer)` wrapping the string's internal storage.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
-
 ---
 
 {#mutablebuffer-3}
@@ -639,10 +614,6 @@ Creates a `[MutableBuffer](#mutablebuffer)` from a const `std::string`. Casts aw
 
 #### Returns
 `[MutableBuffer](#mutablebuffer)` wrapping the string's internal storage.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `const std::string &` |  |
 
 ---
 
@@ -666,10 +637,6 @@ Creates a `[MutableBuffer](#mutablebuffer)` from a const `std::vector`. Casts aw
 #### Returns
 `[MutableBuffer](#mutablebuffer)` wrapping the vector's internal storage.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `vec` | `const std::vector< T > &` |  |
-
 ---
 
 {#mutablebuffer-5}
@@ -689,10 +656,6 @@ Creates a `[MutableBuffer](#mutablebuffer)` from a `Buffer`.
 #### Returns
 `[MutableBuffer](#mutablebuffer)` wrapping the buffer's data.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `buf` | `[Buffer](#buffer-2) &` |  |
-
 ---
 
 {#mutablebuffer-6}
@@ -711,10 +674,6 @@ Creates a `[MutableBuffer](#mutablebuffer)` from a const `Buffer`. Casts away co
 
 #### Returns
 `[MutableBuffer](#mutablebuffer)` wrapping the buffer's data.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `buf` | `const [Buffer](#buffer-2) &` |  |
 
 ---
 
@@ -740,11 +699,6 @@ Creates a `[ConstBuffer](#constbuffer)` from an arbitrary pointer and size.
 #### Returns
 `[ConstBuffer](#constbuffer)` referencing the given memory.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `T` |  |
-| `size` | `size_t` |  |
-
 ---
 
 {#constbuffer-2}
@@ -763,10 +717,6 @@ Creates a `[ConstBuffer](#constbuffer)` from a `std::string`.
 
 #### Returns
 `[ConstBuffer](#constbuffer)` wrapping the string's internal storage.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `const std::string &` |  |
 
 ---
 
@@ -790,10 +740,6 @@ Creates a `[ConstBuffer](#constbuffer)` from a `std::vector`.
 #### Returns
 `[ConstBuffer](#constbuffer)` wrapping the vector's internal storage.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `vec` | `const std::vector< T > &` |  |
-
 ---
 
 {#constbuffer-4}
@@ -812,10 +758,6 @@ Creates a `[ConstBuffer](#constbuffer)` from a `[MutableBuffer](#mutablebuffer)`
 
 #### Returns
 `[ConstBuffer](#constbuffer)` referencing the same memory region.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `buf` | `const [MutableBuffer](#mutablebuffer) &` |  |
 
 ---
 
@@ -839,10 +781,6 @@ Creates a `[ConstBuffer](#constbuffer)` from a `Buffer`.
 #### Returns
 `[ConstBuffer](#constbuffer)` wrapping the buffer's data.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `buf` | `[Buffer](#buffer-2) &` |  |
-
 ---
 
 {#constbuffer-6}
@@ -864,10 +802,6 @@ Creates a `[ConstBuffer](#constbuffer)` from a const `Buffer`. Casts away constn
 
 #### Returns
 `[ConstBuffer](#constbuffer)` wrapping the buffer's data.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `buf` | `const [Buffer](#buffer-2) &` |  |
 
 ---
 
@@ -891,10 +825,6 @@ Casts a `[MutableBuffer](#mutablebuffer)` to a specified pointer-to-POD type.
 #### Returns
 Pointer to the buffer's data, cast to `PointerToPodType`.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `b` | `const [MutableBuffer](#mutablebuffer) &` |  |
-
 ---
 
 {#buffercast-1}
@@ -917,10 +847,6 @@ Casts a `[ConstBuffer](#constbuffer)` to a specified pointer-to-POD type.
 #### Returns
 Pointer to the buffer's data, cast to `PointerToPodType`.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `b` | `const [ConstBuffer](#constbuffer) &` |  |
-
 ---
 
 {#getlevelfromstring}
@@ -939,10 +865,6 @@ Converts a log level string to its corresponding `Level` enum value. Unrecognize
 
 #### Returns
 The matching `Level` enum value.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `level` | `const char *` |  |
 
 ---
 
@@ -963,10 +885,6 @@ Converts a `Level` enum value to its lowercase string representation.
 #### Returns
 Lowercase C string: "trace", "debug", "info", "warn", "error", or "fatal".
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `level` | `[Level](#level)` |  |
-
 ---
 
 {#logargs}
@@ -976,11 +894,6 @@ Lowercase C string: "trace", "debug", "info", "warn", "error", or "fatal".
 ```cpp
 template<typename T> void logArgs(std::ostream & o, T && t)
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `o` | `std::ostream &` |  |
-| `t` | `T &&` |  |
 
 ---
 
@@ -992,12 +905,6 @@ template<typename T> void logArgs(std::ostream & o, T && t)
 template<typename T, typename... Args> void logArgs(std::ostream & o, T && t, Args &&... args)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `o` | `std::ostream &` |  |
-| `t` | `T &&` |  |
-| `args` | `Args &&...` |  |
-
 ---
 
 {#str_end}
@@ -1007,10 +914,6 @@ template<typename T, typename... Args> void logArgs(std::ostream & o, T && t, Ar
 ```cpp
 constexpr const char * str_end(const char * str)
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `const char *` |  |
 
 ---
 
@@ -1022,10 +925,6 @@ constexpr const char * str_end(const char * str)
 constexpr bool str_slant(const char * str)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `const char *` |  |
-
 ---
 
 {#r_slant}
@@ -1036,10 +935,6 @@ constexpr bool str_slant(const char * str)
 constexpr const char * r_slant(const char * str)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `const char *` |  |
-
 ---
 
 {#_filename}
@@ -1049,10 +944,6 @@ constexpr const char * r_slant(const char * str)
 ```cpp
 constexpr const char * _fileName(const char * str)
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `const char *` |  |
 
 ---
 
@@ -1065,10 +956,6 @@ constexpr const char * _fileName(const char * str)
 ```cpp
 inline std::string _methodName(std::string_view fsig)
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `fsig` | `std::string_view` |  |
 
 ---
 
@@ -1091,11 +978,6 @@ Schedules deferred deletion of ptr on the next event loop iteration. This is ess
 
 * `loop` Event loop on which to schedule the deletion.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ptr` | `T *` |  |
-| `loop` | `[uv::Loop](uv.md#loop) *` |  |
-
 ---
 
 {#makeintrusive}
@@ -1115,10 +997,6 @@ Creates an [IntrusivePtr](#intrusiveptr) managing a newly heap-allocated T. Equi
 
 #### Returns
 IntrusivePtr<T> owning the new object.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `args` | `Args &&...` |  |
 
 ---
 
@@ -1155,13 +1033,6 @@ A `SlotPtr` ready to attach to a compatible `[Signal](#signal)`.
 
 Creates a slot that binds a `const` class member function to an instance. Uses the same slot ID and priority rules as the non-const overload above.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `instance` | `Class *` |  |
-| `method` | `RT(Class::*)(Args...)` |  |
-| `id` | `int` |  |
-| `priority` | `int` |  |
-
 ---
 
 {#slot-1}
@@ -1189,12 +1060,6 @@ Creates a slot that wraps a free (static) function pointer.
 #### Returns
 A `SlotPtr` ready to attach to a compatible `[Signal](#signal)`.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `method` | `RT(*)(Args...)` |  |
-| `id` | `int` |  |
-| `priority` | `int` |  |
-
 ---
 
 {#swap-2}
@@ -1206,11 +1071,6 @@ A `SlotPtr` ready to attach to a compatible `[Signal](#signal)`.
 ```cpp
 inline void swap(DateTime & d1, DateTime & d2)
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `d1` | `[DateTime](#datetime) &` |  |
-| `d2` | `[DateTime](#datetime) &` |  |
 
 ---
 
@@ -1224,11 +1084,6 @@ inline void swap(DateTime & d1, DateTime & d2)
 inline void swap(LocalDateTime & d1, LocalDateTime & d2)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `d1` | `[LocalDateTime](#localdatetime) &` |  |
-| `d2` | `[LocalDateTime](#localdatetime) &` |  |
-
 ---
 
 {#swap-4}
@@ -1241,11 +1096,6 @@ inline void swap(LocalDateTime & d1, LocalDateTime & d2)
 inline void swap(Timestamp & s1, Timestamp & s2)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `s1` | `[Timestamp](#timestamp) &` |  |
-| `s2` | `[Timestamp](#timestamp) &` |  |
-
 ---
 
 {#swap-5}
@@ -1257,11 +1107,6 @@ inline void swap(Timestamp & s1, Timestamp & s2)
 ```cpp
 inline void swap(Timespan & s1, Timespan & s2)
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `s1` | `[Timespan](#timespan) &` |  |
-| `s2` | `[Timespan](#timespan) &` |  |
 
 ---
 
@@ -1337,10 +1182,6 @@ void sleep(int ms)
 
 Pause the current thread for the given ms duration.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ms` | `int` |  |
-
 ---
 
 {#pause}
@@ -1377,11 +1218,6 @@ std::string getEnv(std::string_view name, std::string_view defaultValue)
 
 Return an environment variable or the default value.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `std::string_view` |  |
-| `defaultValue` | `std::string_view` |  |
-
 ---
 
 {#getenvbool}
@@ -1393,10 +1229,6 @@ bool getEnvBool(std::string_view name)
 ```
 
 Return an environment variable boolean or the default value. The variable must be `1` or `true` for this function to return true.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `std::string_view` |  |
 
 ---
 
@@ -1417,12 +1249,6 @@ Writes a single byte at the given offset in memory.
 * `offset` Byte offset within the buffer. 
 
 * `v` Value to write.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `memory` | `void *` |  |
-| `offset` | `size_t` |  |
-| `v` | `uint8_t` |  |
 
 ---
 
@@ -1445,11 +1271,6 @@ Reads a single byte at the given offset from memory.
 #### Returns
 The byte value at the specified offset.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `memory` | `const void *` |  |
-| `offset` | `size_t` |  |
-
 ---
 
 {#setbe16}
@@ -1467,11 +1288,6 @@ Writes a 16-bit value to memory in big-endian byte order.
 * `memory` Pointer to the destination buffer (must be at least 2 bytes). 
 
 * `v` Value to write.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `memory` | `void *` |  |
-| `v` | `uint16_t` |  |
 
 ---
 
@@ -1491,11 +1307,6 @@ Writes a 32-bit value to memory in big-endian byte order.
 
 * `v` Value to write.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `memory` | `void *` |  |
-| `v` | `uint32_t` |  |
-
 ---
 
 {#setbe64}
@@ -1513,11 +1324,6 @@ Writes a 64-bit value to memory in big-endian byte order.
 * `memory` Pointer to the destination buffer (must be at least 8 bytes). 
 
 * `v` Value to write.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `memory` | `void *` |  |
-| `v` | `uint64_t` |  |
 
 ---
 
@@ -1538,10 +1344,6 @@ Reads a 16-bit big-endian value from memory.
 #### Returns
 The 16-bit value in host byte order.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `memory` | `const void *` |  |
-
 ---
 
 {#getbe32}
@@ -1560,10 +1362,6 @@ Reads a 32-bit big-endian value from memory.
 
 #### Returns
 The 32-bit value in host byte order.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `memory` | `const void *` |  |
 
 ---
 
@@ -1584,10 +1382,6 @@ Reads a 64-bit big-endian value from memory.
 #### Returns
 The 64-bit value in host byte order.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `memory` | `const void *` |  |
-
 ---
 
 {#setle16}
@@ -1605,11 +1399,6 @@ Writes a 16-bit value to memory in little-endian byte order.
 * `memory` Pointer to the destination buffer (must be at least 2 bytes). 
 
 * `v` Value to write.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `memory` | `void *` |  |
-| `v` | `uint16_t` |  |
 
 ---
 
@@ -1629,11 +1418,6 @@ Writes a 32-bit value to memory in little-endian byte order.
 
 * `v` Value to write.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `memory` | `void *` |  |
-| `v` | `uint32_t` |  |
-
 ---
 
 {#setle64}
@@ -1651,11 +1435,6 @@ Writes a 64-bit value to memory in little-endian byte order.
 * `memory` Pointer to the destination buffer (must be at least 8 bytes). 
 
 * `v` Value to write.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `memory` | `void *` |  |
-| `v` | `uint64_t` |  |
 
 ---
 
@@ -1676,10 +1455,6 @@ Reads a 16-bit little-endian value from memory.
 #### Returns
 The 16-bit value in host byte order.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `memory` | `const void *` |  |
-
 ---
 
 {#getle32}
@@ -1699,10 +1474,6 @@ Reads a 32-bit little-endian value from memory.
 #### Returns
 The 32-bit value in host byte order.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `memory` | `const void *` |  |
-
 ---
 
 {#getle64}
@@ -1721,10 +1492,6 @@ Reads a 64-bit little-endian value from memory.
 
 #### Returns
 The 64-bit value in host byte order.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `memory` | `const void *` |  |
 
 ---
 
@@ -1761,10 +1528,6 @@ Converts a 16-bit value from host byte order to network (big-endian) byte order.
 #### Returns
 Value in network byte order.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `n` | `uint16_t` |  |
-
 ---
 
 {#hosttonetwork32}
@@ -1783,10 +1546,6 @@ Converts a 32-bit value from host byte order to network (big-endian) byte order.
 
 #### Returns
 Value in network byte order.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `n` | `uint32_t` |  |
 
 ---
 
@@ -1807,10 +1566,6 @@ Converts a 64-bit value from host byte order to network (big-endian) byte order.
 #### Returns
 Value in network byte order.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `n` | `uint64_t` |  |
-
 ---
 
 {#networktohost16}
@@ -1829,10 +1584,6 @@ Converts a 16-bit value from network (big-endian) byte order to host byte order.
 
 #### Returns
 Value in host byte order.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `n` | `uint16_t` |  |
 
 ---
 
@@ -1853,10 +1604,6 @@ Converts a 32-bit value from network (big-endian) byte order to host byte order.
 #### Returns
 Value in host byte order.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `n` | `uint32_t` |  |
-
 ---
 
 {#networktohost64}
@@ -1875,10 +1622,6 @@ Converts a 64-bit value from network (big-endian) byte order to host byte order.
 
 #### Returns
 Value in host byte order.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `n` | `uint64_t` |  |
 
 ---
 
@@ -1900,12 +1643,6 @@ Installs a SIGINT handler on the given event loop. When the signal fires, `callb
 
 * `loop` Event loop to attach the signal watcher to.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `callback` | `std::function< void(void *)>` |  |
-| `opaque` | `void *` |  |
-| `loop` | `[uv::Loop](uv.md#loop) *` |  |
-
 ---
 
 {#waitforshutdown}
@@ -1925,12 +1662,6 @@ Installs a SIGINT handler and runs the event loop until shutdown. Equivalent to 
 * `opaque` Optional user data pointer passed to the callback. 
 
 * `loop` Event loop to run.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `callback` | `std::function< void(void *)>` |  |
-| `opaque` | `void *` |  |
-| `loop` | `[uv::Loop](uv.md#loop) *` |  |
 
 ---
 
@@ -1967,13 +1698,6 @@ The returned slot is connected to a `PacketSignal` (which broadcasts `[IPacket](
 #### Returns
 A shared slot suitable for connecting to a `PacketSignal`.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `instance` | `Class *` |  |
-| `method` | `RT(Class::*)(PT &)` |  |
-| `id` | `int` |  |
-| `priority` | `int` |  |
-
 ---
 
 {#operator-9}
@@ -1983,11 +1707,6 @@ A shared slot suitable for connecting to a `PacketSignal`.
 ```cpp
 constexpr unsigned operator|(PacketFlags lhs, PacketFlags rhs)
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `lhs` | `[PacketFlags](#packetflags)` |  |
-| `rhs` | `[PacketFlags](#packetflags)` |  |
 
 ---
 
@@ -2003,12 +1722,6 @@ inline RawPacket rawPacket(const MutableBuffer & buf, unsigned flags, std::uniqu
 
 Constructs a non-owning [RawPacket](#rawpacket) from a mutable buffer (borrowed pointer).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `buf` | `const [MutableBuffer](#mutablebuffer) &` |  |
-| `flags` | `unsigned` |  |
-| `info` | `std::unique_ptr< [IPacketInfo](#ipacketinfo) >` |  |
-
 ---
 
 {#rawpacket-2}
@@ -2022,12 +1735,6 @@ inline RawPacket rawPacket(const ConstBuffer & buf, unsigned flags, std::unique_
 ```
 
 Constructs an owning [RawPacket](#rawpacket) from a const buffer (data is copied).
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `buf` | `const [ConstBuffer](#constbuffer) &` |  |
-| `flags` | `unsigned` |  |
-| `info` | `std::unique_ptr< [IPacketInfo](#ipacketinfo) >` |  |
 
 ---
 
@@ -2043,13 +1750,6 @@ inline RawPacket rawPacket(char * data, size_t size, unsigned flags, std::unique
 
 Constructs a non-owning [RawPacket](#rawpacket) from a raw mutable pointer (borrowed).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `char *` |  |
-| `size` | `size_t` |  |
-| `flags` | `unsigned` |  |
-| `info` | `std::unique_ptr< [IPacketInfo](#ipacketinfo) >` |  |
-
 ---
 
 {#rawpacket-4}
@@ -2063,13 +1763,6 @@ inline RawPacket rawPacket(const char * data, size_t size, unsigned flags, std::
 ```
 
 Constructs an owning [RawPacket](#rawpacket) from a const char pointer (data is copied).
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `const char *` |  |
-| `size` | `size_t` |  |
-| `flags` | `unsigned` |  |
-| `info` | `std::unique_ptr< [IPacketInfo](#ipacketinfo) >` |  |
 
 {#hex}
 
@@ -2103,10 +1796,6 @@ template<typename T> inline std::string encode(const T & bytes)
 ```
 
 Converts the STL container to Hex.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `bytes` | `const T &` |  |
 
 {#decoder}
 
@@ -2182,12 +1871,6 @@ Decodes hex-encoded input to binary. Whitespace in the input is ignored. A trail
 #### Returns
 Number of decoded bytes written to outbuf.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `inbuf` | `const char *` |  |
-| `nread` | `size_t` |  |
-| `outbuf` | `char *` |  |
-
 ---
 
 {#finalize}
@@ -2229,13 +1912,6 @@ Reads the next non-whitespace character from inbuf, prepending any buffered last
 #### Returns
 true if more input remains after c was read, false otherwise.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `inbuf` | `const char *` |  |
-| `nread` | `size_t` |  |
-| `rpos` | `size_t &` |  |
-| `c` | `char &` |  |
-
 ---
 
 {#nybble}
@@ -2258,10 +1934,6 @@ Integer value in the range [0, 15].
 #### Exceptions
 * `std::runtime_error` if n is not a valid hex character.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `n` | `const int` |  |
-
 ---
 
 {#iswspace}
@@ -2280,10 +1952,6 @@ Returns true if c is an ASCII whitespace character (space, CR, tab, LF).
 
 #### Returns
 true if c is whitespace.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `c` | `const char` |  |
 
 {#encoder-1}
 
@@ -2380,12 +2048,6 @@ Encodes binary input as lowercase hex characters, optionally inserting newlines 
 #### Returns
 Number of bytes written to outbuf.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `inbuf` | `const char *` |  |
-| `nread` | `size_t` |  |
-| `outbuf` | `char *` |  |
-
 ---
 
 {#finalize-1}
@@ -2418,10 +2080,6 @@ Controls whether encoded output uses uppercase hex digits (A-F) or lowercase (a-
 #### Parameters
 * `flag` true for uppercase, false for lowercase.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `flag` | `bool` |  |
-
 ---
 
 {#setlinelength}
@@ -2437,10 +2095,6 @@ inline void setLineLength(int lineLength)
 Sets the maximum number of output characters per line before a newline is inserted. Set to 0 to disable line wrapping. 
 #### Parameters
 * `lineLength` Characters per line.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `lineLength` | `int` |  |
 
 {#ipc}
 
@@ -2535,10 +2189,6 @@ Pushes an action onto the queue and triggers a post notification. Takes ownershi
 #### Parameters
 * `action` Heap-allocated action to enqueue.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `action` | `TAction *` |  |
-
 ---
 
 {#pop}
@@ -2613,10 +2263,6 @@ Blocks the calling thread until the queue is empty or the timeout elapses. Polls
 #### Parameters
 * `timeout` Maximum time to wait (default: 5000 ms).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `timeout` | `std::chrono::milliseconds` |  |
-
 ### Protected Attributes
 
 | Return | Name | Description |
@@ -2680,10 +2326,6 @@ inline SyncQueue(uv::Loop * loop)
 Constructs a [SyncQueue](#syncqueue-1) bound to the given libuv event loop. 
 #### Parameters
 * `loop` Event loop to synchronize with (default: the process-wide default loop).
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `loop` | `[uv::Loop](uv.md#loop) *` |  |
 
 ---
 
@@ -2825,12 +2467,6 @@ Constructs an [Action](#action) with the given callback, optional argument, and 
 
 * `data` String payload passed to the callback (default: empty).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `target` | `[Callback](#callback-1)` |  |
-| `arg` | `void *` |  |
-| `data` | `const std::string &` |  |
-
 ### Public Types
 
 | Name | Description |
@@ -2961,11 +2597,6 @@ void describe(const std::string & name, std::function< void()> target)
 
 Describe a test environment implemented by the given lambda function.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `const std::string &` |  |
-| `target` | `std::function< void()>` |  |
-
 ---
 
 {#describe-1}
@@ -2977,11 +2608,6 @@ void describe(const std::string & name, Test * test)
 ```
 
 Describe a test environment implemented by the given test instance.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `const std::string &` |  |
-| `test` | `[Test](#test-1) *` |  |
 
 ---
 
@@ -2995,13 +2621,6 @@ void expectImpl(bool passed, const char * assert, const char * file, long line)
 
 Expect asserts that a condition is true (use [expect()](#test_8h_1a92645105a4c87ac01db7587df58caca6) as defined below).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `passed` | `bool` |  |
-| `assert` | `const char *` |  |
-| `file` | `const char *` |  |
-| `line` | `long` |  |
-
 ---
 
 {#waitfor}
@@ -3013,11 +2632,6 @@ bool waitFor(std::function< bool()> condition, int timeoutMs)
 ```
 
 Run the event loop until a condition is met or timeout expires. Returns true if the condition was satisfied, false on timeout. Useful for testing async operations that complete via libuv callbacks.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `condition` | `std::function< bool()>` |  |
-| `timeoutMs` | `int` |  |
 
 {#functiontest}
 
@@ -3069,11 +2683,6 @@ inline FunctionTest(std::function< void()> target, const std::string & name)
 * `target` Lambda or function to execute as the test body. 
 
 * `name` Human-readable test name.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `target` | `std::function< void()>` |  |
-| `name` | `const std::string &` |  |
 
 ### Protected Methods
 
@@ -3175,10 +2784,6 @@ Test(const std::string & name)
 #### Parameters
 * `name` Human-readable name displayed in test output.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `const std::string &` |  |
-
 ---
 
 {#test-3}
@@ -3233,10 +2838,6 @@ Return true when the test passed without errors.
 Test(const Test & test) = delete
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `test` | `const [Test](#test-1) &` |  |
-
 {#testrunner}
 
 ## TestRunner
@@ -3289,10 +2890,6 @@ Adds a test to the runner and prints its name to stdout.
 #### Parameters
 * `test` Non-null pointer to the test; the runner takes ownership.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `test` | `[Test](#test-1) *` |  |
-
 ---
 
 {#get-3}
@@ -3311,10 +2908,6 @@ Return a pointer to the test matching the given name, or nullptr if no matching 
 
 #### Returns
 Matching test pointer or nullptr.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `std::string_view` |  |
 
 ---
 
@@ -3522,11 +3115,6 @@ Formats a broken-down time value using the given strftime format string.
 #### Returns
 Formatted time string.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `dt` | `const std::tm &` |  |
-| `fmt` | `const char *` |  |
-
 ---
 
 {#printlocal}
@@ -3543,10 +3131,6 @@ Formats the current local time using the given strftime format string.
 
 #### Returns
 Formatted local time string.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `fmt` | `const char *` |  |
 
 ---
 
@@ -3565,10 +3149,6 @@ Formats the current UTC time using the given strftime format string.
 #### Returns
 Formatted UTC time string.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `fmt` | `const char *` |  |
-
 ---
 
 {#tolocal}
@@ -3586,10 +3166,6 @@ Converts a time_t value to a broken-down local time structure. Uses thread-safe 
 #### Returns
 Broken-down local time.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `time` | `const std::time_t &` |  |
-
 ---
 
 {#toutc}
@@ -3606,10 +3182,6 @@ Converts a time_t value to a broken-down UTC time structure. Uses thread-safe na
 
 #### Returns
 Broken-down UTC time.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `time` | `const std::time_t &` |  |
 
 ---
 
@@ -3790,11 +3362,6 @@ inline size_t encodedBufferCapacity(size_t inputSize, int lineLength)
 
 Returns a safe temporary buffer size for encoding up to `inputSize` bytes. Includes padding/newline slack so callers can reuse the same buffer for finalize().
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `inputSize` | `size_t` |  |
-| `lineLength` | `int` |  |
-
 ---
 
 {#encode-16}
@@ -3819,11 +3386,6 @@ Encodes an STL byte container to a Base64 string.
 #### Returns
 Base64-encoded string.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `bytes` | `const T &` |  |
-| `lineLength` | `int` |  |
-
 ---
 
 {#decode-5}
@@ -3845,10 +3407,6 @@ Decodes a Base64-encoded STL container to a binary string.
 
 #### Returns
 Decoded binary string.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `bytes` | `const T &` |  |
 
 ### Variables
 
@@ -3940,10 +3498,6 @@ inline Decoder(int buffersize)
 #### Parameters
 * `buffersize` Internal read buffer size in bytes.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `buffersize` | `int` |  |
-
 ---
 
 {#decode-6}
@@ -3962,10 +3516,6 @@ Decodes a single Base64 character to its 6-bit value.
 
 #### Returns
 Decoded 6-bit value, or a negative sentinel on invalid input.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `value_in` | `char` |  |
 
 ---
 
@@ -3990,12 +3540,6 @@ Decodes a raw Base64 buffer into binary data.
 #### Returns
 Number of binary bytes written.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `inbuf` | `const char *` |  |
-| `nread` | `size_t` |  |
-| `outbuf` | `char *` |  |
-
 ---
 
 {#decode-8}
@@ -4013,11 +3557,6 @@ Decodes the entire input stream and writes binary output to `ostrm`. Resets the 
 * `istrm` Source stream of Base64 data. 
 
 * `ostrm` Destination stream for decoded binary output.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `istrm` | `std::istream &` |  |
-| `ostrm` | `std::ostream &` |  |
 
 {#encoder-3}
 
@@ -4084,10 +3623,6 @@ inline Encoder(int buffersize)
 #### Parameters
 * `buffersize` Internal read buffer size in bytes.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `buffersize` | `int` |  |
-
 ---
 
 {#encode-17}
@@ -4106,11 +3641,6 @@ Encodes the entire input stream and writes Base64 output to `ostrm`. Resets the 
 
 * `ostrm` Destination stream for Base64 output.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `istrm` | `std::istream &` |  |
-| `ostrm` | `std::ostream &` |  |
-
 ---
 
 {#encode-18}
@@ -4128,11 +3658,6 @@ Encodes a string to Base64 and appends the result to `out`. Resets the encoder s
 * `in` Input string. 
 
 * `out` Output string to which Base64 characters are appended.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `in` | `const std::string &` |  |
-| `out` | `std::string &` |  |
 
 ---
 
@@ -4157,12 +3682,6 @@ Encodes a raw buffer, writing Base64 characters to `outbuf`. May be called multi
 #### Returns
 Number of Base64 characters written.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `inbuf` | `const char *` |  |
-| `nread` | `size_t` |  |
-| `outbuf` | `char *` |  |
-
 ---
 
 {#finalize-3}
@@ -4182,10 +3701,6 @@ Writes any pending padding and resets the encoder state. Must be called once aft
 #### Returns
 Number of characters written.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `outbuf` | `char *` |  |
-
 ---
 
 {#setlinelength-1}
@@ -4201,10 +3716,6 @@ inline void setLineLength(int lineLength)
 Sets the line wrap length for encoded output (0 disables line wrapping). 
 #### Parameters
 * `lineLength` Characters per line; use 0 to disable.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `lineLength` | `int` |  |
 
 {#deleter-2}
 
@@ -4247,10 +3758,6 @@ Calls delete[] on ptr if non-null.
 #### Parameters
 * `ptr` Array pointer to delete; may be nullptr.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ptr` | `T *` |  |
-
 {#dispose-1}
 
 ## Dispose
@@ -4278,10 +3785,6 @@ inline void operator()(T * ptr)
 Calls ptr->dispose() if ptr is non-null. 
 #### Parameters
 * `ptr` Pointer to dispose; may be nullptr.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ptr` | `T *` |  |
 
 {#numeric}
 
@@ -4340,11 +3843,6 @@ Formats an integer value in decimal notation.
 
 * `value` Value to format.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
-| `value` | `int` |  |
-
 ---
 
 {#format-9}
@@ -4362,12 +3860,6 @@ Formats an integer value in decimal notation, right justified in a field having 
 * `value` Value to format. 
 
 * `width` Minimum field width; padded with spaces on the left.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
-| `value` | `int` |  |
-| `width` | `int` |  |
 
 ---
 
@@ -4387,12 +3879,6 @@ Formats an integer value in decimal notation, right justified and zero-padded in
 
 * `width` Minimum field width; padded with zeros on the left.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
-| `value` | `int` |  |
-| `width` | `int` |  |
-
 ---
 
 {#formathex}
@@ -4408,11 +3894,6 @@ Formats an int value in hexadecimal notation. The value is treated as unsigned.
 * `str` Output string to append to. 
 
 * `value` Value to format.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
-| `value` | `int` |  |
 
 ---
 
@@ -4432,12 +3913,6 @@ Formats an int value in hexadecimal notation, right justified and zero-padded in
 
 * `width` Minimum field width; padded with zeros on the left.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
-| `value` | `int` |  |
-| `width` | `int` |  |
-
 ---
 
 {#format-10}
@@ -4453,11 +3928,6 @@ Formats an unsigned int value in decimal notation.
 * `str` Output string to append to. 
 
 * `value` Value to format.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
-| `value` | `unsigned` |  |
 
 ---
 
@@ -4477,12 +3947,6 @@ Formats an unsigned int value in decimal notation, right justified in a field ha
 
 * `width` Minimum field width; padded with spaces on the left.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
-| `value` | `unsigned` |  |
-| `width` | `int` |  |
-
 ---
 
 {#format0-1}
@@ -4501,12 +3965,6 @@ Formats an unsigned int value in decimal notation, right justified and zero-padd
 
 * `width` Minimum field width; padded with zeros on the left.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
-| `value` | `unsigned int` |  |
-| `width` | `int` |  |
-
 ---
 
 {#formathex-2}
@@ -4522,11 +3980,6 @@ Formats an unsigned int value in hexadecimal notation.
 * `str` Output string to append to. 
 
 * `value` Value to format.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
-| `value` | `unsigned` |  |
 
 ---
 
@@ -4546,12 +3999,6 @@ Formats an unsigned int value in hexadecimal notation, right justified and zero-
 
 * `width` Minimum field width; padded with zeros on the left.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
-| `value` | `unsigned` |  |
-| `width` | `int` |  |
-
 ---
 
 {#format-12}
@@ -4567,11 +4014,6 @@ Formats a long value in decimal notation.
 * `str` Output string to append to. 
 
 * `value` Value to format.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
-| `value` | `long` |  |
 
 ---
 
@@ -4591,12 +4033,6 @@ Formats a long value in decimal notation, right justified in a field having at l
 
 * `width` Minimum field width; padded with spaces on the left.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
-| `value` | `long` |  |
-| `width` | `int` |  |
-
 ---
 
 {#format0-2}
@@ -4615,12 +4051,6 @@ Formats a long value in decimal notation, right justified and zero-padded in a f
 
 * `width` Minimum field width; padded with zeros on the left.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
-| `value` | `long` |  |
-| `width` | `int` |  |
-
 ---
 
 {#formathex-4}
@@ -4636,11 +4066,6 @@ Formats a long value in hexadecimal notation. The value is treated as unsigned.
 * `str` Output string to append to. 
 
 * `value` Value to format.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
-| `value` | `long` |  |
 
 ---
 
@@ -4660,12 +4085,6 @@ Formats a long value in hexadecimal notation, right justified and zero-padded in
 
 * `width` Minimum field width; padded with zeros on the left.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
-| `value` | `long` |  |
-| `width` | `int` |  |
-
 ---
 
 {#format-14}
@@ -4681,11 +4100,6 @@ Formats an unsigned long value in decimal notation.
 * `str` Output string to append to. 
 
 * `value` Value to format.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
-| `value` | `unsigned long` |  |
 
 ---
 
@@ -4705,12 +4119,6 @@ Formats an unsigned long value in decimal notation, right justified in a field h
 
 * `width` Minimum field width; padded with spaces on the left.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
-| `value` | `unsigned long` |  |
-| `width` | `int` |  |
-
 ---
 
 {#format0-3}
@@ -4729,12 +4137,6 @@ Formats an unsigned long value in decimal notation, right justified and zero-pad
 
 * `width` Minimum field width; padded with zeros on the left.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
-| `value` | `unsigned long` |  |
-| `width` | `int` |  |
-
 ---
 
 {#formathex-6}
@@ -4750,11 +4152,6 @@ Formats an unsigned long value in hexadecimal notation.
 * `str` Output string to append to. 
 
 * `value` Value to format.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
-| `value` | `unsigned long` |  |
 
 ---
 
@@ -4774,12 +4171,6 @@ Formats an unsigned long value in hexadecimal notation, right justified and zero
 
 * `width` Minimum field width; padded with zeros on the left.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
-| `value` | `unsigned long` |  |
-| `width` | `int` |  |
-
 ---
 
 {#format-16}
@@ -4795,11 +4186,6 @@ Formats a 64-bit integer value in decimal notation.
 * `str` Output string to append to. 
 
 * `value` Value to format.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
-| `value` | `std::int64_t` |  |
 
 ---
 
@@ -4819,12 +4205,6 @@ Formats a 64-bit integer value in decimal notation, right justified in a field h
 
 * `width` Minimum field width; padded with spaces on the left.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
-| `value` | `std::int64_t` |  |
-| `width` | `int` |  |
-
 ---
 
 {#format0-4}
@@ -4843,12 +4223,6 @@ Formats a 64-bit integer value in decimal notation, right justified and zero-pad
 
 * `width` Minimum field width; padded with zeros on the left.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
-| `value` | `std::int64_t` |  |
-| `width` | `int` |  |
-
 ---
 
 {#formathex-8}
@@ -4864,11 +4238,6 @@ Formats a 64-bit integer value in hexadecimal notation. The value is treated as 
 * `str` Output string to append to. 
 
 * `value` Value to format.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
-| `value` | `std::int64_t` |  |
 
 ---
 
@@ -4888,12 +4257,6 @@ Formats a 64-bit integer value in hexadecimal notation, right justified and zero
 
 * `width` Minimum field width; padded with zeros on the left.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
-| `value` | `std::int64_t` |  |
-| `width` | `int` |  |
-
 ---
 
 {#format-18}
@@ -4909,11 +4272,6 @@ Formats an unsigned 64-bit integer value in decimal notation.
 * `str` Output string to append to. 
 
 * `value` Value to format.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
-| `value` | `uint64_t` |  |
 
 ---
 
@@ -4933,12 +4291,6 @@ Formats an unsigned 64-bit integer value in decimal notation, right justified in
 
 * `width` Minimum field width; padded with spaces on the left.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
-| `value` | `uint64_t` |  |
-| `width` | `int` |  |
-
 ---
 
 {#format0-5}
@@ -4957,12 +4309,6 @@ Formats an unsigned 64-bit integer value in decimal notation, right justified an
 
 * `width` Minimum field width; padded with zeros on the left.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
-| `value` | `uint64_t` |  |
-| `width` | `int` |  |
-
 ---
 
 {#formathex-10}
@@ -4978,11 +4324,6 @@ Formats an unsigned 64-bit integer value in hexadecimal notation.
 * `str` Output string to append to. 
 
 * `value` Value to format.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
-| `value` | `uint64_t` |  |
 
 ---
 
@@ -5001,12 +4342,6 @@ Formats an unsigned 64-bit integer value in hexadecimal notation, right justifie
 * `value` Value to format. 
 
 * `width` Minimum field width; padded with zeros on the left.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
-| `value` | `uint64_t` |  |
-| `width` | `int` |  |
 
 {#basic}
 
@@ -5075,12 +4410,6 @@ Decodes nread bytes from inbuf and writes decoded output to outbuf.
 #### Returns
 Number of bytes written to outbuf, or -1 on error.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `inbuf` | `const char *` |  |
-| `nread` | `size_t` |  |
-| `outbuf` | `char *` |  |
-
 ---
 
 {#finalize-4}
@@ -5099,10 +4428,6 @@ Flushes any buffered state and writes final output to outbuf.
 
 #### Returns
 Number of bytes written, or 0 if nothing to flush.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `outbuf` | `char *` |  |
 
 {#encoder-5}
 
@@ -5155,12 +4480,6 @@ Encodes nread bytes from inbuf and writes encoded output to outbuf.
 #### Returns
 Number of bytes written to outbuf, or -1 on error.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `inbuf` | `const char *` |  |
-| `nread` | `size_t` |  |
-| `outbuf` | `char *` |  |
-
 ---
 
 {#finalize-5}
@@ -5179,10 +4498,6 @@ Flushes any buffered state and writes final output to outbuf.
 
 #### Returns
 Number of bytes written, or 0 if nothing to flush.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `outbuf` | `char *` |  |
 
 {#runnable}
 
@@ -5242,10 +4557,6 @@ virtual inline void cancel(bool flag)
 ```
 
 Cancel the current task. The [run()](#run-4) method should return ASAP.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `flag` | `bool` |  |
 
 ---
 
@@ -5412,10 +4723,6 @@ Returns the file name and extension part of the given path.
 #### Returns
 Filename component including extension (e.g. "file.txt").
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `path` | `std::string_view` |  |
-
 ---
 
 {#basename}
@@ -5433,10 +4740,6 @@ Returns the file name without its extension.
 #### Returns
 Filename without the extension (e.g. "file").
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `path` | `std::string_view` |  |
-
 ---
 
 {#dirname}
@@ -5453,10 +4756,6 @@ Returns the directory part of the path.
 
 #### Returns
 Directory component including trailing separator (e.g. "/usr/local/").
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `path` | `std::string_view` |  |
 
 ---
 
@@ -5477,11 +4776,6 @@ Returns the file extension part of the path.
 #### Returns
 Extension string, or empty if the path has no extension.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `path` | `std::string_view` |  |
-| `includeDot` | `bool` |  |
-
 ---
 
 {#exists-1}
@@ -5498,10 +4792,6 @@ Returns true if the file or directory exists.
 
 #### Returns
 True if the path exists on the filesystem.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `path` | `std::string_view` |  |
 
 ---
 
@@ -5520,10 +4810,6 @@ Returns true if the path refers to a directory.
 #### Returns
 True if the path exists and is a directory.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `path` | `std::string_view` |  |
-
 ---
 
 {#filesize}
@@ -5541,10 +4827,6 @@ Returns the size in bytes of the given file.
 #### Returns
 File size in bytes, or -1 if the file does not exist.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `path` | `std::string_view` |  |
-
 ---
 
 {#readdir}
@@ -5560,11 +4842,6 @@ Populates `res` with the names of all entries in the given directory.
 * `path` Path to the directory to read. 
 
 * `res` Vector to receive the list of entry names.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `path` | `std::string_view` |  |
-| `res` | `std::vector< std::string > &` |  |
 
 ---
 
@@ -5582,11 +4859,6 @@ Creates a single directory.
 
 * `mode` Permission bits (default: 0755). Ignored on Windows.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `path` | `std::string_view` |  |
-| `mode` | `int` |  |
-
 ---
 
 {#mkdirr}
@@ -5603,11 +4875,6 @@ Creates a directory and all missing parent directories.
 
 * `mode` Permission bits (default: 0755). Ignored on Windows.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `path` | `std::string_view` |  |
-| `mode` | `int` |  |
-
 ---
 
 {#rmdir}
@@ -5622,10 +4889,6 @@ Removes an empty directory.
 #### Parameters
 * `path` Path of the directory to remove.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `path` | `std::string_view` |  |
-
 ---
 
 {#unlink}
@@ -5639,10 +4902,6 @@ void unlink(std::string_view path)
 Deletes a file. 
 #### Parameters
 * `path` Path of the file to delete.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `path` | `std::string_view` |  |
 
 ---
 
@@ -5660,11 +4919,6 @@ Renames or moves the given file to the target path.
 
 * `target` Destination file path.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `path` | `std::string_view` |  |
-| `target` | `std::string_view` |  |
-
 ---
 
 {#addsep}
@@ -5678,10 +4932,6 @@ void addsep(std::string & path)
 Appends the platform-specific path separator to `path` if not already present. 
 #### Parameters
 * `path` Path string to modify in place.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `path` | `std::string &` |  |
 
 ---
 
@@ -5698,11 +4948,6 @@ Appends a path node to `path`, inserting a separator if necessary.
 * `path` Base path string to modify in place. 
 
 * `node` Directory or file name component to append.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `path` | `std::string &` |  |
-| `node` | `std::string_view` |  |
 
 ---
 
@@ -5723,11 +4968,6 @@ Joins a base path and a node component into a single path string.
 #### Returns
 Joined path string.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `base` | `std::string_view` |  |
-| `node` | `std::string_view` |  |
-
 ---
 
 {#normalize}
@@ -5745,10 +4985,6 @@ Normalizes a path by resolving `.` and `..` segments and converting separators t
 #### Returns
 Normalized path string.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `path` | `std::string_view` |  |
-
 ---
 
 {#transcode}
@@ -5765,10 +5001,6 @@ Transcodes a path to the native platform format. On Windows with `ICY_UNICODE` d
 
 #### Returns
 Transcoded path string.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `path` | `std::string_view` |  |
 
 ---
 
@@ -5792,13 +5024,6 @@ Writes `size` bytes from `data` to the file at `path`, creating or overwriting i
 
 #### Returns
 True on success, false on failure (when `whiny` is false).
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `path` | `std::string_view` |  |
-| `data` | `const char *` |  |
-| `size` | `size_t` |  |
-| `whiny` | `bool` |  |
 
 ### Variables
 
@@ -5911,10 +5136,6 @@ Printf-style string formatting for POD types.
 #### Returns
 Formatted string.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `fmt` | `const char *` |  |
-
 ---
 
 {#tounderscore}
@@ -5928,10 +5149,6 @@ void toUnderscore(std::string & str)
 Replaces all non-alphanumeric characters in str with underscores and converts to lowercase. 
 #### Parameters
 * `str` String to transform in place.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
 
 ---
 
@@ -5949,10 +5166,6 @@ Returns true if str consists entirely of digit characters.
 
 #### Returns
 true if every character in str is a decimal digit.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string_view` |  |
 
 ---
 
@@ -5973,11 +5186,6 @@ Returns true if str ends with the given suffix.
 #### Returns
 true if str ends with suffix.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string_view` |  |
-| `suffix` | `std::string_view` |  |
-
 ---
 
 {#removespecialcharacters}
@@ -5993,11 +5201,6 @@ Replaces non-alphanumeric characters. Removes all non-alphanumeric characters fr
 * `str` String to modify. 
 
 * `allowSpaces` If true, ASCII spaces are preserved.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
-| `allowSpaces` | `bool` |  |
 
 ---
 
@@ -6017,12 +5220,6 @@ Replaces all non-alphanumeric characters in str with `with` in place.
 
 * `allowSpaces` If true, ASCII spaces are preserved rather than replaced.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
-| `with` | `char` |  |
-| `allowSpaces` | `bool` |  |
-
 ---
 
 {#tryparsehex}
@@ -6041,11 +5238,6 @@ Attempts to parse a hex string into an unsigned integer.
 
 #### Returns
 true if parsing succeeded, false otherwise.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `s` | `std::string_view` |  |
-| `value` | `unsigned &` |  |
 
 ---
 
@@ -6067,10 +5259,6 @@ Parsed value.
 #### Exceptions
 * `std::invalid_argument` if the string is not valid hex.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `s` | `std::string_view` |  |
-
 ---
 
 {#dumpbin}
@@ -6090,11 +5278,6 @@ Formats the binary contents of data as a hex+ASCII dump string.
 #### Returns
 Multi-line hex dump string.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `const char *` |  |
-| `len` | `size_t` |  |
-
 ---
 
 {#compareversion}
@@ -6113,11 +5296,6 @@ Compares two dot-separated version strings.
 
 #### Returns
 true if l is strictly greater than r, false if l is equal or less.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `l` | `std::string_view` |  |
-| `r` | `std::string_view` |  |
 
 ---
 
@@ -6140,12 +5318,6 @@ Checks whether node matches xnode by splitting both on delim and comparing eleme
 #### Returns
 true if all elements of node match the corresponding elements of xnode.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `node` | `std::string_view` |  |
-| `xnode` | `std::string_view` |  |
-| `delim` | `std::string_view` |  |
-
 ---
 
 {#matchnodes-1}
@@ -6165,11 +5337,6 @@ Checks whether params matches xparams element-wise.
 #### Returns
 true if every element of params matches the corresponding element of xparams.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `params` | `const std::vector< std::string > &` |  |
-| `xparams` | `const std::vector< std::string > &` |  |
-
 ---
 
 {#memaddress}
@@ -6186,10 +5353,6 @@ Returns the memory address of ptr as a hex string (e.g. "0x7f3a2b10c0").
 
 #### Returns
 Hex string representation of the pointer value.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ptr` | `const void *` |  |
 
 ---
 
@@ -6211,10 +5374,6 @@ Converts an integer (or any stream-insertable type) to its string representation
 #### Returns
 String representation of t.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `t` | `const T &` |  |
-
 ---
 
 {#strtoi}
@@ -6234,10 +5393,6 @@ Parses a string into integer type T using std::istringstream. Returns 0 if parsi
 
 #### Returns
 Parsed value, or 0 on failure.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `s` | `std::string_view` |  |
 
 ---
 
@@ -6270,10 +5425,6 @@ Generates a random alphanumeric string of the given length.
 #### Returns
 [Random](#random) string of length size.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `size` | `int` |  |
-
 ---
 
 {#randombinarystring}
@@ -6292,11 +5443,6 @@ Generates a random binary string of the given byte length.
 
 #### Returns
 [Random](#random) binary string, optionally base64-encoded.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `size` | `int` |  |
-| `doBase64` | `bool` |  |
 
 ---
 
@@ -6317,13 +5463,6 @@ Splits str on the delimiter string and appends tokens to elems.
 * `elems` Output vector; tokens are appended to it. 
 
 * `limit` Maximum number of splits (-1 for unlimited).
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string_view` |  |
-| `delim` | `std::string_view` |  |
-| `elems` | `std::vector< std::string > &` |  |
-| `limit` | `int` |  |
 
 ---
 
@@ -6346,12 +5485,6 @@ Splits str on the delimiter string and returns the tokens as a vector.
 #### Returns
 Vector of token strings.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string_view` |  |
-| `delim` | `std::string_view` |  |
-| `limit` | `int` |  |
-
 ---
 
 {#split-2}
@@ -6371,13 +5504,6 @@ Splits str on the delimiter character and appends tokens to elems.
 * `elems` Output vector; tokens are appended to it. 
 
 * `limit` Maximum number of splits (-1 for unlimited).
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string_view` |  |
-| `delim` | `char` |  |
-| `elems` | `std::vector< std::string > &` |  |
-| `limit` | `int` |  |
 
 ---
 
@@ -6400,12 +5526,6 @@ Splits str on the delimiter character and returns the tokens as a vector.
 #### Returns
 Vector of token strings.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string_view` |  |
-| `delim` | `char` |  |
-| `limit` | `int` |  |
-
 ---
 
 {#replaceinplace}
@@ -6417,13 +5537,6 @@ template<class S> S & replaceInPlace(S & str, const S & from, const S & to, type
 ```
 
 Replace all occurrences of `from` in `str` with `to`, starting at position `start`. Modifies and returns `str` in place. `from` must not be empty.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `S &` |  |
-| `from` | `const S &` |  |
-| `to` | `const S &` |  |
-| `start` | `typename S::size_type` |  |
 
 ---
 
@@ -6437,13 +5550,6 @@ template<class S> S & replaceInPlace(S & str, const typename S::value_type * fro
 
 Replace all occurrences of `from` in `str` with `to`, starting at position `start`. C-string overload. Modifies and returns `str` in place.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `S &` |  |
-| `from` | `const typename S::value_type *` |  |
-| `to` | `const typename S::value_type *` |  |
-| `start` | `typename S::size_type` |  |
-
 ---
 
 {#replace}
@@ -6455,13 +5561,6 @@ template<class S> S replace(const S & str, const S & from, const S & to, typenam
 ```
 
 Replace all occurences of from (which must not be the empty string) in str with to, starting at position start.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `const S &` |  |
-| `from` | `const S &` |  |
-| `to` | `const S &` |  |
-| `start` | `typename S::size_type` |  |
 
 ---
 
@@ -6486,13 +5585,6 @@ Returns a copy of str with all occurrences of from replaced by to (C-string over
 #### Returns
 New string with all replacements applied.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `const S &` |  |
-| `from` | `const typename S::value_type *` |  |
-| `to` | `const typename S::value_type *` |  |
-| `start` | `typename S::size_type` |  |
-
 ---
 
 {#trimleft}
@@ -6504,10 +5596,6 @@ template<class S> S trimLeft(const S & str)
 ```
 
 Returns a copy of str with all leading whitespace removed.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `const S &` |  |
 
 ---
 
@@ -6521,10 +5609,6 @@ template<class S> S & trimLeftInPlace(S & str)
 
 Removes all leading whitespace in str.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `S &` |  |
-
 ---
 
 {#trimright}
@@ -6536,10 +5620,6 @@ template<class S> S trimRight(const S & str)
 ```
 
 Returns a copy of str with all trailing whitespace removed.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `const S &` |  |
 
 ---
 
@@ -6553,10 +5633,6 @@ template<class S> S & trimRightInPlace(S & str)
 
 Removes all trailing whitespace in str.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `S &` |  |
-
 ---
 
 {#trim}
@@ -6568,10 +5644,6 @@ template<class S> S trim(const S & str)
 ```
 
 Returns a copy of str with all leading and trailing whitespace removed.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `const S &` |  |
 
 ---
 
@@ -6585,10 +5657,6 @@ template<class S> S & trimInPlace(S & str)
 
 Removes all leading and trailing whitespace in str.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `S &` |  |
-
 ---
 
 {#toupper}
@@ -6600,10 +5668,6 @@ template<class S> S toUpper(const S & str)
 ```
 
 Returns a copy of str containing all upper-case characters.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `const S &` |  |
 
 ---
 
@@ -6617,10 +5681,6 @@ template<class S> S & toUpperInPlace(S & str)
 
 Replaces all characters in str with their upper-case counterparts.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `S &` |  |
-
 ---
 
 {#tolower}
@@ -6633,10 +5693,6 @@ template<class S> S toLower(const S & str)
 
 Returns a copy of str containing all lower-case characters.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `const S &` |  |
-
 ---
 
 {#tolowerinplace}
@@ -6648,10 +5704,6 @@ template<class S> S & toLowerInPlace(S & str)
 ```
 
 Replaces all characters in str with their lower-case counterparts.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `S &` |  |
 
 ---
 
@@ -6674,11 +5726,6 @@ Case-insensitive string comparison (locale-independent, ASCII only).
 #### Returns
 Negative if a < b, zero if a == b, positive if a > b.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `a` | `std::string_view` |  |
-| `b` | `std::string_view` |  |
-
 ---
 
 {#copystreamunbuffered}
@@ -6697,11 +5744,6 @@ Copies all bytes from istr to ostr one byte at a time (no internal buffer).
 
 #### Returns
 Total number of bytes copied.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `istr` | `std::istream &` |  |
-| `ostr` | `std::ostream &` |  |
 
 ---
 
@@ -6724,12 +5766,6 @@ Copies all bytes from istr to ostr using an internal buffer.
 #### Returns
 Total number of bytes copied.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `istr` | `std::istream &` |  |
-| `ostr` | `std::ostream &` |  |
-| `bufferSize` | `size_t` |  |
-
 ---
 
 {#copytostring}
@@ -6751,12 +5787,6 @@ Reads all bytes from istr and appends them to str.
 #### Returns
 Total number of bytes read.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `istr` | `std::istream &` |  |
-| `str` | `std::string &` |  |
-| `bufferSize` | `size_t` |  |
-
 ---
 
 {#clearlist}
@@ -6770,10 +5800,6 @@ template<typename Val> inline void clearList(std::list< Val * > & L)
 ```
 
 Delete all elements from a list of pointers.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `L` | `std::list< Val * > &` |  |
 
 ---
 
@@ -6789,10 +5815,6 @@ template<typename Val> inline void clearDeque(std::deque< Val * > & D)
 
 Delete all elements from a deque of pointers.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `D` | `std::deque< Val * > &` |  |
-
 ---
 
 {#clearvector}
@@ -6807,10 +5829,6 @@ template<typename Val> inline void clearVector(std::vector< Val * > & V)
 
 Delete all elements from a vector of pointers.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `V` | `std::vector< Val * > &` |  |
-
 ---
 
 {#clearmap}
@@ -6824,10 +5842,6 @@ template<typename Key, typename Val> inline void clearMap(std::map< Key, Val * >
 ```
 
 Delete all associated values from a map (not the key elements).
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `M` | `std::map< Key, Val * > &` |  |
 
 {#version}
 
@@ -6912,10 +5926,6 @@ Parses a dot-separated version string into up to four numeric fields. Unspecifie
 #### Parameters
 * `version` Dot-separated version string.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `version` | `std::string_view` |  |
-
 ---
 
 {#operator-12}
@@ -6935,10 +5945,6 @@ Returns true if this version is strictly less than other. Compares fields in maj
 #### Returns
 true if this < other.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `other` | `const [Version](#version) &` |  |
-
 ---
 
 {#operator-13}
@@ -6957,10 +5963,6 @@ Returns true if all four version fields are equal.
 
 #### Returns
 true if this == other.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `other` | `const [Version](#version) &` |  |
 
 {#pipe}
 
@@ -7002,10 +6004,6 @@ Call `[init()](#classicy_1_1Pipe_1a09b32c70eceefd7d2339410b0863ad54)` before per
 #### Parameters
 * `loop` Event loop to associate with. Defaults to the process-wide default loop.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `loop` | `[uv::Loop](uv.md#loop) *` |  |
-
 ---
 
 {#pipe}
@@ -7038,10 +6036,6 @@ Must be called before `[readStart()](#classicy_1_1Pipe_1aa346922ed574ccc39590f7d
 
 #### Parameters
 * `ipc` Set to `true` to enable IPC mode, which allows sending and receiving stream handles alongside data via `[write()](#classicy_1_1Stream_1a56926a6ac3ba433aed1414ffb1d20cf0)`.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ipc` | `bool` |  |
 
 ---
 
@@ -7102,10 +6096,6 @@ Create the idler bound to `loop` without starting it.
 #### Parameters
 * `loop` Event loop to associate with. Defaults to the process-wide default loop.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `loop` | `[uv::Loop](uv.md#loop) *` |  |
-
 ---
 
 {#idler}
@@ -7124,11 +6114,6 @@ Create and immediately start the idler on the default loop.
 * `func` Callable invoked on every idle iteration. 
 
 * `args` Arguments forwarded to `func`.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `func` | `Function &&` |  |
-| `args` | `Args &&...` |  |
 
 ---
 
@@ -7151,12 +6136,6 @@ Create and immediately start the idler on the given loop.
 
 * `args` Arguments forwarded to `func`.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `loop` | `[uv::Loop](uv.md#loop) *` |  |
-| `func` | `Function &&` |  |
-| `args` | `Args &&...` |  |
-
 ---
 
 {#start}
@@ -7178,11 +6157,6 @@ The idler always runs in repeating mode; cancel via `[Runner::cancel()](#classic
 
 * `args` Arguments forwarded to `func` on each invocation.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `func` | `Function &&` |  |
-| `args` | `Args &&...` |  |
-
 ---
 
 {#start}
@@ -7199,10 +6173,6 @@ Start the idler with a type-erased callback (implements `[Runner::start](#classi
 
 #### Parameters
 * `func` Callback invoked on every idle iteration.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `func` | `std::function< void()>` |  |
 
 ---
 
@@ -7311,10 +6281,6 @@ Appends an item to the back of the queue (thread-safe).
 #### Parameters
 * `data` Item to enqueue.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `const T &` |  |
-
 ---
 
 {#push}
@@ -7330,10 +6296,6 @@ inline void push(T && data)
 Appends an item to the back of the queue by move (thread-safe). 
 #### Parameters
 * `data` Item to enqueue.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `T &&` |  |
 
 ---
 
@@ -7530,11 +6492,6 @@ inline RunnableQueue(int limit, int timeout)
 
 * `timeout` Dispatch timeout in milliseconds; 0 means run until [cancel()](#cancel-1) is called.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `limit` | `int` |  |
-| `timeout` | `int` |  |
-
 ---
 
 {#push}
@@ -7548,10 +6505,6 @@ virtual inline void push(T * item)
 ```
 
 Push an item onto the queue. The queue takes ownership of the item pointer.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `item` | `T *` |  |
 
 ---
 
@@ -7621,10 +6574,6 @@ virtual inline void dispatch(T & item)
 
 Dispatch a single item to listeners.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `item` | `T &` |  |
-
 ---
 
 {#timeout}
@@ -7658,10 +6607,6 @@ Sets the dispatch timeout. Must only be called when the queue is empty.
 
 #### Exceptions
 * `std::logic_error` if the queue is non-empty.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `milliseconds` | `int` |  |
 
 ---
 
@@ -7815,12 +6760,6 @@ inline SyncQueue(uv::Loop * loop, int limit, int timeout)
 
 * `timeout` Dispatch timeout in milliseconds passed to `[RunnableQueue](#runnablequeue)`.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `loop` | `[uv::Loop](uv.md#loop) *` |  |
-| `limit` | `int` |  |
-| `timeout` | `int` |  |
-
 ---
 
 {#syncqueue}
@@ -7851,10 +6790,6 @@ Pushes an item onto the queue and wakes the event loop for dispatch. Ownership o
 #### Parameters
 * `item` Heap-allocated item to enqueue; the queue takes ownership.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `item` | `T *` |  |
-
 ---
 
 {#cancel}
@@ -7870,10 +6805,6 @@ virtual inline void cancel(bool flag)
 Cancels the queue and its underlying synchronizer. 
 #### Parameters
 * `flag` True to cancel, false to un-cancel.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `flag` | `bool` |  |
 
 ---
 
@@ -7961,10 +6892,6 @@ inline AsyncQueue(int limit)
 #### Parameters
 * `limit` Maximum number of queued items before oldest are dropped.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `limit` | `int` |  |
-
 ---
 
 {#cancel}
@@ -7980,10 +6907,6 @@ virtual inline void cancel(bool flag)
 Cancels the queue and joins the dispatch thread. 
 #### Parameters
 * `flag` True to cancel, false to un-cancel.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `flag` | `bool` |  |
 
 ### Protected Attributes
 
@@ -8084,10 +7007,6 @@ Create a timer without a timeout or interval; values must be set before `[start(
 #### Parameters
 * `loop` Event loop to associate with. Defaults to the process-wide default loop.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `loop` | `[uv::Loop](uv.md#loop) *` |  |
-
 ---
 
 {#timer}
@@ -8108,12 +7027,6 @@ If `func` is provided the timer starts immediately; otherwise call `[start()](#c
 * `loop` Event loop to associate with. 
 
 * `func` Optional callback connected to the `[Timeout](#timeout)` signal and used to start the timer immediately.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `timeout` | `std::int64_t` |  |
-| `loop` | `[uv::Loop](uv.md#loop) *` |  |
-| `func` | `std::function< void()>` |  |
 
 ---
 
@@ -8137,13 +7050,6 @@ Fires once after `timeout` milliseconds, then repeatedly every `interval` millis
 * `loop` Event loop to associate with. 
 
 * `func` Optional callback connected to the `[Timeout](#timeout)` signal and used to start the timer immediately.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `timeout` | `std::int64_t` |  |
-| `interval` | `std::int64_t` |  |
-| `loop` | `[uv::Loop](uv.md#loop) *` |  |
-| `func` | `std::function< void()>` |  |
 
 ---
 
@@ -8189,10 +7095,6 @@ Connect `func` to the `[Timeout](#timeout)` signal and start the timer.
 
 #### Parameters
 * `func` Callback invoked on each timeout event.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `func` | `std::function< void()>` |  |
 
 ---
 
@@ -8253,10 +7155,6 @@ Has no effect if the timer is currently active.
 #### Parameters
 * `timeout` Delay in milliseconds.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `timeout` | `std::int64_t` |  |
-
 ---
 
 {#setinterval}
@@ -8273,10 +7171,6 @@ Takes effect from the next timeout event. If set from within a timer callback on
 
 #### Parameters
 * `interval` Repeat period in milliseconds; 0 disables repeating.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `interval` | `std::int64_t` |  |
 
 ---
 
@@ -8500,11 +7394,6 @@ inline constexpr MutableBuffer(void * data, size_t size)
 
 Construct a buffer to represent the given memory range.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `void *` |  |
-| `size` | `size_t` |  |
-
 ---
 
 {#data}
@@ -8634,11 +7523,6 @@ inline constexpr ConstBuffer(const void * data, size_t size)
 
 Construct a buffer to represent the given memory range.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `const void *` |  |
-| `size` | `size_t` |  |
-
 ---
 
 {#constbuffer}
@@ -8652,10 +7536,6 @@ inline constexpr ConstBuffer(const MutableBuffer & b)
 ```
 
 Construct a non-modifiable buffer from a modifiable one.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `b` | `const [MutableBuffer](#mutablebuffer) &` |  |
 
 ---
 
@@ -8802,12 +7682,6 @@ Constructs a `[BitReader](#bitreader)` over a raw byte array.
 
 * `order` Byte order used when reading multi-byte integer types.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `bytes` | `const char *` |  |
-| `size` | `size_t` |  |
-| `order` | `[ByteOrder](#byteorder)` |  |
-
 ---
 
 {#bitreader}
@@ -8823,11 +7697,6 @@ Constructs a `[BitReader](#bitreader)` over a `Buffer`.
 * `buf` Source buffer. Must remain valid for the lifetime of the reader. 
 
 * `order` Byte order used when reading multi-byte integer types.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `buf` | `const [Buffer](#buffer-2) &` |  |
-| `order` | `[ByteOrder](#byteorder)` |  |
 
 ---
 
@@ -8845,11 +7714,6 @@ Constructs a `[BitReader](#bitreader)` over a `[ConstBuffer](#constbuffer)`.
 
 * `order` Byte order used when reading multi-byte integer types.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `pod` | `const [ConstBuffer](#constbuffer) &` |  |
-| `order` | `[ByteOrder](#byteorder)` |  |
-
 ---
 
 {#get}
@@ -8865,11 +7729,6 @@ Reads a value from the [BitReader](#bitreader). Returns false if there isn't eno
 * `val` Destination buffer; must have capacity of at least `len` bytes. 
 
 * `len` Number of bytes to read.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `val` | `char *` |  |
-| `len` | `size_t` |  |
 
 ---
 
@@ -8887,11 +7746,6 @@ Reads `len` bytes and appends them to `val`. Throws `std::out_of_range` if insuf
 
 * `len` Number of bytes to read.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `val` | `std::string &` |  |
-| `len` | `size_t` |  |
-
 ---
 
 {#getu8}
@@ -8905,10 +7759,6 @@ void getU8(uint8_t & val)
 Reads an unsigned 8-bit integer. Throws `std::out_of_range` if insufficient data remains. 
 #### Parameters
 * `val` Output parameter receiving the read value.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `val` | `uint8_t &` |  |
 
 ---
 
@@ -8924,10 +7774,6 @@ Reads an unsigned 16-bit integer, applying byte-order conversion. Throws `std::o
 #### Parameters
 * `val` Output parameter receiving the read value.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `val` | `uint16_t &` |  |
-
 ---
 
 {#getu24}
@@ -8941,10 +7787,6 @@ void getU24(uint32_t & val)
 Reads an unsigned 24-bit integer into a 32-bit variable, applying byte-order conversion. Throws `std::out_of_range` if insufficient data remains. 
 #### Parameters
 * `val` Output parameter receiving the read value.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `val` | `uint32_t &` |  |
 
 ---
 
@@ -8960,10 +7802,6 @@ Reads an unsigned 32-bit integer, applying byte-order conversion. Throws `std::o
 #### Parameters
 * `val` Output parameter receiving the read value.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `val` | `uint32_t &` |  |
-
 ---
 
 {#getu64}
@@ -8977,10 +7815,6 @@ void getU64(uint64_t & val)
 Reads an unsigned 64-bit integer, applying byte-order conversion. Throws `std::out_of_range` if insufficient data remains. 
 #### Parameters
 * `val` Output parameter receiving the read value.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `val` | `uint64_t &` |  |
 
 ---
 
@@ -9081,10 +7915,6 @@ Advances the position until the given character is found, stopping before it.
 #### Returns
 Number of bytes skipped.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `c` | `char` |  |
-
 ---
 
 {#skipwhitespace}
@@ -9144,10 +7974,6 @@ Reads the next whitespace-delimited word into `val`.
 #### Returns
 Number of bytes consumed.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `val` | `std::string &` |  |
-
 ---
 
 {#readnextnumber}
@@ -9165,10 +7991,6 @@ Reads the next whitespace-delimited decimal number into `val`.
 #### Returns
 Number of bytes consumed.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `val` | `unsigned int &` |  |
-
 ---
 
 {#readline}
@@ -9185,10 +8007,6 @@ Reads bytes up to (but not including) the next newline into `val`.
 
 #### Returns
 Number of bytes consumed including the newline.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `val` | `std::string &` |  |
 
 ---
 
@@ -9209,11 +8027,6 @@ Reads bytes up to (but not including) the next occurrence of `c` into `val`.
 #### Returns
 Number of bytes consumed.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `val` | `std::string &` |  |
-| `c` | `char` |  |
-
 ---
 
 {#seek}
@@ -9226,10 +8039,6 @@ void seek(size_t val)
 
 Set position pointer to absolute position. Throws a std::out_of_range exception if the value exceeds the limit.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `val` | `size_t` |  |
-
 ---
 
 {#skip}
@@ -9241,10 +8050,6 @@ void skip(size_t size)
 ```
 
 Set position pointer to relative position. Throws a std::out_of_range exception if the value exceeds the limit.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `size` | `size_t` |  |
 
 ---
 
@@ -9409,12 +8214,6 @@ const char * _bytes
 void init(const char * bytes, size_t size, ByteOrder order)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `bytes` | `const char *` |  |
-| `size` | `size_t` |  |
-| `order` | `[ByteOrder](#byteorder)` |  |
-
 {#bitwriter}
 
 ## BitWriter
@@ -9480,12 +8279,6 @@ Constructs a `[BitWriter](#bitwriter)` over a raw byte array with a fixed capaci
 
 * `order` Byte order used for multi-byte integer writes.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `bytes` | `char *` |  |
-| `size` | `size_t` |  |
-| `order` | `[ByteOrder](#byteorder)` |  |
-
 ---
 
 {#bitwriter}
@@ -9501,11 +8294,6 @@ Constructs a `[BitWriter](#bitwriter)` backed by a `Buffer`. Writes are bounded 
 * `buf` Source buffer. Must remain valid for the writer's lifetime. 
 
 * `order` Byte order used for multi-byte integer writes.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `buf` | `[Buffer](#buffer-2) &` |  |
-| `order` | `[ByteOrder](#byteorder)` |  |
 
 ---
 
@@ -9523,11 +8311,6 @@ Constructs a `[BitWriter](#bitwriter)` over a `[MutableBuffer](#mutablebuffer)` 
 
 * `order` Byte order used for multi-byte integer writes.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `pod` | `[MutableBuffer](#mutablebuffer) &` |  |
-| `order` | `[ByteOrder](#byteorder)` |  |
-
 ---
 
 {#put}
@@ -9541,11 +8324,6 @@ virtual void put(const char * val, size_t len)
 ```
 
 Append bytes to the buffer. Throws a `std::out_of_range` exception if reading past the limit.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `val` | `const char *` |  |
-| `len` | `size_t` |  |
 
 ---
 
@@ -9561,10 +8339,6 @@ Appends the contents of a string. Throws `std::out_of_range` if capacity is exce
 #### Parameters
 * `val` String whose bytes are appended.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `val` | `const std::string &` |  |
-
 ---
 
 {#putu8}
@@ -9578,10 +8352,6 @@ void putU8(uint8_t val)
 Appends an unsigned 8-bit integer. Throws `std::out_of_range` if capacity is exceeded. 
 #### Parameters
 * `val` Value to write.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `val` | `uint8_t` |  |
 
 ---
 
@@ -9597,10 +8367,6 @@ Appends an unsigned 16-bit integer with byte-order conversion. Throws `std::out_
 #### Parameters
 * `val` Value to write.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `val` | `uint16_t` |  |
-
 ---
 
 {#putu24}
@@ -9614,10 +8380,6 @@ void putU24(uint32_t val)
 Appends the low 24 bits of a 32-bit integer with byte-order conversion. Throws `std::out_of_range` if capacity is exceeded. 
 #### Parameters
 * `val` Value to write (only the lower 3 bytes are written).
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `val` | `uint32_t` |  |
 
 ---
 
@@ -9633,10 +8395,6 @@ Appends an unsigned 32-bit integer with byte-order conversion. Throws `std::out_
 #### Parameters
 * `val` Value to write.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `val` | `uint32_t` |  |
-
 ---
 
 {#putu64}
@@ -9651,10 +8409,6 @@ Appends an unsigned 64-bit integer with byte-order conversion. Throws `std::out_
 #### Parameters
 * `val` Value to write.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `val` | `uint64_t` |  |
-
 ---
 
 {#update}
@@ -9668,12 +8422,6 @@ virtual bool update(const char * val, size_t len, size_t pos)
 ```
 
 Update a byte range. Throws a `std::out_of_range` exception if reading past the limit.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `val` | `const char *` |  |
-| `len` | `size_t` |  |
-| `pos` | `size_t` |  |
 
 ---
 
@@ -9694,11 +8442,6 @@ Overwrites a previously written string at the given absolute position.
 #### Returns
 True on success, false if the range exceeds available space.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `val` | `const std::string &` |  |
-| `pos` | `size_t` |  |
-
 ---
 
 {#updateu8}
@@ -9717,11 +8460,6 @@ Overwrites a `uint8_t` at the given absolute position.
 
 #### Returns
 True on success, false if the range exceeds available space.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `val` | `uint8_t` |  |
-| `pos` | `size_t` |  |
 
 ---
 
@@ -9742,11 +8480,6 @@ Overwrites a `uint16_t` at the given absolute position, with byte-order conversi
 #### Returns
 True on success, false if the range exceeds available space.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `val` | `uint16_t` |  |
-| `pos` | `size_t` |  |
-
 ---
 
 {#updateu24}
@@ -9765,11 +8498,6 @@ Overwrites 3 bytes (low 24 bits of `val`) at the given absolute position, with b
 
 #### Returns
 True on success, false if the range exceeds available space.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `val` | `uint32_t` |  |
-| `pos` | `size_t` |  |
 
 ---
 
@@ -9790,11 +8518,6 @@ Overwrites a `uint32_t` at the given absolute position, with byte-order conversi
 #### Returns
 True on success, false if the range exceeds available space.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `val` | `uint32_t` |  |
-| `pos` | `size_t` |  |
-
 ---
 
 {#updateu64}
@@ -9814,11 +8537,6 @@ Overwrites a `uint64_t` at the given absolute position, with byte-order conversi
 #### Returns
 True on success, false if the range exceeds available space.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `val` | `uint64_t` |  |
-| `pos` | `size_t` |  |
-
 ---
 
 {#seek}
@@ -9831,10 +8549,6 @@ void seek(size_t val)
 
 Set position pointer to absolute position. Throws a `std::out_of_range` exception if the value exceeds the limit.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `val` | `size_t` |  |
-
 ---
 
 {#skip}
@@ -9846,10 +8560,6 @@ void skip(size_t size)
 ```
 
 Set position pointer to relative position. Throws a `std::out_of_range` exception if the value exceeds the limit.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `size` | `size_t` |  |
 
 ---
 
@@ -10044,12 +8754,6 @@ char * _bytes
 virtual void init(char * bytes, size_t size, ByteOrder order)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `bytes` | `char *` |  |
-| `size` | `size_t` |  |
-| `order` | `[ByteOrder](#byteorder)` |  |
-
 {#dynamicbitwriter}
 
 ## DynamicBitWriter
@@ -10089,11 +8793,6 @@ Constructs a `[DynamicBitWriter](#dynamicbitwriter)` backed by a dynamically res
 
 * `order` Byte order used for multi-byte integer writes.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `buf` | `[Buffer](#buffer-2) &` |  |
-| `order` | `[ByteOrder](#byteorder)` |  |
-
 ---
 
 {#dynamicbitwriter}
@@ -10112,12 +8811,6 @@ Constructs a `[DynamicBitWriter](#dynamicbitwriter)` that inserts data starting 
 
 * `order` Byte order used for multi-byte integer writes.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `buf` | `[Buffer](#buffer-2) &` |  |
-| `offset` | `Buffer::iterator` |  |
-| `order` | `[ByteOrder](#byteorder)` |  |
-
 ---
 
 {#put}
@@ -10132,11 +8825,6 @@ virtual void put(const char * val, size_t len)
 
 Append bytes to the buffer. Throws a `std::out_of_range` exception if reading past the limit.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `val` | `const char *` |  |
-| `len` | `size_t` |  |
-
 ---
 
 {#update}
@@ -10150,12 +8838,6 @@ virtual bool update(const char * val, size_t len, size_t pos)
 ```
 
 Update a byte range. Throws a `std::out_of_range` exception if reading past the limit.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `val` | `const char *` |  |
-| `len` | `size_t` |  |
-| `pos` | `size_t` |  |
 
 ### Protected Attributes
 
@@ -10227,10 +8909,6 @@ virtual void write(std::unique_ptr< LogStream > stream)
 
 Writes the given log message stream.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `stream` | `std::unique_ptr< [LogStream](#logstream) >` |  |
-
 {#asynclogwriter}
 
 ## AsyncLogWriter
@@ -10276,10 +8954,6 @@ virtual void write(std::unique_ptr< LogStream > stream)
 ```
 
 Queues the given log message stream.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `stream` | `std::unique_ptr< [LogStream](#logstream) >` |  |
 
 ---
 
@@ -10419,10 +9093,6 @@ void add(std::unique_ptr< LogChannel > channel)
 
 Adds the given log channel. Takes ownership.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `channel` | `std::unique_ptr< [LogChannel](#logchannel) >` |  |
-
 ---
 
 {#remove}
@@ -10434,10 +9104,6 @@ void remove(std::string_view name)
 ```
 
 Removes the given log channel by name.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `std::string_view` |  |
 
 ---
 
@@ -10453,11 +9119,6 @@ LogChannel * get(std::string_view name, bool whiny) const
 
 Returns the specified log channel. Throws an exception if the channel doesn't exist.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `std::string_view` |  |
-| `whiny` | `bool` |  |
-
 ---
 
 {#setdefault}
@@ -10470,10 +9131,6 @@ void setDefault(std::string_view name)
 
 Sets the default log to the specified log channel.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `std::string_view` |  |
-
 ---
 
 {#setwriter}
@@ -10485,10 +9142,6 @@ void setWriter(std::unique_ptr< LogWriter > writer)
 ```
 
 Sets the log writer instance. Takes ownership.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `writer` | `std::unique_ptr< [LogWriter](#logwriter) >` |  |
 
 ---
 
@@ -10516,10 +9169,6 @@ void write(const LogStream & stream)
 
 Writes the given message to the default log channel. The message will be copied.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `stream` | `const [LogStream](#logstream) &` |  |
-
 ---
 
 {#write}
@@ -10531,10 +9180,6 @@ void write(std::unique_ptr< LogStream > stream)
 ```
 
 Writes the given message to the default log channel.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `stream` | `std::unique_ptr< [LogStream](#logstream) >` |  |
 
 ### Public Static Methods
 
@@ -10571,11 +9216,6 @@ static void setInstance(Logger * logger, bool freeExisting)
 ```
 
 Sets the default logger singleton instance.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `logger` | `[Logger](#logger) *` |  |
-| `freeExisting` | `bool` |  |
 
 ---
 
@@ -10713,12 +9353,6 @@ LogChannel(std::string name, Level level, std::string timeFormat)
 
 * `timeFormat` strftime-compatible format string for timestamps.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `std::string` |  |
-| `level` | `[Level](#level)` |  |
-| `timeFormat` | `std::string` |  |
-
 ---
 
 {#write}
@@ -10734,10 +9368,6 @@ virtual void write(const LogStream & stream)
 Writes a log stream entry to this channel. 
 #### Parameters
 * `stream` The log stream to write.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `stream` | `const [LogStream](#logstream) &` |  |
 
 ---
 
@@ -10759,12 +9389,6 @@ Writes a plain message to this channel.
 
 * `realm` Optional source realm (e.g. file or class name).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `message` | `std::string` |  |
-| `level` | `[Level](#level)` |  |
-| `realm` | `std::string` |  |
-
 ---
 
 {#format}
@@ -10782,11 +9406,6 @@ Formats a log stream entry into the given output stream.
 * `stream` The log stream to format. 
 
 * `ost` The output stream to write the formatted message into.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `stream` | `const [LogStream](#logstream) &` |  |
-| `ost` | `std::ostream &` |  |
 
 ---
 
@@ -10846,10 +9465,6 @@ Sets the minimum severity level.
 #### Parameters
 * `level` Messages below this level are dropped.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `level` | `[Level](#level)` |  |
-
 ---
 
 {#settimeformat}
@@ -10866,10 +9481,6 @@ Sets the timestamp format string.
 #### Parameters
 * `format` strftime-compatible format string.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `format` | `std::string` |  |
-
 ---
 
 {#setfilter}
@@ -10885,10 +9496,6 @@ inline void setFilter(std::string filter)
 Sets a realm filter; only messages whose realm matches are written. 
 #### Parameters
 * `filter` Realm substring or pattern to match against.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `filter` | `std::string` |  |
 
 ### Protected Attributes
 
@@ -10975,12 +9582,6 @@ ConsoleChannel(std::string name, Level level, std::string timeFormat)
 
 * `timeFormat` strftime-compatible format string for timestamps.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `std::string` |  |
-| `level` | `[Level](#level)` |  |
-| `timeFormat` | `std::string` |  |
-
 ---
 
 {#write}
@@ -10996,10 +9597,6 @@ virtual void write(const LogStream & stream)
 Formats and writes the log stream entry to stdout. Messages below the channel level or filtered by realm are silently dropped. 
 #### Parameters
 * `stream` The log stream to write.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `stream` | `const [LogStream](#logstream) &` |  |
 
 {#filechannel}
 
@@ -11041,13 +9638,6 @@ FileChannel(std::string name, std::string path, Level level, std::string timeFor
 
 * `timeFormat` strftime-compatible format string for timestamps.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `std::string` |  |
-| `path` | `std::string` |  |
-| `level` | `[Level](#level)` |  |
-| `timeFormat` | `std::string` |  |
-
 ---
 
 {#write}
@@ -11064,10 +9654,6 @@ Formats and writes the log stream entry to the file. Opens the file on first wri
 #### Parameters
 * `stream` The log stream to write.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `stream` | `const [LogStream](#logstream) &` |  |
-
 ---
 
 {#setpath}
@@ -11081,10 +9667,6 @@ void setPath(const std::string & path)
 Sets the file path and reopens the file stream. 
 #### Parameters
 * `path` Path to the new log file.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `path` | `const std::string &` |  |
 
 ---
 
@@ -11209,15 +9791,6 @@ RotatingFileChannel(std::string name, std::string dir, Level level, std::string 
 
 * `timeFormat` strftime-compatible format string for timestamps.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `std::string` |  |
-| `dir` | `std::string` |  |
-| `level` | `[Level](#level)` |  |
-| `extension` | `std::string` |  |
-| `rotationInterval` | `int` |  |
-| `timeFormat` | `std::string` |  |
-
 ---
 
 {#write}
@@ -11233,10 +9806,6 @@ virtual void write(const LogStream & stream)
 Formats and writes the log stream entry to the current log file. Rotates the file if the rotation interval has elapsed. 
 #### Parameters
 * `stream` The log stream to write.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `stream` | `const [LogStream](#logstream) &` |  |
 
 ---
 
@@ -11310,10 +9879,6 @@ Sets the output directory for rotated log files.
 #### Parameters
 * `dir` Target directory path.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `dir` | `std::string` |  |
-
 ---
 
 {#setextension}
@@ -11330,10 +9895,6 @@ Sets the file extension for rotated log files.
 #### Parameters
 * `ext` Extension without leading dot (e.g. "log").
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ext` | `std::string` |  |
-
 ---
 
 {#setrotationinterval}
@@ -11349,10 +9910,6 @@ inline void setRotationInterval(int interval)
 Sets the rotation interval. 
 #### Parameters
 * `interval` Number of seconds between rotations.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `interval` | `int` |  |
 
 ### Protected Attributes
 
@@ -11618,10 +10175,6 @@ inline IntrusivePtr(std::nullptr_t) noexcept
 inline explicit IntrusivePtr(T * p) noexcept
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `p` | `T *` |  |
-
 ---
 
 {#intrusiveptr}
@@ -11633,10 +10186,6 @@ inline explicit IntrusivePtr(T * p) noexcept
 ```cpp
 inline IntrusivePtr(const IntrusivePtr & r) noexcept
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `r` | `const [IntrusivePtr](#intrusiveptr) &` |  |
 
 ---
 
@@ -11650,10 +10199,6 @@ inline IntrusivePtr(const IntrusivePtr & r) noexcept
 template<typename U> inline IntrusivePtr(const IntrusivePtr< U > & r) noexcept
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `r` | `const [IntrusivePtr](#intrusiveptr)< U > &` |  |
-
 ---
 
 {#intrusiveptr}
@@ -11666,10 +10211,6 @@ template<typename U> inline IntrusivePtr(const IntrusivePtr< U > & r) noexcept
 inline IntrusivePtr(IntrusivePtr && r) noexcept
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `r` | `[IntrusivePtr](#intrusiveptr) &&` |  |
-
 ---
 
 {#intrusiveptr}
@@ -11681,10 +10222,6 @@ inline IntrusivePtr(IntrusivePtr && r) noexcept
 ```cpp
 template<typename U> inline IntrusivePtr(IntrusivePtr< U > && r) noexcept
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `r` | `[IntrusivePtr](#intrusiveptr)< U > &&` |  |
 
 ---
 
@@ -11715,10 +10252,6 @@ inline void reset(T * p) noexcept
 Releases the current pointer and takes ownership of p, incrementing its refcount. 
 #### Parameters
 * `p` New raw pointer to manage (may be nullptr).
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `p` | `T *` |  |
 
 ---
 
@@ -11798,10 +10331,6 @@ Swaps the managed pointer with another [IntrusivePtr](#intrusiveptr).
 #### Parameters
 * `r` The other [IntrusivePtr](#intrusiveptr) to swap with.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `r` | `[IntrusivePtr](#intrusiveptr) &` |  |
-
 ---
 
 {#detach}
@@ -11828,10 +10357,6 @@ Release ownership without decrementing refcount. Used internally for move constr
 inline bool operator==(const IntrusivePtr & r) const noexcept
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `r` | `const [IntrusivePtr](#intrusiveptr) &` |  |
-
 ---
 
 {#operator}
@@ -11843,10 +10368,6 @@ inline bool operator==(const IntrusivePtr & r) const noexcept
 ```cpp
 inline bool operator!=(const IntrusivePtr & r) const noexcept
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `r` | `const [IntrusivePtr](#intrusiveptr) &` |  |
 
 ---
 
@@ -11883,10 +10404,6 @@ inline bool operator!=(std::nullptr_t) const noexcept
 ```cpp
 inline bool operator<(const IntrusivePtr & r) const noexcept
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `r` | `const [IntrusivePtr](#intrusiveptr) &` |  |
 
 ### Private Attributes
 
@@ -11943,10 +10460,6 @@ Creates and initializes the PRNG. The stateSize parameter is accepted for API co
 #### Parameters
 * `stateSize` Ignored; present for API compatibility only.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `stateSize` | `int` |  |
-
 ---
 
 {#random}
@@ -11972,10 +10485,6 @@ void seed(uint32_t seed)
 Seeds the pseudo random generator with the given seed. 
 #### Parameters
 * `seed` 32-bit seed value.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `seed` | `uint32_t` |  |
 
 ---
 
@@ -12019,10 +10528,6 @@ Returns the next pseudo random number in the range [0, n).
 
 #### Returns
 Pseudo random value in [0, n).
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `n` | `uint32_t` |  |
 
 ---
 
@@ -12104,11 +10609,6 @@ Fills the buffer with cryptographically random bytes from std::random_device.
 
 * `length` Number of bytes to write into seed.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `seed` | `char *` |  |
-| `length` | `unsigned` |  |
-
 ### Private Attributes
 
 | Return | Name | Description |
@@ -12175,10 +10675,6 @@ void start(std::function< void()> target)
 Starts the asynchronous context with the given callback. The callback must remain valid for the lifetime of the `[Runner](#runner)`. 
 #### Parameters
 * `target` Callable to invoke when the context runs.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `target` | `std::function< void()>` |  |
 
 ---
 
@@ -12254,10 +10750,6 @@ Enables or disables repeating mode. When repeating, the target function is invok
 #### Parameters
 * `flag` True to enable repeating mode, false to run the target once.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `flag` | `bool` |  |
-
 ---
 
 {#async}
@@ -12306,10 +10798,6 @@ Blocks until the async context exits or the timeout elapses. The context should 
 
 #### Returns
 True if the context exited cleanly, false if the timeout was reached (throws instead).
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `timeout` | `int` |  |
 
 ### Protected Attributes
 
@@ -12416,13 +10904,6 @@ Connects a `lambda` or `std::function` to the signal.
 #### Returns
 The assigned slot ID, which can be passed to `[detach()](#classicy_1_1Signal_3_01RT_07Args_8_8_8_08_00_01MutexT_01_4_1af559f1f6b044f249b3d7b04d80274bab)` to disconnect.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `func` | `[Function](#classicy_1_1Signal_3_01RT_07Args_8_8_8_08_00_01MutexT_01_4_1ad3a478f874517284f97b88615efb6a21) const &` |  |
-| `instance` | `void *` |  |
-| `id` | `int` |  |
-| `priority` | `int` |  |
-
 ---
 
 {#attach}
@@ -12448,10 +10929,6 @@ The assigned slot ID, which can be passed to `[detach()](#classicy_1_1Signal_3_0
 #### Exceptions
 * `std::logic_error` if `slot->id` is set explicitly and already in use.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `slot` | `[SlotPtr](#classicy_1_1Signal_3_01RT_07Args_8_8_8_08_00_01MutexT_01_4_1ab4bc7e7d582e15516c699de2f9795b37)` |  |
-
 ---
 
 {#detach}
@@ -12473,10 +10950,6 @@ Safe to call from within a slot's callback (the slot is marked dead before erasu
 
 #### Returns
 `true` if a slot was found and removed; `false` if the ID was not found.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `id` | `int` |  |
 
 ---
 
@@ -12500,10 +10973,6 @@ Useful for bulk disconnect when an object is destroyed. Matches slots by their s
 #### Returns
 `true` if at least one slot was removed; `false` otherwise.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `instance` | `const void *` |  |
-
 ---
 
 {#detach}
@@ -12525,10 +10994,6 @@ Used by the `[slot()](#slot)` helper overloads and `operator-=` to disconnect a 
 
 #### Returns
 `true` if a matching slot was found and removed; `false` otherwise.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `other` | `[SlotPtr](#classicy_1_1Signal_3_01RT_07Args_8_8_8_08_00_01MutexT_01_4_1ab4bc7e7d582e15516c699de2f9795b37)` |  |
 
 ---
 
@@ -12571,10 +11036,6 @@ Emission snapshots raw slot pointers under a shared lock, then invokes delegates
 
 #### Returns
 For `bool` return type: `true` if any slot handled the event, `false` otherwise. For `void` return type: nothing.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `args` | `Args...` |  |
 
 ---
 
@@ -12631,10 +11092,6 @@ Attaches a function; equivalent to `attach(func)`.
 #### Returns
 Assigned slot ID.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `func` | `[Function](#classicy_1_1Signal_3_01RT_07Args_8_8_8_08_00_01MutexT_01_4_1ad3a478f874517284f97b88615efb6a21) const &` |  |
-
 ---
 
 {#operator}
@@ -12651,10 +11108,6 @@ Attaches a pre-constructed slot; equivalent to `attach(slot)`.
 
 #### Returns
 Assigned slot ID.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `slot` | `[SlotPtr](#classicy_1_1Signal_3_01RT_07Args_8_8_8_08_00_01MutexT_01_4_1ab4bc7e7d582e15516c699de2f9795b37)` |  |
 
 ---
 
@@ -12673,10 +11126,6 @@ Detaches the slot with the given ID; equivalent to `detach(id)`.
 #### Returns
 `true` if removed.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `id` | `int` |  |
-
 ---
 
 {#operator}
@@ -12694,10 +11143,6 @@ Detaches all slots for the given instance; equivalent to `detach(instance)`.
 #### Returns
 `true` if any removed.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `instance` | `const void *` |  |
-
 ---
 
 {#operator}
@@ -12714,10 +11159,6 @@ Detaches the slot matching `slot`'s delegate; equivalent to `detach(slot)`.
 
 #### Returns
 `true` if removed.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `slot` | `[SlotPtr](#classicy_1_1Signal_3_01RT_07Args_8_8_8_08_00_01MutexT_01_4_1ab4bc7e7d582e15516c699de2f9795b37)` |  |
 
 ---
 
@@ -12745,10 +11186,6 @@ Copy constructor; copies the slot list and last-assigned ID from `r`.
 #### Parameters
 * `r` The signal to copy from.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `r` | `const [Signal](#signal) &` |  |
-
 ---
 
 {#operator}
@@ -12767,10 +11204,6 @@ Copy assignment operator; copies the slot list and last-assigned ID from `r`.
 
 #### Returns
 Reference to this signal.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `r` | `const [Signal](#signal) &` |  |
 
 ### Public Types
 
@@ -12906,11 +11339,6 @@ SweepFlag _needsSweep {}
 ```cpp
 template<typename Matcher> inline size_t killMatchingLocked(Matcher && matcher, bool removeAll) const
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `matcher` | `Matcher &&` |  |
-| `removeAll` | `bool` |  |
 
 ---
 
@@ -13071,10 +11499,6 @@ Construct the stream bound to `loop` with a 64 KiB read buffer.
 #### Parameters
 * `loop` Event loop to associate this stream with.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `loop` | `[uv::Loop](uv.md#loop) *` |  |
-
 ---
 
 {#stream}
@@ -13148,11 +11572,6 @@ The write is non-blocking; data is buffered by libuv. Returns `false` without th
 #### Returns
 `true` if the write was queued; `false` on backpressure or if the stream is not in a writable state.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `const char *` |  |
-| `len` | `size_t` |  |
-
 ---
 
 {#writeowned}
@@ -13175,10 +11594,6 @@ The buffer is moved into the queued write request and retained until the libuv c
 #### Returns
 `true` if the write was queued; `false` on backpressure or if the stream is not in a writable state.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `buffer` | `[Buffer](#buffer-2) &&` |  |
-
 ---
 
 {#sethighwatermark}
@@ -13192,10 +11607,6 @@ inline void setHighWaterMark(size_t bytes)
 ```
 
 Set the high water mark for the write queue (default 16MB). When the write queue exceeds this size, [write()](#classicy_1_1Stream_1a56926a6ac3ba433aed1414ffb1d20cf0) returns false.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `bytes` | `size_t` |  |
 
 ---
 
@@ -13222,12 +11633,6 @@ Only valid for named-pipe handles opened with IPC mode enabled. Throws `std::log
 
 #### Returns
 `true` if the write was queued; `false` on error.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `const char *` |  |
-| `len` | `size_t` |  |
-| `send` | `uv_stream_t *` |  |
 
 ---
 
@@ -13384,11 +11789,6 @@ The default implementation emits the `Read` signal. Override to intercept data b
 
 * `len` Number of valid bytes in `data`.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `const char *` |  |
-| `len` | `size_t` |  |
-
 ---
 
 {#allocwritereq}
@@ -13423,10 +11823,6 @@ Return `req` to the freelist, or delete it if the pool is at capacity.
 #### Parameters
 * `req` Write request to recycle or free.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `req` | `uv_write_t *` |  |
-
 ---
 
 {#allocownedwritereq}
@@ -13451,10 +11847,6 @@ inline OwnedWriteReq * allocOwnedWriteReq()
 inline void freeOwnedWriteReq(OwnedWriteReq * req)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `req` | `[OwnedWriteReq](#ownedwritereq) *` |  |
-
 ---
 
 {#canqueuewrite}
@@ -13466,10 +11858,6 @@ inline void freeOwnedWriteReq(OwnedWriteReq * req)
 ```cpp
 inline bool canQueueWrite(size_t len)
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `len` | `size_t` |  |
 
 ### Public Types
 
@@ -13548,11 +11936,6 @@ Constructs a `[Thread](#thread)` and immediately starts it with the given functi
 
 * `args` Arguments forwarded to `func`.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `func` | `Function &&` |  |
-| `args` | `Args &&...` |  |
-
 ---
 
 {#thread}
@@ -13590,11 +11973,6 @@ Starts the thread with a variadic function and arguments. The thread is started 
 
 * `args` Arguments forwarded to `func`.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `func` | `Function &&` |  |
-| `args` | `Args &&...` |  |
-
 ---
 
 {#start}
@@ -13610,10 +11988,6 @@ virtual void start(std::function< void()> func)
 Starts the thread with a `std::function` callback. Overrides `[Runner::start](#classicy_1_1Runner_1a5969e823f1ce0bdd8730d3108bf13fbd)`; delegates to the variadic `start` template. 
 #### Parameters
 * `func` Callable to execute on the new thread.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `func` | `std::function< void()>` |  |
 
 ---
 
@@ -13908,10 +12282,6 @@ Constructs a `[Process](#process)` attached to the given event loop.
 #### Parameters
 * `loop` Event loop to use for I/O and exit notifications. Defaults to the default loop.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `loop` | `[uv::Loop](uv.md#loop) *` |  |
-
 ---
 
 {#process}
@@ -13927,11 +12297,6 @@ Constructs a `[Process](#process)` with initial command-line arguments.
 * `args` Initializer list of argument strings. The first element is typically the executable path. 
 
 * `loop` Event loop to use for I/O and exit notifications. Defaults to the default loop.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `args` | `std::initializer_list< std::string >` |  |
-| `loop` | `[uv::Loop](uv.md#loop) *` |  |
 
 ---
 
@@ -13993,10 +12358,6 @@ Sends a signal to the process.
 
 #### Returns
 True if the signal was sent successfully, false if the process is not running or handle is invalid.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `signum` | `int` |  |
 
 ---
 
@@ -14191,11 +12552,6 @@ Constructs a [Timeout](#timeout) with the given delay.
 
 * `autoStart` If true, starts the timer immediately on construction.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `delay` | `long` |  |
-| `autoStart` | `bool` |  |
-
 ---
 
 {#timeout}
@@ -14210,10 +12566,6 @@ Copy constructor.
 #### Parameters
 * `src` Source [Timeout](#timeout) to copy state from.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `src` | `const [Timeout](#timeout) &` |  |
-
 ---
 
 {#timeout}
@@ -14223,10 +12575,6 @@ Copy constructor.
 ```cpp
 Timeout(Timeout && src) = default
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `src` | `[Timeout](#timeout) &&` |  |
 
 ---
 
@@ -14328,10 +12676,6 @@ Sets the expiry delay without restarting the timer.
 #### Parameters
 * `delay` New delay in milliseconds.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `delay` | `long` |  |
-
 ---
 
 {#delay}
@@ -14361,10 +12705,6 @@ Timeout & operator=(const Timeout & src)
 Copy assignment operator. 
 #### Parameters
 * `src` Source [Timeout](#timeout) to copy state from.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `src` | `const [Timeout](#timeout) &` |  |
 
 ### Protected Attributes
 
@@ -14442,10 +12782,6 @@ Constructs a [TimedToken](#timedtoken) with a randomly generated 32-character ID
 #### Parameters
 * `duration` Lifetime in milliseconds (default: 1000).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `duration` | `long` |  |
-
 ---
 
 {#timedtoken}
@@ -14463,11 +12799,6 @@ Constructs a [TimedToken](#timedtoken) with an explicit ID, started immediately.
 * `id` Token identifier. 
 
 * `duration` Lifetime in milliseconds (default: 1000).
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `id` | `const std::string &` |  |
-| `duration` | `long` |  |
 
 ---
 
@@ -14499,10 +12830,6 @@ inline bool operator==(const TimedToken & r) const
 
 Compares two tokens by ID.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `r` | `const [TimedToken](#timedtoken) &` |  |
-
 ---
 
 {#operator}
@@ -14516,10 +12843,6 @@ inline bool operator==(std::string_view r) const
 ```
 
 Compares this token's ID against a string.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `r` | `std::string_view` |  |
 
 ### Protected Attributes
 
@@ -14602,10 +12925,6 @@ Timestamp(TimeVal tv)
 
 Creates a timestamp from the given time value.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `tv` | `[TimeVal](#classicy_1_1Timestamp_1a64608e8ded359dd47dc08dec03a2c60e)` |  |
-
 ---
 
 {#timestamp}
@@ -14617,10 +12936,6 @@ Timestamp(const Timestamp & other)
 ```
 
 Copy constructor.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `other` | `const [Timestamp](#timestamp) &` |  |
 
 ---
 
@@ -14646,10 +12961,6 @@ void swap(Timestamp & timestamp)
 
 Swaps the [Timestamp](#timestamp) with another one.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `timestamp` | `[Timestamp](#timestamp) &` |  |
-
 ---
 
 {#update}
@@ -14674,10 +12985,6 @@ Updates the [Timestamp](#timestamp) with the current time.
 inline bool operator==(const Timestamp & ts) const
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ts` | `const [Timestamp](#timestamp) &` |  |
-
 ---
 
 {#operator}
@@ -14689,10 +12996,6 @@ inline bool operator==(const Timestamp & ts) const
 ```cpp
 inline bool operator!=(const Timestamp & ts) const
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ts` | `const [Timestamp](#timestamp) &` |  |
 
 ---
 
@@ -14706,10 +13009,6 @@ inline bool operator!=(const Timestamp & ts) const
 inline bool operator>(const Timestamp & ts) const
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ts` | `const [Timestamp](#timestamp) &` |  |
-
 ---
 
 {#operator}
@@ -14721,10 +13020,6 @@ inline bool operator>(const Timestamp & ts) const
 ```cpp
 inline bool operator>=(const Timestamp & ts) const
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ts` | `const [Timestamp](#timestamp) &` |  |
 
 ---
 
@@ -14738,10 +13033,6 @@ inline bool operator>=(const Timestamp & ts) const
 inline bool operator<(const Timestamp & ts) const
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ts` | `const [Timestamp](#timestamp) &` |  |
-
 ---
 
 {#operator}
@@ -14753,10 +13044,6 @@ inline bool operator<(const Timestamp & ts) const
 ```cpp
 inline bool operator<=(const Timestamp & ts) const
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ts` | `const [Timestamp](#timestamp) &` |  |
 
 ---
 
@@ -14770,10 +13057,6 @@ inline bool operator<=(const Timestamp & ts) const
 inline Timestamp operator+(TimeDiff d) const
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `d` | `[TimeDiff](#classicy_1_1Timestamp_1a204bb025454e8cbcc5052cbea7cf02f6)` |  |
-
 ---
 
 {#operator}
@@ -14785,10 +13068,6 @@ inline Timestamp operator+(TimeDiff d) const
 ```cpp
 inline Timestamp operator-(TimeDiff d) const
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `d` | `[TimeDiff](#classicy_1_1Timestamp_1a204bb025454e8cbcc5052cbea7cf02f6)` |  |
 
 ---
 
@@ -14802,10 +13081,6 @@ inline Timestamp operator-(TimeDiff d) const
 inline TimeDiff operator-(const Timestamp & ts) const
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ts` | `const [Timestamp](#timestamp) &` |  |
-
 ---
 
 {#operator}
@@ -14818,10 +13093,6 @@ inline TimeDiff operator-(const Timestamp & ts) const
 inline Timestamp & operator+=(TimeDiff d)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `d` | `[TimeDiff](#classicy_1_1Timestamp_1a204bb025454e8cbcc5052cbea7cf02f6)` |  |
-
 ---
 
 {#operator}
@@ -14833,10 +13104,6 @@ inline Timestamp & operator+=(TimeDiff d)
 ```cpp
 inline Timestamp & operator-=(TimeDiff d)
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `d` | `[TimeDiff](#classicy_1_1Timestamp_1a204bb025454e8cbcc5052cbea7cf02f6)` |  |
 
 ---
 
@@ -14908,10 +13175,6 @@ inline bool isElapsed(TimeDiff interval) const
 
 Returns true iff the given interval has passed since the time denoted by the timestamp.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `interval` | `[TimeDiff](#classicy_1_1Timestamp_1a204bb025454e8cbcc5052cbea7cf02f6)` |  |
-
 ### Public Static Methods
 
 | Return | Name | Description |
@@ -14934,10 +13197,6 @@ static Timestamp fromEpochTime(std::time_t t)
 
 Creates a timestamp from a std::time_t.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `t` | `std::time_t` |  |
-
 ---
 
 {#fromutctime}
@@ -14951,10 +13210,6 @@ static Timestamp fromUtcTime(UtcTimeVal val)
 ```
 
 Creates a timestamp from a UTC time value.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `val` | `[UtcTimeVal](#classicy_1_1Timestamp_1a5cf22d610ea8ec8ce0143c9f89597d47)` |  |
 
 ---
 
@@ -15112,10 +13367,6 @@ Timespan(TimeDiff microseconds)
 
 Creates a [Timespan](#timespan).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `microseconds` | `[TimeDiff](#classicy_1_1Timespan_1a59b3ac9cd75c8803f647547646563cc9)` |  |
-
 ---
 
 {#timespan}
@@ -15127,11 +13378,6 @@ Timespan(long seconds, long microseconds)
 ```
 
 Creates a [Timespan](#timespan). Useful for creating a [Timespan](#timespan) from a struct timeval.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `seconds` | `long` |  |
-| `microseconds` | `long` |  |
 
 ---
 
@@ -15145,14 +13391,6 @@ Timespan(int days, int hours, int minutes, int seconds, int microseconds)
 
 Creates a [Timespan](#timespan).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `days` | `int` |  |
-| `hours` | `int` |  |
-| `minutes` | `int` |  |
-| `seconds` | `int` |  |
-| `microseconds` | `int` |  |
-
 ---
 
 {#timespan}
@@ -15164,10 +13402,6 @@ Timespan(const Timespan & timespan)
 ```
 
 Creates a [Timespan](#timespan) from another one.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `timespan` | `const [Timespan](#timespan) &` |  |
 
 ---
 
@@ -15193,10 +13427,6 @@ Timespan & operator=(const Timespan & timespan)
 
 Assignment operator.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `timespan` | `const [Timespan](#timespan) &` |  |
-
 ---
 
 {#operator}
@@ -15208,10 +13438,6 @@ Timespan & operator=(TimeDiff microseconds)
 ```
 
 Assignment operator.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `microseconds` | `[TimeDiff](#classicy_1_1Timespan_1a59b3ac9cd75c8803f647547646563cc9)` |  |
 
 ---
 
@@ -15225,14 +13451,6 @@ Timespan & assign(int days, int hours, int minutes, int seconds, int microsecond
 
 Assigns a new span.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `days` | `int` |  |
-| `hours` | `int` |  |
-| `minutes` | `int` |  |
-| `seconds` | `int` |  |
-| `microseconds` | `int` |  |
-
 ---
 
 {#assign}
@@ -15244,11 +13462,6 @@ Timespan & assign(long seconds, long microseconds)
 ```
 
 Assigns a new span. Useful for assigning from a struct timeval.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `seconds` | `long` |  |
-| `microseconds` | `long` |  |
 
 ---
 
@@ -15262,10 +13475,6 @@ void swap(Timespan & timespan)
 
 Swaps the [Timespan](#timespan) with another one.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `timespan` | `[Timespan](#timespan) &` |  |
-
 ---
 
 {#operator}
@@ -15277,10 +13486,6 @@ Swaps the [Timespan](#timespan) with another one.
 ```cpp
 inline bool operator==(const Timespan & ts) const
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ts` | `const [Timespan](#timespan) &` |  |
 
 ---
 
@@ -15294,10 +13499,6 @@ inline bool operator==(const Timespan & ts) const
 inline bool operator!=(const Timespan & ts) const
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ts` | `const [Timespan](#timespan) &` |  |
-
 ---
 
 {#operator}
@@ -15309,10 +13510,6 @@ inline bool operator!=(const Timespan & ts) const
 ```cpp
 inline bool operator>(const Timespan & ts) const
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ts` | `const [Timespan](#timespan) &` |  |
 
 ---
 
@@ -15326,10 +13523,6 @@ inline bool operator>(const Timespan & ts) const
 inline bool operator>=(const Timespan & ts) const
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ts` | `const [Timespan](#timespan) &` |  |
-
 ---
 
 {#operator}
@@ -15341,10 +13534,6 @@ inline bool operator>=(const Timespan & ts) const
 ```cpp
 inline bool operator<(const Timespan & ts) const
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ts` | `const [Timespan](#timespan) &` |  |
 
 ---
 
@@ -15358,10 +13547,6 @@ inline bool operator<(const Timespan & ts) const
 inline bool operator<=(const Timespan & ts) const
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ts` | `const [Timespan](#timespan) &` |  |
-
 ---
 
 {#operator}
@@ -15373,10 +13558,6 @@ inline bool operator<=(const Timespan & ts) const
 ```cpp
 inline bool operator==(TimeDiff microseconds) const
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `microseconds` | `[TimeDiff](#classicy_1_1Timespan_1a59b3ac9cd75c8803f647547646563cc9)` |  |
 
 ---
 
@@ -15390,10 +13571,6 @@ inline bool operator==(TimeDiff microseconds) const
 inline bool operator!=(TimeDiff microseconds) const
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `microseconds` | `[TimeDiff](#classicy_1_1Timespan_1a59b3ac9cd75c8803f647547646563cc9)` |  |
-
 ---
 
 {#operator}
@@ -15405,10 +13582,6 @@ inline bool operator!=(TimeDiff microseconds) const
 ```cpp
 inline bool operator>(TimeDiff microseconds) const
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `microseconds` | `[TimeDiff](#classicy_1_1Timespan_1a59b3ac9cd75c8803f647547646563cc9)` |  |
 
 ---
 
@@ -15422,10 +13595,6 @@ inline bool operator>(TimeDiff microseconds) const
 inline bool operator>=(TimeDiff microseconds) const
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `microseconds` | `[TimeDiff](#classicy_1_1Timespan_1a59b3ac9cd75c8803f647547646563cc9)` |  |
-
 ---
 
 {#operator}
@@ -15437,10 +13606,6 @@ inline bool operator>=(TimeDiff microseconds) const
 ```cpp
 inline bool operator<(TimeDiff microseconds) const
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `microseconds` | `[TimeDiff](#classicy_1_1Timespan_1a59b3ac9cd75c8803f647547646563cc9)` |  |
 
 ---
 
@@ -15454,10 +13619,6 @@ inline bool operator<(TimeDiff microseconds) const
 inline bool operator<=(TimeDiff microseconds) const
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `microseconds` | `[TimeDiff](#classicy_1_1Timespan_1a59b3ac9cd75c8803f647547646563cc9)` |  |
-
 ---
 
 {#operator}
@@ -15469,10 +13630,6 @@ inline bool operator<=(TimeDiff microseconds) const
 ```cpp
 Timespan operator+(const Timespan & d) const
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `d` | `const [Timespan](#timespan) &` |  |
 
 ---
 
@@ -15486,10 +13643,6 @@ Timespan operator+(const Timespan & d) const
 Timespan operator-(const Timespan & d) const
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `d` | `const [Timespan](#timespan) &` |  |
-
 ---
 
 {#operator}
@@ -15500,10 +13653,6 @@ Timespan operator-(const Timespan & d) const
 Timespan & operator+=(const Timespan & d)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `d` | `const [Timespan](#timespan) &` |  |
-
 ---
 
 {#operator}
@@ -15513,10 +13662,6 @@ Timespan & operator+=(const Timespan & d)
 ```cpp
 Timespan & operator-=(const Timespan & d)
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `d` | `const [Timespan](#timespan) &` |  |
 
 ---
 
@@ -15530,10 +13675,6 @@ Timespan & operator-=(const Timespan & d)
 Timespan operator+(TimeDiff microseconds) const
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `microseconds` | `[TimeDiff](#classicy_1_1Timespan_1a59b3ac9cd75c8803f647547646563cc9)` |  |
-
 ---
 
 {#operator}
@@ -15546,10 +13687,6 @@ Timespan operator+(TimeDiff microseconds) const
 Timespan operator-(TimeDiff microseconds) const
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `microseconds` | `[TimeDiff](#classicy_1_1Timespan_1a59b3ac9cd75c8803f647547646563cc9)` |  |
-
 ---
 
 {#operator}
@@ -15560,10 +13697,6 @@ Timespan operator-(TimeDiff microseconds) const
 Timespan & operator+=(TimeDiff microseconds)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `microseconds` | `[TimeDiff](#classicy_1_1Timespan_1a59b3ac9cd75c8803f647547646563cc9)` |  |
-
 ---
 
 {#operator}
@@ -15573,10 +13706,6 @@ Timespan & operator+=(TimeDiff microseconds)
 ```cpp
 Timespan & operator-=(TimeDiff microseconds)
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `microseconds` | `[TimeDiff](#classicy_1_1Timespan_1a59b3ac9cd75c8803f647547646563cc9)` |  |
 
 ---
 
@@ -15963,10 +14092,6 @@ DateTime(const Timestamp & timestamp)
 
 Creates a [DateTime](#datetime) for the date and time given in a [Timestamp](#timestamp).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `timestamp` | `const [Timestamp](#timestamp) &` |  |
-
 ---
 
 {#datetime}
@@ -15995,17 +14120,6 @@ Creates a [DateTime](#datetime) for the given Gregorian date and time.
 
 * microsecond is from 0 to 999.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `year` | `int` |  |
-| `month` | `int` |  |
-| `day` | `int` |  |
-| `hour` | `int` |  |
-| `minute` | `int` |  |
-| `second` | `int` |  |
-| `millisecond` | `int` |  |
-| `microsecond` | `int` |  |
-
 ---
 
 {#datetime}
@@ -16017,10 +14131,6 @@ DateTime(double julianDay)
 ```
 
 Creates a [DateTime](#datetime) for the given Julian day.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `julianDay` | `double` |  |
 
 ---
 
@@ -16036,11 +14146,6 @@ Creates a [DateTime](#datetime) from an UtcTimeVal and a TimeDiff.
 
 Mainly used internally by [DateTime](#datetime) and friends.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `utcTime` | `[Timestamp::UtcTimeVal](#classicy_1_1Timestamp_1a5cf22d610ea8ec8ce0143c9f89597d47)` |  |
-| `diff` | `[Timestamp::TimeDiff](#classicy_1_1Timestamp_1a204bb025454e8cbcc5052cbea7cf02f6)` |  |
-
 ---
 
 {#datetime}
@@ -16052,10 +14157,6 @@ DateTime(const DateTime & dateTime)
 ```
 
 Copy constructor. Creates the [DateTime](#datetime) from another one.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `dateTime` | `const [DateTime](#datetime) &` |  |
 
 ---
 
@@ -16081,10 +14182,6 @@ DateTime & operator=(const DateTime & dateTime)
 
 Assigns another [DateTime](#datetime).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `dateTime` | `const [DateTime](#datetime) &` |  |
-
 ---
 
 {#operator}
@@ -16097,10 +14194,6 @@ DateTime & operator=(const Timestamp & timestamp)
 
 Assigns a [Timestamp](#timestamp).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `timestamp` | `const [Timestamp](#timestamp) &` |  |
-
 ---
 
 {#operator}
@@ -16112,10 +14205,6 @@ DateTime & operator=(double julianDay)
 ```
 
 Assigns a Julian day.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `julianDay` | `double` |  |
 
 ---
 
@@ -16145,17 +14234,6 @@ Assigns a Gregorian date and time.
 
 * microsecond is from 0 to 999.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `year` | `int` |  |
-| `month` | `int` |  |
-| `day` | `int` |  |
-| `hour` | `int` |  |
-| `minute` | `int` |  |
-| `second` | `int` |  |
-| `millisecond` | `int` |  |
-| `microseconds` | `int` |  |
-
 ---
 
 {#swap}
@@ -16167,10 +14245,6 @@ void swap(DateTime & dateTime)
 ```
 
 Swaps the [DateTime](#datetime) with another one.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `dateTime` | `[DateTime](#datetime) &` |  |
 
 ---
 
@@ -16217,10 +14291,6 @@ Returns the week number within the year. FirstDayOfWeek should be either SUNDAY 
 The following example assumes that firstDayOfWeek is MONDAY. For 2005, which started on a Saturday, week 1 will be the week starting on Monday, January 3. January 1 and 2 will fall within week 0 (or the last week of the previous year).
 
 For 2007, which starts on a Monday, week 1 will be the week startung on Monday, January 1. There will be no week 0 in 2007.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `firstDayOfWeek` | `int` |  |
 
 ---
 
@@ -16430,10 +14500,6 @@ Returns the date and time expressed in UTC-based time. UTC base time is midnight
 inline bool operator==(const DateTime & dateTime) const
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `dateTime` | `const [DateTime](#datetime) &` |  |
-
 ---
 
 {#operator}
@@ -16445,10 +14511,6 @@ inline bool operator==(const DateTime & dateTime) const
 ```cpp
 inline bool operator!=(const DateTime & dateTime) const
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `dateTime` | `const [DateTime](#datetime) &` |  |
 
 ---
 
@@ -16462,10 +14524,6 @@ inline bool operator!=(const DateTime & dateTime) const
 inline bool operator<(const DateTime & dateTime) const
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `dateTime` | `const [DateTime](#datetime) &` |  |
-
 ---
 
 {#operator}
@@ -16477,10 +14535,6 @@ inline bool operator<(const DateTime & dateTime) const
 ```cpp
 inline bool operator<=(const DateTime & dateTime) const
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `dateTime` | `const [DateTime](#datetime) &` |  |
 
 ---
 
@@ -16494,10 +14548,6 @@ inline bool operator<=(const DateTime & dateTime) const
 inline bool operator>(const DateTime & dateTime) const
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `dateTime` | `const [DateTime](#datetime) &` |  |
-
 ---
 
 {#operator}
@@ -16509,10 +14559,6 @@ inline bool operator>(const DateTime & dateTime) const
 ```cpp
 inline bool operator>=(const DateTime & dateTime) const
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `dateTime` | `const [DateTime](#datetime) &` |  |
 
 ---
 
@@ -16526,10 +14572,6 @@ inline bool operator>=(const DateTime & dateTime) const
 DateTime operator+(const Timespan & span) const
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `span` | `const [Timespan](#timespan) &` |  |
-
 ---
 
 {#operator}
@@ -16541,10 +14583,6 @@ DateTime operator+(const Timespan & span) const
 ```cpp
 DateTime operator-(const Timespan & span) const
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `span` | `const [Timespan](#timespan) &` |  |
 
 ---
 
@@ -16558,10 +14596,6 @@ DateTime operator-(const Timespan & span) const
 Timespan operator-(const DateTime & dateTime) const
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `dateTime` | `const [DateTime](#datetime) &` |  |
-
 ---
 
 {#operator}
@@ -16572,10 +14606,6 @@ Timespan operator-(const DateTime & dateTime) const
 DateTime & operator+=(const Timespan & span)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `span` | `const [Timespan](#timespan) &` |  |
-
 ---
 
 {#operator}
@@ -16585,10 +14615,6 @@ DateTime & operator+=(const Timespan & span)
 ```cpp
 DateTime & operator-=(const Timespan & span)
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `span` | `const [Timespan](#timespan) &` |  |
 
 ---
 
@@ -16602,10 +14628,6 @@ void makeUTC(int tzd)
 
 Converts a local time into UTC, by applying the given time zone differential.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `tzd` | `int` |  |
-
 ---
 
 {#makelocal}
@@ -16617,10 +14639,6 @@ void makeLocal(int tzd)
 ```
 
 Converts a UTC time into a local time, by applying the given time zone differential.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `tzd` | `int` |  |
 
 ### Public Static Methods
 
@@ -16644,10 +14662,6 @@ static inline bool isLeapYear(int year)
 
 Returns true if the given year is a leap year; false otherwise.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `year` | `int` |  |
-
 ---
 
 {#daysofmonth}
@@ -16661,11 +14675,6 @@ static int daysOfMonth(int year, int month)
 ```
 
 Returns the number of days in the given month and year. Month is from 1 to 12.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `year` | `int` |  |
-| `month` | `int` |  |
 
 ---
 
@@ -16682,17 +14691,6 @@ static bool isValid(int year, int month, int day, int hour, int minute, int seco
 Checks if the given date and time is valid (all arguments are within a proper range).
 
 Returns true if all arguments are valid, false otherwise.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `year` | `int` |  |
-| `month` | `int` |  |
-| `day` | `int` |  |
-| `hour` | `int` |  |
-| `minute` | `int` |  |
-| `second` | `int` |  |
-| `millisecond` | `int` |  |
-| `microsecond` | `int` |  |
 
 ### Protected Methods
 
@@ -16712,10 +14710,6 @@ void computeGregorian(double julianDay)
 ```
 
 Computes the Gregorian date for the given Julian day. See [http://vsg.cape.com/~pbaum/date/injdimp.htm](http://vsg.cape.com/~pbaum/date/injdimp.htm), section 3.3.1 for the algorithm.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `julianDay` | `double` |  |
 
 ---
 
@@ -16908,12 +14902,6 @@ void checkLimit(short & lower, short & higher, short limit)
 
 Utility functions used to correct the overflow in computeGregorian.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `lower` | `short &` |  |
-| `higher` | `short &` |  |
-| `limit` | `short` |  |
-
 ---
 
 {#normalize}
@@ -16987,10 +14975,6 @@ static bool isDst(const Timestamp & timestamp)
 ```
 
 Returns true if daylight saving time is in effect for the given time. Depending on the operating system platform this might only work reliably for certain date ranges, as the C library's localtime() function is used.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `timestamp` | `const [Timestamp](#timestamp) &` |  |
 
 ---
 
@@ -17156,17 +15140,6 @@ Creates a [LocalDateTime](#localdatetime) for the given Gregorian local date and
 
 * microsecond is from 0 to 999.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `year` | `int` |  |
-| `month` | `int` |  |
-| `day` | `int` |  |
-| `hour` | `int` |  |
-| `minute` | `int` |  |
-| `second` | `int` |  |
-| `millisecond` | `int` |  |
-| `microsecond` | `int` |  |
-
 ---
 
 {#localdatetime}
@@ -17197,18 +15170,6 @@ LocalDateTime(int tzd, int year, int month, int day, int hour, int minute, int s
 
 * microsecond is from 0 to 999.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `tzd` | `int` |  |
-| `year` | `int` |  |
-| `month` | `int` |  |
-| `day` | `int` |  |
-| `hour` | `int` |  |
-| `minute` | `int` |  |
-| `second` | `int` |  |
-| `millisecond` | `int` |  |
-| `microsecond` | `int` |  |
-
 ---
 
 {#localdatetime}
@@ -17220,10 +15181,6 @@ LocalDateTime(const DateTime & dateTime)
 ```
 
 Creates a [LocalDateTime](#localdatetime) from the UTC time given in dateTime, using the time zone differential of the current time zone.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `dateTime` | `const [DateTime](#datetime) &` |  |
 
 ---
 
@@ -17237,11 +15194,6 @@ LocalDateTime(int tzd, const DateTime & dateTime)
 
 @ deprecated Creates a [LocalDateTime](#localdatetime) from the UTC time given in dateTime, using the given time zone differential. Adjusts dateTime for the given time zone differential.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `tzd` | `int` |  |
-| `dateTime` | `const [DateTime](#datetime) &` |  |
-
 ---
 
 {#localdatetime}
@@ -17253,12 +15205,6 @@ LocalDateTime(int tzd, const DateTime & dateTime, bool adjust)
 ```
 
 @ deprecated Creates a [LocalDateTime](#localdatetime) from the UTC time given in dateTime, using the given time zone differential. If adjust is true, adjusts dateTime for the given time zone differential.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `tzd` | `int` |  |
-| `dateTime` | `const [DateTime](#datetime) &` |  |
-| `adjust` | `bool` |  |
 
 ---
 
@@ -17272,10 +15218,6 @@ LocalDateTime(double julianDay)
 
 Creates a [LocalDateTime](#localdatetime) for the given Julian day in the local time zone.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `julianDay` | `double` |  |
-
 ---
 
 {#localdatetime}
@@ -17288,11 +15230,6 @@ LocalDateTime(int tzd, double julianDay)
 
 @ deprecated Creates a [LocalDateTime](#localdatetime) for the given Julian day in the time zone denoted by the time zone differential in tzd.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `tzd` | `int` |  |
-| `julianDay` | `double` |  |
-
 ---
 
 {#localdatetime}
@@ -17304,10 +15241,6 @@ LocalDateTime(const LocalDateTime & dateTime)
 ```
 
 Copy constructor. Creates the [LocalDateTime](#localdatetime) from another one.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `dateTime` | `const [LocalDateTime](#localdatetime) &` |  |
 
 ---
 
@@ -17333,10 +15266,6 @@ LocalDateTime & operator=(const LocalDateTime & dateTime)
 
 Assigns another [LocalDateTime](#localdatetime).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `dateTime` | `const [LocalDateTime](#localdatetime) &` |  |
-
 ---
 
 {#operator}
@@ -17349,10 +15278,6 @@ LocalDateTime & operator=(const Timestamp & timestamp)
 
 Assigns a timestamp.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `timestamp` | `const [Timestamp](#timestamp) &` |  |
-
 ---
 
 {#operator}
@@ -17364,10 +15289,6 @@ LocalDateTime & operator=(double julianDay)
 ```
 
 Assigns a Julian day in the local time zone.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `julianDay` | `double` |  |
 
 ---
 
@@ -17396,17 +15317,6 @@ Assigns a Gregorian local date and time.
 * millisecond is from 0 to 999.
 
 * microsecond is from 0 to 999.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `year` | `int` |  |
-| `month` | `int` |  |
-| `day` | `int` |  |
-| `hour` | `int` |  |
-| `minute` | `int` |  |
-| `second` | `int` |  |
-| `millisecond` | `int` |  |
-| `microseconds` | `int` |  |
 
 ---
 
@@ -17438,18 +15348,6 @@ LocalDateTime & assign(int tzd, int year, int month, int day, int hour, int minu
 
 * microsecond is from 0 to 999.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `tzd` | `int` |  |
-| `year` | `int` |  |
-| `month` | `int` |  |
-| `day` | `int` |  |
-| `hour` | `int` |  |
-| `minute` | `int` |  |
-| `second` | `int` |  |
-| `millisecond` | `int` |  |
-| `microseconds` | `int` |  |
-
 ---
 
 {#assign}
@@ -17462,11 +15360,6 @@ LocalDateTime & assign(int tzd, double julianDay)
 
 @ deprecated Assigns a Julian day in the time zone denoted by the time zone differential in tzd.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `tzd` | `int` |  |
-| `julianDay` | `double` |  |
-
 ---
 
 {#swap}
@@ -17478,10 +15371,6 @@ void swap(LocalDateTime & dateTime)
 ```
 
 Swaps the [LocalDateTime](#localdatetime) with another one.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `dateTime` | `[LocalDateTime](#localdatetime) &` |  |
 
 ---
 
@@ -17528,10 +15417,6 @@ Returns the week number within the year. FirstDayOfWeek should be either SUNDAY 
 The following example assumes that firstDayOfWeek is MONDAY. For 2005, which started on a Saturday, week 1 will be the week starting on Monday, January 3. January 1 and 2 will fall within week 0 (or the last week of the previous year).
 
 For 2007, which starts on a Monday, week 1 will be the week startung on Monday, January 1. There will be no week 0 in 2007.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `firstDayOfWeek` | `int` |  |
 
 ---
 
@@ -17769,10 +15654,6 @@ Returns the UTC equivalent for the local date and time.
 bool operator==(const LocalDateTime & dateTime) const
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `dateTime` | `const [LocalDateTime](#localdatetime) &` |  |
-
 ---
 
 {#operator}
@@ -17784,10 +15665,6 @@ bool operator==(const LocalDateTime & dateTime) const
 ```cpp
 bool operator!=(const LocalDateTime & dateTime) const
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `dateTime` | `const [LocalDateTime](#localdatetime) &` |  |
 
 ---
 
@@ -17801,10 +15678,6 @@ bool operator!=(const LocalDateTime & dateTime) const
 bool operator<(const LocalDateTime & dateTime) const
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `dateTime` | `const [LocalDateTime](#localdatetime) &` |  |
-
 ---
 
 {#operator}
@@ -17816,10 +15689,6 @@ bool operator<(const LocalDateTime & dateTime) const
 ```cpp
 bool operator<=(const LocalDateTime & dateTime) const
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `dateTime` | `const [LocalDateTime](#localdatetime) &` |  |
 
 ---
 
@@ -17833,10 +15702,6 @@ bool operator<=(const LocalDateTime & dateTime) const
 bool operator>(const LocalDateTime & dateTime) const
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `dateTime` | `const [LocalDateTime](#localdatetime) &` |  |
-
 ---
 
 {#operator}
@@ -17848,10 +15713,6 @@ bool operator>(const LocalDateTime & dateTime) const
 ```cpp
 bool operator>=(const LocalDateTime & dateTime) const
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `dateTime` | `const [LocalDateTime](#localdatetime) &` |  |
 
 ---
 
@@ -17865,10 +15726,6 @@ bool operator>=(const LocalDateTime & dateTime) const
 LocalDateTime operator+(const Timespan & span) const
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `span` | `const [Timespan](#timespan) &` |  |
-
 ---
 
 {#operator}
@@ -17880,10 +15737,6 @@ LocalDateTime operator+(const Timespan & span) const
 ```cpp
 LocalDateTime operator-(const Timespan & span) const
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `span` | `const [Timespan](#timespan) &` |  |
 
 ---
 
@@ -17897,10 +15750,6 @@ LocalDateTime operator-(const Timespan & span) const
 Timespan operator-(const LocalDateTime & dateTime) const
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `dateTime` | `const [LocalDateTime](#localdatetime) &` |  |
-
 ---
 
 {#operator}
@@ -17911,10 +15760,6 @@ Timespan operator-(const LocalDateTime & dateTime) const
 LocalDateTime & operator+=(const Timespan & span)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `span` | `const [Timespan](#timespan) &` |  |
-
 ---
 
 {#operator}
@@ -17924,10 +15769,6 @@ LocalDateTime & operator+=(const Timespan & span)
 ```cpp
 LocalDateTime & operator-=(const Timespan & span)
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `span` | `const [Timespan](#timespan) &` |  |
 
 ### Protected Methods
 
@@ -17948,12 +15789,6 @@ LocalDateTime & operator-=(const Timespan & span)
 LocalDateTime(Timestamp::UtcTimeVal utcTime, Timestamp::TimeDiff diff, int tzd)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `utcTime` | `[Timestamp::UtcTimeVal](#classicy_1_1Timestamp_1a5cf22d610ea8ec8ce0143c9f89597d47)` |  |
-| `diff` | `[Timestamp::TimeDiff](#classicy_1_1Timestamp_1a204bb025454e8cbcc5052cbea7cf02f6)` |  |
-| `tzd` | `int` |  |
-
 ---
 
 {#determinetzd}
@@ -17965,10 +15800,6 @@ void determineTzd(bool adjust)
 ```
 
 Recalculate the tzd based on the _dateTime member based on the current timezone using the Standard C runtime functions. If adjust is true, then [adjustForTzd()](#classicy_1_1LocalDateTime_1a12b329ccf06bdc8c089785f46992faf4) is called after the differential is calculated.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `adjust` | `bool` |  |
 
 ---
 
@@ -17997,10 +15828,6 @@ std::time_t dstOffset(int & dstOffset) const
 ```
 
 Determine the DST offset for the current date/time.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `dstOffset` | `int &` |  |
 
 ### Private Attributes
 
@@ -18326,12 +16153,6 @@ Formats the given timestamp according to the given format. The format string is 
 
 Class [DateTimeFormat](#datetimeformat) defines format strings for various standard date/time formats.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `timestamp` | `const [Timestamp](#timestamp) &` |  |
-| `fmt` | `std::string_view` |  |
-| `timeZoneDifferential` | `int` |  |
-
 ---
 
 {#format}
@@ -18346,12 +16167,6 @@ static inline std::string format(const DateTime & dateTime, std::string_view fmt
 
 Formats the given date and time according to the given format. See [format(const Timestamp&, std::string_view, int)](#classicy_1_1DateTimeFormatter_1a5e24b7cfd3f21050283962aa47df6487) for more information.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `dateTime` | `const [DateTime](#datetime) &` |  |
-| `fmt` | `std::string_view` |  |
-| `timeZoneDifferential` | `int` |  |
-
 ---
 
 {#format}
@@ -18365,11 +16180,6 @@ static inline std::string format(const LocalDateTime & dateTime, std::string_vie
 ```
 
 Formats the given local date and time according to the given format. See [format(const Timestamp&, std::string_view, int)](#classicy_1_1DateTimeFormatter_1a5e24b7cfd3f21050283962aa47df6487) for more information.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `dateTime` | `const [LocalDateTime](#localdatetime) &` |  |
-| `fmt` | `std::string_view` |  |
 
 ---
 
@@ -18407,11 +16217,6 @@ Formats the given timespan according to the given format. The format string is u
 
 * %% - percent sign
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `timespan` | `const [Timespan](#timespan) &` |  |
-| `fmt` | `std::string_view` |  |
-
 ---
 
 {#append}
@@ -18427,13 +16232,6 @@ static inline void append(std::string & str, const Timestamp & timestamp, std::s
 Formats the given timestamp according to the given format and appends it to str.
 
 See [format()](#classicy_1_1DateTimeFormatter_1a5e24b7cfd3f21050283962aa47df6487) for documentation of the formatting string.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
-| `timestamp` | `const [Timestamp](#timestamp) &` |  |
-| `fmt` | `std::string_view` |  |
-| `timeZoneDifferential` | `int` |  |
 
 ---
 
@@ -18451,13 +16249,6 @@ Formats the given date and time according to the given format and appends it to 
 
 See [format()](#classicy_1_1DateTimeFormatter_1a5e24b7cfd3f21050283962aa47df6487) for documentation of the formatting string.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
-| `dateTime` | `const [DateTime](#datetime) &` |  |
-| `fmt` | `std::string_view` |  |
-| `timeZoneDifferential` | `int` |  |
-
 ---
 
 {#append}
@@ -18473,12 +16264,6 @@ static void append(std::string & str, const LocalDateTime & dateTime, std::strin
 Formats the given local date and time according to the given format and appends it to str.
 
 See [format()](#classicy_1_1DateTimeFormatter_1a5e24b7cfd3f21050283962aa47df6487) for documentation of the formatting string.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
-| `dateTime` | `const [LocalDateTime](#localdatetime) &` |  |
-| `fmt` | `std::string_view` |  |
 
 ---
 
@@ -18496,12 +16281,6 @@ Formats the given timespan according to the given format and appends it to str.
 
 See [format()](#classicy_1_1DateTimeFormatter_1a5e24b7cfd3f21050283962aa47df6487) for documentation of the formatting string.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
-| `timespan` | `const [Timespan](#timespan) &` |  |
-| `fmt` | `std::string_view` |  |
-
 ---
 
 {#tzdiso}
@@ -18515,10 +16294,6 @@ static inline std::string tzdISO(int timeZoneDifferential)
 ```
 
 Formats the given timezone differential in ISO format. If timeZoneDifferential is UTC, "Z" is returned, otherwise, +HH.MM (or -HH.MM) is returned.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `timeZoneDifferential` | `int` |  |
 
 ---
 
@@ -18534,10 +16309,6 @@ static inline std::string tzdRFC(int timeZoneDifferential)
 
 Formats the given timezone differential in RFC format. If timeZoneDifferential is UTC, "GMT" is returned, otherwise ++HHMM (or -HHMM) is returned.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `timeZoneDifferential` | `int` |  |
-
 ---
 
 {#tzdiso}
@@ -18552,11 +16323,6 @@ static void tzdISO(std::string & str, int timeZoneDifferential)
 
 Formats the given timezone differential in ISO format and appends it to the given string. If timeZoneDifferential is UTC, "Z" is returned, otherwise, +HH.MM (or -HH.MM) is returned.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
-| `timeZoneDifferential` | `int` |  |
-
 ---
 
 {#tzdrfc}
@@ -18570,11 +16336,6 @@ static void tzdRFC(std::string & str, int timeZoneDifferential)
 ```
 
 Formats the given timezone differential in RFC format and appends it to the given string. If timeZoneDifferential is UTC, "GMT" is returned, otherwise ++HHMM (or -HHMM) is returned.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string &` |  |
-| `timeZoneDifferential` | `int` |  |
 
 ### Public Types
 
@@ -18639,13 +16400,6 @@ static void parse(std::string_view fmt, std::string_view str, DateTime & dateTim
 
 Parses a date and time in the given format from the given string. Throws a SyntaxException if the string cannot be successfully parsed. Please see [DateTimeFormatter::format()](#classicy_1_1DateTimeFormatter_1a5e24b7cfd3f21050283962aa47df6487) for a description of the format string. Class [DateTimeFormat](#datetimeformat) defines format strings for various standard date/time formats.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `fmt` | `std::string_view` |  |
-| `str` | `std::string_view` |  |
-| `dateTime` | `[DateTime](#datetime) &` |  |
-| `timeZoneDifferential` | `int &` |  |
-
 ---
 
 {#parse}
@@ -18659,12 +16413,6 @@ static DateTime parse(std::string_view fmt, std::string_view str, int & timeZone
 ```
 
 Parses a date and time in the given format from the given string. Throws a SyntaxException if the string cannot be successfully parsed. Please see [DateTimeFormatter::format()](#classicy_1_1DateTimeFormatter_1a5e24b7cfd3f21050283962aa47df6487) for a description of the format string. Class [DateTimeFormat](#datetimeformat) defines format strings for various standard date/time formats.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `fmt` | `std::string_view` |  |
-| `str` | `std::string_view` |  |
-| `timeZoneDifferential` | `int &` |  |
 
 ---
 
@@ -18680,13 +16428,6 @@ static bool tryParse(std::string_view fmt, std::string_view str, DateTime & date
 
 Parses a date and time in the given format from the given string. Returns true if the string has been successfully parsed, false otherwise. Please see [DateTimeFormatter::format()](#classicy_1_1DateTimeFormatter_1a5e24b7cfd3f21050283962aa47df6487) for a description of the format string. Class [DateTimeFormat](#datetimeformat) defines format strings for various standard date/time formats.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `fmt` | `std::string_view` |  |
-| `str` | `std::string_view` |  |
-| `dateTime` | `[DateTime](#datetime) &` |  |
-| `timeZoneDifferential` | `int &` |  |
-
 ---
 
 {#parse}
@@ -18700,12 +16441,6 @@ static void parse(std::string_view str, DateTime & dateTime, int & timeZoneDiffe
 ```
 
 Parses a date and time from the given dateTime string. Before parsing, the method examines the dateTime string for a known date/time format. Throws a SyntaxException if the string cannot be successfully parsed. Please see [DateTimeFormatter::format()](#classicy_1_1DateTimeFormatter_1a5e24b7cfd3f21050283962aa47df6487) for a description of the format string. Class [DateTimeFormat](#datetimeformat) defines format strings for various standard date/time formats.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string_view` |  |
-| `dateTime` | `[DateTime](#datetime) &` |  |
-| `timeZoneDifferential` | `int &` |  |
 
 ---
 
@@ -18721,11 +16456,6 @@ static DateTime parse(std::string_view str, int & timeZoneDifferential)
 
 Parses a date and time from the given dateTime string. Before parsing, the method examines the dateTime string for a known date/time format. Please see [DateTimeFormatter::format()](#classicy_1_1DateTimeFormatter_1a5e24b7cfd3f21050283962aa47df6487) for a description of the format string. Class [DateTimeFormat](#datetimeformat) defines format strings for various standard date/time formats.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string_view` |  |
-| `timeZoneDifferential` | `int &` |  |
-
 ---
 
 {#tryparse}
@@ -18739,12 +16469,6 @@ static bool tryParse(std::string_view str, DateTime & dateTime, int & timeZoneDi
 ```
 
 Parses a date and time from the given dateTime string. Before parsing, the method examines the dateTime string for a known date/time format. Please see [DateTimeFormatter::format()](#classicy_1_1DateTimeFormatter_1a5e24b7cfd3f21050283962aa47df6487) for a description of the format string. Class [DateTimeFormat](#datetimeformat) defines format strings for various standard date/time formats.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `std::string_view` |  |
-| `dateTime` | `[DateTime](#datetime) &` |  |
-| `timeZoneDifferential` | `int &` |  |
 
 ---
 
@@ -18760,11 +16484,6 @@ static int parseMonth(const char *& it, const char * end)
 
 Tries to interpret the given range as a month name. The range must be at least three characters long. Returns the month number (1 .. 12) if the month name is valid. Otherwise throws a SyntaxException.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `it` | `const char *&` |  |
-| `end` | `const char *` |  |
-
 ---
 
 {#parsedayofweek}
@@ -18778,11 +16497,6 @@ static int parseDayOfWeek(const char *& it, const char * end)
 ```
 
 Tries to interpret the given range as a weekday name. The range must be at least three characters long. Returns the weekday number (0 .. 6, where 0 = Synday, 1 = Monday, etc.) if the weekday name is valid. Otherwise throws a SyntaxException.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `it` | `const char *&` |  |
-| `end` | `const char *` |  |
 
 {#stopwatch}
 
@@ -19039,10 +16753,6 @@ inline ThreadedStreamReader(std::istream * is)
 #### Parameters
 * `is` Input stream to read from; takes ownership.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `is` | `std::istream *` |  |
-
 ---
 
 {#threadedstreamreader}
@@ -19205,10 +16915,6 @@ inline StreamWriter(std::ostream * stream)
 #### Parameters
 * `stream` Output stream to write to; takes ownership.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `stream` | `std::ostream *` |  |
-
 ---
 
 {#streamwriter}
@@ -19238,10 +16944,6 @@ virtual inline void process(IPacket & packet)
 Serializes the packet via `write()`, flushes it to the output stream, then forwards the packet to the next processor. 
 #### Parameters
 * `packet` Incoming packet to process.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `packet` | `[IPacket](#ipacket) &` |  |
 
 ---
 
@@ -19280,10 +16982,6 @@ virtual inline void onStreamStateChange(const PacketStreamState & state)
 Closes the output file on `Closed` or `[Error](#error)` stream state transitions. 
 #### Parameters
 * `state` New stream state.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `state` | `const [PacketStreamState](#packetstreamstate) &` |  |
 
 ---
 
@@ -19364,10 +17062,6 @@ State(ID id)
 #### Parameters
 * `id` Initial state ID. Defaults to 0.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `id` | `[ID](#classicy_1_1State_1af5e8f0a00984df441608f8bedaaecea3)` |  |
-
 ---
 
 {#state}
@@ -19382,10 +17076,6 @@ Copy constructor.
 #### Parameters
 * `that` [State](#state) to copy from.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `that` | `const [State](#state) &` |  |
-
 ---
 
 {#operator}
@@ -19399,10 +17089,6 @@ State & operator=(const State & that)
 Copy assignment. 
 #### Parameters
 * `that` [State](#state) to assign from.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `that` | `const [State](#state) &` |  |
 
 ---
 
@@ -19434,10 +17120,6 @@ Sets the state ID.
 #### Parameters
 * `id` New state ID to assign.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `id` | `[ID](#classicy_1_1State_1af5e8f0a00984df441608f8bedaaecea3)` |  |
-
 ---
 
 {#str}
@@ -19456,10 +17138,6 @@ Returns a human-readable string for the given state ID. Override in derived clas
 
 #### Returns
 String representation of the state, or "undefined" by default.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `id` | `[ID](#classicy_1_1State_1af5e8f0a00984df441608f8bedaaecea3)` |  |
 
 ---
 
@@ -19496,10 +17174,6 @@ Returns true if the current state ID equals the given ID.
 #### Returns
 True if IDs match.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `id` | `[ID](#classicy_1_1State_1af5e8f0a00984df441608f8bedaaecea3)` |  |
-
 ---
 
 {#between}
@@ -19521,11 +17195,6 @@ Returns true if the current state ID is in the inclusive range [lid, rid].
 #### Returns
 True if lid <= [id()](#classicy_1_1State_1ad1f3cf6094d92da45a8863ccd05a4dd2) <= rid.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `lid` | `[ID](#classicy_1_1State_1af5e8f0a00984df441608f8bedaaecea3)` |  |
-| `rid` | `[ID](#classicy_1_1State_1af5e8f0a00984df441608f8bedaaecea3)` |  |
-
 ---
 
 {#operator}
@@ -19538,10 +17207,6 @@ True if lid <= [id()](#classicy_1_1State_1ad1f3cf6094d92da45a8863ccd05a4dd2) <= 
 inline bool operator==(const State & that) const
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `that` | `const [State](#state) &` |  |
-
 ---
 
 {#operator}
@@ -19553,10 +17218,6 @@ inline bool operator==(const State & that) const
 ```cpp
 inline bool operator==(const State::ID & that) const
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `that` | `const [State::ID](#classicy_1_1State_1af5e8f0a00984df441608f8bedaaecea3) &` |  |
 
 ### Protected Attributes
 
@@ -19664,10 +17325,6 @@ Returns true if the current state ID equals the given ID.
 #### Returns
 True if the current state matches.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `id` | `typename T::ID` |  |
-
 ---
 
 {#statebetween}
@@ -19688,11 +17345,6 @@ Returns true if the current state ID is in the inclusive range [lid, rid].
 
 #### Returns
 True if lid <= state.id() <= rid.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `lid` | `typename T::ID` |  |
-| `rid` | `typename T::ID` |  |
 
 ---
 
@@ -19765,10 +17417,6 @@ virtual inline bool beforeStateChange(const T & state)
 
 Override to handle pre state change logic. Return false to prevent state change.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `state` | `const T &` |  |
-
 ---
 
 {#onstatechange}
@@ -19797,11 +17445,6 @@ virtual inline bool setState(void * sender, typename T::ID id)
 
 Sets the state and sends the state signal if the state change was successful.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `sender` | `void *` |  |
-| `id` | `typename T::ID` |  |
-
 ---
 
 {#setstate}
@@ -19815,11 +17458,6 @@ virtual inline bool setState(void * sender, const T & state)
 ```
 
 Sets the state and sends the state signal if the state change was successful.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `sender` | `void *` |  |
-| `state` | `const T &` |  |
 
 {#iregistry}
 
@@ -19897,10 +17535,6 @@ Creates and returns a new heap-allocated instance of the type registered under k
 #### Returns
 Pointer to the new instance, or nullptr if s is not registered.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `s` | `const std::string &` |  |
-
 ---
 
 {#registertype}
@@ -19920,10 +17554,6 @@ Registers type T under the given key s. Emits TypeRegistered. Subsequent calls t
 #### Parameters
 * `s` Registration key (type name).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `s` | `const std::string &` |  |
-
 ---
 
 {#unregistertype}
@@ -19939,10 +17569,6 @@ virtual inline void unregisterType(const std::string & s)
 Removes the type registered under key s. Emits TypeUnregistered. Does nothing if s is not registered. 
 #### Parameters
 * `s` Registration key to remove.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `s` | `const std::string &` |  |
 
 ---
 
@@ -20074,10 +17700,6 @@ Replaces the managed singleton with newPtr and returns the previous instance. Th
 #### Returns
 Previously managed pointer (caller must delete if non-null).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `newPtr` | `S *` |  |
-
 ---
 
 {#destroy}
@@ -20200,10 +17822,6 @@ inline TValue * get(constTKey & key) const
 
 Returns the item for `key`, or nullptr if not found.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `[const](#classicy_1_1KeyedStore_1a72b696edc553ed4d19df38f3c77980f7)[TKey](#classicy_1_1KeyedStore_1a72b696edc553ed4d19df38f3c77980f7) &` |  |
-
 ---
 
 {#add}
@@ -20220,11 +17838,6 @@ Inserts a uniquely owned item. Returns a reference to the stored item.
 #### Exceptions
 * `std::runtime_error` if the key already exists.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `[const](#classicy_1_1KeyedStore_1a72b696edc553ed4d19df38f3c77980f7)[TKey](#classicy_1_1KeyedStore_1a72b696edc553ed4d19df38f3c77980f7) &` |  |
-| `item` | `std::unique_ptr< [TValue](#classicy_1_1KeyedStore_1a72b696edc553ed4d19df38f3c77980f7) >` |  |
-
 ---
 
 {#tryadd}
@@ -20239,11 +17852,6 @@ inline bool tryAdd(constTKey & key, std::unique_ptr< TValue > item)
 
 Inserts if absent; returns false on duplicate (never throws).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `[const](#classicy_1_1KeyedStore_1a72b696edc553ed4d19df38f3c77980f7)[TKey](#classicy_1_1KeyedStore_1a72b696edc553ed4d19df38f3c77980f7) &` |  |
-| `item` | `std::unique_ptr< [TValue](#classicy_1_1KeyedStore_1a72b696edc553ed4d19df38f3c77980f7) >` |  |
-
 ---
 
 {#put}
@@ -20257,11 +17865,6 @@ inline TValue & put(constTKey & key, std::unique_ptr< TValue > item)
 ```
 
 Inserts or replaces the item under `key`.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `[const](#classicy_1_1KeyedStore_1a72b696edc553ed4d19df38f3c77980f7)[TKey](#classicy_1_1KeyedStore_1a72b696edc553ed4d19df38f3c77980f7) &` |  |
-| `item` | `std::unique_ptr< [TValue](#classicy_1_1KeyedStore_1a72b696edc553ed4d19df38f3c77980f7) >` |  |
 
 ---
 
@@ -20279,10 +17882,6 @@ Removes and destroys the item under `key`.
 #### Returns
 true if the item existed and was removed.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `[const](#classicy_1_1KeyedStore_1a72b696edc553ed4d19df38f3c77980f7)[TKey](#classicy_1_1KeyedStore_1a72b696edc553ed4d19df38f3c77980f7) &` |  |
-
 ---
 
 {#contains}
@@ -20294,10 +17893,6 @@ true if the item existed and was removed.
 ```cpp
 inline bool contains(constTKey & key) const
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `[const](#classicy_1_1KeyedStore_1a72b696edc553ed4d19df38f3c77980f7)[TKey](#classicy_1_1KeyedStore_1a72b696edc553ed4d19df38f3c77980f7) &` |  |
 
 ---
 
@@ -20524,11 +18119,6 @@ inline bool add(constTKey & key, constTValue & item)
 
 Inserts a value; returns false if key already exists.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `[const](#classicy_1_1KVCollection_1a900e73347278c3ccc9da940576231c53)[TKey](#classicy_1_1KVCollection_1a900e73347278c3ccc9da940576231c53) &` |  |
-| `item` | `[const](#classicy_1_1KVCollection_1a900e73347278c3ccc9da940576231c53)[TValue](#classicy_1_1KVCollection_1a900e73347278c3ccc9da940576231c53) &` |  |
-
 ---
 
 {#get}
@@ -20542,10 +18132,6 @@ inline TValue & get(constTKey & key)
 ```
 
 Returns the value or throws.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `[const](#classicy_1_1KVCollection_1a900e73347278c3ccc9da940576231c53)[TKey](#classicy_1_1KVCollection_1a900e73347278c3ccc9da940576231c53) &` |  |
 
 ---
 
@@ -20561,11 +18147,6 @@ inline constTValue & get(constTKey & key, constTValue & defaultValue) const
 
 Returns the value or defaultValue.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `[const](#classicy_1_1KVCollection_1a900e73347278c3ccc9da940576231c53)[TKey](#classicy_1_1KVCollection_1a900e73347278c3ccc9da940576231c53) &` |  |
-| `defaultValue` | `[const](#classicy_1_1KVCollection_1a900e73347278c3ccc9da940576231c53)[TValue](#classicy_1_1KVCollection_1a900e73347278c3ccc9da940576231c53) &` |  |
-
 ---
 
 {#remove}
@@ -20578,10 +18159,6 @@ Returns the value or defaultValue.
 inline bool remove(constTKey & key)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `[const](#classicy_1_1KVCollection_1a900e73347278c3ccc9da940576231c53)[TKey](#classicy_1_1KVCollection_1a900e73347278c3ccc9da940576231c53) &` |  |
-
 ---
 
 {#has}
@@ -20593,10 +18170,6 @@ inline bool remove(constTKey & key)
 ```cpp
 inline bool has(constTKey & key) const
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `[const](#classicy_1_1KVCollection_1a900e73347278c3ccc9da940576231c53)[TKey](#classicy_1_1KVCollection_1a900e73347278c3ccc9da940576231c53) &` |  |
 
 ---
 
@@ -20749,10 +18322,6 @@ inline NVCollection()
 inline NVCollection(const NVCollection & nvc)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `nvc` | `const [NVCollection](#nvcollection) &` |  |
-
 ---
 
 {#nvcollection}
@@ -20765,10 +18334,6 @@ inline NVCollection(const NVCollection & nvc)
 inline NVCollection(NVCollection && nvc) noexcept
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `nvc` | `[NVCollection](#nvcollection) &&` |  |
-
 ---
 
 {#operator}
@@ -20780,10 +18345,6 @@ NVCollection & operator=(const NVCollection & nvc)
 ```
 
 Assigns the name-value pairs of another [NVCollection](#nvcollection) to this one.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `nvc` | `const [NVCollection](#nvcollection) &` |  |
 
 ---
 
@@ -20801,10 +18362,6 @@ Returns the value of the (first) name-value pair with the given name.
 
 Throws a NotFoundException if the name-value pair does not exist.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `std::string_view` |  |
-
 ---
 
 {#set}
@@ -20816,11 +18373,6 @@ void set(const std::string & name, const std::string & value)
 ```
 
 Sets the value of the (first) name-value pair with the given name.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `const std::string &` |  |
-| `value` | `const std::string &` |  |
 
 ---
 
@@ -20834,11 +18386,6 @@ void add(const std::string & name, const std::string & value)
 
 Adds a new name-value pair with the given name and value.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `const std::string &` |  |
-| `value` | `const std::string &` |  |
-
 ---
 
 {#add}
@@ -20850,11 +18397,6 @@ void add(std::string && name, std::string && value)
 ```
 
 Adds a new name-value pair using move semantics.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `std::string &&` |  |
-| `value` | `std::string &&` |  |
 
 ---
 
@@ -20872,10 +18414,6 @@ Returns the value of the first name-value pair with the given name.
 
 Throws a NotFoundException if the name-value pair does not exist.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `std::string_view` |  |
-
 ---
 
 {#get}
@@ -20889,11 +18427,6 @@ const std::string & get(std::string_view name, const std::string & defaultValue)
 ```
 
 Returns the value of the first name-value pair with the given name. If no value with the given name has been found, the defaultValue is returned.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `std::string_view` |  |
-| `defaultValue` | `const std::string &` |  |
 
 ---
 
@@ -20909,10 +18442,6 @@ bool has(std::string_view name) const
 
 Returns true if there is at least one name-value pair with the given name.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `std::string_view` |  |
-
 ---
 
 {#find}
@@ -20926,10 +18455,6 @@ ConstIterator find(std::string_view name) const
 ```
 
 Returns an iterator pointing to the first name-value pair with the given name.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `std::string_view` |  |
 
 ---
 
@@ -20998,10 +18523,6 @@ void erase(std::string_view name)
 ```
 
 Removes all name-value pairs with the given name.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `std::string_view` |  |
 
 ---
 
@@ -21133,10 +18654,6 @@ Application(uv::Loop * loop)
 
 Constructor.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `loop` | `[uv::Loop](uv.md#loop) *` |  |
-
 ---
 
 {#application}
@@ -21197,11 +18714,6 @@ void waitForShutdown(std::function< void(void *)> callback, void * opaque)
 
 Bind the shutdown signal and run the main event loop.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `callback` | `std::function< void(void *)>` |  |
-| `opaque` | `void *` |  |
-
 ---
 
 {#bindshutdownsignal}
@@ -21213,11 +18725,6 @@ void bindShutdownSignal(std::function< void(void *)> callback, void * opaque)
 ```
 
 Bind the shutdown signal.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `callback` | `std::function< void(void *)>` |  |
-| `opaque` | `void *` |  |
 
 ### Public Static Methods
 
@@ -21321,11 +18828,6 @@ inline SyncPacketQueue(uv::Loop * loop, int maxSize)
 
 * `maxSize` Maximum number of queued packets before oldest are dropped.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `loop` | `[uv::Loop](uv.md#loop) *` |  |
-| `maxSize` | `int` |  |
-
 ---
 
 {#syncpacketqueue}
@@ -21342,10 +18844,6 @@ Uses the default libuv event loop.
 #### Parameters
 * `maxSize` Maximum number of queued packets before oldest are dropped.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `maxSize` | `int` |  |
-
 ---
 
 {#process}
@@ -21361,10 +18859,6 @@ virtual inline void process(IPacket & packet)
 Clones the incoming packet and pushes it onto the queue for synchronized dispatch. This queue is therefore an explicit [PacketStream](#packetstream) ownership boundary. Drops the packet with a warning if the queue has been cancelled. 
 #### Parameters
 * `packet` Incoming packet to enqueue.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `packet` | `[IPacket](#ipacket) &` |  |
 
 ---
 
@@ -21384,10 +18878,6 @@ Returns true if the packet can be cast to type `T`.
 
 #### Returns
 True if `dynamic_cast<T*>(packet)` succeeds.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `packet` | `[IPacket](#ipacket) *` |  |
 
 ---
 
@@ -21425,10 +18915,6 @@ virtual inline void dispatch(T & packet)
 Emits the packet to downstream processors from the event loop thread. 
 #### Parameters
 * `packet` Packet to dispatch.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `packet` | `T &` |  |
 
 ---
 
@@ -21526,10 +19012,6 @@ inline AsyncPacketQueue(int maxSize)
 #### Parameters
 * `maxSize` Maximum number of queued packets before oldest are dropped.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `maxSize` | `int` |  |
-
 ---
 
 {#close}
@@ -21560,10 +19042,6 @@ Clones the incoming packet and pushes it onto the async queue. This queue is the
 #### Parameters
 * `packet` Incoming packet to enqueue.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `packet` | `[IPacket](#ipacket) &` |  |
-
 ---
 
 {#accepts}
@@ -21582,10 +19060,6 @@ Returns true if the packet can be cast to type `T`.
 
 #### Returns
 True if `dynamic_cast<T*>(packet)` succeeds.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `packet` | `[IPacket](#ipacket) *` |  |
 
 ---
 
@@ -21623,10 +19097,6 @@ virtual inline void dispatch(T & packet)
 Emits the packet to downstream processors from the async thread. 
 #### Parameters
 * `packet` Packet to dispatch.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `packet` | `T &` |  |
 
 ---
 
@@ -21750,11 +19220,6 @@ Constructs a token bucket limiter.
 
 * `seconds` Duration of the replenishment window in seconds.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `rate` | `double` |  |
-| `seconds` | `double` |  |
-
 ---
 
 {#cansend}
@@ -21838,10 +19303,6 @@ Construct the adapter, binding it to the given packet signal.
 #### Parameters
 * `emitter` The outgoing packet signal owned by the subclass.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `emitter` | `[PacketSignal](#packetsignal) &` |  |
-
 ---
 
 {#emit}
@@ -21861,12 +19322,6 @@ Emit a mutable raw buffer as a packet.
 * `len` Number of bytes in the buffer. 
 
 * `flags` Optional packet flags (see PacketFlags).
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `char *` |  |
-| `len` | `size_t` |  |
-| `flags` | `unsigned` |  |
 
 ---
 
@@ -21888,12 +19343,6 @@ Emit a read-only raw buffer as a packet (data is copied internally).
 
 * `flags` Optional packet flags (see PacketFlags).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `const char *` |  |
-| `len` | `size_t` |  |
-| `flags` | `unsigned` |  |
-
 ---
 
 {#emit}
@@ -21912,11 +19361,6 @@ Emit a string as a packet (data is copied internally).
 
 * `flags` Optional packet flags (see PacketFlags).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `const std::string &` |  |
-| `flags` | `unsigned` |  |
-
 ---
 
 {#emit}
@@ -21933,10 +19377,6 @@ Emit a flag-only packet carrying no payload data.
 #### Parameters
 * `flags` Packet flags to embed in the emitted [FlagPacket](#flagpacket).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `flags` | `unsigned` |  |
-
 ---
 
 {#emit}
@@ -21952,10 +19392,6 @@ virtual void emit(IPacket & packet)
 Emit an existing packet directly onto the outgoing signal. 
 #### Parameters
 * `packet` The packet to forward; must remain valid for the duration of the call.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `packet` | `[IPacket](#ipacket) &` |  |
 
 ---
 
@@ -22076,10 +19512,6 @@ This class is a virtual interface for creating PacketStreamAdapters which proces
 inline PacketProcessor(PacketSignal & emitter)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `emitter` | `[PacketSignal](#packetsignal) &` |  |
-
 ---
 
 {#process}
@@ -22093,10 +19525,6 @@ void process(IPacket & packet)
 This method performs processing on the given packet and emits the result.
 
 Processors that defer work asynchronously must either clone the packet or retain an owned equivalent. See [retention()](#classicy_1_1PacketStreamAdapter_1a37a1aa11e35a20a7c527efa78e99e928).
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `packet` | `[IPacket](#ipacket) &` |  |
 
 ---
 
@@ -22125,10 +19553,6 @@ virtual inline void operator<<(IPacket & packet)
 ```
 
 [Stream](#stream) operator alias for [process()](#classicy_1_1PacketProcessor_1acd9fb1a5fa525c0a2d96971fe6c06294)
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `packet` | `[IPacket](#ipacket) &` |  |
 
 {#packetstream}
 
@@ -22254,10 +19678,6 @@ PacketStream(const std::string & name)
 Construct a named packet stream. 
 #### Parameters
 * `name` Optional human-readable name used in log output.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `const std::string &` |  |
 
 ---
 
@@ -22465,11 +19885,6 @@ Write a mutable buffer into the stream without copying. The caller must keep the
 
 * `len` Number of bytes to process.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `char *` |  |
-| `len` | `size_t` |  |
-
 ---
 
 {#write}
@@ -22488,11 +19903,6 @@ Write a read-only buffer into the stream; data is copied immediately into an own
 
 * `len` Number of bytes to process.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `const char *` |  |
-| `len` | `size_t` |  |
-
 ---
 
 {#write}
@@ -22509,10 +19919,6 @@ Write a packet directly into the processing chain.
 #### Parameters
 * `packet` Packet to process; moved into the stream.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `packet` | `[IPacket](#ipacket) &&` |  |
-
 ---
 
 {#attachsource}
@@ -22528,10 +19934,6 @@ virtual void attachSource(PacketSignal & source)
 Attach a bare packet signal as a stream source. The signal is wrapped in an unowned [PacketStreamAdapter](#packetstreamadapter) internally. Useful when the source is another [PacketStream::emitter](#classicy_1_1PacketStream_1adc148eb61c088baa5737dc299ecd9599). 
 #### Parameters
 * `source` The packet signal to attach; must outlive the stream.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `source` | `[PacketSignal](#packetsignal) &` |  |
 
 ---
 
@@ -22552,12 +19954,6 @@ Attach a [PacketStreamAdapter](#packetstreamadapter) as a source. Source adapter
 * `owned` If true the stream takes ownership and deletes the pointer on teardown. 
 
 * `syncState` If true and `source` implements [basic::Startable](#startable), its [start()](#classicy_1_1PacketStream_1ac6843f20698879acdaabd8110b440c55)/stop() will be called by [startSources()](#classicy_1_1PacketStream_1a5e958f0d995288047462e89ade440084)/stopSources().
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `source` | `[PacketStreamAdapter](#packetstreamadapter) *` |  |
-| `owned` | `bool` |  |
-| `syncState` | `bool` |  |
 
 ---
 
@@ -22580,11 +19976,6 @@ Attach a shared_ptr-managed source adapter to the stream. The stream shares owne
 
 * `syncState` If true and `ptr` implements [basic::Startable](#startable), its [start()](#classicy_1_1PacketStream_1ac6843f20698879acdaabd8110b440c55)/stop() will be called by [startSources()](#classicy_1_1PacketStream_1a5e958f0d995288047462e89ade440084)/stopSources().
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ptr` | `std::shared_ptr< C >` |  |
-| `syncState` | `bool` |  |
-
 ---
 
 {#detachsource}
@@ -22603,10 +19994,6 @@ Detach a source by its packet signal. Disconnects the signal from the stream's p
 
 #### Returns
 true if the source was found and removed, false otherwise.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `source` | `[PacketSignal](#packetsignal) &` |  |
 
 ---
 
@@ -22627,10 +20014,6 @@ Detach a source by its adapter pointer. Disconnects the adapter's emitter from t
 #### Returns
 true if the source was found and removed, false otherwise.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `source` | `[PacketStreamAdapter](#packetstreamadapter) *` |  |
-
 ---
 
 {#attach}
@@ -22650,12 +20033,6 @@ Attach a packet processor to the stream. Processors are executed in ascending or
 * `order` Position in the processing chain (lower runs first). 
 
 * `owned` If true the stream takes ownership and deletes the pointer on teardown.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `proc` | `[PacketProcessor](#packetprocessor) *` |  |
-| `order` | `int` |  |
-| `owned` | `bool` |  |
 
 ---
 
@@ -22680,12 +20057,6 @@ Attach a shared_ptr-managed processor to the stream. The stream shares ownership
 
 * `syncState` Reserved for future use; currently unused.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ptr` | `std::shared_ptr< C >` |  |
-| `order` | `int` |  |
-| `syncState` | `bool` |  |
-
 ---
 
 {#detach}
@@ -22705,10 +20076,6 @@ Detach a packet processor from the stream. The processor's delegate connections 
 #### Returns
 true if the processor was found and removed, false otherwise.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `proc` | `[PacketProcessor](#packetprocessor) *` |  |
-
 ---
 
 {#synchronizeoutput}
@@ -22724,10 +20091,6 @@ virtual void synchronizeOutput(uv::Loop * loop)
 Synchronize stream output packets with a libuv event loop. Internally attaches a [SyncPacketQueue](#syncpacketqueue) at order 101 so that all packets emitted by the processor chain are dispatched from the loop thread rather than the source thread. Must be called before [start()](#classicy_1_1PacketStream_1ac6843f20698879acdaabd8110b440c55). 
 #### Parameters
 * `loop` The event loop to synchronize output onto; must not be null.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `loop` | `[uv::Loop](uv.md#loop) *` |  |
 
 ---
 
@@ -22745,10 +20108,6 @@ Enable or disable auto-start behaviour (default: false). When enabled, the strea
 #### Parameters
 * `flag` true to enable auto-start, false to disable.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `flag` | `bool` |  |
-
 ---
 
 {#closeonerror}
@@ -22764,10 +20123,6 @@ virtual void closeOnError(bool flag)
 Enable or disable close-on-error behaviour (default: true). When enabled, an unhandled processor exception causes the stream to transition from [Error](#error) to Closed state automatically. 
 #### Parameters
 * `flag` true to close the stream on error, false to remain in [Error](#error) state.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `flag` | `bool` |  |
 
 ---
 
@@ -22913,10 +20268,6 @@ Return the nth source of type AdapterT, or nullptr if not found. Sources are sea
 #### Returns
 Pointer to the matching adapter, or nullptr.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `index` | `int` |  |
-
 ---
 
 {#getprocessor}
@@ -22939,10 +20290,6 @@ Return the nth processor of type AdapterT, or nullptr if not found. Processors a
 #### Returns
 Pointer to the matching processor, or nullptr.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `index` | `int` |  |
-
 ---
 
 {#getprocessor}
@@ -22961,10 +20308,6 @@ Return the processor registered at a specific order value. Unlike the template o
 
 #### Returns
 Pointer to the matching processor, or nullptr if none registered at that order.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `order` | `int` |  |
 
 ### Protected Attributes
 
@@ -23132,10 +20475,6 @@ Detach the source and processor delegate chain.
 void attachSource(PacketAdapterReference::Ptr ref)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ref` | `[PacketAdapterReference::Ptr](#structicy_1_1PacketAdapterReference_1a987e5369e97ad16642ea9df9012f6e2c)` |  |
-
 ---
 
 {#attach}
@@ -23145,10 +20484,6 @@ void attachSource(PacketAdapterReference::Ptr ref)
 ```cpp
 void attach(PacketAdapterReference::Ptr ref)
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ref` | `[PacketAdapterReference::Ptr](#structicy_1_1PacketAdapterReference_1a987e5369e97ad16642ea9df9012f6e2c)` |  |
 
 ---
 
@@ -23188,10 +20523,6 @@ virtual void process(IPacket & packet)
 
 [Process](#process) incoming packets.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `packet` | `[IPacket](#ipacket) &` |  |
-
 ---
 
 {#emit}
@@ -23205,10 +20536,6 @@ void emit(IPacket & packet)
 Emit the final packet to listeners.
 
 Synchronized signals such as Close and [Error](#error) are sent from this method. See [synchronizeOutput()](#classicy_1_1PacketStream_1a246c1677eb9526056d99193e04d3be60)
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `packet` | `[IPacket](#ipacket) &` |  |
 
 ---
 
@@ -23236,11 +20563,6 @@ virtual void onStateChange(PacketStreamState & state, const PacketStreamState & 
 
 Override the [Stateful::onStateChange](#classicy_1_1Stateful_1a06e5572c313c3b54db932c922166079d) method.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `state` | `[PacketStreamState](#packetstreamstate) &` |  |
-| `oldState` | `const [PacketStreamState](#packetstreamstate) &` |  |
-
 ---
 
 {#assertcanmodify}
@@ -23266,10 +20588,6 @@ void handleException(std::exception & exc)
 ```
 
 Handle an internal exception.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `exc` | `std::exception &` |  |
 
 ### Public Types
 
@@ -23330,10 +20648,6 @@ Creates a synchronizer attached to the given event loop without a callback. Call
 #### Parameters
 * `loop` Event loop to attach the async handle to.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `loop` | `[uv::Loop](uv.md#loop) *` |  |
-
 ---
 
 {#synchronizer}
@@ -23349,11 +20663,6 @@ Creates and immediately starts a synchronizer with a single callback function. T
 * `target` Callback to invoke on each event loop wakeup. 
 
 * `loop` Event loop to attach the async handle to.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `target` | `std::function< void()>` |  |
-| `loop` | `[uv::Loop](uv.md#loop) *` |  |
 
 ---
 
@@ -23379,12 +20688,6 @@ Creates and immediately starts a synchronizer with a variadic callback.
 * `args` Arguments forwarded to `func`. 
 
 * `loop` Event loop to attach the async handle to.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `func` | `Function &&` |  |
-| `args` | `Args &&...` |  |
-| `loop` | `[uv::Loop](uv.md#loop) *` |  |
 
 ---
 
@@ -23435,11 +20738,6 @@ Starts the synchronizer with a variadic callback function. The callback is invok
 
 * `args` Arguments forwarded to `func`.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `func` | `Function &&` |  |
-| `args` | `Args &&...` |  |
-
 ---
 
 {#start}
@@ -23455,10 +20753,6 @@ virtual void start(std::function< void()> func)
 Starts the synchronizer with a `std::function` callback. Overrides `[Runner::start](#classicy_1_1Runner_1a5969e823f1ce0bdd8730d3108bf13fbd)`; delegates to the variadic `start` template. 
 #### Parameters
 * `func` Callback invoked from the event loop on each `[post()](#classicy_1_1Synchronizer_1a1400f8a4c294ba3d4a9d9d1887131abb)` call.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `func` | `std::function< void()>` |  |
 
 ---
 
@@ -23580,10 +20874,6 @@ Constructs a [TimedManager](#timedmanager) and starts the internal expiry-check 
 #### Parameters
 * `loop` Event loop used by the internal timer (default: process-wide default loop).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `loop` | `[uv::Loop](uv.md#loop) *` |  |
-
 ---
 
 {#add}
@@ -23597,12 +20887,6 @@ inline void add(constTKey & key, std::unique_ptr< TValue > item, long timeout)
 ```
 
 Add an item which will expire (and be deleted) after the specified timeout value. If the timeout is 0 the item will be stored indefinitely. The [TimedManager](#timedmanager) assumes ownership of the given pointer.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `[const](#classicy_1_1KeyedStore_1a72b696edc553ed4d19df38f3c77980f7)[TKey](#classicy_1_1KeyedStore_1a72b696edc553ed4d19df38f3c77980f7) &` |  |
-| `item` | `std::unique_ptr< [TValue](#classicy_1_1KeyedStore_1a72b696edc553ed4d19df38f3c77980f7) >` |  |
-| `timeout` | `[long](#classicy_1_1KeyedStore_1a72b696edc553ed4d19df38f3c77980f7)` |  |
 
 ---
 
@@ -23618,11 +20902,6 @@ virtual inline bool expires(constTKey & key, long timeout)
 
 Update the item expiry timeout.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `[const](#classicy_1_1KeyedStore_1a72b696edc553ed4d19df38f3c77980f7)[TKey](#classicy_1_1KeyedStore_1a72b696edc553ed4d19df38f3c77980f7) &` |  |
-| `timeout` | `[long](#classicy_1_1KeyedStore_1a72b696edc553ed4d19df38f3c77980f7)` |  |
-
 ---
 
 {#expires}
@@ -23636,11 +20915,6 @@ virtual inline bool expires(TValue * item, long timeout)
 ```
 
 Update the item expiry timeout.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `item` | `[TValue](#classicy_1_1KeyedStore_1a72b696edc553ed4d19df38f3c77980f7) *` |  |
-| `timeout` | `[long](#classicy_1_1KeyedStore_1a72b696edc553ed4d19df38f3c77980f7)` |  |
 
 ---
 
@@ -23727,11 +21001,6 @@ true on success.
 #### Exceptions
 * `std::logic_error` if item is nullptr.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `item` | `[TValue](#classicy_1_1KeyedStore_1a72b696edc553ed4d19df38f3c77980f7) *` |  |
-| `timeout` | `[long](#classicy_1_1KeyedStore_1a72b696edc553ed4d19df38f3c77980f7)` |  |
-
 ---
 
 {#onremove}
@@ -23750,11 +21019,6 @@ Called when an item is removed from the collection. Erases the item's timeout en
 
 * `item` Pointer to the removed item.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `[const](#classicy_1_1KeyedStore_1a72b696edc553ed4d19df38f3c77980f7)[TKey](#classicy_1_1KeyedStore_1a72b696edc553ed4d19df38f3c77980f7) &` |  |
-| `item` | `[TValue](#classicy_1_1KeyedStore_1a72b696edc553ed4d19df38f3c77980f7) *` |  |
-
 ---
 
 {#ontimeout}
@@ -23770,10 +21034,6 @@ virtual inline void onTimeout(TValue * item)
 Called when an item's timeout expires. Default implementation removes and deletes the item. 
 #### Parameters
 * `item` Pointer to the expired item.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `item` | `[TValue](#classicy_1_1KeyedStore_1a72b696edc553ed4d19df38f3c77980f7) *` |  |
 
 ---
 
@@ -23867,11 +21127,6 @@ Attempts to create a typed packet from the given buffer.
 #### Returns
 Newly allocated packet on success, nullptr if the buffer does not match.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `buffer` | `const [ConstBuffer](#constbuffer) &` |  |
-| `nread` | `size_t &` |  |
-
 ---
 
 {#priority}
@@ -23939,10 +21194,6 @@ Registers a `[PacketCreationStrategy](#packetcreationstrategy)<PacketT>` at the 
 #### Parameters
 * `priority` Dispatch priority (0–100; higher runs first).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `priority` | `int` |  |
-
 ---
 
 {#unregisterpackettype}
@@ -23977,10 +21228,6 @@ Registers an arbitrary `[IPacketCreationStrategy](#ipacketcreationstrategy)` sub
 
 #### Parameters
 * `priority` Dispatch priority (0–100; higher runs first).
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `priority` | `int` |  |
 
 ---
 
@@ -24047,10 +21294,6 @@ Called after a packet is successfully created by a strategy. Override to apply f
 #### Returns
 True to accept the packet, false to discard it and try the next strategy.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `packet` | `[IPacket](#ipacket) *` |  |
-
 ---
 
 {#createpacket}
@@ -24074,11 +21317,6 @@ Newly allocated packet, or nullptr if no strategy matched.
 
 #### Exceptions
 * `std::logic_error` if no packet types have been registered.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `buffer` | `const [ConstBuffer](#constbuffer) &` |  |
-| `nread` | `size_t &` |  |
 
 ### Protected Attributes
 
@@ -24159,11 +21397,6 @@ StreamManager()
 bool addStream(PacketStream * stream, bool whiny)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `stream` | `[PacketStream](#packetstream) *` |  |
-| `whiny` | `[bool](#classicy_1_1KeyedStore_1a72b696edc553ed4d19df38f3c77980f7)` |  |
-
 ---
 
 {#addstream}
@@ -24174,11 +21407,6 @@ bool addStream(PacketStream * stream, bool whiny)
 bool addStream(std::unique_ptr< PacketStream > stream, bool whiny)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `stream` | `std::unique_ptr< [PacketStream](#packetstream) >` |  |
-| `whiny` | `[bool](#classicy_1_1KeyedStore_1a72b696edc553ed4d19df38f3c77980f7)` |  |
-
 ---
 
 {#closestream}
@@ -24188,11 +21416,6 @@ bool addStream(std::unique_ptr< PacketStream > stream, bool whiny)
 ```cpp
 bool closeStream(const std::string & name, bool whiny)
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `[const](#classicy_1_1KeyedStore_1a72b696edc553ed4d19df38f3c77980f7) std::string &` |  |
-| `whiny` | `[bool](#classicy_1_1KeyedStore_1a72b696edc553ed4d19df38f3c77980f7)` |  |
 
 ---
 
@@ -24215,11 +21438,6 @@ void closeAll()
 ```cpp
 PacketStream * getStream(const std::string & name, bool whiny) const
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `[const](#classicy_1_1KeyedStore_1a72b696edc553ed4d19df38f3c77980f7) std::string &` |  |
-| `whiny` | `[bool](#classicy_1_1KeyedStore_1a72b696edc553ed4d19df38f3c77980f7)` |  |
 
 ---
 
@@ -24244,10 +21462,6 @@ PacketStream * getDefaultStream() const
 ```cpp
 void print(std::ostream & os) const
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `os` | `std::ostream &` |  |
 
 ### Protected Methods
 
@@ -24284,10 +21498,6 @@ Override for lifecycle reactions.
 virtual void onRemove(const std::string &, PacketStream * stream)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `stream` | `[PacketStream](#packetstream) *` |  |
-
 ---
 
 {#onstreamstatechange}
@@ -24297,11 +21507,6 @@ virtual void onRemove(const std::string &, PacketStream * stream)
 ```cpp
 void onStreamStateChange(void * sender, PacketStreamState & state, constPacketStreamState &)
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `sender` | `[void](#classicy_1_1KeyedStore_1a72b696edc553ed4d19df38f3c77980f7) *` |  |
-| `state` | `[PacketStreamState](#packetstreamstate) &` |  |
 
 ---
 
@@ -24553,10 +21758,6 @@ Appends text to the summary list and emits SummaryUpdated.
 #### Parameters
 * `text` Summary line to append.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `text` | `const std::string &` |  |
-
 {#asyncdiagnostic}
 
 ## AsyncDiagnostic
@@ -24683,10 +21884,6 @@ bool addDiagnostic(std::unique_ptr< IDiagnostic > test)
 
 Adds a diagnostic, taking ownership.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `test` | `std::unique_ptr< [IDiagnostic](#idiagnostic) >` |  |
-
 ---
 
 {#freediagnostic}
@@ -24698,10 +21895,6 @@ bool freeDiagnostic(const std::string & name)
 ```
 
 Removes and deletes the diagnostic registered under name.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `[const](#classicy_1_1KeyedStore_1a72b696edc553ed4d19df38f3c77980f7) std::string &` |  |
 
 ---
 
@@ -24716,10 +21909,6 @@ IDiagnostic * getDiagnostic(const std::string & name) const
 ```
 
 Returns the diagnostic or nullptr.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `[const](#classicy_1_1KeyedStore_1a72b696edc553ed4d19df38f3c77980f7) std::string &` |  |
 
 ---
 
@@ -24762,10 +21951,6 @@ bool allComplete() const
 ```cpp
 void onDiagnosticStateChange(void *, DiagnosticState & state, constDiagnosticState &)
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `state` | `[DiagnosticState](#diagnosticstate) &` |  |
 
 {#packettransaction}
 
@@ -24822,12 +22007,6 @@ inline PacketTransaction(long timeout, int retries, uv::Loop * loop)
 
 * `loop` Event loop for the timeout timer.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `timeout` | `long` |  |
-| `retries` | `int` |  |
-| `loop` | `[uv::Loop](uv.md#loop) *` |  |
-
 ---
 
 {#packettransaction}
@@ -24848,13 +22027,6 @@ inline PacketTransaction(const PacketT & request, long timeout, int retries, uv:
 * `retries` Maximum number of retransmissions (0 means one attempt only). 
 
 * `loop` Event loop for the timeout timer.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `request` | `const PacketT &` |  |
-| `timeout` | `long` |  |
-| `retries` | `int` |  |
-| `loop` | `[uv::Loop](uv.md#loop) *` |  |
 
 ---
 
@@ -25134,10 +22306,6 @@ virtual inline void onStateChange(TransactionState & state, const TransactionSta
 
 Post state change hook. Calls [dispose()](#classicy_1_1PacketTransaction_1a59df328cafacdcea30f86ea38c4718ec) on terminal states to stop the timer, but does not delete the object; [IntrusivePtr](#intrusiveptr) handles that.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `state` | `[TransactionState](#transactionstate) &` |  |
-
 ---
 
 {#handlepotentialresponse}
@@ -25152,10 +22320,6 @@ virtual inline bool handlePotentialResponse(const PacketT & packet)
 
 Processes a potential response candidate and updates the state accordingly.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `packet` | `const PacketT &` |  |
-
 ---
 
 {#checkresponse}
@@ -25167,10 +22331,6 @@ bool checkResponse(const PacketT & packet)
 ```
 
 Checks a potential response candidate and returns true on successful match.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `packet` | `const PacketT &` |  |
 
 ---
 
@@ -25282,10 +22442,6 @@ Base64-encodes the payload of an incoming `[RawPacket](#rawpacket)` and emits th
 #### Exceptions
 * `std::bad_cast` if the packet is not a `[RawPacket](#rawpacket)`.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `packet` | `[IPacket](#ipacket) &` |  |
-
 {#task}
 
 ## Task
@@ -25325,10 +22481,6 @@ Task(bool repeat)
 
 #### Parameters
 * `repeat` If true, the `[TaskRunner](#taskrunner)` will call `[run()](#classicy_1_1Task_1a27c42c43ba0ce7ea66f3210fdd27f3de)` repeatedly; if false, the task is cancelled after one execution.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `repeat` | `bool` |  |
 
 ---
 
@@ -25395,10 +22547,6 @@ Unique task ID.
 ```cpp
 Task(const Task & task) = delete
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `task` | `const [Task](#task) &` |  |
 
 ---
 
@@ -25542,10 +22690,6 @@ TaskRunner(std::shared_ptr< Runner > runner)
 #### Parameters
 * `runner` Async runner to drive task execution; defaults to a new `[Thread](#thread)`.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `runner` | `std::shared_ptr< [Runner](#runner) >` |  |
-
 ---
 
 {#taskrunner}
@@ -25580,10 +22724,6 @@ virtual bool start(Task * task)
 
 Starts a task, adding it if it doesn't exist.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `task` | `[Task](#task) *` |  |
-
 ---
 
 {#cancel}
@@ -25600,10 +22740,6 @@ Cancels a task.
 
 The task reference will be managed by the [TaskRunner](#taskrunner) until the task is destroyed.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `task` | `[Task](#task) *` |  |
-
 ---
 
 {#destroy}
@@ -25617,10 +22753,6 @@ virtual bool destroy(Task * task)
 ```
 
 Queues a task for destruction.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `task` | `[Task](#task) *` |  |
 
 ---
 
@@ -25636,10 +22768,6 @@ virtual bool exists(Task * task) const
 
 Returns whether a task exists.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `task` | `[Task](#task) *` |  |
-
 ---
 
 {#get}
@@ -25654,10 +22782,6 @@ virtual Task * get(uint32_t id) const
 
 Returns the task pointer matching the given ID, or nullptr if no task exists.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `id` | `uint32_t` |  |
-
 ---
 
 {#setrunner}
@@ -25671,10 +22795,6 @@ virtual void setRunner(std::shared_ptr< Runner > runner)
 ```
 
 Set the asynchronous context for packet processing. This may be a [Thread](#thread) or another derivative of Async. Must be set before the stream is activated.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `runner` | `std::shared_ptr< [Runner](#runner) >` |  |
 
 ---
 
@@ -25789,10 +22909,6 @@ virtual bool add(Task * task)
 
 Adds a task to the runner.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `task` | `[Task](#task) *` |  |
-
 ---
 
 {#remove}
@@ -25806,10 +22922,6 @@ virtual bool remove(Task * task)
 ```
 
 Removes a task from the runner.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `task` | `[Task](#task) *` |  |
 
 ---
 
@@ -25853,10 +22965,6 @@ virtual void onAdd(Task * task)
 
 Called after a task is added.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `task` | `[Task](#task) *` |  |
-
 ---
 
 {#onstart}
@@ -25870,10 +22978,6 @@ virtual void onStart(Task * task)
 ```
 
 Called after a task is started.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `task` | `[Task](#task) *` |  |
 
 ---
 
@@ -25889,10 +22993,6 @@ virtual void onCancel(Task * task)
 
 Called after a task is cancelled.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `task` | `[Task](#task) *` |  |
-
 ---
 
 {#onremove}
@@ -25907,10 +23007,6 @@ virtual void onRemove(Task * task)
 
 Called after a task is removed.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `task` | `[Task](#task) *` |  |
-
 ---
 
 {#onrun}
@@ -25924,10 +23020,6 @@ virtual void onRun(Task * task)
 ```
 
 Called after a task has run.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `task` | `[Task](#task) *` |  |
 
 {#ipacket}
 
@@ -26019,11 +23111,6 @@ inline IPacket(std::unique_ptr< IPacketInfo > info, unsigned flags)
 
 * `flags` Initial bitwise flags.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `info` | `std::unique_ptr< [IPacketInfo](#ipacketinfo) >` |  |
-| `flags` | `unsigned` |  |
-
 ---
 
 {#ipacket}
@@ -26039,10 +23126,6 @@ inline IPacket(const IPacket & r)
 Copy constructor; clones the info object if present. 
 #### Parameters
 * `r` Source packet.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `r` | `const [IPacket](#ipacket) &` |  |
 
 ---
 
@@ -26062,10 +23145,6 @@ Copy assignment; clones the info object if present.
 
 #### Returns
 Reference to this packet.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `r` | `const [IPacket](#ipacket) &` |  |
 
 ---
 
@@ -26199,10 +23278,6 @@ Prints a human-readable representation to the given stream.
 #### Parameters
 * `os` Output stream.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `os` | `std::ostream &` |  |
-
 {#flagpacket}
 
 ## FlagPacket
@@ -26241,10 +23316,6 @@ inline FlagPacket(unsigned flags)
 #### Parameters
 * `flags` [Bitwise](#bitwise) flags to carry in this packet.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `flags` | `unsigned` |  |
-
 ---
 
 {#clone}
@@ -26274,10 +23345,6 @@ inline FlagPacket(const FlagPacket & that)
 
 #### Parameters
 * `that` Source packet to copy from.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `that` | `const [FlagPacket](#flagpacket) &` |  |
 
 ---
 
@@ -26366,13 +23433,6 @@ inline RawPacket(char * data, size_t size, unsigned flags, std::unique_ptr< IPac
 
 Construct with borrowed (non-owning) buffer.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `char *` |  |
-| `size` | `size_t` |  |
-| `flags` | `unsigned` |  |
-| `info` | `std::unique_ptr< [IPacketInfo](#ipacketinfo) >` |  |
-
 ---
 
 {#rawpacket}
@@ -26387,13 +23447,6 @@ inline RawPacket(const char * data, size_t size, unsigned flags, std::unique_ptr
 
 Construct with const data (copied, owning).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `const char *` |  |
-| `size` | `size_t` |  |
-| `flags` | `unsigned` |  |
-| `info` | `std::unique_ptr< [IPacketInfo](#ipacketinfo) >` |  |
-
 ---
 
 {#rawpacket}
@@ -26407,10 +23460,6 @@ inline RawPacket(const RawPacket & that)
 ```
 
 Copy constructor (always copies data).
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `that` | `const [RawPacket](#rawpacket) &` |  |
 
 ---
 
@@ -26445,11 +23494,6 @@ Copies data into an internally owned buffer, replacing any prior content.
 
 * `size` Number of bytes to copy.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `const void *` |  |
-| `size` | `size_t` |  |
-
 ---
 
 {#read}
@@ -26469,10 +23513,6 @@ Reads from the buffer by copying its contents into an owned buffer.
 #### Returns
 Number of bytes consumed (equal to buf.size()).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `buf` | `const [ConstBuffer](#constbuffer) &` |  |
-
 ---
 
 {#write}
@@ -26488,10 +23528,6 @@ virtual inline void write(Buffer & buf) const
 Appends the packet data to the given output buffer. 
 #### Parameters
 * `buf` Buffer to write into.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `buf` | `[Buffer](#buffer-2) &` |  |
 
 ---
 
@@ -26689,10 +23725,6 @@ bool exists(const std::string & key) const
 
 Returns true if the property with the given key exists.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `const std::string &` |  |
-
 ---
 
 {#getstring}
@@ -26706,10 +23738,6 @@ std::string getString(const std::string & key) const
 ```
 
 Returns the string value of the property with the given name. Throws a NotFoundException if the key does not exist.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `const std::string &` |  |
 
 ---
 
@@ -26725,11 +23753,6 @@ std::string getString(const std::string & key, const std::string & defaultValue)
 
 If a property with the given key exists, returns the property's string value, otherwise returns the given default value.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `const std::string &` |  |
-| `defaultValue` | `const std::string &` |  |
-
 ---
 
 {#getrawstring}
@@ -26743,10 +23766,6 @@ std::string getRawString(const std::string & key) const
 ```
 
 Returns the raw string value of the property with the given name. Throws a NotFoundException if the key does not exist. References to other properties are not expanded.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `const std::string &` |  |
 
 ---
 
@@ -26762,11 +23781,6 @@ std::string getRawString(const std::string & key, const std::string & defaultVal
 
 If a property with the given key exists, returns the property's raw string value, otherwise returns the given default value. References to other properties are not expanded.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `const std::string &` |  |
-| `defaultValue` | `const std::string &` |  |
-
 ---
 
 {#getint}
@@ -26780,10 +23794,6 @@ int getInt(const std::string & key) const
 ```
 
 Returns the int value of the property with the given name. Throws a NotFoundException if the key does not exist. Throws a SyntaxException if the property can not be converted to an int. Numbers starting with 0x are treated as hexadecimal.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `const std::string &` |  |
 
 ---
 
@@ -26799,11 +23809,6 @@ int getInt(const std::string & key, int defaultValue) const
 
 If a property with the given key exists, returns the property's int value, otherwise returns the given default value. Throws a SyntaxException if the property can not be converted to an int. Numbers starting with 0x are treated as hexadecimal.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `const std::string &` |  |
-| `defaultValue` | `int` |  |
-
 ---
 
 {#getlargeint}
@@ -26817,10 +23822,6 @@ std::int64_t getLargeInt(const std::string & key) const
 ```
 
 Returns the int value of the property with the given name. Throws a NotFoundException if the key does not exist. Throws a SyntaxException if the property can not be converted to an int. Numbers starting with 0x are treated as hexadecimal.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `const std::string &` |  |
 
 ---
 
@@ -26836,11 +23837,6 @@ std::int64_t getLargeInt(const std::string & key, std::int64_t defaultValue) con
 
 If a property with the given key exists, returns the property's int value, otherwise returns the given default value. Throws a SyntaxException if the property can not be converted to an int. Numbers starting with 0x are treated as hexadecimal.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `const std::string &` |  |
-| `defaultValue` | `std::int64_t` |  |
-
 ---
 
 {#getdouble}
@@ -26854,10 +23850,6 @@ double getDouble(const std::string & key) const
 ```
 
 Returns the double value of the property with the given name. Throws a NotFoundException if the key does not exist. Throws a SyntaxException if the property can not be converted to a double.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `const std::string &` |  |
 
 ---
 
@@ -26873,11 +23865,6 @@ double getDouble(const std::string & key, double defaultValue) const
 
 If a property with the given key exists, returns the property's double value, otherwise returns the given default value. Throws a SyntaxException if the property can not be converted to an double.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `const std::string &` |  |
-| `defaultValue` | `double` |  |
-
 ---
 
 {#getbool}
@@ -26891,10 +23878,6 @@ bool getBool(const std::string & key) const
 ```
 
 Returns the double value of the property with the given name. Throws a NotFoundException if the key does not exist. Throws a SyntaxException if the property can not be converted to a double.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `const std::string &` |  |
 
 ---
 
@@ -26914,11 +23897,6 @@ If a property with the given key exists, returns the property's bool value, othe
 
 * strings: true, yes, on become true, false, no, off become false Case does not matter.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `const std::string &` |  |
-| `defaultValue` | `bool` |  |
-
 ---
 
 {#setstring}
@@ -26930,11 +23908,6 @@ void setString(const std::string & key, const std::string & value)
 ```
 
 Sets the property with the given key to the given value. An already existing value for the key is overwritten.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `const std::string &` |  |
-| `value` | `const std::string &` |  |
 
 ---
 
@@ -26948,11 +23921,6 @@ void setInt(const std::string & key, int value)
 
 Sets the property with the given key to the given value. An already existing value for the key is overwritten.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `const std::string &` |  |
-| `value` | `int` |  |
-
 ---
 
 {#setlargeint}
@@ -26964,11 +23932,6 @@ void setLargeInt(const std::string & key, std::int64_t value)
 ```
 
 Sets the property with the given key to the given value. An already existing value for the key is overwritten.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `const std::string &` |  |
-| `value` | `std::int64_t` |  |
 
 ---
 
@@ -26982,11 +23945,6 @@ void setDouble(const std::string & key, double value)
 
 Sets the property with the given key to the given value. An already existing value for the key is overwritten.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `const std::string &` |  |
-| `value` | `double` |  |
-
 ---
 
 {#setbool}
@@ -26998,11 +23956,6 @@ void setBool(const std::string & key, bool value)
 ```
 
 Sets the property with the given key to the given value. An already existing value for the key is overwritten.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `const std::string &` |  |
-| `value` | `bool` |  |
 
 ### Protected Methods
 
@@ -27029,11 +23982,6 @@ If the property with the given key exists, stores the property's value in value 
 
 Must be overridden by subclasses.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `const std::string &` |  |
-| `value` | `std::string &` |  |
-
 ---
 
 {#setraw}
@@ -27047,11 +23995,6 @@ void setRaw(const std::string & key, const std::string & value)
 Sets the property with the given key to the given value. An already existing value for the key is overwritten.
 
 The implementation is responsible for emitting the PropertyChanged signal.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `const std::string &` |  |
-| `value` | `const std::string &` |  |
 
 ---
 
@@ -27174,12 +24117,6 @@ ScopedConfiguration(Configuration & config, const std::string & currentScope, co
 
 * `defaultScope` Key prefix for the default/fallback scope.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `config` | `[Configuration](#configuration) &` |  |
-| `currentScope` | `const std::string &` |  |
-| `defaultScope` | `const std::string &` |  |
-
 ---
 
 {#scopedconfiguration}
@@ -27189,10 +24126,6 @@ ScopedConfiguration(Configuration & config, const std::string & currentScope, co
 ```cpp
 ScopedConfiguration(const ScopedConfiguration & that)
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `that` | `const [ScopedConfiguration](#scopedconfiguration) &` |  |
 
 ---
 
@@ -27217,12 +24150,6 @@ Returns the string value, trying `currentScope` first then `defaultScope`.
 #### Returns
 Property value or `defaultValue`.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `const std::string &` |  |
-| `defaultValue` | `const std::string &` |  |
-| `forceDefaultScope` | `bool` |  |
-
 ---
 
 {#getint}
@@ -27245,12 +24172,6 @@ Returns the int value, trying `currentScope` first then `defaultScope`.
 
 #### Returns
 Property value or `defaultValue`.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `const std::string &` |  |
-| `defaultValue` | `int` |  |
-| `forceDefaultScope` | `bool` |  |
 
 ---
 
@@ -27275,12 +24196,6 @@ Returns the double value, trying `currentScope` first then `defaultScope`.
 #### Returns
 Property value or `defaultValue`.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `const std::string &` |  |
-| `defaultValue` | `double` |  |
-| `forceDefaultScope` | `bool` |  |
-
 ---
 
 {#getbool}
@@ -27304,12 +24219,6 @@ Returns the bool value, trying `currentScope` first then `defaultScope`.
 #### Returns
 Property value or `defaultValue`.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `const std::string &` |  |
-| `defaultValue` | `bool` |  |
-| `forceDefaultScope` | `bool` |  |
-
 ---
 
 {#setstring}
@@ -27327,12 +24236,6 @@ Writes a string value under the scoped key.
 * `value` Value to store. 
 
 * `defaultScope` If true, writes to `defaultScope`; otherwise to `currentScope`.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `const std::string &` |  |
-| `value` | `const std::string &` |  |
-| `defaultScope` | `bool` |  |
 
 ---
 
@@ -27352,12 +24255,6 @@ Writes an int value under the scoped key.
 
 * `defaultScope` If true, writes to `defaultScope`; otherwise to `currentScope`.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `const std::string &` |  |
-| `value` | `int` |  |
-| `defaultScope` | `bool` |  |
-
 ---
 
 {#setdouble}
@@ -27375,12 +24272,6 @@ Writes a double value under the scoped key.
 * `value` Value to store. 
 
 * `defaultScope` If true, writes to `defaultScope`; otherwise to `currentScope`.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `const std::string &` |  |
-| `value` | `double` |  |
-| `defaultScope` | `bool` |  |
 
 ---
 
@@ -27400,12 +24291,6 @@ Writes a bool value under the scoped key.
 
 * `defaultScope` If true, writes to `defaultScope`; otherwise to `currentScope`.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `const std::string &` |  |
-| `value` | `bool` |  |
-| `defaultScope` | `bool` |  |
-
 ---
 
 {#getcurrentscope}
@@ -27424,10 +24309,6 @@ std::string getCurrentScope(const std::string & key) const
 #### Returns
 Fully qualified key in `currentScope`.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `const std::string &` |  |
-
 ---
 
 {#getdafaultkey}
@@ -27445,10 +24326,6 @@ std::string getDafaultKey(const std::string & key) const
 
 #### Returns
 Fully qualified key in `defaultScope`.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `const std::string &` |  |
 
 ---
 
@@ -27469,11 +24346,6 @@ std::string getScopedKey(const std::string & key, bool defaultScope) const
 
 #### Returns
 Fully qualified scoped key string.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `const std::string &` |  |
-| `defaultScope` | `bool` |  |
 
 {#error}
 
@@ -27566,10 +24438,6 @@ Constructs an error with the given message string.
 #### Parameters
 * `msg` Human-readable error description.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `msg` | `const std::string &` |  |
-
 ---
 
 {#error}
@@ -27585,10 +24453,6 @@ inline Error(const char * msg)
 Constructs an error with the given C string message. 
 #### Parameters
 * `msg` Human-readable error description.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `msg` | `const char *` |  |
 
 ---
 
@@ -27666,13 +24530,6 @@ No-op log record used when logging is compiled out.
 inline LogStream(Level level, std::string realm, int line, const char * channel)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `level` | `[Level](#level)` |  |
-| `realm` | `std::string` |  |
-| `line` | `int` |  |
-| `channel` | `const char *` |  |
-
 ---
 
 {#logstream}
@@ -27685,10 +24542,6 @@ inline LogStream(Level level, std::string realm, int line, const char * channel)
 inline LogStream(const LogStream & that)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `that` | `const [LogStream](#logstream) &` |  |
-
 ---
 
 {#write}
@@ -27700,10 +24553,6 @@ inline LogStream(const LogStream & that)
 ```cpp
 template<typename... Args> inline void write(Args... args)
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `args` | `Args...` |  |
 
 ---
 
@@ -27728,10 +24577,6 @@ template<typename T> inline LogStream & operator<<(const T &)
 ```cpp
 inline LogStream & operator<<(std::ostream &(*)(std::ostream &) f)
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `f` | `std::ostream &(*)(std::ostream &)` |  |
 
 {#nullsharedmutex}
 
@@ -27856,10 +24701,6 @@ Constructs a [Bitwise](#bitwise) with optional initial flags.
 #### Parameters
 * `flags` Initial flag value (default: 0).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `flags` | `unsigned` |  |
-
 ---
 
 {#reset}
@@ -27890,10 +24731,6 @@ Sets the given flag only if it is not already set.
 #### Parameters
 * `flag` The flag bit(s) to set.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `flag` | `unsigned` |  |
-
 ---
 
 {#add}
@@ -27909,10 +24746,6 @@ virtual inline void add(unsigned flag)
 Unconditionally sets (OR) the given flag bits. 
 #### Parameters
 * `flag` The flag bit(s) to add.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `flag` | `unsigned` |  |
 
 ---
 
@@ -27930,10 +24763,6 @@ Clears the given flag bits.
 #### Parameters
 * `flag` The flag bit(s) to remove.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `flag` | `unsigned` |  |
-
 ---
 
 {#toggle}
@@ -27949,10 +24778,6 @@ virtual inline void toggle(unsigned flag)
 Toggles (XOR) the given flag bits. 
 #### Parameters
 * `flag` The flag bit(s) to toggle.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `flag` | `unsigned` |  |
 
 ---
 
@@ -27972,10 +24797,6 @@ Returns true if all bits in flag are set.
 
 #### Returns
 true if every bit in flag is present in data.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `flag` | `unsigned` |  |
 
 {#abstractdelegate}
 
@@ -28015,10 +24836,6 @@ Invokes the underlying callable with the supplied arguments.
 #### Returns
 Result of the wrapped function call.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `args` | `Args...` |  |
-
 ---
 
 {#operator}
@@ -28037,10 +24854,6 @@ Compares two delegates for equality (same target function and instance).
 
 #### Returns
 True if both delegates refer to the same callable target.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `that` | `const [AbstractDelegate](#abstractdelegate)< RT, Args... > &` |  |
 
 {#functiondelegate}
 
@@ -28093,10 +24906,6 @@ inline FunctionDelegate(std::function< RT(Args...)> func)
 #### Parameters
 * `func` `std::function` to wrap.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `func` | `std::function< RT(Args...)>` |  |
-
 ---
 
 {#operator}
@@ -28115,10 +24924,6 @@ Calls the wrapped `std::function`.
 
 #### Returns
 Function result.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `args` | `Args...` |  |
 
 ---
 
@@ -28200,11 +25005,6 @@ inline ClassDelegate(Class * instance, RT(Class::*)(Args...) method)
 
 * `method` Pointer to the member function to wrap.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `instance` | `Class *` |  |
-| `method` | `RT(Class::*)(Args...)` |  |
-
 ---
 
 {#operator}
@@ -28224,10 +25024,6 @@ Calls the member function on `instance`.
 #### Returns
 Method result.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `args` | `Args...` |  |
-
 ---
 
 {#operator}
@@ -28245,10 +25041,6 @@ virtual inline bool operator==(const AbstractDelegate< RT, Args... > & that) con
 
 #### Returns
 True if both delegates wrap the same instance/method pair.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `that` | `const [AbstractDelegate](#abstractdelegate)< RT, Args... > &` |  |
 
 {#constclassdelegate}
 
@@ -28316,11 +25108,6 @@ inline ConstClassDelegate(Class * instance, RT(Class::*)(Args...) const method)
 
 * `method` Pointer to the const member function to wrap.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `instance` | `Class *` |  |
-| `method` | `RT(Class::*)(Args...) const` |  |
-
 ---
 
 {#operator}
@@ -28340,10 +25127,6 @@ Calls the const member function on `instance`.
 #### Returns
 Method result.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `args` | `Args...` |  |
-
 ---
 
 {#operator}
@@ -28361,10 +25144,6 @@ virtual inline bool operator==(const AbstractDelegate< RT, Args... > & that) con
 
 #### Returns
 True if both delegates wrap the same instance/method pair.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `that` | `const [AbstractDelegate](#abstractdelegate)< RT, Args... > &` |  |
 
 {#polymorphicdelegate}
 
@@ -28432,11 +25211,6 @@ inline PolymorphicDelegate(Class * instance, RT(Class::*)(PT &) method)
 
 * `method` Pointer to the member function accepting a derived `PT&`.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `instance` | `Class *` |  |
-| `method` | `RT(Class::*)(PT &)` |  |
-
 ---
 
 {#operator}
@@ -28456,10 +25230,6 @@ Attempts to cast `object` to `PT`; invokes the method if successful. Returns a d
 #### Returns
 Method result, or default `RT` on cast failure.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `object` | `IT &` |  |
-
 ---
 
 {#operator}
@@ -28477,10 +25247,6 @@ virtual inline bool operator==(const AbstractDelegate< RT, IT & > & that) const
 
 #### Returns
 True if both delegates wrap the same instance/method pair.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `that` | `const [AbstractDelegate](#abstractdelegate)< RT, IT & > &` |  |
 
 {#optionparser}
 
@@ -28546,12 +25312,6 @@ Parses command-line arguments from `argc`/`argv`.
 
 * `delim` Prefix string that identifies an option key (e.g. "--").
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `argc` | `int` |  |
-| `argv` | `char *` |  |
-| `delim` | `const char *` |  |
-
 ---
 
 {#has}
@@ -28571,10 +25331,6 @@ Returns true if the given option key was present on the command line.
 #### Returns
 True if the key exists in the parsed argument map.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `const char *` |  |
-
 ---
 
 {#get}
@@ -28593,10 +25349,6 @@ Returns the string value associated with the given option key. Returns an empty 
 
 #### Returns
 Value string, or empty string if not present.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `const char *` |  |
 
 ---
 
@@ -28619,10 +25371,6 @@ Returns the value associated with the given option key, converted to a numeric t
 
 #### Returns
 Converted numeric value.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `const char *` |  |
 
 {#shutdowncmd}
 
@@ -28741,12 +25489,6 @@ inline PacketAdapterReference(PacketStreamAdapter * ptr, int order, bool syncSta
 
 Construct with raw pointer (non-owning).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ptr` | `[PacketStreamAdapter](#packetstreamadapter) *` |  |
-| `order` | `int` |  |
-| `syncState` | `bool` |  |
-
 ---
 
 {#packetadapterreference}
@@ -28760,12 +25502,6 @@ template<class C> inline PacketAdapterReference(std::shared_ptr< C > owned, int 
 ```
 
 Construct with shared_ptr ownership.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `owned` | `std::shared_ptr< C >` |  |
-| `order` | `int` |  |
-| `syncState` | `bool` |  |
 
 ### Public Static Methods
 
@@ -28793,11 +25529,6 @@ Comparator for sorting references by ascending order value.
 
 #### Returns
 true if `l` should appear before `r` in the processor chain.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `l` | `const [PacketAdapterReference::Ptr](#structicy_1_1PacketAdapterReference_1a987e5369e97ad16642ea9df9012f6e2c) &` |  |
-| `r` | `const [PacketAdapterReference::Ptr](#structicy_1_1PacketAdapterReference_1a987e5369e97ad16642ea9df9012f6e2c) &` |  |
 
 ### Public Types
 
@@ -28844,10 +25575,6 @@ std::shared_ptr< PacketAdapterReference > Ptr()
 ```cpp
 inline std::string str(unsigned int id) const
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `id` | `unsigned int` |  |
 
 ### Public Static Attributes
 
@@ -29023,10 +25750,6 @@ inline PacketCreationStrategy(int priority)
 #### Exceptions
 * `std::logic_error` if priority exceeds 100.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `priority` | `int` |  |
-
 ---
 
 {#create}
@@ -29047,11 +25770,6 @@ Attempts to default-construct a `PacketT`, calling its `read()` method.
 
 #### Returns
 Newly allocated `PacketT` on success, nullptr if read() returns 0.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `buffer` | `const [ConstBuffer](#constbuffer) &` |  |
-| `nread` | `size_t &` |  |
 
 ---
 
@@ -29118,10 +25836,6 @@ inline bool open(const std::string & path)
 
 Opens a shared library. The filename is in utf-8. Returns true on success and false on error. Call `[SharedLibrary::error()](#structicy_1_1SharedLibrary_1a884ec111fdba82e16e31feaaf65bd4fd)` to get the error message.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `path` | `const std::string &` |  |
-
 ---
 
 {#close}
@@ -29150,11 +25864,6 @@ inline bool sym(const char * name, void ** ptr)
 
 Retrieves a data pointer from a dynamic library. It is legal for a symbol to map to nullptr. Returns 0 on success and -1 if the symbol was not found.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `const char *` |  |
-| `ptr` | `void **` |  |
-
 ---
 
 {#seterror}
@@ -29173,10 +25882,6 @@ Reads the last libuv dynamic-linker error, stores it in _error, and throws a std
 
 #### Exceptions
 * `std::runtime_error` always.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `prefix` | `const std::string &` |  |
 
 ---
 
@@ -29261,10 +25966,6 @@ Returns a human-readable string for the given state ID.
 #### Exceptions
 * `std::logic_error` for unknown IDs.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `id` | `unsigned int` |  |
-
 ### Public Types
 
 | Name | Description |
@@ -29323,10 +26024,6 @@ inline std::string str(unsigned int id) const
 
 #### Returns
 Human-readable name of the state.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `id` | `unsigned int` |  |
 
 ### Public Types
 

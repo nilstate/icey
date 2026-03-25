@@ -178,10 +178,6 @@ Adds `task` to the scheduler and starts running it on its configured trigger. Th
 #### Parameters
 * `task` [Task](#task-1) to schedule; must have a trigger set.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `task` | `[sched::Task](#task-1) *` |  |
-
 ---
 
 {#cancel-4}
@@ -197,10 +193,6 @@ virtual void cancel(sched::Task * task)
 Removes `task` from the scheduler and cancels any pending execution. 
 #### Parameters
 * `task` [Task](#task-1) to cancel.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `task` | `[sched::Task](#task-1) *` |  |
 
 ---
 
@@ -232,10 +224,6 @@ Serializes all scheduled tasks and their triggers to `root`.
 #### Parameters
 * `root` JSON array to append serialized task entries to.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `root` | `[json::Value](json.md#value) &` |  |
-
 ---
 
 {#deserialize-3}
@@ -251,10 +239,6 @@ virtual void deserialize(json::Value & root)
 Reconstructs the task list from `root` using the [TaskFactory](#taskfactory). Skips entries that fail to deserialize and logs the error. 
 #### Parameters
 * `root` JSON array previously produced by [serialize()](#serialize-3).
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `root` | `[json::Value](json.md#value) &` |  |
 
 ---
 
@@ -272,10 +256,6 @@ Writes a pretty-printed JSON representation of all tasks to `ost`.
 #### Parameters
 * `ost` Output stream to write to.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ost` | `std::ostream &` |  |
-
 ---
 
 {#cancel-5}
@@ -289,10 +269,6 @@ bool cancel(Task * task)
 Cancels a task.
 
 The task reference will be managed by the [TaskRunner](base.md#taskrunner) until the task is destroyed.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `task` | `[Task](#task-1) *` |  |
 
 ### Public Static Methods
 
@@ -407,11 +383,6 @@ Constructs a detached task without an associated scheduler. A trigger must be se
 
 * `name` Human-readable display name.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `type` | `const std::string &` |  |
-| `name` | `const std::string &` |  |
-
 ---
 
 {#task-3}
@@ -430,12 +401,6 @@ Constructs a task associated with the given scheduler.
 
 * `name` Human-readable display name.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `scheduler` | `[Scheduler](#scheduler) &` |  |
-| `type` | `const std::string &` |  |
-| `name` | `const std::string &` |  |
-
 ---
 
 {#serialize-4}
@@ -450,10 +415,6 @@ virtual void serialize(json::Value & root)
 
 Serializes the task to JSON.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `root` | `[json::Value](json.md#value) &` |  |
-
 ---
 
 {#deserialize-4}
@@ -467,10 +428,6 @@ virtual void deserialize(json::Value & root)
 ```
 
 Deserializes the task from JSON.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `root` | `[json::Value](json.md#value) &` |  |
 
 ---
 
@@ -504,10 +461,6 @@ void setTrigger(std::unique_ptr< sched::Trigger > trigger)
 Replaces the current trigger with `trigger`. 
 #### Parameters
 * `trigger` Owning pointer to the new trigger; must not be null before calling.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `trigger` | `std::unique_ptr< [sched::Trigger](#trigger-1) >` |  |
 
 ---
 
@@ -588,10 +541,6 @@ void setName(const std::string & name)
 Sets the human-readable display name. 
 #### Parameters
 * `name` New display name.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `const std::string &` |  |
 
 ### Protected Attributes
 
@@ -742,10 +691,6 @@ Owning pointer to the new task instance.
 #### Exceptions
 * `std::runtime_error` if `type` is not registered.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `type` | `const std::string &` |  |
-
 ---
 
 {#registertask}
@@ -765,10 +710,6 @@ Registers a task type T under the given name. Subsequent calls to [createTask()]
 #### Parameters
 * `type` Type name string to register.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `type` | `const std::string &` |  |
-
 ---
 
 {#unregistertask}
@@ -784,10 +725,6 @@ inline void unregisterTask(const std::string & type)
 Removes the task registration for `type`. No-op if not registered. 
 #### Parameters
 * `type` Type name to deregister.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `type` | `const std::string &` |  |
 
 ---
 
@@ -825,10 +762,6 @@ Owning pointer to the new trigger instance.
 #### Exceptions
 * `std::runtime_error` if `type` is not registered.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `type` | `const std::string &` |  |
-
 ---
 
 {#registertrigger}
@@ -848,10 +781,6 @@ Registers a trigger type T under the given name.
 #### Parameters
 * `type` Type name string to register.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `type` | `const std::string &` |  |
-
 ---
 
 {#unregistertrigger}
@@ -867,10 +796,6 @@ inline void unregisterTrigger(const std::string & type)
 Removes the trigger registration for `type`. No-op if not registered. 
 #### Parameters
 * `type` Type name to deregister.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `type` | `const std::string &` |  |
 
 ---
 
@@ -1160,10 +1085,6 @@ Serializes interval fields (days, hours, minutes, seconds) in addition to base f
 #### Parameters
 * `root` JSON object to populate.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `root` | `[json::Value](json.md#value) &` |  |
-
 ---
 
 {#deserialize-2}
@@ -1179,10 +1100,6 @@ virtual void deserialize(json::Value & root)
 Deserializes interval fields from `root`. Throws if the resulting interval is zero. 
 #### Parameters
 * `root` JSON object previously produced by [serialize()](#serialize-2).
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `root` | `[json::Value](json.md#value) &` |  |
 
 {#onceonlytrigger}
 
@@ -1367,11 +1284,6 @@ Trigger(const std::string & type, const std::string & name)
 
 * `name` Human-readable display name.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `type` | `const std::string &` |  |
-| `name` | `const std::string &` |  |
-
 ---
 
 {#update-6}
@@ -1442,10 +1354,6 @@ Serializes timing state (type, name, createdAt, scheduleAt, lastRunAt, timesRun)
 #### Parameters
 * `root` JSON object to populate.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `root` | `[json::Value](json.md#value) &` |  |
-
 ---
 
 {#deserialize-5}
@@ -1461,8 +1369,4 @@ virtual void deserialize(json::Value & root)
 Deserializes timing state from `root`. 
 #### Parameters
 * `root` JSON object previously produced by [serialize()](#serialize-5).
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `root` | `[json::Value](json.md#value) &` |  |
 

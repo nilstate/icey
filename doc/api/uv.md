@@ -86,11 +86,6 @@ Runs the given event loop using the specified run mode. Blocks until the loop ex
 
 * `mode` libuv run mode: `UV_RUN_DEFAULT`, `UV_RUN_ONCE`, or `UV_RUN_NOWAIT`.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `loop` | `[Loop](#loop) *` |  |
-| `mode` | `uv_run_mode` |  |
-
 ---
 
 {#stoploop}
@@ -106,10 +101,6 @@ inline void stopLoop(Loop * loop) = default
 Stops the given event loop, causing `uv_run` to return after the current iteration. 
 #### Parameters
 * `loop` Event loop to stop. Defaults to the default loop.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `loop` | `[Loop](#loop) *` |  |
 
 ---
 
@@ -146,10 +137,6 @@ Closes the given event loop, releasing internal resources. All handles must be c
 #### Returns
 True on success, false if the loop still has active handles.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `loop` | `[Loop](#loop) *` |  |
-
 ---
 
 {#handlestorage}
@@ -165,10 +152,6 @@ template<typename T> inline HandleStorage< T > * handleStorage(T * handle)
 Returns the extended storage wrapper that owns `handle`. 
 #### Parameters
 * `handle` Raw `libuv` handle pointer previously allocated by `[Context](#context-1)<T>`.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `handle` | `T *` |  |
 
 ---
 
@@ -190,12 +173,6 @@ Registers a cleanup callback that runs when `handle` finally closes.
 
 * `cleanup` Function invoked exactly once when the handle storage is released.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `handle` | `T *` |  |
-| `data` | `void *` |  |
-| `cleanup` | `void(*)(void *)` |  |
-
 ---
 
 {#clearhandleclosecleanup}
@@ -211,10 +188,6 @@ template<typename T> inline void clearHandleCloseCleanup(T * handle)
 Clears any pending close-time cleanup callback registered on `handle`. 
 #### Parameters
 * `handle` Raw `libuv` handle pointer.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `handle` | `T *` |  |
 
 ---
 
@@ -233,11 +206,6 @@ Wraps `callback` so it only runs while the owning handle is still alive. Capture
 * `owner` Owning handle instance. 
 
 * `callback` Callable that receives `Owner&` followed by the libuv callback args.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `owner` | `Owner &` |  |
-| `callback` | `Callback &&` |  |
 
 ---
 
@@ -263,10 +231,6 @@ The returned reference is valid until the request's `defaultCallback` fires and 
 
 #### Returns
 Reference to the newly allocated request.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `callback` | `std::function< void(const typename T::Event &)>` |  |
 
 ---
 
@@ -298,11 +262,6 @@ This is the standard way to bind request completion to handle lifetime or other 
 
 #### Returns
 Reference to the newly allocated request.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `retained` | `[Retained](base.md#namespaceicy_1a4208858b844a4f5829aabc3aedb53bcfa3152d729715876babcbb6e064b1ff0d1) &&` |  |
-| `callback` | `Callback &&` |  |
 
 {#handle-2}
 
@@ -364,10 +323,6 @@ Construct the handle bound to the given event loop.
 #### Parameters
 * `loop` Event loop to associate this handle with. Defaults to the process-wide default loop.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `loop` | `[uv::Loop](#loop) *` |  |
-
 ---
 
 {#init-2}
@@ -391,11 +346,6 @@ Must be called exactly once before any other operations. Throws `std::logic_erro
 
 #### Returns
 `true` on success; `false` and sets the error state on failure.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `f` | `F &&` |  |
-| `args` | `Args &&...` |  |
 
 ---
 
@@ -421,11 +371,6 @@ Throws `std::logic_error` if the handle is not yet initialized. Sets the error s
 #### Returns
 `true` on success; `false` on libuv error.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `f` | `F &&` |  |
-| `args` | `Args &&...` |  |
-
 ---
 
 {#invokeorthrow}
@@ -448,12 +393,6 @@ Identical to `[invoke()](#invoke)` but throws a `std::runtime_error` with `messa
 * `f` libuv function to call. 
 
 * `args` Arguments forwarded to `f`.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `message` | `const std::string &` |  |
-| `f` | `F &&` |  |
-| `args` | `Args &&...` |  |
 
 ---
 
@@ -592,10 +531,6 @@ Set the error state and invoke `[onError()](#onerror)`.
 #### Parameters
 * `error` [Error](base.md#error) value to store and propagate.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `error` | `const [Error](base.md#error) &` |  |
-
 ---
 
 {#setuverror}
@@ -616,11 +551,6 @@ Safe to call from inside libuv callbacks.
 * `err` libuv error code (negative integer). 
 
 * `prefix` Human-readable prefix prepended to the formatted message.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `err` | `int` |  |
-| `prefix` | `std::string` |  |
 
 ---
 
@@ -643,11 +573,6 @@ Must not be called from inside libuv callbacks; use `[setUVError()](#setuverror)
 
 * `prefix` Human-readable prefix prepended to the thrown message.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `err` | `int` |  |
-| `prefix` | `std::string` |  |
-
 ---
 
 {#throwlasterror}
@@ -666,10 +591,6 @@ The stored error's message is re-formatted with `prefix` before throwing. No-op 
 
 #### Parameters
 * `prefix` Human-readable prefix used when re-formatting the message.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `prefix` | `std::string` |  |
 
 ---
 
@@ -776,10 +697,6 @@ A retained reference to the `[Context](#context-1)`, or an empty reference if cl
 template<typename U> inline void setCloseCleanup(U * data)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `U *` |  |
-
 ---
 
 {#clearclosecleanup}
@@ -882,10 +799,6 @@ Override to react to errors. The default implementation is a no-op.
 
 #### Parameters
 * `error` The error that was set.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `error` | `const [Error](base.md#error) &` |  |
 
 ---
 
@@ -1186,10 +1099,6 @@ bool deleted = false
 inline Context(Handle< T > * h)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `h` | `[Handle](#handle-2)< T > *` |  |
-
 ---
 
 {#owner}
@@ -1319,11 +1228,6 @@ Enabled only when `f` returns a non-void type (i.e. an error code).
 #### Returns
 `true` (non-zero = success) if `f` returned 0; `false` on error.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `f` | `F &&` |  |
-| `args` | `Args &&...` |  |
-
 ---
 
 {#invoke-2}
@@ -1342,11 +1246,6 @@ Call `f` with `args`. Overload for void-returning functions; no error checking i
 * `f` Function to call. 
 
 * `args` Arguments forwarded to `f`.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `f` | `F &&` |  |
-| `args` | `Args &&...` |  |
 
 ### Public Static Methods
 
@@ -1372,11 +1271,6 @@ Standard libuv completion callback. Invokes `callback` with the status event and
 * `req` The completed libuv request. 
 
 * `status` libuv status code (0 on success, negative on error).
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `req` | `T *` |  |
-| `status` | `int` |  |
 
 ### Public Types
 
@@ -1461,11 +1355,6 @@ Initiate a TCP connection to `addr` on `handle`.
 #### Returns
 `true` if the connect request was submitted successfully.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `handle` | `uv_tcp_t *` |  |
-| `addr` | `const struct sockaddr *` |  |
-
 ---
 
 {#connect-1}
@@ -1487,11 +1376,6 @@ Initiate a named-pipe connection to `name` on `handle`.
 
 #### Returns
 `true` if the connect request was submitted successfully.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `handle` | `uv_pipe_t *` |  |
-| `name` | `const char *` |  |
 
 {#getaddrinfoevent}
 
@@ -1593,12 +1477,6 @@ The result is delivered to `callback` as a `[GetAddrInfoEvent](#getaddrinfoevent
 #### Returns
 `true` if the request was submitted successfully.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `host` | `const std::string &` |  |
-| `port` | `int` |  |
-| `loop` | `[uv::Loop](#loop) *` |  |
-
 ### Public Static Methods
 
 | Return | Name | Description |
@@ -1627,12 +1505,6 @@ Invokes the stored callback with the resolved address list, then frees the `addr
 * `status` libuv status code. 
 
 * `res` Resolved address list (freed after callback returns).
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `req` | `[Request::Type](#type-8) *` |  |
-| `status` | `int` |  |
-| `res` | `struct addrinfo *` |  |
 
 ### Public Types
 

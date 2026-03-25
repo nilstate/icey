@@ -138,14 +138,6 @@ Constructs a [Cipher](#cipher), optionally applies `key` and `iv` (skipped when 
 #### Returns
 Encrypted (and optionally encoded) result as a std::string.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `algorithm` | `const std::string &` |  |
-| `data` | `const std::string &` |  |
-| `key` | `const K &` |  |
-| `iv` | `const I &` |  |
-| `encoding` | `[Cipher::Encoding](#encoding-1)` |  |
-
 ---
 
 {#decryptstring}
@@ -178,14 +170,6 @@ Constructs a [Cipher](#cipher), optionally applies `key` and `iv` (skipped when 
 
 #### Returns
 Decrypted plaintext as a std::string.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `algorithm` | `const std::string &` |  |
-| `data` | `const std::string &` |  |
-| `key` | `const K &` |  |
-| `iv` | `const I &` |  |
-| `encoding` | `[Cipher::Encoding](#encoding-1)` |  |
 
 ---
 
@@ -237,11 +221,6 @@ Computes a hex-encoded digest of a string in a single call.
 #### Returns
 Lowercase hex-encoded digest string.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `algorithm` | `const std::string &` |  |
-| `data` | `std::string_view` |  |
-
 ---
 
 {#hash-2}
@@ -265,12 +244,6 @@ Computes a hex-encoded digest of a raw buffer in a single call.
 
 #### Returns
 Lowercase hex-encoded digest string.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `algorithm` | `const std::string &` |  |
-| `data` | `const void *` |  |
-| `length` | `unsigned` |  |
 
 ---
 
@@ -299,11 +272,6 @@ Lowercase hex-encoded digest string.
 #### Exceptions
 * `std::runtime_error` if the file cannot be opened.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `algorithm` | `const std::string &` |  |
-| `path` | `const std::string &` |  |
-
 ---
 
 {#computehmac}
@@ -328,11 +296,6 @@ Uses OpenSSL HMAC with SHA-1 as the underlying digest. The output is a 20-byte r
 
 #### Exceptions
 * `std::runtime_error` if OpenSSL returns an unexpected digest length.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `input` | `std::string_view` |  |
-| `key` | `std::string_view` |  |
 
 {#cipher}
 
@@ -393,10 +356,6 @@ Constructs a [Cipher](#cipher) with a randomly generated key and IV.
 #### Exceptions
 * `std::invalid_argument` if the cipher name is not recognized.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `const std::string &` |  |
-
 ---
 
 {#cipher-2}
@@ -418,12 +377,6 @@ Constructs a [Cipher](#cipher) with an explicit key and initialization vector.
 
 #### Exceptions
 * `std::invalid_argument` if the cipher name is not recognized.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `const std::string &` |  |
-| `key` | `const [ByteVec](#bytevec) &` |  |
-| `iv` | `const [ByteVec](#bytevec) &` |  |
 
 ---
 
@@ -450,13 +403,6 @@ Uses EVP_BytesToKey with SHA-256 to derive the key material.
 
 #### Exceptions
 * `std::invalid_argument` if the cipher name is not recognized.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `const std::string &` |  |
-| `passphrase` | `std::string_view` |  |
-| `salt` | `std::string_view` |  |
-| `iterationCount` | `int` |  |
 
 ---
 
@@ -527,13 +473,6 @@ Number of bytes written to `output`.
 #### Exceptions
 * `std::runtime_error` if the output buffer is too small.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `input` | `const unsigned char *` |  |
-| `inputLength` | `size_t` |  |
-| `output` | `unsigned char *` |  |
-| `outputLength` | `size_t` |  |
-
 ---
 
 {#update-8}
@@ -558,11 +497,6 @@ unsigned char*, size_t)](#update-7). Accepts any type supported by internal::Raw
 
 #### Returns
 Number of bytes written to `output`.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `input` | `const I &` |  |
-| `output` | `O &` |  |
 
 ---
 
@@ -591,11 +525,6 @@ Number of bytes written to `output`.
 #### Exceptions
 * `std::runtime_error` if the output buffer is smaller than [blockSize()](#blocksize).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `output` | `unsigned char *` |  |
-| `length` | `size_t` |  |
-
 ---
 
 {#final-1}
@@ -617,10 +546,6 @@ Convenience wrapper around [final(unsigned char*, size_t)](#final). Accepts any 
 
 #### Returns
 Number of bytes written to `output`.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `output` | `O &` |  |
 
 ---
 
@@ -650,14 +575,6 @@ Calls [initEncryptor()](#initencryptor), [update()](#update-7), and [final()](#f
 #### Returns
 Total number of bytes written to `outbuf`.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `inbuf` | `const unsigned char *` |  |
-| `inlen` | `size_t` |  |
-| `outbuf` | `unsigned char *` |  |
-| `outlen` | `size_t` |  |
-| `encoding` | `[Encoding](#encoding-1)` |  |
-
 ---
 
 {#encrypt-1}
@@ -685,12 +602,6 @@ unsigned char*, size_t, Encoding)](#encrypt). Accepts any type supported by inte
 #### Returns
 Total number of bytes written to `output`.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `input` | `const I &` |  |
-| `output` | `O &` |  |
-| `encoding` | `[Encoding](#encoding-1)` |  |
-
 ---
 
 {#encryptstring-1}
@@ -714,11 +625,6 @@ Internally streams through [encryptStream()](#encryptstream); the cipher is re-i
 
 #### Returns
 Encrypted (and optionally encoded) result as a std::string.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `const std::string &` |  |
-| `encoding` | `[Encoding](#encoding-1)` |  |
 
 ---
 
@@ -744,11 +650,6 @@ Internally streams through [decryptStream()](#decryptstream); the cipher is re-i
 #### Returns
 Decrypted plaintext as a std::string.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `str` | `const std::string &` |  |
-| `encoding` | `[Encoding](#encoding-1)` |  |
-
 ---
 
 {#encryptstream}
@@ -771,12 +672,6 @@ Reads in chunks of `[blockSize()](#blocksize) * 128` bytes. Calls [initEncryptor
 * `sink` Output stream to receive the encrypted (and encoded) data. 
 
 * `encoding` Transport encoding applied to the output (default: Binary).
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `source` | `std::istream &` |  |
-| `sink` | `std::ostream &` |  |
-| `encoding` | `[Encoding](#encoding-1)` |  |
 
 ---
 
@@ -801,12 +696,6 @@ Reads in chunks of `[blockSize()](#blocksize) * 128` bytes. Calls [initDecryptor
 
 * `encoding` Transport encoding of the input data (default: Binary).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `source` | `std::istream &` |  |
-| `sink` | `std::ostream &` |  |
-| `encoding` | `[Encoding](#encoding-1)` |  |
-
 ---
 
 {#setkey-1}
@@ -827,10 +716,6 @@ Sets the encryption key.
 #### Exceptions
 * `std::logic_error` if key.size() != [keySize()](#keysize).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `const T &` |  |
-
 ---
 
 {#setiv}
@@ -850,10 +735,6 @@ Sets the initialization vector (IV).
 
 #### Exceptions
 * `std::logic_error` if iv.size() != [ivSize()](#ivsize).
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `iv` | `const T &` |  |
 
 ---
 
@@ -876,10 +757,6 @@ See EVP_CIPHER_CTX_set_padding for further information.
 
 #### Returns
 The return value from EVP_CIPHER_CTX_set_padding.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `padding` | `int` |  |
 
 ---
 
@@ -1143,12 +1020,6 @@ Uses SHA-256 as the digest. Salt values longer than 8 bytes are folded by XOR in
 
 * `iterationCount` Number of digest iterations.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `passphrase` | `std::string_view` |  |
-| `salt` | `std::string_view` |  |
-| `iterationCount` | `int` |  |
-
 ---
 
 {#setrandomkey}
@@ -1187,10 +1058,6 @@ Initializes or resets the OpenSSL cipher context for the given direction.
 
 #### Parameters
 * `encrypt` true to initialize for encryption, false for decryption.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `encrypt` | `bool` |  |
 
 ### Public Types
 
@@ -1262,10 +1129,6 @@ Constructs a [Hash](#hash-3) engine for the given algorithm.
 #### Exceptions
 * `std::runtime_error` if the algorithm is not recognized by OpenSSL.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `algorithm` | `const std::string &` |  |
-
 ---
 
 {#hash-5}
@@ -1293,10 +1156,6 @@ Feeds a single character into the digest computation.
 #### Parameters
 * `data` The byte to hash.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `char` |  |
-
 ---
 
 {#update-10}
@@ -1311,10 +1170,6 @@ Feeds a string view into the digest computation.
 
 #### Parameters
 * `data` The data to hash.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `std::string_view` |  |
 
 ---
 
@@ -1334,11 +1189,6 @@ This method may be called multiple times for streaming large inputs.
 * `data` Pointer to the input buffer. 
 
 * `length` Number of bytes to hash from `data`.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `const void *` |  |
-| `length` | `size_t` |  |
 
 ---
 
@@ -1510,11 +1360,6 @@ Constructs an [X509Certificate](#x509certificate) by parsing a PEM-encoded certi
 #### Exceptions
 * `std::runtime_error` if the BIO cannot be created or PEM parsing fails.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `const char *` |  |
-| `length` | `size_t` |  |
-
 ---
 
 {#x509certificate-2}
@@ -1534,10 +1379,6 @@ Constructs an [X509Certificate](#x509certificate) by reading a PEM-encoded certi
 
 #### Exceptions
 * `std::runtime_error` if the file cannot be opened or PEM parsing fails.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `path` | `const std::string &` |  |
 
 ---
 
@@ -1559,10 +1400,6 @@ Constructs an [X509Certificate](#x509certificate) taking ownership of an existin
 #### Exceptions
 * `std::runtime_error` if `pCert` is null.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `pCert` | `X509 *` |  |
-
 ---
 
 {#x509certificate-4}
@@ -1583,11 +1420,6 @@ Constructs an [X509Certificate](#x509certificate) from an existing OpenSSL X509 
 #### Exceptions
 * `std::runtime_error` if `pCert` is null.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `pCert` | `X509 *` |  |
-| `shared` | `bool` |  |
-
 ---
 
 {#x509certificate-5}
@@ -1603,10 +1435,6 @@ Copy-constructs an [X509Certificate](#x509certificate) by duplicating the underl
 #### Parameters
 * `cert` The certificate to copy.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `cert` | `const [X509Certificate](#x509certificate) &` |  |
-
 ---
 
 {#x509certificate-6}
@@ -1621,10 +1449,6 @@ Move-constructs an [X509Certificate](#x509certificate), transferring ownership f
 
 #### Parameters
 * `cert` The certificate to move from; left in a valid but empty state.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `cert` | `[X509Certificate](#x509certificate) &&` |  |
 
 ---
 
@@ -1644,10 +1468,6 @@ Copy-assigns a certificate, duplicating the underlying X509 object.
 #### Returns
 Reference to this object.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `cert` | `const [X509Certificate](#x509certificate) &` |  |
-
 ---
 
 {#operator-26}
@@ -1666,10 +1486,6 @@ Move-assigns a certificate, transferring ownership from `cert`.
 #### Returns
 Reference to this object.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `cert` | `[X509Certificate](#x509certificate) &&` |  |
-
 ---
 
 {#swap-6}
@@ -1684,10 +1500,6 @@ Swaps this certificate with `cert`.
 
 #### Parameters
 * `cert` The certificate to swap with.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `cert` | `[X509Certificate](#x509certificate) &` |  |
 
 ---
 
@@ -1738,10 +1550,6 @@ Extracts a single field from the certificate issuer's distinguished name.
 #### Returns
 Field value, or an empty string if the field is absent.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `nid` | `[NID](#nid)` |  |
-
 ---
 
 {#subjectname}
@@ -1778,10 +1586,6 @@ Extracts a single field from the certificate subject's distinguished name.
 
 #### Returns
 Field value, or an empty string if the field is absent.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `nid` | `[NID](#nid)` |  |
 
 ---
 
@@ -1822,11 +1626,6 @@ If no SAN DNS entries are present and the common name is non-empty, the common n
 * `commonName` Receives the certificate's common name. 
 
 * `domainNames` Receives all DNS SAN entries (cleared before population).
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `commonName` | `std::string &` |  |
-| `domainNames` | `std::set< std::string > &` |  |
 
 ---
 
@@ -1886,10 +1685,6 @@ Writes the certificate in PEM format to an output stream.
 #### Exceptions
 * `std::runtime_error` if the BIO cannot be created or write fails.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `stream` | `std::ostream &` |  |
-
 ---
 
 {#save-2}
@@ -1909,10 +1704,6 @@ Writes the certificate in PEM format to a file.
 
 #### Exceptions
 * `std::runtime_error` if the file cannot be opened or write fails.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `path` | `const std::string &` |  |
 
 ---
 
@@ -1938,10 +1729,6 @@ true if this certificate's signature verifies against the issuer's public key, f
 
 #### Exceptions
 * `std::invalid_argument` if the issuer certificate has no public key.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `issuerCertificate` | `const [X509Certificate](#x509certificate) &` |  |
 
 ---
 
@@ -2005,11 +1792,6 @@ Parses a PEM-encoded certificate from a memory buffer and stores it.
 
 * `std::runtime_error` if BIO creation or PEM parsing fails.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `const char *` |  |
-| `length` | `size_t` |  |
-
 ---
 
 {#load-3}
@@ -2029,10 +1811,6 @@ Reads a PEM-encoded certificate from a file and stores it.
 * `std::logic_error` if a certificate is already loaded. 
 
 * `std::runtime_error` if the file cannot be opened or PEM parsing fails.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `path` | `const std::string &` |  |
 
 ---
 

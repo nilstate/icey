@@ -125,10 +125,6 @@ Constructs a [ZipFile](#zipfile) and immediately opens the archive at `file`.
 #### Parameters
 * `file` Path to the ZIP archive to open.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `file` | `const std::filesystem::path &` |  |
-
 ---
 
 {#zipfile-3}
@@ -178,10 +174,6 @@ Opens the archive at `file`, closing any previously opened archive. Populates th
 #### Exceptions
 * `std::runtime_error` if the file cannot be opened.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `file` | `const std::filesystem::path &` |  |
-
 ---
 
 {#opened}
@@ -225,10 +217,6 @@ Extracts the archive contents to the given directory path.
 #### Exceptions
 * `std::runtime_error` if the archive is not open or a read error occurs.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `path` | `const std::filesystem::path &` |  |
-
 ---
 
 {#extractcurrentfile}
@@ -247,11 +235,6 @@ Extracts the current file entry to `path`. Validates each entry against path-tra
 
 #### Returns
 true on success, false if `whiny` is false and an error occurred.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `path` | `const std::filesystem::path &` |  |
-| `whiny` | `bool` |  |
 
 ---
 
