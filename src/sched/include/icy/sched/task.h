@@ -27,8 +27,7 @@ namespace sched {
 class Sched_API Scheduler;
 
 
-/// This class extends the Task class to implement
-/// scheduling capabilities.
+/// Scheduled task with an attached trigger and scheduler association.
 class Sched_API Task : public icy::Task
     , public json::ISerializable
 {

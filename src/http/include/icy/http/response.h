@@ -74,7 +74,7 @@ enum class StatusCode
 };
 
 
-/// This class encapsulates an HTTP response message.
+/// HTTP response message with status, reason phrase, headers, and body metadata.
 class HTTP_API Response : public http::Message
 {
 public:

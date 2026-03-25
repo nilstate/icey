@@ -26,11 +26,10 @@ namespace icy {
 namespace crypto {
 
 
-/// This class represents a X509 Certificate.
-/// RAII wrapper for OpenSSL X509 pointers.
+/// RAII pointer alias for OpenSSL `X509*` values.
 using X509Ptr = std::unique_ptr<X509, decltype(&X509_free)>;
 
-/// RAII wrapper for an OpenSSL X509 certificate with PEM loading and inspection
+/// RAII wrapper for an OpenSSL X509 certificate with PEM loading and inspection.
 class Crypto_API X509Certificate
 {
 public:

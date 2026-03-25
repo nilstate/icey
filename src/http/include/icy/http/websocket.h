@@ -152,8 +152,7 @@ inline constexpr char ProtocolVersion[] = "13";
 // WebSocket Framer
 //
 
-/// This class implements a WebSocket parser according
-/// to the WebSocket protocol described in RFC 6455.
+/// WebSocket frame encoder/decoder and handshake validator for RFC 6455.
 class HTTP_API WebSocketFramer
 {
 public:
@@ -222,7 +221,7 @@ protected:
     /// Set by readFrame()
     [[nodiscard]] int frameFlags() const;
 
-    /// Returns true if the payload must be masched.
+    /// Returns true if the payload must be masked.
     /// Used by writeFrame()
     [[nodiscard]] bool mustMaskPayload() const;
 

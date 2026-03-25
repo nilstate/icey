@@ -30,7 +30,7 @@ HTTP request/response types, parsers, and server/client helpers.
 | [`ConnectionAdapter`](#connectionadapter) | Default HTTP socket adapter for reading and writing HTTP messages |
 | [`ConnectionPool`](#connectionpool) | LIFO connection pool for reusing [ServerConnection](#serverconnection) objects. Avoids per-request heap allocation by resetting and reusing connections instead of destroying and recreating them. |
 | [`ConnectionStream`](#connectionstream) | Packet stream wrapper for a HTTP connection. |
-| [`Cookie`](#cookie) | This class represents a HTTP [Cookie](#cookie). |
+| [`Cookie`](#cookie) | HTTP cookie value plus its response/header attributes. |
 | [`FilePart`](#filepart) | Form part backed by a file on disk. |
 | [`FormPart`](#formpart) | An implementation of [FormPart](#formpart). |
 | [`FormWriter`](#formwriter) | [FormWriter](#formwriter) is a HTTP client connection adapter for writing HTML forms. |
@@ -39,8 +39,8 @@ HTTP request/response types, parsers, and server/client helpers.
 | [`Parser`](#parser-1) | HTTP request/response parser using the llhttp library. |
 | [`ParserObserver`](#parserobserver) | Abstract observer interface for HTTP parser events. |
 | [`ProgressSignal`](#progresssignal) | HTTP progress signal for upload and download progress notifications. |
-| [`Request`](#request-4) | This class encapsulates an HTTP request message. |
-| [`Response`](#response-1) | This class encapsulates an HTTP response message. |
+| [`Request`](#request-4) | HTTP request message with method, URI, headers, and optional body. |
+| [`Response`](#response-1) | HTTP response message with status, reason phrase, headers, and body metadata. |
 | [`Server`](#server) | HTTP server implementation. |
 | [`ServerConnection`](#serverconnection) | HTTP server connection. |
 | [`ServerConnectionFactory`](#serverconnectionfactory) | This implementation of a [ServerConnectionFactory](#serverconnectionfactory) is used by HTTP [Server](#server) to create [ServerConnection](#serverconnection) objects. |
@@ -3332,7 +3332,7 @@ true to stop propagation to subsequent receivers.
 #include <icy/http/cookie.h>
 ```
 
-This class represents a HTTP [Cookie](#cookie).
+HTTP cookie value plus its response/header attributes.
 
 A cookie is a small amount of information sent by a Web server to a Web browser, saved by the browser, and later sent back to the server. A cookie's value can uniquely identify a client, so cookies are commonly used for session management.
 
@@ -6778,9 +6778,9 @@ Advances the progress counter by `nread` bytes and emits the updated percentage.
 
 > **Inherits:** [`Message`](#message)
 
-This class encapsulates an HTTP request message.
+HTTP request message with method, URI, headers, and optional body.
 
-In addition to the properties common to all HTTP messages, a HTTP request has a method (e.g. GET, HEAD, POST, etc.) and a request URI.
+In addition to the properties common to all HTTP messages, an HTTP request has a method (e.g. GET, HEAD, POST, etc.) and a request URI.
 
 ### Public Methods
 
@@ -7310,7 +7310,7 @@ std::string _uri
 
 > **Inherits:** [`Message`](#message)
 
-This class encapsulates an HTTP response message.
+HTTP response message with status, reason phrase, headers, and body metadata.
 
 ### Public Methods
 
@@ -10047,7 +10047,7 @@ const std::string Connect
 | [`WebSocket`](#websocket) | Standalone [WebSocket](#websocket) class. |
 | [`WebSocketAdapter`](#websocketadapter) | [WebSocket](#websocket) protocol adapter for both client and server endpoints. |
 | [`WebSocketException`](#websocketexception) |  |
-| [`WebSocketFramer`](#websocketframer) | This class implements a [WebSocket](#websocket) parser according to the [WebSocket](#websocket) protocol described in RFC 6455. |
+| [`WebSocketFramer`](#websocketframer) | [WebSocket](#websocket) frame encoder/decoder and handshake validator for RFC 6455. |
 
 ### Enumerations
 
@@ -10968,7 +10968,7 @@ uint16_t _closeStatus
 #include <icy/http/websocket.h>
 ```
 
-This class implements a [WebSocket](#websocket) parser according to the [WebSocket](#websocket) protocol described in RFC 6455.
+[WebSocket](#websocket) frame encoder/decoder and handshake validator for RFC 6455.
 
 ### Public Methods
 
@@ -11175,7 +11175,7 @@ Completes the client-side handshake by verifying [Connection](#connection-1), Up
 | Return | Name | Description |
 |--------|------|-------------|
 | `int` | [`frameFlags`](#frameflags-1) `const` | Returns the frame flags of the most recently received frame. Set by [readFrame()](#readframe) |
-| `bool` | [`mustMaskPayload`](#mustmaskpayload) `const` | Returns true if the payload must be masched. Used by [writeFrame()](#writeframe) |
+| `bool` | [`mustMaskPayload`](#mustmaskpayload) `const` | Returns true if the payload must be masked. Used by [writeFrame()](#writeframe) |
 | `ws::Mode` | [`mode`](#mode-3) `const` |  |
 
 ---
@@ -11204,7 +11204,7 @@ Returns the frame flags of the most recently received frame. Set by [readFrame()
 bool mustMaskPayload() const
 ```
 
-Returns true if the payload must be masched. Used by [writeFrame()](#writeframe)
+Returns true if the payload must be masked. Used by [writeFrame()](#writeframe)
 
 ---
 

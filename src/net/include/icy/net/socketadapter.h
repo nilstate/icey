@@ -28,12 +28,14 @@ namespace net {
 class Net_API Socket;
 
 
+/// Abstract adapter interface for socket send/receive chains.
+///
 /// SocketAdapter is the abstract interface for all socket classes.
 /// A SocketAdapter can also be attached to a Socket in order to
 /// override default Socket callbacks and behaviour, while still
 /// maintaining the default Socket interface (see Socket::setAdapter).
 ///
-/// This class also be extended to implement custom processing
+/// This class can also be extended to implement custom processing
 /// for received socket data before it is dispatched to the application
 /// (see PacketSocketEmitter and Transaction classes).
 class Net_API SocketAdapter

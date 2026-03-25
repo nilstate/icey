@@ -36,10 +36,10 @@ struct Method
 };
 
 
-/// This class encapsulates an HTTP request message.
+/// HTTP request message with method, URI, headers, and optional body.
 ///
 /// In addition to the properties common to all HTTP messages,
-/// a HTTP request has a method (e.g. GET, HEAD, POST, etc.) and
+/// an HTTP request has a method (e.g. GET, HEAD, POST, etc.) and
 /// a request URI.
 class HTTP_API Request : public http::Message
 {

@@ -31,6 +31,8 @@ namespace icy {
 namespace net {
 
 
+/// OpenSSL SSL_CTX wrapper for client and server TLS configuration.
+///
 /// This class encapsulates context information for
 /// an SSL server or client, such as the certificate
 /// verification mode and the location of certificates
@@ -105,12 +107,12 @@ public:
     ///     certificates
     ///     are used (see loadDefaultCAs).
     ///   * verificationMode specifies whether and how peer certificates are
-    ///   validated.
+    ///     validated.
     ///   * verificationDepth sets the upper limit for verification chain sizes.
     ///   Verification
     ///     will fail if a certificate chain larger than this is encountered.
-    ///   * loadDefaultCAs specifies wheter the builtin CA certificates from
-    ///   OpenSSL are used.
+    ///   * loadDefaultCAs specifies whether the builtin CA certificates from
+    ///     OpenSSL are used.
     ///   * cipherList specifies the supported ciphers in OpenSSL notation.
     ///
     /// Note: If the private key is protected by a passphrase, a
@@ -135,10 +137,10 @@ public:
     ///   * verificationMode specifies whether and how peer certificates are
     ///   validated.
     ///   * verificationDepth sets the upper limit for verification chain sizes.
-    ///   Verification
+    ///     Verification
     ///     will fail if a certificate chain larger than this is encountered.
-    ///   * loadDefaultCAs specifies weather the builtin CA certificates from
-    ///   OpenSSL are used.
+    ///   * loadDefaultCAs specifies whether the builtin CA certificates from
+    ///     OpenSSL are used.
     ///   * cipherList specifies the supported ciphers in OpenSSL notation.
     ///
     /// Note that a private key and/or certificate must be specified with

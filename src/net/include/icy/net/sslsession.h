@@ -23,8 +23,7 @@ namespace icy {
 namespace net {
 
 
-/// This class encapsulates a SSL session object
-/// used with session caching on the client side.
+/// Cached SSL/TLS session wrapper used for client-side resumption.
 ///
 /// For session caching to work, a client must
 /// save the session object from an existing connection,

@@ -22,8 +22,7 @@ namespace icy {
 namespace net {
 
 
-/// This class provides request/response functionality for IPacket
-/// types emitted from a Socket.
+/// Request/response helper for packet types emitted from a socket.
 template <class PacketT>
 class Net_API Transaction : public PacketTransaction<PacketT>
     , public PacketSocketEmitter

@@ -24,16 +24,16 @@ TCP/SSL/UDP networking, socket adapters, DNS resolution.
 | [`Address`](#address) | Represents an IPv4 or IPv6 socket address with host and port. |
 | [`PacketSocketEmitter`](#packetsocketemitter) | [Socket](#socket-1) adapter that emits received data as packets. |
 | [`Socket`](#socket-1) | Base socket implementation from which all sockets derive. |
-| [`SocketAdapter`](#socketadapter) | [SocketAdapter](#socketadapter) is the abstract interface for all socket classes. A [SocketAdapter](#socketadapter) can also be attached to a [Socket](#socket-1) in order to override default [Socket](#socket-1) callbacks and behaviour, while still maintaining the default [Socket](#socket-1) interface (see Socket::setAdapter). |
+| [`SocketAdapter`](#socketadapter) | Abstract adapter interface for socket send/receive chains. |
 | [`SocketEmitter`](#socketemitter) | [SocketAdapter](#socketadapter) that exposes socket events as signals. |
 | [`SocketPacket`](#socketpacket) | [SocketPacket](#socketpacket) is the default packet type emitted by sockets. [SocketPacket](#socketpacket) provides peer address information and a buffer reference for nocopy binary operations. |
 | [`SSLAdapter`](#ssladapter) | Manages the OpenSSL context and BIO buffers for an SSL socket connection. |
-| [`SSLContext`](#sslcontext) | This class encapsulates context information for an SSL server or client, such as the certificate verification mode and the location of certificates and private key files, as well as the list of supported ciphers. |
+| [`SSLContext`](#sslcontext) | OpenSSL SSL_CTX wrapper for client and server TLS configuration. |
 | [`SSLManager`](#sslmanager) | [SSLManager](#sslmanager) is a singleton for holding the default server/client Context and handling callbacks for certificate verification errors and private key passphrases. |
-| [`SSLSession`](#sslsession) | This class encapsulates a SSL session object used with session caching on the client side. |
+| [`SSLSession`](#sslsession) | Cached SSL/TLS session wrapper used for client-side resumption. |
 | [`SSLSocket`](#sslsocket) | SSL socket implementation. |
 | [`TCPSocket`](#tcpsocket) | TCP socket implementation. |
-| [`Transaction`](#transaction) | This class provides request/response functionality for [IPacket](base.md#ipacket) types emitted from a [Socket](#socket-1). |
+| [`Transaction`](#transaction) | Request/response helper for packet types emitted from a socket. |
 | [`UDPSocket`](#udpsocket) | UDP socket implementation. |
 | [`VerificationErrorDetails`](#verificationerrordetails) | A utility class for certificate error handling. |
 | [`PacketInfo`](#packetinfo) | Provides information about packets emitted from a socket. See [SocketPacket](#socketpacket). |
@@ -1333,9 +1333,11 @@ std::vector< Ptr > Vec()
 
 > **Subclassed by:** [`Connection`](http.md#connection-1), [`ConnectionAdapter`](http.md#connectionadapter), [`ConnectionStream`](http.md#connectionstream), [`Server`](http.md#server), [`Socket`](#socket-1), [`SocketEmitter`](#socketemitter)
 
+Abstract adapter interface for socket send/receive chains.
+
 [SocketAdapter](#socketadapter) is the abstract interface for all socket classes. A [SocketAdapter](#socketadapter) can also be attached to a [Socket](#socket-1) in order to override default [Socket](#socket-1) callbacks and behaviour, while still maintaining the default [Socket](#socket-1) interface (see Socket::setAdapter).
 
-This class also be extended to implement custom processing for received socket data before it is dispatched to the application (see [PacketSocketEmitter](#packetsocketemitter) and [Transaction](#transaction) classes).
+This class can also be extended to implement custom processing for received socket data before it is dispatched to the application (see [PacketSocketEmitter](#packetsocketemitter) and [Transaction](#transaction) classes).
 
 ### Public Attributes
 
@@ -2729,6 +2731,8 @@ void flushWriteBIO()
 #include <icy/net/sslcontext.h>
 ```
 
+OpenSSL SSL_CTX wrapper for client and server TLS configuration.
+
 This class encapsulates context information for an SSL server or client, such as the certificate verification mode and the location of certificates and private key files, as well as the list of supported ciphers.
 
 The Context class is also used to control SSL session caching on the server and client side.
@@ -2784,7 +2788,7 @@ Creates a Context.
 
 * verificationDepth sets the upper limit for verification chain sizes. Verification will fail if a certificate chain larger than this is encountered.
 
-* loadDefaultCAs specifies wheter the builtin CA certificates from OpenSSL are used.
+* loadDefaultCAs specifies whether the builtin CA certificates from OpenSSL are used.
 
 * cipherList specifies the supported ciphers in OpenSSL notation.
 
@@ -2821,7 +2825,7 @@ Creates a Context.
 
 * verificationDepth sets the upper limit for verification chain sizes. Verification will fail if a certificate chain larger than this is encountered.
 
-* loadDefaultCAs specifies weather the builtin CA certificates from OpenSSL are used.
+* loadDefaultCAs specifies whether the builtin CA certificates from OpenSSL are used.
 
 * cipherList specifies the supported ciphers in OpenSSL notation.
 
@@ -3637,7 +3641,7 @@ The return value of this method defines how errors in verification are handled. 
 #include <icy/net/sslsession.h>
 ```
 
-This class encapsulates a SSL session object used with session caching on the client side.
+Cached SSL/TLS session wrapper used for client-side resumption.
 
 For session caching to work, a client must save the session object from an existing connection, if it wants to reuse it with a future connection.
 
@@ -5079,7 +5083,7 @@ std::vector< Ptr > Vec()
 
 > **Inherits:** [`PacketTransaction< PacketT >`](base.md#packettransaction), [`PacketSocketEmitter`](#packetsocketemitter)
 
-This class provides request/response functionality for [IPacket](base.md#ipacket) types emitted from a [Socket](#socket-1).
+Request/response helper for packet types emitted from a socket.
 
 ### Public Methods
 

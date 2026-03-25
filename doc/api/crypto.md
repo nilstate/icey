@@ -30,7 +30,7 @@ Cryptographic operations; hashing, HMAC, RSA, X509 certificates.
 | `std::vector< unsigned char >` | [`ByteVec`](#bytevec)  | Generic storage container for storing cryptographic binary data. |
 | `std::unique_ptr< EVP_MD_CTX, decltype(&EVP_MD_CTX_free)>` | [`EvpMdCtxPtr`](#evpmdctxptr)  |  |
 | `::RSA` | [`RSAKey`](#rsakey)  | Alias for the OpenSSL RSA key type, brought into the [icy::crypto](#crypto) namespace. |
-| `std::unique_ptr< X509, decltype(&X509_free)>` | [`X509Ptr`](#x509ptr)  | This class represents a X509 Certificate. RAII wrapper for OpenSSL X509 pointers. |
+| `std::unique_ptr< X509, decltype(&X509_free)>` | [`X509Ptr`](#x509ptr)  | RAII pointer alias for OpenSSL `X509*` values. |
 
 ---
 
@@ -88,7 +88,7 @@ Currently a transparent alias for the OpenSSL RSA struct. Use OpenSSL RSA_* func
 std::unique_ptr< X509, decltype(&X509_free)> X509Ptr()
 ```
 
-This class represents a X509 Certificate. RAII wrapper for OpenSSL X509 pointers.
+RAII pointer alias for OpenSSL `X509*` values.
 
 ### Functions
 

@@ -19,7 +19,7 @@ Task scheduler for deferred and periodic jobs.
 | Name | Description |
 |------|-------------|
 | [`Scheduler`](#scheduler) | The [Scheduler](#scheduler) manages and runs tasks that need to be executed at specific times. |
-| [`Task`](#task-1) | This class extends the [Task](#task-1) class to implement scheduling capabilities. |
+| [`Task`](#task-1) | Scheduled task with an attached trigger and scheduler association. |
 | [`TaskFactory`](#taskfactory) | The [TaskFactory](#taskfactory) can dynamically instantiate registered [sched::Task](#task-1) and [sched::Trigger](#trigger-1) classes from named strings. |
 | [`DailyTrigger`](#dailytrigger) | [Trigger](#trigger-1) that fires once per day at a configured time, with optional day-of-week exclusions. |
 | [`IntervalTrigger`](#intervaltrigger) | [Trigger](#trigger-1) that fires repeatedly at a fixed time interval. |
@@ -370,7 +370,7 @@ virtual void update()
 
 > **Inherits:** [`Task`](base.md#task), [`ISerializable`](json.md#iserializable)
 
-This class extends the [Task](#task-1) class to implement scheduling capabilities.
+Scheduled task with an attached trigger and scheduler association.
 
 ### Public Methods
 

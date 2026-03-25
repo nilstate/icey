@@ -22,7 +22,7 @@ namespace http {
 
 
 /// @ingroup http
-/// This class represents a HTTP Cookie.
+/// HTTP cookie value plus its response/header attributes.
 ///
 /// A cookie is a small amount of information sent by a Web
 /// server to a Web browser, saved by the browser, and later sent back
