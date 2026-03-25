@@ -285,7 +285,7 @@ Reference to the newly allocated request.
 ## Handle
 
 ```cpp
-#include <handle.h>
+#include <icy/handle.h>
 ```
 
 > **Subclassed by:** [`Stream< uv_pipe_t >`](base.md#stream), [`Stream< uv_tcp_t >`](base.md#stream), [`Stream< T >`](base.md#stream)
@@ -924,7 +924,7 @@ Define the native handle type.
 ## ScopedLoop
 
 ```cpp
-#include <loop.h>
+#include <icy/loop.h>
 ```
 
 RAII wrapper for a libuv event loop. Automatically closes and deletes the loop on destruction.
@@ -1022,7 +1022,7 @@ ScopedLoop(ScopedLoop &&) = delete
 ## HandleStorage
 
 ```cpp
-#include <handle.h>
+#include <icy/handle.h>
 ```
 
 ### Public Attributes
@@ -1068,7 +1068,7 @@ void(* closeCleanup = nullptr
 ## Context
 
 ```cpp
-#include <handle.h>
+#include <icy/handle.h>
 ```
 
 > **Inherits:** [`RefCounted< Context< T > >`](base.md#refcounted)
@@ -1175,7 +1175,7 @@ template<typename Owner> inline Owner * owner() const
 ## BasicEvent
 
 ```cpp
-#include <request.h>
+#include <icy/request.h>
 ```
 
 Default request callback event carrying a libuv status code.
@@ -1203,7 +1203,7 @@ libuv result: 0 on success, negative on error.
 ## Request
 
 ```cpp
-#include <request.h>
+#include <icy/request.h>
 ```
 
 Wrapper class for managing `uv_req_t` variants.
@@ -1378,7 +1378,7 @@ E Event()
 ## ConnectReq
 
 ```cpp
-#include <request.h>
+#include <icy/request.h>
 ```
 
 > **Inherits:** [`Request< uv_connect_t >`](#request)
@@ -1466,7 +1466,7 @@ Initiate a named-pipe connection to `name` on `handle`.
 ## GetAddrInfoEvent
 
 ```cpp
-#include <request.h>
+#include <icy/request.h>
 ```
 
 Callback event delivered when a `[GetAddrInfoReq](#getaddrinforeq)` resolves.
@@ -1507,7 +1507,7 @@ Resolved address list; freed after the callback returns.
 ## GetAddrInfoReq
 
 ```cpp
-#include <request.h>
+#include <icy/request.h>
 ```
 
 > **Inherits:** [`Request< uv_getaddrinfo_t, GetAddrInfoEvent >`](#request)

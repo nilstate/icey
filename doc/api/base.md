@@ -2107,7 +2107,7 @@ Converts the STL container to Hex.
 ## Decoder
 
 ```cpp
-#include <hex.h>
+#include <icy/hex.h>
 ```
 
 > **Inherits:** [`Decoder`](#decoder-4)
@@ -2284,7 +2284,7 @@ true if c is whitespace.
 ## Encoder
 
 ```cpp
-#include <hex.h>
+#include <icy/hex.h>
 ```
 
 > **Inherits:** [`Encoder`](#encoder-5)
@@ -2482,7 +2482,7 @@ ipc::SyncQueue< ipc::Action > ActionSyncQueue()
 ## Queue
 
 ```cpp
-#include <ipc.h>
+#include <icy/ipc.h>
 ```
 
 > **Subclassed by:** [`SyncQueue< TAction >`](#syncqueue-1)
@@ -2643,7 +2643,7 @@ std::deque< TAction * > _actions
 ## SyncQueue
 
 ```cpp
-#include <ipc.h>
+#include <icy/ipc.h>
 ```
 
 > **Inherits:** [`Action >`](#queue-1)
@@ -2744,7 +2744,7 @@ Synchronizer _sync
 ## Action
 
 ```cpp
-#include <ipc.h>
+#include <icy/ipc.h>
 ```
 
 Default action type for executing synchronized callbacks.
@@ -3018,7 +3018,7 @@ Run the event loop until a condition is met or timeout expires. Returns true if 
 ## FunctionTest
 
 ```cpp
-#include <test.h>
+#include <icy/test.h>
 ```
 
 > **Inherits:** [`Test`](#test-1)
@@ -3094,7 +3094,7 @@ Called by the [TestRunner](#testrunner) to run the test.
 ## Test
 
 ```cpp
-#include <test.h>
+#include <icy/test.h>
 ```
 
 > **Subclassed by:** [`FunctionTest`](#functiontest)
@@ -3236,7 +3236,7 @@ Test(const Test & test) = delete
 ## TestRunner
 
 ```cpp
-#include <test.h>
+#include <icy/test.h>
 ```
 
 [Test](#test-1) manager queue.
@@ -3874,7 +3874,7 @@ constexpr int LINE_LENGTH = 72
 ## Decoder
 
 ```cpp
-#include <base64.h>
+#include <icy/base64.h>
 ```
 
 > **Inherits:** [`Decoder`](#decoder-4)
@@ -4016,7 +4016,7 @@ Decodes the entire input stream and writes binary output to `ostrm`. Resets the 
 ## Encoder
 
 ```cpp
-#include <base64.h>
+#include <icy/base64.h>
 ```
 
 > **Inherits:** [`Encoder`](#encoder-5)
@@ -5017,7 +5017,7 @@ Interface classes.
 ## Decoder
 
 ```cpp
-#include <interface.h>
+#include <icy/interface.h>
 ```
 
 > **Subclassed by:** [`Decoder`](#decoder-2), [`Decoder`](#decoder)
@@ -5097,7 +5097,7 @@ Number of bytes written, or 0 if nothing to flush.
 ## Encoder
 
 ```cpp
-#include <interface.h>
+#include <icy/interface.h>
 ```
 
 > **Subclassed by:** [`Encoder`](#encoder-3), [`Encoder`](#encoder-1)
@@ -5177,7 +5177,7 @@ Number of bytes written, or 0 if nothing to flush.
 ## Runnable
 
 ```cpp
-#include <interface.h>
+#include <icy/interface.h>
 ```
 
 > **Subclassed by:** [`RunnableQueue< IPacket >`](#runnablequeue), [`RunnableQueue< PacketT >`](#runnablequeue), [`AsyncDiagnostic`](#asyncdiagnostic), [`AsyncLogWriter`](#asynclogwriter), [`RunnableQueue< T >`](#runnablequeue), [`Task`](#task), [`TaskRunner`](#taskrunner), [`MediaCapture`](av.md#mediacapture), [`InstallTask`](pacm.md#installtask)
@@ -5270,7 +5270,7 @@ std::atomic< bool > exit
 ## Sendable
 
 ```cpp
-#include <interface.h>
+#include <icy/interface.h>
 ```
 
 > **Subclassed by:** [`PacketTransaction< Message >`](#packettransaction), [`PacketTransaction< PacketT >`](#packettransaction)
@@ -5315,7 +5315,7 @@ Cancels a pending send operation.
 ## Startable
 
 ```cpp
-#include <interface.h>
+#include <icy/interface.h>
 ```
 
 > **Subclassed by:** [`ThreadedStreamReader`](#threadedstreamreader), [`ICapture`](av.md#icapture), [`FormWriter`](http.md#formwriter)
@@ -6818,7 +6818,7 @@ Delete all associated values from a map (not the key elements).
 ## Version
 
 ```cpp
-#include <util.h>
+#include <icy/util.h>
 ```
 
 Semantic version number with major, minor, and patch fields.
@@ -6951,7 +6951,7 @@ true if this == other.
 ## Pipe
 
 ```cpp
-#include <pipe.h>
+#include <icy/pipe.h>
 ```
 
 > **Inherits:** [`Stream< uv_pipe_t >`](#stream)
@@ -7051,7 +7051,7 @@ Delegates to `[Stream](#stream)<uv_pipe_t>::[readStart()](#classicy_1_1Pipe_1aa3
 ## Idler
 
 ```cpp
-#include <idler.h>
+#include <icy/idler.h>
 ```
 
 > **Inherits:** [`Runner`](#runner)
@@ -7258,7 +7258,7 @@ virtual bool async() const
 ## Queue
 
 ```cpp
-#include <queue.h>
+#include <icy/queue.h>
 ```
 
 > **Subclassed by:** [`RunnableQueue< IPacket >`](#runnablequeue), [`RunnableQueue< PacketT >`](#runnablequeue)
@@ -7456,7 +7456,7 @@ std::mutex _mutex
 ## RunnableQueue
 
 ```cpp
-#include <queue.h>
+#include <icy/queue.h>
 ```
 
 > **Inherits:** [`Queue< T * >`](#queue), [`Runnable`](#runnable)
@@ -7762,7 +7762,7 @@ Pops and dispatches the next waiting item.
 ## SyncQueue
 
 ```cpp
-#include <queue.h>
+#include <icy/queue.h>
 ```
 
 > **Inherits:** [`RunnableQueue< T >`](#runnablequeue)
@@ -7911,7 +7911,7 @@ RunnableQueue< T > Queue()
 ## AsyncQueue
 
 ```cpp
-#include <queue.h>
+#include <icy/queue.h>
 ```
 
 > **Inherits:** [`RunnableQueue< T >`](#runnablequeue)
@@ -8006,7 +8006,7 @@ RunnableQueue< T > Queue()
 ## Timer
 
 ```cpp
-#include <timer.h>
+#include <icy/timer.h>
 ```
 
 > **Inherits:** [`Runner`](#runner)
@@ -8440,7 +8440,7 @@ void init()
 ## MutableBuffer
 
 ```cpp
-#include <buffer.h>
+#include <icy/buffer.h>
 ```
 
 The [MutableBuffer](#mutablebuffer) class provides a safe representation of a buffer that can be modified. It does not own the underlying data, and so is cheap to copy or assign.
@@ -8573,7 +8573,7 @@ size_t _size
 ## ConstBuffer
 
 ```cpp
-#include <buffer.h>
+#include <icy/buffer.h>
 ```
 
 The [ConstBuffer](#constbuffer) class provides a safe representation of a buffer that cannot be modified. It does not own the underlying data, and so is cheap to copy or assign.
@@ -8725,7 +8725,7 @@ size_t _size
 ## BitReader
 
 ```cpp
-#include <buffer.h>
+#include <icy/buffer.h>
 ```
 
 Class for reading binary streams.
@@ -9404,7 +9404,7 @@ void init(const char * bytes, size_t size, ByteOrder order)
 ## BitWriter
 
 ```cpp
-#include <buffer.h>
+#include <icy/buffer.h>
 ```
 
 > **Subclassed by:** [`DynamicBitWriter`](#dynamicbitwriter)
@@ -10039,7 +10039,7 @@ virtual void init(char * bytes, size_t size, ByteOrder order)
 ## DynamicBitWriter
 
 ```cpp
-#include <buffer.h>
+#include <icy/buffer.h>
 ```
 
 > **Inherits:** [`BitWriter`](#bitwriter)
@@ -10173,7 +10173,7 @@ size_t _offset
 ## LogWriter
 
 ```cpp
-#include <logger.h>
+#include <icy/logger.h>
 ```
 
 > **Subclassed by:** [`AsyncLogWriter`](#asynclogwriter)
@@ -10220,7 +10220,7 @@ Writes the given log message stream.
 ## AsyncLogWriter
 
 ```cpp
-#include <logger.h>
+#include <icy/logger.h>
 ```
 
 > **Inherits:** [`LogWriter`](#logwriter), [`Runnable`](#runnable)
@@ -10362,7 +10362,7 @@ bool writeNext()
 ## Logger
 
 ```cpp
-#include <logger.h>
+#include <icy/logger.h>
 ```
 
 [Logger](#logger) class.
@@ -10658,7 +10658,7 @@ Logger(Logger &&) = delete
 ## LogChannel
 
 ```cpp
-#include <logger.h>
+#include <icy/logger.h>
 ```
 
 > **Subclassed by:** [`ConsoleChannel`](#consolechannel), [`FileChannel`](#filechannel), [`RotatingFileChannel`](#rotatingfilechannel)
@@ -10928,7 +10928,7 @@ std::string _filter
 ## ConsoleChannel
 
 ```cpp
-#include <logger.h>
+#include <icy/logger.h>
 ```
 
 > **Inherits:** [`LogChannel`](#logchannel)
@@ -10990,7 +10990,7 @@ Formats and writes the log stream entry to stdout. Messages below the channel le
 ## FileChannel
 
 ```cpp
-#include <logger.h>
+#include <icy/logger.h>
 ```
 
 > **Inherits:** [`LogChannel`](#logchannel)
@@ -11149,7 +11149,7 @@ virtual void close()
 ## RotatingFileChannel
 
 ```cpp
-#include <logger.h>
+#include <icy/logger.h>
 ```
 
 > **Inherits:** [`LogChannel`](#logchannel)
@@ -11418,7 +11418,7 @@ The time the log was last rotated.
 ## RefCounted
 
 ```cpp
-#include <memory.h>
+#include <icy/memory.h>
 ```
 
 > **Subclassed by:** [`PacketTransaction< Message >`](#packettransaction), [`Context< uv_pipe_t >`](uv.md#context-1), [`Context< uv_tcp_t >`](uv.md#context-1), [`Context< uv_udp_t >`](uv.md#context-1), [`Context< uv_idle_t >`](uv.md#context-1), [`Context< uv_process_t >`](uv.md#context-1), [`Context< uv_async_t >`](uv.md#context-1), [`Context< uv_timer_t >`](uv.md#context-1)
@@ -11528,7 +11528,7 @@ int _refCount = 0
 ## IntrusivePtr
 
 ```cpp
-#include <memory.h>
+#include <icy/memory.h>
 ```
 
 Intrusive smart pointer for [RefCounted](#refcounted) objects.
@@ -11893,7 +11893,7 @@ T * _ptr
 ## Random
 
 ```cpp
-#include <random.h>
+#include <icy/random.h>
 ```
 
 [Random](#random) implements a pseudo random number generator (PRNG) using the Mersenne Twister algorithm (std::mt19937).
@@ -12114,7 +12114,7 @@ std::mt19937 _engine
 ## Runner
 
 ```cpp
-#include <runner.h>
+#include <icy/runner.h>
 ```
 
 > **Subclassed by:** [`Idler`](#idler), [`Synchronizer`](#synchronizer), [`Thread`](#thread), [`Timer`](#timer)
@@ -12347,7 +12347,7 @@ Runner(Runner &&) = delete
 ## Signal< RT(Args...), MutexT >
 
 ```cpp
-#include <signal.h>
+#include <icy/signal.h>
 ```
 
 Thread-safe signal and slot implementation for callback-based event dispatch.
@@ -12997,7 +12997,7 @@ inline void resetEmitState()
 ## Stream
 
 ```cpp
-#include <stream.h>
+#include <icy/stream.h>
 ```
 
 > **Inherits:** [`Handle< T >`](uv.md#handle-2)
@@ -13476,7 +13476,7 @@ uv::Handle< T > Handle()
 ## Thread
 
 ```cpp
-#include <thread.h>
+#include <icy/thread.h>
 ```
 
 > **Inherits:** [`Runner`](#runner)
@@ -13748,7 +13748,7 @@ std::shared_ptr< Thread > Ptr()
 ## Process
 
 ```cpp
-#include <process.h>
+#include <icy/process.h>
 ```
 
 Spawns and manages a child process with stdin/stdout/stderr pipes.
@@ -14135,7 +14135,7 @@ void init()
 ## Timeout
 
 ```cpp
-#include <timeout.h>
+#include <icy/timeout.h>
 ```
 
 > **Subclassed by:** [`TimedToken`](#timedtoken)
@@ -14393,7 +14393,7 @@ bool _running
 ## TimedToken
 
 ```cpp
-#include <timeout.h>
+#include <icy/timeout.h>
 ```
 
 > **Inherits:** [`Timeout`](#timeout)
@@ -14526,7 +14526,7 @@ std::string _id
 ## Timestamp
 
 ```cpp
-#include <datetime.h>
+#include <icy/datetime.h>
 ```
 
 A [Timestamp](#timestamp) stores a monotonic* time value with (theoretical) microseconds resolution. Timestamps can be compared with each other and simple arithmetics are supported.
@@ -15019,7 +15019,7 @@ TimeVal _ts
 ## Timespan
 
 ```cpp
-#include <datetime.h>
+#include <icy/datetime.h>
 ```
 
 A class that represents time spans up to microsecond resolution.
@@ -15847,7 +15847,7 @@ TimeDiff _span
 ## DateTime
 
 ```cpp
-#include <datetime.h>
+#include <icy/datetime.h>
 ```
 
 This class represents an instant in time, expressed in years, months, days, hours, minutes, seconds and milliseconds based on the Gregorian calendar. The class is mainly useful for conversions between UTC, Julian day and Gregorian calendar dates.
@@ -16913,7 +16913,7 @@ void normalize()
 ## Timezone
 
 ```cpp
-#include <datetime.h>
+#include <icy/datetime.h>
 ```
 
 This class provides information about the current timezone.
@@ -17037,7 +17037,7 @@ Returns the timezone name if daylight saving time is in effect.
 ## LocalDateTime
 
 ```cpp
-#include <datetime.h>
+#include <icy/datetime.h>
 ```
 
 This class represents an instant in local time (as opposed to UTC), expressed in years, months, days, hours, minutes, seconds and milliseconds based on the Gregorian calendar.
@@ -18018,7 +18018,7 @@ int _tzd
 ## DateTimeFormat
 
 ```cpp
-#include <datetime.h>
+#include <icy/datetime.h>
 ```
 
 Definition of date/time formats and various constants used by [DateTimeFormatter](#datetimeformatter) and [DateTimeParser](#datetimeparser).
@@ -18216,7 +18216,7 @@ English names of months (January, February, ...).
 ## DateTimeFormatter
 
 ```cpp
-#include <datetime.h>
+#include <icy/datetime.h>
 ```
 
 This class converts dates and times into strings, supporting a variety of standard and custom formats.
@@ -18585,7 +18585,7 @@ enum
 ## DateTimeParser
 
 ```cpp
-#include <datetime.h>
+#include <icy/datetime.h>
 ```
 
 This class provides a method for parsing dates and times from strings. All parsing methods do their best to parse a meaningful result, even from malformed input strings.
@@ -18773,7 +18773,7 @@ Tries to interpret the given range as a weekday name. The range must be at least
 ## Stopwatch
 
 ```cpp
-#include <datetime.h>
+#include <icy/datetime.h>
 ```
 
 A simple facility to measure time intervals with microsecond resolution.
@@ -18972,7 +18972,7 @@ Stopwatch(const Stopwatch &) = delete
 ## ThreadedStreamReader
 
 ```cpp
-#include <packetio.h>
+#include <icy/packetio.h>
 ```
 
 > **Inherits:** [`PacketStreamAdapter`](#packetstreamadapter), [`Startable`](#startable)
@@ -19138,7 +19138,7 @@ std::istream * _istream
 ## StreamWriter
 
 ```cpp
-#include <packetio.h>
+#include <icy/packetio.h>
 ```
 
 > **Inherits:** [`PacketProcessor`](#packetprocessor)
@@ -19308,7 +19308,7 @@ std::ostream * _ostream
 ## State
 
 ```cpp
-#include <stateful.h>
+#include <icy/stateful.h>
 ```
 
 > **Subclassed by:** [`DiagnosticState`](#diagnosticstate), [`PacketStreamState`](#packetstreamstate), [`TransactionState`](#transactionstate), [`EncoderState`](av.md#encoderstate), [`InstallationState`](pacm.md#installationstate), [`ClientState`](symple.md#clientstate-1), [`ClientState`](turn.md#clientstate)
@@ -19579,7 +19579,7 @@ uint32_t ID()
 ## Stateful
 
 ```cpp
-#include <stateful.h>
+#include <icy/stateful.h>
 ```
 
 [State](#state) machine implementation.
@@ -19810,7 +19810,7 @@ Sets the state and sends the state signal if the state change was successful.
 ## IRegistry
 
 ```cpp
-#include <iregistry.h>
+#include <icy/iregistry.h>
 ```
 
 Abstract interface for object registries.
@@ -19999,7 +19999,7 @@ template<typename T> static inline ItemT * createT()
 ## Singleton
 
 ```cpp
-#include <singleton.h>
+#include <icy/singleton.h>
 ```
 
 Helper template class for managing singleton objects allocated on the heap.
@@ -20108,7 +20108,7 @@ std::mutex _m
 ## KeyedStore
 
 ```cpp
-#include <collection.h>
+#include <icy/collection.h>
 ```
 
 > **Subclassed by:** [`TimedManager< TKey, TValue >`](#timedmanager)
@@ -20463,7 +20463,7 @@ std::map< TKey, std::unique_ptr< TValue > > Map()
 ## KVCollection
 
 ```cpp
-#include <collection.h>
+#include <icy/collection.h>
 ```
 
 A keyed value store (values stored by copy, not pointer).
@@ -20679,7 +20679,7 @@ std::map< TKey, TValue > Map()
 ## NVCollection
 
 ```cpp
-#include <collection.h>
+#include <icy/collection.h>
 ```
 
 > **Subclassed by:** [`FormWriter`](http.md#formwriter), [`Message`](http.md#message)
@@ -21058,7 +21058,7 @@ Map _map
 ## Application
 
 ```cpp
-#include <application.h>
+#include <icy/application.h>
 ```
 
 Main Icey application class.
@@ -21255,7 +21255,7 @@ Application(Application &&) = delete
 ## SyncPacketQueue
 
 ```cpp
-#include <packetqueue.h>
+#include <icy/packetqueue.h>
 ```
 
 > **Inherits:** [`SyncQueue< IPacket >`](#syncqueue), [`PacketProcessor`](#packetprocessor)
@@ -21462,7 +21462,7 @@ PacketProcessor Processor()
 ## AsyncPacketQueue
 
 ```cpp
-#include <packetqueue.h>
+#include <icy/packetqueue.h>
 ```
 
 > **Inherits:** [`AsyncQueue< IPacket >`](#asyncqueue), [`PacketProcessor`](#packetprocessor)
@@ -21660,7 +21660,7 @@ PacketProcessor Processor()
 ## RateLimiter
 
 ```cpp
-#include <ratelimiter.h>
+#include <icy/ratelimiter.h>
 ```
 
 Token bucket rate limiter for throttling message send frequency.
@@ -21787,7 +21787,7 @@ bool _started
 ## PacketStreamAdapter
 
 ```cpp
-#include <packetstream.h>
+#include <icy/packetstream.h>
 ```
 
 > **Subclassed by:** [`PacketProcessor`](#packetprocessor), [`ThreadedStreamReader`](#threadedstreamreader), [`ICapture`](av.md#icapture), [`FormWriter`](http.md#formwriter), [`WebRtcTrackReceiver`](webrtc.md#webrtctrackreceiver)
@@ -22031,7 +22031,7 @@ PacketStreamAdapter(PacketStreamAdapter &&) = delete
 ## PacketProcessor
 
 ```cpp
-#include <packetstream.h>
+#include <icy/packetstream.h>
 ```
 
 > **Inherits:** [`PacketStreamAdapter`](#packetstreamadapter)
@@ -22119,7 +22119,7 @@ virtual inline void operator<<(IPacket & packet)
 ## PacketStream
 
 ```cpp
-#include <packetstream.h>
+#include <icy/packetstream.h>
 ```
 
 > **Inherits:** [`Stateful< PacketStreamState >`](#stateful)
@@ -23274,7 +23274,7 @@ std::shared_ptr< PacketStream > Ptr()
 ## Synchronizer
 
 ```cpp
-#include <synchronizer.h>
+#include <icy/synchronizer.h>
 ```
 
 > **Inherits:** [`Runner`](#runner)
@@ -23527,7 +23527,7 @@ True for thread-backed runners, false for event-loop-driven runners.
 ## TimedManager
 
 ```cpp
-#include <timedmanager.h>
+#include <icy/timedmanager.h>
 ```
 
 > **Inherits:** [`KeyedStore< TKey, TValue >`](#keyedstore)
@@ -23803,7 +23803,7 @@ std::map< TValue *, Timeout > TimeoutMap()
 ## IPacketCreationStrategy
 
 ```cpp
-#include <packetfactory.h>
+#include <icy/packetfactory.h>
 ```
 
 > **Subclassed by:** [`PacketCreationStrategy< PacketT >`](#packetcreationstrategy)
@@ -23873,7 +23873,7 @@ Returns the dispatch priority of this strategy (0–100; higher runs first).
 ## PacketFactory
 
 ```cpp
-#include <packetfactory.h>
+#include <icy/packetfactory.h>
 ```
 
 Priority-ordered factory that creates typed packets from raw buffers using registered strategies.
@@ -24101,7 +24101,7 @@ inline void sortTypes()
 ## StreamManager
 
 ```cpp
-#include <streammanager.h>
+#include <icy/streammanager.h>
 ```
 
 > **Inherits:** [`string, PacketStream >`](#keyedstore)
@@ -24302,7 +24302,7 @@ virtual inline constchar * className() const
 ## IDiagnostic
 
 ```cpp
-#include <diagnosticmanager.h>
+#include <icy/diagnosticmanager.h>
 ```
 
 > **Inherits:** [`Stateful< DiagnosticState >`](#stateful)
@@ -24544,7 +24544,7 @@ Appends text to the summary list and emits SummaryUpdated.
 ## AsyncDiagnostic
 
 ```cpp
-#include <diagnosticmanager.h>
+#include <icy/diagnosticmanager.h>
 ```
 
 > **Inherits:** [`IDiagnostic`](#idiagnostic), [`Runnable`](#runnable)
@@ -24607,7 +24607,7 @@ Thread _thread
 ## DiagnosticManager
 
 ```cpp
-#include <diagnosticmanager.h>
+#include <icy/diagnosticmanager.h>
 ```
 
 > **Inherits:** [`string, IDiagnostic >`](#keyedstore)
@@ -24754,7 +24754,7 @@ void onDiagnosticStateChange(void *, DiagnosticState & state, constDiagnosticSta
 ## PacketTransaction
 
 ```cpp
-#include <packettransaction.h>
+#include <icy/packettransaction.h>
 ```
 
 > **Inherits:** [`Sendable`](#sendable), [`Stateful< TransactionState >`](#stateful), [`RefCounted< PacketTransaction< PacketT > >`](#refcounted)
@@ -25203,7 +25203,7 @@ IntrusivePtr< PacketTransaction< PacketT > > Ptr()
 ## Base64PacketEncoder
 
 ```cpp
-#include <base64packetencoder.h>
+#include <icy/base64packetencoder.h>
 ```
 
 > **Inherits:** [`PacketProcessor`](#packetprocessor)
@@ -25273,7 +25273,7 @@ Base64-encodes the payload of an incoming `[RawPacket](#rawpacket)` and emits th
 ## Task
 
 ```cpp
-#include <task.h>
+#include <icy/task.h>
 ```
 
 > **Inherits:** [`Runnable`](#runnable)
@@ -25453,7 +25453,7 @@ Called by the [TaskRunner](#taskrunner) to run the task. Override this method to
 ## TaskRunner
 
 ```cpp
-#include <task.h>
+#include <icy/task.h>
 ```
 
 > **Inherits:** [`Runnable`](#runnable)
@@ -25916,7 +25916,7 @@ Called after a task has run.
 ## IPacket
 
 ```cpp
-#include <packet.h>
+#include <icy/packet.h>
 ```
 
 > **Subclassed by:** [`FlagPacket`](#flagpacket), [`RawPacket`](#rawpacket), [`Message`](symple.md#message-10), [`Message`](stun.md#message-5)
@@ -26190,7 +26190,7 @@ Prints a human-readable representation to the given stream.
 ## FlagPacket
 
 ```cpp
-#include <packet.h>
+#include <icy/packet.h>
 ```
 
 > **Inherits:** [`IPacket`](#ipacket)
@@ -26310,7 +26310,7 @@ Returns the class name of this packet type for logging and diagnostics.
 ## RawPacket
 
 ```cpp
-#include <packet.h>
+#include <icy/packet.h>
 ```
 
 > **Inherits:** [`IPacket`](#ipacket)
@@ -26577,7 +26577,7 @@ std::unique_ptr< char[]> _owned
 ## Configuration
 
 ```cpp
-#include <configuration.h>
+#include <icy/configuration.h>
 ```
 
 > **Subclassed by:** [`Configuration`](json.md#configuration-1)
@@ -27076,7 +27076,7 @@ std::mutex _mutex
 ## ScopedConfiguration
 
 ```cpp
-#include <configuration.h>
+#include <icy/configuration.h>
 ```
 
 [ScopedConfiguration](#scopedconfiguration) provides multiple levels of configuration for a module. Multiple levels means that there is a module level scope, and a default scope. When a property is accessed, the module scope value will be used if available, otherwise the default scope value will be used.
@@ -27462,7 +27462,7 @@ Fully qualified scoped key string.
 ## Error
 
 ```cpp
-#include <error.h>
+#include <icy/error.h>
 ```
 
 Basic error type.
@@ -27621,7 +27621,7 @@ Re-throws the stored exception pointer if one is set. Has no effect if `exceptio
 ## LogStream
 
 ```cpp
-#include <logger.h>
+#include <icy/logger.h>
 ```
 
 ### Public Methods
@@ -27718,7 +27718,7 @@ inline LogStream & operator<<(std::ostream &(*)(std::ostream &) f)
 ## NullSharedMutex
 
 ```cpp
-#include <signal.h>
+#include <icy/signal.h>
 ```
 
 No-op mutex for single-threaded signal usage. When all signal operations occur on a single libuv event loop thread, the shared_mutex is unnecessary overhead.
@@ -27785,7 +27785,7 @@ inline void unlock_shared()
 ## Bitwise
 
 ```cpp
-#include <bitwise.h>
+#include <icy/bitwise.h>
 ```
 
 Container for smart management of bitwise integer flags.
@@ -27962,7 +27962,7 @@ true if every bit in flag is present in data.
 ## AbstractDelegate
 
 ```cpp
-#include <delegate.h>
+#include <icy/delegate.h>
 ```
 
 Abstract delegate interface.
@@ -28027,7 +28027,7 @@ True if both delegates refer to the same callable target.
 ## FunctionDelegate
 
 ```cpp
-#include <delegate.h>
+#include <icy/delegate.h>
 ```
 
 > **Inherits:** [`AbstractDelegate< RT, Args... >`](#abstractdelegate)
@@ -28119,7 +28119,7 @@ Always returns false; `std::function` targets cannot be compared for equality.
 ## ClassDelegate
 
 ```cpp
-#include <delegate.h>
+#include <icy/delegate.h>
 ```
 
 > **Inherits:** [`AbstractDelegate< RT, Args... >`](#abstractdelegate)
@@ -28235,7 +28235,7 @@ True if both delegates wrap the same instance/method pair.
 ## ConstClassDelegate
 
 ```cpp
-#include <delegate.h>
+#include <icy/delegate.h>
 ```
 
 > **Inherits:** [`AbstractDelegate< RT, Args... >`](#abstractdelegate)
@@ -28351,7 +28351,7 @@ True if both delegates wrap the same instance/method pair.
 ## PolymorphicDelegate
 
 ```cpp
-#include <delegate.h>
+#include <icy/delegate.h>
 ```
 
 > **Inherits:** [`AbstractDelegate< RT, IT & >`](#abstractdelegate)
@@ -28467,7 +28467,7 @@ True if both delegates wrap the same instance/method pair.
 ## OptionParser
 
 ```cpp
-#include <application.h>
+#include <icy/application.h>
 ```
 
 Command-line option parser.
@@ -28609,7 +28609,7 @@ Converted numeric value.
 ## ShutdownCmd
 
 ```cpp
-#include <application.h>
+#include <icy/application.h>
 ```
 
 Shutdown command packet for signalling process termination.
@@ -28646,7 +28646,7 @@ std::function< void(void *)> callback
 ## PacketAdapterReference
 
 ```cpp
-#include <packetstream.h>
+#include <icy/packetstream.h>
 ```
 
 Provides a reference to a [PacketStreamAdapter](#packetstreamadapter) with optional ownership.
@@ -28800,7 +28800,7 @@ std::shared_ptr< PacketAdapterReference > Ptr()
 ## PacketStreamState
 
 ```cpp
-#include <packetstream.h>
+#include <icy/packetstream.h>
 ```
 
 > **Inherits:** [`State`](#state)
@@ -28970,7 +28970,7 @@ enum Type
 ## PacketCreationStrategy
 
 ```cpp
-#include <packetfactory.h>
+#include <icy/packetfactory.h>
 ```
 
 > **Inherits:** [`IPacketCreationStrategy`](#ipacketcreationstrategy)
@@ -29069,7 +29069,7 @@ int _priority
 ## SharedLibrary
 
 ```cpp
-#include <sharedlibrary.h>
+#include <icy/sharedlibrary.h>
 ```
 
 Loads a shared library at runtime and resolves exported symbols.
@@ -29206,7 +29206,7 @@ std::string _error
 ## DiagnosticState
 
 ```cpp
-#include <diagnosticmanager.h>
+#include <icy/diagnosticmanager.h>
 ```
 
 > **Inherits:** [`State`](#state)
@@ -29273,7 +29273,7 @@ enum Type
 ## TransactionState
 
 ```cpp
-#include <packettransaction.h>
+#include <icy/packettransaction.h>
 ```
 
 > **Inherits:** [`State`](#state)
@@ -29337,7 +29337,7 @@ enum Type
 ## IPacketInfo
 
 ```cpp
-#include <packet.h>
+#include <icy/packet.h>
 ```
 
 > **Subclassed by:** [`PacketInfo`](net.md#packetinfo)

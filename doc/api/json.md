@@ -231,7 +231,7 @@ Returns true if found, with result pointing to the matching object.
 ## Configuration
 
 ```cpp
-#include <configuration.h>
+#include <icy/json/configuration.h>
 ```
 
 > **Inherits:** [`Configuration`](base.md#configuration)
@@ -598,7 +598,7 @@ Stores `value` under `key` in the JSON root and emits PropertyChanged.
 ## ISerializable
 
 ```cpp
-#include <iserializable.h>
+#include <icy/json/iserializable.h>
 ```
 
 > **Subclassed by:** [`Scheduler`](sched.md#scheduler), [`Task`](sched.md#task-1), [`Trigger`](sched.md#trigger-1)

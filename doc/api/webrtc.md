@@ -229,7 +229,7 @@ Generate a random SSRC.
 ## CodecNegotiator
 
 ```cpp
-#include <codecnegotiator.h>
+#include <icy/webrtc/codecnegotiator.h>
 ```
 
 Maps RTP codec names to FFmpeg encoders and queries FFmpeg at runtime to determine what codecs are available.
@@ -551,7 +551,7 @@ Detect the first known codec present in an SDP snippet for the given media type.
 ## MediaBridge
 
 ```cpp
-#include <mediabridge.h>
+#include <icy/webrtc/mediabridge.h>
 ```
 
 Convenience wrapper that creates WebRTC tracks on a PeerConnection and exposes per-track sender/receiver adapters for [PacketStream](base.md#packetstream) integration.
@@ -920,7 +920,7 @@ std::mutex _mutex
 ## Options
 
 ```cpp
-#include <mediabridge.h>
+#include <icy/webrtc/mediabridge.h>
 ```
 
 [Configuration](base.md#configuration) options for the WebRTC media bridge.
@@ -1011,7 +1011,7 @@ unsigned nackBufferSize = 512
 ## PeerSession
 
 ```cpp
-#include <peersession.h>
+#include <icy/webrtc/peersession.h>
 ```
 
 Manages a WebRTC peer connection lifecycle over any signalling transport that implements [SignallingInterface](#signallinginterface).
@@ -1603,7 +1603,7 @@ std::atomic< bool > alive {true}
 ## Config
 
 ```cpp
-#include <peersession.h>
+#include <icy/webrtc/peersession.h>
 ```
 
 [Configuration](base.md#configuration) for WebRTC peer session establishment.
@@ -1693,7 +1693,7 @@ std::string mid
 ## SignallingInterface
 
 ```cpp
-#include <signalling.h>
+#include <icy/webrtc/signalling.h>
 ```
 
 Transport-agnostic signalling interface for WebRTC session setup.
@@ -1839,7 +1839,7 @@ Send a control message to the remote peer.
 ## WebRtcTrackReceiver
 
 ```cpp
-#include <trackreceiver.h>
+#include <icy/webrtc/trackreceiver.h>
 ```
 
 > **Inherits:** [`PacketStreamAdapter`](base.md#packetstreamadapter)
@@ -1914,7 +1914,7 @@ Bind to a remote track. Must be called after [setupReceiveTrack()](#setupreceive
 ## WebRtcTrackSender
 
 ```cpp
-#include <tracksender.h>
+#include <icy/webrtc/tracksender.h>
 ```
 
 > **Inherits:** [`PacketProcessor`](base.md#packetprocessor)
@@ -2164,7 +2164,7 @@ std::mutex _mutex
 ## CodecSpec
 
 ```cpp
-#include <codecnegotiator.h>
+#include <icy/webrtc/codecnegotiator.h>
 ```
 
 ### Public Attributes
@@ -2272,7 +2272,7 @@ inline bool valid() const
 ## NegotiatedCodec
 
 ```cpp
-#include <codecnegotiator.h>
+#include <icy/webrtc/codecnegotiator.h>
 ```
 
 Result of codec negotiation between a remote SDP offer and the local FFmpeg codec inventory.
@@ -2438,7 +2438,7 @@ Create an [av::AudioCodec](av.md#audiocodec) configured for WebRTC browser playb
 ## TrackHandle
 
 ```cpp
-#include <track.h>
+#include <icy/webrtc/track.h>
 ```
 
 Result of creating a track: the track itself plus its RTP config. Keep the config around - you need it for [WebRtcTrackSender](#webrtctracksender).

@@ -38,7 +38,7 @@ Realtime messaging protocol for presence, rooms, and WebRTC signalling.
 ## Client
 
 ```cpp
-#include <client.h>
+#include <icy/symple/client.h>
 ```
 
 > **Inherits:** [`Stateful< ClientState >`](base.md#stateful), [`Signal< void(IPacket &)>`](base.md#signal)
@@ -798,7 +798,7 @@ std::string buildUrl() const
 ## Options
 
 ```cpp
-#include <client.h>
+#include <icy/symple/client.h>
 ```
 
 Connection and authentication options for the Symple client.
@@ -955,7 +955,7 @@ Options() = default
 ## Command
 
 ```cpp
-#include <command.h>
+#include <icy/symple/command.h>
 ```
 
 > **Inherits:** [`Message`](#message-10)
@@ -1168,7 +1168,7 @@ Returns true if the node path matches the given pattern. Uses wildcard node matc
 ## Event
 
 ```cpp
-#include <event.h>
+#include <icy/symple/event.h>
 ```
 
 > **Inherits:** [`Message`](#message-10)
@@ -1321,7 +1321,7 @@ Sets the event timestamp.
 ## Form
 
 ```cpp
-#include <form.h>
+#include <icy/symple/form.h>
 ```
 
 > **Inherits:** [`FormElement`](#formelement)
@@ -1472,7 +1472,7 @@ Marks the form as a partial section for live/auto-complete updates. Partial form
 ## FormElement
 
 ```cpp
-#include <form.h>
+#include <icy/symple/form.h>
 ```
 
 > **Subclassed by:** [`Form`](#form), [`FormField`](#formfield)
@@ -2022,7 +2022,7 @@ The root pointer is just a reference to the externally managed JSON value memory
 ## FormField
 
 ```cpp
-#include <form.h>
+#include <icy/symple/form.h>
 ```
 
 > **Inherits:** [`FormElement`](#formelement)
@@ -2348,7 +2348,7 @@ Returns the first value parsed as a boolean. Treats "1", "true", and "on" as tru
 ## Message
 
 ```cpp
-#include <message.h>
+#include <icy/symple/message.h>
 ```
 
 > **Inherits:** `Value`, [`IPacket`](base.md#ipacket)
@@ -3173,7 +3173,7 @@ The packet data pointer for buffered packets.
 ## Peer
 
 ```cpp
-#include <peer.h>
+#include <icy/symple/peer.h>
 ```
 
 > **Inherits:** `Value`
@@ -3498,7 +3498,7 @@ virtual inline const char * className() const
 ## Presence
 
 ```cpp
-#include <presence.h>
+#include <icy/symple/presence.h>
 ```
 
 > **Inherits:** [`Message`](#message-10)
@@ -3600,7 +3600,7 @@ Sets or clears the probe flag on this presence message.
 ## Roster
 
 ```cpp
-#include <roster.h>
+#include <icy/symple/roster.h>
 ```
 
 > **Inherits:** [`string, Peer >`](base.md#keyedstore)
@@ -3758,7 +3758,7 @@ inline void onRemove(const std::string &, Peer * peer)
 ## Server
 
 ```cpp
-#include <server.h>
+#include <icy/symple/server.h>
 ```
 
 Symple v4 server.
@@ -4747,7 +4747,7 @@ std::unordered_map< std::string, MemberSet > _rooms
 ## Options
 
 ```cpp
-#include <server.h>
+#include <icy/symple/server.h>
 ```
 
 [Configuration](base.md#configuration) options for the Symple server.
@@ -5034,7 +5034,7 @@ std::function< void(const json::Value &)> handler
 ## ServerPeer
 
 ```cpp
-#include <server.h>
+#include <icy/symple/server.h>
 ```
 
 Per-connection state for a connected Symple peer.
@@ -5391,7 +5391,7 @@ bool _authenticated = false
 ## Address
 
 ```cpp
-#include <address.h>
+#include <icy/symple/address.h>
 ```
 
 The [Address](#address-13) structure is an endpoint identifier for a peer on the network. The format is like so: user|id
@@ -5604,7 +5604,7 @@ Compares this address against a string in `user|id` format without allocating.
 ## ClientState
 
 ```cpp
-#include <client.h>
+#include <icy/symple/client.h>
 ```
 
 > **Inherits:** [`State`](base.md#state)

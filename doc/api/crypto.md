@@ -337,7 +337,7 @@ Uses OpenSSL HMAC with SHA-1 as the underlying digest. The output is a 20-byte r
 ## Cipher
 
 ```cpp
-#include <cipher.h>
+#include <icy/crypto/cipher.h>
 ```
 
 Provides symmetric algorithms for encryption and decryption. The algorithms that are available depend on the particular version of OpenSSL that is installed.
@@ -1221,7 +1221,7 @@ Transport encoding to use for [encrypt()](#encrypt) and decrypt().
 ## Hash
 
 ```cpp
-#include <hash.h>
+#include <icy/crypto/hash.h>
 ```
 
 Incremental cryptographic hash engine wrapping OpenSSL EVP digest functions.
@@ -1453,7 +1453,7 @@ std::string _algorithm
 ## X509Certificate
 
 ```cpp
-#include <x509certificate.h>
+#include <icy/crypto/x509certificate.h>
 ```
 
 RAII wrapper for an OpenSSL X509 certificate with PEM loading and inspection.

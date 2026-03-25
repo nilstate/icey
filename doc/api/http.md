@@ -604,7 +604,7 @@ Splits a substring (defined by iterators) into named attributes. Attributes are 
 ## Authenticator
 
 ```cpp
-#include <authenticator.h>
+#include <icy/http/authenticator.h>
 ```
 
 This is a utility class for working with HTTP authentication (basic or digest) in [http::Request](http::Request) objects.
@@ -876,7 +876,7 @@ Authenticator(const Authenticator &) = delete
 ## BasicAuthenticator
 
 ```cpp
-#include <authenticator.h>
+#include <icy/http/authenticator.h>
 ```
 
 This is a utility class for working with HTTP Basic Authentication in [http::Request](http::Request) objects.
@@ -1142,7 +1142,7 @@ BasicAuthenticator(const BasicAuthenticator &) = delete
 ## ChunkedAdapter
 
 ```cpp
-#include <packetizers.h>
+#include <icy/http/packetizers.h>
 ```
 
 > **Inherits:** [`PacketProcessor`](base.md#packetprocessor)
@@ -1333,7 +1333,7 @@ Encodes an incoming packet as a chunked transfer encoding chunk and emits it. Em
 ## Client
 
 ```cpp
-#include <client.h>
+#include <icy/http/client.h>
 ```
 
 HTTP client for creating and managing outgoing connections.
@@ -1561,7 +1561,7 @@ void onConnectionClose(Connection & conn)
 ## ClientConnection
 
 ```cpp
-#include <client.h>
+#include <icy/http/client.h>
 ```
 
 > **Inherits:** [`Connection`](#connection-1)
@@ -2049,7 +2049,7 @@ Called when the connection is closed.
 ## PendingWrite
 
 ```cpp
-#include <client.h>
+#include <icy/http/client.h>
 ```
 
 ### Public Attributes
@@ -2084,7 +2084,7 @@ int flags = 0
 ## Connection
 
 ```cpp
-#include <connection.h>
+#include <icy/http/connection.h>
 ```
 
 > **Inherits:** [`SocketAdapter`](net.md#socketadapter)
@@ -2712,7 +2712,7 @@ std::shared_ptr< Connection > Ptr()
 ## ConnectionAdapter
 
 ```cpp
-#include <connection.h>
+#include <icy/http/connection.h>
 ```
 
 > **Inherits:** [`ParserObserver`](#parserobserver), [`SocketAdapter`](net.md#socketadapter)
@@ -3024,7 +3024,7 @@ Called when the HTTP message is fully parsed.
 ## ConnectionPool
 
 ```cpp
-#include <server.h>
+#include <icy/http/server.h>
 ```
 
 LIFO connection pool for reusing [ServerConnection](#serverconnection) objects. Avoids per-request heap allocation by resetting and reusing connections instead of destroying and recreating them.
@@ -3143,7 +3143,7 @@ size_t _maxSize = 128
 ## ConnectionStream
 
 ```cpp
-#include <connection.h>
+#include <icy/http/connection.h>
 ```
 
 > **Inherits:** [`SocketAdapter`](net.md#socketadapter)
@@ -3323,7 +3323,7 @@ true to stop propagation to subsequent receivers.
 ## Cookie
 
 ```cpp
-#include <cookie.h>
+#include <icy/http/cookie.h>
 ```
 
 This class represents a HTTP [Cookie](#cookie).
@@ -3924,7 +3924,7 @@ bool _httpOnly
 ## FilePart
 
 ```cpp
-#include <form.h>
+#include <icy/http/form.h>
 ```
 
 > **Inherits:** [`FormPart`](#formpart)
@@ -4208,7 +4208,7 @@ uint64_t _fileSize
 ## FormPart
 
 ```cpp
-#include <form.h>
+#include <icy/http/form.h>
 ```
 
 > **Subclassed by:** [`FilePart`](#filepart), [`StringPart`](#stringpart)
@@ -4441,7 +4441,7 @@ bool _initialWrite
 ## FormWriter
 
 ```cpp
-#include <form.h>
+#include <icy/http/form.h>
 ```
 
 > **Inherits:** [`NVCollection`](base.md#nvcollection), [`PacketStreamAdapter`](base.md#packetstreamadapter), [`Startable`](base.md#startable)
@@ -5019,7 +5019,7 @@ Updates the upload progress via the associated [ConnectionStream](#connectionstr
 ## Part
 
 ```cpp
-#include <form.h>
+#include <icy/http/form.h>
 ```
 
 Individual part within a multipart form submission.
@@ -5056,7 +5056,7 @@ std::unique_ptr< FormPart > part
 ## Message
 
 ```cpp
-#include <message.h>
+#include <icy/http/message.h>
 ```
 
 > **Inherits:** [`NVCollection`](base.md#nvcollection)
@@ -5598,7 +5598,7 @@ Destroys the [Message](#message).
 ## MultipartAdapter
 
 ```cpp
-#include <packetizers.h>
+#include <icy/http/packetizers.h>
 ```
 
 > **Inherits:** [`PacketProcessor`](base.md#packetprocessor)
@@ -5782,7 +5782,7 @@ Wraps the incoming packet as a multipart chunk and emits it downstream. Emits th
 ## Parser
 
 ```cpp
-#include <parser.h>
+#include <icy/http/parser.h>
 ```
 
 HTTP request/response parser using the llhttp library.
@@ -6368,7 +6368,7 @@ void onError(llhttp_errno_t errnum, const std::string & message)
 ## MessageScratch
 
 ```cpp
-#include <parser.h>
+#include <icy/http/parser.h>
 ```
 
 ### Public Attributes
@@ -6465,7 +6465,7 @@ inline void reset()
 ## ParseResult
 
 ```cpp
-#include <parser.h>
+#include <icy/http/parser.h>
 ```
 
 ### Public Attributes
@@ -6540,7 +6540,7 @@ inline bool ok() const
 ## ParserObserver
 
 ```cpp
-#include <parser.h>
+#include <icy/http/parser.h>
 ```
 
 > **Subclassed by:** [`ConnectionAdapter`](#connectionadapter)
@@ -6652,7 +6652,7 @@ Called when a parse error occurs.
 ## ProgressSignal
 
 ```cpp
-#include <connection.h>
+#include <icy/http/connection.h>
 ```
 
 > **Inherits:** [`Signal< void(const double &)>`](base.md#signal)
@@ -6767,7 +6767,7 @@ Advances the progress counter by `nread` bytes and emits the updated percentage.
 ## Request
 
 ```cpp
-#include <request.h>
+#include <icy/http/request.h>
 ```
 
 > **Inherits:** [`Message`](#message)
@@ -7299,7 +7299,7 @@ std::string _uri
 ## Response
 
 ```cpp
-#include <response.h>
+#include <icy/http/response.h>
 ```
 
 > **Inherits:** [`Message`](#message)
@@ -7669,7 +7669,7 @@ std::string _reason
 ## Server
 
 ```cpp
-#include <server.h>
+#include <icy/http/server.h>
 ```
 
 > **Inherits:** [`SocketAdapter`](net.md#socketadapter)
@@ -8181,7 +8181,7 @@ Return the event loop this server runs on.
 ## ServerConnection
 
 ```cpp
-#include <server.h>
+#include <icy/http/server.h>
 ```
 
 > **Inherits:** [`Connection`](#connection-1)
@@ -8709,7 +8709,7 @@ std::shared_ptr< ServerConnection > Ptr()
 ## ServerConnectionFactory
 
 ```cpp
-#include <server.h>
+#include <icy/http/server.h>
 ```
 
 This implementation of a [ServerConnectionFactory](#serverconnectionfactory) is used by HTTP [Server](#server) to create [ServerConnection](#serverconnection) objects.
@@ -8774,7 +8774,7 @@ Factory method for instantiating the [ServerResponder](#serverresponder) instanc
 ## ServerResponder
 
 ```cpp
-#include <server.h>
+#include <icy/http/server.h>
 ```
 
 The abstract base class for HTTP ServerResponders created by HTTP [Server](#server).
@@ -8972,7 +8972,7 @@ ServerResponder(const ServerResponder &) = delete
 ## StringPart
 
 ```cpp
-#include <form.h>
+#include <icy/http/form.h>
 ```
 
 > **Inherits:** [`FormPart`](#formpart)
@@ -9142,7 +9142,7 @@ std::string _data
 ## URL
 
 ```cpp
-#include <url.h>
+#include <icy/http/url.h>
 ```
 
 An RFC 3986 based [URL](#url) parser. Constructors and assignment operators will throw a SyntaxException if the [URL](#url) is invalid.
@@ -9815,7 +9815,7 @@ bool _hasPort
 ## DateCache
 
 ```cpp
-#include <server.h>
+#include <icy/http/server.h>
 ```
 
 Caches the formatted Date header, updated once per second. Avoids per-request time formatting and string allocation.
@@ -9913,7 +9913,7 @@ Returns the byte length of the formatted Date header string.
 ## Method
 
 ```cpp
-#include <request.h>
+#include <icy/http/request.h>
 ```
 
 HTTP request methods.
@@ -10260,7 +10260,7 @@ The [WebSocket](#websocket) protocol version supported (13).
 ## ConnectionAdapter
 
 ```cpp
-#include <websocket.h>
+#include <icy/http/websocket.h>
 ```
 
 > **Inherits:** [`WebSocketAdapter`](#websocketadapter)
@@ -10330,7 +10330,7 @@ Connection * _connection
 ## WebSocket
 
 ```cpp
-#include <websocket.h>
+#include <icy/http/websocket.h>
 ```
 
 > **Inherits:** [`WebSocketAdapter`](#websocketadapter)
@@ -10433,7 +10433,7 @@ std::vector< WebSocket > Vec()
 ## WebSocketAdapter
 
 ```cpp
-#include <websocket.h>
+#include <icy/http/websocket.h>
 ```
 
 > **Inherits:** [`SocketEmitter`](net.md#socketemitter)
@@ -10857,7 +10857,7 @@ Called by the socket on close; resets framer state.
 ## WebSocketException
 
 ```cpp
-#include <websocket.h>
+#include <icy/http/websocket.h>
 ```
 
 > **Inherits:** `runtime_error`
@@ -10957,7 +10957,7 @@ uint16_t _closeStatus
 ## WebSocketFramer
 
 ```cpp
-#include <websocket.h>
+#include <icy/http/websocket.h>
 ```
 
 This class implements a [WebSocket](#websocket) parser according to the [WebSocket](#websocket) protocol described in RFC 6455.

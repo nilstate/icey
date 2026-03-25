@@ -130,7 +130,7 @@ template<typename T> std::unique_ptr< sched::Trigger > instantiateTrigger()
 ## Scheduler
 
 ```cpp
-#include <scheduler.h>
+#include <icy/sched/scheduler.h>
 ```
 
 > **Inherits:** [`TaskRunner`](base.md#taskrunner), [`ISerializable`](json.md#iserializable)
@@ -365,7 +365,7 @@ virtual void update()
 ## Task
 
 ```cpp
-#include <task.h>
+#include <icy/sched/task.h>
 ```
 
 > **Inherits:** [`Task`](base.md#task), [`ISerializable`](json.md#iserializable)
@@ -700,7 +700,7 @@ virtual bool afterRun()
 ## TaskFactory
 
 ```cpp
-#include <taskfactory.h>
+#include <icy/sched/taskfactory.h>
 ```
 
 The [TaskFactory](#taskfactory) can dynamically instantiate registered [sched::Task](#task-1) and [sched::Trigger](#trigger-1) classes from named strings.
@@ -978,7 +978,7 @@ Schedule Triggers.
 ## DailyTrigger
 
 ```cpp
-#include <trigger.h>
+#include <icy/sched/trigger.h>
 ```
 
 > **Inherits:** [`Trigger`](#trigger-1)
@@ -1054,7 +1054,7 @@ Computes the next scheduleAt value by advancing to the next non-excluded weekday
 ## IntervalTrigger
 
 ```cpp
-#include <trigger.h>
+#include <icy/sched/trigger.h>
 ```
 
 > **Inherits:** [`Trigger`](#trigger-1)
@@ -1187,7 +1187,7 @@ Deserializes interval fields from `root`. Throws if the resulting interval is ze
 ## OnceOnlyTrigger
 
 ```cpp
-#include <trigger.h>
+#include <icy/sched/trigger.h>
 ```
 
 > **Inherits:** [`Trigger`](#trigger-1)
@@ -1247,7 +1247,7 @@ Returns true after the task has run at least once.
 ## Trigger
 
 ```cpp
-#include <trigger.h>
+#include <icy/sched/trigger.h>
 ```
 
 > **Inherits:** [`ISerializable`](json.md#iserializable)

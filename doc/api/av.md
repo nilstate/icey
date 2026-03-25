@@ -640,7 +640,7 @@ The chosen AVPixelFormat.
 ## AppleDeviceWatcher
 
 ```cpp
-#include <coreaudio.h>
+#include <icy/av/apple/coreaudio.h>
 ```
 
 > **Inherits:** [`DeviceWatcher`](#devicewatcher)
@@ -736,7 +736,7 @@ DeviceManager * _manager
 ## AudioCapture
 
 ```cpp
-#include <audiocapture.h>
+#include <icy/av/audiocapture.h>
 ```
 
 > **Inherits:** [`MediaCapture`](#mediacapture)
@@ -886,7 +886,7 @@ std::shared_ptr< AudioCapture > Ptr()
 ## AudioPacketEncoder
 
 ```cpp
-#include <audiopacketencoder.h>
+#include <icy/av/audiopacketencoder.h>
 ```
 
 > **Inherits:** [`AudioEncoder`](#audioencoder), [`PacketProcessor`](base.md#packetprocessor)
@@ -1022,7 +1022,7 @@ Called by the [PacketStream](base.md#packetstream) to notify when the internal [
 ## DeviceManager
 
 ```cpp
-#include <devicemanager.h>
+#include <icy/av/devicemanager.h>
 ```
 
 Enumerates and manages system audio and video devices.
@@ -1531,7 +1531,7 @@ std::unique_ptr< DeviceWatcher > _watcher
 ## HardwareCodec
 
 ```cpp
-#include <devicemanager.h>
+#include <icy/av/devicemanager.h>
 ```
 
 Hardware codec descriptor.
@@ -1568,7 +1568,7 @@ std::string type
 ## DeviceWatcher
 
 ```cpp
-#include <devicemanager.h>
+#include <icy/av/devicemanager.h>
 ```
 
 > **Subclassed by:** [`AppleDeviceWatcher`](#appledevicewatcher), [`LinuxDeviceWatcher`](#linuxdevicewatcher), [`WindowsDeviceWatcher`](#windowsdevicewatcher)
@@ -1626,7 +1626,7 @@ virtual inline void stop()
 ## FormatRegistry
 
 ```cpp
-#include <formatregistry.h>
+#include <icy/av/formatregistry.h>
 ```
 
 [Singleton](base.md#singleton) registry of available media container formats for encoding and decoding.
@@ -1952,7 +1952,7 @@ Format & defaultLocked()
 ## FPSCounter
 
 ```cpp
-#include <fpscounter.h>
+#include <icy/av/fpscounter.h>
 ```
 
 FPS counter based on the simple moving average (SMA) algorithm.
@@ -2110,7 +2110,7 @@ inline double updateAvg(clock_t newTick)
 ## FPSLimiter
 
 ```cpp
-#include <fpscounter.h>
+#include <icy/av/fpscounter.h>
 ```
 
 > **Inherits:** [`PacketProcessor`](base.md#packetprocessor)
@@ -2243,7 +2243,7 @@ legacy::FPSCounter _counter
 ## ICapture
 
 ```cpp
-#include <icapture.h>
+#include <icy/av/icapture.h>
 ```
 
 > **Inherits:** [`PacketStreamAdapter`](base.md#packetstreamadapter), [`Startable`](base.md#startable)
@@ -2504,7 +2504,7 @@ virtual inline void openStream(const std::string & filename, const AVInputFormat
 ## IEncoder
 
 ```cpp
-#include <iencoder.h>
+#include <icy/av/iencoder.h>
 ```
 
 > **Inherits:** [`Stateful< EncoderState >`](base.md#stateful)
@@ -2795,7 +2795,7 @@ enum Type
 ## LinuxDeviceWatcher
 
 ```cpp
-#include <v4l2.h>
+#include <icy/av/linux/v4l2.h>
 ```
 
 > **Inherits:** [`DeviceWatcher`](#devicewatcher)
@@ -2891,7 +2891,7 @@ DeviceManager * _manager
 ## MediaCapture
 
 ```cpp
-#include <mediacapture.h>
+#include <icy/av/mediacapture.h>
 ```
 
 > **Inherits:** [`ICapture`](#icapture), [`Runnable`](base.md#runnable)
@@ -3420,7 +3420,7 @@ std::shared_ptr< MediaCapture > Ptr()
 ## MultiplexEncoder
 
 ```cpp
-#include <multiplexencoder.h>
+#include <icy/av/multiplexencoder.h>
 ```
 
 > **Inherits:** [`IEncoder`](#iencoder)
@@ -3968,7 +3968,7 @@ void onAudioEncoded(av::AudioPacket & packet)
 ## MultiplexPacketEncoder
 
 ```cpp
-#include <multiplexpacketencoder.h>
+#include <icy/av/multiplexpacketencoder.h>
 ```
 
 > **Inherits:** [`MultiplexEncoder`](#multiplexencoder), [`PacketProcessor`](base.md#packetprocessor)
@@ -4145,7 +4145,7 @@ Called by the [PacketStream](base.md#packetstream) to notify when the internal [
 ## RealtimePacketQueue
 
 ```cpp
-#include <realtimepacketqueue.h>
+#include <icy/av/realtimepacketqueue.h>
 ```
 
 > **Inherits:** [`AsyncPacketQueue< PacketT >`](base.md#asyncpacketqueue)
@@ -4292,7 +4292,7 @@ AsyncPacketQueue< PacketT > BaseQueue()
 ## MediaPacketTimeCompare
 
 ```cpp
-#include <realtimepacketqueue.h>
+#include <icy/av/realtimepacketqueue.h>
 ```
 
 Comparator for ordering media packets by presentation timestamp.
@@ -4325,7 +4325,7 @@ inline bool operator()(const MediaPacket * a, const MediaPacket * b)
 ## VideoCapture
 
 ```cpp
-#include <videocapture.h>
+#include <icy/av/videocapture.h>
 ```
 
 > **Inherits:** [`MediaCapture`](#mediacapture)
@@ -4481,7 +4481,7 @@ std::shared_ptr< VideoCapture > Ptr()
 ## VideoPacketEncoder
 
 ```cpp
-#include <videopacketencoder.h>
+#include <icy/av/videopacketencoder.h>
 ```
 
 > **Inherits:** [`VideoEncoder`](#videoencoder), [`PacketProcessor`](base.md#packetprocessor)
@@ -4617,7 +4617,7 @@ Called by the [PacketStream](base.md#packetstream) to notify when the internal [
 ## WindowsDeviceWatcher
 
 ```cpp
-#include <mediafoundation.h>
+#include <icy/av/win32/mediafoundation.h>
 ```
 
 > **Inherits:** [`DeviceWatcher`](#devicewatcher)
@@ -4713,7 +4713,7 @@ DeviceManager * _manager
 ## AudioBuffer
 
 ```cpp
-#include <audiobuffer.h>
+#include <icy/av/audiobuffer.h>
 ```
 
 FIFO buffer for queuing audio samples between encoding stages.
@@ -4897,7 +4897,7 @@ The number of available samples, or zero if the buffer is not allocated.
 ## AudioCodec
 
 ```cpp
-#include <codec.h>
+#include <icy/av/codec.h>
 ```
 
 > **Inherits:** [`Codec`](#codec-1)
@@ -5086,7 +5086,7 @@ Print a multi-line human-readable description to the given stream.
 ## AudioContext
 
 ```cpp
-#include <audiocontext.h>
+#include <icy/av/audiocontext.h>
 ```
 
 > **Subclassed by:** [`AudioDecoder`](#audiodecoder), [`AudioEncoder`](#audioencoder)
@@ -5491,7 +5491,7 @@ True if the resampler was successfully created.
 ## AudioDecoder
 
 ```cpp
-#include <audiodecoder.h>
+#include <icy/av/audiodecoder.h>
 ```
 
 > **Inherits:** [`AudioContext`](#audiocontext)
@@ -5596,7 +5596,7 @@ Flush any frames buffered inside the decoder. Call this after the last packet to
 ## AudioEncoder
 
 ```cpp
-#include <audioencoder.h>
+#include <icy/av/audioencoder.h>
 ```
 
 > **Inherits:** [`AudioContext`](#audiocontext)
@@ -5785,7 +5785,7 @@ Flush remaining packets to be encoded. This method should be called once before 
 ## AudioPacket
 
 ```cpp
-#include <packet.h>
+#include <icy/av/packet.h>
 ```
 
 > **Inherits:** [`MediaPacket`](#mediapacket)
@@ -5911,7 +5911,7 @@ Returns the class name of this packet type for logging and diagnostics.
 ## AudioResampler
 
 ```cpp
-#include <audioresampler.h>
+#include <icy/av/audioresampler.h>
 ```
 
 Converts audio samples between different formats, sample rates, and channel layouts.
@@ -6140,7 +6140,7 @@ The number of converted samples, or zero if samples were internally buffered.
 ## Codec
 
 ```cpp
-#include <codec.h>
+#include <icy/av/codec.h>
 ```
 
 > **Subclassed by:** [`AudioCodec`](#audiocodec), [`VideoCodec`](#videocodec)
@@ -6406,7 +6406,7 @@ Print a multi-line human-readable description to the given stream.
 ## Deleter
 
 ```cpp
-#include <ffmpeg.h>
+#include <icy/av/ffmpeg.h>
 ```
 
 Utilites for RAII:
@@ -6440,7 +6440,7 @@ inline void operator()(T * p) const
 ## Deleterp
 
 ```cpp
-#include <ffmpeg.h>
+#include <icy/av/ffmpeg.h>
 ```
 
 [Deleter](#deleter-1) adaptor for functions like av_freep that take a pointer to a pointer.
@@ -6472,7 +6472,7 @@ inline void operator()(T * p) const
 ## Device
 
 ```cpp
-#include <devicemanager.h>
+#include <icy/av/devicemanager.h>
 ```
 
 Represents a system audio, video or render device.
@@ -6734,7 +6734,7 @@ enum Type
 ## AudioCapability
 
 ```cpp
-#include <devicemanager.h>
+#include <icy/av/devicemanager.h>
 ```
 
 An audio format supported by the device.
@@ -6782,7 +6782,7 @@ std::string sampleFormat
 ## VideoCapability
 
 ```cpp
-#include <devicemanager.h>
+#include <icy/av/devicemanager.h>
 ```
 
 A video format supported by the device.
@@ -6852,7 +6852,7 @@ std::string pixelFormat
 ## EncoderOptions
 
 ```cpp
-#include <iencoder.h>
+#include <icy/av/iencoder.h>
 ```
 
 [Configuration](base.md#configuration) options for audio and video encoders.
@@ -6958,7 +6958,7 @@ inline EncoderOptions(const Format & iformat, const Format & oformat, const std:
 ## EncoderState
 
 ```cpp
-#include <iencoder.h>
+#include <icy/av/iencoder.h>
 ```
 
 > **Inherits:** [`State`](base.md#state)
@@ -7016,7 +7016,7 @@ enum Type
 ## Format
 
 ```cpp
-#include <format.h>
+#include <icy/av/format.h>
 ```
 
 Defines a media container format which is available through the [Format](#format-1) Registry for encoding/decoding. A format defined preferred default values for each codec.
@@ -7327,7 +7327,7 @@ enum Type
 ## MediaPacket
 
 ```cpp
-#include <packet.h>
+#include <icy/av/packet.h>
 ```
 
 > **Inherits:** [`RawPacket`](base.md#rawpacket)
@@ -7467,7 +7467,7 @@ Returns the class name of this packet type for logging and diagnostics.
 ## PlanarAudioPacket
 
 ```cpp
-#include <packet.h>
+#include <icy/av/packet.h>
 ```
 
 > **Inherits:** [`AudioPacket`](#audiopacket)
@@ -7634,7 +7634,7 @@ Returns the class name of this packet type for logging and diagnostics.
 ## PlanarVideoPacket
 
 ```cpp
-#include <packet.h>
+#include <icy/av/packet.h>
 ```
 
 > **Inherits:** [`VideoPacket`](#videopacket)
@@ -7808,7 +7808,7 @@ Returns the class name of this packet type for logging and diagnostics.
 ## VideoCodec
 
 ```cpp
-#include <codec.h>
+#include <icy/av/codec.h>
 ```
 
 > **Inherits:** [`Codec`](#codec-1)
@@ -8050,7 +8050,7 @@ Print a multi-line human-readable description to the given stream.
 ## VideoContext
 
 ```cpp
-#include <videocontext.h>
+#include <icy/av/videocontext.h>
 ```
 
 > **Subclassed by:** [`VideoDecoder`](#videodecoder), [`VideoEncoder`](#videoencoder)
@@ -8465,7 +8465,7 @@ True if the converter was (re)created, false if it is already up to date.
 ## VideoConverter
 
 ```cpp
-#include <videoconverter.h>
+#include <icy/av/videoconverter.h>
 ```
 
 Converts video frames between pixel formats and resolutions.
@@ -8624,7 +8624,7 @@ The converted output AVFrame.
 ## VideoDecoder
 
 ```cpp
-#include <videodecoder.h>
+#include <icy/av/videodecoder.h>
 ```
 
 > **Inherits:** [`VideoContext`](#videocontext)
@@ -8744,7 +8744,7 @@ Flush any frames buffered inside the decoder. Call repeatedly after the last pac
 ## VideoEncoder
 
 ```cpp
-#include <videoencoder.h>
+#include <icy/av/videoencoder.h>
 ```
 
 > **Inherits:** [`VideoContext`](#videocontext)
@@ -8922,7 +8922,7 @@ Flush remaining packets to be encoded. This method should be called once before 
 ## VideoPacket
 
 ```cpp
-#include <packet.h>
+#include <icy/av/packet.h>
 ```
 
 > **Inherits:** [`MediaPacket`](#mediapacket)
@@ -9158,7 +9158,7 @@ True if enumeration succeeded.
 ## FPSCounter
 
 ```cpp
-#include <fpscounter.h>
+#include <icy/av/fpscounter.h>
 ```
 
 Legacy frames-per-second counter.

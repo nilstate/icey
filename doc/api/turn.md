@@ -547,7 +547,7 @@ constexpr int kErrorOperationNotSupported = 600
 ## Client
 
 ```cpp
-#include <client.h>
+#include <icy/turn/client/client.h>
 ```
 
 > **Inherits:** [`Stateful< ClientState >`](base.md#stateful), [`IAllocation`](#iallocation)
@@ -1496,7 +1496,7 @@ Periodic timer callback; re-allocates on expiry or refreshes when lifetime is be
 ## Options
 
 ```cpp
-#include <client.h>
+#include <icy/turn/client/client.h>
 ```
 
 [Configuration](base.md#configuration) options for the TURN client.
@@ -1606,7 +1606,7 @@ inline Options()
 ## FiveTuple
 
 ```cpp
-#include <fivetuple.h>
+#include <icy/turn/fivetuple.h>
 ```
 
 The 5-TUPLE consists of a local, a remote address, and the transport protocol used by the client to communicate with the server.                                                           +---------+
@@ -1914,7 +1914,7 @@ net::TransportType _transport
 ## IAllocation
 
 ```cpp
-#include <iallocation.h>
+#include <icy/turn/iallocation.h>
 ```
 
 > **Subclassed by:** [`Client`](#client-2), [`ServerAllocation`](#serverallocation)
@@ -2530,7 +2530,7 @@ bool _deleted
 ## PermissionPolicy
 
 ```cpp
-#include <permissionpolicy.h>
+#include <icy/turn/server/permissionpolicy.h>
 ```
 
 Lightweight server-side TURN permission policy.
@@ -2655,7 +2655,7 @@ static bool isLocalAutoGrantAddress(const Permission::Key & peerKey) noexcept
 ## Request
 
 ```cpp
-#include <types.h>
+#include <icy/turn/types.h>
 ```
 
 > **Inherits:** [`Message`](stun.md#message-5)
@@ -2759,7 +2759,7 @@ Constructs a [Request](#request-12) by copying a parsed STUN message and annotat
 ## Server
 
 ```cpp
-#include <server.h>
+#include <icy/turn/server/server.h>
 ```
 
 TURN server RFC 5766 / RFC 6062 implementation. Listens on UDP and/or TCP, authenticates requests via [ServerObserver](#serverobserver), and manages [ServerAllocation](#serverallocation) objects for each 5-tuple.
@@ -3397,7 +3397,7 @@ Timer _timer
 ## ServerAllocation
 
 ```cpp
-#include <serverallocation.h>
+#include <icy/turn/server/serverallocation.h>
 ```
 
 > **Inherits:** [`IAllocation`](#iallocation)
@@ -3721,7 +3721,7 @@ ServerAllocation(ServerAllocation &&) = delete
 ## TCPAllocation
 
 ```cpp
-#include <tcpallocation.h>
+#include <icy/turn/server/tcpallocation.h>
 ```
 
 > **Inherits:** [`ServerAllocation`](#serverallocation)
@@ -4012,7 +4012,7 @@ TCPConnectionPairMap _pairs
 ## TCPClient
 
 ```cpp
-#include <tcpclient.h>
+#include <icy/turn/client/tcpclient.h>
 ```
 
 > **Inherits:** [`Client`](#client-2)
@@ -4466,7 +4466,7 @@ ConnectionManager _connections
 ## TCPConnectionPair
 
 ```cpp
-#include <tcpconnectionpair.h>
+#include <icy/turn/server/tcpconnectionpair.h>
 ```
 
 > **Inherits:** [`RefCounted< TCPConnectionPair >`](base.md#refcounted)
@@ -4820,7 +4820,7 @@ TCPConnectionPair(TCPConnectionPair &&) = delete
 ## UDPAllocation
 
 ```cpp
-#include <udpallocation.h>
+#include <icy/turn/server/udpallocation.h>
 ```
 
 > **Inherits:** [`ServerAllocation`](#serverallocation)
@@ -4993,7 +4993,7 @@ net::SocketEmitter _relaySocket
 ## UDPClient
 
 ```cpp
-#include <udpclient.h>
+#include <icy/turn/client/udpclient.h>
 ```
 
 > **Inherits:** [`Client`](#client-2)
@@ -5031,7 +5031,7 @@ UDPClient(ClientObserver & observer, const Options & options)
 ## ClientObserver
 
 ```cpp
-#include <client.h>
+#include <icy/turn/client/client.h>
 ```
 
 > **Subclassed by:** [`TCPClientObserver`](#tcpclientobserver)
@@ -5221,7 +5221,7 @@ Fires after the client's internal timer callback. Handy for performing extra asy
 ## ClientState
 
 ```cpp
-#include <client.h>
+#include <icy/turn/client/client.h>
 ```
 
 > **Inherits:** [`State`](base.md#state)
@@ -5278,7 +5278,7 @@ enum Type
 ## Permission
 
 ```cpp
-#include <permission.h>
+#include <icy/turn/permission.h>
 ```
 
 A single TURN permission entry associating a peer IP with a 5-minute expiry timer. Per RFC 5766 section 8, permissions last exactly 300 seconds and must be refreshed via a new CreatePermission request before they expire.
@@ -5437,7 +5437,7 @@ Binary IP comparison used on the TURN relay hot path.
 ## Key
 
 ```cpp
-#include <permission.h>
+#include <icy/turn/permission.h>
 ```
 
 ### Public Attributes
@@ -5574,7 +5574,7 @@ static inline Key fromIP(const std::string & ip)
 ## RelayConnectionBinding
 
 ```cpp
-#include <tcpclient.h>
+#include <icy/turn/client/tcpclient.h>
 ```
 
 Binding metadata stored as socket opaque data during a ConnectionBind handshake. Associates a relay socket with its TURN connection ID and peer address.
@@ -5615,7 +5615,7 @@ The peer address this binding targets.
 ## ServerObserver
 
 ```cpp
-#include <server.h>
+#include <icy/turn/server/server.h>
 ```
 
 Observer interface that the application must implement to participate in server-side allocation management and authentication.
@@ -5701,7 +5701,7 @@ An AuthenticationState indicating how to proceed.
 ## ServerOptions
 
 ```cpp
-#include <server.h>
+#include <icy/turn/server/server.h>
 ```
 
 [Configuration](base.md#configuration) options for the TURN server.
@@ -5872,7 +5872,7 @@ inline ServerOptions()
 ## TCPClientObserver
 
 ```cpp
-#include <tcpclient.h>
+#include <icy/turn/client/tcpclient.h>
 ```
 
 > **Inherits:** [`ClientObserver`](#clientobserver)

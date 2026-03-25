@@ -192,7 +192,7 @@ constexpr int kMagicCookieLength = sizeof()
 ## AddressAttribute
 
 ```cpp
-#include <attributes.h>
+#include <icy/stun/attributes.h>
 ```
 
 > **Inherits:** [`Attribute`](#attribute)
@@ -420,7 +420,7 @@ net::Address _address
 ## Attribute
 
 ```cpp
-#include <attributes.h>
+#include <icy/stun/attributes.h>
 ```
 
 > **Subclassed by:** [`AddressAttribute`](#addressattribute), [`ErrorCode`](#errorcode-1), [`FlagAttribute`](#flagattribute), [`MessageIntegrity`](#messageintegrity), [`StringAttribute`](#stringattribute), [`UInt16ListAttribute`](#uint16listattribute), [`UInt32Attribute`](#uint32attribute), [`UInt64Attribute`](#uint64attribute), [`UInt8Attribute`](#uint8attribute)
@@ -848,7 +848,7 @@ enum Type
 ## ErrorCode
 
 ```cpp
-#include <attributes.h>
+#include <icy/stun/attributes.h>
 ```
 
 > **Inherits:** [`Attribute`](#attribute)
@@ -1130,7 +1130,7 @@ std::string _reason
 ## FlagAttribute
 
 ```cpp
-#include <attributes.h>
+#include <icy/stun/attributes.h>
 ```
 
 > **Inherits:** [`Attribute`](#attribute)
@@ -1228,7 +1228,7 @@ constexpr uint16_t Size = 0
 ## Message
 
 ```cpp
-#include <message.h>
+#include <icy/stun/message.h>
 ```
 
 > **Inherits:** [`IPacket`](base.md#ipacket)
@@ -1896,7 +1896,7 @@ Computes the wire body size from the current attribute list.
 ## MessageIntegrity
 
 ```cpp
-#include <attributes.h>
+#include <icy/stun/attributes.h>
 ```
 
 > **Inherits:** [`Attribute`](#attribute)
@@ -2202,7 +2202,7 @@ std::string _key
 ## StringAttribute
 
 ```cpp
-#include <attributes.h>
+#include <icy/stun/attributes.h>
 ```
 
 > **Inherits:** [`Attribute`](#attribute)
@@ -2471,7 +2471,7 @@ std::vector< char > _bytes
 ## Transaction
 
 ```cpp
-#include <transaction.h>
+#include <icy/stun/transaction.h>
 ```
 
 > **Inherits:** [`Transaction< Message >`](net.md#transaction)
@@ -2571,7 +2571,7 @@ IntrusivePtr< Transaction > Ptr()
 ## UInt16ListAttribute
 
 ```cpp
-#include <attributes.h>
+#include <icy/stun/attributes.h>
 ```
 
 > **Inherits:** [`Attribute`](#attribute)
@@ -2780,7 +2780,7 @@ std::vector< uint16_t > _attrTypes
 ## UInt32Attribute
 
 ```cpp
-#include <attributes.h>
+#include <icy/stun/attributes.h>
 ```
 
 > **Inherits:** [`Attribute`](#attribute)
@@ -3006,7 +3006,7 @@ uint32_t _bits
 ## UInt64Attribute
 
 ```cpp
-#include <attributes.h>
+#include <icy/stun/attributes.h>
 ```
 
 > **Inherits:** [`Attribute`](#attribute)
@@ -3232,7 +3232,7 @@ uint64_t _bits
 ## UInt8Attribute
 
 ```cpp
-#include <attributes.h>
+#include <icy/stun/attributes.h>
 ```
 
 > **Inherits:** [`Attribute`](#attribute)

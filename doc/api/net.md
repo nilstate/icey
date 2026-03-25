@@ -343,7 +343,7 @@ Maximum size of a single UDP datagram payload, in bytes.
 ## Address
 
 ```cpp
-#include <address.h>
+#include <icy/net/address.h>
 ```
 
 Represents an IPv4 or IPv6 socket address with host and port.
@@ -817,7 +817,7 @@ std::shared_ptr< AddressBase > _base
 ## PacketSocketEmitter
 
 ```cpp
-#include <packetsocket.h>
+#include <icy/net/packetsocket.h>
 ```
 
 > **Inherits:** [`SocketEmitter`](#socketemitter), [`Signal< void(IPacket &)>`](base.md#signal)
@@ -923,7 +923,7 @@ virtual bool onPacket(IPacket & pkt)
 ## Socket
 
 ```cpp
-#include <socket.h>
+#include <icy/net/socket.h>
 ```
 
 > **Inherits:** [`SocketAdapter`](#socketadapter)
@@ -1324,7 +1324,7 @@ std::vector< Ptr > Vec()
 ## SocketAdapter
 
 ```cpp
-#include <socketadapter.h>
+#include <icy/net/socketadapter.h>
 ```
 
 > **Subclassed by:** [`Connection`](http.md#connection-1), [`ConnectionAdapter`](http.md#connectionadapter), [`ConnectionStream`](http.md#connectionstream), [`Server`](http.md#server), [`Socket`](#socket-1), [`SocketEmitter`](#socketemitter)
@@ -1798,7 +1798,7 @@ virtual void cleanupReceivers()
 ## Ref
 
 ```cpp
-#include <socketadapter.h>
+#include <icy/net/socketadapter.h>
 ```
 
 Reference-counted handle to a [SocketAdapter](#socketadapter).
@@ -1835,7 +1835,7 @@ bool alive
 ## SocketEmitter
 
 ```cpp
-#include <socketemitter.h>
+#include <icy/net/socketemitter.h>
 ```
 
 > **Inherits:** [`SocketAdapter`](#socketadapter)
@@ -2162,7 +2162,7 @@ Forwards the close event to chained adapters, then fires the Close signal.
 ## SocketPacket
 
 ```cpp
-#include <socket.h>
+#include <icy/net/socket.h>
 ```
 
 > **Inherits:** [`RawPacket`](base.md#rawpacket)
@@ -2336,7 +2336,7 @@ The string "SocketPacket".
 ## SSLAdapter
 
 ```cpp
-#include <ssladapter.h>
+#include <icy/net/ssladapter.h>
 ```
 
 Manages the OpenSSL context and BIO buffers for an SSL socket connection.
@@ -2720,7 +2720,7 @@ void flushWriteBIO()
 ## SSLContext
 
 ```cpp
-#include <sslcontext.h>
+#include <icy/net/sslcontext.h>
 ```
 
 This class encapsulates context information for an SSL server or client, such as the certificate verification mode and the location of certificates and private key files, as well as the list of supported ciphers.
@@ -3307,7 +3307,7 @@ Create a SSL_CTX object according to Context configuration.
 ## SSLManager
 
 ```cpp
-#include <sslmanager.h>
+#include <icy/net/sslmanager.h>
 ```
 
 [SSLManager](#sslmanager) is a singleton for holding the default server/client Context and handling callbacks for certificate verification errors and private key passphrases.
@@ -3628,7 +3628,7 @@ The return value of this method defines how errors in verification are handled. 
 ## SSLSession
 
 ```cpp
-#include <sslsession.h>
+#include <icy/net/sslsession.h>
 ```
 
 This class encapsulates a SSL session object used with session caching on the client side.
@@ -3763,7 +3763,7 @@ std::shared_ptr< SSLSession > Ptr()
 ## SSLSocket
 
 ```cpp
-#include <sslsocket.h>
+#include <icy/net/sslsocket.h>
 ```
 
 > **Inherits:** [`TCPSocket`](#tcpsocket)
@@ -4336,7 +4336,7 @@ std::vector< Ptr > Vec()
 ## TCPSocket
 
 ```cpp
-#include <tcpsocket.h>
+#include <icy/net/tcpsocket.h>
 ```
 
 > **Inherits:** [`Stream< uv_tcp_t >`](base.md#stream), [`Socket`](#socket-1)
@@ -5068,7 +5068,7 @@ std::vector< Ptr > Vec()
 ## Transaction
 
 ```cpp
-#include <transaction.h>
+#include <icy/net/transaction.h>
 ```
 
 > **Inherits:** [`PacketTransaction< PacketT >`](base.md#packettransaction), [`PacketSocketEmitter`](#packetsocketemitter)
@@ -5279,7 +5279,7 @@ PacketTransaction< PacketT > BaseT()
 ## UDPSocket
 
 ```cpp
-#include <udpsocket.h>
+#include <icy/net/udpsocket.h>
 ```
 
 > **Inherits:** [`Handle< uv_udp_t >`](uv.md#handle-2), [`Socket`](#socket-1)
@@ -5883,7 +5883,7 @@ std::vector< Ptr > Vec()
 ## VerificationErrorDetails
 
 ```cpp
-#include <sslmanager.h>
+#include <icy/net/sslmanager.h>
 ```
 
 A utility class for certificate error handling.
@@ -6085,7 +6085,7 @@ bool _ignoreError
 ## PacketInfo
 
 ```cpp
-#include <socket.h>
+#include <icy/net/socket.h>
 ```
 
 > **Inherits:** [`IPacketInfo`](base.md#ipacketinfo)

@@ -160,7 +160,7 @@ Validates that a string is safe to use as a path component. Rejects path travers
 ## InstallMonitor
 
 ```cpp
-#include <installmonitor.h>
+#include <icy/pacm/installmonitor.h>
 ```
 
 Progress monitor for package installation operations.
@@ -466,7 +466,7 @@ virtual void setProgress(int value)
 ## InstallTask
 
 ```cpp
-#include <installtask.h>
+#include <icy/pacm/installtask.h>
 ```
 
 > **Inherits:** [`Runnable`](base.md#runnable), [`Stateful< InstallationState >`](base.md#stateful)
@@ -1057,7 +1057,7 @@ std::shared_ptr< InstallTask > Ptr()
 ## PackageManager
 
 ```cpp
-#include <packagemanager.h>
+#include <icy/pacm/packagemanager.h>
 ```
 
 The [Package](#package) Manager provides an interface for managing, installing, updating and uninstalling Pacm packages.
@@ -1971,7 +1971,7 @@ Callbacks.
 ## Options
 
 ```cpp
-#include <packagemanager.h>
+#include <icy/pacm/packagemanager.h>
 ```
 
 [Package](#package) manager initialization options.
@@ -2151,7 +2151,7 @@ inline Options(const std::string & root)
 ## InstallationState
 
 ```cpp
-#include <installtask.h>
+#include <icy/pacm/installtask.h>
 ```
 
 > **Inherits:** [`State`](base.md#state)
@@ -2218,7 +2218,7 @@ enum Type
 ## InstallOptions
 
 ```cpp
-#include <installtask.h>
+#include <icy/pacm/installtask.h>
 ```
 
 [Package](#package) installation options.
@@ -2290,7 +2290,7 @@ inline InstallOptions()
 ## LocalPackage
 
 ```cpp
-#include <package.h>
+#include <icy/pacm/package.h>
 ```
 
 > **Inherits:** [`Package`](#package)
@@ -2757,7 +2757,7 @@ Returns true if id, name and type are all non-empty.
 ## Manifest
 
 ```cpp
-#include <package.h>
+#include <icy/pacm/package.h>
 ```
 
 This class provides a list of all package files and their location on the file system.
@@ -2842,7 +2842,7 @@ Appends `path` to the manifest file list.
 ## Package
 
 ```cpp
-#include <package.h>
+#include <icy/pacm/package.h>
 ```
 
 > **Inherits:** `Value`
@@ -3018,7 +3018,7 @@ Dumps the JSON representation of this package to `ost`.
 ## Asset
 
 ```cpp
-#include <package.h>
+#include <icy/pacm/package.h>
 ```
 
 This class represents a archived file asset containing files belonging to the parent package.
@@ -3250,7 +3250,7 @@ Returns true if file name, version and checksum all match `r`.
 ## PackagePair
 
 ```cpp
-#include <package.h>
+#include <icy/pacm/package.h>
 ```
 
 This class provides pairing of a local and a remote package.
@@ -3390,7 +3390,7 @@ Returns the package author, preferring the local package if available.
 ## RemotePackage
 
 ```cpp
-#include <package.h>
+#include <icy/pacm/package.h>
 ```
 
 > **Inherits:** [`Package`](#package)

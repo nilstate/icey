@@ -43,7 +43,7 @@ Shared library exports.
 ## ZipFile
 
 ```cpp
-#include <zipfile.h>
+#include <icy/archo/zipfile.h>
 ```
 
 ZIP archive reader and writer.
@@ -326,7 +326,7 @@ Entry name as reported by the ZIP directory.
 ## FileInfo
 
 ```cpp
-#include <zipfile.h>
+#include <icy/archo/zipfile.h>
 ```
 
 Metadata for a file entry within a ZIP archive.

@@ -171,7 +171,20 @@ STRIP_FROM_PATH        =
 # specify the list of include paths that are normally passed to the compiler
 # using the -I flag.
 
-STRIP_FROM_INC_PATH    =
+STRIP_FROM_INC_PATH    = ./src/archo/include \
+                         ./src/av/include \
+                         ./src/base/include \
+                         ./src/crypto/include \
+                         ./src/http/include \
+                         ./src/json/include \
+                         ./src/net/include \
+                         ./src/pacm/include \
+                         ./src/pluga/include \
+                         ./src/sched/include \
+                         ./src/stun/include \
+                         ./src/symple/include \
+                         ./src/turn/include \
+                         ./src/webrtc/include
 
 # If the SHORT_NAMES tag is set to YES, doxygen will generate much shorter (but
 # less readable) file names. This can be useful is your file systems doesn't
