@@ -67,7 +67,7 @@ WebRTC receive path:
         └─── ICE → DTLS → SRTP decrypt → RTP depacketise → raw frames
 
 Signalling (Symple v4):
-  C++ server/client ◀──── WebSocket ────▶ Browser (symple-client-player)
+  C++ server/client ◀──── WebSocket ────▶ Browser (symple-player)
   Auth, presence, rooms, call protocol (init/accept/offer/answer/candidate)
 ```
 

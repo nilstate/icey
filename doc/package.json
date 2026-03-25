@@ -9,6 +9,6 @@
   },
   "devDependencies": {
     "moxygen": "github:sourcey/moxygen#0dcf0d45bc2f6b832c50c18c19aef558b6a3c707",
-    "sourcey": "3.2.1"
+    "sourcey": "^3.3.3"
   }
 }

@@ -7,14 +7,17 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test:smoke": "node tests/browser-smoke.mjs"
+    "test:smoke": "node tests/browser-smoke.mjs",
+    "test:smoke:chromium": "MEDIA_SERVER_BROWSER_ENGINE=chromium node tests/browser-smoke.mjs",
+    "test:smoke:firefox": "MEDIA_SERVER_BROWSER_ENGINE=firefox node tests/browser-smoke.mjs",
+    "test:smoke:webkit": "MEDIA_SERVER_BROWSER_ENGINE=webkit node tests/browser-smoke.mjs"
   },
   "dependencies": {
     "symple-client": "^4.0.0",
     "symple-player": "^4.0.6"
   },
   "devDependencies": {
-    "playwright-core": "^1.54.2",
+    "playwright": "^1.54.2",
     "vite": "^6.0.0"
   }
 }

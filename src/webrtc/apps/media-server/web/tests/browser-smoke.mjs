@@ -6,7 +6,7 @@ import path from 'node:path'
 import process from 'node:process'
 import { setTimeout as delay } from 'node:timers/promises'
 
-import { chromium } from 'playwright-core'
+import { chromium, firefox, webkit } from 'playwright'
 
 
 const __dirname = import.meta.dirname
@@ -64,14 +64,22 @@ async function waitForHttp(url, timeoutMs) {
   throw new Error(`Timed out waiting for ${url}: ${lastError ?? 'server never responded'}`)
 }
 
-async function findChrome() {
-  return findFirstExisting([
-    process.env.MEDIA_SERVER_BROWSER,
-    '/usr/bin/google-chrome',
-    '/usr/bin/google-chrome-stable',
-    '/usr/bin/chromium',
-    '/usr/bin/chromium-browser'
-  ].filter(Boolean), 'Chrome/Chromium executable')
+function selectedBrowserEngine() {
+  return (process.env.MEDIA_SERVER_BROWSER_ENGINE || 'chromium').toLowerCase()
+}
+
+async function findBrowserExecutable(engine) {
+  const explicitExecutable = {
+    chromium: process.env.MEDIA_SERVER_CHROMIUM_BROWSER,
+    firefox: process.env.MEDIA_SERVER_FIREFOX_BROWSER,
+    webkit: process.env.MEDIA_SERVER_WEBKIT_BROWSER
+  }[engine] || process.env.MEDIA_SERVER_BROWSER
+
+  if (!explicitExecutable)
+    return null
+  if (!await exists(explicitExecutable))
+    fail(`${engine} executable not found: ${explicitExecutable}`)
+  return explicitExecutable
 }
 
 async function findMediaServerBinary() {
@@ -124,24 +132,50 @@ async function withServer(args, run) {
 }
 
 async function launchBrowser() {
-  const executablePath = await findChrome()
-  return chromium.launch({
-    executablePath,
-    headless: true,
-    args: [
+  const engine = selectedBrowserEngine()
+  const executablePath = await findBrowserExecutable(engine)
+  const launchOptions = { headless: true }
+
+  if (engine === 'chromium') {
+    launchOptions.args = [
       '--use-fake-ui-for-media-stream',
       '--use-fake-device-for-media-stream',
       '--autoplay-policy=no-user-gesture-required',
       '--no-first-run',
       '--no-default-browser-check'
     ]
-  })
+    if (executablePath)
+      launchOptions.executablePath = executablePath
+    return chromium.launch(launchOptions)
+  }
+
+  if (engine === 'firefox') {
+    launchOptions.firefoxUserPrefs = {
+      'media.navigator.streams.fake': true,
+      'media.navigator.permission.disabled': true,
+      'media.autoplay.default': 0,
+      'media.autoplay.blocking_policy': 0
+    }
+    if (executablePath)
+      launchOptions.executablePath = executablePath
+    return firefox.launch(launchOptions)
+  }
+
+  if (engine === 'webkit') {
+    if (executablePath)
+      launchOptions.executablePath = executablePath
+    return webkit.launch(launchOptions)
+  }
+
+  fail(`Unsupported browser engine '${engine}'`)
 }
 
 async function newPage(browser, baseUrl, label) {
-  const context = await browser.newContext({
-    permissions: ['camera', 'microphone']
-  })
+  const contextOptions = {}
+  if (selectedBrowserEngine() !== 'firefox')
+    contextOptions.permissions = ['camera', 'microphone']
+
+  const context = await browser.newContext(contextOptions)
   const page = await context.newPage()
   page.on('console', (msg) => {
     if (msg.type() === 'error')
@@ -393,15 +427,17 @@ async function runRecordScenario(browser, webRoot) {
       try {
         await callPeer(page, 'Media Server', 'Broadcast')
         await waitForActive(page)
-        try {
-          await waitForRecording(recordDir)
-        } catch (err) {
-          const state = await capturePlaybackState(page)
-          err.message += `\nPublish state:\n${JSON.stringify(state, null, 2)}`
-          throw err
-        }
+        await delay(3000)
       } finally {
         await context.close()
+      }
+
+      try {
+        await waitForRecording(recordDir)
+      } catch (err) {
+        const recordings = await readdir(recordDir)
+        err.message += `\nRecording files:\n${JSON.stringify(recordings, null, 2)}`
+        throw err
       }
     })
   } finally {
@@ -437,6 +473,7 @@ async function runRelayScenario(browser, webRoot) {
 async function main() {
   const webRoot = path.resolve(__dirname, '../dist')
   const sourceFile = candidatePath('data/test.mp4')
+  const engine = selectedBrowserEngine()
 
   if (!await exists(webRoot))
     fail(`Built web UI not found at ${webRoot}. Run 'npm run build' in src/webrtc/apps/media-server/web first.`)
@@ -447,6 +484,7 @@ async function main() {
 
   const browser = await launchBrowser()
   try {
+    console.log(`browser smoke engine: ${engine}`)
     await runStreamScenario(browser, webRoot, sourceFile)
     await runRecordScenario(browser, webRoot)
     await runRelayScenario(browser, webRoot)
