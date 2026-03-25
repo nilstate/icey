@@ -135,6 +135,7 @@ public:
 };
 
 
+/// Compatibility alias for a packet processor that packetizes stream output.
 using IPacketizer = PacketProcessor;
 using IDepacketizer = PacketProcessor; ///< For 0.8.x compatibility
 
@@ -185,6 +186,7 @@ struct PacketAdapterReference
 };
 
 
+/// Ordered list of packet adapter references used for sources and processors.
 using PacketAdapterVec = std::vector<PacketAdapterReference::Ptr>;
 
 
@@ -640,7 +642,10 @@ protected:
 };
 
 
+/// Non-owning list of packet stream pointers used for graph traversal helpers.
 using PacketStreamVec = std::vector<PacketStream*>;
+
+/// Owning list of packet stream handles retained across stream graphs.
 using PacketStreamPtrVec = std::vector<PacketStream::Ptr>;
 
 

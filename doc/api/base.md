@@ -203,22 +203,22 @@ Flags which determine how the packet is handled by the [PacketStream](#packetstr
 |--------|------|-------------|
 | `std::vector< char >` | [`Buffer`](#buffer-2)  | Core buffer type. |
 | `LogChannel` | [`NullChannel`](#nullchannel)  | Null log channel. |
-| `Signal< void()>` | [`NullSignal`](#nullsignal)  |  |
+| `Signal< void()>` | [`NullSignal`](#nullsignal)  | Zero-argument signal alias used for simple local event notifications. |
 | `Signal< RT, std::shared_mutex >` | [`ThreadSignal`](#threadsignal)  | Cross-thread signal variant. |
 | `Signal< RT, NullSharedMutex >` | [`LocalSignal`](#localsignal)  | Compatibility alias for the single-threaded fast path. |
-| `uv_process_options_t` | [`ProcessOptions`](#processoptions)  |  |
-| `std::map< std::string, std::string >` | [`StringMap`](#stringmap)  |  |
-| `std::vector< std::string >` | [`StringVec`](#stringvec)  |  |
+| `uv_process_options_t` | [`ProcessOptions`](#processoptions)  | Raw `libuv` process spawn options passed through to `uv_spawn`. |
+| `std::map< std::string, std::string >` | [`StringMap`](#stringmap)  | Generic string-to-string map used for headers, options, and environment-style metadata. |
+| `std::vector< std::string >` | [`StringVec`](#stringvec)  | Generic string vector used for argument lists and ordered string collections. |
 | `std::map< std::string, std::string >` | [`OptionMap`](#optionmap)  | Command Line Option Parser. |
 | `Signal< void(IPacket &)>` | [`PacketSignal`](#packetsignal)  | [Signal](#signal) that broadcasts `[IPacket](#ipacket)` types. |
 | `PacketStreamAdapter` | [`PacketSource`](#packetsource)  | For 0.8.x compatibility. |
-| `PacketProcessor` | [`IPacketizer`](#ipacketizer)  |  |
+| `PacketProcessor` | [`IPacketizer`](#ipacketizer)  | Compatibility alias for a packet processor that packetizes stream output. |
 | `PacketProcessor` | [`IDepacketizer`](#idepacketizer)  | For 0.8.x compatibility. |
-| `std::vector< PacketAdapterReference::Ptr >` | [`PacketAdapterVec`](#packetadaptervec)  |  |
-| `std::vector< PacketStream * >` | [`PacketStreamVec`](#packetstreamvec)  |  |
-| `std::vector< PacketStream::Ptr >` | [`PacketStreamPtrVec`](#packetstreamptrvec)  |  |
-| `std::unique_ptr< IPacketCreationStrategy >` | [`PacketCreationStrategyPtr`](#packetcreationstrategyptr)  |  |
-| `std::vector< PacketCreationStrategyPtr >` | [`PacketCreationStrategyList`](#packetcreationstrategylist)  |  |
+| `std::vector< PacketAdapterReference::Ptr >` | [`PacketAdapterVec`](#packetadaptervec)  | Ordered list of packet adapter references used for sources and processors. |
+| `std::vector< PacketStream * >` | [`PacketStreamVec`](#packetstreamvec)  | Non-owning list of packet stream pointers used for graph traversal helpers. |
+| `std::vector< PacketStream::Ptr >` | [`PacketStreamPtrVec`](#packetstreamptrvec)  | Owning list of packet stream handles retained across stream graphs. |
+| `std::unique_ptr< IPacketCreationStrategy >` | [`PacketCreationStrategyPtr`](#packetcreationstrategyptr)  | Owning handle for one packet creation strategy. |
+| `std::vector< PacketCreationStrategyPtr >` | [`PacketCreationStrategyList`](#packetcreationstrategylist)  | Ordered list of packet creation strategies consulted by a packet factory. |
 
 ---
 
@@ -256,6 +256,8 @@ Redifine the base `[LogChannel](#logchannel)` as `NullChannel` so it can be logi
 Signal< void()> NullSignal()
 ```
 
+Zero-argument signal alias used for simple local event notifications.
+
 ---
 
 {#threadsignal}
@@ -290,6 +292,8 @@ Compatibility alias for the single-threaded fast path.
 uv_process_options_t ProcessOptions()
 ```
 
+Raw `libuv` process spawn options passed through to `uv_spawn`.
+
 ---
 
 {#stringmap}
@@ -300,6 +304,8 @@ uv_process_options_t ProcessOptions()
 std::map< std::string, std::string > StringMap()
 ```
 
+Generic string-to-string map used for headers, options, and environment-style metadata.
+
 ---
 
 {#stringvec}
@@ -309,6 +315,8 @@ std::map< std::string, std::string > StringMap()
 ```cpp
 std::vector< std::string > StringVec()
 ```
+
+Generic string vector used for argument lists and ordered string collections.
 
 ---
 
@@ -356,6 +364,8 @@ For 0.8.x compatibility.
 PacketProcessor IPacketizer()
 ```
 
+Compatibility alias for a packet processor that packetizes stream output.
+
 ---
 
 {#idepacketizer}
@@ -378,6 +388,8 @@ For 0.8.x compatibility.
 std::vector< PacketAdapterReference::Ptr > PacketAdapterVec()
 ```
 
+Ordered list of packet adapter references used for sources and processors.
+
 ---
 
 {#packetstreamvec}
@@ -387,6 +399,8 @@ std::vector< PacketAdapterReference::Ptr > PacketAdapterVec()
 ```cpp
 std::vector< PacketStream * > PacketStreamVec()
 ```
+
+Non-owning list of packet stream pointers used for graph traversal helpers.
 
 ---
 
@@ -398,6 +412,8 @@ std::vector< PacketStream * > PacketStreamVec()
 std::vector< PacketStream::Ptr > PacketStreamPtrVec()
 ```
 
+Owning list of packet stream handles retained across stream graphs.
+
 ---
 
 {#packetcreationstrategyptr}
@@ -408,6 +424,8 @@ std::vector< PacketStream::Ptr > PacketStreamPtrVec()
 std::unique_ptr< IPacketCreationStrategy > PacketCreationStrategyPtr()
 ```
 
+Owning handle for one packet creation strategy.
+
 ---
 
 {#packetcreationstrategylist}
@@ -417,6 +435,8 @@ std::unique_ptr< IPacketCreationStrategy > PacketCreationStrategyPtr()
 ```cpp
 std::vector< PacketCreationStrategyPtr > PacketCreationStrategyList()
 ```
+
+Ordered list of packet creation strategies consulted by a packet factory.
 
 ### Functions
 

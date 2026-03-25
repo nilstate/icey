@@ -42,7 +42,10 @@ public:
 };
 
 
+/// Owning handle for one packet creation strategy.
 using PacketCreationStrategyPtr = std::unique_ptr<IPacketCreationStrategy>;
+
+/// Ordered list of packet creation strategies consulted by a packet factory.
 using PacketCreationStrategyList = std::vector<PacketCreationStrategyPtr>;
 
 

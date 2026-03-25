@@ -24,6 +24,7 @@
 namespace icy {
 
 
+/// Raw `libuv` process spawn options passed through to `uv_spawn`.
 using ProcessOptions = uv_process_options_t;
 
 

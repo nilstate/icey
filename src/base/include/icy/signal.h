@@ -502,6 +502,7 @@ private:
 };
 
 
+/// Zero-argument signal alias used for simple local event notifications.
 using NullSignal = Signal<void()>;
 
 /// Cross-thread signal variant.

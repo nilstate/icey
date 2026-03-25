@@ -271,7 +271,10 @@ private:
 };
 
 
+/// Generic string-to-string map used for headers, options, and environment-style metadata.
 using StringMap = std::map<std::string, std::string>;
+
+/// Generic string vector used for argument lists and ordered string collections.
 using StringVec = std::vector<std::string>;
 
 
