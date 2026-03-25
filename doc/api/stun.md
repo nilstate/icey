@@ -8,7 +8,7 @@ The `stun` module contains a STUN (rfc5389) implementation.
 
 | Name | Description |
 |------|-------------|
-| [`stun`](#stun) |  |
+| [`stun`](#stun) | STUN messages, attributes, and transaction helpers defined by RFC 5389. |
 
 ### Macros
 
@@ -31,6 +31,8 @@ Attribute macros.
 {#stun}
 
 # stun
+
+STUN messages, attributes, and transaction helpers defined by RFC 5389.
 
 ### Classes
 

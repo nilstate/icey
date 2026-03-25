@@ -33,6 +33,7 @@
 
 
 namespace icy {
+/// STUN messages, attributes, and transaction helpers defined by RFC 5389.
 namespace stun {
 
 
