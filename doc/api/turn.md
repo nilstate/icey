@@ -69,12 +69,12 @@ Result returned by [ServerObserver::authenticateRequest()](#authenticaterequest-
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `KVCollection< net::Address, net::SocketEmitter >` | [`ConnectionManager`](#connectionmanager)  |  |
-| `ConnectionManager::Map` | [`ConnectionManagerMap`](#connectionmanagermap)  |  |
-| `std::vector< Permission >` | [`PermissionList`](#permissionlist)  |  |
-| `std::map< FiveTuple, std::unique_ptr< ServerAllocation > >` | [`ServerAllocationMap`](#serverallocationmap)  |  |
-| `std::map< uint32_t, TCPConnectionPair::Ptr >` | [`TCPConnectionPairMap`](#tcpconnectionpairmap)  |  |
-| `std::vector< std::string >` | [`IPList`](#iplist)  |  |
+| `KVCollection< net::Address, net::SocketEmitter >` | [`ConnectionManager`](#connectionmanager)  | Relay connection registry keyed by peer address for RFC 6062 TCP relays. |
+| `ConnectionManager::Map` | [`ConnectionManagerMap`](#connectionmanagermap)  | Underlying map type used by the TCP relay connection registry. |
+| `std::vector< Permission >` | [`PermissionList`](#permissionlist)  | Active TURN permissions associated with one allocation. |
+| `std::map< FiveTuple, std::unique_ptr< ServerAllocation > >` | [`ServerAllocationMap`](#serverallocationmap)  | Active server allocations keyed by the client/server 5-tuple. |
+| `std::map< uint32_t, TCPConnectionPair::Ptr >` | [`TCPConnectionPairMap`](#tcpconnectionpairmap)  | Accepted peer TCP connections keyed by TURN CONNECTION-ID. |
+| `std::vector< std::string >` | [`IPList`](#iplist)  | List of peer IP strings used when creating or refreshing permissions. |
 
 ---
 
@@ -86,6 +86,8 @@ Result returned by [ServerObserver::authenticateRequest()](#authenticaterequest-
 KVCollection< net::Address, net::SocketEmitter > ConnectionManager()
 ```
 
+Relay connection registry keyed by peer address for RFC 6062 TCP relays.
+
 ---
 
 {#connectionmanagermap}
@@ -95,6 +97,8 @@ KVCollection< net::Address, net::SocketEmitter > ConnectionManager()
 ```cpp
 ConnectionManager::Map ConnectionManagerMap()
 ```
+
+Underlying map type used by the TCP relay connection registry.
 
 ---
 
@@ -106,6 +110,8 @@ ConnectionManager::Map ConnectionManagerMap()
 std::vector< Permission > PermissionList()
 ```
 
+Active TURN permissions associated with one allocation.
+
 ---
 
 {#serverallocationmap}
@@ -115,6 +121,8 @@ std::vector< Permission > PermissionList()
 ```cpp
 std::map< FiveTuple, std::unique_ptr< ServerAllocation > > ServerAllocationMap()
 ```
+
+Active server allocations keyed by the client/server 5-tuple.
 
 ---
 
@@ -126,6 +134,8 @@ std::map< FiveTuple, std::unique_ptr< ServerAllocation > > ServerAllocationMap()
 std::map< uint32_t, TCPConnectionPair::Ptr > TCPConnectionPairMap()
 ```
 
+Accepted peer TCP connections keyed by TURN CONNECTION-ID.
+
 ---
 
 {#iplist}
@@ -135,6 +145,8 @@ std::map< uint32_t, TCPConnectionPair::Ptr > TCPConnectionPairMap()
 ```cpp
 std::vector< std::string > IPList()
 ```
+
+List of peer IP strings used when creating or refreshing permissions.
 
 ### Variables
 

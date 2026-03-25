@@ -84,6 +84,7 @@ public:
 };
 
 
+/// List of peer IP strings used when creating or refreshing permissions.
 using IPList = std::vector<std::string>;
 
 

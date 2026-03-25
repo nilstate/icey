@@ -134,6 +134,7 @@ struct Permission
 };
 
 
+/// Active TURN permissions associated with one allocation.
 using PermissionList = std::vector<Permission>;
 
 

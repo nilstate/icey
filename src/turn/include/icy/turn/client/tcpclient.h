@@ -74,7 +74,10 @@ struct RelayConnectionBinding
 };
 
 
+/// Relay connection registry keyed by peer address for RFC 6062 TCP relays.
 using ConnectionManager = KVCollection<net::Address, net::SocketEmitter>;
+
+/// Underlying map type used by the TCP relay connection registry.
 using ConnectionManagerMap = ConnectionManager::Map;
 
 

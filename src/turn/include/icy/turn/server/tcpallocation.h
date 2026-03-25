@@ -25,6 +25,7 @@ namespace turn {
 class TURN_API Server;
 
 
+/// Accepted peer TCP connections keyed by TURN CONNECTION-ID.
 using TCPConnectionPairMap = std::map<uint32_t, TCPConnectionPair::Ptr>;
 
 

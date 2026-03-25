@@ -116,6 +116,7 @@ struct ServerObserver
 };
 
 
+/// Active server allocations keyed by the client/server 5-tuple.
 using ServerAllocationMap = std::map<FiveTuple, std::unique_ptr<ServerAllocation>>;
 
 
