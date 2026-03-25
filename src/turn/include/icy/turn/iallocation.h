@@ -28,49 +28,50 @@ namespace turn {
 static constexpr std::int64_t kDefaultAllocationLifetime = 10 * 60 * 1000;
 
 
-/// All TURN operations revolve around allocations, and all TURN messages
-/// are associated with an allocation.  An allocation conceptually
-/// consists of the following state data:
+/// @brief Base class for TURN relay allocations shared by client and
+/// server flows.
+///
+/// @details All TURN operations revolve around allocations, and all TURN
+/// messages are associated with an allocation. An allocation conceptually
+/// consists of:
 ///
 /// - the relayed transport address;
-/// - the 5-tuple: (client's IP address, client's port, server IP
-///   address, server port, transport protocol);
+/// - the 5-tuple: client's IP address, client's port, server IP
+///   address, server port, and transport protocol;
 /// - the authentication information;
 /// - the time-to-expiry;
 /// - a list of permissions;
-/// - a list of channel to peer bindings.
+/// - a list of channel-to-peer bindings.
 ///
 /// The relayed transport address is the transport address allocated by
 /// the server for communicating with peers, while the 5-tuple describes
-/// the communication path between the client and the server.  On the
+/// the communication path between the client and the server. On the
 /// client, the 5-tuple uses the client's host transport address; on the
 /// server, the 5-tuple uses the client's server-reflexive transport
 /// address.
 ///
-/// Both the relayed transport address and the 5-tuple MUST be unique
+/// Both the relayed transport address and the 5-tuple must be unique
 /// across all allocations, so either one can be used to uniquely
 /// identify the allocation.
-/// The authentication information (e.g., username, password, realm, and
-/// nonce) is used to both verify subsequent requests and to compute the
-/// message integrity of responses.  The username, realm, and nonce
-/// values are initially those used in the authenticated Allocate request
-/// that creates the allocation, though the server can change the nonce
-/// value during the lifetime of the allocation using a 438 (Stale Nonce)
-/// reply.  Note that, rather than storing the password explicitly, for
-/// security reasons, it may be desirable for the server to store the key
+///
+/// The authentication information, such as username, password, realm,
+/// and nonce, is used to verify subsequent requests and compute the
+/// message integrity of responses. The username, realm, and nonce values
+/// are initially those used in the authenticated Allocate request that
+/// creates the allocation, though the server can change the nonce during
+/// the allocation lifetime using a 438 (Stale Nonce) reply. Rather than
+/// storing the password explicitly, a server may prefer to store the key
 /// value, which is an MD5 hash over the username, realm, and password
-/// (see [RFC5389]).
+/// as described by RFC 5389.
 ///
-/// The time-to-expiry is the time in seconds left until the allocation
-/// expires.  Each Allocate or Refresh transaction sets this timer, which
-/// then ticks down towards 0.  By default, each Allocate or Refresh
-/// transaction resets this timer to the default lifetime value of 600
-/// seconds (10 minutes), but the client can request a different value in
-/// the Allocate and Refresh request. Allocations can only be refreshed
-/// using the Refresh request; sending data to a peer does not refresh an
-/// allocation. When an allocation expires, the state data associated
-/// with the allocation can be freed.
-///
+/// The time-to-expiry is the time left until the allocation expires.
+/// Each Allocate or Refresh transaction resets this timer, which then
+/// ticks down toward zero. By default, each Allocate or Refresh resets
+/// the lifetime to 600 seconds (10 minutes), but the client can request
+/// a different value in the Allocate and Refresh requests. Allocations
+/// can only be refreshed using Refresh; sending data to a peer does not
+/// refresh an allocation. When an allocation expires, the state data
+/// associated with it can be freed.
 class TURN_API IAllocation
 {
 public:

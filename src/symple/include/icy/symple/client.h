@@ -31,6 +31,7 @@
 
 
 namespace icy {
+/// Symple protocol messages, peers, client, and server helpers.
 namespace smpl {
 
 

@@ -8,11 +8,13 @@ Realtime messaging protocol for presence, rooms, and WebRTC signalling.
 
 | Name | Description |
 |------|-------------|
-| [`smpl`](#smpl) |  |
+| [`smpl`](#smpl) | Symple protocol messages, peers, client, and server helpers. |
 
 {#smpl}
 
 # smpl
+
+Symple protocol messages, peers, client, and server helpers.
 
 ### Classes
 

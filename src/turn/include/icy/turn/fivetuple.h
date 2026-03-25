@@ -18,12 +18,17 @@
 
 
 namespace icy {
+/// TURN allocation identity types and transport helpers.
 namespace turn {
 
-
-/// The 5-TUPLE consists of a local, a remote address, and the
-/// transport protocol used by the client to communicate with the server.
+/// @brief TURN allocation identity tuple: client remote address, server
+/// local address, and transport protocol.
 ///
+/// @details The TURN 5-tuple consists of a local address, a remote
+/// address, and the transport protocol used by the client to communicate
+/// with the server.
+///
+/// @code
 ///                                                               +---------+
 ///                                                               |         |
 ///                                                               | External|
@@ -60,7 +65,7 @@ namespace turn {
 ///
 ///                            Internal                External
 ///                            5-Tuple                 5-tuple
-///
+/// @endcode
 class TURN_API FiveTuple
 {
 public:
