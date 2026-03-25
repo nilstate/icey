@@ -21,8 +21,8 @@ HTTP request/response types, parsers, and server/client helpers.
 
 | Name | Description |
 |------|-------------|
-| [`Authenticator`](#authenticator) | This is a utility class for working with HTTP authentication (basic or digest) in [http::Request](http::Request) objects. |
-| [`BasicAuthenticator`](#basicauthenticator) | This is a utility class for working with HTTP Basic Authentication in [http::Request](http::Request) objects. |
+| [`Authenticator`](#authenticator) | Maintains HTTP Basic or Digest authentication state for outbound requests. |
+| [`BasicAuthenticator`](#basicauthenticator) | Encodes and decodes HTTP Basic authentication credentials. |
 | [`ChunkedAdapter`](#chunkedadapter) | HTTP chunked transfer encoding adapter for streaming responses. |
 | [`Client`](#client) | HTTP client for creating and managing outgoing connections. |
 | [`ClientConnection`](#clientconnection) | HTTP client connection for managing request/response lifecycle. |
@@ -43,8 +43,8 @@ HTTP request/response types, parsers, and server/client helpers.
 | [`Response`](#response-1) | HTTP response message with status, reason phrase, headers, and body metadata. |
 | [`Server`](#server) | HTTP server implementation. |
 | [`ServerConnection`](#serverconnection) | HTTP server connection. |
-| [`ServerConnectionFactory`](#serverconnectionfactory) | This implementation of a [ServerConnectionFactory](#serverconnectionfactory) is used by HTTP [Server](#server) to create [ServerConnection](#serverconnection) objects. |
-| [`ServerResponder`](#serverresponder) | The abstract base class for HTTP ServerResponders created by HTTP [Server](#server). |
+| [`ServerConnectionFactory`](#serverconnectionfactory) | Factory for creating per-socket `[ServerConnection](#serverconnection)` and per-request `[ServerResponder](#serverresponder)` objects. |
+| [`ServerResponder`](#serverresponder) | Base responder interface for handling one HTTP request on a server connection. Derived classes typically override `[onRequest()](#onrequest)` and optionally the streaming hooks. |
 | [`StringPart`](#stringpart) | Form part backed by an in-memory string payload. |
 | [`URL`](#url) | An RFC 3986 based [URL](#url) parser. Constructors and assignment operators will throw a SyntaxException if the [URL](#url) is invalid. |
 | [`DateCache`](#datecache) | Caches the formatted Date header, updated once per second. Avoids per-request time formatting and string allocation. |
@@ -613,7 +613,7 @@ Splits a substring (defined by iterators) into named attributes. Attributes are 
 #include <icy/http/authenticator.h>
 ```
 
-This is a utility class for working with HTTP authentication (basic or digest) in [http::Request](http::Request) objects.
+Maintains HTTP Basic or Digest authentication state for outbound requests.
 
 Note: Do not forget to read the entire response stream from the 401 response before sending the authenticated request, otherwise there may be problems if a persistent connection is used.
 
@@ -621,9 +621,9 @@ Note: Do not forget to read the entire response stream from the 401 response bef
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`Authenticator`](#authenticator-1)  | Creates an empty [Authenticator](#authenticator) object. |
-|  | [`Authenticator`](#authenticator-2)  | Creates an [Authenticator](#authenticator) object with the given username and password. |
-|  | [`~Authenticator`](#authenticator-3)  | Destroys the [Authenticator](#authenticator). |
+|  | [`Authenticator`](#authenticator-1)  | Creates an empty authenticator. |
+|  | [`Authenticator`](#authenticator-2)  | Creates an authenticator with the given username and password. |
+|  | [`~Authenticator`](#authenticator-3)  | Destroys the authenticator. |
 | `void` | [`fromUserInfo`](#fromuserinfo)  | Parses username:password std::string and sets username and password of the credentials object. Throws SyntaxException on invalid user information. |
 | `void` | [`fromURI`](#fromuri)  | Extracts username and password from the given URI and sets username and password of the credentials object. Does nothing if URI has no user info part. |
 | `void` | [`setUsername`](#setusername)  | Sets the username. |
@@ -645,7 +645,7 @@ Note: Do not forget to read the entire response stream from the 401 response bef
 Authenticator()
 ```
 
-Creates an empty [Authenticator](#authenticator) object.
+Creates an empty authenticator.
 
 ---
 
@@ -657,7 +657,7 @@ Creates an empty [Authenticator](#authenticator) object.
 Authenticator(const std::string & username, const std::string & password)
 ```
 
-Creates an [Authenticator](#authenticator) object with the given username and password.
+Creates an authenticator with the given username and password.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -674,7 +674,7 @@ Creates an [Authenticator](#authenticator) object with the given username and pa
 ~Authenticator()
 ```
 
-Destroys the [Authenticator](#authenticator).
+Destroys the authenticator.
 
 ---
 
@@ -885,17 +885,17 @@ Authenticator(const Authenticator &) = delete
 #include <icy/http/authenticator.h>
 ```
 
-This is a utility class for working with HTTP Basic Authentication in [http::Request](http::Request) objects.
+Encodes and decodes HTTP Basic authentication credentials.
 
 ### Public Methods
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`BasicAuthenticator`](#basicauthenticator-1)  | Creates an empty [BasicAuthenticator](#basicauthenticator) object. |
-|  | [`BasicAuthenticator`](#basicauthenticator-2)  | Creates a [BasicAuthenticator](#basicauthenticator) object with the given username and password. |
-|  | [`BasicAuthenticator`](#basicauthenticator-3) `explicit` | Creates a [BasicAuthenticator](#basicauthenticator) object with the authentication information from the given request. |
-|  | [`BasicAuthenticator`](#basicauthenticator-4) `explicit` | Creates a [BasicAuthenticator](#basicauthenticator) object with the authentication information in the given std::string. The authentication information can be extracted from a [http::Request](http::Request) object by calling [http::Request::getCredentials()](http::Request::getCredentials()). |
-|  | [`~BasicAuthenticator`](#basicauthenticator-5)  | Destroys the [BasicAuthenticator](#basicauthenticator). |
+|  | [`BasicAuthenticator`](#basicauthenticator-1)  | Creates an empty basic authenticator. |
+|  | [`BasicAuthenticator`](#basicauthenticator-2)  | Creates a basic authenticator with the given username and password. |
+|  | [`BasicAuthenticator`](#basicauthenticator-3) `explicit` | Extracts basic authentication credentials from the given request. |
+|  | [`BasicAuthenticator`](#basicauthenticator-4) `explicit` | Parses a raw Basic authentication payload string. The value can be extracted from a request via `[Request::getCredentials()](#getcredentials)`. |
+|  | [`~BasicAuthenticator`](#basicauthenticator-5)  | Destroys the basic authenticator. |
 | `void` | [`setUsername`](#setusername-1)  | Sets the username. |
 | `const std::string &` | [`username`](#username-1) `const` | Returns the username. |
 | `void` | [`setPassword`](#setpassword-1)  | Sets the password. |
@@ -913,7 +913,7 @@ This is a utility class for working with HTTP Basic Authentication in [http::Req
 BasicAuthenticator()
 ```
 
-Creates an empty [BasicAuthenticator](#basicauthenticator) object.
+Creates an empty basic authenticator.
 
 ---
 
@@ -925,7 +925,7 @@ Creates an empty [BasicAuthenticator](#basicauthenticator) object.
 BasicAuthenticator(const std::string & username, const std::string & password)
 ```
 
-Creates a [BasicAuthenticator](#basicauthenticator) object with the given username and password.
+Creates a basic authenticator with the given username and password.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -944,7 +944,7 @@ Creates a [BasicAuthenticator](#basicauthenticator) object with the given userna
 explicit BasicAuthenticator(const http::Request & request)
 ```
 
-Creates a [BasicAuthenticator](#basicauthenticator) object with the authentication information from the given request.
+Extracts basic authentication credentials from the given request.
 
 Throws a NotAuthenticatedException if the request does not contain basic authentication information.
 
@@ -964,7 +964,7 @@ Throws a NotAuthenticatedException if the request does not contain basic authent
 explicit BasicAuthenticator(const std::string & authInfo)
 ```
 
-Creates a [BasicAuthenticator](#basicauthenticator) object with the authentication information in the given std::string. The authentication information can be extracted from a [http::Request](http::Request) object by calling [http::Request::getCredentials()](http::Request::getCredentials()).
+Parses a raw Basic authentication payload string. The value can be extracted from a request via `[Request::getCredentials()](#getcredentials)`.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -980,7 +980,7 @@ Creates a [BasicAuthenticator](#basicauthenticator) object with the authenticati
 ~BasicAuthenticator()
 ```
 
-Destroys the [BasicAuthenticator](#basicauthenticator).
+Destroys the basic authenticator.
 
 ---
 
@@ -8718,15 +8718,15 @@ std::shared_ptr< ServerConnection > Ptr()
 #include <icy/http/server.h>
 ```
 
-This implementation of a [ServerConnectionFactory](#serverconnectionfactory) is used by HTTP [Server](#server) to create [ServerConnection](#serverconnection) objects.
+Factory for creating per-socket `[ServerConnection](#serverconnection)` and per-request `[ServerResponder](#serverresponder)` objects.
 
 ### Public Methods
 
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`ServerConnectionFactory`](#serverconnectionfactory-1)  |  |
-| `ServerConnection::Ptr` | [`createConnection`](#createconnection-2) `virtual` `inline` | Factory method for instantiating the [ServerConnection](#serverconnection) instance using the given Socket. |
-| `std::unique_ptr< ServerResponder >` | [`createResponder`](#createresponder-1) `virtual` `inline` | Factory method for instantiating the [ServerResponder](#serverresponder) instance using the given [ServerConnection](#serverconnection). |
+| `ServerConnection::Ptr` | [`createConnection`](#createconnection-2) `virtual` `inline` | Creates the `[ServerConnection](#serverconnection)` wrapper for an accepted TCP socket. |
+| `std::unique_ptr< ServerResponder >` | [`createResponder`](#createresponder-1) `virtual` `inline` | Creates the responder for the current request on `connection`. |
 
 ---
 
@@ -8750,7 +8750,7 @@ ServerConnectionFactory() = default
 virtual inline ServerConnection::Ptr createConnection(Server & server, const net::TCPSocket::Ptr & socket)
 ```
 
-Factory method for instantiating the [ServerConnection](#serverconnection) instance using the given Socket.
+Creates the `[ServerConnection](#serverconnection)` wrapper for an accepted TCP socket.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -8769,7 +8769,7 @@ Factory method for instantiating the [ServerConnection](#serverconnection) insta
 virtual inline std::unique_ptr< ServerResponder > createResponder(ServerConnection & connection)
 ```
 
-Factory method for instantiating the [ServerResponder](#serverresponder) instance using the given [ServerConnection](#serverconnection).
+Creates the responder for the current request on `connection`.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -8783,11 +8783,7 @@ Factory method for instantiating the [ServerResponder](#serverresponder) instanc
 #include <icy/http/server.h>
 ```
 
-The abstract base class for HTTP ServerResponders created by HTTP [Server](#server).
-
-Derived classes should override the [onRequest()](#onrequest) method.
-
-A new [ServerResponder](#serverresponder) object can be created for each new HTTP request that is received by the HTTP [Server](#server).
+Base responder interface for handling one HTTP request on a server connection. Derived classes typically override `[onRequest()](#onrequest)` and optionally the streaming hooks.
 
 ### Public Methods
 

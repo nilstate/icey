@@ -24,9 +24,7 @@ class HTTP_API Request;
 class HTTP_API Response;
 
 
-/// @ingroup http
-/// This is a utility class for working with HTTP
-/// authentication (basic or digest) in http::Request objects.
+/// Maintains HTTP Basic or Digest authentication state for outbound requests.
 ///
 /// Note: Do not forget to read the entire response stream from the 401 response
 /// before sending the authenticated request, otherwise there may be
@@ -34,13 +32,13 @@ class HTTP_API Response;
 class HTTP_API Authenticator
 {
 public:
-    /// Creates an empty Authenticator object.
+    /// Creates an empty authenticator.
     Authenticator();
 
-    /// Creates an Authenticator object with the given username and password.
+    /// Creates an authenticator with the given username and password.
     Authenticator(const std::string& username, const std::string& password);
 
-    /// Destroys the Authenticator.
+    /// Destroys the authenticator.
     ~Authenticator();
 
     /// Parses username:password std::string and sets username and password of
@@ -97,34 +95,28 @@ private:
 // Basic Authenticator (rfc2617)
 //
 
-/// @ingroup http
-/// This is a utility class for working with HTTP Basic
-/// Authentication in http::Request objects.
+/// Encodes and decodes HTTP Basic authentication credentials.
 class HTTP_API BasicAuthenticator
 {
 public:
-    /// Creates an empty BasicAuthenticator object.
+    /// Creates an empty basic authenticator.
     BasicAuthenticator();
 
-    /// Creates a BasicAuthenticator object with the given username and
-    /// password.
+    /// Creates a basic authenticator with the given username and password.
     BasicAuthenticator(const std::string& username,
                        const std::string& password);
 
-    /// Creates a BasicAuthenticator object with the authentication information
-    /// from the given request.
+    /// Extracts basic authentication credentials from the given request.
     ///
     /// Throws a NotAuthenticatedException if the request does
     /// not contain basic authentication information.
     explicit BasicAuthenticator(const http::Request& request);
 
-    /// Creates a BasicAuthenticator object with the authentication information
-    /// in the given std::string. The authentication information can be
-    /// extracted
-    /// from a http::Request object by calling http::Request::getCredentials().
+    /// Parses a raw Basic authentication payload string.
+    /// The value can be extracted from a request via `Request::getCredentials()`.
     explicit BasicAuthenticator(const std::string& authInfo);
 
-    /// Destroys the BasicAuthenticator.
+    /// Destroys the basic authenticator.
     ~BasicAuthenticator();
 
     /// Sets the username.

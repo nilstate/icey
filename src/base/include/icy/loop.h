@@ -25,6 +25,7 @@ namespace icy {
 namespace uv {
 
 
+/// Alias for a `libuv` event loop instance.
 using Loop = uv_loop_t;
 
 

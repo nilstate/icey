@@ -10,7 +10,7 @@ The `uv` module contains C++ wrappers for `libuv`.
 |------|-------------|
 | [`Handle`](#handle-2) | Wrapper class for managing `uv_handle_t` variants. |
 | [`ScopedLoop`](#scopedloop) | RAII wrapper for a libuv event loop. Automatically closes and deletes the loop on destruction. |
-| [`HandleStorage`](#handlestorage-1) |  |
+| [`HandleStorage`](#handlestorage-1) | Extra storage placed around a raw `libuv` handle for close-time cleanup hooks. |
 | [`Context`](#context-1) | Shared `libuv` handle context. |
 | [`BasicEvent`](#basicevent) | Default request callback event carrying a libuv status code. |
 | [`Request`](#request) | Wrapper class for managing `uv_req_t` variants. |
@@ -22,7 +22,7 @@ The `uv` module contains C++ wrappers for `libuv`.
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `uv_loop_t` | [`Loop`](#loop)  |  |
+| `uv_loop_t` | [`Loop`](#loop)  | Alias for a `libuv` event loop instance. |
 
 ---
 
@@ -34,6 +34,8 @@ The `uv` module contains C++ wrappers for `libuv`.
 uv_loop_t Loop()
 ```
 
+Alias for a `libuv` event loop instance.
+
 ### Functions
 
 | Return | Name | Description |
@@ -43,10 +45,10 @@ uv_loop_t Loop()
 | `void` | [`stopLoop`](#stoploop) `inline` | Stops the given event loop, causing `uv_run` to return after the current iteration.  |
 | `Loop *` | [`createLoop`](#createloop) `inline` | Allocates and initializes a new libuv event loop. The caller is responsible for closing and deleting the returned loop.  |
 | `bool` | [`closeLoop`](#closeloop) `inline` | Closes the given event loop, releasing internal resources. All handles must be closed before calling this.  |
-| `HandleStorage< T > *` | [`handleStorage`](#handlestorage) `inline` |  |
-| `void` | [`setHandleCloseCleanup`](#sethandleclosecleanup) `inline` |  |
-| `void` | [`clearHandleCloseCleanup`](#clearhandleclosecleanup) `inline` |  |
-| `auto` | [`withHandleContext`](#withhandlecontext) `inline` |  |
+| `HandleStorage< T > *` | [`handleStorage`](#handlestorage) `inline` | Returns the extended storage wrapper that owns `handle`.  |
+| `void` | [`setHandleCloseCleanup`](#sethandleclosecleanup) `inline` | Registers a cleanup callback that runs when `handle` finally closes.  |
+| `void` | [`clearHandleCloseCleanup`](#clearhandleclosecleanup) `inline` | Clears any pending close-time cleanup callback registered on `handle`.  |
+| `auto` | [`withHandleContext`](#withhandlecontext) `inline` | Wraps `callback` so it only runs while the owning handle is still alive. Captures the intrusive `[Context](#context-1)` token, rehydrates the typed owner on entry, and suppresses invocation if the handle has already been deleted.  |
 | `T &` | [`createRequest`](#createrequest) `inline` | Allocate a heap-owned `[Request](#request)` of type `T` and attach `callback` to it. |
 | `T &` | [`createRetainedRequest`](#createretainedrequest) `inline` | Allocate a heap-owned `[Request](#request)` of type `T` whose callback retains additional state until completion. |
 
@@ -160,6 +162,10 @@ True on success, false if the loop still has active handles.
 template<typename T> inline HandleStorage< T > * handleStorage(T * handle)
 ```
 
+Returns the extended storage wrapper that owns `handle`. 
+#### Parameters
+* `handle` Raw `libuv` handle pointer previously allocated by `[Context](#context-1)<T>`.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `handle` | `T *` |  |
@@ -175,6 +181,14 @@ template<typename T> inline HandleStorage< T > * handleStorage(T * handle)
 ```cpp
 template<typename T> inline void setHandleCloseCleanup(T * handle, void * data, void(*)(void *) cleanup)
 ```
+
+Registers a cleanup callback that runs when `handle` finally closes. 
+#### Parameters
+* `handle` Raw `libuv` handle pointer. 
+
+* `data` User data passed back to `cleanup`. 
+
+* `cleanup` Function invoked exactly once when the handle storage is released.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -194,6 +208,10 @@ template<typename T> inline void setHandleCloseCleanup(T * handle, void * data, 
 template<typename T> inline void clearHandleCloseCleanup(T * handle)
 ```
 
+Clears any pending close-time cleanup callback registered on `handle`. 
+#### Parameters
+* `handle` Raw `libuv` handle pointer.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `handle` | `T *` |  |
@@ -209,6 +227,12 @@ template<typename T> inline void clearHandleCloseCleanup(T * handle)
 ```cpp
 template<typename Owner, typename Callback> inline auto withHandleContext(Owner & owner, Callback && callback)
 ```
+
+Wraps `callback` so it only runs while the owning handle is still alive. Captures the intrusive `[Context](#context-1)` token, rehydrates the typed owner on entry, and suppresses invocation if the handle has already been deleted. 
+#### Parameters
+* `owner` Owning handle instance. 
+
+* `callback` Callable that receives `Owner&` followed by the libuv callback args.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -1025,13 +1049,15 @@ ScopedLoop(ScopedLoop &&) = delete
 #include <icy/handle.h>
 ```
 
+Extra storage placed around a raw `libuv` handle for close-time cleanup hooks.
+
 ### Public Attributes
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `T` | [`handle`](#handle)  |  |
-| `void *` | [`closeData`](#closedata)  |  |
-| `void(*` | [`closeCleanup`](#closecleanup)  |  |
+| `T` | [`handle`](#handle)  | Embedded raw `libuv` handle object. |
+| `void *` | [`closeData`](#closedata)  | Opaque cleanup payload invoked on close. |
+| `void(*` | [`closeCleanup`](#closecleanup)  | Cleanup function for `closeData`. |
 
 ---
 
@@ -1043,6 +1069,8 @@ ScopedLoop(ScopedLoop &&) = delete
 T handle {}
 ```
 
+Embedded raw `libuv` handle object.
+
 ---
 
 {#closedata}
@@ -1053,6 +1081,8 @@ T handle {}
 void * closeData = nullptr
 ```
 
+Opaque cleanup payload invoked on close.
+
 ---
 
 {#closecleanup}
@@ -1062,6 +1092,8 @@ void * closeData = nullptr
 ```cpp
 void(* closeCleanup = nullptr
 ```
+
+Cleanup function for `closeData`.
 
 {#context-1}
 

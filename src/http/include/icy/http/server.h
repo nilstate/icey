@@ -140,14 +140,8 @@ protected:
 };
 
 
-/// The abstract base class for HTTP ServerResponders
-/// created by HTTP Server.
-///
-/// Derived classes should override the onRequest() method.
-///
-/// A new ServerResponder object can be created for
-/// each new HTTP request that is received by the HTTP Server.
-///
+/// Base responder interface for handling one HTTP request on a server connection.
+/// Derived classes typically override `onRequest()` and optionally the streaming hooks.
 class HTTP_API ServerResponder
 {
 public:
@@ -208,23 +202,20 @@ private:
 };
 
 
-/// This implementation of a ServerConnectionFactory
-/// is used by HTTP Server to create ServerConnection objects.
+/// Factory for creating per-socket `ServerConnection` and per-request `ServerResponder` objects.
 class HTTP_API ServerConnectionFactory
 {
 public:
     ServerConnectionFactory() = default;
     virtual ~ServerConnectionFactory() = default;
 
-    /// Factory method for instantiating the ServerConnection
-    /// instance using the given Socket.
+    /// Creates the `ServerConnection` wrapper for an accepted TCP socket.
     virtual ServerConnection::Ptr createConnection(Server& server, const net::TCPSocket::Ptr& socket)
     {
         return std::make_shared<ServerConnection>(server, socket);
     }
 
-    /// Factory method for instantiating the ServerResponder
-    /// instance using the given ServerConnection.
+    /// Creates the responder for the current request on @p connection.
     virtual std::unique_ptr<ServerResponder> createResponder(ServerConnection& connection)
     {
         return nullptr;

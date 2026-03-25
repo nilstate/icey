@@ -38,15 +38,18 @@ struct Context;
 
 
 template <typename T>
+/// Extra storage placed around a raw `libuv` handle for close-time cleanup hooks.
 struct HandleStorage
 {
-    T handle{};
-    void* closeData = nullptr;
-    void (*closeCleanup)(void*) = nullptr;
+    T handle{};                               ///< Embedded raw `libuv` handle object.
+    void* closeData = nullptr;                ///< Opaque cleanup payload invoked on close.
+    void (*closeCleanup)(void*) = nullptr;    ///< Cleanup function for `closeData`.
 };
 
 
 template <typename T>
+/// Returns the extended storage wrapper that owns @p handle.
+/// @param handle Raw `libuv` handle pointer previously allocated by `Context<T>`.
 inline HandleStorage<T>* handleStorage(T* handle)
 {
     return reinterpret_cast<HandleStorage<T>*>(handle);
@@ -54,6 +57,10 @@ inline HandleStorage<T>* handleStorage(T* handle)
 
 
 template <typename T>
+/// Registers a cleanup callback that runs when @p handle finally closes.
+/// @param handle Raw `libuv` handle pointer.
+/// @param data User data passed back to @p cleanup.
+/// @param cleanup Function invoked exactly once when the handle storage is released.
 inline void setHandleCloseCleanup(T* handle, void* data, void (*cleanup)(void*))
 {
     auto* storage = handleStorage(handle);
@@ -63,6 +70,8 @@ inline void setHandleCloseCleanup(T* handle, void* data, void (*cleanup)(void*))
 
 
 template <typename T>
+/// Clears any pending close-time cleanup callback registered on @p handle.
+/// @param handle Raw `libuv` handle pointer.
 inline void clearHandleCloseCleanup(T* handle)
 {
     auto* storage = handleStorage(handle);
@@ -439,6 +448,11 @@ protected:
 
 
 template <typename Owner, typename Callback>
+/// Wraps @p callback so it only runs while the owning handle is still alive.
+/// Captures the intrusive `Context` token, rehydrates the typed owner on entry,
+/// and suppresses invocation if the handle has already been deleted.
+/// @param owner Owning handle instance.
+/// @param callback Callable that receives `Owner&` followed by the libuv callback args.
 inline auto withHandleContext(Owner& owner, Callback&& callback)
 {
     using OwnerType = std::remove_reference_t<Owner>;
