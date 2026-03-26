@@ -35,7 +35,7 @@
 #include "icy/symple/client.h"
 #include "icy/webrtc/codecnegotiator.h"
 #include "icy/webrtc/peersession.h"
-#include "symplesignaller.h"
+#include "icy/webrtc/support/symplesignaller.h"
 
 #include <iostream>
 #include <memory>
@@ -127,7 +127,7 @@ private:
 
         wrtc::PeerSession::Config config;
         config.rtcConfig.iceServers.emplace_back("stun:stun.l.google.com:19302");
-        config.mediaOpts.videoCodec = videoCodec;
+        config.media.videoCodec = videoCodec;
         // Audio left empty - video only.
         config.enableDataChannel = false;
 

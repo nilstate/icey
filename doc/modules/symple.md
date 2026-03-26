@@ -507,7 +507,7 @@ Supported field types: `"text"`, `"text-multi"`, `"list"`, `"list-multi"`, `"boo
 
 ### WebRTC Signalling
 
-Symple is the signalling transport for the `webrtc` module. `wrtc::SympleSignaller` (defined in `icy/webrtc/symplesignaller.h`) implements `wrtc::SignallingInterface` by encoding SDP, ICE candidates, and call control messages as Symple `Message` packets with a `subtype` field following the Symple call protocol.
+Symple is the signalling transport for the `webrtc` module. `wrtc::SympleSignaller` (defined in `icy/webrtc/support/symplesignaller.h`) implements `wrtc::SignallingInterface` by encoding SDP, ICE candidates, and call control messages as Symple `Message` packets with a `subtype` field following the Symple call protocol.
 
 The call protocol uses these subtypes:
 
@@ -525,7 +525,7 @@ The call protocol uses these subtypes:
 
 ```cpp
 #include "icy/symple/client.h"
-#include "icy/webrtc/symplesignaller.h"
+#include "icy/webrtc/support/symplesignaller.h"
 #include "icy/webrtc/peersession.h"
 
 smpl::Client::Options opts;

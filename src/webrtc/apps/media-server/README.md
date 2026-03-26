@@ -22,6 +22,12 @@ npm run build
 
 Open `http://localhost:4500` in a browser.
 
+Validated browser smoke:
+- Chromium via Playwright
+- Firefox via Playwright
+
+WebKit smoke is wired in the test harness, but the Playwright WebKit/WPE runtime on this Linux host is not treated as authoritative for publish-path support. Do not claim Safari support until it has been validated on Apple platforms.
+
 The `media-server` target is built when the `webrtc` prerequisites are available: OpenSSL and FFmpeg must be installed or discoverable by CMake, and libdatachannel is fetched automatically.
 
 ## Modes

@@ -10,6 +10,12 @@
 
 WebRTC media transport without Google's libwebrtc. Uses libdatachannel for ICE, DTLS-SRTP, and data channels; Icey's AV module for FFmpeg encode/decode; and Symple for signalling. Point the ICE config at your Icey TURN server for fully self-hosted relay.
 
+Current browser validation for the bundled `media-server` path:
+- Chromium: validated by committed Playwright smoke
+- Firefox: validated by committed Playwright smoke
+- WebKit: smoke target exists, but Linux Playwright WebKit/WPE is not treated as authoritative for publish-path support
+- Safari/macOS: not claimed until validated on Apple platforms
+
 ## Architecture
 
 Three layers, each independently usable:
@@ -116,7 +122,7 @@ bridge.BitrateEstimate += slot(&encoder, &Encoder::setBitrate);
 ```cpp
 #include "icy/symple/client.h"
 #include "icy/webrtc/peersession.h"
-#include "icy/webrtc/symplesignaller.h"
+#include "icy/webrtc/support/symplesignaller.h"
 
 smpl::Client::Options opts;
 opts.host = "localhost";
@@ -128,7 +134,7 @@ wrtc::SympleSignaller signaller(sympleClient);
 
 wrtc::PeerSession session(signaller, {
     .rtcConfig = { .iceServers = { "turn:your-server.com:3478" } },
-    .mediaOpts = {
+    .media = {
         .videoCodec = av::VideoCodec("H264", "libx264", 1280, 720, 30),
         .audioCodec = av::AudioCodec("opus", "libopus", 2, 48000)
     }

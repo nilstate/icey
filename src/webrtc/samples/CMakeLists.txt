@@ -1,6 +1,7 @@
-# Shared Symple signaller used by sample apps that connect via Symple.
-# Not part of the webrtc library itself - webrtc is signalling-agnostic.
-set(SYMPLE_SIGNALLER_SRC ${CMAKE_CURRENT_SOURCE_DIR}/symplesignaller.cpp)
+if(NOT TARGET webrtc_support)
+  add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/../support
+                   ${CMAKE_CURRENT_BINARY_DIR}/webrtc-support)
+endif()
 
 add_subdirectory(data-echo)
 if(HAVE_FFMPEG)

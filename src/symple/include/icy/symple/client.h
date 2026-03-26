@@ -25,9 +25,8 @@
 #include "icy/symple/symple.h"
 #include "icy/timer.h"
 
+#include <memory>
 #include <string>
-#include <unordered_set>
-#include <vector>
 
 
 namespace icy {
@@ -190,7 +189,10 @@ protected:
     virtual void onPresenceData(const json::Value& data, bool whiny = false);
 
 private:
+    struct ClientData;
+
     void doConnect();
+    void onTransportError(const icy::Error& error);
     void onSocketRecv(const std::string& data);
     void onSocketClose();
     void onSocketError(const std::string& error);
@@ -203,20 +205,7 @@ private:
     int sendJson(const json::Value& msg);
     std::string buildUrl() const;
 
-    Options _options;
-    uv::Loop* _loop;
-    http::ClientConnection::Ptr _ws;
-    Roster _roster;
-    std::string _ourID;
-    std::unordered_set<std::string> _currentRooms;  ///< Authoritative rooms from welcome / acks.
-    std::unordered_set<std::string> _desiredRooms;  ///< Rooms the client wants persisted across reconnects.
-    std::unordered_set<std::string> _pendingJoins;  ///< Join requests sent but not yet acknowledged.
-    std::unordered_set<std::string> _pendingLeaves; ///< Leave requests sent but not yet acknowledged.
-    int _announceStatus = 0;
-    Timer _reconnectTimer;
-    int _reconnectCount = 0;
-    bool _wasOnline = false;
-    bool _closing = false;
+    std::unique_ptr<ClientData> _data;
 };
 
 

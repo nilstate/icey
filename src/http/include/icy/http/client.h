@@ -101,6 +101,8 @@ public:
     void onComplete() override;
     /// @private Called when the connection is closed.
     void onClose() override;
+    /// @private Called when the underlying transport encounters an error.
+    bool onSocketError(net::Socket& socket, const icy::Error& error) override;
 
     //
     /// Status signals
@@ -109,6 +111,7 @@ public:
     Signal<void(Response&)> Headers;            ///< Signals when the response HTTP header has been received
     Signal<void(const MutableBuffer&)> Payload; ///< Signals when raw data is received
     Signal<void(const Response&)> Complete;     ///< Signals when the HTTP transaction is complete
+    Signal<void(const icy::Error&)> Error;      ///< Signals when the underlying transport reports an error
     Signal<void(Connection&)> Close;            ///< Signals when the connection is closed
     ProgressSignal IncomingProgress;            ///< Signals download progress (0-100%)
 

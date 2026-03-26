@@ -174,6 +174,14 @@ void ClientConnection::onPayload(const MutableBuffer& buffer)
 }
 
 
+bool ClientConnection::onSocketError(net::Socket& socket, const icy::Error& error)
+{
+    Connection::onSocketError(socket, error);
+    Error.emit(error);
+    return false;
+}
+
+
 void ClientConnection::onComplete()
 {
     if (_complete) {

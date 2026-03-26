@@ -1,4 +1,9 @@
 #include "sympletests.h"
+#include "../src/client/roomstate.h"
+#include "../src/client/rosterstate.h"
+#include "../src/protocol.h"
+#include "../src/server/presence.h"
+#include "../src/server/routingdetail.h"
 #include "icy/application.h"
 #include "icy/loop.h"
 #include "icy/symple/command.h"
@@ -129,6 +134,166 @@ int main(int argc, char** argv)
         expect(!p.isProbe());
         p.setProbe(true);
         expect(p.isProbe());
+    });
+
+    icy_test::describe("protocol: make presence sanitizes reserved fields", []() {
+        icy::smpl::Peer peer;
+        peer.setID("abc123");
+        peer.setUser("alice");
+        peer.setName("Alice");
+        peer.setType("browser");
+        peer["online"] = true;
+
+        icy::json::Value extra = icy::json::Value::object();
+        extra["id"] = "forged";
+        extra["user"] = "mallory";
+        extra["online"] = false;
+        extra["agent"] = "smoke";
+
+        auto msg = icy::smpl::proto::makePresence(peer, peer.id(), true, &extra);
+        expect(msg.value("type", "") == "presence");
+        expect(msg.value("from", "") == "alice|abc123");
+        expect(msg["data"].value("id", "") == "abc123");
+        expect(msg["data"].value("user", "") == "alice");
+        expect(msg["data"].value("name", "") == "Alice");
+        expect(msg["data"].value("type", "") == "browser");
+        expect(msg["data"].value("online", false));
+        expect(msg["data"].value("agent", "") == "smoke");
+    });
+
+    icy_test::describe("protocol: parse welcome validates peer and rooms", []() {
+        icy::json::Value msg;
+        msg["type"] = "welcome";
+        msg["status"] = 200;
+        msg["peer"] = icy::json::Value::object();
+        msg["peer"]["id"] = "abc123";
+        msg["peer"]["user"] = "alice";
+        msg["peer"]["online"] = true;
+        msg["rooms"] = icy::json::Value::array();
+        msg["rooms"].push_back("alice");
+        msg["rooms"].push_back("public");
+        msg["rooms"].push_back("");
+
+        auto parsed = icy::smpl::proto::parseWelcome(msg);
+        expect(parsed.has_value());
+        expect(parsed->peer.id() == "abc123");
+        expect(parsed->peer.user() == "alice");
+        expect(parsed->rooms.count("alice") == 1);
+        expect(parsed->rooms.count("public") == 1);
+        expect(parsed->rooms.count("") == 0);
+    });
+
+    icy_test::describe("protocol: parse welcome rejects missing peer id", []() {
+        icy::json::Value msg;
+        msg["type"] = "welcome";
+        msg["status"] = 200;
+        msg["peer"] = icy::json::Value::object();
+        msg["peer"]["user"] = "alice";
+        msg["peer"]["online"] = true;
+
+        std::string error;
+        auto parsed = icy::smpl::proto::parseWelcome(msg, &error);
+        expect(!parsed.has_value());
+        expect(error == "Invalid welcome: missing peer ID");
+    });
+
+    icy_test::describe("client room state: join and leave acks reconcile desired rooms", []() {
+        std::unordered_set<std::string> desired{"public"};
+        std::unordered_set<std::string> current;
+        std::unordered_set<std::string> pendingJoins{"public"};
+        std::unordered_set<std::string> pendingLeaves;
+
+        expect(!icy::smpl::detail::applyJoinAck(
+            desired, current, pendingJoins, pendingLeaves, "public"));
+        expect(current.count("public") == 1);
+        expect(pendingJoins.count("public") == 0);
+
+        expect(icy::smpl::detail::noteDesiredLeave(desired, current, pendingLeaves, "public"));
+        expect(pendingLeaves.count("public") == 1);
+
+        expect(!icy::smpl::detail::applyLeaveAck(
+            desired, current, pendingJoins, pendingLeaves, "public"));
+        expect(current.count("public") == 0);
+        expect(pendingLeaves.count("public") == 0);
+    });
+
+    icy_test::describe("client room state: welcome resets transient room state", []() {
+        std::unordered_set<std::string> current{"stale"};
+        std::unordered_set<std::string> pendingJoins{"join"};
+        std::unordered_set<std::string> pendingLeaves{"leave"};
+        std::unordered_set<std::string> welcomeRooms{"alice", "public"};
+
+        icy::smpl::detail::applyWelcome(current, pendingJoins, pendingLeaves, welcomeRooms);
+
+        expect(current.count("alice") == 1);
+        expect(current.count("public") == 1);
+        expect(current.count("stale") == 0);
+        expect(pendingJoins.empty());
+        expect(pendingLeaves.empty());
+    });
+
+    icy_test::describe("client roster state: presence updates connect and disconnect peers", []() {
+        icy::smpl::Roster roster;
+
+        icy::json::Value online;
+        online["id"] = "abc123";
+        online["user"] = "alice";
+        online["name"] = "Alice";
+        online["online"] = true;
+
+        auto connected = icy::smpl::detail::applyPresenceData(roster, online);
+        expect(connected.kind == icy::smpl::detail::PresenceUpdate::Kind::Connected);
+        expect(connected.livePeer != nullptr);
+        expect(roster.get("abc123") != nullptr);
+
+        icy::json::Value offline = online;
+        offline["online"] = false;
+
+        auto disconnected = icy::smpl::detail::applyPresenceData(roster, offline);
+        expect(disconnected.kind == icy::smpl::detail::PresenceUpdate::Kind::Disconnected);
+        expect(disconnected.snapshot.id() == "abc123");
+        expect(roster.get("abc123") == nullptr);
+    });
+
+    icy_test::describe("routing detail: shared room detection and recipient dedupe", []() {
+        std::unordered_set<std::string> aliceRooms{"public", "video"};
+        std::unordered_set<std::string> bobRooms{"video", "control"};
+        std::unordered_set<std::string> carolRooms{"other"};
+
+        expect(icy::smpl::detail::sharesAnyRoom(aliceRooms, bobRooms));
+        expect(!icy::smpl::detail::sharesAnyRoom(aliceRooms, carolRooms));
+
+        icy::smpl::detail::RoomMemberMap indexedRooms;
+        indexedRooms["public"] = {"alice", "bob"};
+        indexedRooms["video"] = {"alice", "bob", "carol"};
+
+        auto recipients = icy::smpl::detail::collectRecipients(
+            indexedRooms,
+            std::unordered_set<std::string>{"public", "video"},
+            "alice");
+
+        expect(recipients.size() == 2);
+        expect(recipients.count("bob") == 1);
+        expect(recipients.count("carol") == 1);
+    });
+
+    icy_test::describe("presence detail: canonical peer presence keeps server owned fields", []() {
+        icy::smpl::Peer peer;
+        peer.setID("abc123");
+        peer.setUser("alice");
+        peer.setName("Alice");
+        peer["online"] = true;
+
+        icy::json::Value extra = icy::json::Value::object();
+        extra["user"] = "mallory";
+        extra["online"] = false;
+        extra["agent"] = "browser";
+
+        auto msg = icy::smpl::detail::makePeerPresence(peer, peer.id(), true, &extra);
+        expect(msg["data"].value("id", "") == "abc123");
+        expect(msg["data"].value("user", "") == "alice");
+        expect(msg["data"].value("online", false));
+        expect(msg["data"].value("agent", "") == "browser");
     });
 
 
@@ -378,6 +543,31 @@ int main(int argc, char** argv)
 
         client.close();
         server.shutdown();
+    });
+
+    icy_test::describe("client: transport connect failure surfaces as error", []() {
+        smpl::Client::Options opts;
+        opts.host = SERVER_HOST;
+        opts.port = SERVER_PORT + 99;
+        opts.user = "alice";
+        opts.reconnection = false;
+
+        smpl::Client client(opts);
+        bool gotError = false;
+        bool gotClosed = false;
+
+        client.StateChange += [&](void*, smpl::ClientState& state, const smpl::ClientState&) {
+            if (state.id() == smpl::ClientState::Error)
+                gotError = true;
+            if (state.id() == smpl::ClientState::Closed)
+                gotClosed = true;
+        };
+
+        client.connect();
+        expect(test::waitFor([&] { return gotError; }, 3000));
+        expect(!gotClosed);
+
+        client.close();
     });
 
 

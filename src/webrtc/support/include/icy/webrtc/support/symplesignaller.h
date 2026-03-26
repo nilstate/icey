@@ -5,7 +5,7 @@
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
-/// @addtogroup webrtc
+/// @addtogroup webrtcsupport
 /// @{
 
 
@@ -13,7 +13,9 @@
 
 
 #include "icy/webrtc/signalling.h"
-#include "icy/webrtc/webrtc.h"
+#include "icy/webrtc/support/support.h"
+
+#include "icy/json/json.h"
 #include "icy/symple/client.h"
 
 
@@ -21,23 +23,17 @@ namespace icy {
 namespace wrtc {
 
 
-/// SignallingInterface implementation using the Symple protocol.
+/// SignallingInterface implementation using the Symple call protocol.
 ///
-/// Speaks the call:init/accept/reject/offer/answer/candidate/hangup
-/// protocol defined in symple-player's call-manager.js.
-/// Compatible with any browser running symple-client + CallManager.
+/// Speaks the `call:init`, `call:accept`, `call:reject`, `call:offer`,
+/// `call:answer`, `call:candidate`, and `call:hangup` envelope over a
+/// connected Symple client.
 ///
-/// Usage:
-///   smpl::Client symple(opts);
-///   symple.connect();
-///
-///   SympleSignaller signaller(symple);
-///   PeerSession session(signaller, config);
-class WEBRTC_API SympleSignaller : public SignallingInterface
+/// The remote peer identifier on this signalling boundary is the full
+/// Symple address string (`user|id`).
+class SympleSignaller : public SignallingInterface
 {
 public:
-    /// Construct bound to a Symple client.
-    /// The Symple client must outlive this signaller.
     explicit SympleSignaller(smpl::Client& client);
     ~SympleSignaller() override;
 
@@ -58,7 +54,7 @@ public:
 
 private:
     void onMessage(smpl::Message& msg);
-    void send(const std::string& subtype,
+    void send(const std::string& action,
               const std::string& to,
               const json::Value& data = {});
 

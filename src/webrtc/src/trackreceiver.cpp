@@ -8,7 +8,7 @@
 
 
 #include "icy/webrtc/trackreceiver.h"
-#include "icy/webrtc/codecnegotiator.h"
+#include "codecregistry.h"
 
 
 namespace icy {
@@ -35,10 +35,9 @@ void WebRtcTrackReceiver::bind(std::shared_ptr<rtc::Track> track)
 {
     auto desc = track->description();
     bool isVideo = (desc.type() == "video");
-    auto sdp = std::string(desc.generateSdp("\r\n", ""));
     uint32_t clockRate = isVideo ? 90000u : 48000u;
-    if (auto spec = CodecNegotiator::detectCodec(
-            sdp, isVideo ? CodecMediaType::Video : CodecMediaType::Audio)) {
+    if (auto spec = codec_registry::detectInMedia(
+            desc, isVideo ? CodecMediaType::Video : CodecMediaType::Audio)) {
         clockRate = spec->clockRate;
     }
     const auto generation = ++_generation;

@@ -21,6 +21,7 @@
 
 #include <rtc/rtc.hpp>
 
+#include <atomic>
 #include <memory>
 #include <mutex>
 
@@ -95,9 +96,16 @@ public:
     PacketSignal emitter;
 
 private:
+    enum class TrackKind
+    {
+        Unbound,
+        Video,
+        Audio
+    };
+
     std::shared_ptr<rtc::Track> _track;
     std::shared_ptr<rtc::RtpPacketizationConfig> _rtpConfig;
-    bool _isVideo = true;
+    std::atomic<TrackKind> _kind{TrackKind::Unbound};
     mutable std::mutex _mutex;
 };
 

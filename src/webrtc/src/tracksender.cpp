@@ -34,9 +34,14 @@ void WebRtcTrackSender::bind(const TrackHandle& handle)
     _track = handle.track;
     _rtpConfig = handle.rtpConfig;
 
-    // Determine track type from the description.
-    if (_track)
-        _isVideo = (_track->description().type() == "video");
+    if (_track) {
+        _kind.store(
+            _track->description().type() == "video" ? TrackKind::Video : TrackKind::Audio,
+            std::memory_order_release);
+    }
+    else {
+        _kind.store(TrackKind::Unbound, std::memory_order_release);
+    }
 }
 
 
@@ -45,18 +50,26 @@ void WebRtcTrackSender::unbind()
     std::lock_guard lock(_mutex);
     _track.reset();
     _rtpConfig.reset();
+    _kind.store(TrackKind::Unbound, std::memory_order_release);
 }
 
 
 void WebRtcTrackSender::process(IPacket& packet)
 {
-    std::lock_guard lock(_mutex);
+    std::shared_ptr<rtc::Track> track;
+    std::shared_ptr<rtc::RtpPacketizationConfig> rtpConfig;
+    {
+        std::lock_guard lock(_mutex);
+        track = _track;
+        rtpConfig = _rtpConfig;
+    }
 
-    if (!_track || !_track->isOpen() || !_rtpConfig)
+    const auto kind = _kind.load(std::memory_order_acquire);
+    if (!track || !track->isOpen() || !rtpConfig || kind == TrackKind::Unbound)
         return;
 
     av::MediaPacket* mp = nullptr;
-    if (_isVideo)
+    if (kind == TrackKind::Video)
         mp = dynamic_cast<av::VideoPacket*>(&packet);
     else
         mp = dynamic_cast<av::AudioPacket*>(&packet);
@@ -69,10 +82,10 @@ void WebRtcTrackSender::process(IPacket& packet)
     // Convert FFmpeg timestamp (microseconds) to RTP timestamp
     // using the clock rate from the RTP config.
     auto rtpTs = static_cast<uint32_t>(
-        (mp->time * _rtpConfig->clockRate) / 1000000);
+        (mp->time * rtpConfig->clockRate) / 1000000);
 
     try {
-        _track->sendFrame(
+        track->sendFrame(
             reinterpret_cast<const rtc::byte*>(mp->data()), mp->size(),
             rtc::FrameInfo(rtpTs));
 
@@ -87,9 +100,20 @@ void WebRtcTrackSender::process(IPacket& packet)
 
 bool WebRtcTrackSender::accepts(IPacket* packet)
 {
-    if (_isVideo)
+    if (!packet)
+        return false;
+
+    switch (_kind.load(std::memory_order_acquire)) {
+    case TrackKind::Video:
         return dynamic_cast<av::VideoPacket*>(packet) != nullptr;
-    return dynamic_cast<av::AudioPacket*>(packet) != nullptr;
+    case TrackKind::Audio:
+        return dynamic_cast<av::AudioPacket*>(packet) != nullptr;
+    case TrackKind::Unbound:
+        return dynamic_cast<av::VideoPacket*>(packet) != nullptr ||
+               dynamic_cast<av::AudioPacket*>(packet) != nullptr;
+    }
+
+    return false;
 }
 
 
@@ -103,8 +127,7 @@ void WebRtcTrackSender::onStreamStateChange(const PacketStreamState& state)
 
 bool WebRtcTrackSender::isVideo() const
 {
-    std::lock_guard lock(_mutex);
-    return _isVideo;
+    return _kind.load(std::memory_order_acquire) == TrackKind::Video;
 }
 
 

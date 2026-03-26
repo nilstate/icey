@@ -75,7 +75,7 @@ client.connect();
 ## WebRTC Signalling
 
 ```cpp
-#include "icy/webrtc/symplesignaller.h"
+#include "icy/webrtc/support/symplesignaller.h"
 
 smpl::Client symple(opts);
 symple.connect();

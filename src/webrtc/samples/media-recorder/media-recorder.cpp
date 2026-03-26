@@ -31,7 +31,7 @@
 #include "icy/symple/client.h"
 #include "icy/webrtc/codecnegotiator.h"
 #include "icy/webrtc/peersession.h"
-#include "symplesignaller.h"
+#include "icy/webrtc/support/symplesignaller.h"
 
 #include <iostream>
 #include <memory>
@@ -84,7 +84,7 @@ private:
         config.rtcConfig.iceServers.emplace_back("stun:stun.l.google.com:19302");
         // Receive-only: we create tracks to signal we can receive,
         // but we don't send media ourselves.
-        config.mediaOpts.videoCodec = wrtc::CodecNegotiator::resolveWebRtcVideoCodec(
+        config.media.videoCodec = wrtc::CodecNegotiator::resolveWebRtcVideoCodec(
             av::VideoCodec("H264", "libx264", 640, 480, 30));
         config.enableDataChannel = false;
 

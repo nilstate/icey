@@ -40,7 +40,7 @@ namespace wrtc {
 /// Works with SympleSignaller (Symple call protocol), WebSocketSignaller
 /// (plain JSON over WSS), or any custom implementation.
 ///
-/// Media is optional. Set mediaOpts codecs to enable tracks.
+/// Media is optional. Set `Config::media` codecs to enable tracks.
 /// Leave codec encoders empty for data-channel-only sessions.
 class WEBRTC_API PeerSession
 {
@@ -58,10 +58,19 @@ public:
     };
 
     /// Configuration for WebRTC peer session establishment.
+    struct MediaConfig
+    {
+        av::VideoCodec videoCodec;   ///< Desired video codec for send/receive negotiation.
+        av::AudioCodec audioCodec;   ///< Desired audio codec for send/receive negotiation.
+        rtc::Description::Direction videoDirection = rtc::Description::Direction::SendRecv;
+        rtc::Description::Direction audioDirection = rtc::Description::Direction::SendRecv;
+    };
+
+    /// Configuration for WebRTC peer session establishment.
     struct Config
     {
         rtc::Configuration rtcConfig;     ///< libdatachannel connection options, ICE servers, and transport settings.
-        MediaBridge::Options mediaOpts;   ///< Media tracks to create when the session negotiates media.
+        MediaConfig media;                ///< Desired media codecs and directions for the session.
         bool enableDataChannel = true;    ///< True to create a data channel on outgoing calls and accept one on incoming calls.
         std::string dataChannelLabel = "data"; ///< Label to use for the application data channel.
     };

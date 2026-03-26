@@ -7,7 +7,7 @@
 //
 
 
-#include "icy/webrtc/wssignaller.h"
+#include "icy/webrtc/support/wssignaller.h"
 #include "icy/logger.h"
 
 
@@ -25,8 +25,8 @@ WebSocketSignaller::~WebSocketSignaller() = default;
 
 
 void WebSocketSignaller::sendSdp(const std::string& peerId,
-                                  const std::string& type,
-                                  const std::string& sdp)
+                                 const std::string& type,
+                                 const std::string& sdp)
 {
     json::Value msg;
     msg["type"] = type;
@@ -39,8 +39,8 @@ void WebSocketSignaller::sendSdp(const std::string& peerId,
 
 
 void WebSocketSignaller::sendCandidate(const std::string& peerId,
-                                        const std::string& candidate,
-                                        const std::string& mid)
+                                       const std::string& candidate,
+                                       const std::string& mid)
 {
     json::Value msg;
     msg["type"] = "candidate";
@@ -54,8 +54,8 @@ void WebSocketSignaller::sendCandidate(const std::string& peerId,
 
 
 void WebSocketSignaller::sendControl(const std::string& peerId,
-                                      const std::string& type,
-                                      const std::string& reason)
+                                     const std::string& type,
+                                     const std::string& reason)
 {
     json::Value msg;
     msg["type"] = type;
@@ -81,8 +81,6 @@ void WebSocketSignaller::receive(const std::string& jsonStr)
             return;
         }
 
-        LDebug("WebSocket signalling: ", type, " from ", peerId);
-
         if (type == "offer" || type == "answer") {
             std::string sdp = msg.value("sdp", "");
             if (!sdp.empty())
@@ -95,8 +93,7 @@ void WebSocketSignaller::receive(const std::string& jsonStr)
                 CandidateReceived.emit(peerId, candidate, mid);
         }
         else if (type == "init" || type == "accept" || type == "reject" || type == "hangup") {
-            std::string reason = msg.value("reason", "");
-            ControlReceived.emit(peerId, type, reason);
+            ControlReceived.emit(peerId, type, msg.value("reason", ""));
         }
     }
     catch (const std::exception& e) {

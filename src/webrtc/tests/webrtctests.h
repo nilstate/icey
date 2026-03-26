@@ -29,6 +29,7 @@
 
 #include <rtc/rtc.hpp>
 
+#include <array>
 #include <atomic>
 #include <condition_variable>
 #include <deque>

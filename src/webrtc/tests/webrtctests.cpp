@@ -8,6 +8,11 @@
 
 
 #include "webrtctests.h"
+#include "../src/codecregistry.h"
+#include "../src/remotemediaplan.h"
+#include "../support/src/callprotocol.h"
+#include "icy/webrtc/support/sympleserversignaller.h"
+#include "icy/webrtc/support/wssignaller.h"
 
 #include <cmath>
 
@@ -319,7 +324,7 @@ void fillLoopbackVideoFrame(AVFrame* frame, int index)
 
 void configureLoopbackAudioCodec(PeerSession::Config& config)
 {
-    config.mediaOpts.audioCodec = CodecNegotiator::resolveWebRtcAudioCodec(
+    config.media.audioCodec = CodecNegotiator::resolveWebRtcAudioCodec(
         av::AudioCodec("opus", "libopus", 2, 48000));
 }
 
@@ -331,7 +336,7 @@ void configureLoopbackVideoCodec(PeerSession::Config& config,
     auto codec = CodecNegotiator::resolveWebRtcVideoCodec(
         av::VideoCodec("H264", "libx264", width, height, fps));
     codec.pixelFmt = "yuv420p";
-    config.mediaOpts.videoCodec = std::move(codec);
+    config.media.videoCodec = std::move(codec);
 }
 
 std::vector<float> makeLoopbackAudioSamples(int channels,
@@ -597,6 +602,190 @@ int main(int argc, char** argv)
         expect(acodec.sampleRate == 48000);
     });
 
+    describe("codec registry: supported codecs stay internally consistent", []() {
+        struct Case
+        {
+            const char* rtpName;
+            const char* ffmpegName;
+            CodecId id;
+            CodecMediaType mediaType;
+            uint32_t clockRate;
+            int payloadType;
+        };
+
+        const std::array<Case, 7> cases{{
+            {"H264", "libx264", CodecId::H264, CodecMediaType::Video, 90000, 96},
+            {"VP8", "libvpx", CodecId::VP8, CodecMediaType::Video, 90000, 97},
+            {"VP9", "libvpx-vp9", CodecId::VP9, CodecMediaType::Video, 90000, 98},
+            {"AV1", "libaom-av1", CodecId::AV1, CodecMediaType::Video, 90000, 99},
+            {"opus", "libopus", CodecId::Opus, CodecMediaType::Audio, 48000, 111},
+            {"PCMU", "pcm_mulaw", CodecId::PCMU, CodecMediaType::Audio, 8000, 0},
+            {"PCMA", "pcm_alaw", CodecId::PCMA, CodecMediaType::Audio, 8000, 8},
+        }};
+
+        for (const auto& item : cases) {
+            auto byRtp = CodecNegotiator::specFromRtp(item.rtpName);
+            auto byFfmpeg = CodecNegotiator::specFromFfmpeg(item.ffmpegName);
+            expect(byRtp.has_value());
+            expect(byFfmpeg.has_value());
+            expect(byRtp->id == item.id);
+            expect(byRtp->mediaType == item.mediaType);
+            expect(byRtp->clockRate == item.clockRate);
+            expect(byRtp->payloadType == item.payloadType);
+            expect(byFfmpeg->id == item.id);
+            expect(byFfmpeg->rtpName == item.rtpName);
+            expect(CodecNegotiator::ffmpegToRtp(item.ffmpegName) == item.rtpName);
+        }
+
+        auto av1 = CodecNegotiator::specFromRtp("AV1");
+        expect(av1.has_value());
+        expect(codec_registry::decoderCodecId(*av1) == AV_CODEC_ID_AV1);
+    });
+
+    describe("codec registry: detect codec from structured media description", []() {
+        rtc::Description::Video media("video", rtc::Description::Direction::SendOnly);
+        media.addVP8Codec(120);
+        media.addH264Codec(102);
+
+        auto spec = codec_registry::detectInMedia(media, CodecMediaType::Video);
+        expect(spec.has_value());
+        expect(spec->id == CodecId::VP8);
+        expect(spec->rtpName == "VP8");
+        expect(spec->clockRate == 90000);
+
+        rtc::Description::Audio audio("audio", rtc::Description::Direction::SendOnly);
+        audio.addPCMACodec(8);
+        audio.addOpusCodec(111);
+
+        auto audioSpec = codec_registry::detectInMedia(audio, CodecMediaType::Audio);
+        expect(audioSpec.has_value());
+        expect(audioSpec->id == CodecId::PCMA);
+        expect(audioSpec->rtpName == "PCMA");
+        expect(audioSpec->clockRate == 8000);
+    });
+
+    describe("remote media plan: matching browser offer reuses payload types and mids", []() {
+        static const std::string offer =
+            "v=0\r\n"
+            "o=- 4611739175949513388 2 IN IP4 127.0.0.1\r\n"
+            "s=-\r\n"
+            "t=0 0\r\n"
+            "m=audio 9 UDP/TLS/RTP/SAVPF 111 0 8\r\n"
+            "a=mid:0\r\n"
+            "a=sendonly\r\n"
+            "a=rtpmap:111 opus/48000/2\r\n"
+            "a=fmtp:111 minptime=10;useinbandfec=1\r\n"
+            "m=video 9 UDP/TLS/RTP/SAVPF 102 97\r\n"
+            "a=mid:1\r\n"
+            "a=sendonly\r\n"
+            "a=rtpmap:102 H264/90000\r\n"
+            "a=fmtp:102 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f\r\n";
+
+        MediaBridge::Options local;
+        local.audioCodec = av::AudioCodec("opus", "libopus", 2, 48000);
+        local.videoCodec = av::VideoCodec("H264", "libx264", 1280, 720, 30);
+        local.audioDirection = rtc::Description::Direction::SendRecv;
+        local.videoDirection = rtc::Description::Direction::SendRecv;
+
+        auto resolved = resolveAnswerMediaOptions(local, offer);
+        expect(resolved.audioMid == "0");
+        expect(resolved.videoMid == "1");
+        expect(resolved.audioPayloadType == 111);
+        expect(resolved.videoPayloadType == 102);
+        expect(resolved.audioDirection == rtc::Description::Direction::RecvOnly);
+        expect(resolved.videoDirection == rtc::Description::Direction::RecvOnly);
+        expect(resolved.audioCodec.name == "opus");
+        expect(resolved.videoCodec.name == "H264");
+    });
+
+    describe("remote media plan: recvonly fallback selects offered browser codec", []() {
+        static const std::string firefoxOffer =
+            "v=0\r\n"
+            "o=mozilla...THIS_IS_SDPARTA-99.0 1234567890 0 IN IP4 0.0.0.0\r\n"
+            "s=-\r\n"
+            "t=0 0\r\n"
+            "m=video 9 UDP/TLS/RTP/SAVPF 120 121\r\n"
+            "a=mid:video0\r\n"
+            "a=sendonly\r\n"
+            "a=rtpmap:120 VP8/90000\r\n"
+            "a=rtpmap:121 VP9/90000\r\n"
+            "a=fmtp:121 profile-id=0\r\n";
+
+        MediaBridge::Options local;
+        local.videoCodec = av::VideoCodec("H264", "libx264", 640, 360, 30);
+        local.videoDirection = rtc::Description::Direction::RecvOnly;
+
+        auto resolved = resolveAnswerMediaOptions(local, firefoxOffer);
+        expect(resolved.videoCodec.name == "VP8");
+        expect(resolved.videoPayloadType == 120);
+        expect(resolved.videoMid == "video0");
+        expect(resolved.videoDirection == rtc::Description::Direction::RecvOnly);
+    });
+
+    describe("call protocol: symple message roundtrips control, sdp, and candidate", []() {
+        auto control = callproto::makeSympleMessage(
+            "hangup", "bob|remote", json::Value{{"reason", "done"}}, "alice|local");
+        auto parsedControl = callproto::parseSympleMessage(control);
+        expect(parsedControl.has_value());
+        expect(parsedControl->kind == callproto::Kind::Control);
+        expect(parsedControl->peerAddress == "alice|local");
+        expect(parsedControl->action == "hangup");
+        expect(parsedControl->reason == "done");
+
+        json::Value sdpData;
+        sdpData["type"] = "offer";
+        sdpData["sdp"] = "v=0\r\n";
+        auto sdp = callproto::makeSympleMessage("offer", "bob|remote", sdpData, "alice|local");
+        auto parsedSdp = callproto::parseSympleMessage(sdp);
+        expect(parsedSdp.has_value());
+        expect(parsedSdp->kind == callproto::Kind::Sdp);
+        expect(parsedSdp->sdpType == "offer");
+        expect(parsedSdp->sdp == "v=0\r\n");
+
+        json::Value candidateData;
+        candidateData["candidate"] = "candidate:1 1 udp 1 127.0.0.1 10000 typ host";
+        candidateData["sdpMid"] = "0";
+        auto candidate = callproto::makeSympleMessage(
+            "candidate", "bob|remote", candidateData, "alice|local");
+        auto parsedCandidate = callproto::parseSympleMessage(candidate);
+        expect(parsedCandidate.has_value());
+        expect(parsedCandidate->kind == callproto::Kind::Candidate);
+        expect(parsedCandidate->candidate == candidateData["candidate"].get<std::string>());
+        expect(parsedCandidate->mid == "0");
+    });
+
+    describe("call protocol: requires full symple peer addresses", []() {
+        expect(callproto::isFullPeerAddress("alice|local"));
+        expect(!callproto::isFullPeerAddress("alice"));
+        expect(!callproto::isFullPeerAddress("|local"));
+
+        bool threwTo = false;
+        try {
+            [[maybe_unused]] auto msg =
+                callproto::makeSympleMessage("init", "alice", {}, "bob|remote");
+        }
+        catch (const std::invalid_argument&) {
+            threwTo = true;
+        }
+        expect(threwTo);
+
+        bool threwFrom = false;
+        try {
+            [[maybe_unused]] auto msg =
+                callproto::makeSympleMessage("init", "alice|local", {}, "bob");
+        }
+        catch (const std::invalid_argument&) {
+            threwFrom = true;
+        }
+        expect(threwFrom);
+
+        json::Value bareFrom;
+        bareFrom["type"] = "message";
+        bareFrom["subtype"] = "call:init";
+        bareFrom["from"] = "alice";
+        expect(!callproto::parseSympleMessage(bareFrom).has_value());
+    });
+
 
     // =========================================================================
     // Layer 1: Track factory functions
@@ -663,6 +852,23 @@ int main(int argc, char** argv)
         try { [[maybe_unused]] auto ah = createAudioTrack(pc, av::AudioCodec{}); } catch (const std::invalid_argument&) { audioThrew = true; }
         expect(videoThrew);
         expect(audioThrew);
+
+        pc->close();
+    });
+
+    describe("track: setup receive track uses structured codec description", []() {
+        rtc::Configuration config;
+        auto pc = std::make_shared<rtc::PeerConnection>(config);
+
+        rtc::Description::Video video("video", rtc::Description::Direction::RecvOnly);
+        video.addVP8Codec(120);
+        auto videoTrack = pc->addTrack(video);
+        expect(setupReceiveTrack(videoTrack));
+
+        rtc::Description::Audio audio("audio", rtc::Description::Direction::RecvOnly);
+        audio.addOpusCodec(111);
+        auto audioTrack = pc->addTrack(audio);
+        expect(setupReceiveTrack(audioTrack));
 
         pc->close();
     });
@@ -881,6 +1087,123 @@ int main(int argc, char** argv)
         pc2->close();
     });
 
+    describe("websocket signaller: sends and receives canonical messages", []() {
+        WebSocketSignaller alice("alice");
+        WebSocketSignaller bob("bob");
+
+        alice.SendMessage += [&](const std::string& msg) { bob.receive(msg); };
+        bob.SendMessage += [&](const std::string& msg) { alice.receive(msg); };
+
+        std::string sdpPeer;
+        std::string sdpType;
+        std::string sdpValue;
+        std::string candidatePeer;
+        std::string candidateValue;
+        std::string candidateMid;
+        std::string controlPeer;
+        std::string controlType;
+        std::string controlReason;
+
+        bob.SdpReceived += [&](const std::string& peerId,
+                               const std::string& type,
+                               const std::string& sdp) {
+            sdpPeer = peerId;
+            sdpType = type;
+            sdpValue = sdp;
+        };
+        bob.CandidateReceived += [&](const std::string& peerId,
+                                     const std::string& candidate,
+                                     const std::string& mid) {
+            candidatePeer = peerId;
+            candidateValue = candidate;
+            candidateMid = mid;
+        };
+        bob.ControlReceived += [&](const std::string& peerId,
+                                   const std::string& type,
+                                   const std::string& reason) {
+            controlPeer = peerId;
+            controlType = type;
+            controlReason = reason;
+        };
+
+        alice.sendSdp("bob", "offer", "v=0\r\n");
+        expect(sdpPeer == "alice");
+        expect(sdpType == "offer");
+        expect(sdpValue == "v=0\r\n");
+
+        alice.sendCandidate("bob", "candidate:1 1 UDP 2122260223 192.0.2.1 54400 typ host", "0");
+        expect(candidatePeer == "alice");
+        expect(candidateValue.find("candidate:1") == 0);
+        expect(candidateMid == "0");
+
+        alice.sendControl("bob", "hangup", "done");
+        expect(controlPeer == "alice");
+        expect(controlType == "hangup");
+        expect(controlReason == "done");
+    });
+
+    describe("websocket signaller: ignores malformed input", []() {
+        WebSocketSignaller ws("alice");
+        int sdpCount = 0;
+        int candidateCount = 0;
+        int controlCount = 0;
+
+        ws.SdpReceived += [&](const std::string&, const std::string&, const std::string&) {
+            ++sdpCount;
+        };
+        ws.CandidateReceived += [&](const std::string&, const std::string&, const std::string&) {
+            ++candidateCount;
+        };
+        ws.ControlReceived += [&](const std::string&, const std::string&, const std::string&) {
+            ++controlCount;
+        };
+
+        ws.receive("{");
+        ws.receive(R"({"type":"offer"})");
+        ws.receive(R"({"type":"candidate","peerId":"bob"})");
+
+        expect(sdpCount == 0);
+        expect(candidateCount == 0);
+        expect(controlCount == 0);
+    });
+
+    describe("symple server signaller: preserves full address identity", []() {
+        smpl::Server server;
+        SympleServerSignaller signaller(server, "media-server|media-server", "alice|peer-1");
+
+        int controlCount = 0;
+        std::string controlPeer;
+        std::string controlType;
+        signaller.ControlReceived += [&](const std::string& peerId,
+                                         const std::string& type,
+                                         const std::string&) {
+            ++controlCount;
+            controlPeer = peerId;
+            controlType = type;
+        };
+
+        auto accepted = callproto::makeSympleMessage(
+            "accept", "media-server|media-server", {}, "alice|peer-1");
+        signaller.onMessage(accepted);
+        expect(controlCount == 1);
+        expect(controlPeer == "alice|peer-1");
+        expect(controlType == "accept");
+
+        auto wrongSession = callproto::makeSympleMessage(
+            "accept", "media-server|media-server", {}, "alice|peer-2");
+        signaller.onMessage(wrongSession);
+        expect(controlCount == 1);
+
+        bool threw = false;
+        try {
+            signaller.setRemoteAddress("alice");
+        }
+        catch (const std::invalid_argument&) {
+            threw = true;
+        }
+        expect(threw);
+    });
+
 
     // =========================================================================
     // Layer 3: PeerSession
@@ -927,6 +1250,49 @@ int main(int argc, char** argv)
 
         session.hangup("retry");
         expect(session.state() == PeerSession::State::Idle);
+    });
+
+    describe("peer session: glare rejects incoming init while outgoing", []() {
+        MockSignaller signaller;
+        PeerSession session(signaller, {});
+        std::vector<PeerSession::State> states;
+        session.StateChanged += [&](PeerSession::State state) {
+            states.push_back(state);
+        };
+
+        session.call("peer");
+        signaller.ControlReceived.emit("peer", "init", "");
+
+        expect(states.size() == 1);
+        expect(states[0] == PeerSession::State::OutgoingInit);
+        expect(session.state() == PeerSession::State::OutgoingInit);
+        expect(session.remotePeerId() == "peer");
+        expect(signaller.controls.size() == 2);
+        expect(signaller.controls[0].type == "init");
+        expect(signaller.controls[1].peerId == "peer");
+        expect(signaller.controls[1].type == "reject");
+        expect(signaller.controls[1].reason == "busy");
+    });
+
+    describe("peer session: duplicate incoming init is rejected as busy", []() {
+        MockSignaller signaller;
+        PeerSession session(signaller, {});
+        std::vector<PeerSession::State> states;
+        session.StateChanged += [&](PeerSession::State state) {
+            states.push_back(state);
+        };
+
+        signaller.ControlReceived.emit("peer", "init", "");
+        signaller.ControlReceived.emit("peer", "init", "");
+
+        expect(states.size() == 1);
+        expect(states[0] == PeerSession::State::IncomingInit);
+        expect(session.state() == PeerSession::State::IncomingInit);
+        expect(session.remotePeerId() == "peer");
+        expect(signaller.controls.size() == 1);
+        expect(signaller.controls[0].peerId == "peer");
+        expect(signaller.controls[0].type == "reject");
+        expect(signaller.controls[0].reason == "busy");
     });
 
     describe("peer session: local hangup passes through ending", []() {
@@ -997,14 +1363,40 @@ int main(int argc, char** argv)
         expect(session.dataChannel() != nullptr);
     });
 
+    describe("peer session: duplicate accept is ignored", []() {
+        MockSignaller signaller;
+        PeerSession::Config config;
+        config.enableDataChannel = true;
+        PeerSession session(signaller, config);
+        std::vector<PeerSession::State> states;
+        session.StateChanged += [&](PeerSession::State state) {
+            states.push_back(state);
+        };
+
+        session.call("peer");
+        signaller.ControlReceived.emit("peer", "accept", "");
+        auto pc = session.peerConnection();
+        auto dc = session.dataChannel();
+
+        signaller.ControlReceived.emit("peer", "accept", "");
+
+        expect(states.size() == 2);
+        expect(states[0] == PeerSession::State::OutgoingInit);
+        expect(states[1] == PeerSession::State::Negotiating);
+        expect(session.state() == PeerSession::State::Negotiating);
+        expect(session.peerConnection() == pc);
+        expect(session.dataChannel() == dc);
+        expect(signaller.controls.size() == 1);
+    });
+
     describe("peer session: browser offer queues early candidate and yields answer", []() {
         MockSignaller signaller;
         PeerSession::Config config;
         config.enableDataChannel = false;
         configureLoopbackAudioCodec(config);
         configureLoopbackVideoCodec(config, 640, 360, 30);
-        config.mediaOpts.audioDirection = rtc::Description::Direction::SendOnly;
-        config.mediaOpts.videoDirection = rtc::Description::Direction::SendOnly;
+        config.media.audioDirection = rtc::Description::Direction::SendOnly;
+        config.media.videoDirection = rtc::Description::Direction::SendOnly;
         PeerSession session(signaller, config);
 
         signaller.ControlReceived.emit("browser", "init", "");
@@ -1045,7 +1437,7 @@ int main(int argc, char** argv)
         MockSignaller signaller;
         PeerSession::Config config;
         config.enableDataChannel = false;
-        config.mediaOpts.videoCodec = CodecNegotiator::resolveWebRtcVideoCodec(
+        config.media.videoCodec = CodecNegotiator::resolveWebRtcVideoCodec(
             av::VideoCodec("H264", "libx264", 640, 360, 30));
         PeerSession session(signaller, config);
 
@@ -1072,11 +1464,11 @@ int main(int argc, char** argv)
         MockSignaller signaller;
         PeerSession::Config config;
         config.enableDataChannel = false;
-        config.mediaOpts.videoCodec = CodecNegotiator::resolveWebRtcVideoCodec(
+        config.media.videoCodec = CodecNegotiator::resolveWebRtcVideoCodec(
             av::VideoCodec("H264", "libx264", 640, 360, 30));
-        config.mediaOpts.videoDirection = rtc::Description::Direction::RecvOnly;
-        config.mediaOpts.audioCodec = {};
-        config.mediaOpts.audioDirection = rtc::Description::Direction::Inactive;
+        config.media.videoDirection = rtc::Description::Direction::RecvOnly;
+        config.media.audioCodec = {};
+        config.media.audioDirection = rtc::Description::Direction::Inactive;
         PeerSession session(signaller, config);
 
         signaller.ControlReceived.emit("browser", "init", "");
@@ -1095,6 +1487,52 @@ int main(int argc, char** argv)
         expect(sdp.find("a=recvonly") != std::string::npos);
         expect(sdp.find("a=rtpmap:120 VP8/90000") != std::string::npos);
         expect(sdp.find("a=rtpmap:96 H264/90000") == std::string::npos);
+    });
+
+    describe("peer session: late sdp and ice after end are ignored", []() {
+        MockSignaller signaller;
+        PeerSession session(signaller, {});
+
+        session.call("peer");
+        signaller.ControlReceived.emit("peer", "reject", "done");
+        expect(session.state() == PeerSession::State::Idle);
+
+        signaller.SdpReceived.emit("peer", "answer", "v=0\r\n");
+        signaller.CandidateReceived.emit("peer", chromeBrowserCandidate(), "0");
+
+        expect(session.state() == PeerSession::State::Idle);
+        expect(session.peerConnection() == nullptr);
+        expect(session.dataChannel() == nullptr);
+        expect(session.remotePeerId().empty());
+
+        session.call("peer-2");
+        expect(session.state() == PeerSession::State::OutgoingInit);
+        expect(session.remotePeerId() == "peer-2");
+        expect(signaller.controls.size() == 2);
+        expect(signaller.controls[0].type == "init");
+        expect(signaller.controls[1].type == "init");
+        expect(signaller.controls[1].peerId == "peer-2");
+    });
+
+    describe("peer session: duplicate remote hangup is ignored", []() {
+        MockSignaller signaller;
+        PeerSession session(signaller, {});
+        std::vector<PeerSession::State> states;
+        session.StateChanged += [&](PeerSession::State state) {
+            states.push_back(state);
+        };
+
+        session.call("peer");
+        signaller.ControlReceived.emit("peer", "hangup", "done");
+        signaller.ControlReceived.emit("peer", "hangup", "again");
+
+        expect(states.size() == 4);
+        expect(states[0] == PeerSession::State::OutgoingInit);
+        expect(states[1] == PeerSession::State::Ending);
+        expect(states[2] == PeerSession::State::Ended);
+        expect(states[3] == PeerSession::State::Idle);
+        expect(session.state() == PeerSession::State::Idle);
+        expect(session.remotePeerId().empty());
     });
 
     describe("peer session: reentrant signaller preserves state order", []() {
@@ -1203,7 +1641,7 @@ int main(int argc, char** argv)
         }, 8000));
 
         sendLoopbackAudioFrames(
-            config.mediaOpts.audioCodec,
+            config.media.audioCodec,
             32,
             0,
             [&](IPacket& packet) {
@@ -1265,7 +1703,7 @@ int main(int argc, char** argv)
         encoder.iparams.width = 160;
         encoder.iparams.height = 120;
         encoder.iparams.pixelFmt = "yuv420p";
-        encoder.oparams = config.mediaOpts.videoCodec;
+        encoder.oparams = config.media.videoCodec;
         encoder.emitter += [&](IPacket& packet) {
             alice.media().videoSender().process(packet);
         };
@@ -1308,16 +1746,16 @@ int main(int argc, char** argv)
         PeerSession::Config publisherConfig;
         publisherConfig.enableDataChannel = false;
         configureLoopbackVideoCodec(publisherConfig, 160, 120, 30);
-        publisherConfig.mediaOpts.videoDirection = rtc::Description::Direction::SendOnly;
-        publisherConfig.mediaOpts.audioCodec = {};
-        publisherConfig.mediaOpts.audioDirection = rtc::Description::Direction::Inactive;
+        publisherConfig.media.videoDirection = rtc::Description::Direction::SendOnly;
+        publisherConfig.media.audioCodec = {};
+        publisherConfig.media.audioDirection = rtc::Description::Direction::Inactive;
 
         PeerSession::Config recorderConfig;
         recorderConfig.enableDataChannel = false;
         configureLoopbackVideoCodec(recorderConfig, 160, 120, 30);
-        recorderConfig.mediaOpts.videoDirection = rtc::Description::Direction::RecvOnly;
-        recorderConfig.mediaOpts.audioCodec = {};
-        recorderConfig.mediaOpts.audioDirection = rtc::Description::Direction::Inactive;
+        recorderConfig.media.videoDirection = rtc::Description::Direction::RecvOnly;
+        recorderConfig.media.audioCodec = {};
+        recorderConfig.media.audioDirection = rtc::Description::Direction::Inactive;
 
         PeerSession publisher(publisherSig, publisherConfig);
         PeerSession recorder(recorderSig, recorderConfig);
@@ -1359,7 +1797,7 @@ int main(int argc, char** argv)
         encoder.iparams.width = 160;
         encoder.iparams.height = 120;
         encoder.iparams.pixelFmt = "yuv420p";
-        encoder.oparams = publisherConfig.mediaOpts.videoCodec;
+        encoder.oparams = publisherConfig.media.videoCodec;
         encoder.emitter += [&](IPacket& packet) {
             publisher.media().videoSender().process(packet);
         };
@@ -1438,12 +1876,12 @@ int main(int argc, char** argv)
         videoEncoder.iparams.width = 160;
         videoEncoder.iparams.height = 120;
         videoEncoder.iparams.pixelFmt = "yuv420p";
-        videoEncoder.oparams = config.mediaOpts.videoCodec;
+        videoEncoder.oparams = config.media.videoCodec;
 
-        audioEncoder.iparams.channels = config.mediaOpts.audioCodec.channels;
-        audioEncoder.iparams.sampleRate = config.mediaOpts.audioCodec.sampleRate;
+        audioEncoder.iparams.channels = config.media.audioCodec.channels;
+        audioEncoder.iparams.sampleRate = config.media.audioCodec.sampleRate;
         audioEncoder.iparams.sampleFmt = "flt";
-        audioEncoder.oparams = config.mediaOpts.audioCodec;
+        audioEncoder.oparams = config.media.audioCodec;
 
         stream.attachSource(source);
         stream.attach(&videoEncoder, 1, false);
@@ -1463,9 +1901,9 @@ int main(int argc, char** argv)
             source.emit(video);
 
             auto samples = makeLoopbackAudioSamples(
-                config.mediaOpts.audioCodec.channels,
+                config.media.audioCodec.channels,
                 960,
-                config.mediaOpts.audioCodec.sampleRate,
+                config.media.audioCodec.sampleRate,
                 i * 960);
             av::AudioPacket audio(
                 reinterpret_cast<uint8_t*>(samples.data()),
@@ -1504,30 +1942,30 @@ int main(int argc, char** argv)
         PeerSession::Config publisherConfig;
         publisherConfig.enableDataChannel = false;
         configureLoopbackVideoCodec(publisherConfig, 160, 120, 30);
-        publisherConfig.mediaOpts.videoDirection = rtc::Description::Direction::SendOnly;
-        publisherConfig.mediaOpts.audioCodec = {};
-        publisherConfig.mediaOpts.audioDirection = rtc::Description::Direction::Inactive;
+        publisherConfig.media.videoDirection = rtc::Description::Direction::SendOnly;
+        publisherConfig.media.audioCodec = {};
+        publisherConfig.media.audioDirection = rtc::Description::Direction::Inactive;
 
         PeerSession::Config relayIngressConfig;
         relayIngressConfig.enableDataChannel = false;
         configureLoopbackVideoCodec(relayIngressConfig, 160, 120, 30);
-        relayIngressConfig.mediaOpts.videoDirection = rtc::Description::Direction::RecvOnly;
-        relayIngressConfig.mediaOpts.audioCodec = {};
-        relayIngressConfig.mediaOpts.audioDirection = rtc::Description::Direction::Inactive;
+        relayIngressConfig.media.videoDirection = rtc::Description::Direction::RecvOnly;
+        relayIngressConfig.media.audioCodec = {};
+        relayIngressConfig.media.audioDirection = rtc::Description::Direction::Inactive;
 
         PeerSession::Config relayEgressConfig;
         relayEgressConfig.enableDataChannel = false;
         configureLoopbackVideoCodec(relayEgressConfig, 160, 120, 30);
-        relayEgressConfig.mediaOpts.videoDirection = rtc::Description::Direction::SendOnly;
-        relayEgressConfig.mediaOpts.audioCodec = {};
-        relayEgressConfig.mediaOpts.audioDirection = rtc::Description::Direction::Inactive;
+        relayEgressConfig.media.videoDirection = rtc::Description::Direction::SendOnly;
+        relayEgressConfig.media.audioCodec = {};
+        relayEgressConfig.media.audioDirection = rtc::Description::Direction::Inactive;
 
         PeerSession::Config viewerConfig;
         viewerConfig.enableDataChannel = false;
         configureLoopbackVideoCodec(viewerConfig, 160, 120, 30);
-        viewerConfig.mediaOpts.videoDirection = rtc::Description::Direction::RecvOnly;
-        viewerConfig.mediaOpts.audioCodec = {};
-        viewerConfig.mediaOpts.audioDirection = rtc::Description::Direction::Inactive;
+        viewerConfig.media.videoDirection = rtc::Description::Direction::RecvOnly;
+        viewerConfig.media.audioCodec = {};
+        viewerConfig.media.audioDirection = rtc::Description::Direction::Inactive;
 
         PeerSession publisher(publisherSig, publisherConfig);
         PeerSession relayIngress(ingressSig, relayIngressConfig);
@@ -1579,7 +2017,7 @@ int main(int argc, char** argv)
         encoder.iparams.width = 160;
         encoder.iparams.height = 120;
         encoder.iparams.pixelFmt = "yuv420p";
-        encoder.oparams = publisherConfig.mediaOpts.videoCodec;
+        encoder.oparams = publisherConfig.media.videoCodec;
         encoder.emitter += [&](IPacket& packet) {
             publisher.media().videoSender().process(packet);
         };
@@ -1628,30 +2066,30 @@ int main(int argc, char** argv)
         PeerSession::Config publisherConfig;
         publisherConfig.enableDataChannel = false;
         configureLoopbackAudioCodec(publisherConfig);
-        publisherConfig.mediaOpts.audioDirection = rtc::Description::Direction::SendOnly;
-        publisherConfig.mediaOpts.videoCodec = {};
-        publisherConfig.mediaOpts.videoDirection = rtc::Description::Direction::Inactive;
+        publisherConfig.media.audioDirection = rtc::Description::Direction::SendOnly;
+        publisherConfig.media.videoCodec = {};
+        publisherConfig.media.videoDirection = rtc::Description::Direction::Inactive;
 
         PeerSession::Config relayIngressConfig;
         relayIngressConfig.enableDataChannel = false;
         configureLoopbackAudioCodec(relayIngressConfig);
-        relayIngressConfig.mediaOpts.audioDirection = rtc::Description::Direction::RecvOnly;
-        relayIngressConfig.mediaOpts.videoCodec = {};
-        relayIngressConfig.mediaOpts.videoDirection = rtc::Description::Direction::Inactive;
+        relayIngressConfig.media.audioDirection = rtc::Description::Direction::RecvOnly;
+        relayIngressConfig.media.videoCodec = {};
+        relayIngressConfig.media.videoDirection = rtc::Description::Direction::Inactive;
 
         PeerSession::Config relayEgressConfig;
         relayEgressConfig.enableDataChannel = false;
         configureLoopbackAudioCodec(relayEgressConfig);
-        relayEgressConfig.mediaOpts.audioDirection = rtc::Description::Direction::SendOnly;
-        relayEgressConfig.mediaOpts.videoCodec = {};
-        relayEgressConfig.mediaOpts.videoDirection = rtc::Description::Direction::Inactive;
+        relayEgressConfig.media.audioDirection = rtc::Description::Direction::SendOnly;
+        relayEgressConfig.media.videoCodec = {};
+        relayEgressConfig.media.videoDirection = rtc::Description::Direction::Inactive;
 
         PeerSession::Config viewerConfig;
         viewerConfig.enableDataChannel = false;
         configureLoopbackAudioCodec(viewerConfig);
-        viewerConfig.mediaOpts.audioDirection = rtc::Description::Direction::RecvOnly;
-        viewerConfig.mediaOpts.videoCodec = {};
-        viewerConfig.mediaOpts.videoDirection = rtc::Description::Direction::Inactive;
+        viewerConfig.media.audioDirection = rtc::Description::Direction::RecvOnly;
+        viewerConfig.media.videoCodec = {};
+        viewerConfig.media.videoDirection = rtc::Description::Direction::Inactive;
 
         PeerSession publisher(publisherSig, publisherConfig);
         PeerSession relayIngress(ingressSig, relayIngressConfig);
@@ -1702,7 +2140,7 @@ int main(int argc, char** argv)
         expect(viewer.media().hasAudio());
 
         sendLoopbackAudioFrames(
-            publisherConfig.mediaOpts.audioCodec,
+            publisherConfig.media.audioCodec,
             32,
             0,
             [&](IPacket& packet) {
@@ -1741,30 +2179,30 @@ int main(int argc, char** argv)
         PeerSession::Config publisherConfig;
         publisherConfig.enableDataChannel = false;
         configureLoopbackAudioCodec(publisherConfig);
-        publisherConfig.mediaOpts.audioDirection = rtc::Description::Direction::SendOnly;
-        publisherConfig.mediaOpts.videoCodec = {};
-        publisherConfig.mediaOpts.videoDirection = rtc::Description::Direction::Inactive;
+        publisherConfig.media.audioDirection = rtc::Description::Direction::SendOnly;
+        publisherConfig.media.videoCodec = {};
+        publisherConfig.media.videoDirection = rtc::Description::Direction::Inactive;
 
         PeerSession::Config ingressConfig;
         ingressConfig.enableDataChannel = false;
         configureLoopbackAudioCodec(ingressConfig);
-        ingressConfig.mediaOpts.audioDirection = rtc::Description::Direction::RecvOnly;
-        ingressConfig.mediaOpts.videoCodec = {};
-        ingressConfig.mediaOpts.videoDirection = rtc::Description::Direction::Inactive;
+        ingressConfig.media.audioDirection = rtc::Description::Direction::RecvOnly;
+        ingressConfig.media.videoCodec = {};
+        ingressConfig.media.videoDirection = rtc::Description::Direction::Inactive;
 
         PeerSession::Config egressConfig;
         egressConfig.enableDataChannel = false;
         configureLoopbackAudioCodec(egressConfig);
-        egressConfig.mediaOpts.audioDirection = rtc::Description::Direction::SendOnly;
-        egressConfig.mediaOpts.videoCodec = {};
-        egressConfig.mediaOpts.videoDirection = rtc::Description::Direction::Inactive;
+        egressConfig.media.audioDirection = rtc::Description::Direction::SendOnly;
+        egressConfig.media.videoCodec = {};
+        egressConfig.media.videoDirection = rtc::Description::Direction::Inactive;
 
         PeerSession::Config viewerConfig;
         viewerConfig.enableDataChannel = false;
         configureLoopbackAudioCodec(viewerConfig);
-        viewerConfig.mediaOpts.audioDirection = rtc::Description::Direction::RecvOnly;
-        viewerConfig.mediaOpts.videoCodec = {};
-        viewerConfig.mediaOpts.videoDirection = rtc::Description::Direction::Inactive;
+        viewerConfig.media.audioDirection = rtc::Description::Direction::RecvOnly;
+        viewerConfig.media.videoCodec = {};
+        viewerConfig.media.videoDirection = rtc::Description::Direction::Inactive;
 
         PeerSession publisherA(publisherASig, publisherConfig);
         PeerSession relayIngressA(ingressASig, ingressConfig);
@@ -1832,7 +2270,7 @@ int main(int argc, char** argv)
         expect(viewer.media().hasAudio());
 
         sendLoopbackAudioFrames(
-            publisherConfig.mediaOpts.audioCodec,
+            publisherConfig.media.audioCodec,
             16,
             0,
             [&](IPacket& packet) {
@@ -1852,7 +2290,7 @@ int main(int argc, char** argv)
 
         activeSource.store(2, std::memory_order_relaxed);
         sendLoopbackAudioFrames(
-            publisherConfig.mediaOpts.audioCodec,
+            publisherConfig.media.audioCodec,
             24,
             10000000,
             [&](IPacket& packet) {
