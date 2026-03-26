@@ -18,7 +18,7 @@ target_link_libraries(media-server PRIVATE
 
 target_include_directories(media-server PRIVATE ${CMAKE_BINARY_DIR})
 target_compile_definitions(media-server PRIVATE
-  ICY_DATA_DIR="${Icey_SOURCE_DIR}/data"
+  ICY_DATA_DIR="${icey_SOURCE_DIR}/data"
 )
 
 if(ENABLE_SOLUTION_FOLDERS)

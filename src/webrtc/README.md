@@ -1,14 +1,14 @@
 # WebRTC
 
-> Lightweight WebRTC media transport for Icey
+> Lightweight WebRTC media transport for icey
 
 [![CI](https://github.com/sourcey/icey/actions/workflows/ci.yml/badge.svg)](https://github.com/sourcey/icey/actions/workflows/ci.yml)
 
 **Repository**: [https://github.com/sourcey/icey](https://github.com/sourcey/icey)
-**Dependencies**: Icey (base, net, crypto, av, symple), [libdatachannel](https://github.com/paullouisageneau/libdatachannel), OpenSSL 3.x, FFmpeg 5+
+**Dependencies**: icey (base, net, crypto, av, symple), [libdatachannel](https://github.com/paullouisageneau/libdatachannel), OpenSSL 3.x, FFmpeg 5+
 **Licence**: LGPL-2.1+
 
-WebRTC media transport without Google's libwebrtc. Uses libdatachannel for ICE, DTLS-SRTP, and data channels; Icey's AV module for FFmpeg encode/decode; and Symple for signalling. Point the ICE config at your Icey TURN server for fully self-hosted relay.
+WebRTC media transport without Google's libwebrtc. Uses libdatachannel for ICE, DTLS-SRTP, and data channels; icey's AV module for FFmpeg encode/decode; and Symple for signalling. Point the ICE config at your icey TURN server for fully self-hosted relay.
 
 Current browser validation for the bundled `media-server` path:
 - Chromium: validated by committed Playwright smoke
@@ -180,7 +180,7 @@ cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON
 cmake --build build
 ```
 
-`Icey::webrtc` is built when its prerequisites are available: OpenSSL and FFmpeg are discovered from the system (or via `OPENSSL_ROOT_DIR` / `FFmpeg_ROOT`), while libdatachannel is fetched automatically via CMake FetchContent. libdatachannel brings libjuice (ICE), usrsctp (data channels), and libsrtp (SRTP) as bundled submodules.
+`icey::webrtc` is built when its prerequisites are available: OpenSSL and FFmpeg are discovered from the system (or via `OPENSSL_ROOT_DIR` / `FFmpeg_ROOT`), while libdatachannel is fetched automatically via CMake FetchContent. libdatachannel brings libjuice (ICE), usrsctp (data channels), and libsrtp (SRTP) as bundled submodules.
 
 ## How it fits together
 
@@ -201,7 +201,7 @@ Application
 ```
 
 libdatachannel handles: ICE, DTLS, SRTP, SCTP, RTP packetization, RTCP feedback.
-Icey handles: media capture, FFmpeg codecs, signalling, TURN relay, PacketStream pipelines.
+icey handles: media capture, FFmpeg codecs, signalling, TURN relay, PacketStream pipelines.
 
 ## Files
 

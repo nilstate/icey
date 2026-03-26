@@ -1,12 +1,12 @@
 # HTTP Performance Harness
 
-Benchmarks Icey's HTTP server against Node.js and Go using [wrk](https://github.com/wg/wrk).
+Benchmarks icey's HTTP server against Node.js and Go using [wrk](https://github.com/wg/wrk).
 
 This directory contains the comparative workload harness. The reportable microbenchmarks live under [`../bench/`](../bench/).
 
 ## Variants
 
-**Icey:**
+**icey:**
 
 - `single` - single-threaded, Connection: close
 - `keepalive` - single-threaded, HTTP/1.1 keep-alive
@@ -92,7 +92,7 @@ Connection: close (per-connection overhead)
 Server                                 Req/sec     Avg Latency
 ------------------------------  --------------  --------------
 Raw libuv+llhttp (baseline)          18,468          4.88ms
-Icey (single-core)             14,330          8.19ms
+icey (single-core)             14,330          8.19ms
 Go 1.25 (single)                     14,723          6.28ms
 Node.js v20 (single)                  9,309         10.71ms
 
@@ -100,11 +100,11 @@ HTTP/1.1 keep-alive (per-request overhead)
 Server                                 Req/sec     Avg Latency
 ------------------------------  --------------  --------------
 Raw libuv+llhttp (baseline)          96,088          1.04ms
-Icey (keep-alive)              72,209          1.43ms
+icey (keep-alive)              72,209          1.43ms
 Go 1.25 (keep-alive)                53,878          2.31ms
 Node.js v20 (keep-alive)            45,514          3.56ms
 ```
 
-With Connection: close, Icey matches Go at ~14,300 req/s (77% of raw libuv). Both pay the same per-connection overhead; the gap to raw libuv is TCP accept, socket allocation, HTTP parsing into data structures, and signal dispatch.
+With Connection: close, icey matches Go at ~14,300 req/s (77% of raw libuv). Both pay the same per-connection overhead; the gap to raw libuv is TCP accept, socket allocation, HTTP parsing into data structures, and signal dispatch.
 
-With keep-alive, Icey pulls ahead of Go by 34% (72,209 vs 53,878). Connection setup is amortised; the per-request cost is just parse + format + write. Icey's event loop has less overhead than Go's goroutine scheduler and garbage collector on this tight loop.
+With keep-alive, icey pulls ahead of Go by 34% (72,209 vs 53,878). Connection setup is amortised; the per-request cost is just parse + format + write. icey's event loop has less overhead than Go's goroutine scheduler and garbage collector on this tight loop.

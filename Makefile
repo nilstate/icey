@@ -4,6 +4,8 @@ DOCS_NPM = npm --prefix doc
 DOCS_RUN = $(DOCS_NPM) run
 CONAN ?= conan
 VCPKG ?= vcpkg
+VCPKG_MAX_CONCURRENCY ?= 1
+ICEY_VCPKG_SOURCE_PATH ?= $(CURDIR)
 
 ## Build the Sourcey site from prose docs + Doxygen XML
 docs: docs-site
@@ -48,9 +50,9 @@ clean-docs:
 package-conan:
 	$(CONAN) create packaging/conan --build=missing -s compiler.cppstd=20
 
-## Install Icey through the local vcpkg overlay port
+## Install icey through the local vcpkg overlay port
 package-vcpkg:
-	$(VCPKG) install icey --overlay-ports="$(CURDIR)/packaging/vcpkg"
+	ICEY_VCPKG_SOURCE_PATH="$(ICEY_VCPKG_SOURCE_PATH)" VCPKG_MAX_CONCURRENCY="$(VCPKG_MAX_CONCURRENCY)" $(VCPKG) install icey --overlay-ports="$(CURDIR)/packaging/vcpkg"
 
 ## Build and run the media-server Docker demo
 media-server-docker:

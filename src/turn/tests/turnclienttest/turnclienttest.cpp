@@ -44,7 +44,7 @@ int main(int argc, char** argv)
     //
     describe("TURN TCP client integration", [&]() {
         turn::ServerOptions so;
-        so.software = "Icey STUN/TURN Server [rfc5766]";
+        so.software = "icey STUN/TURN Server [rfc5766]";
         so.realm = "0state.com";
         so.allocationDefaultLifetime = 1 * 60 * 1000;
         so.allocationMaxLifetime = 15 * 60 * 1000;
@@ -91,7 +91,7 @@ int main(int argc, char** argv)
     //
     describe("TURN UDP client integration", [&]() {
         turn::ServerOptions so;
-        so.software = "Icey STUN/TURN Server [rfc5766]";
+        so.software = "icey STUN/TURN Server [rfc5766]";
         so.realm = "0state.com";
         so.allocationDefaultLifetime = 1 * 60 * 1000;
         so.allocationMaxLifetime = 15 * 60 * 1000;

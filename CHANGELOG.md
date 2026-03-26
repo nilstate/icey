@@ -23,6 +23,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Changed
 
 - WebRTC browser/media-server behavior after 2.3.0: codec negotiation is tighter, browser offer handling is stricter, and `PeerSession` / track flow is more defensive under real browser traffic
+- Public package, docs, and sample surface now use lowercase `icey` consistently, with no retained `Icey` CMake/package-manager naming
 - WebRTC internals are now cut along explicit seams instead of monolithic translation units:
   - `PeerSession` state/signalling/RTC work is split across `peersession.cpp`, `peersessionsignalling.cpp`, and `peersessionrtc.cpp`
   - remote answer scoping lives in `remotemediaplan.cpp`
@@ -32,7 +33,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - `PeerSession::Config` now exposes media settings under `config.media`, and answer-session media options are derived explicitly from the remote offer's mids, directions, and payload types instead of relying on looser implicit defaults
 - Symple client/server internals are now organized under `src/symple/src/client/` and `src/symple/src/server/`, with shared wire helpers in `src/symple/src/protocol.*`
 - API reference coverage has been deepened across the core modules, WebRTC, and the pacm/pluga surfaces, with reorganized Sourcey guides and workflows
-- Icey docs now consume published `moxygen` / `sourcey` npm releases instead of git-pinned or exact-pinned toolchain versions
+- icey docs now consume published `moxygen` / `sourcey` npm releases instead of git-pinned or exact-pinned toolchain versions
 - Packaging assets are centralized under `packaging/` instead of spreading Conan and vcpkg files across the repo root
 - Browser support claims are now explicit:
   - Chromium and Firefox are validated by the committed Playwright smoke
@@ -41,6 +42,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Fixed
 
 - Exported CMake package consumers now tolerate dependency target-name differences across FetchContent, Conan, and vcpkg installs
+- Repo-local Conan and vcpkg packaging validation now passes sequentially, and installed `icey.h` headers no longer leak absolute build/source paths
 - Browser media-server smoke harness failures and related WebRTC sample pipeline regressions that were blocking stricter interop coverage
 - Symple-backed WebRTC signalling now enforces full `user|id` peer identity on the public call boundary instead of accepting ambiguous bare user/session forms
 - WebRTC receive-side codec detection no longer stringifies track descriptions back into SDP just to rediscover codec/clock data on bind or record paths
@@ -88,7 +90,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
   - stable media sender lifetime across attach/detach
 - Package consumer discovery:
   - exported targets work correctly from both the build tree and install tree
-  - `find_package(Icey REQUIRED COMPONENTS ...)` correctly marks built components as found
+  - `find_package(icey REQUIRED COMPONENTS ...)` correctly marks built components as found
 
 ## [2.2.0] - 2026-03-19
 
@@ -225,7 +227,7 @@ Keep-alive benchmark results (single vCPU, wrk -t4 -c100 -d10s):
 | Server | req/s | Latency |
 | --- | --- | --- |
 | Raw libuv+llhttp | 96,088 | 1.04ms |
-| Icey | 72,209 | 1.43ms |
+| icey | 72,209 | 1.43ms |
 | Go 1.25 net/http | 53,878 | 2.31ms |
 | Node.js v20 | 45,514 | 3.56ms |
 
@@ -237,7 +239,7 @@ Keep-alive benchmark results (single vCPU, wrk -t4 -c100 -d10s):
 - Windows build: added missing `<ostream>` include in error.h (MSVC string_view needs full definition)
 - Windows build: replaced `SIGKILL` with `SIGTERM` in process.h (SIGKILL not defined on MSVC)
 - Windows build: added `<csignal>` to application.cpp and process.h
-- macOS linker: removed unnecessary `-ldl` from Apple config in Icey.cmake
+- macOS linker: removed unnecessary `-ldl` from Apple config in icey.cmake
 - CI: fixed sanitizer env var syntax (split matrix.env into env_name/env_value)
 - CI: removed ccache from coverage job (incompatible with gcov instrumentation)
 - CI: added `submodules: recursive` to all checkout steps
@@ -274,7 +276,7 @@ Keep-alive benchmark results (single vCPU, wrk -t4 -c100 -d10s):
 
 - Rewrote CMake build system with modern target-based dependencies and `icy_add_module()` pattern
 - Replaced vendored sources with CMake FetchContent (libuv, zlib, llhttp, nlohmann/json)
-- CMake 3.21 minimum, with proper `find_package(Icey)` and FetchContent consumer support
+- CMake 3.21 minimum, with proper `find_package(icey)` and FetchContent consumer support
 - CPack packaging support (deb, rpm, tar.gz)
 - External module plugin pattern for out-of-tree modules
 - Multi-stage Docker build on Ubuntu 24.04 LTS

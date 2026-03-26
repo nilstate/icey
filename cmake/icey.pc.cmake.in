@@ -1,6 +1,6 @@
-Name: Icey
-Description: Icey C++ Networking Evolved
-Version: @Icey_VERSION@
+Name: icey
+Description: icey C++ Networking Evolved
+Version: @icey_VERSION@
 
 prefix=@CMAKE_INSTALL_PREFIX@
 exec_prefix=${prefix}

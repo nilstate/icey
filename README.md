@@ -1,4 +1,4 @@
-# Icey
+# icey
 
 [![CI](https://github.com/sourcey/icey/actions/workflows/ci.yml/badge.svg)](https://github.com/sourcey/icey/actions/workflows/ci.yml)
 [![License: LGPL-2.1+](https://img.shields.io/badge/license-LGPL--2.1%2B-blue.svg)](LICENSE.md)
@@ -15,26 +15,27 @@ stream.attach(&session->media().videoSender(), 5);
 stream.start();
 ```
 
-Icey is the connective tissue: a modular C++20 toolkit that pulls FFmpeg, libuv, OpenSSL, llhttp, libdatachannel, Symple, STUN, and TURN into one runtime model. Capture, encode, transport, signalling, and relay. Core third-party code is pulled in by CMake; system TLS and media dependencies are auto-detected. Builds in minutes.
+icey is the connective tissue: a modular C++20 toolkit that pulls FFmpeg, libuv, OpenSSL, llhttp, libdatachannel, Symple, STUN, and TURN into one runtime model. Capture, encode, transport, signalling, and relay. Core third-party code is pulled in by CMake; system TLS and media dependencies are auto-detected. Builds in minutes.
 
 **[Documentation](doc/index.md)** | **[Changelog](CHANGELOG.md)** | **[Contributing](doc/contributing.md)** | **[LGPL-2.1+](LICENSE.md)**
 
 ## Fastest Path
 
-If you want the shortest path from zero to browser video, use the [Media Server Demo](src/webrtc/apps/media-server/docker/README.md).
+If you want the shortest path from zero to browser video, use the published [Media Server Demo](src/webrtc/apps/media-server/docker/README.md) image.
 
 One command. One URL. One click.
 
 ```bash
-cd src/webrtc/apps/media-server/docker
-docker compose up --build
+docker run --rm --network host 0state/icey-media-server-demo:latest
 ```
 
 Then open `http://localhost:4500` and click `Watch` on the `Media Server` peer.
 
-## Why Icey
+This express path targets Linux host networking. If you want the source-backed path for local edits, use `docker compose up --build` from [`src/webrtc/apps/media-server/docker/`](src/webrtc/apps/media-server/docker/).
 
-| | libWebRTC (Google) | libdatachannel | GStreamer | **Icey** |
+## Why icey
+
+| | libWebRTC (Google) | libdatachannel | GStreamer | **icey** |
 |---|---|---|---|---|
 | Build system | GN/Ninja | CMake | Meson | **CMake** |
 | Build time | Hours | Minutes | 30+ min | **Minutes** |
@@ -46,7 +47,7 @@ Then open `http://localhost:4500` and click `Watch` on the `Media Server` peer.
 | TURN server | No | No | No | **RFC 5766 (built-in)** |
 | Language | C++ | C++17 | C/GObject | **C++20** |
 
-libdatachannel gives you the WebRTC transport pipe. Icey gives you the pipe, the water, and the faucet.
+libdatachannel gives you the WebRTC transport pipe. icey gives you the pipe, the water, and the faucet.
 
 ## Architecture
 
@@ -71,7 +72,7 @@ WebRTC send path:
                                                         │
   Browser ◀── RTP/SRTP ◀── DTLS ◀── ICE (libjuice) ◀───┘
                                       │
-                              Icey TURN server
+                              icey TURN server
                               (relay for symmetric NATs)
 
 WebRTC receive path:
@@ -134,11 +135,11 @@ See [src/turn/samples/turnserver/](src/turn/samples/turnserver/).
 | Server | Req/sec | Latency |
 | ------ | ------: | ------: |
 | Raw libuv+llhttp | 96,088 | 1.04ms |
-| **Icey** | **72,209** | **1.43ms** |
+| **icey** | **72,209** | **1.43ms** |
 | Go 1.25 net/http | 53,878 | 2.31ms |
 | Node.js v20 | 45,514 | 3.56ms |
 
-Icey delivers **75% of raw libuv throughput** while providing a complete HTTP stack (connection management, header construction, WebSocket upgrade, streaming responses). It outperforms Go's `net/http` by 34% and Node.js by 59%. All three share the same foundation (libuv for async IO, llhttp for HTTP parsing); the difference is pure runtime overhead.
+icey delivers **75% of raw libuv throughput** while providing a complete HTTP stack (connection management, header construction, WebSocket upgrade, streaming responses). It outperforms Go's `net/http` by 34% and Node.js by 59%. All three share the same foundation (libuv for async IO, llhttp for HTTP parsing); the difference is pure runtime overhead.
 
 See [src/http/perf/](src/http/perf/) for the cross-stack methodology, and [src/http/bench/](src/http/bench/) for the reportable HTTP microbenchmarks.
 
@@ -164,7 +165,7 @@ If you just want the right page:
 | macOS | AppleClang 15+ (Xcode 15+) |
 | Windows | MSVC 2022 (Visual Studio 17+) |
 
-CMake 3.21+ and pkg-config (Linux/macOS) required. Icey fetches its core bundled third-party code automatically:
+CMake 3.21+ and pkg-config (Linux/macOS) required. icey fetches its core bundled third-party code automatically:
 
 | Dependency | Version |
 |------------|---------|
@@ -191,10 +192,10 @@ ctest --test-dir build --output-on-failure
 include(FetchContent)
 FetchContent_Declare(icey
   GIT_REPOSITORY https://github.com/sourcey/icey.git
-  GIT_TAG v2.3.0
+  GIT_TAG 2.3.0
 )
 FetchContent_MakeAvailable(icey)
-target_link_libraries(myapp PRIVATE Icey::base Icey::net Icey::http)
+target_link_libraries(myapp PRIVATE icey::base icey::net icey::http)
 ```
 
 ### find_package
@@ -202,8 +203,8 @@ target_link_libraries(myapp PRIVATE Icey::base Icey::net Icey::http)
 After installing (`cmake --install build`):
 
 ```cmake
-find_package(Icey REQUIRED)
-target_link_libraries(myapp PRIVATE Icey::base Icey::net Icey::http)
+find_package(icey REQUIRED)
+target_link_libraries(myapp PRIVATE icey::base icey::net icey::http)
 ```
 
 ### Package Managers
@@ -216,7 +217,7 @@ conan create packaging/conan --build=missing -s compiler.cppstd=20
 # or: make package-conan
 
 # vcpkg overlay port
-vcpkg install icey --overlay-ports=$PWD/packaging/vcpkg
+ICEY_VCPKG_SOURCE_PATH=$PWD vcpkg install icey --overlay-ports=$PWD/packaging/vcpkg
 # or: make package-vcpkg
 ```
 

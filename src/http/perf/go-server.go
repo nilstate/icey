@@ -1,4 +1,4 @@
-// Go HTTP benchmark server for comparison with Icey.
+// Go HTTP benchmark server for comparison with icey.
 // Usage: go run go-server.go [minimal|echo]
 package main
 

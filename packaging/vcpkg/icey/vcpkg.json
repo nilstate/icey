@@ -15,7 +15,7 @@
   ],
   "features": {
     "ffmpeg": {
-      "description": "Enable FFmpeg-backed codecs and capture in Icey::av",
+      "description": "Enable FFmpeg-backed codecs and capture in icey::av",
       "dependencies": [
         {
           "name": "ffmpeg",
@@ -25,7 +25,7 @@
       ]
     },
     "opencv": {
-      "description": "Enable OpenCV integration in Icey::av",
+      "description": "Enable OpenCV integration in icey::av",
       "dependencies": ["opencv"]
     }
   }

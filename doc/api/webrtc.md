@@ -15,7 +15,7 @@ WebRTC media transport via libdatachannel; peer sessions, media bridge, codec ne
 | [`WebRtcTrackReceiver`](#webrtctrackreceiver) | [PacketStreamAdapter](base.md#packetstreamadapter) that receives depacketized frames from a single remote libdatachannel Track and emits them as VideoPacket or AudioPacket into a [PacketStream](base.md#packetstream). |
 | [`CodecNegotiator`](#codecnegotiator) | Maps RTP codec names to FFmpeg encoders and queries FFmpeg at runtime to determine what codecs are available. |
 | [`TrackHandle`](#trackhandle) | Result of creating a track: the track itself plus its RTP config. Keep the config around - you need it for [WebRtcTrackSender](#webrtctracksender). |
-| [`CodecSpec`](#codecspec) | Canonical description of a codec supported by Icey's WebRTC helpers. |
+| [`CodecSpec`](#codecspec) | Canonical description of a codec supported by icey's WebRTC helpers. |
 | [`NegotiatedCodec`](#negotiatedcodec) | Result of codec negotiation between a remote SDP offer and the local FFmpeg codec inventory. |
 
 ### Enumerations
@@ -2410,7 +2410,7 @@ RTP packetization state required by [WebRtcTrackSender](#webrtctracksender).
 #include <icy/webrtc/codecnegotiator.h>
 ```
 
-Canonical description of a codec supported by Icey's WebRTC helpers.
+Canonical description of a codec supported by icey's WebRTC helpers.
 
 ### Public Attributes
 

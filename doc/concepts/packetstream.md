@@ -1,10 +1,10 @@
 # PacketStream
 
-`PacketStream` is the data plane running through a lot of Icey.
+`PacketStream` is the data plane running through a lot of icey.
 
 It is how media gets from capture to encoder to network transport. It is how receiver pipelines hand packets to decoders and muxers. It is how the library keeps dataflow explicit instead of hiding it behind callback soup.
 
-If you understand `PacketStream`, a lot of the rest of Icey stops looking like magic.
+If you understand `PacketStream`, a lot of the rest of icey stops looking like magic.
 
 ## What It Is
 
@@ -236,7 +236,7 @@ WebRtcTrackReceiver -> VideoDecoder -> MultiplexPacketEncoder
 source session -> encoded packet fanout -> viewer senders
 ```
 
-The same graph model covers all three. That is one of the reasons Icey can keep media code relatively coherent.
+The same graph model covers all three. That is one of the reasons icey can keep media code relatively coherent.
 
 ## Common Mistakes
 
@@ -260,7 +260,7 @@ It is a data plane. Use it when packets are actually flowing through a pipeline.
 
 ## Why This Matters
 
-Icey uses `PacketStream` in the places where performance and clarity usually fight each other.
+icey uses `PacketStream` in the places where performance and clarity usually fight each other.
 
 The whole point of the abstraction is that you do not have to choose:
 

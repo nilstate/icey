@@ -1,6 +1,6 @@
 # Webcam To Browser
 
-This is one of Icey's cleanest end-to-end paths.
+This is one of icey's cleanest end-to-end paths.
 
 The pipeline is:
 
@@ -8,7 +8,7 @@ The pipeline is:
 MediaCapture -> VideoPacketEncoder -> WebRtcTrackSender -> browser
 ```
 
-Notably, there is no hidden libwebrtc media stack in the middle. Icey owns the capture, encode, and stream graph. libdatachannel owns the transport.
+Notably, there is no hidden libwebrtc media stack in the middle. icey owns the capture, encode, and stream graph. libdatachannel owns the transport.
 
 ## What Handles What
 

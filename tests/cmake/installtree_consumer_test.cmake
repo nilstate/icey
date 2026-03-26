@@ -35,7 +35,7 @@ execute_process(
   RESULT_VARIABLE _configure_result
 )
 if(NOT _configure_result EQUAL 0)
-  message(FATAL_ERROR "Failed to configure slim Icey package build")
+  message(FATAL_ERROR "Failed to configure slim icey package build")
 endif()
 
 execute_process(
@@ -45,7 +45,7 @@ execute_process(
   RESULT_VARIABLE _build_result
 )
 if(NOT _build_result EQUAL 0)
-  message(FATAL_ERROR "Failed to build slim Icey package build")
+  message(FATAL_ERROR "Failed to build slim icey package build")
 endif()
 
 execute_process(
@@ -55,7 +55,7 @@ execute_process(
   RESULT_VARIABLE _install_result
 )
 if(NOT _install_result EQUAL 0)
-  message(FATAL_ERROR "Failed to install Icey for install-tree consumer test")
+  message(FATAL_ERROR "Failed to install icey for install-tree consumer test")
 endif()
 
 execute_process(

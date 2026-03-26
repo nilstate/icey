@@ -12,20 +12,27 @@ in one C++ binary.
 
 That is what makes `media-server` interesting. It is not a thin demo around a managed service. It is the whole stack in one place.
 
-## Fastest Path
+## Express Path
 
-If you want the shortest path to a running browser demo, start with the Media Server Demo:
+If you want the shortest path to a running browser demo, start with the published Media Server Demo image:
 
 - [Media Server Demo](../../src/webrtc/apps/media-server/docker/README.md)
 
-From that directory:
-
 ```bash
-docker compose up --build
+docker run --rm --network host 0state/icey-media-server-demo:latest
 ```
 
 Then open `http://localhost:4500`.
 In the default `stream` mode, click `Watch` on the `Media Server` peer.
+
+## Source Path
+
+If you want the repo-backed path instead, use the same demo directory from source:
+
+```bash
+cd src/webrtc/apps/media-server/docker
+docker compose up --build
+```
 
 ## What Runs
 
@@ -108,7 +115,7 @@ That last step is the main difference:
 
 ## The Important Runtime Pieces
 
-`media-server` works because it is sitting on top of the rest of Icey, not re-implementing it.
+`media-server` works because it is sitting on top of the rest of icey, not re-implementing it.
 
 - `http` serves the UI and status endpoints
 - `symple` carries signalling and presence

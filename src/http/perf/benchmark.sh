@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Icey HTTP Benchmark
+# icey HTTP Benchmark
 #
 # Prerequisites:
 #   - wrk (https://github.com/wg/wrk)
@@ -86,7 +86,7 @@ cleanup() { kill_server; $HAS_GO && rm -f "$GO_BIN"; }
 trap cleanup EXIT
 
 echo -e "${BOLD}============================================${NC}"
-echo -e "${BOLD}  Icey HTTP Benchmark${NC}"
+echo -e "${BOLD}  icey HTTP Benchmark${NC}"
 echo -e "${BOLD}============================================${NC}"
 echo
 echo "System: $(uname -srm)"
@@ -105,18 +105,18 @@ wait_for_port
 run_wrk "Raw libuv+llhttp (baseline)"
 kill_server
 
-# --- Icey single-core ---
+# --- icey single-core ---
 "$HTTPPERF" single &
 SERVER_PID=$!
 wait_for_port
-run_wrk "Icey (single-core)"
+run_wrk "icey (single-core)"
 kill_server
 
-# --- Icey multi-core ---
+# --- icey multi-core ---
 "$HTTPPERF" multi &
 SERVER_PID=$!
 wait_for_port
-run_wrk "Icey (multi-core)"
+run_wrk "icey (multi-core)"
 kill_server
 
 # --- Node.js single ---
@@ -152,11 +152,11 @@ wait_for_port
 run_wrk "Raw libuv+llhttp (keep-alive)"
 kill_server
 
-# --- Icey keep-alive ---
+# --- icey keep-alive ---
 "$HTTPPERF" keepalive &
 SERVER_PID=$!
 wait_for_port
-run_wrk "Icey (keep-alive)"
+run_wrk "icey (keep-alive)"
 kill_server
 
 # --- Node.js keep-alive ---

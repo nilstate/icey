@@ -6,12 +6,12 @@
 
 ## Overview
 
-The `crypto` module is the cryptographic foundation of Icey. Every other module that needs cryptography depends on it; `net` uses it for TLS certificates, `stun` uses it for HMAC-SHA1 message integrity, and `turn` inherits both through `stun`.
+The `crypto` module is the cryptographic foundation of icey. Every other module that needs cryptography depends on it; `net` uses it for TLS certificates, `stun` uses it for HMAC-SHA1 message integrity, and `turn` inherits both through `stun`.
 
-All types live in the `icy::crypto` namespace. Headers are under `icy/crypto/`. Link against the `Icey::crypto` CMake target:
+All types live in the `icy::crypto` namespace. Headers are under `icy/crypto/`. Link against the `icey::crypto` CMake target:
 
 ```cmake
-target_link_libraries(my_target PRIVATE Icey::crypto)
+target_link_libraries(my_target PRIVATE icey::crypto)
 ```
 
 The module wraps OpenSSL's EVP layer exclusively. We do not call legacy API functions (no `SHA1()`, no `MD5()`, no `EVP_DigestInit()` without context). Every algorithm is resolved at runtime via `EVP_get_digestbyname` / `EVP_get_cipherbyname`, which means any algorithm the installed OpenSSL supports is immediately available.

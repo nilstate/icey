@@ -1,8 +1,8 @@
-# Icey Documentation
+# icey Documentation
 
-Icey exists because the usual C++ stack for realtime and media work is a mess. HTTP on one side, FFmpeg on another, WebRTC hidden behind Google's toolchain, TURN treated as somebody else's problem, and the docs scattered across a README, generated API, and sample code.
+icey exists because the usual C++ stack for realtime and media work is a mess. HTTP on one side, FFmpeg on another, WebRTC hidden behind Google's toolchain, TURN treated as somebody else's problem, and the docs scattered across a README, generated API, and sample code.
 
-Icey pulls those layers into one library with one runtime model. libuv for the loop, PacketStream for the data plane, FFmpeg for media, libdatachannel for WebRTC transport, Symple for signalling, TURN when NAT gets ugly.
+icey pulls those layers into one library with one runtime model. libuv for the loop, PacketStream for the data plane, FFmpeg for media, libdatachannel for WebRTC transport, Symple for signalling, TURN when NAT gets ugly.
 
 If you are here to do a specific job, start there first.
 
@@ -10,7 +10,7 @@ If you are here to do a specific job, start there first.
 
 | Goal | Best first page | Next concrete stop |
 | --- | --- | --- |
-| Build Icey and link a first program | [Getting Started](getting-started.md) | [Installation](installation.md) |
+| Build icey and link a first program | [Getting Started](getting-started.md) | [Installation](installation.md) |
 | Understand the runtime rules before writing code | [Runtime Contracts](concepts/runtime-contracts.md) | [PacketStream](concepts/packetstream.md) and [HTTP Lifecycle](concepts/http-lifecycle.md) |
 | Understand the module layout | [Module Map](modules.md) | one of the module guides below |
 | Build a fast HTTP service | [HTTP Server](recipes/http-server.md) | [HTTP performance harness](../src/http/perf/README.md) |
@@ -18,7 +18,7 @@ If you are here to do a specific job, start there first.
 | Run your own TURN relay | [TURN Server](recipes/turn-server.md) | [turnserver sample](../src/turn/samples/turnserver/README.md) |
 | Stream a webcam to a browser | [Webcam To Browser](recipes/webrtc-webcam-to-browser.md) | [webcam-streamer sample](../src/webrtc/samples/webcam-streamer/README.md) |
 | Record browser media on the server | [Browser To Recorder](recipes/webrtc-browser-to-recorder.md) | [media-recorder sample](../src/webrtc/samples/media-recorder/README.md) |
-| Run the self-hosted media stack | [Media Server Stack](recipes/media-server-stack.md) | [Media Server Demo](../src/webrtc/apps/media-server/docker/README.md) |
+| Run the self-hosted media stack | [Media Server Demo](../src/webrtc/apps/media-server/docker/README.md) | [Media Server Stack](recipes/media-server-stack.md) |
 
 ## What These Pages Are For
 
@@ -32,14 +32,14 @@ Use the prose docs when you need to understand the shape of the system. Use the 
 
 ## The Shape Of The System
 
-Icey is organized around a few load-bearing modules:
+icey is organized around a few load-bearing modules:
 
 - [`base`](modules/base.md): event loop, signals, PacketStream, handles, timers, logging, buffers, and the rest of the runtime substrate
 - [`net`](modules/net.md) and [`http`](modules/http.md): sockets, TLS, HTTP client/server, WebSocket, streaming, and transport adapters
 - [`av`](modules/av.md) and [`webrtc`](modules/webrtc.md): capture, encode/decode, RTP track send/receive, session control, and browser media flows
 - [`symple`](modules/symple.md), [`stun`](modules/stun.md), and [`turn`](modules/turn.md): signalling, presence, NAT traversal, and relay
 
-A lot of Icey reduces to this:
+A lot of icey reduces to this:
 
 ```text
 source -> PacketStream -> processors -> sink

@@ -2,7 +2,7 @@
   "name": "icey-docs",
   "private": true,
   "type": "module",
-  "description": "Sourcey and Moxygen toolchain for Icey documentation",
+  "description": "Sourcey and Moxygen toolchain for icey documentation",
   "scripts": {
     "site:build": "sourcey build -o ../dist",
     "site:dev": "sourcey dev"

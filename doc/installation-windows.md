@@ -41,7 +41,7 @@ cmake --install build --prefix C:\icey
 
 ### Visual Studio
 
-1. Open CMake GUI, point source to the Icey root, configure, generate
+1. Open CMake GUI, point source to the icey root, configure, generate
 2. Open `build/icey.sln` in Visual Studio
 3. Build Debug and/or Release configurations
 

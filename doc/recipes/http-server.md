@@ -11,7 +11,7 @@ If you need the whole module surface, read the [HTTP guide](../modules/http.md).
 
 ## The Shape
 
-Icey's HTTP server is one event loop, one parser path per live socket, pooled `ServerConnection` objects, and no thread-per-request model.
+icey's HTTP server is one event loop, one parser path per live socket, pooled `ServerConnection` objects, and no thread-per-request model.
 
 The normal flow is:
 
@@ -70,7 +70,7 @@ srv.Connection += [](http::ServerConnection::Ptr conn) {
 };
 ```
 
-The important runtime rule is the same as everywhere else in Icey:
+The important runtime rule is the same as everywhere else in icey:
 
 - `MutableBuffer` is borrowed for the callback only
 
@@ -110,7 +110,7 @@ Use it when you need real request state, uploads, routing, or per-connection beh
 
 ## Streaming Responses
 
-Icey treats long-lived responses as a first-class state, not as a normal response that never got closed.
+icey treats long-lived responses as a first-class state, not as a normal response that never got closed.
 
 Use streaming when the server is intentionally going to keep writing:
 
@@ -153,7 +153,7 @@ If you care about the details there, read [HTTP Lifecycle](../concepts/http-life
 
 ## Performance Notes
 
-Icey's HTTP server is fast for a reason:
+icey's HTTP server is fast for a reason:
 
 - llhttp does the parse work
 - the connection model stays explicit

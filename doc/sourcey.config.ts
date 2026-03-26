@@ -1,5 +1,5 @@
 export default {
-  name: "Icey",
+  name: "icey",
   theme: {
     colors: { primary: "#2563eb" },
   },

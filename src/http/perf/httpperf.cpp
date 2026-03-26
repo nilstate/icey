@@ -1,7 +1,7 @@
 ///
 //
-// Icey HTTP Benchmark
-// Copyright (c) 2005, Icey <https://0state.com>
+// icey HTTP Benchmark
+// Copyright (c) 2005, icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -26,7 +26,7 @@ static const net::Address address("0.0.0.0", BenchmarkPort);
 
 
 // =============================================================================
-// Icey HTTP server variants
+// icey HTTP server variants
 // =============================================================================
 
 /// Single-threaded benchmark server.
@@ -42,7 +42,7 @@ void runSingleCore()
         conn->sendHeader();
     };
 
-    std::cout << "Icey HTTP benchmark (single-core) listening on port "
+    std::cout << "icey HTTP benchmark (single-core) listening on port "
               << BenchmarkPort << '\n';
     waitForShutdown();
 }
@@ -60,7 +60,7 @@ void runKeepAlive()
         conn->sendHeader();
     };
 
-    std::cout << "Icey HTTP benchmark (keep-alive) listening on port "
+    std::cout << "icey HTTP benchmark (keep-alive) listening on port "
               << BenchmarkPort << '\n';
     waitForShutdown();
 }
@@ -99,7 +99,7 @@ void runMultiCore()
         threads.push_back(std::make_unique<Thread>([]() { runMulticoreInstance(); }));
     }
 
-    std::cout << "Icey HTTP benchmark (multicore x" << ncpus
+    std::cout << "icey HTTP benchmark (multicore x" << ncpus
               << ") listening on port " << BenchmarkPort << '\n';
 
     for (auto& thread : threads) {
@@ -122,7 +122,7 @@ void runEcho()
         };
     };
 
-    std::cout << "Icey HTTP echo (single-core) listening on port "
+    std::cout << "icey HTTP echo (single-core) listening on port "
               << BenchmarkPort << '\n';
     waitForShutdown();
 }

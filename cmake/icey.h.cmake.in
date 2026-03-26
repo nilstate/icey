@@ -8,13 +8,13 @@
 #define ICY_VERSION_PATCH ${PROJECT_VERSION_PATCH}
 
 // Define the source path
-#define ICY_SOURCE_DIR "${Icey_SOURCE_DIR}"
+#define ICY_SOURCE_DIR "@ICY_SOURCE_DIR_VALUE@"
 
 // Define the build path
-#define ICY_BUILD_DIR "${CMAKE_BINARY_DIR}"
+#define ICY_BUILD_DIR "@ICY_BUILD_DIR_VALUE@"
 
 // Define the installation path
-#define ICY_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}"
+#define ICY_INSTALL_DIR "@ICY_INSTALL_DIR_VALUE@"
 
 // Building as shared library (.so or .dll)
 #cmakedefine ICY_SHARED_LIBRARY
@@ -25,7 +25,7 @@
 // Attempt to recover from internal exceptions
 #cmakedefine ICY_EXCEPTION_RECOVERY
 
-// Icey modules
+// icey modules
 #cmakedefine HAVE_ICY_base
 #cmakedefine HAVE_ICY_crypto
 #cmakedefine HAVE_ICY_net

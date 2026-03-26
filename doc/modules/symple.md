@@ -12,7 +12,7 @@ We use Symple in two roles: as the signalling layer for WebRTC calls, and as a g
 
 **Headers:** `icy/symple/`
 **Namespace:** `icy::smpl`
-**CMake target:** `Icey::symple`
+**CMake target:** `icey::symple`
 **License:** LGPL-2.1+
 
 ---
@@ -665,7 +665,7 @@ void onStateChange(void*, smpl::ClientState& state, const smpl::ClientState&)
 // Announce ourselves as a streamer in presence broadcasts
 void onCreatePresence(smpl::Peer& peer)
 {
-    peer["agent"] = "Icey";
+    peer["agent"] = "icey";
     peer["type"] = "streamer";
 }
 ```
@@ -770,7 +770,7 @@ The test suite covers 18 scenarios: address parsing, peer construction, message 
 Link the module in your own CMake project:
 
 ```cmake
-target_link_libraries(myapp PRIVATE Icey::symple)
+target_link_libraries(myapp PRIVATE icey::symple)
 ```
 
 ## See Also

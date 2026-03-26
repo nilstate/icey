@@ -1,18 +1,18 @@
 ///
 //
-// Icey
-// Copyright (c) 2005, Icey <https://0state.com>
+// icey
+// Copyright (c) 2005, icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
 // WebSocket Client
 //
-// Demonstrates a WebSocket client connection using the Icey HTTP
+// Demonstrates a WebSocket client connection using the icey HTTP
 // module. Connects to a WebSocket server, sends a message, and prints
 // any data received back.
 //
 // Usage: wsclient [url] [message]
-//   Default: ws://echo.websocket.events "Hello from Icey!"
+//   Default: ws://echo.websocket.events "Hello from icey!"
 //
 // To test locally, run the echoserver sample first and connect to
 // ws://localhost:1337 instead.
@@ -36,7 +36,7 @@ using namespace icy;
 int main(int argc, char** argv)
 {
     std::string url = argc > 1 ? argv[1] : "ws://echo.websocket.events";
-    std::string message = argc > 2 ? argv[2] : "Hello from Icey!";
+    std::string message = argc > 2 ? argv[2] : "Hello from icey!";
 
     Logger::instance().add(std::make_unique<ConsoleChannel>("debug", Level::Debug));
 

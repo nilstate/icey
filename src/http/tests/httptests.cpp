@@ -851,7 +851,7 @@ int main(int argc, char** argv)
         // Create a GET request with headers
         http::Request req("GET", "/api/users?page=1");
         req.setHost("example.com", 8080);
-        req.set("User-Agent", "Icey/2.0");
+        req.set("User-Agent", "icey/2.0");
         req.set("Accept", "application/json");
 
         // Serialize
@@ -862,7 +862,7 @@ int main(int argc, char** argv)
         // Verify serialized output contains key parts
         expect(raw.find("GET /api/users?page=1 HTTP/1.1") != std::string::npos);
         expect(raw.find("Host: example.com:8080") != std::string::npos);
-        expect(raw.find("User-Agent: Icey/2.0") != std::string::npos);
+        expect(raw.find("User-Agent: icey/2.0") != std::string::npos);
 
         // Parse back
         http::Request parsed;
@@ -874,7 +874,7 @@ int main(int argc, char** argv)
         expect(parsed.getMethod() == "GET");
         expect(parsed.getURI() == "/api/users?page=1");
         expect(parsed.getHost() == "example.com:8080" || parsed.getHost() == "example.com");
-        expect(parsed.get("User-Agent") == "Icey/2.0");
+        expect(parsed.get("User-Agent") == "icey/2.0");
         expect(parsed.get("Accept") == "application/json");
     });
 

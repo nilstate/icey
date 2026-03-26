@@ -1,4 +1,4 @@
-# Icey module system
+# icey module system
 #
 # Target-based dependency propagation. Each module declares its own dependencies
 # via DEPENDS (other icy modules) and PACKAGES (external find_package targets).
@@ -16,13 +16,13 @@
 include(GNUInstallDirs)
 
 # Tracked lists for build summary and config header
-set(Icey_BUILD_MODULES "" CACHE INTERNAL "Modules built")
-set(Icey_BUILD_TESTS "" CACHE INTERNAL "Tests built")
-set(Icey_BUILD_SAMPLES "" CACHE INTERNAL "Samples built")
-set(Icey_BUILD_FUZZERS "" CACHE INTERNAL "Fuzz targets built")
-set(Icey_BUILD_BENCHMARKS "" CACHE INTERNAL "Benchmark targets built")
-set(Icey_BUILD_PERF "" CACHE INTERNAL "Comparative performance targets built")
-set(Icey_REPORT_BENCHMARKS "" CACHE INTERNAL "Machine-readable benchmark targets built")
+set(icey_BUILD_MODULES "" CACHE INTERNAL "Modules built")
+set(icey_BUILD_TESTS "" CACHE INTERNAL "Tests built")
+set(icey_BUILD_SAMPLES "" CACHE INTERNAL "Samples built")
+set(icey_BUILD_FUZZERS "" CACHE INTERNAL "Fuzz targets built")
+set(icey_BUILD_BENCHMARKS "" CACHE INTERNAL "Benchmark targets built")
+set(icey_BUILD_PERF "" CACHE INTERNAL "Comparative performance targets built")
+set(icey_REPORT_BENCHMARKS "" CACHE INTERNAL "Machine-readable benchmark targets built")
 
 # ----------------------------------------------------------------------------
 # Helper: filter platform-specific sources
@@ -83,7 +83,7 @@ function(icy_set_output_properties target)
 
   set_target_properties(${target} PROPERTIES
     OUTPUT_NAME ${_output_name}
-    DEBUG_POSTFIX "${Icey_DEBUG_POSTFIX}"
+    DEBUG_POSTFIX "${icey_DEBUG_POSTFIX}"
     LINKER_LANGUAGE CXX
   )
 
@@ -123,56 +123,99 @@ function(icy_add_module name)
   source_group("Src" FILES ${_srcs})
   source_group("Include" FILES ${_hdrs})
 
+  set(_is_header_only FALSE)
+  if(NOT _srcs)
+    set(_is_header_only TRUE)
+  endif()
+
   # Create library target
-  add_library(${name} ${_srcs} ${_hdrs})
-  add_library(Icey::${name} ALIAS ${name})
+  if(_is_header_only)
+    add_library(${name} INTERFACE)
+  else()
+    add_library(${name} ${_srcs} ${_hdrs})
+  endif()
+  add_library(icey::${name} ALIAS ${name})
 
   # Include directories with generator expressions for build vs install
-  target_include_directories(${name}
-    PUBLIC
-      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
-      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-      $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-  )
+  if(_is_header_only)
+    target_include_directories(${name}
+      INTERFACE
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+    )
+  else()
+    target_include_directories(${name}
+      PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+    )
+  endif()
 
   # Link module dependencies (propagate transitively)
   if(MOD_DEPENDS)
-    target_link_libraries(${name} PUBLIC ${MOD_DEPENDS})
+    if(_is_header_only)
+      target_link_libraries(${name} INTERFACE ${MOD_DEPENDS})
+    else()
+      target_link_libraries(${name} PUBLIC ${MOD_DEPENDS})
+    endif()
   endif()
 
   # Link external package dependencies
   if(MOD_PACKAGES)
-    target_link_libraries(${name} PUBLIC ${MOD_PACKAGES})
-  endif()
-
-  # Warnings as errors (per-target, avoids breaking FetchContent deps)
-  if(ENABLE_WARNINGS_ARE_ERRORS)
-    if(MSVC)
-      target_compile_options(${name} PRIVATE /WX)
+    if(_is_header_only)
+      target_link_libraries(${name} INTERFACE ${MOD_PACKAGES})
     else()
-      target_compile_options(${name} PRIVATE -Werror)
+      target_link_libraries(${name} PUBLIC ${MOD_PACKAGES})
     endif()
   endif()
 
-  # Export symbol for shared libraries
-  icy_set_export_symbol(${name} "${MOD_PRETTY_NAME}")
+  if(NOT _is_header_only)
+    # Warnings as errors (per-target, avoids breaking FetchContent deps)
+    if(ENABLE_WARNINGS_ARE_ERRORS)
+      if(MSVC)
+        target_compile_options(${name} PRIVATE /WX)
+      else()
+        target_compile_options(${name} PRIVATE -Werror)
+      endif()
+    endif()
 
-  # Output properties
-  icy_set_output_properties(${name})
+    # Export symbol for shared libraries
+    icy_set_export_symbol(${name} "${MOD_PRETTY_NAME}")
+
+    # Output properties
+    icy_set_output_properties(${name})
+  elseif(ENABLE_SOLUTION_FOLDERS)
+    set_target_properties(${name} PROPERTIES FOLDER "modules")
+  endif()
 
   # Install library
-  if(_srcs)
+  if(_is_header_only)
+    if(MOD_SKIP_EXPORT)
+      install(TARGETS ${name}
+        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+      )
+    else()
+      install(TARGETS ${name}
+        EXPORT iceyTargets
+        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+      )
+    endif()
+  else()
     if(MOD_SKIP_EXPORT)
       # Install without adding to the shared export set (for modules
       # with FetchContent deps that have conflicting export targets).
       install(TARGETS ${name}
+        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT libs
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT libs
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT dev
       )
     else()
       install(TARGETS ${name}
-        EXPORT IceyTargets
+        EXPORT iceyTargets
+        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT libs
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT libs
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT dev
@@ -188,7 +231,7 @@ function(icy_add_module name)
 
   # Track for build summary and config header
   set(HAVE_ICY_${name} ON CACHE INTERNAL "")
-  set(Icey_BUILD_MODULES ${Icey_BUILD_MODULES} ${name} CACHE INTERNAL "")
+  set(icey_BUILD_MODULES ${icey_BUILD_MODULES} ${name} CACHE INTERNAL "")
 
   message(STATUS "  Module: ${name}")
 
@@ -250,7 +293,7 @@ function(icy_add_test name)
 
   # Config header access
   target_include_directories(${name} PRIVATE ${CMAKE_BINARY_DIR})
-  target_compile_definitions(${name} PRIVATE ICY_DATA_DIR="${Icey_SOURCE_DIR}/data")
+  target_compile_definitions(${name} PRIVATE ICY_DATA_DIR="${icey_SOURCE_DIR}/data")
 
   if(NOT TEST_EXCLUDE_CTEST)
     add_test(NAME ${name} COMMAND ${name})
@@ -260,7 +303,7 @@ function(icy_add_test name)
     set_target_properties(${name} PROPERTIES FOLDER "tests")
   endif()
 
-  set(Icey_BUILD_TESTS ${Icey_BUILD_TESTS} ${name} CACHE INTERNAL "")
+  set(icey_BUILD_TESTS ${icey_BUILD_TESTS} ${name} CACHE INTERNAL "")
 
   install(TARGETS ${name}
     RUNTIME DESTINATION "${CMAKE_INSTALL_DATADIR}/icey/tests/${name}"
@@ -287,13 +330,13 @@ function(icy_add_sample name)
   endif()
 
   target_include_directories(${name} PRIVATE ${CMAKE_BINARY_DIR})
-  target_compile_definitions(${name} PRIVATE ICY_DATA_DIR="${Icey_SOURCE_DIR}/data")
+  target_compile_definitions(${name} PRIVATE ICY_DATA_DIR="${icey_SOURCE_DIR}/data")
 
   if(ENABLE_SOLUTION_FOLDERS)
     set_target_properties(${name} PROPERTIES FOLDER "samples")
   endif()
 
-  set(Icey_BUILD_SAMPLES ${Icey_BUILD_SAMPLES} ${name} CACHE INTERNAL "")
+  set(icey_BUILD_SAMPLES ${icey_BUILD_SAMPLES} ${name} CACHE INTERNAL "")
 
   install(TARGETS ${name}
     RUNTIME DESTINATION "${CMAKE_INSTALL_DATADIR}/icey/samples/${name}"
@@ -363,7 +406,7 @@ function(icy_add_fuzzer name)
   endif()
 
   target_include_directories(${name} PRIVATE ${CMAKE_BINARY_DIR})
-  target_compile_definitions(${name} PRIVATE ICY_DATA_DIR="${Icey_SOURCE_DIR}/data")
+  target_compile_definitions(${name} PRIVATE ICY_DATA_DIR="${icey_SOURCE_DIR}/data")
 
   if(FUZZING_ENGINE)
     separate_arguments(_fuzz_engine_flags NATIVE_COMMAND "${FUZZING_ENGINE}")
@@ -377,7 +420,7 @@ function(icy_add_fuzzer name)
     set_target_properties(${name} PROPERTIES FOLDER "fuzz")
   endif()
 
-  set(Icey_BUILD_FUZZERS ${Icey_BUILD_FUZZERS} ${name} CACHE INTERNAL "")
+  set(icey_BUILD_FUZZERS ${icey_BUILD_FUZZERS} ${name} CACHE INTERNAL "")
 endfunction()
 
 # ----------------------------------------------------------------------------
@@ -411,14 +454,14 @@ function(icy_add_benchmark name)
     ${CMAKE_BINARY_DIR}
     ${CMAKE_SOURCE_DIR}/bench
   )
-  target_compile_definitions(${name} PRIVATE ICY_DATA_DIR="${Icey_SOURCE_DIR}/data")
+  target_compile_definitions(${name} PRIVATE ICY_DATA_DIR="${icey_SOURCE_DIR}/data")
 
   if(ENABLE_SOLUTION_FOLDERS)
     set_target_properties(${name} PROPERTIES FOLDER "benchmarks")
   endif()
 
-  set(Icey_BUILD_BENCHMARKS ${Icey_BUILD_BENCHMARKS} ${name} CACHE INTERNAL "")
-  set(Icey_REPORT_BENCHMARKS ${Icey_REPORT_BENCHMARKS} ${name} CACHE INTERNAL "")
+  set(icey_BUILD_BENCHMARKS ${icey_BUILD_BENCHMARKS} ${name} CACHE INTERNAL "")
+  set(icey_REPORT_BENCHMARKS ${icey_REPORT_BENCHMARKS} ${name} CACHE INTERNAL "")
 endfunction()
 
 # ----------------------------------------------------------------------------
@@ -447,7 +490,7 @@ macro(define_icey_dependency name)
   source_group("Source" FILES ${${name}_SOURCE_FILES})
   source_group("Include" FILES ${${name}_HEADER_FILES})
 
-  add_library(${name} ${Icey_LIB_TYPE} ${${name}_SOURCE_FILES})
+  add_library(${name} ${icey_LIB_TYPE} ${${name}_SOURCE_FILES})
 
   if(${name}_DEFINITIONS)
     target_compile_definitions(${name} PRIVATE ${${name}_DEFINITIONS})
@@ -475,15 +518,15 @@ macro(define_icey_dependency name)
   if(${name}_OUTPUT_NAME)
     set_target_properties(${name} PROPERTIES OUTPUT_NAME ${${name}_OUTPUT_NAME})
   endif()
-  if(Icey_DEBUG_POSTFIX)
-    set_target_properties(${name} PROPERTIES DEBUG_POSTFIX ${Icey_DEBUG_POSTFIX})
+  if(icey_DEBUG_POSTFIX)
+    set_target_properties(${name} PROPERTIES DEBUG_POSTFIX ${icey_DEBUG_POSTFIX})
   endif()
   if(ENABLE_SOLUTION_FOLDERS)
     set_target_properties(${name} PROPERTIES FOLDER "dependencies")
   endif()
 
   install(TARGETS ${name}
-    EXPORT IceyTargets
+    EXPORT iceyTargets
     RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT libs
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT libs
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT dev

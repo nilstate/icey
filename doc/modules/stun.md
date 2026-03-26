@@ -6,7 +6,7 @@
 
 ## Overview
 
-STUN (Session Traversal Utilities for NAT, RFC 5389) is the wire protocol underpinning all NAT traversal in Icey. Every TURN message is a STUN message with a TURN-specific method. Every ICE connectivity check is a STUN Binding request. The `stun` module provides the complete codec for both, and the TURN module is built entirely on top of it.
+STUN (Session Traversal Utilities for NAT, RFC 5389) is the wire protocol underpinning all NAT traversal in icey. Every TURN message is a STUN message with a TURN-specific method. Every ICE connectivity check is a STUN Binding request. The `stun` module provides the complete codec for both, and the TURN module is built entirely on top of it.
 
 The module covers four concerns:
 
@@ -15,10 +15,10 @@ The module covers four concerns:
 - **Message integrity**: HMAC-SHA1 computation on write and verification on read, using the long-term credential key `MD5(username:realm:password)`.
 - **Transaction layer**: request/response matching by transaction ID, with configurable timeout and retry count.
 
-Link against `Icey::stun`:
+Link against `icey::stun`:
 
 ```cmake
-target_link_libraries(myapp PRIVATE Icey::stun)
+target_link_libraries(myapp PRIVATE icey::stun)
 ```
 
 Headers:
@@ -488,7 +488,7 @@ The module includes all four ICE-specific attributes needed for connectivity che
 | `ICEControlling` | `0x802A` | `UInt64Attribute` | 8445 |
 | `ICEControlled` | `0x8029` | `UInt64Attribute` | 8445 |
 
-In Icey's WebRTC stack, libdatachannel/libjuice handles ICE connectivity checks internally. We expose these attribute types so any custom ICE implementation built directly on the STUN module can reuse the same codec rather than duplicating the type definitions.
+In icey's WebRTC stack, libdatachannel/libjuice handles ICE connectivity checks internally. We expose these attribute types so any custom ICE implementation built directly on the STUN module can reuse the same codec rather than duplicating the type definitions.
 
 `ICEControlling` and `ICEControlled` carry a 64-bit tie-breaker value used to resolve ICE role conflicts. `ICEUseCandidate` is a flag; its presence in a connectivity check request nominates the candidate pair. `ICEPriority` carries the candidate priority computed from type preference, local preference, and component ID as specified in RFC 8445 section 5.1.2.
 

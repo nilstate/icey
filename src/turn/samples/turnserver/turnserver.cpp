@@ -1,7 +1,7 @@
 ///
 //
-// Icey
-// Copyright (c) 2005, Icey <https://0state.com>
+// icey
+// Copyright (c) 2005, icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -151,7 +151,7 @@ int main(void)
         {
             // Configure the TURN server options
             ServerOptions opts;
-            opts.software = "Icey STUN/TURN Server [rfc5766]";
+            opts.software = "icey STUN/TURN Server [rfc5766]";
             opts.realm = "0state.com";
             opts.listenAddr = net::Address(SERVER_BIND_IP, SERVER_BIND_PORT);
             opts.externalIP = SERVER_EXTERNAL_IP;

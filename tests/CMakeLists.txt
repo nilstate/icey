@@ -18,8 +18,8 @@ if(TARGET base AND TARGET net AND TARGET http)
       -DICEY_CONSUMER_PROJECT_DIR=${_icey_consumer_project_dir}
       -P ${_icey_consumer_tests_dir}/installtree_consumer_test.cmake)
 
-  set(Icey_BUILD_TESTS
-    ${Icey_BUILD_TESTS}
+  set(icey_BUILD_TESTS
+    ${icey_BUILD_TESTS}
     cmake-buildtree-consumer
     cmake-installtree-consumer
     CACHE INTERNAL "")

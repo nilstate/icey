@@ -1,6 +1,6 @@
 # HTTP Lifecycle
 
-Icey's HTTP layer is fast because it is not trying to hide what the connection is doing.
+icey's HTTP layer is fast because it is not trying to hide what the connection is doing.
 
 There is a parser, a connection, an adapter, a request, a response, and a few very specific state transitions. Once you understand those, the rest of the module reads cleanly.
 
@@ -106,7 +106,7 @@ This is one of those areas where "almost reset" produces very ugly bugs. The cur
 
 ## Streaming Is Not Just "A Slow Response"
 
-Icey treats long-lived streaming responses as a different kind of connection state.
+icey treats long-lived streaming responses as a different kind of connection state.
 
 That matters because they should not be reaped like ordinary idle keep-alive sockets.
 

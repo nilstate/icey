@@ -6,14 +6,15 @@ No Node.js runtime, no third-party services. One binary, two ports (HTTP/WS + TU
 
 ## Media Server Demo
 
-If you need the shortest end-to-end path, use the packaged [Media Server Demo](docker/README.md):
+If you need the shortest end-to-end path, use the published [Media Server Demo](docker/README.md) image:
 
 ```bash
-cd src/webrtc/apps/media-server/docker
-docker compose up --build
+docker run --rm --network host 0state/icey-media-server-demo:latest
 ```
 
 Then open `http://localhost:4500` and click `Watch` on the `Media Server` peer.
+
+That is the express path. For the source-backed path, run `docker compose up --build` from [`src/webrtc/apps/media-server/docker/`](docker/).
 
 ## Native Quick Start
 

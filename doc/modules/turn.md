@@ -16,10 +16,10 @@ The module provides both sides of the protocol:
 
 Every TURN message is a STUN message. Read [stun.md](stun.md) first if you are unfamiliar with `stun::Message`, attribute types, or the HMAC-SHA1 integrity mechanism; this document assumes that knowledge.
 
-Link against `Icey::turn` (which pulls in `Icey::stun` automatically):
+Link against `icey::turn` (which pulls in `icey::stun` automatically):
 
 ```cmake
-target_link_libraries(myapp PRIVATE Icey::turn)
+target_link_libraries(myapp PRIVATE icey::turn)
 ```
 
 ## Architecture
@@ -445,7 +445,7 @@ The server will respond within one round trip; new `sendData()` calls for the ne
 
 #### Channel binding
 
-`Client::sendChannelBind()` always throws `std::logic_error`. Channel binding is intentionally not implemented. In Icey's deployment model, media flows through ICE/DTLS managed by libdatachannel/libjuice, not through the TURN client's `sendData()` path. The TURN client is used for ICE candidate gathering; once ICE selects the relay candidate, the media framing is handled elsewhere. The 32-byte per-packet saving (4-byte ChannelData header vs. ~36-byte STUN Send Indication) does not justify the complexity of channel number allocation and 10-minute refresh timers.
+`Client::sendChannelBind()` always throws `std::logic_error`. Channel binding is intentionally not implemented. In icey's deployment model, media flows through ICE/DTLS managed by libdatachannel/libjuice, not through the TURN client's `sendData()` path. The TURN client is used for ICE candidate gathering; once ICE selects the relay candidate, the media framing is handled elsewhere. The 32-byte per-packet saving (4-byte ChannelData header vs. ~36-byte STUN Send Indication) does not justify the complexity of channel number allocation and 10-minute refresh timers.
 
 If you are building a non-WebRTC relay application where the TURN client's data path carries sustained media, subclass `Client` and implement `sendChannelBind()` and ChannelData framing there.
 
@@ -563,7 +563,7 @@ const std::string SERVER_PASSWORD("password");
 const std::string SERVER_REALM("example.com");
 
 turn::ServerOptions opts;
-opts.software                  = "Icey STUN/TURN Server [rfc5766]";
+opts.software                  = "icey STUN/TURN Server [rfc5766]";
 opts.realm                     = SERVER_REALM;
 opts.listenAddr                = net::Address("0.0.0.0", 3478);
 opts.externalIP                = "203.0.113.1"; // replace with your public IP
@@ -636,7 +636,7 @@ This exercises the full allocation flow: 401 challenge, re-authentication, `Crea
 
 | Field | Default | Description |
 | --- | --- | --- |
-| `software` | `"Icey STUN/TURN Server [rfc5766]"` | SOFTWARE attribute in responses |
+| `software` | `"icey STUN/TURN Server [rfc5766]"` | SOFTWARE attribute in responses |
 | `realm` | `"0state.com"` | REALM for long-term credential auth |
 | `listenAddr` | `0.0.0.0:3478` | Bind address for UDP and TCP |
 | `externalIP` | `""` | Public IP for XOR-RELAYED-ADDRESS; empty = use bind address |
@@ -653,7 +653,7 @@ This exercises the full allocation flow: 401 challenge, re-authentication, `Crea
 
 | Field | Default | Description |
 | --- | --- | --- |
-| `software` | `"Icey STUN/TURN Client [rfc5766]"` | SOFTWARE attribute in requests |
+| `software` | `"icey STUN/TURN Client [rfc5766]"` | SOFTWARE attribute in requests |
 | `username` | Random 4-char string | TURN username |
 | `password` | Random 22-char string | TURN password |
 | `lifetime` | `300,000` ms | Requested allocation lifetime (5 min) |
@@ -683,12 +683,12 @@ constexpr int kConnectionBindTimeout = 30 * 1000; // 30 s (RFC 6062 section 5.2)
 When ICE selects a relay candidate for a WebRTC peer session, the path is:
 
 ```text
-Browser <-- RTP/SRTP <-- DTLS <-- ICE (libjuice) <-- Icey TURN server
+Browser <-- RTP/SRTP <-- DTLS <-- ICE (libjuice) <-- icey TURN server
 ```
 
 The TURN server does not inspect the relayed payload. `enableLocalIPPermissions` is particularly useful during ICE connectivity checks, which probe loopback and LAN addresses before any `CreatePermission` has been sent. Without it, checks against those addresses fail with "permission not found" errors.
 
-Configure the WebRTC module to use the Icey TURN server:
+Configure the WebRTC module to use the icey TURN server:
 
 ```cpp
 #include "icy/webrtc/peersession.h"

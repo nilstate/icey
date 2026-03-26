@@ -6,7 +6,7 @@
 
 ## Overview
 
-The `json` module is a thin layer over [nlohmann/json](https://github.com/nlohmann/json) that adds file I/O helpers, a serializable interface, deep traversal utilities, and a JSON-backed configuration class. We use it throughout Icey; `sched`, `pacm`, and several other modules depend on it directly.
+The `json` module is a thin layer over [nlohmann/json](https://github.com/nlohmann/json) that adds file I/O helpers, a serializable interface, deep traversal utilities, and a JSON-backed configuration class. We use it throughout icey; `sched`, `pacm`, and several other modules depend on it directly.
 
 The module does not wrap or hide nlohmann/json. `json::Value` is a plain `using` alias for `nlohmann::json`, so the complete nlohmann API is always available without any adapter layer.
 
@@ -16,7 +16,7 @@ The module does not wrap or hide nlohmann/json. `json::Value` is a plain `using`
 
 Three components make up the module:
 
-- `json::Value` — the canonical JSON type alias used everywhere in Icey.
+- `json::Value` — the canonical JSON type alias used everywhere in icey.
 - `json::ISerializable` — an abstract interface for objects that round-trip through JSON, with free-function helpers for string-based serialization.
 - `json::Configuration` — a JSON-backed implementation of `icy::Configuration` for loading, querying, and saving application settings files.
 - Free functions for file I/O (`loadFile`, `saveFile`) and deep-tree traversal (`assertMember`, `countNestedKeys`, `hasNestedKey`, `findNestedObjectWithProperty`).

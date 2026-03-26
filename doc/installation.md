@@ -4,7 +4,7 @@ This is the full build and install page.
 
 If you just want the fastest path to a first build, use [getting-started.md](getting-started.md). This page is for the complete picture: requirements, optional dependencies, build flags, install, and downstream consumption.
 
-Icey uses CMake to build from source. The codebase is cross-platform and requires a C++20 compiler.
+icey uses CMake to build from source. The codebase is cross-platform and requires a C++20 compiler.
 
 Platform-specific guides:
 
@@ -53,7 +53,7 @@ ctest --test-dir build --output-on-failure
 cmake --install build --prefix /usr/local
 ```
 
-That gives you exported `Icey::...` targets for `find_package`.
+That gives you exported `icey::...` targets for `find_package`.
 
 ## CMake Options
 
@@ -96,17 +96,17 @@ cmake -B build -DOPENSSL_ROOT_DIR=$(brew --prefix openssl)
 include(FetchContent)
 FetchContent_Declare(icey
   GIT_REPOSITORY https://github.com/sourcey/icey.git
-  GIT_TAG v2.3.0
+  GIT_TAG 2.3.0
 )
 FetchContent_MakeAvailable(icey)
-target_link_libraries(myapp PRIVATE Icey::base Icey::net Icey::http)
+target_link_libraries(myapp PRIVATE icey::base icey::net icey::http)
 ```
 
 ### find_package (after installing)
 
 ```cmake
-find_package(Icey REQUIRED)
-target_link_libraries(myapp PRIVATE Icey::base Icey::net Icey::http)
+find_package(icey REQUIRED)
+target_link_libraries(myapp PRIVATE icey::base icey::net icey::http)
 ```
 
 ### Package Managers
@@ -119,7 +119,7 @@ conan create packaging/conan --build=missing -s compiler.cppstd=20
 # or: make package-conan
 
 # vcpkg overlay port
-vcpkg install icey --overlay-ports=$PWD/packaging/vcpkg
+ICEY_VCPKG_SOURCE_PATH=$PWD vcpkg install icey --overlay-ports=$PWD/packaging/vcpkg
 # or: make package-vcpkg
 ```
 

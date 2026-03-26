@@ -1,4 +1,4 @@
-# Icey
+# icey
 
 > The C++ Media Stack
 

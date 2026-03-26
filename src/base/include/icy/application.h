@@ -1,7 +1,7 @@
 ///
 //
-// Icey
-// Copyright (c) 2005, Icey <https://0state.com>
+// icey
+// Copyright (c) 2005, icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -24,7 +24,7 @@
 namespace icy {
 
 
-/// Main Icey application class.
+/// Main icey application class.
 ///
 /// This class exposes basic features required by most applications:
 ///

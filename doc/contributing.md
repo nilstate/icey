@@ -4,7 +4,7 @@ Pull requests are always welcome. If you fix or improve anything, feel free to f
 
 ## Getting started
 
-1. [Fork Icey on GitHub](https://github.com/sourcey/icey)
+1. [Fork icey on GitHub](https://github.com/sourcey/icey)
 2. Create a feature branch (`git checkout -b my-feature`)
 3. Build and run the tests to make sure everything passes before you start:
 

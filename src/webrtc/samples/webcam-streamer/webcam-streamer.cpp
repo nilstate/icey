@@ -1,7 +1,7 @@
 ///
 //
-// Icey
-// Copyright (c) 2005, Icey <https://0state.com>
+// icey
+// Copyright (c) 2005, icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -217,7 +217,7 @@ private:
 
     void onCreatePresence(smpl::Peer& peer)
     {
-        peer["agent"] = "Icey";
+        peer["agent"] = "icey";
         peer["type"] = "streamer";
     }
 };

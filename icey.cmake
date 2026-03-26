@@ -1,24 +1,24 @@
 # ============================================================================
-# Icey build orchestrator
+# icey build orchestrator
 #
 # Sets options, finds dependencies, discovers modules, generates config files.
-# Module targets are created by icy_add_module() in IceyModules.cmake.
+# Module targets are created by icy_add_module() in icey_modules.cmake.
 # ============================================================================
 
 # Paths
-set(Icey_DIR ${CMAKE_CURRENT_LIST_DIR})
-set(Icey_SOURCE_DIR ${Icey_DIR}/src)
-set(Icey_VENDOR_SOURCE_DIR ${Icey_DIR}/vendor)
-set(Icey_VENDOR_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/share/icey/vendor)
+set(icey_DIR ${CMAKE_CURRENT_LIST_DIR})
+set(icey_SOURCE_DIR ${icey_DIR}/src)
+set(icey_VENDOR_SOURCE_DIR ${icey_DIR}/vendor)
+set(icey_VENDOR_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/share/icey/vendor)
 
 # CMake module path
-list(APPEND CMAKE_MODULE_PATH ${Icey_DIR}/cmake)
+list(APPEND CMAKE_MODULE_PATH ${icey_DIR}/cmake)
 
 # Include build system components
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
-include(IceyModules)
-include(IceyCompilerOptions)
+include(${icey_DIR}/cmake/icey_modules.cmake)
+include(${icey_DIR}/cmake/icey_compiler_options.cmake)
 
 function(icy_add_compat_target compat_target actual_target)
   if(TARGET "${actual_target}" AND NOT TARGET "${compat_target}")
@@ -29,17 +29,17 @@ endfunction()
 
 # Debug postfix
 if(WIN32)
-  set(Icey_DEBUG_POSTFIX "d")
+  set(icey_DEBUG_POSTFIX "d")
 else()
-  set(Icey_DEBUG_POSTFIX "")
+  set(icey_DEBUG_POSTFIX "")
 endif()
 
 # ----------------------------------------------------------------------------
 # Build options
 # ----------------------------------------------------------------------------
 option(BUILD_SHARED_LIBS          "Build shared libraries"                    OFF)
-option(BUILD_MODULES              "Build Icey modules"                  ON)
-option(BUILD_APPLICATIONS         "Build Icey applications"             ON)
+option(BUILD_MODULES              "Build icey modules"                  ON)
+option(BUILD_APPLICATIONS         "Build icey applications"             ON)
 option(BUILD_TESTS                "Build module tests"                        OFF)
 option(BUILD_SAMPLES              "Build module samples"                      OFF)
 option(BUILD_FUZZERS              "Build module fuzz targets"                 OFF)
@@ -69,9 +69,9 @@ if(ENABLE_SOLUTION_FOLDERS)
 endif()
 
 # For vendor define_icey_dependency compatibility
-set(Icey_LIB_TYPE STATIC)
+set(icey_LIB_TYPE STATIC)
 if(BUILD_SHARED_LIBS)
-  set(Icey_LIB_TYPE SHARED)
+  set(icey_LIB_TYPE SHARED)
 endif()
 
 # ----------------------------------------------------------------------------
@@ -149,7 +149,7 @@ if(NOT USE_SYSTEM_DEPS)
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
   install(TARGETS zlibstatic
-    EXPORT IceyTargets
+    EXPORT iceyTargets
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT dev)
 
   # minizip - built from zlib's contrib/minizip
@@ -179,7 +179,7 @@ if(NOT USE_SYSTEM_DEPS)
     set_target_properties(minizip PROPERTIES FOLDER "dependencies")
   endif()
   install(TARGETS minizip
-    EXPORT IceyTargets
+    EXPORT iceyTargets
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT dev)
   install(FILES ${minizip_HEADERS}
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT dev)
@@ -229,7 +229,7 @@ else()
         $<BUILD_INTERFACE:${MINIZIP_SOURCE_DIR}>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
       install(TARGETS minizip
-        EXPORT IceyTargets
+        EXPORT iceyTargets
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT dev)
       install(FILES
         ${MINIZIP_SOURCE_DIR}/crypt.h
@@ -300,7 +300,7 @@ if(WITH_LIBDATACHANNEL AND HAVE_OPENSSL AND HAVE_FFMPEG)
 
   # The webrtc module uses SKIP_EXPORT in icy_add_module() because
   # libdatachannel's transitive deps (juice, usrsctp, srtp2) have their
-  # own export sets that conflict with IceyTargets.
+  # own export sets that conflict with iceyTargets.
 else()
   if(WITH_LIBDATACHANNEL)
     message(STATUS "  libdatachannel requires OpenSSL and FFmpeg (WITH_OPENSSL=ON WITH_FFMPEG=ON)")
@@ -314,9 +314,9 @@ if(BUILD_MODULES)
   message(STATUS "")
   message(STATUS "  Modules:")
 
-  subdirlist(_module_dirs ${Icey_SOURCE_DIR})
+  subdirlist(_module_dirs ${icey_SOURCE_DIR})
   foreach(_name ${_module_dirs})
-    set(_dir "${Icey_SOURCE_DIR}/${_name}")
+    set(_dir "${icey_SOURCE_DIR}/${_name}")
     if(EXISTS "${_dir}/CMakeLists.txt")
       add_subdirectory(${_dir} ${CMAKE_BINARY_DIR}/${_name})
     endif()
@@ -332,23 +332,36 @@ set(ICY_SHARED_LIBRARY ${BUILD_SHARED_LIBS})
 
 message(STATUS "")
 message(STATUS "  Generating icey.h")
+set(ICY_SOURCE_DIR_VALUE "${icey_SOURCE_DIR}")
+set(ICY_BUILD_DIR_VALUE "${CMAKE_BINARY_DIR}")
+set(ICY_INSTALL_DIR_VALUE "${CMAKE_INSTALL_PREFIX}")
 configure_file(
-  ${Icey_DIR}/cmake/icey.h.cmake.in
+  ${icey_DIR}/cmake/icey.h.cmake.in
   ${CMAKE_BINARY_DIR}/icey.h)
-install(FILES ${CMAKE_BINARY_DIR}/icey.h
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT dev)
+
+set(ICY_SOURCE_DIR_VALUE "")
+set(ICY_BUILD_DIR_VALUE "")
+set(ICY_INSTALL_DIR_VALUE "")
+configure_file(
+  ${icey_DIR}/cmake/icey.h.cmake.in
+  ${CMAKE_BINARY_DIR}/iceyInstall.h)
+
+install(FILES ${CMAKE_BINARY_DIR}/iceyInstall.h
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+  RENAME icey.h
+  COMPONENT dev)
 
 # ----------------------------------------------------------------------------
 # Generate pkg-config file
 # ----------------------------------------------------------------------------
 set(PKG_CONFIG_LIBS)
-foreach(_mod ${Icey_BUILD_MODULES})
+foreach(_mod ${icey_BUILD_MODULES})
   string(APPEND PKG_CONFIG_LIBS " -licy_${_mod}")
 endforeach()
 
 message(STATUS "  Generating icey.pc")
 configure_file(
-  ${Icey_DIR}/cmake/icey.pc.cmake.in
+  ${icey_DIR}/cmake/icey.pc.cmake.in
   ${CMAKE_BINARY_DIR}/icey.pc @ONLY)
 install(FILES ${CMAKE_BINARY_DIR}/icey.pc
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig COMPONENT dev)
@@ -356,9 +369,9 @@ install(FILES ${CMAKE_BINARY_DIR}/icey.pc
 # ----------------------------------------------------------------------------
 # Install export set and config package
 # ----------------------------------------------------------------------------
-export(EXPORT IceyTargets
-  FILE ${CMAKE_BINARY_DIR}/IceyTargets.cmake
-  NAMESPACE Icey::
+export(EXPORT iceyTargets
+  FILE ${CMAKE_BINARY_DIR}/iceyTargets.cmake
+  NAMESPACE icey::
 )
 
 if(NOT USE_SYSTEM_DEPS)
@@ -370,37 +383,37 @@ if(NOT USE_SYSTEM_DEPS)
   endforeach()
   if(_icey_vendored_targets)
     export(TARGETS ${_icey_vendored_targets}
-      FILE ${CMAKE_BINARY_DIR}/IceyVendoredTargets.cmake
+      FILE ${CMAKE_BINARY_DIR}/iceyVendoredTargets.cmake
     )
   endif()
 endif()
 
-install(EXPORT IceyTargets
-  NAMESPACE Icey::
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Icey
+install(EXPORT iceyTargets
+  NAMESPACE icey::
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/icey
   COMPONENT dev)
 
 configure_package_config_file(
-  ${Icey_DIR}/cmake/IceyBuildConfig.cmake.in
-  ${CMAKE_BINARY_DIR}/IceyConfig.cmake
+  ${icey_DIR}/cmake/icey_build_config.cmake.in
+  ${CMAKE_BINARY_DIR}/iceyConfig.cmake
   INSTALL_DESTINATION ${CMAKE_BINARY_DIR}
   INSTALL_PREFIX ${CMAKE_BINARY_DIR})
 
 configure_package_config_file(
-  ${Icey_DIR}/cmake/IceyConfig.cmake.in
-  ${CMAKE_BINARY_DIR}/IceyInstallConfig.cmake
-  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Icey)
+  ${icey_DIR}/cmake/icey_config.cmake.in
+  ${CMAKE_BINARY_DIR}/iceyInstallConfig.cmake
+  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/icey)
 
 write_basic_package_version_file(
-  ${CMAKE_BINARY_DIR}/IceyConfigVersion.cmake
+  ${CMAKE_BINARY_DIR}/iceyConfigVersion.cmake
   VERSION ${PROJECT_VERSION}
   COMPATIBILITY SameMajorVersion)
 
 install(FILES
-  ${CMAKE_BINARY_DIR}/IceyConfigVersion.cmake
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Icey
+  ${CMAKE_BINARY_DIR}/iceyConfigVersion.cmake
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/icey
   COMPONENT dev)
-install(FILES ${CMAKE_BINARY_DIR}/IceyInstallConfig.cmake
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Icey
-  RENAME IceyConfig.cmake
+install(FILES ${CMAKE_BINARY_DIR}/iceyInstallConfig.cmake
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/icey
+  RENAME iceyConfig.cmake
   COMPONENT dev)

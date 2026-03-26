@@ -22,6 +22,7 @@ CMakeDoxyfile.in
 CMakeDoxygenDefaults.cmake
 Makefile
 compile_commands.json
+CMakeUserPresets.json
 *.pc
 libsourcey.h
 LibSourceyConfig.cmake

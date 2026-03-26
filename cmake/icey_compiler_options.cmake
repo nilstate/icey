@@ -1,4 +1,4 @@
-# Icey compiler options
+# icey compiler options
 # Modern compilers: GCC 12+, Clang 15+, MSVC 2022+
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")

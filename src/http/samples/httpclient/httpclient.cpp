@@ -1,13 +1,13 @@
 ///
 //
-// Icey
-// Copyright (c) 2005, Icey <https://0state.com>
+// icey
+// Copyright (c) 2005, icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
 // HTTP Client
 //
-// Demonstrates making an outbound HTTP GET request using the Icey
+// Demonstrates making an outbound HTTP GET request using the icey
 // HTTP client. Prints the response status, headers, and body.
 //
 // Usage: httpclient [url]

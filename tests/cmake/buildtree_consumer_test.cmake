@@ -15,7 +15,7 @@ execute_process(
   RESULT_VARIABLE _icey_build_result
 )
 if(NOT _icey_build_result EQUAL 0)
-  message(FATAL_ERROR "Failed to build Icey before build-tree consumer test")
+  message(FATAL_ERROR "Failed to build icey before build-tree consumer test")
 endif()
 
 execute_process(

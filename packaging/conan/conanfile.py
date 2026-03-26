@@ -4,7 +4,7 @@ from conan.tools.files import copy, rmdir
 import os
 
 
-class IceyConan(ConanFile):
+class iceyConan(ConanFile):
     name = "icey"
     version = "2.3.0"
     package_type = "library"
@@ -33,21 +33,31 @@ class IceyConan(ConanFile):
         repo_root = os.path.abspath(os.path.join(self.recipe_folder, "..", ".."))
         src_root = os.path.join(repo_root, "src")
         cmake_root = os.path.join(repo_root, "cmake")
+        skip_dirs = {"node_modules", "dist", "build", "tests", "samples", "apps", "support"}
         excludes = (
             "*/node_modules/*",
             "*/dist/*",
+            "*/build/*",
             "*/tests/*",
             "*/samples/*",
             "*/apps/*",
             "*/support/*",
         )
 
-        for filename in ("CMakeLists.txt", "Icey.cmake", "VERSION", "LICENSE.md", "README.md", "Doxyfile"):
+        for filename in ("icey.cmake", "VERSION", "LICENSE.md", "README.md", "Doxyfile"):
             copy(self, filename, src=repo_root, dst=self.export_sources_folder)
+
+        for root, dirs, files in os.walk(repo_root):
+            dirs[:] = [dirname for dirname in dirs if dirname not in skip_dirs and dirname != ".git"]
+            if "CMakeLists.txt" not in files:
+                continue
+
+            rel_root = os.path.relpath(root, repo_root)
+            dst = self.export_sources_folder if rel_root == "." else os.path.join(self.export_sources_folder, rel_root)
+            copy(self, "CMakeLists.txt", src=root, dst=dst, keep_path=False)
 
         copy(self, "*.cmake", src=cmake_root, dst=os.path.join(self.export_sources_folder, "cmake"))
         copy(self, "*.in", src=cmake_root, dst=os.path.join(self.export_sources_folder, "cmake"))
-        copy(self, "CMakeLists.txt", src=src_root, dst=os.path.join(self.export_sources_folder, "src"), excludes=excludes)
         copy(self, "*.cpp", src=src_root, dst=os.path.join(self.export_sources_folder, "src"), excludes=excludes)
         copy(self, "*.c", src=src_root, dst=os.path.join(self.export_sources_folder, "src"), excludes=excludes)
         copy(self, "*.h", src=src_root, dst=os.path.join(self.export_sources_folder, "src"), excludes=excludes)
@@ -63,13 +73,14 @@ class IceyConan(ConanFile):
             self.options.rm_safe("fPIC")
 
     def requirements(self):
-        self.requires("openssl/[>=3.0 <4]")
-        self.requires("libuv/[>=1.48 <2]")
-        self.requires("llhttp/[>=9.2 <10]")
-        self.requires("minizip/[>=1.3 <2]")
-        self.requires("zlib/[>=1.3 <2]")
+        # icey public headers expose these dependencies directly, so static consumers
+        # need their include paths propagated transitively.
+        self.requires("openssl/[>=3.0 <4]", transitive_headers=True)
+        self.requires("libuv/[>=1.48 <2]", transitive_headers=True)
+        self.requires("llhttp/[>=9.2 <10]", transitive_headers=True)
+        self.requires("minizip/[>=1.3 <2]", transitive_headers=True)
         if self.options.with_ffmpeg:
-            self.requires("ffmpeg/[>=5.0 <8]")
+            self.requires("ffmpeg/[>=5.0 <8]", transitive_headers=True)
         if self.options.with_opencv:
             self.requires("opencv/[>=4.5 <5]")
 
@@ -108,7 +119,7 @@ class IceyConan(ConanFile):
         rmdir(self, os.path.join(self.package_folder, "lib", "pkgconfig"))
 
     def package_info(self):
-        self.cpp_info.set_property("cmake_file_name", "Icey")
+        self.cpp_info.set_property("cmake_file_name", "icey")
 
         modules = [
             "archo",
@@ -127,9 +138,13 @@ class IceyConan(ConanFile):
         ]
 
         for mod in modules:
-            self.cpp_info.components[mod].set_property("cmake_target_name", f"Icey::{mod}")
-            self.cpp_info.components[mod].libs = [f"icy_{mod}"]
+            self.cpp_info.components[mod].set_property("cmake_target_name", f"icey::{mod}")
             self.cpp_info.components[mod].includedirs = ["include"]
+
+            if mod == "pluga":
+                self.cpp_info.components[mod].libdirs = []
+            else:
+                self.cpp_info.components[mod].libs = [f"icy_{mod}"]
 
         self.cpp_info.components["base"].requires = ["libuv::libuv"]
         self.cpp_info.components["archo"].requires = ["base", "minizip::minizip"]

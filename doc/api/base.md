@@ -70,7 +70,7 @@ The `base` module contains reusable cross platform tools and utilities.
 | [`KeyedStore`](#keyedstore) | A keyed store of unique_ptr values with optional lifecycle hooks. Not thread-safe; designed for single-threaded event loop contexts. |
 | [`KVCollection`](#kvcollection) | A keyed value store (values stored by copy, not pointer). |
 | [`NVCollection`](#nvcollection) | A storage container for a name value collections. This collection can store multiple entries for each name, and it's getters are case-insensitive. |
-| [`Application`](#application) | Main Icey application class. |
+| [`Application`](#application) | Main icey application class. |
 | [`SyncPacketQueue`](#syncpacketqueue) | Synchronized packet queue for event loop integration. |
 | [`AsyncPacketQueue`](#asyncpacketqueue) | Thread-based asynchronous packet dispatch queue. |
 | [`RateLimiter`](#ratelimiter) | Token bucket rate limiter for throttling message send frequency. |
@@ -89,7 +89,7 @@ The `base` module contains reusable cross platform tools and utilities.
 | [`Base64PacketEncoder`](#base64packetencoder) | Packet processor that Base64-encodes packet data. |
 | [`Task`](#task) | Abstract base class for implementing asynchronous tasks. |
 | [`TaskRunner`](#taskrunner) | [Runner](#runner) for tasks that inherit the `[Task](#task)` interface. |
-| [`IPacket`](#ipacket) | The basic packet type which is passed around the Icey system. [IPacket](#ipacket) can be extended for each protocol to enable polymorphic processing and callbacks using [PacketStream](#packetstream) and friends. |
+| [`IPacket`](#ipacket) | The basic packet type which is passed around the icey system. [IPacket](#ipacket) can be extended for each protocol to enable polymorphic processing and callbacks using [PacketStream](#packetstream) and friends. |
 | [`FlagPacket`](#flagpacket) | Packet for sending bitwise flags along the packet stream. |
 | [`RawPacket`](#rawpacket) | [RawPacket](#rawpacket) is the default data packet type which consists of an optionally managed char pointer and a size value. |
 | [`Configuration`](#configuration) | [Configuration](#configuration) is an abstract base class for managing different kinds of configuration storage back ends such as JSON, XML, or database. |
@@ -18696,7 +18696,7 @@ Map _map
 #include <icy/application.h>
 ```
 
-Main Icey application class.
+Main icey application class.
 
 This class exposes basic features required by most applications:
 
@@ -23151,7 +23151,7 @@ Called after a task has run.
 
 > **Subclassed by:** [`FlagPacket`](#flagpacket), [`RawPacket`](#rawpacket), [`Message`](symple.md#message-10), [`Message`](stun.md#message-5)
 
-The basic packet type which is passed around the Icey system. [IPacket](#ipacket) can be extended for each protocol to enable polymorphic processing and callbacks using [PacketStream](#packetstream) and friends.
+The basic packet type which is passed around the icey system. [IPacket](#ipacket) can be extended for each protocol to enable polymorphic processing and callbacks using [PacketStream](#packetstream) and friends.
 
 ### Public Attributes
 

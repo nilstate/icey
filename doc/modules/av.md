@@ -6,7 +6,7 @@
 
 ## Overview
 
-The `av` module is Icey's media layer. It wraps FFmpeg's libavcodec, libavformat, libswscale, and libswresample into RAII types that integrate directly with `PacketStream`. Every class either produces packets, transforms them, or consumes them. None of them require manual memory management beyond construction and wiring.
+The `av` module is icey's media layer. It wraps FFmpeg's libavcodec, libavformat, libswscale, and libswresample into RAII types that integrate directly with `PacketStream`. Every class either produces packets, transforms them, or consumes them. None of them require manual memory management beyond construction and wiring.
 
 The module covers the full path from hardware device to network or file:
 
@@ -19,9 +19,9 @@ The module covers the full path from hardware device to network or file:
 - **Format conversion**: pixel format and resolution conversion via libswscale; sample format and rate conversion via libswresample
 - **Pipeline utilities**: FPS counting, FPS limiting, realtime packet scheduling
 
-**Build requirement:** FFmpeg 5, 6, or 7. The `av` module builds automatically when FFmpeg is found by CMake. Camera and microphone capture requires the optional `avdevice` library; it is enabled automatically when `avdevice` is present (`HAVE_FFMPEG_AVDEVICE` is set). All headers guard themselves with `#ifdef HAVE_FFMPEG` so the rest of Icey builds cleanly without FFmpeg.
+**Build requirement:** FFmpeg 5, 6, or 7. The `av` module builds automatically when FFmpeg is found by CMake. Camera and microphone capture requires the optional `avdevice` library; it is enabled automatically when `avdevice` is present (`HAVE_FFMPEG_AVDEVICE` is set). All headers guard themselves with `#ifdef HAVE_FFMPEG` so the rest of icey builds cleanly without FFmpeg.
 
-**Link target:** `Icey::av`
+**Link target:** `icey::av`
 
 ---
 
@@ -972,16 +972,16 @@ Link a downstream project:
 
 ```cmake
 # After cmake --install build
-find_package(Icey REQUIRED)
-target_link_libraries(myapp PRIVATE Icey::av)
+find_package(icey REQUIRED)
+target_link_libraries(myapp PRIVATE icey::av)
 
 # Or via FetchContent
 include(FetchContent)
 FetchContent_Declare(icey
     GIT_REPOSITORY https://github.com/sourcey/icey.git
-    GIT_TAG v2.3.0)
+    GIT_TAG 2.3.0)
 FetchContent_MakeAvailable(icey)
-target_link_libraries(myapp PRIVATE Icey::av)
+target_link_libraries(myapp PRIVATE icey::av)
 ```
 
 ### FFmpeg version compatibility

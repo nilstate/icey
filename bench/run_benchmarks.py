@@ -33,7 +33,7 @@ def run_benchmark(executable: str, samples: int, warmups: int) -> list[dict]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Run Icey benchmark executables")
+    parser = argparse.ArgumentParser(description="Run icey benchmark executables")
     parser.add_argument("--output", required=True, help="Path to write the aggregated JSON report")
     parser.add_argument("--samples", type=int, default=3, help="Number of timed samples per benchmark")
     parser.add_argument("--warmups", type=int, default=1, help="Number of warmup samples per benchmark")

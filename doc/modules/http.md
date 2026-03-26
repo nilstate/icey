@@ -6,7 +6,7 @@
 
 ## Overview
 
-The `Icey::http` module delivers a full HTTP/1.1 stack built on two proven foundations: [libuv](https://libuv.org) for async I/O and [llhttp](https://github.com/nodejs/llhttp) for parsing (the same parser used in Node.js). Everything is non-blocking and event-driven. A single-threaded server handles thousands of concurrent connections without spawning one thread per request. For multicore machines, `SO_REUSEPORT` lets you run one server instance per CPU core with kernel-level load balancing, no user-space distributor needed.
+The `icey::http` module delivers a full HTTP/1.1 stack built on two proven foundations: [libuv](https://libuv.org) for async I/O and [llhttp](https://github.com/nodejs/llhttp) for parsing (the same parser used in Node.js). Everything is non-blocking and event-driven. A single-threaded server handles thousands of concurrent connections without spawning one thread per request. For multicore machines, `SO_REUSEPORT` lets you run one server instance per CPU core with kernel-level load balancing, no user-space distributor needed.
 
 The module covers:
 
@@ -760,7 +760,7 @@ Cookie version 1 (RFC 2109) adds a `Comment` attribute. Set `setVersion(1)` to o
 
 ### Streaming (Chunked and Multipart)
 
-Two adapters in `icy/http/packetizers.h` integrate HTTP with Icey's `PacketStream` pipeline. Both implement `IPacketizer` and can be chained as processors between a media source and the network socket.
+Two adapters in `icy/http/packetizers.h` integrate HTTP with icey's `PacketStream` pipeline. Both implement `IPacketizer` and can be chained as processors between a media source and the network socket.
 
 #### ChunkedAdapter
 
@@ -833,18 +833,18 @@ auto adapter = std::make_shared<http::MultipartAdapter>("image/jpeg");
 
 ### Performance
 
-Icey's HTTP server is built on the same libuv async I/O and llhttp parser that power Node.js, without the JavaScript runtime, garbage collector, or language bridge. All three servers in the benchmark below share the same underlying async I/O and parsing foundation; the difference is pure runtime overhead.
+icey's HTTP server is built on the same libuv async I/O and llhttp parser that power Node.js, without the JavaScript runtime, garbage collector, or language bridge. All three servers in the benchmark below share the same underlying async I/O and parsing foundation; the difference is pure runtime overhead.
 
 Benchmarked on a single-core micro VM using [wrk](https://github.com/wg/wrk) (`wrk -t4 -c400 -d30s http://127.0.0.1:1337/`) against the `httpperf` comparative harness:
 
 | Server | Req/sec | Latency | Notes |
 | ------ | ------: | ------: | ----- |
 | Raw libuv + llhttp | 96,088 | 1.04 ms | Theoretical ceiling; fixed buffers, no abstraction |
-| **Icey (keep-alive)** | **72,209** | **1.43 ms** | Full stack with pooling, keep-alive, date cache |
+| **icey (keep-alive)** | **72,209** | **1.43 ms** | Full stack with pooling, keep-alive, date cache |
 | Go 1.25 net/http | 53,878 | 2.31 ms | |
 | Node.js v20 | 45,514 | 3.56 ms | |
 
-Icey delivers 75% of raw libuv throughput while providing the full stack. It outperforms Go `net/http` by 34% and Node.js by 59%.
+icey delivers 75% of raw libuv throughput while providing the full stack. It outperforms Go `net/http` by 34% and Node.js by 59%.
 
 **What drives performance:**
 
@@ -1009,7 +1009,7 @@ A WebSocket client that connects to an echo server, sends a message, and prints 
 using namespace icy;
 
 std::string url     = "ws://echo.websocket.events";
-std::string message = "Hello from Icey!";
+std::string message = "Hello from icey!";
 
 auto conn = http::createConnectionT<http::ClientConnection>(http::URL(url));
 
@@ -1050,10 +1050,10 @@ Reportable HTTP microbenchmarks for request/response serialization and a small p
 
 ### CMake integration
 
-Link against `Icey::base`, `Icey::net`, and `Icey::http`:
+Link against `icey::base`, `icey::net`, and `icey::http`:
 
 ```cmake
-target_link_libraries(myapp PRIVATE Icey::base Icey::net Icey::http)
+target_link_libraries(myapp PRIVATE icey::base icey::net icey::http)
 ```
 
 With FetchContent:
@@ -1062,17 +1062,17 @@ With FetchContent:
 include(FetchContent)
 FetchContent_Declare(icey
   GIT_REPOSITORY https://github.com/sourcey/icey.git
-  GIT_TAG v2.3.0
+  GIT_TAG 2.3.0
 )
 FetchContent_MakeAvailable(icey)
-target_link_libraries(myapp PRIVATE Icey::base Icey::net Icey::http)
+target_link_libraries(myapp PRIVATE icey::base icey::net icey::http)
 ```
 
 After installing (`cmake --install build`):
 
 ```cmake
-find_package(Icey REQUIRED)
-target_link_libraries(myapp PRIVATE Icey::base Icey::net Icey::http)
+find_package(icey REQUIRED)
+target_link_libraries(myapp PRIVATE icey::base icey::net icey::http)
 ```
 
 ### Compiler requirements

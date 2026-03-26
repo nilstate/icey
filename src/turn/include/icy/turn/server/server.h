@@ -1,8 +1,8 @@
 ///
 ///
 //
-// Icey
-// Copyright (c) 2005, Icey <https://0state.com>
+// icey
+// Copyright (c) 2005, icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -70,7 +70,7 @@ struct ServerOptions
 
     ServerOptions()
     {
-        software = "Icey STUN/TURN Server [rfc5766]";
+        software = "icey STUN/TURN Server [rfc5766]";
         realm = "0state.com";
         listenAddr = net::Address("0.0.0.0", 3478);
         externalIP = "";

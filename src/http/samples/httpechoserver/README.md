@@ -1,6 +1,6 @@
 # HTTP Echo Server
 
-Demonstrates the Icey HTTP server by echoing back the request body in the response. The header file (`httpechoserver.h`) contains several server variants:
+Demonstrates the icey HTTP server by echoing back the request body in the response. The header file (`httpechoserver.h`) contains several server variants:
 
 - **raiseEchoServer()** - single-threaded HTTP echo
 - **raiseHTTPSEchoServer()** - single-threaded HTTPS echo (used by default)

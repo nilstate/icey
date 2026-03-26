@@ -1,7 +1,7 @@
 ///
 //
-// Icey
-// Copyright (c) 2005, Icey <https://0state.com>
+// icey
+// Copyright (c) 2005, icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -53,7 +53,7 @@ enum class CodecId
 };
 
 
-/// Canonical description of a codec supported by Icey's WebRTC helpers.
+/// Canonical description of a codec supported by icey's WebRTC helpers.
 struct WEBRTC_API CodecSpec
 {
     CodecId id = CodecId::Unknown;             ///< Stable codec identifier.

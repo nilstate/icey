@@ -496,7 +496,7 @@ int main(int argc, char** argv)
     describe("string attribute software", []() {
         stun::Message msg(stun::Message::Request, stun::Message::Binding);
 
-        std::string sw = "Icey STUN";
+        std::string sw = "icey STUN";
         msg.add<stun::Software>().copyBytes(sw.c_str(), sw.size());
 
         Buffer buf;

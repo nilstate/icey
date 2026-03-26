@@ -18,7 +18,7 @@ EmbeddedTurn::EmbeddedTurn(const Config& config)
     : _realm(config.turnRealm)
 {
     turn::ServerOptions opts;
-    opts.software = "Icey Media Server TURN [rfc5766]";
+    opts.software = "icey Media Server TURN [rfc5766]";
     opts.realm = _realm;
     opts.listenAddr = net::Address(config.host, config.turnPort);
     opts.externalIP = config.turnExternalIP;

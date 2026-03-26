@@ -1,6 +1,6 @@
 # Runtime Contracts
 
-Icey does a lot of work on one event loop with very little ceremony. That is a big part of why the library is fast. It also means there are a few rules you need to get right.
+icey does a lot of work on one event loop with very little ceremony. That is a big part of why the library is fast. It also means there are a few rules you need to get right.
 
 This page is about those rules.
 
@@ -15,7 +15,7 @@ It is not a tutorial and it is not the API reference. It is the compact version 
 - `PacketStream` is zero-copy until it crosses an explicit retention boundary.
 - `close()` is asynchronous. Treat shutdown as a state change, not as immediate destruction.
 
-If you keep those six rules in your head, most of Icey makes sense.
+If you keep those six rules in your head, most of icey makes sense.
 
 ## Loop Affinity
 
@@ -33,13 +33,13 @@ The contract is simple:
 - start, stop, and close them on that same loop
 - if another thread needs to interact with them, hop through a queue, a `Synchronizer`, or some other explicit cross-thread handoff
 
-This is deliberate. Icey does not try to make every object transparently thread-safe. That would add locking and hide the real execution model.
+This is deliberate. icey does not try to make every object transparently thread-safe. That would add locking and hide the real execution model.
 
 If a type is meant to be shared across threads, the docs should say so explicitly. Otherwise assume loop affinity.
 
 ## Signals Are Not All The Same
 
-Icey now has a clear split here.
+icey now has a clear split here.
 
 - `Signal<T>` is the default fast path. Use it when emission and subscription live on one thread, which is the normal case inside one libuv loop.
 - `ThreadSignal<T>` is for real cross-thread emission or subscription.
@@ -70,7 +70,7 @@ That same rule applies higher in the stack when payload callbacks are just expos
 
 ## `send()` vs `sendOwned()`
 
-Icey uses both on purpose.
+icey uses both on purpose.
 
 `send()` is the hot path:
 
@@ -89,11 +89,11 @@ The rule is not subtle:
 - if the data already lives long enough, use `send()`
 - if it does not, use `sendOwned()`
 
-This is how Icey stays fast without pretending buffer lifetime is magic.
+This is how icey stays fast without pretending buffer lifetime is magic.
 
 ## `PacketStream` Stays Zero-Copy Until You Cross A Boundary
 
-`PacketStream` is the data plane for most of the interesting parts of Icey. It is also where ownership gets people into trouble if they stop paying attention.
+`PacketStream` is the data plane for most of the interesting parts of icey. It is also where ownership gets people into trouble if they stop paying attention.
 
 The default rule is:
 
@@ -116,7 +116,7 @@ If you are wiring media pipelines, this rule matters as much as the codec settin
 
 ## Closing Is Asynchronous
 
-`close()` in Icey usually means:
+`close()` in icey usually means:
 
 - stop accepting new work
 - schedule shutdown on the owning loop

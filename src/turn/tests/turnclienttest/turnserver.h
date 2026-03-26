@@ -52,7 +52,7 @@ struct TestServer : public turn::ServerObserver
 #define RunTestServer() \
     LDebug("Running TURN Server"); \
     turn::ServerOptions so; \
-    so.software = "Icey STUN/TURN Server [rfc5766]"; \
+    so.software = "icey STUN/TURN Server [rfc5766]"; \
     so.realm = "0state.com"; \
     so.allocationDefaultLifetime = 1 * 60 * 1000; \
     so.allocationMaxLifetime = 15 * 60 * 1000; \

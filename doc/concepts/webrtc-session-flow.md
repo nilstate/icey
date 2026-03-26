@@ -6,7 +6,7 @@ If you strip away the browser, the codecs, and the demo UI, the hard part of Web
 - who moves signalling messages
 - when media should actually start
 
-In Icey, that split is explicit.
+In icey, that split is explicit.
 
 ## The Split
 

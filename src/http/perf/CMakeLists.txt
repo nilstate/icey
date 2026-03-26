@@ -1,7 +1,7 @@
 add_executable(httpperf httpperf.cpp)
 target_link_libraries(httpperf PRIVATE base net http)
 target_include_directories(httpperf PRIVATE ${CMAKE_BINARY_DIR})
-target_compile_definitions(httpperf PRIVATE ICY_DATA_DIR="${Icey_SOURCE_DIR}/data")
+target_compile_definitions(httpperf PRIVATE ICY_DATA_DIR="${icey_SOURCE_DIR}/data")
 
 if(ENABLE_SOLUTION_FOLDERS)
   set_target_properties(httpperf PROPERTIES FOLDER "performance")
@@ -18,4 +18,4 @@ if(ENABLE_SOLUTION_FOLDERS)
   set_target_properties(httpperf_compare PROPERTIES FOLDER "performance")
 endif()
 
-set(Icey_BUILD_PERF ${Icey_BUILD_PERF} httpperf httpperf_compare CACHE INTERNAL "")
+set(icey_BUILD_PERF ${icey_BUILD_PERF} httpperf httpperf_compare CACHE INTERNAL "")

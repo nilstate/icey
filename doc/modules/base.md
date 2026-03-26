@@ -6,12 +6,12 @@
 
 ## Overview
 
-The `base` module is the substrate every other Icey module builds on. It provides the libuv event loop wrappers, the signal/slot system that wires components together, the `PacketStream` pipeline that moves data through the library, handle and stream abstractions for I/O, a structured logging system, a generic state machine, binary I/O primitives, and a broad set of system utilities covering threads, the filesystem, process management, timers, and collections.
+The `base` module is the substrate every other icey module builds on. It provides the libuv event loop wrappers, the signal/slot system that wires components together, the `PacketStream` pipeline that moves data through the library, handle and stream abstractions for I/O, a structured logging system, a generic state machine, binary I/O primitives, and a broad set of system utilities covering threads, the filesystem, process management, timers, and collections.
 
-All public types live in the `icy` namespace. libuv-specific types (loops, handles) are in `icy::uv`. Filesystem utilities are in `icy::fs`. Base64 codec is in `icy::base64`. The module ships as the `Icey::base` CMake target, which is a dependency of every other module in the library.
+All public types live in the `icy` namespace. libuv-specific types (loops, handles) are in `icy::uv`. Filesystem utilities are in `icy::fs`. Base64 codec is in `icy::base64`. The module ships as the `icey::base` CMake target, which is a dependency of every other module in the library.
 
 ```cmake
-target_link_libraries(myapp PRIVATE Icey::base)
+target_link_libraries(myapp PRIVATE icey::base)
 ```
 
 The key headers are pulled in transitively through each other, but the top-level entry points are:
@@ -239,7 +239,7 @@ srv.Started.attach([](int) { /* default priority */ });
 
 ### PacketStream pipeline
 
-`PacketStream` connects one or more sources, an ordered chain of processors, and any number of downstream sinks. Every data-producing subsystem in Icey plugs into this abstraction.
+`PacketStream` connects one or more sources, an ordered chain of processors, and any number of downstream sinks. Every data-producing subsystem in icey plugs into this abstraction.
 
 ```
 Source ──► [Processor @ order 1] ──► [Processor @ order 5] ──► emitter ──► sinks
@@ -1131,23 +1131,23 @@ The `base` module has no required external dependencies beyond libuv, which CMak
 | `ICY_WIN` | Detected automatically; enables Windows-specific code paths in filesystem, process, and socket handling. |
 | `ICY_UNICODE` | Enables `fs::transcode()` on Windows for wide-to-narrow path conversion. |
 
-To link `Icey::base` from a parent CMake project using FetchContent:
+To link `icey::base` from a parent CMake project using FetchContent:
 
 ```cmake
 include(FetchContent)
 FetchContent_Declare(icey
   GIT_REPOSITORY https://github.com/sourcey/icey.git
-  GIT_TAG v2.3.0
+  GIT_TAG 2.3.0
 )
 FetchContent_MakeAvailable(icey)
-target_link_libraries(myapp PRIVATE Icey::base)
+target_link_libraries(myapp PRIVATE icey::base)
 ```
 
 After installing with `cmake --install build`:
 
 ```cmake
-find_package(Icey REQUIRED)
-target_link_libraries(myapp PRIVATE Icey::base)
+find_package(icey REQUIRED)
+target_link_libraries(myapp PRIVATE icey::base)
 ```
 
 ## See Also

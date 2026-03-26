@@ -242,7 +242,7 @@ None → Downloading → Extracting → Finalizing → Installed
 
 ### [pacm-cli](../../src/pacm/apps/pacm-cli/)
 
-The redistributable command-line tool bundled with Icey. It wraps the full `PackageManager` API and can be compiled and shipped alongside existing applications as a standalone package management utility.
+The redistributable command-line tool bundled with icey. It wraps the full `PackageManager` API and can be compiled and shipped alongside existing applications as a standalone package management utility.
 
 ```bash
 # Install a package.

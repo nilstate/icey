@@ -6,11 +6,11 @@
 
 ## Overview
 
-The `net` module is Icey's networking foundation. It provides non-blocking TCP streams, TLS-encrypted connections via OpenSSL 3.x, and UDP datagrams, all driven by the same libuv event loop that powers the `base` module. Everything above it in the stack — HTTP, WebSocket, Symple, STUN, TURN — is built on `net`.
+The `net` module is icey's networking foundation. It provides non-blocking TCP streams, TLS-encrypted connections via OpenSSL 3.x, and UDP datagrams, all driven by the same libuv event loop that powers the `base` module. Everything above it in the stack — HTTP, WebSocket, Symple, STUN, TURN — is built on `net`.
 
-All code lives in the `icy::net` namespace. The entry-point header is `icy/net/socket.h`, which pulls in the abstract `Socket` interface and the `SocketAdapter` chain; most consumers will also include the concrete socket header they need (`tcpsocket.h`, `sslsocket.h`, `udpsocket.h`). The CMake target is `Icey::net`.
+All code lives in the `icy::net` namespace. The entry-point header is `icy/net/socket.h`, which pulls in the abstract `Socket` interface and the `SocketAdapter` chain; most consumers will also include the concrete socket header they need (`tcpsocket.h`, `sslsocket.h`, `udpsocket.h`). The CMake target is `icey::net`.
 
-`Icey::net` depends on `Icey::base` (event loop, handles, streams, signals, packet infrastructure) and `Icey::crypto` (OpenSSL certificate and key wrappers). OpenSSL 3.x is a hard requirement; the module is skipped entirely if `HAVE_OPENSSL` is not set.
+`icey::net` depends on `icey::base` (event loop, handles, streams, signals, packet infrastructure) and `icey::crypto` (OpenSSL certificate and key wrappers). OpenSSL 3.x is a hard requirement; the module is skipped entirely if `HAVE_OPENSSL` is not set.
 
 Two buffer size constants bound the receive path:
 
@@ -774,7 +774,7 @@ Send `SIGINT` (Ctrl+C) to trigger a clean shutdown via `waitForShutdown` (from `
 
 ### CMake options
 
-`Icey::net` is enabled automatically when OpenSSL is detected. The relevant CMake flag that controls detection is `HAVE_OPENSSL`; this is set by the top-level `CMakeLists.txt` when `find_package(OpenSSL)` succeeds.
+`icey::net` is enabled automatically when OpenSSL is detected. The relevant CMake flag that controls detection is `HAVE_OPENSSL`; this is set by the top-level `CMakeLists.txt` when `find_package(OpenSSL)` succeeds.
 
 To build samples:
 
@@ -782,13 +782,13 @@ To build samples:
 cmake -B build -DBUILD_SAMPLES=ON
 ```
 
-To link `Icey::net` in your project:
+To link `icey::net` in your project:
 
 ```cmake
-target_link_libraries(myapp PRIVATE Icey::net)
+target_link_libraries(myapp PRIVATE icey::net)
 ```
 
-`Icey::net` transitively pulls in `Icey::base`, `Icey::crypto`, `OpenSSL::SSL`, and `OpenSSL::Crypto`. You do not need to list them separately.
+`icey::net` transitively pulls in `icey::base`, `icey::crypto`, `OpenSSL::SSL`, and `OpenSSL::Crypto`. You do not need to list them separately.
 
 ### FetchContent
 
@@ -796,10 +796,10 @@ target_link_libraries(myapp PRIVATE Icey::net)
 include(FetchContent)
 FetchContent_Declare(icey
   GIT_REPOSITORY https://github.com/sourcey/icey.git
-  GIT_TAG v2.3.0
+  GIT_TAG 2.3.0
 )
 FetchContent_MakeAvailable(icey)
-target_link_libraries(myapp PRIVATE Icey::net)
+target_link_libraries(myapp PRIVATE icey::net)
 ```
 
 ### OpenSSL version

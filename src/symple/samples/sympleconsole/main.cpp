@@ -1,7 +1,7 @@
 ///
 //
-// Icey
-// Copyright (c) 2005, Icey <https://0state.com>
+// icey
+// Copyright (c) 2005, icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -60,7 +60,7 @@ public:
     {
         std::cout
             << "\nSymple Console Client v0.1.0"
-               "\n(c) Icey"
+               "\n(c) icey"
                "\nhttps://0state.com/symple"
                "\n"
                "\nGeneral options:"

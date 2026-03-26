@@ -1,10 +1,15 @@
-vcpkg_from_github(
-    OUT_SOURCE_PATH SOURCE_PATH
-    REPO sourcey/icey
-    REF "23ef5b8cc38f56fbe2c89020337f1488ae7c5213"
-    SHA512 975b2361d9127483cbd590266bd050c7aedbf1078f2db8756795fbcf4893add621fa4b48a75991715cee1d2e13fb8494e3bdfcbbce2a857eadc7c5e7be3493d5
-    HEAD_REF master
-)
+if(DEFINED ENV{ICEY_VCPKG_SOURCE_PATH} AND NOT "$ENV{ICEY_VCPKG_SOURCE_PATH}" STREQUAL "")
+    get_filename_component(SOURCE_PATH "$ENV{ICEY_VCPKG_SOURCE_PATH}" ABSOLUTE)
+    message(STATUS "Using local icey source tree: ${SOURCE_PATH}")
+else()
+    vcpkg_from_github(
+        OUT_SOURCE_PATH SOURCE_PATH
+        REPO sourcey/icey
+        REF "23ef5b8cc38f56fbe2c89020337f1488ae7c5213"
+        SHA512 975b2361d9127483cbd590266bd050c7aedbf1078f2db8756795fbcf4893add621fa4b48a75991715cee1d2e13fb8494e3bdfcbbce2a857eadc7c5e7be3493d5
+        HEAD_REF master
+    )
+endif()
 
 vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
     FEATURES
@@ -22,14 +27,13 @@ vcpkg_cmake_configure(
         -DBUILD_FUZZERS=OFF
         -DBUILD_BENCHMARKS=OFF
         -DBUILD_ALPHA=OFF
-        -DBUILD_MODULE_webrtc=OFF
         -DWITH_LIBDATACHANNEL=OFF
         -DCMAKE_DISABLE_FIND_PACKAGE_Doxygen=TRUE
         ${FEATURE_OPTIONS}
 )
 
 vcpkg_cmake_install()
-vcpkg_cmake_config_fixup(CONFIG_PATH lib/cmake/Icey)
+vcpkg_cmake_config_fixup(CONFIG_PATH lib/cmake/icey)
 vcpkg_fixup_pkgconfig()
 vcpkg_copy_pdbs()
 

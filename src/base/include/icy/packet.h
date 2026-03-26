@@ -1,7 +1,7 @@
 ///
 //
-// Icey
-// Copyright (c) 2005, Icey <https://0state.com>
+// icey
+// Copyright (c) 2005, icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -41,7 +41,7 @@ struct IPacketInfo
 };
 
 
-/// The basic packet type which is passed around the Icey system.
+/// The basic packet type which is passed around the icey system.
 /// IPacket can be extended for each protocol to enable polymorphic
 /// processing and callbacks using PacketStream and friends.
 class Base_API IPacket

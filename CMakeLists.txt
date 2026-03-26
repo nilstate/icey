@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.21)
 
 # Read version from file
-file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" Icey_VERSION)
-string(STRIP "${Icey_VERSION}" Icey_VERSION)
+file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" icey_VERSION)
+string(STRIP "${icey_VERSION}" icey_VERSION)
 
-project(Icey
-  VERSION ${Icey_VERSION}
+project(icey
+  VERSION ${icey_VERSION}
   LANGUAGES C CXX
   DESCRIPTION "C++ Networking Evolved"
   HOMEPAGE_URL "https://github.com/sourcey/icey"
@@ -28,10 +28,10 @@ if(WIN32)
 endif()
 
 # Include the main build orchestrator
-include(Icey.cmake)
+include(icey.cmake)
 
 # Package configuration (CPack)
-include(cmake/IceyPackage.cmake)
+include(cmake/icey_package.cmake)
 
 # CTest support
 if(BUILD_TESTS)
@@ -43,9 +43,9 @@ endif()
 
 if(BUILD_BENCHMARKS)
   find_package(Python3 COMPONENTS Interpreter QUIET)
-  if(Python3_Interpreter_FOUND AND Icey_REPORT_BENCHMARKS)
+  if(Python3_Interpreter_FOUND AND icey_REPORT_BENCHMARKS)
     set(_icey_bench_targets "")
-    foreach(_bench ${Icey_REPORT_BENCHMARKS})
+    foreach(_bench ${icey_REPORT_BENCHMARKS})
       list(APPEND _icey_bench_targets "$<TARGET_FILE:${_bench}>")
     endforeach()
 
@@ -56,9 +56,9 @@ if(BUILD_BENCHMARKS)
               --samples 3
               --warmups 1
               ${_icey_bench_targets}
-      DEPENDS ${Icey_REPORT_BENCHMARKS}
+      DEPENDS ${icey_REPORT_BENCHMARKS}
       USES_TERMINAL
-      COMMENT "Running Icey microbenchmarks and writing bench/benchmarks.json"
+      COMMENT "Running icey microbenchmarks and writing bench/benchmarks.json"
     )
   endif()
 endif()
@@ -87,7 +87,7 @@ endif()
 
 # Build summary
 message(STATUS "")
-message(STATUS "  Icey ${PROJECT_VERSION}")
+message(STATUS "  icey ${PROJECT_VERSION}")
 message(STATUS "")
 message(STATUS "  Platform:      ${CMAKE_SYSTEM_NAME} ${CMAKE_SYSTEM_PROCESSOR}")
 message(STATUS "  CMake:         ${CMAKE_VERSION}")
@@ -97,12 +97,12 @@ message(STATUS "  C++ compiler:  ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_V
 message(STATUS "  C++ standard:  ${CMAKE_CXX_STANDARD}")
 message(STATUS "  Shared libs:   ${BUILD_SHARED_LIBS}")
 message(STATUS "")
-message(STATUS "  Modules:       ${Icey_BUILD_MODULES}")
-message(STATUS "  Tests:         ${Icey_BUILD_TESTS}")
-message(STATUS "  Samples:       ${Icey_BUILD_SAMPLES}")
-message(STATUS "  Fuzzers:       ${Icey_BUILD_FUZZERS}")
-message(STATUS "  Benchmarks:    ${Icey_BUILD_BENCHMARKS}")
-message(STATUS "  Perf:          ${Icey_BUILD_PERF}")
+message(STATUS "  Modules:       ${icey_BUILD_MODULES}")
+message(STATUS "  Tests:         ${icey_BUILD_TESTS}")
+message(STATUS "  Samples:       ${icey_BUILD_SAMPLES}")
+message(STATUS "  Fuzzers:       ${icey_BUILD_FUZZERS}")
+message(STATUS "  Benchmarks:    ${icey_BUILD_BENCHMARKS}")
+message(STATUS "  Perf:          ${icey_BUILD_PERF}")
 message(STATUS "")
 message(STATUS "  OpenSSL:       ${HAVE_OPENSSL}")
 message(STATUS "  FFmpeg:        ${HAVE_FFMPEG}")

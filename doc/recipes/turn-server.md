@@ -2,7 +2,7 @@
 
 Use this page when you need a real relay, not a STUN-only best-case path.
 
-TURN is what gets you through the ugly NAT cases that direct peer-to-peer never will. Icey's TURN server is built on the same runtime and socket layer as the rest of the library, so you can run relay, signalling, and application code in one process if you want to.
+TURN is what gets you through the ugly NAT cases that direct peer-to-peer never will. icey's TURN server is built on the same runtime and socket layer as the rest of the library, so you can run relay, signalling, and application code in one process if you want to.
 
 If TURN is new territory, read [STUN](../modules/stun.md) first. TURN messages are STUN messages with allocation and relay semantics layered on top.
 
@@ -53,7 +53,7 @@ That gives you the actual TURN server. The rest of the work is auth policy and d
 
 ## Authentication
 
-Icey's TURN server uses the standard long-term credential path from RFC 5389.
+icey's TURN server uses the standard long-term credential path from RFC 5389.
 
 The usual flow is:
 
@@ -85,7 +85,7 @@ Do not leave it empty and hope ICE will work it out later. TURN needs to tell th
 
 ## Local Permissions
 
-Icey can auto-grant permissions for local and RFC 1918 peers:
+icey can auto-grant permissions for local and RFC 1918 peers:
 
 ```cpp
 opts.enableLocalIPPermissions = true;

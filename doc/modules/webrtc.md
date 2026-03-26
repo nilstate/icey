@@ -4,12 +4,12 @@
 
 **[Source →](../../src/webrtc/)**
 
-**CMake target**: `Icey::webrtc`
-**Dependencies**: `Icey::base`, `Icey::net`, `Icey::crypto`, `Icey::av`, `Icey::symple`, libdatachannel (auto-fetched), OpenSSL 3.x, FFmpeg 5+
+**CMake target**: `icey::webrtc`
+**Dependencies**: `icey::base`, `icey::net`, `icey::crypto`, `icey::av`, `icey::symple`, libdatachannel (auto-fetched), OpenSSL 3.x, FFmpeg 5+
 **Licence**: LGPL-2.1+
 
 ```cmake
-target_link_libraries(myapp PRIVATE Icey::webrtc)
+target_link_libraries(myapp PRIVATE icey::webrtc)
 ```
 
 ---
@@ -20,7 +20,7 @@ The WebRTC module solves one problem: getting encoded media frames between FFmpe
 
 What you write is the application logic: what to capture, when to accept a call, what to do when media arrives.
 
-We use [libdatachannel](https://github.com/paullouisageneau/libdatachannel) as the transport pipe. Icey provides the media, signalling, and pipeline glue.
+We use [libdatachannel](https://github.com/paullouisageneau/libdatachannel) as the transport pipe. icey provides the media, signalling, and pipeline glue.
 
 **libdatachannel owns:**
 
@@ -31,7 +31,7 @@ We use [libdatachannel](https://github.com/paullouisageneau/libdatachannel) as t
 - RTP packetization and depacketization
 - RTCP: SR/RR, NACK, PLI, REMB
 
-**Icey owns:**
+**icey owns:**
 
 - Media capture and FFmpeg encode/decode (`av` module)
 - PacketStream pipeline integration
@@ -649,7 +649,7 @@ class WebcamStreamer
 
 ### [media-recorder](../../src/webrtc/samples/media-recorder/)
 
-Receives H.264 video from a browser via WebRTC and records it server-side. Demonstrates the real receive path used in Icey today: `WebRtcTrackReceiver` emits encoded frames, a small callback bridge wraps them in FFmpeg `AVPacket`s for `av::VideoDecoder`, and the decoded frames feed `av::MultiplexPacketEncoder` to write MP4 output. Useful for building server-side recording for telehealth, video depositions, or proctoring without cloud vendor lock-in.
+Receives H.264 video from a browser via WebRTC and records it server-side. Demonstrates the real receive path used in icey today: `WebRtcTrackReceiver` emits encoded frames, a small callback bridge wraps them in FFmpeg `AVPacket`s for `av::VideoDecoder`, and the decoded frames feed `av::MultiplexPacketEncoder` to write MP4 output. Useful for building server-side recording for telehealth, video depositions, or proctoring without cloud vendor lock-in.
 
 The sample configures a video codec in the SDP to signal receive capability to the browser. The `PeerSession` creates an offer/answer that includes a video `m=` section; the browser then sends video to us.
 
@@ -800,7 +800,7 @@ libdatachannel is fetched automatically at configure time via CMake FetchContent
 | usrsctp | SCTP for data channels |
 | libsrtp2 | SRTP encryption |
 
-OpenSSL is shared with the rest of Icey rather than duplicated.
+OpenSSL is shared with the rest of icey rather than duplicated.
 
 ### FetchContent integration
 
@@ -808,14 +808,14 @@ OpenSSL is shared with the rest of Icey rather than duplicated.
 include(FetchContent)
 FetchContent_Declare(icey
     GIT_REPOSITORY https://github.com/sourcey/icey.git
-    GIT_TAG v2.3.0
+    GIT_TAG 2.3.0
 )
 FetchContent_MakeAvailable(icey)
 
-target_link_libraries(myapp PRIVATE Icey::webrtc)
+target_link_libraries(myapp PRIVATE icey::webrtc)
 ```
 
-`Icey::webrtc` transitively pulls in `Icey::base`, `Icey::net`, `Icey::crypto`, `Icey::av`, `Icey::symple`, and libdatachannel. You do not need to list them separately.
+`icey::webrtc` transitively pulls in `icey::base`, `icey::net`, `icey::crypto`, `icey::av`, `icey::symple`, and libdatachannel. You do not need to list them separately.
 
 ### Codec flags
 
@@ -851,7 +851,7 @@ config.rtcConfig.iceServers.push_back(
                    rtc::IceServer::RelayType::TurnTcp));
 ```
 
-Icey includes a production-grade RFC 5766 TURN server in the `turn` module. See `src/turn/samples/turnserver/` for setup. About 30% of real-world WebRTC connections hit symmetric NATs that require relay; without TURN those connections fail silently after ICE times out.
+icey includes a production-grade RFC 5766 TURN server in the `turn` module. See `src/turn/samples/turnserver/` for setup. About 30% of real-world WebRTC connections hit symmetric NATs that require relay; without TURN those connections fail silently after ICE times out.
 
 ---
 

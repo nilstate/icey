@@ -1,7 +1,7 @@
 ///
 //
-// Icey
-// Copyright (c) 2005, Icey <https://0state.com>
+// icey
+// Copyright (c) 2005, icey <https://0state.com>
 //
 // SPDX-License-Identifier: LGPL-2.1+
 //
@@ -139,7 +139,7 @@ public:
         net::Address serverAddr;
         Options()
         {
-            software = "Icey STUN/TURN Client [rfc5766]";
+            software = "icey STUN/TURN Client [rfc5766]";
             username = util::randomString(4);
             password = util::randomString(22);
             // realm                    = "0state.com";

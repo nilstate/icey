@@ -1,6 +1,6 @@
 # Modules
 
-Icey is organised into 14 modules. Each module builds as a separate library and declares its dependencies via CMake. Enable only what you need; dependencies resolve automatically.
+icey is organised into 14 modules. Each module builds as a separate library and declares its dependencies via CMake. Enable only what you need; dependencies resolve automatically.
 
 This page is the map. If you want the quickest path to a task, use the table below and then jump into the module guide that actually owns the work.
 

@@ -2,7 +2,7 @@
 
 Use this when the job is not "serve HTTP" but "upgrade and speak frames."
 
-Icey's WebSocket support lives in the HTTP module for a reason. The handshake is HTTP. After that, the connection is upgraded and the frame adapter takes over. That is the whole model.
+icey's WebSocket support lives in the HTTP module for a reason. The handshake is HTTP. After that, the connection is upgraded and the frame adapter takes over. That is the whole model.
 
 ## The Shape
 
@@ -102,7 +102,7 @@ That last point is one of the main benefits of the adapter layer.
 
 The application does not have to reassemble WebSocket fragmentation by hand.
 
-Icey's framer:
+icey's framer:
 
 - buffers partial frames split across TCP reads
 - reassembles fragmented messages
@@ -134,7 +134,7 @@ That is different from just tearing down the underlying TCP socket. It gives the
 
 ## Client vs Server Responsibilities
 
-Icey handles the RFC rules that should not be application boilerplate:
+icey handles the RFC rules that should not be application boilerplate:
 
 - client payload masking
 - server-side unmasked frame enforcement
