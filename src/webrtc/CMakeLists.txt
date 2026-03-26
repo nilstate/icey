@@ -19,7 +19,7 @@ if(HAVE_LIBDATACHANNEL AND HAVE_OPENSSL AND HAVE_FFMPEG)
       target_include_directories(webrtc
         PUBLIC $<BUILD_INTERFACE:${libdatachannel_SOURCE_DIR}/include>)
     endif()
-    target_link_libraries(webrtc PRIVATE LibDataChannel::LibDataChannelStatic)
+    target_link_libraries(webrtc PRIVATE ${ICEY_LIBDATACHANNEL_TARGET})
 
     target_link_libraries(webrtc PUBLIC ${FFMPEG_LIBRARIES})
     target_include_directories(webrtc PUBLIC ${FFMPEG_INCLUDE_DIRS})

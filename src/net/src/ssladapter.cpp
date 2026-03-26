@@ -15,6 +15,7 @@
 #include "icy/net/sslsocket.h"
 #include <algorithm>
 #include <iterator>
+#include <limits>
 #include <openssl/x509v3.h>
 #include <stdexcept>
 #include <vector>
@@ -225,8 +226,9 @@ void SSLAdapter::flushReadBIO()
     size_t npending = BIO_ctrl_pending(_readBIO);
     if (npending > 0) {
         int nread;
-        std::vector<char> buffer(npending);
-        while ((nread = SSL_read(_ssl, buffer.data(), npending)) > 0) {
+        const auto max_ssl_chunk = static_cast<size_t>(std::numeric_limits<int>::max());
+        std::vector<char> buffer(std::min(npending, max_ssl_chunk));
+        while ((nread = SSL_read(_ssl, buffer.data(), static_cast<int>(buffer.size()))) > 0) {
             _socket->onRecv(mutableBuffer(buffer.data(), nread));
         }
     }
@@ -237,8 +239,9 @@ void SSLAdapter::flushWriteBIO()
 {
     size_t npending = BIO_ctrl_pending(_writeBIO);
     if (npending > 0) {
-        Buffer buffer(npending);
-        int nread = BIO_read(_writeBIO, buffer.data(), npending);
+        const auto max_bio_chunk = static_cast<size_t>(std::numeric_limits<int>::max());
+        Buffer buffer(std::min(npending, max_bio_chunk));
+        int nread = BIO_read(_writeBIO, buffer.data(), static_cast<int>(buffer.size()));
         if (nread > 0) {
             buffer.resize(static_cast<size_t>(nread));
             (void)_socket->TCPSocket::sendOwned(std::move(buffer), net::Address(), 0);

@@ -89,7 +89,6 @@ public:
     [[nodiscard]] virtual bool shutdown()
     {
         throw std::logic_error("Socket::shutdown not implemented by protocol");
-        return false;
     };
 
     /// Sends an owned payload buffer to the connected peer.

@@ -4,6 +4,10 @@ if(NOT DEFINED ICEY_SOURCE_DIR OR NOT DEFINED ICEY_BINARY_DIR OR NOT DEFINED ICE
   message(FATAL_ERROR "Missing required consumer-test paths")
 endif()
 
+if(NOT DEFINED ICEY_BUILD_TYPE OR ICEY_BUILD_TYPE STREQUAL "")
+  set(ICEY_BUILD_TYPE Release)
+endif()
+
 set(_consumer_build_dir "${ICEY_BINARY_DIR}/consumer-buildtree")
 file(REMOVE_RECURSE "${_consumer_build_dir}")
 
@@ -60,7 +64,7 @@ endif()
 
 set(_consumer_exe "${_consumer_build_dir}/icey_consumer")
 if(WIN32)
-  set(_consumer_exe "${_consumer_build_dir}/Release/icey_consumer.exe")
+  set(_consumer_exe "${_consumer_build_dir}/${ICEY_BUILD_TYPE}/icey_consumer.exe")
 endif()
 
 execute_process(

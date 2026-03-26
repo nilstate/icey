@@ -10,6 +10,7 @@ function(_icey_add_compat_target compat_target actual_target)
 endfunction()
 
 set(_icey_supported_components "@icey_BUILD_MODULES@")
+set(_icey_have_libdatachannel "@HAVE_LIBDATACHANNEL@")
 
 find_dependency(Threads)
 find_package(PkgConfig QUIET)
@@ -22,11 +23,10 @@ if(@HAVE_OPENCV@)
   find_dependency(OpenCV)
 endif()
 
-if(@HAVE_LIBDATACHANNEL@ AND "webrtc" IN_LIST icey_FIND_COMPONENTS)
+if(_icey_have_libdatachannel AND DEFINED icey_FIND_COMPONENTS AND "webrtc" IN_LIST icey_FIND_COMPONENTS)
   if(NOT TARGET LibDataChannel::LibDataChannelStatic AND NOT TARGET LibDataChannel::LibDataChannel)
     find_dependency(LibDataChannel CONFIG)
   endif()
-  _icey_add_compat_target(LibDataChannel::LibDataChannelStatic LibDataChannel::LibDataChannel)
 endif()
 
 if(@USE_SYSTEM_DEPS@)

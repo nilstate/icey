@@ -29,6 +29,7 @@ class Net_API Transaction : public PacketTransaction<PacketT>
 {
 public:
     using BaseT = PacketTransaction<PacketT>;
+    using PacketSocketEmitter::send;
 
     /// Constructs a Transaction on the given socket targeting @p peerAddress.
     /// @param socket      The socket to send/receive packets on.

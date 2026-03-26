@@ -13,6 +13,7 @@
 #include "icy/logger.h"
 #include "icy/net/net.h"
 
+#include <limits>
 #include <memory>
 
 
@@ -345,13 +346,15 @@ void UDPSocket::onRecv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf,
 void UDPSocket::allocRecvBuffer(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf)
 {
     auto& buffer = static_cast<UDPSocket*>(handle->data)->_buffer;
+    const auto max_len = static_cast<size_t>(std::numeric_limits<decltype(buf->len)>::max());
+    const auto recv_buffer_size = std::min(suggested_size, max_len);
 
     // Resize to libuv's suggested size (typically 65536 for UDP)
-    if (buffer.size() < suggested_size)
-        buffer.resize(suggested_size);
+    if (buffer.size() < recv_buffer_size)
+        buffer.resize(recv_buffer_size);
 
     buf->base = buffer.data();
-    buf->len = buffer.size();
+    buf->len = static_cast<decltype(buf->len)>(buffer.size());
 }
 
 

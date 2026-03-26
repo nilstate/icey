@@ -265,7 +265,7 @@ public:
     virtual void open();
 
     /// Resets the file stream to the beginning and clears initial-write state.
-    virtual void reset();
+    void reset() override;
 
     /// Writes the next chunk of the file to the FormWriter.
     /// @param writer The FormWriter to send the chunk through.
