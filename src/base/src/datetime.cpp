@@ -69,14 +69,14 @@ DateTime::DateTime(const Timestamp& timestamp)
 
 DateTime::DateTime(int year, int month, int day, int hour, int minute,
                    int second, int millisecond, int microsecond)
-    : _year(year)
-    , _month(month)
-    , _day(day)
-    , _hour(hour)
-    , _minute(minute)
-    , _second(second)
-    , _millisecond(millisecond)
-    , _microsecond(microsecond)
+    : _year(static_cast<short>(year))
+    , _month(static_cast<short>(month))
+    , _day(static_cast<short>(day))
+    , _hour(static_cast<short>(hour))
+    , _minute(static_cast<short>(minute))
+    , _second(static_cast<short>(second))
+    , _millisecond(static_cast<short>(millisecond))
+    , _microsecond(static_cast<short>(microsecond))
 {
     if (year < 0 || year > 9999 || month < 1 || month > 12 ||
         day < 1 || day > daysOfMonth(year, month) ||
@@ -184,14 +184,14 @@ DateTime& DateTime::assign(int year, int month, int day, int hour, int minute,
         + hours{hour} + minutes{minute} + seconds{second}
         + milliseconds{millisecond} + microseconds{microsecond};
     _utcTime = us.count() * 10 + GREG_EPOCH_OFFSET;
-    _year = year;
-    _month = month;
-    _day = day;
-    _hour = hour;
-    _minute = minute;
-    _second = second;
-    _millisecond = millisecond;
-    _microsecond = microsecond;
+    _year = static_cast<short>(year);
+    _month = static_cast<short>(month);
+    _day = static_cast<short>(day);
+    _hour = static_cast<short>(hour);
+    _minute = static_cast<short>(minute);
+    _second = static_cast<short>(second);
+    _millisecond = static_cast<short>(millisecond);
+    _microsecond = static_cast<short>(microsecond);
 
     return *this;
 }
@@ -372,7 +372,7 @@ void DateTime::normalize()
     checkLimit(_hour, _day, 24);
 
     if (_day > daysOfMonth(_year, _month)) {
-        _day -= daysOfMonth(_year, _month);
+        _day -= static_cast<short>(daysOfMonth(_year, _month));
         if (++_month > 12) {
             ++_year;
             _month -= 12;
@@ -1167,10 +1167,10 @@ void DateTimeParser::parse(std::string_view fmt, std::string_view str,
     int micros = 0;
     int tzd = 0;
 
-    auto it = str.begin();
-    auto end = str.end();
-    auto itf = fmt.begin();
-    auto endf = fmt.end();
+    const char* it = str.data();
+    const char* end = str.data() + str.size();
+    const char* itf = fmt.data();
+    const char* endf = fmt.data() + fmt.size();
 
     while (itf != endf && it != end) {
         if (*itf == '%') {

@@ -308,7 +308,7 @@ protected:
             buffer.resize(suggested_size);
 
         buf->base = buffer.data();
-        buf->len = buffer.size();
+        buf->len = static_cast<decltype(buf->len)>(buffer.size());
     }
 
     /// Return a `uv_write_t` from the freelist, or allocate a new one if
