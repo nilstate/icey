@@ -115,4 +115,4 @@ For the published image path, `record` mode writes wherever you bind-mount `/app
 ## Related
 
 - [App README](../README.md)
-- [Media Server Stack recipe](../../../../../doc/recipes/media-server-stack.md)
+- [Media Server Stack recipe](../../../../../docs/recipes/media-server-stack.md)

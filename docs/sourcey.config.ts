@@ -63,6 +63,7 @@ export default {
             group: "Project",
             pages: [
               "contributing",
+              "releasing",
             ],
           },
         ],

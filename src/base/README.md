@@ -9,6 +9,6 @@ Core runtime primitives for icey: event loops, handles, signals, PacketStream, t
 - Everything else in icey builds on this module
 
 Read next:
-- [Base module guide](../../doc/modules/base.md)
-- [Runtime contracts](../../doc/concepts/runtime-contracts.md)
-- [PacketStream concept guide](../../doc/concepts/packetstream.md)
+- [Base module guide](../../docs/modules/base.md)
+- [Runtime contracts](../../docs/concepts/runtime-contracts.md)
+- [PacketStream concept guide](../../docs/concepts/packetstream.md)

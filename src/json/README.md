@@ -9,5 +9,5 @@ JSON serialization, file I/O, and configuration helpers built on `nlohmann/json`
 - Main downstream users inside icey: configuration-heavy modules such as `pacm`, `symple`, and `sched`
 
 Read next:
-- [JSON module guide](../../doc/modules/json.md)
-- [Pacm module guide](../../doc/modules/pacm.md)
+- [JSON module guide](../../docs/modules/json.md)
+- [Pacm module guide](../../docs/modules/pacm.md)

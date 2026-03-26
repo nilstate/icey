@@ -49,5 +49,5 @@ Set `USE_SSL` to `1` in the source to use SSL/TLS transport.
 
 ## See Also
 
-- [Symple guide](../../../../doc/modules/symple.md)
-- [WebRTC guide](../../../../doc/modules/webrtc.md) if you are using Symple for call signalling
+- [Symple guide](../../../../docs/modules/symple.md)
+- [WebRTC guide](../../../../docs/modules/webrtc.md) if you are using Symple for call signalling

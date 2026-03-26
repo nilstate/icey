@@ -17,7 +17,7 @@ stream.start();
 
 icey is the connective tissue: a modular C++20 toolkit that pulls FFmpeg, libuv, OpenSSL, llhttp, libdatachannel, Symple, STUN, and TURN into one runtime model. Capture, encode, transport, signalling, and relay. Core third-party code is pulled in by CMake; system TLS and media dependencies are auto-detected. Builds in minutes.
 
-**[Documentation](doc/index.md)** | **[Changelog](CHANGELOG.md)** | **[Contributing](doc/contributing.md)** | **[LGPL-2.1+](LICENSE.md)**
+**[Documentation](docs/index.md)** | **[Changelog](CHANGELOG.md)** | **[Contributing](docs/contributing.md)** | **[LGPL-2.1+](LICENSE.md)**
 
 ## Fastest Path
 
@@ -147,13 +147,13 @@ See [src/http/perf/](src/http/perf/) for the cross-stack methodology, and [src/h
 
 If you just want the right page:
 
-- Build and link your first program: [doc/getting-started.md](doc/getting-started.md)
-- Full build and install options: [doc/installation.md](doc/installation.md)
-- Module map and dependency picture: [doc/modules.md](doc/modules.md)
-- HTTP and WebSocket: [doc/modules/http.md](doc/modules/http.md)
-- TURN relay: [doc/modules/turn.md](doc/modules/turn.md)
-- WebRTC media flows: [doc/modules/webrtc.md](doc/modules/webrtc.md)
-- Full docs landing page: [doc/index.md](doc/index.md)
+- Build and link your first program: [docs/getting-started.md](docs/getting-started.md)
+- Full build and install options: [docs/installation.md](docs/installation.md)
+- Module map and dependency picture: [docs/modules.md](docs/modules.md)
+- HTTP and WebSocket: [docs/modules/http.md](docs/modules/http.md)
+- TURN relay: [docs/modules/turn.md](docs/modules/turn.md)
+- WebRTC media flows: [docs/modules/webrtc.md](docs/modules/webrtc.md)
+- Full docs landing page: [docs/index.md](docs/index.md)
 
 ## Quick Start
 
@@ -219,9 +219,15 @@ conan create packaging/conan --build=missing -s compiler.cppstd=20
 # vcpkg overlay port
 ICEY_VCPKG_SOURCE_PATH=$PWD vcpkg install icey --overlay-ports=$PWD/packaging/vcpkg
 # or: make package-vcpkg
+
+# Arch package / AUR seed
+cd packaging/arch && makepkg --force --cleanbuild --syncdeps
+# or: make package-arch
 ```
 
-The Conan recipe lives at `packaging/conan/conanfile.py`, and the `vcpkg` overlay port lives at `packaging/vcpkg/icey/`.
+The Conan recipe lives at `packaging/conan/conanfile.py`, the `vcpkg` overlay port lives at `packaging/vcpkg/icey/`, and the Arch packaging files live at `packaging/arch/`.
+
+For the release/tag/archive-pin flow behind those package managers, use [`docs/releasing.md`](docs/releasing.md).
 
 ## Code Examples
 
@@ -311,4 +317,4 @@ session.StateChanged += [&](wrtc::PeerSession::State state) {
 
 ## Contributing
 
-PRs welcome. See the [contributing guide](doc/contributing.md) for code style, tests, and workflow.
+PRs welcome. See the [contributing guide](docs/contributing.md) for code style, tests, and workflow.

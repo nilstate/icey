@@ -29,7 +29,7 @@ These are auto-detected by CMake. If they are present, the matching modules buil
 | ---------- | ------- | ------- |
 | FFmpeg 5+/6+/7+ | `av` module (capture, encode, decode) | `apt install libavcodec-dev libavformat-dev libswscale-dev libavdevice-dev` |
 | OpenCV 3.0+ | OpenCV integration in `av` | `apt install libopencv-dev` |
-| libdatachannel | `webrtc` module | fetched via CMake FetchContent |
+| libdatachannel | `webrtc` module | system package or CMake FetchContent |
 
 If you need platform-specific package commands, use the platform pages:
 
@@ -121,11 +121,17 @@ conan create packaging/conan --build=missing -s compiler.cppstd=20
 # vcpkg overlay port
 ICEY_VCPKG_SOURCE_PATH=$PWD vcpkg install icey --overlay-ports=$PWD/packaging/vcpkg
 # or: make package-vcpkg
+
+# Arch package / AUR seed
+cd packaging/arch && makepkg --force --cleanbuild --syncdeps
+# or: make package-arch
 ```
 
 Use these from the repository root. The `vcpkg` port is intended as an overlay/custom-registry seed until the upstream registry submissions happen.
 
 If you only need a first success, the shorter version of both flows is already in [getting-started.md](getting-started.md).
+
+If you are cutting a real release and need the version-sync, tag, archive-pin, and package publication flow, use [releasing.md](releasing.md).
 
 ## Docker
 

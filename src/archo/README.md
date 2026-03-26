@@ -9,5 +9,5 @@ ZIP archive reading and extraction with path traversal protection.
 - Main use inside icey: archive extraction for `pacm`
 
 Read next:
-- [Archo module guide](../../doc/modules/archo.md)
-- [Pacm module guide](../../doc/modules/pacm.md)
+- [Archo module guide](../../docs/modules/archo.md)
+- [Pacm module guide](../../docs/modules/pacm.md)

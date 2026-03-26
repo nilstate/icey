@@ -9,5 +9,5 @@ Async TCP, SSL/TLS, and UDP networking on libuv, with socket adapters, DNS resol
 - Higher-level modules such as `http`, `stun`, `turn`, and `symple` all build on this layer
 
 Read next:
-- [Net module guide](../../doc/modules/net.md)
-- [Runtime contracts](../../doc/concepts/runtime-contracts.md)
+- [Net module guide](../../docs/modules/net.md)
+- [Runtime contracts](../../docs/concepts/runtime-contracts.md)

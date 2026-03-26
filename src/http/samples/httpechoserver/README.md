@@ -40,6 +40,6 @@ Test with: `curl -k -d "hello" https://localhost:1337/`
 
 ## See Also
 
-- [HTTP Server recipe](../../../../doc/recipes/http-server.md)
-- [HTTP guide](../../../../doc/modules/http.md)
-- [HTTP Lifecycle](../../../../doc/concepts/http-lifecycle.md)
+- [HTTP Server recipe](../../../../docs/recipes/http-server.md)
+- [HTTP guide](../../../../docs/modules/http.md)
+- [HTTP Lifecycle](../../../../docs/concepts/http-lifecycle.md)

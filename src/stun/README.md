@@ -9,5 +9,5 @@ RFC 5389 STUN message and transaction support for NAT traversal.
 - TURN builds directly on this module
 
 Read next:
-- [STUN module guide](../../doc/modules/stun.md)
-- [TURN module guide](../../doc/modules/turn.md)
+- [STUN module guide](../../docs/modules/stun.md)
+- [TURN module guide](../../docs/modules/turn.md)

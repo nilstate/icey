@@ -9,5 +9,5 @@ Task scheduling for deferred and recurring work, with JSON-backed persistence an
 - Trigger types cover one-shot, interval, and daily schedules
 
 Read next:
-- [Sched module guide](../../doc/modules/sched.md)
-- [JSON module guide](../../doc/modules/json.md)
+- [Sched module guide](../../docs/modules/sched.md)
+- [JSON module guide](../../docs/modules/json.md)

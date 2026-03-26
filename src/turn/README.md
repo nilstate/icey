@@ -9,6 +9,6 @@ RFC 5766 TURN relay server and client support, including RFC 6062 TCP relays.
 - This module builds on `stun` and `net`
 
 Read next:
-- [TURN module guide](../../doc/modules/turn.md)
-- [TURN server recipe](../../doc/recipes/turn-server.md)
-- [STUN module guide](../../doc/modules/stun.md)
+- [TURN module guide](../../docs/modules/turn.md)
+- [TURN server recipe](../../docs/recipes/turn-server.md)
+- [STUN module guide](../../docs/modules/stun.md)

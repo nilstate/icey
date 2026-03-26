@@ -202,7 +202,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Cached peer address after connect (avoids repeated `uv_tcp_getpeername` calls)
 - Modernised all sample applications
 - Moved test data (`test.mp4`) to top-level `data/` directory shared across modules
-- Refreshed README with contributors section, moved build/contributing docs to `doc/`
+- Refreshed README with contributors section, moved build/contributing docs to `docs/`
 
 ### Fixed
 

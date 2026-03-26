@@ -47,6 +47,6 @@ Send `SIGINT` (Ctrl+C) to shut down.
 
 ## See Also
 
-- [TURN Server recipe](../../../../doc/recipes/turn-server.md)
-- [TURN guide](../../../../doc/modules/turn.md)
-- [STUN guide](../../../../doc/modules/stun.md)
+- [TURN Server recipe](../../../../docs/recipes/turn-server.md)
+- [TURN guide](../../../../docs/modules/turn.md)
+- [STUN guide](../../../../docs/modules/stun.md)

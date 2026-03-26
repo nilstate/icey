@@ -34,6 +34,6 @@ Set `USE_CAMERA` to `1` in the source to stream from a camera instead of the tes
 
 ## See Also
 
-- [Webcam To Browser recipe](../../../../doc/recipes/webrtc-webcam-to-browser.md)
-- [WebRTC guide](../../../../doc/modules/webrtc.md)
-- [PacketStream concept](../../../../doc/concepts/packetstream.md)
+- [Webcam To Browser recipe](../../../../docs/recipes/webrtc-webcam-to-browser.md)
+- [WebRTC guide](../../../../docs/modules/webrtc.md)
+- [PacketStream concept](../../../../docs/concepts/packetstream.md)

@@ -9,7 +9,7 @@ Async HTTP/1.1 client and server support, WebSocket upgrade, streaming responder
 - Performance harnesses live under `perf/` and `bench/`
 
 Read next:
-- [HTTP module guide](../../doc/modules/http.md)
-- [HTTP server recipe](../../doc/recipes/http-server.md)
-- [WebSocket client and server recipe](../../doc/recipes/websocket-client-server.md)
-- [HTTP lifecycle concept guide](../../doc/concepts/http-lifecycle.md)
+- [HTTP module guide](../../docs/modules/http.md)
+- [HTTP server recipe](../../docs/recipes/http-server.md)
+- [WebSocket client and server recipe](../../docs/recipes/websocket-client-server.md)
+- [HTTP lifecycle concept guide](../../docs/concepts/http-lifecycle.md)

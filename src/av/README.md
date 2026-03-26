@@ -9,6 +9,6 @@ FFmpeg-based audio/video capture, encoding, decoding, device management, and Pac
 - Platform backends live under `include/icy/av/linux/`, `apple/`, and `win32/`
 
 Read next:
-- [AV module guide](../../doc/modules/av.md)
-- [Media server stack recipe](../../doc/recipes/media-server-stack.md)
-- [WebRTC webcam-to-browser recipe](../../doc/recipes/webrtc-webcam-to-browser.md)
+- [AV module guide](../../docs/modules/av.md)
+- [Media server stack recipe](../../docs/recipes/media-server-stack.md)
+- [WebRTC webcam-to-browser recipe](../../docs/recipes/webrtc-webcam-to-browser.md)

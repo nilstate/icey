@@ -33,6 +33,6 @@ Connect from a browser and send video. The recorder writes `recording.mp4` once 
 
 ## See Also
 
-- [Browser To Recorder recipe](../../../../doc/recipes/webrtc-browser-to-recorder.md)
-- [WebRTC guide](../../../../doc/modules/webrtc.md)
-- [PacketStream concept](../../../../doc/concepts/packetstream.md)
+- [Browser To Recorder recipe](../../../../docs/recipes/webrtc-browser-to-recorder.md)
+- [WebRTC guide](../../../../docs/modules/webrtc.md)
+- [PacketStream concept](../../../../docs/concepts/packetstream.md)

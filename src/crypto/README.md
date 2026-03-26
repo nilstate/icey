@@ -9,5 +9,5 @@ OpenSSL 3.x cryptographic operations for hashing, HMAC, symmetric ciphers, certi
 - Main downstream users inside icey: `net` for TLS, `stun` for message integrity, `turn` through `stun`
 
 Read next:
-- [Crypto module guide](../../doc/modules/crypto.md)
-- [Net module guide](../../doc/modules/net.md)
+- [Crypto module guide](../../docs/modules/crypto.md)
+- [Net module guide](../../docs/modules/net.md)

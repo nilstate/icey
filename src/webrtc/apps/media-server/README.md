@@ -140,6 +140,6 @@ Frontend: `symple-client` + `symple-player` (npm, bundled with Vite).
 
 ## See Also
 
-- [Media Server Stack recipe](../../../../doc/recipes/media-server-stack.md)
-- [WebRTC guide](../../../../doc/modules/webrtc.md)
-- [TURN guide](../../../../doc/modules/turn.md)
+- [Media Server Stack recipe](../../../../docs/recipes/media-server-stack.md)
+- [WebRTC guide](../../../../docs/modules/webrtc.md)
+- [TURN guide](../../../../docs/modules/turn.md)

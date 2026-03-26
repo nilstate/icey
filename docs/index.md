@@ -78,4 +78,5 @@ If you are reading the docs inside the repository, these are also useful:
 
 - [Repository README](../README.md)
 - [Contributing](contributing.md)
+- [Releasing](releasing.md)
 - [Change log](../CHANGELOG.md)
