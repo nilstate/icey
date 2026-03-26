@@ -78,7 +78,7 @@ export default {
   },
   navbar: {
     links: [
-      { type: "github", href: "https://github.com/sourcey/icey" },
+      { type: "github", href: "https://github.com/nilstate/icey" },
     ],
   },
 };

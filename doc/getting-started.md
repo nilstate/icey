@@ -14,7 +14,7 @@ project(myapp)
 
 include(FetchContent)
 FetchContent_Declare(icey
-  GIT_REPOSITORY https://github.com/sourcey/icey.git
+  GIT_REPOSITORY https://github.com/nilstate/icey.git
   GIT_TAG 2.3.0
 )
 FetchContent_MakeAvailable(icey)
@@ -49,7 +49,7 @@ Each module is a separate imported CMake target under the `icey::` namespace. Li
 If you want a local build without installing system-wide:
 
 ```bash
-git clone https://github.com/sourcey/icey.git
+git clone https://github.com/nilstate/icey.git
 cd icey
 cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON
 cmake --build build --parallel $(nproc)

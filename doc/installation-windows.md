@@ -31,7 +31,7 @@ cmake -B build -DFFMPEG_ROOT=C:\vendor\ffmpeg
 ### Command line
 
 ```powershell
-git clone https://github.com/sourcey/icey.git
+git clone https://github.com/nilstate/icey.git
 cd icey
 cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON -DOPENSSL_ROOT_DIR=C:\vendor\OpenSSL-Win64
 cmake --build build --config Release --parallel

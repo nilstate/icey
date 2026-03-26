@@ -7,7 +7,7 @@ string(STRIP "${icey_VERSION}" icey_VERSION)
 project(icey
   VERSION ${icey_VERSION}
   LANGUAGES C CXX
-  DESCRIPTION "Modular C++20 toolkit for media servers, video pipelines, and real-time communication systems"
+  DESCRIPTION "C++20 media stack and libwebrtc alternative for real-time video, signalling, TURN, and media servers"
   HOMEPAGE_URL "https://0state.com/icey/"
 )
 

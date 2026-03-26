@@ -2,9 +2,9 @@
 
 > Lightweight WebRTC media transport for icey
 
-[![CI](https://github.com/sourcey/icey/actions/workflows/ci.yml/badge.svg)](https://github.com/sourcey/icey/actions/workflows/ci.yml)
+[![CI](https://github.com/nilstate/icey/actions/workflows/ci.yml/badge.svg)](https://github.com/nilstate/icey/actions/workflows/ci.yml)
 
-**Repository**: [https://github.com/sourcey/icey](https://github.com/sourcey/icey)
+**Repository**: [https://github.com/nilstate/icey](https://github.com/nilstate/icey)
 **Dependencies**: icey (base, net, crypto, av, symple), [libdatachannel](https://github.com/paullouisageneau/libdatachannel), OpenSSL 3.x, FFmpeg 5+
 **Licence**: LGPL-2.1+
 

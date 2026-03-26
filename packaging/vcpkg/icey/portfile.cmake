@@ -4,7 +4,7 @@ if(DEFINED ENV{ICEY_VCPKG_SOURCE_PATH} AND NOT "$ENV{ICEY_VCPKG_SOURCE_PATH}" ST
 else()
     vcpkg_from_github(
         OUT_SOURCE_PATH SOURCE_PATH
-        REPO sourcey/icey
+        REPO nilstate/icey
         REF "2.3.0"
         SHA512 8ac194aa4da0b6ad315cf86923dab0364259a979fccd9cc9f61c6c8fbcb525924be67bd56bd47f1991883bf11c77bd45b5da6f1ac8c02f73ca28ee0c0a3fa869
         HEAD_REF master

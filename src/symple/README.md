@@ -2,7 +2,7 @@
 
 Symple v4 server and client for real-time messaging and presence over native WebSocket.
 
-Part of [icey](https://github.com/sourcey/icey). Implements the same protocol as the [JS server](https://github.com/icey/symple-server) and [JS client](https://github.com/icey/symple-client).
+Part of [icey](https://github.com/nilstate/icey). Implements the same protocol as the [JS server](https://github.com/icey/symple-server) and [JS client](https://github.com/icey/symple-client).
 
 ## Features
 

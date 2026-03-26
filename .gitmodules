@@ -1,6 +1,8 @@
 [submodule "src/pacm"]
 	path = src/pacm
-	url = https://github.com/sourcey/pacm.git
+	url = https://github.com/nilstate/pacm.git
+	branch = main
 [submodule "src/pluga"]
 	path = src/pluga
-	url = https://github.com/sourcey/pluga.git
+	url = https://github.com/nilstate/pluga.git
+	branch = main

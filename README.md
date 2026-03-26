@@ -1,6 +1,6 @@
 # icey
 
-[![CI](https://github.com/sourcey/icey/actions/workflows/ci.yml/badge.svg)](https://github.com/sourcey/icey/actions/workflows/ci.yml)
+[![CI](https://github.com/nilstate/icey/actions/workflows/ci.yml/badge.svg)](https://github.com/nilstate/icey/actions/workflows/ci.yml)
 [![License: LGPL-2.1+](https://img.shields.io/badge/license-LGPL--2.1%2B-blue.svg)](LICENSE.md)
 
 > The C++ Media Stack
@@ -179,7 +179,7 @@ System dependencies such as OpenSSL 3.x, FFmpeg 5+/6+/7+, and OpenCV 3.0+ are au
 ### Build from source
 
 ```bash
-git clone https://github.com/sourcey/icey.git
+git clone https://github.com/nilstate/icey.git
 cd icey
 cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON
 cmake --build build --parallel $(nproc)
@@ -191,7 +191,7 @@ ctest --test-dir build --output-on-failure
 ```cmake
 include(FetchContent)
 FetchContent_Declare(icey
-  GIT_REPOSITORY https://github.com/sourcey/icey.git
+  GIT_REPOSITORY https://github.com/nilstate/icey.git
   GIT_TAG 2.3.0
 )
 FetchContent_MakeAvailable(icey)

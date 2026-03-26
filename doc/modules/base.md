@@ -1136,7 +1136,7 @@ To link `icey::base` from a parent CMake project using FetchContent:
 ```cmake
 include(FetchContent)
 FetchContent_Declare(icey
-  GIT_REPOSITORY https://github.com/sourcey/icey.git
+  GIT_REPOSITORY https://github.com/nilstate/icey.git
   GIT_TAG 2.3.0
 )
 FetchContent_MakeAvailable(icey)

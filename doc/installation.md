@@ -40,7 +40,7 @@ If you need platform-specific package commands, use the platform pages:
 ## Build
 
 ```bash
-git clone https://github.com/sourcey/icey.git
+git clone https://github.com/nilstate/icey.git
 cd icey
 cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON
 cmake --build build --parallel $(nproc)
@@ -95,7 +95,7 @@ cmake -B build -DOPENSSL_ROOT_DIR=$(brew --prefix openssl)
 ```cmake
 include(FetchContent)
 FetchContent_Declare(icey
-  GIT_REPOSITORY https://github.com/sourcey/icey.git
+  GIT_REPOSITORY https://github.com/nilstate/icey.git
   GIT_TAG 2.3.0
 )
 FetchContent_MakeAvailable(icey)

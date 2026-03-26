@@ -17,7 +17,7 @@ brew install ffmpeg
 ## Build and Install
 
 ```bash
-git clone https://github.com/sourcey/icey.git
+git clone https://github.com/nilstate/icey.git
 cd icey
 cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON \
   -DOPENSSL_ROOT_DIR=$(brew --prefix openssl)
