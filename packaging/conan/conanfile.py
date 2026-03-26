@@ -9,9 +9,10 @@ class iceyConan(ConanFile):
     version = "2.3.0"
     package_type = "library"
     license = "LGPL-2.1-or-later"
+    author = "Kam Low <kam@0state.com>"
     url = "https://github.com/sourcey/icey"
-    homepage = "https://0state.com/code/icey"
-    description = "C++ Networking Evolved - modular C++20 toolkit for networking, media, and real-time communication"
+    homepage = "https://0state.com/icey/"
+    description = "Modular C++20 toolkit for media servers, video pipelines, and real-time communication systems"
     topics = ("networking", "webrtc", "ffmpeg", "media", "http", "websocket", "stun", "turn", "c++20")
 
     settings = "os", "compiler", "build_type", "arch"

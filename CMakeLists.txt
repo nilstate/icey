@@ -7,8 +7,8 @@ string(STRIP "${icey_VERSION}" icey_VERSION)
 project(icey
   VERSION ${icey_VERSION}
   LANGUAGES C CXX
-  DESCRIPTION "C++ Networking Evolved"
-  HOMEPAGE_URL "https://github.com/sourcey/icey"
+  DESCRIPTION "Modular C++20 toolkit for media servers, video pipelines, and real-time communication systems"
+  HOMEPAGE_URL "https://0state.com/icey/"
 )
 
 # C++20 standard
