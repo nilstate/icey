@@ -2,6 +2,9 @@ if(DEFINED ENV{ICEY_VCPKG_SOURCE_PATH} AND NOT "$ENV{ICEY_VCPKG_SOURCE_PATH}" ST
     get_filename_component(SOURCE_PATH "$ENV{ICEY_VCPKG_SOURCE_PATH}" ABSOLUTE)
     message(STATUS "Using local icey source tree: ${SOURCE_PATH}")
 else()
+    # Keep the local overlay workflow pointed at the checked-out tree while
+    # release publication catches up. Before upstream submission, update this
+    # REF/SHA512 pair to the pushed 2.3.0 git tag archive.
     vcpkg_from_github(
         OUT_SOURCE_PATH SOURCE_PATH
         REPO sourcey/icey
