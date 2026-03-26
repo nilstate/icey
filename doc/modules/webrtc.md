@@ -165,11 +165,8 @@ config.rtcConfig.iceServers.emplace_back("turn:turn.example.com:3478");
 // Media tracks. Leave encoder empty to skip that track.
 // Video-only: omit audioCodec. Audio-only: omit videoCodec.
 // Data channel only: omit both.
-config.mediaOpts.videoCodec = av::VideoCodec("H264", "libx264", 1280, 720, 30);
-config.mediaOpts.audioCodec = av::AudioCodec("opus", "libopus", 2, 48000);
-
-// NACK buffer: number of sent packets retained for retransmission.
-config.mediaOpts.nackBufferSize = 512;
+config.media.videoCodec = av::VideoCodec("H264", "libx264", 1280, 720, 30);
+config.media.audioCodec = av::AudioCodec("opus", "libopus", 2, 48000);
 
 // Data channel.
 config.enableDataChannel = true;
@@ -182,7 +179,7 @@ config.dataChannelLabel = "data";
 
 ```cpp
 #include "icy/webrtc/peersession.h"
-#include "symplesignaller.h"  // Note: this header is in samples/, not the library include path
+#include "icy/webrtc/support/symplesignaller.h"
 
 smpl::Client client(opts);
 client.connect();
@@ -400,7 +397,7 @@ The three message categories:
 `SympleSignaller` wraps a `smpl::Client` and speaks the `call:*` message protocol defined in `symple-player`'s `CallManager.js`. It is wire-compatible with any browser running `symple-client`.
 
 ```cpp
-#include "symplesignaller.h"  // Note: this header is in samples/, not the library include path
+#include "icy/webrtc/support/symplesignaller.h"
 #include "icy/symple/client.h"
 
 smpl::Client::Options opts;
@@ -603,7 +600,7 @@ The `USE_CAMERA` flag switches between camera capture (using `av::DeviceManager:
 #include "icy/packetstream.h"
 #include "icy/symple/client.h"
 #include "icy/webrtc/peersession.h"
-#include "symplesignaller.h"
+#include "icy/webrtc/support/symplesignaller.h"
 
 class WebcamStreamer
 {
@@ -617,7 +614,7 @@ class WebcamStreamer
     {
         wrtc::PeerSession::Config config;
         config.rtcConfig.iceServers.emplace_back("stun:stun.l.google.com:19302");
-        config.mediaOpts.videoCodec =
+        config.media.videoCodec =
             av::VideoCodec("H264", "libx264", 640, 480, 30);
         config.enableDataChannel = false;
 
@@ -672,7 +669,7 @@ Reads any FFmpeg-supported media file, loops it at real-time rate, and streams t
 #include "icy/av/mediacapture.h"
 #include "icy/packetstream.h"
 #include "icy/webrtc/peersession.h"
-#include "symplesignaller.h"
+#include "icy/webrtc/support/symplesignaller.h"
 
 // Configure with a data channel for control messages.
 config.enableDataChannel = true;
@@ -697,7 +694,7 @@ The simplest sample: no media, no FFmpeg, no `PacketStream`. Connects to Symple,
 
 ```cpp
 #include "icy/webrtc/peersession.h"
-#include "symplesignaller.h"
+#include "icy/webrtc/support/symplesignaller.h"
 
 wrtc::PeerSession::Config config;
 config.rtcConfig.iceServers.emplace_back("stun:stun.l.google.com:19302");

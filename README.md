@@ -241,7 +241,7 @@ srv.start();
 ```cpp
 wrtc::PeerSession::Config config;
 config.rtcConfig.iceServers.emplace_back("stun:stun.l.google.com:19302");
-config.mediaOpts.videoCodec = av::VideoCodec("H264", "libx264", 1280, 720, 30);
+config.media.videoCodec = av::VideoCodec("H264", "libx264", 1280, 720, 30);
 
 wrtc::SympleSignaller signaller(client);
 wrtc::PeerSession session(signaller, config);
