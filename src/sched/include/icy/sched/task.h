@@ -98,7 +98,7 @@ public:
 
 protected:
     virtual bool beforeRun();
-    virtual void run() = 0;
+    virtual void run() override = 0;
     virtual bool afterRun();
 
     // For stl::sort operations

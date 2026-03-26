@@ -23,7 +23,9 @@ if(@HAVE_OPENCV@)
 endif()
 
 if(@HAVE_LIBDATACHANNEL@)
-  find_dependency(LibDataChannel CONFIG)
+  if(NOT TARGET LibDataChannel::LibDataChannelStatic AND NOT TARGET LibDataChannel::LibDataChannel)
+    find_dependency(LibDataChannel CONFIG)
+  endif()
   _icey_add_compat_target(LibDataChannel::LibDataChannelStatic LibDataChannel::LibDataChannel)
 endif()
 

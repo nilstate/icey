@@ -149,11 +149,11 @@ public:
 
     /// Accepts a pending client connection, initializes the server-side SSL
     /// context on the new socket, and fires the AcceptConnection signal.
-    virtual void acceptConnection();
+    virtual void acceptConnection() override;
 
     /// Called when the TCP connection is established; starts reading and
     /// initiates the client-side SSL handshake.
-    virtual void onConnect();
+    virtual void onConnect() override;
 
     /// Feeds raw encrypted bytes from the network into the SSL adapter.
     /// Called by the stream layer when ciphertext arrives from the peer.

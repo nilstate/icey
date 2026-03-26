@@ -311,7 +311,10 @@ void LinuxDeviceWatcher::stop()
     // Signal the watch thread to stop
     if (_impl->pipeFd[1] >= 0) {
         char c = 0;
-        (void)write(_impl->pipeFd[1], &c, 1);
+        if (write(_impl->pipeFd[1], &c, 1) == -1) {
+            // Best-effort signal to wake the watch thread; failure is non-fatal
+            // since the thread will also see _impl->running == false.
+        }
     }
 
     if (_impl->watchThread.joinable())

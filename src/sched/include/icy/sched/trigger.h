@@ -123,7 +123,7 @@ struct OnceOnlyTrigger : public Trigger
     }
 
     /// Returns true after the task has run at least once.
-    virtual bool expired();
+    virtual bool expired() override;
 };
 
 
@@ -139,7 +139,7 @@ struct IntervalTrigger : public Trigger
     virtual void update() override;
 
     /// Returns true when maxTimes > 0 and timesRun >= maxTimes.
-    virtual bool expired();
+    virtual bool expired() override;
 
     /// Serializes interval fields (days, hours, minutes, seconds) in addition to base fields.
     /// @param root JSON object to populate.

@@ -31,7 +31,6 @@ SSLContext::SSLContext(Usage usage, const std::string& privateKeyFile,
     : _usage(usage)
     , _mode(verificationMode)
     , _sslContext(nullptr)
-    , _extendedVerificationErrorDetails(true)
 {
     crypto::initializeEngine();
 
@@ -109,7 +108,6 @@ SSLContext::SSLContext(Usage usage, const std::string& caLocation,
     : _usage(usage)
     , _mode(verificationMode)
     , _sslContext(nullptr)
-    , _extendedVerificationErrorDetails(true)
 {
     crypto::initializeEngine();
 

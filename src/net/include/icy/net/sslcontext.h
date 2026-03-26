@@ -287,7 +287,6 @@ private:
     Usage _usage;
     VerificationMode _mode;
     SSL_CTX* _sslContext;
-    bool _extendedVerificationErrorDetails;
     std::vector<unsigned char> _alpnWire; ///< Wire-format ALPN protocols for server selection.
 };
 
