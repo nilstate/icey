@@ -18,7 +18,7 @@ If you are here to do a specific job, start there first.
 | Run your own TURN relay | [TURN Server](recipes/turn-server.md) | [turnserver sample](../src/turn/samples/turnserver/README.md) |
 | Stream a webcam to a browser | [Webcam To Browser](recipes/webrtc-webcam-to-browser.md) | [webcam-streamer sample](../src/webrtc/samples/webcam-streamer/README.md) |
 | Record browser media on the server | [Browser To Recorder](recipes/webrtc-browser-to-recorder.md) | [media-recorder sample](../src/webrtc/samples/media-recorder/README.md) |
-| Run the self-hosted media stack | [Media Server Stack](recipes/media-server-stack.md) | [media-server app](../src/webrtc/apps/media-server/README.md) |
+| Run the self-hosted media stack | [Media Server Stack](recipes/media-server-stack.md) | [Media Server Demo](../src/webrtc/apps/media-server/docker/README.md) |
 
 ## What These Pages Are For
 

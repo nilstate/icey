@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test:smoke": "node tests/browser-smoke.mjs",
+    "test:smoke:docker": "MEDIA_SERVER_SMOKE_USE_DOCKER=1 MEDIA_SERVER_BROWSER_ENGINE=chromium node tests/browser-smoke.mjs",
     "test:smoke:chromium": "MEDIA_SERVER_BROWSER_ENGINE=chromium node tests/browser-smoke.mjs",
     "test:smoke:firefox": "MEDIA_SERVER_BROWSER_ENGINE=firefox node tests/browser-smoke.mjs",
     "test:smoke:webkit": "MEDIA_SERVER_BROWSER_ENGINE=webkit node tests/browser-smoke.mjs"

@@ -1,4 +1,4 @@
-.PHONY: docs docs-install docs-xml docs-api-md docs-site docs-check docs-dev docs-docker clean-docs package-conan package-vcpkg
+.PHONY: docs docs-install docs-xml docs-api-md docs-site docs-check docs-dev docs-docker clean-docs package-conan package-vcpkg media-server-docker
 
 DOCS_NPM = npm --prefix doc
 DOCS_RUN = $(DOCS_NPM) run
@@ -51,3 +51,7 @@ package-conan:
 ## Install Icey through the local vcpkg overlay port
 package-vcpkg:
 	$(VCPKG) install icey --overlay-ports="$(CURDIR)/packaging/vcpkg"
+
+## Build and run the media-server Docker demo
+media-server-docker:
+	cd src/webrtc/apps/media-server/docker && docker compose up --build

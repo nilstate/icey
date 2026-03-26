@@ -68,6 +68,114 @@ function selectedBrowserEngine() {
   return (process.env.MEDIA_SERVER_BROWSER_ENGINE || 'chromium').toLowerCase()
 }
 
+function selectedScenarios() {
+  const raw = (process.env.MEDIA_SERVER_SMOKE_SCENARIO || 'all').toLowerCase()
+  if (raw === 'all')
+    return new Set(['stream', 'record', 'relay'])
+  return new Set(raw.split(',').map((name) => name.trim()).filter(Boolean))
+}
+
+function smokeUsesDockerServer() {
+  return process.env.MEDIA_SERVER_SMOKE_USE_DOCKER === '1' ||
+    Boolean(process.env.MEDIA_SERVER_DOCKER_COMPOSE_FILE)
+}
+
+function dockerComposeFile() {
+  return process.env.MEDIA_SERVER_DOCKER_COMPOSE_FILE ||
+    candidatePath('src/webrtc/apps/media-server/docker/compose.yaml')
+}
+
+function dockerRecordingsDir() {
+  return process.env.MEDIA_SERVER_DOCKER_RECORDINGS_DIR ||
+    candidatePath('src/webrtc/apps/media-server/docker/recordings')
+}
+
+function dockerImageName() {
+  return process.env.MEDIA_SERVER_DOCKER_IMAGE || 'icey/media-server:local'
+}
+
+function argValue(args, flag, fallback = '') {
+  const index = args.indexOf(flag)
+  return index !== -1 && index + 1 < args.length ? args[index + 1] : fallback
+}
+
+function serverMode(args) {
+  return argValue(args, '--mode', 'stream')
+}
+
+function serverPort(args) {
+  return argValue(args, '--port', '4500')
+}
+
+function dockerTurnPort(port) {
+  return String(Number(port) + 1000)
+}
+
+async function runCommand(command, args, options = {}) {
+  const child = spawn(command, args, {
+    cwd: options.cwd || repoRoot,
+    env: options.env || process.env,
+    stdio: ['ignore', 'pipe', 'pipe']
+  })
+
+  let stdout = ''
+  let stderr = ''
+
+  child.stdout.on('data', (chunk) => {
+    stdout += chunk.toString()
+  })
+  child.stderr.on('data', (chunk) => {
+    stderr += chunk.toString()
+  })
+
+  const result = await new Promise((resolve, reject) => {
+    child.once('error', reject)
+    child.once('exit', (code, signal) => resolve({code, signal}))
+  })
+
+  if (result.code !== 0 && !options.allowFailure) {
+    const details = [stdout.trim(), stderr.trim()].filter(Boolean).join('\n')
+    throw new Error(`${command} ${args.join(' ')} failed with code ${result.code}${details ? `\n${details}` : ''}`)
+  }
+
+  return {
+    ...result,
+    stdout,
+    stderr
+  }
+}
+
+async function clearRecordingOutputs(recordDir) {
+  if (!await exists(recordDir))
+    return
+
+  const names = await readdir(recordDir)
+  for (const name of names) {
+    if (!name.endsWith('.mp4'))
+      continue
+    await rm(path.join(recordDir, name), { force: true })
+  }
+}
+
+async function ensureDockerImageAvailable(composeFile) {
+  const image = dockerImageName()
+  const inspect = await runCommand('docker', ['image', 'inspect', image], {
+    allowFailure: true
+  })
+  if (inspect.code === 0)
+    return
+
+  await runCommand('docker', ['compose', '-f', composeFile, 'build'])
+}
+
+async function dockerLogs(composeFile, env) {
+  const result = await runCommand('docker', ['compose', '-f', composeFile, 'logs', '--no-color'], {
+    env,
+    allowFailure: true
+  })
+  return [result.stdout.trim(), result.stderr.trim()].filter(Boolean).join('\n')
+}
+
 async function findBrowserExecutable(engine) {
   const explicitExecutable = {
     chromium: process.env.MEDIA_SERVER_CHROMIUM_BROWSER,
@@ -85,6 +193,7 @@ async function findBrowserExecutable(engine) {
 async function findMediaServerBinary() {
   return findFirstExisting([
     process.env.MEDIA_SERVER_BIN,
+    candidatePath('build-webrtc-smoke/webrtc/apps/media-server/media-server'),
     candidatePath('build-webrtc/webrtc/apps/media-server/media-server'),
     candidatePath('build-webrtc-samples/webrtc/apps/media-server/media-server'),
     candidatePath('build/bin/media-server')
@@ -92,6 +201,37 @@ async function findMediaServerBinary() {
 }
 
 async function withServer(args, run) {
+  if (smokeUsesDockerServer()) {
+    const composeFile = dockerComposeFile()
+    if (!await exists(composeFile))
+      fail(`Docker compose file not found: ${composeFile}`)
+
+    const port = serverPort(args)
+    const env = {
+      ...process.env,
+      ICEY_MODE: serverMode(args),
+      ICEY_PORT: port,
+      ICEY_TURN_PORT: dockerTurnPort(port)
+    }
+
+    await ensureDockerImageAvailable(composeFile)
+
+    try {
+      await runCommand('docker', ['compose', '-f', composeFile, 'up', '-d', '--force-recreate'], { env })
+      await waitForHttp(`http://127.0.0.1:${port}/`, 15000)
+      return await run({port, logs: []})
+    } catch (err) {
+      const logs = await dockerLogs(composeFile, env)
+      const context = logs ? `\nDocker logs:\n${logs}` : ''
+      throw new Error(`${err.message}${context}`)
+    } finally {
+      await runCommand('docker', ['compose', '-f', composeFile, 'down'], {
+        env,
+        allowFailure: true
+      })
+    }
+  }
+
   const serverBin = await findMediaServerBinary()
   const child = spawn(serverBin, args, {
     cwd: repoRoot,
@@ -260,6 +400,27 @@ async function waitForActive(page) {
   }
 }
 
+async function hangupCall(page) {
+  const button = page.locator('#btn-hangup')
+  await button.waitFor({ state: 'visible', timeout: 15000 })
+  await button.click()
+}
+
+async function waitForCallEnd(page) {
+  try {
+    await page.waitForFunction(() => {
+      const controls = document.getElementById('controls')
+      const overlay = document.getElementById('player-overlay')
+      return Boolean(controls?.classList.contains('hidden')) &&
+        !overlay?.classList.contains('hidden')
+    }, null, { timeout: 15000 })
+  } catch (err) {
+    const state = await capturePlaybackState(page)
+    err.message += `\nEnd-call state:\n${JSON.stringify(state, null, 2)}`
+    throw err
+  }
+}
+
 async function capturePlaybackState(page) {
   return page.evaluate(async () => {
     const remote = document.getElementById('remote-video')
@@ -416,8 +577,12 @@ async function runStreamScenario(browser, webRoot, sourceFile) {
 
 async function runRecordScenario(browser, webRoot) {
   console.log('browser smoke: record mode')
-  const recordDir = await mkdtemp(path.join(os.tmpdir(), 'icey-record-'))
+  const useDocker = smokeUsesDockerServer()
+  const recordDir = useDocker
+    ? dockerRecordingsDir()
+    : await mkdtemp(path.join(os.tmpdir(), 'icey-record-'))
   try {
+    await clearRecordingOutputs(recordDir)
     await withServer([
       '--port', '4601',
       '--mode', 'record',
@@ -428,6 +593,9 @@ async function runRecordScenario(browser, webRoot) {
       try {
         await callPeer(page, 'Media Server', 'Broadcast')
         await waitForActive(page)
+        await delay(2000)
+        await hangupCall(page)
+        await waitForCallEnd(page)
         try {
           await waitForRecording(recordDir)
         } catch (err) {
@@ -448,7 +616,8 @@ async function runRecordScenario(browser, webRoot) {
       }
     })
   } finally {
-    await rm(recordDir, { recursive: true, force: true })
+    if (!useDocker)
+      await rm(recordDir, { recursive: true, force: true })
   }
 }
 
@@ -481,6 +650,7 @@ async function main() {
   const webRoot = path.resolve(__dirname, '../dist')
   const sourceFile = candidatePath('data/test.mp4')
   const engine = selectedBrowserEngine()
+  const scenarios = selectedScenarios()
 
   if (!await exists(webRoot))
     fail(`Built web UI not found at ${webRoot}. Run 'npm run build' in src/webrtc/apps/media-server/web first.`)
@@ -492,9 +662,12 @@ async function main() {
   const browser = await launchBrowser()
   try {
     console.log(`browser smoke engine: ${engine}`)
-    await runStreamScenario(browser, webRoot, sourceFile)
-    await runRecordScenario(browser, webRoot)
-    await runRelayScenario(browser, webRoot)
+    if (scenarios.has('stream'))
+      await runStreamScenario(browser, webRoot, sourceFile)
+    if (scenarios.has('record'))
+      await runRecordScenario(browser, webRoot)
+    if (scenarios.has('relay'))
+      await runRelayScenario(browser, webRoot)
   } finally {
     await browser.close()
   }

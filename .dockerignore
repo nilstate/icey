@@ -2,7 +2,14 @@
 .github
 .plans
 build*
+!build-webrtc/
+!build-webrtc/webrtc/
+!build-webrtc/webrtc/apps/
+!build-webrtc/webrtc/apps/media-server/
+!build-webrtc/webrtc/apps/media-server/media-server
 dist
+!src/webrtc/apps/media-server/web/dist/
+!src/webrtc/apps/media-server/web/dist/**
 node_modules
 doc/node_modules
 _deps

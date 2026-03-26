@@ -1,0 +1,21 @@
+name: icey-media-server
+
+services:
+  media-server:
+    build:
+      context: ../../../../..
+      dockerfile: src/webrtc/apps/media-server/docker/Dockerfile
+      args:
+        ICEY_MEDIA_SERVER_BINARY: ${ICEY_MEDIA_SERVER_BINARY:-build-webrtc/webrtc/apps/media-server/media-server}
+    image: icey/media-server:local
+    container_name: icey-media-server
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      ICEY_MODE: ${ICEY_MODE:-stream}
+      ICEY_PORT: ${ICEY_PORT:-4500}
+      ICEY_TURN_PORT: ${ICEY_TURN_PORT:-3478}
+      ICEY_SOURCE: ${ICEY_SOURCE:-/app/media/test.mp4}
+      ICEY_RECORD_DIR: ${ICEY_RECORD_DIR:-/app/recordings}
+    volumes:
+      - ./recordings:/app/recordings

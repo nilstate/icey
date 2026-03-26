@@ -12,6 +12,21 @@ in one C++ binary.
 
 That is what makes `media-server` interesting. It is not a thin demo around a managed service. It is the whole stack in one place.
 
+## Fastest Path
+
+If you want the shortest path to a running browser demo, start with the Media Server Demo:
+
+- [Media Server Demo](../../src/webrtc/apps/media-server/docker/README.md)
+
+From that directory:
+
+```bash
+docker compose up --build
+```
+
+Then open `http://localhost:4500`.
+In the default `stream` mode, click `Watch` on the `Media Server` peer.
+
 ## What Runs
 
 The server exposes:
@@ -132,8 +147,8 @@ instead of testing all four at once.
 
 ## Good Next Stops
 
+- [Media Server Demo](../../src/webrtc/apps/media-server/docker/README.md) for the canonical end-to-end path
 - [WebRTC guide](../modules/webrtc.md) for the session and track layers
 - [TURN guide](../modules/turn.md) for relay behavior
 - [HTTP Lifecycle](../concepts/http-lifecycle.md) for the server side of the UI and signalling transport
 - [`media-server`](../../src/webrtc/apps/media-server/README.md) for the app-local operational README
-

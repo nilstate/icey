@@ -4,7 +4,18 @@ Single C++ binary: WebRTC media streaming + Symple signalling + TURN relay + web
 
 No Node.js runtime, no third-party services. One binary, two ports (HTTP/WS + TURN).
 
-## Quick start
+## Media Server Demo
+
+If you need the shortest end-to-end path, use the packaged [Media Server Demo](docker/README.md):
+
+```bash
+cd src/webrtc/apps/media-server/docker
+docker compose up --build
+```
+
+Then open `http://localhost:4500` and click `Watch` on the `Media Server` peer.
+
+## Native Quick Start
 
 ```bash
 # Build the C++ server
@@ -23,7 +34,7 @@ npm run build
 Open `http://localhost:4500` in a browser.
 
 Validated browser smoke:
-- Chromium via Playwright
+- Chromium engine via Playwright using the system Google Chrome binary
 - Firefox via Playwright
 
 WebKit smoke is wired in the test harness, but the Playwright WebKit/WPE runtime on this Linux host is not treated as authoritative for publish-path support. Do not claim Safari support until it has been validated on Apple platforms.

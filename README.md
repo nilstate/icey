@@ -19,6 +19,19 @@ Icey is the connective tissue: a modular C++20 toolkit that pulls FFmpeg, libuv,
 
 **[Documentation](doc/index.md)** | **[Changelog](CHANGELOG.md)** | **[Contributing](doc/contributing.md)** | **[LGPL-2.1+](LICENSE.md)**
 
+## Fastest Path
+
+If you want the shortest path from zero to browser video, use the [Media Server Demo](src/webrtc/apps/media-server/docker/README.md).
+
+One command. One URL. One click.
+
+```bash
+cd src/webrtc/apps/media-server/docker
+docker compose up --build
+```
+
+Then open `http://localhost:4500` and click `Watch` on the `Media Server` peer.
+
 ## Why Icey
 
 | | libWebRTC (Google) | libdatachannel | GStreamer | **Icey** |
