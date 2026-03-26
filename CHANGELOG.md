@@ -13,13 +13,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Reportable microbenchmark runner plus focused parse/probe benches for packet stream, HTTP, WebSocket, and STUN hot paths
 - API overview quality checks in the docs toolchain to catch shallow or missing generated reference summaries
 - Internal Symple protocol/state helpers for welcome parsing, sanitized presence emission, room reconciliation, and roster presence application, backed by focused unit coverage
-- `webrtc_support` as a dedicated support library for Symple/WebSocket signallers and call-protocol helpers shared by samples and `media-server`
+- `webrtc_support` as a dedicated support library for Symple/WebSocket signallers, including the server-side virtual-peer adapter now used by samples and `media-server`
 
 ### Changed
 
 - WebRTC browser/media-server behavior after 2.3.0: codec negotiation is tighter, browser offer handling is stricter, and `PeerSession` / track flow is more defensive under real browser traffic
 - Public Symple and TURN configuration handoff now favors value-style option snapshots instead of live mutable option bags
-- `PeerSession::Config` now exposes media settings under `config.media`, and answer-session media options are derived explicitly from the remote offer instead of relying on looser implicit defaults
+- `PeerSession::Config` now exposes media settings under `config.media`, and answer-session media options are derived explicitly from the remote offer's mids, directions, and payload types instead of relying on looser implicit defaults
+- Symple client/server internals are split into focused protocol, room-state, roster-state, routing, and presence helpers instead of monolithic translation units
 - API reference coverage has been deepened across the core modules, WebRTC, and the pacm/pluga surfaces, with reorganized Sourcey guides and workflows
 - Icey docs now consume published `moxygen` / `sourcey` npm releases instead of git-pinned or exact-pinned toolchain versions
 - Packaging assets are centralized under `packaging/` instead of spreading Conan and vcpkg files across the repo root
@@ -28,7 +29,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 - Exported CMake package consumers now tolerate dependency target-name differences across FetchContent, Conan, and vcpkg installs
 - Browser media-server smoke harness failures and related WebRTC sample pipeline regressions that were blocking stricter interop coverage
-- `http::ClientConnection` now surfaces underlying transport failures via an explicit error signal instead of leaving socket-level errors implicit
+- Symple clients now transition cleanly to `Error` on underlying transport failures, including initial WebSocket connect failures, via explicit `http::ClientConnection` error propagation
 - pacm JSON handling in the submodule update path, keeping the external package-manager surface aligned with the current docs/API snapshots
 
 ## [2.3.0] - 2026-03-23

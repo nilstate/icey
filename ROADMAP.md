@@ -14,7 +14,7 @@ CMake 3.21 minimum, deps via FetchContent (libuv 1.50, llhttp 9.2.1, zlib 1.3.1,
 - [x] Add repo-local Conan / vcpkg packaging layouts and Makefile entry points
 - [ ] Tag and publish the 2.3.x git release with the current changelog
 - [ ] Upstream the Icey package recipes to ConanCenter and the vcpkg registry
-- [ ] Fold the recent browser-smoke, pacm/pluga, and docs coverage work into the final release notes
+- [ ] Fold the remaining Symple/WebRTC runtime refactor and any pacm/pluga deltas into the final release notes before tagging
 
 ---
 
@@ -44,12 +44,14 @@ Lightweight WebRTC media stack via libdatachannel now ships in-tree. See `src/we
 ### 2.3 - Docs, Packaging, and Release Surface (Largely completed)
 
 - Sourcey-based docs site, generated API reference, and docs quality checks are in place
-- Conan and vcpkg repo-local packaging layouts exist and validate locally
+- Conan and vcpkg repo-local packaging layouts exist with Makefile entry points for one final sequential validation pass
+- Symple/WebRTC support helpers have been extracted into reusable protocol/state/support layers instead of living inside samples and monolithic sources
 - Remaining work is registry publication and release hygiene:
   - ConanCenter submission
   - vcpkg registry submission
   - git tags / release archives
-  - release-note consolidation for recent browser/docs/submodule work
+  - final sequential package verification
+  - release-note consolidation for recent browser/runtime/docs/submodule work
 
 ### 2.4 - AV
 
