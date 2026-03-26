@@ -92,7 +92,10 @@ void TCPClient::sendData(const char* data, size_t size, const net::Address& peer
 
     auto& conn = _connections.get(peerAddress);
 
-    conn->send(data, size);
+    if (conn->send(data, size) <= 0) {
+        throw std::runtime_error("Failed to send relay data to peer: " +
+                                 peerAddress.host());
+    }
 }
 
 

@@ -278,7 +278,7 @@ public:
     [[nodiscard]] net::Address mappedAddress() const;
 
     /// @return The relayed transport address assigned by the TURN server.
-    [[nodiscard]] net::Address relayedAddress() const;
+    [[nodiscard]] net::Address relayedAddress() const override;
 
     /// @return true when the client is in the None or Failed state.
     [[nodiscard]] bool closed() const;
