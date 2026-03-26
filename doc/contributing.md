@@ -73,6 +73,26 @@ The split is deliberate:
 
 The normal docs path is `make docs`. Use `make docs-api-md` only when you want the repo-local markdown mirror refreshed as well.
 
+## Release flow
+
+Release prose stays manual in `CHANGELOG.md` and `ROADMAP.md`. The mechanical version sync does not.
+
+```bash
+make release VERSION=2.4.0
+make release-check VERSION=2.4.0
+git commit -am "release: prepare 2.4.0"
+git tag 2.4.0
+git push origin main 2.4.0
+make release-pin-vcpkg VERSION=2.4.0
+```
+
+What each step does:
+
+- `make release` syncs `VERSION`, package recipe versions, and the public `FetchContent` examples after you have already written the matching `CHANGELOG.md` section.
+- `make release-check` fails if `VERSION`, Conan, vcpkg, docs examples, and the changelog heading drift apart.
+- The GitHub release workflow runs on plain semantic-version tags from `main` and fails if the pushed tag does not match `VERSION`.
+- `make release-pin-vcpkg` is the post-tag step: it downloads the GitHub source archive for that tag, computes the SHA512, and updates `packaging/vcpkg/icey/portfile.cmake`.
+
 ## Licence
 
 By contributing you agree that your work will be licensed under the [LGPL-2.1+](../LICENSE.md) licence.

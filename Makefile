@@ -1,4 +1,4 @@
-.PHONY: docs docs-install docs-xml docs-api-md docs-site docs-check docs-dev docs-docker clean-docs package-conan package-vcpkg media-server-docker
+.PHONY: docs docs-install docs-xml docs-api-md docs-site docs-check docs-dev docs-docker clean-docs package-conan package-vcpkg release release-check release-pin-vcpkg media-server-docker
 
 DOCS_NPM = npm --prefix doc
 DOCS_RUN = $(DOCS_NPM) run
@@ -53,6 +53,20 @@ package-conan:
 ## Install icey through the local vcpkg overlay port
 package-vcpkg:
 	ICEY_VCPKG_SOURCE_PATH="$(ICEY_VCPKG_SOURCE_PATH)" VCPKG_MAX_CONCURRENCY="$(VCPKG_MAX_CONCURRENCY)" $(VCPKG) install icey --overlay-ports="$(CURDIR)/packaging/vcpkg"
+
+## Sync release metadata for VERSION, package recipes, and FetchContent examples
+release:
+	@if [ -z "$(VERSION)" ]; then echo "usage: make release VERSION=2.4.0" >&2; exit 1; fi
+	./scripts/release-sync.sh "$(VERSION)"
+
+## Verify release metadata is internally consistent
+release-check:
+	@if [ -n "$(VERSION)" ]; then ./scripts/release-check.sh "$(VERSION)"; else ./scripts/release-check.sh; fi
+
+## After pushing a git tag, pin the vcpkg fallback archive ref and sha512
+release-pin-vcpkg:
+	@if [ -z "$(VERSION)" ]; then echo "usage: make release-pin-vcpkg VERSION=2.4.0" >&2; exit 1; fi
+	./scripts/release-pin-vcpkg.sh "$(VERSION)"
 
 ## Build and run the media-server Docker demo
 media-server-docker:

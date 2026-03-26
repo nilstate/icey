@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'
+      - '*.*.*'
 
 permissions:
   contents: write
@@ -13,25 +13,35 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Read version
-        id: version
-        run: echo "version=$(cat VERSION)" >> "$GITHUB_OUTPUT"
+      - name: Validate tag and release metadata
+        run: |
+          tag="${GITHUB_REF_NAME}"
+          git fetch origin main --no-tags
+          case "$tag" in
+            [0-9]*.[0-9]*.[0-9]*) ;;
+            *)
+              echo "expected a plain semantic version tag, got: $tag" >&2
+              exit 1
+              ;;
+          esac
+          git merge-base --is-ancestor "${GITHUB_SHA}" origin/main || {
+            echo "release tags must point to commits reachable from origin/main" >&2
+            exit 1
+          }
+          ./scripts/release-check.sh "$tag"
 
       - name: Extract changelog
-        id: changelog
         run: |
-          # Extract the section for this version from CHANGELOG.md
-          awk '/^## \['"${{ steps.version.outputs.version }}"'\]/{found=1; next} /^## \[/{if(found) exit} found{print}' CHANGELOG.md > release_notes.md
-          # Fallback if no changelog entry found
-          if [ ! -s release_notes.md ]; then
-            echo "Release ${{ steps.version.outputs.version }}" > release_notes.md
-          fi
+          awk '/^## \['"${GITHUB_REF_NAME}"'\]/{found=1; next} /^## \[/{if(found) exit} found{print}' CHANGELOG.md > release_notes.md
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          name: icey ${{ github.ref_name }}
           body_path: release_notes.md
           draft: false
           prerelease: false
-          generate_release_notes: true
+          generate_release_notes: false
