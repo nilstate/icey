@@ -413,7 +413,7 @@ tcp->loop();         // uv::Loop*
 include(FetchContent)
 FetchContent_Declare(icey
   GIT_REPOSITORY https://github.com/nilstate/icey.git
-  GIT_TAG v2.3.0
+  GIT_TAG 2.4.0
 )
 FetchContent_MakeAvailable(icey)
 target_link_libraries(myapp PRIVATE icy_base icy_net icy_http icy_av icy_webrtc icy_symple)

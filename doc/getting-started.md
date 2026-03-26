@@ -15,7 +15,7 @@ project(myapp)
 include(FetchContent)
 FetchContent_Declare(icey
   GIT_REPOSITORY https://github.com/nilstate/icey.git
-  GIT_TAG 2.3.0
+  GIT_TAG 2.4.0
 )
 FetchContent_MakeAvailable(icey)
 

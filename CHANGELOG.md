@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+## [2.4.0] - 2026-03-27
+
 ### Added
 
 - Repo-local package manager layouts under `packaging/` with `make package-conan` and `make package-vcpkg` entry points for local consumer validation
@@ -24,12 +26,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 - WebRTC browser/media-server behavior after 2.3.0: codec negotiation is tighter, browser offer handling is stricter, and `PeerSession` / track flow is more defensive under real browser traffic
 - Public package, docs, and sample surface now use lowercase `icey` consistently, with no retained `Icey` CMake/package-manager naming
+- Public lifecycle verbs are now standardized on `start()` / `stop()` across HTTP client/server, Symple client/server, and TURN client surfaces; the previous spellings were removed instead of being kept as compatibility aliases
 - WebRTC internals are now cut along explicit seams instead of monolithic translation units:
   - `PeerSession` state/signalling/RTC work is split across `peersession.cpp`, `peersessionsignalling.cpp`, and `peersessionrtc.cpp`
   - remote answer scoping lives in `remotemediaplan.cpp`
   - codec support is centralized in `codecregistry.cpp`
   - `media-server` runtime code is split under `apps/media-server/internal/`
 - Public Symple and TURN configuration handoff now favors value-style option snapshots instead of live mutable option bags
+- Public option mutation is now explicit on package-manager surfaces via `mutableOptions()`, while the public AV encoder interfaces expose const option views
 - `PeerSession::Config` now exposes media settings under `config.media`, and answer-session media options are derived explicitly from the remote offer's mids, directions, and payload types instead of relying on looser implicit defaults
 - Symple client/server internals are now organized under `src/symple/src/client/` and `src/symple/src/server/`, with shared wire helpers in `src/symple/src/protocol.*`
 - API reference coverage has been deepened across the core modules, WebRTC, and the pacm/pluga surfaces, with reorganized Sourcey guides and workflows

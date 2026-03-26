@@ -6,7 +6,7 @@ import os
 
 class iceyConan(ConanFile):
     name = "icey"
-    version = "2.3.0"
+    version = "2.4.0"
     package_type = "library"
     license = "LGPL-2.1-or-later"
     author = "0state OSS <oss@0state.com>"
