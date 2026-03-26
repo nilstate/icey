@@ -186,15 +186,23 @@ if(NOT USE_SYSTEM_DEPS)
 
 else()
   # System deps: use find_package (for vcpkg or system-installed packages)
-  find_package(libuv CONFIG REQUIRED)
+  find_package(PkgConfig QUIET)
+  find_package(libuv CONFIG QUIET)
+  if(NOT TARGET libuv::uv_a AND NOT TARGET libuv::libuv AND PkgConfig_FOUND)
+    pkg_check_modules(LIBUV QUIET IMPORTED_TARGET GLOBAL libuv)
+  endif()
   find_package(llhttp CONFIG REQUIRED)
   find_package(ZLIB REQUIRED)
 
   # Package managers do not agree on canonical target names.
   icy_add_compat_target(uv_a libuv::uv_a)
   icy_add_compat_target(uv_a libuv::libuv)
+  icy_add_compat_target(uv_a PkgConfig::LIBUV)
   icy_add_compat_target(llhttp_static llhttp::llhttp_static)
   icy_add_compat_target(llhttp_static llhttp::llhttp)
+  if(NOT TARGET uv_a)
+    message(FATAL_ERROR "libuv not found; install libuv with a CMake package config or pkg-config metadata")
+  endif()
 
   # Alias system zlib to match the target name used by modules
   if(NOT TARGET zlibstatic)
@@ -208,7 +216,12 @@ else()
     icy_add_compat_target(minizip unofficial-minizip::minizip)
   elseif(TARGET minizip::minizip)
     icy_add_compat_target(minizip minizip::minizip)
-  else()
+  elseif(PkgConfig_FOUND)
+    pkg_check_modules(MINIZIP QUIET IMPORTED_TARGET GLOBAL minizip)
+    icy_add_compat_target(minizip PkgConfig::MINIZIP)
+  endif()
+
+  if(NOT TARGET minizip)
     # Build minizip from zlib's contrib (requires zlib headers on system)
     find_path(ZLIB_SOURCE_DIR NAMES contrib/minizip/unzip.h
       HINTS ${ZLIB_INCLUDE_DIRS} ${ZLIB_ROOT}
@@ -283,24 +296,31 @@ endif()
 # libdatachannel (WebRTC transport: ICE, DTLS, SRTP, data channels)
 # ----------------------------------------------------------------------------
 if(WITH_LIBDATACHANNEL AND HAVE_OPENSSL AND HAVE_FFMPEG)
-  include(FetchContent)
-  FetchContent_Declare(libdatachannel
-    GIT_REPOSITORY https://github.com/paullouisageneau/libdatachannel.git
-    GIT_TAG        v0.24.1
-    GIT_SHALLOW    TRUE)
-  set(NO_MEDIA OFF CACHE BOOL "" FORCE)
-  set(NO_WEBSOCKET ON CACHE BOOL "" FORCE)
-  set(NO_EXAMPLES ON CACHE BOOL "" FORCE)
-  set(NO_TESTS ON CACHE BOOL "" FORCE)
-  # Disable libdatachannel's -Werror to avoid breaking our build
-  set(WARNINGS_AS_ERRORS OFF CACHE BOOL "" FORCE)
-  FetchContent_MakeAvailable(libdatachannel)
-  set(HAVE_LIBDATACHANNEL ON)
-  message(STATUS "  Found libdatachannel (FetchContent)")
-
-  # The webrtc module uses SKIP_EXPORT in icy_add_module() because
-  # libdatachannel's transitive deps (juice, usrsctp, srtp2) have their
-  # own export sets that conflict with iceyTargets.
+  if(USE_SYSTEM_DEPS)
+    find_package(LibDataChannel CONFIG QUIET)
+    icy_add_compat_target(LibDataChannel::LibDataChannelStatic LibDataChannel::LibDataChannel)
+    if(TARGET LibDataChannel::LibDataChannelStatic)
+      set(HAVE_LIBDATACHANNEL ON)
+      message(STATUS "  Found libdatachannel (system)")
+    else()
+      message(STATUS "  libdatachannel not found, disabling WebRTC")
+    endif()
+  else()
+    include(FetchContent)
+    FetchContent_Declare(libdatachannel
+      GIT_REPOSITORY https://github.com/paullouisageneau/libdatachannel.git
+      GIT_TAG        v0.24.1
+      GIT_SHALLOW    TRUE)
+    set(NO_MEDIA OFF CACHE BOOL "" FORCE)
+    set(NO_WEBSOCKET ON CACHE BOOL "" FORCE)
+    set(NO_EXAMPLES ON CACHE BOOL "" FORCE)
+    set(NO_TESTS ON CACHE BOOL "" FORCE)
+    # Disable libdatachannel's -Werror to avoid breaking our build
+    set(WARNINGS_AS_ERRORS OFF CACHE BOOL "" FORCE)
+    FetchContent_MakeAvailable(libdatachannel)
+    set(HAVE_LIBDATACHANNEL ON)
+    message(STATUS "  Found libdatachannel (FetchContent)")
+  endif()
 else()
   if(WITH_LIBDATACHANNEL)
     message(STATUS "  libdatachannel requires OpenSSL and FFmpeg (WITH_OPENSSL=ON WITH_FFMPEG=ON)")

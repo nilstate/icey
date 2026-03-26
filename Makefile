@@ -1,9 +1,10 @@
-.PHONY: docs docs-install docs-xml docs-api-md docs-site docs-check docs-dev docs-docker clean-docs package-conan package-vcpkg release release-check release-pin-vcpkg media-server-docker
+.PHONY: docs docs-install docs-xml docs-api-md docs-site docs-check docs-dev docs-docker clean-docs package-conan package-vcpkg package-arch release release-check release-pin release-pin-vcpkg release-pin-arch media-server-docker
 
 DOCS_NPM = npm --prefix doc
 DOCS_RUN = $(DOCS_NPM) run
 CONAN ?= conan
 VCPKG ?= vcpkg
+MAKEPKG ?= makepkg
 VCPKG_MAX_CONCURRENCY ?= 1
 ICEY_VCPKG_SOURCE_PATH ?= $(CURDIR)
 
@@ -19,10 +20,10 @@ docs-xml:
 	mkdir -p build/doxygen
 	doxygen Doxyfile
 
-## Regenerate the optional doc/api markdown mirror from Doxygen XML
+## Regenerate the optional docs/api markdown mirror from Doxygen XML
 docs-api-md: docs-install docs-xml
-	find doc/api -maxdepth 1 -type f -name '*.md' -delete
-	$(DOCS_NPM) exec -- moxygen "$(CURDIR)/build/doxygen/xml" -g -o "$(CURDIR)/doc/api/%s.md" -n -a -l cpp -q --source-root "$(CURDIR)"
+	find docs/api -maxdepth 1 -type f -name '*.md' -delete
+	$(DOCS_NPM) exec -- moxygen "$(CURDIR)/build/doxygen/xml" -g -o "$(CURDIR)/docs/api/%s.md" -n -a -l cpp -q --source-root "$(CURDIR)"
 
 ## Build Sourcey static site
 docs-site: docs-install docs-xml
@@ -31,7 +32,7 @@ docs-site: docs-install docs-xml
 ## Regenerate markdown, build the site, and validate overview quality
 docs-check: docs-api-md
 	$(DOCS_RUN) site:build
-	node doc/scripts/check-api-quality.mjs
+	node docs/scripts/check-api-quality.mjs
 
 ## Dev server with live reload
 docs-dev: docs-install docs-xml
@@ -54,6 +55,10 @@ package-conan:
 package-vcpkg:
 	ICEY_VCPKG_SOURCE_PATH="$(ICEY_VCPKG_SOURCE_PATH)" VCPKG_MAX_CONCURRENCY="$(VCPKG_MAX_CONCURRENCY)" $(VCPKG) install icey --overlay-ports="$(CURDIR)/packaging/vcpkg"
 
+## Build the local Arch package from packaging/arch
+package-arch:
+	cd packaging/arch && $(MAKEPKG) --force --cleanbuild --syncdeps
+
 ## Sync release metadata for VERSION, package recipes, and FetchContent examples
 release:
 	@if [ -z "$(VERSION)" ]; then echo "usage: make release VERSION=2.4.0" >&2; exit 1; fi
@@ -63,10 +68,18 @@ release:
 release-check:
 	@if [ -n "$(VERSION)" ]; then ./scripts/release-check.sh "$(VERSION)"; else ./scripts/release-check.sh; fi
 
+## Pin release archive hashes for all package-manager recipes
+release-pin: release-pin-vcpkg release-pin-arch
+
 ## After pushing a git tag, pin the vcpkg fallback archive ref and sha512
 release-pin-vcpkg:
 	@if [ -z "$(VERSION)" ]; then echo "usage: make release-pin-vcpkg VERSION=2.4.0" >&2; exit 1; fi
 	./scripts/release-pin-vcpkg.sh "$(VERSION)"
+
+## After pushing a git tag, pin the Arch release archive sha256 and SRCINFO
+release-pin-arch:
+	@if [ -z "$(VERSION)" ]; then echo "usage: make release-pin-arch VERSION=2.4.0" >&2; exit 1; fi
+	./scripts/release-pin-arch.sh "$(VERSION)"
 
 ## Build and run the media-server Docker demo
 media-server-docker:

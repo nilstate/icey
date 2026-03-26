@@ -16,13 +16,13 @@ fi
 
 docs=(
     README.md
-    doc/getting-started.md
-    doc/installation.md
-    doc/modules/av.md
-    doc/modules/base.md
-    doc/modules/http.md
-    doc/modules/net.md
-    doc/modules/webrtc.md
+    docs/getting-started.md
+    docs/installation.md
+    docs/modules/av.md
+    docs/modules/base.md
+    docs/modules/http.md
+    docs/modules/net.md
+    docs/modules/webrtc.md
     llms.txt
 )
 
@@ -33,6 +33,16 @@ grep -Eq '^    version = "'"$version"'"$' packaging/conan/conanfile.py \
     || fail "packaging/conan/conanfile.py is not synced to $version"
 grep -Eq '^[[:space:]]*"version": "'"$version"'"' packaging/vcpkg/icey/vcpkg.json \
     || fail "packaging/vcpkg/icey/vcpkg.json is not synced to $version"
+grep -Eq '^pkgver='"$version"'$' packaging/arch/PKGBUILD \
+    || fail "packaging/arch/PKGBUILD is not synced to $version"
+grep -Eq '^pkgrel=1$' packaging/arch/PKGBUILD \
+    || fail "packaging/arch/PKGBUILD should reset pkgrel=1 for a new release"
+grep -Eq '^[[:space:]]*pkgver = '"$version"'$' packaging/arch/.SRCINFO \
+    || fail "packaging/arch/.SRCINFO is not synced to $version"
+grep -Eq '^[[:space:]]*pkgrel = 1$' packaging/arch/.SRCINFO \
+    || fail "packaging/arch/.SRCINFO should reset pkgrel = 1 for a new release"
+grep -Eq '^[[:space:]]*source = icey-'"$version"'.tar.gz::https://github.com/nilstate/icey/archive/refs/tags/'"$version"'.tar.gz$' packaging/arch/.SRCINFO \
+    || fail "packaging/arch/.SRCINFO source URL is not synced to $version"
 
 for file in "${docs[@]}"; do
     grep -Eq 'GIT_TAG '"$version"'([^0-9]|$)' "$file" \
