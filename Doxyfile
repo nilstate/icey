@@ -184,7 +184,8 @@ STRIP_FROM_INC_PATH    = ./src/archo/include \
                          ./src/stun/include \
                          ./src/symple/include \
                          ./src/turn/include \
-                         ./src/webrtc/include
+                         ./src/webrtc/include \
+                         ./src/webrtc/support/include
 
 # If the SHORT_NAMES tag is set to YES, doxygen will generate much shorter (but
 # less readable) file names. This can be useful is your file systems doesn't

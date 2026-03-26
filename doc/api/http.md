@@ -1393,6 +1393,7 @@ HTTP client connection for managing request/response lifecycle.
 | `Signal< void(Response &)>` | [`Headers`](#headers)  | Signals when the response HTTP header has been received. |
 | `Signal< void(const MutableBuffer &)>` | [`Payload`](#payload)  | Signals when raw data is received. |
 | `Signal< void(const Response &)>` | [`Complete`](#complete)  | Signals when the HTTP transaction is complete. |
+| `Signal< void(const icy::Error &)>` | [`Error`](#error-9)  | Signals when the underlying transport reports an error. |
 | `Signal< void(Connection &)>` | [`Close`](#close-19)  | Signals when the connection is closed. |
 | `ProgressSignal` | [`IncomingProgress`](#incomingprogress)  | Signals download progress (0-100%) |
 
@@ -1457,6 +1458,18 @@ Signal< void(const Response &)> Complete
 ```
 
 Signals when the HTTP transaction is complete.
+
+---
+
+{#error-9}
+
+#### Error
+
+```cpp
+Signal< void(const icy::Error &)> Error
+```
+
+Signals when the underlying transport reports an error.
 
 ---
 
@@ -1774,6 +1787,7 @@ std::shared_ptr< ClientConnection > Ptr()
 | `void` | [`onPayload`](#onpayload) `virtual` | Called for each chunk of incoming response body data. |
 | `void` | [`onComplete`](#oncomplete) `virtual` | Called when the full HTTP response has been received. |
 | `void` | [`onClose`](#onclose-3) `virtual` | Called when the connection is closed. |
+| `bool` | [`onSocketError`](#onsocketerror-2) `virtual` | Called when the underlying transport encounters an error. |
 
 ---
 
@@ -1832,6 +1846,20 @@ virtual void onClose()
 ```
 
 Called when the connection is closed.
+
+---
+
+{#onsocketerror-2}
+
+#### onSocketError
+
+`virtual`
+
+```cpp
+virtual bool onSocketError(net::Socket & socket, const icy::Error & error)
+```
+
+Called when the underlying transport encounters an error.
 
 {#pendingwrite}
 
@@ -1898,7 +1926,7 @@ Base HTTP connection managing socket I/O and message lifecycle
 | `void` | [`beginStreaming`](#beginstreaming) `virtual` `inline` | Explicitly enter long-lived streaming mode. Base connections ignore this; server connections use it to disable keep-alive idle reaping while a response stream is active. |
 | `void` | [`endStreaming`](#endstreaming) `virtual` `inline` | Exit long-lived streaming mode. |
 | `bool` | [`closed`](#closed-4) `const` | Return true if the connection is closed. |
-| `icy::Error` | [`error`](#error-9) `const` | Return the error object if any. |
+| `icy::Error` | [`error`](#error-10) `const` | Return the error object if any. |
 | `bool` | [`headerAutoSendEnabled`](#headerautosendenabled) `const` | Return true if headers should be automatically sent. |
 | `void` | [`setHeaderAutoSendEnabled`](#setheaderautosendenabled)  | Enable or disable automatic header emission for the next outgoing send path. |
 | `void` | [`replaceAdapter`](#replaceadapter) `virtual` | Assign the new [ConnectionAdapter](#connectionadapter) and setup the chain. The flow is: [Connection](#connection-1) <-> [ConnectionAdapter](#connectionadapter) <-> Socket. Takes ownership of the adapter (deferred deletion via uv loop). |
@@ -2093,7 +2121,7 @@ Return true if the connection is closed.
 
 ---
 
-{#error-9}
+{#error-10}
 
 #### error
 
@@ -2336,7 +2364,7 @@ bool _shouldSendHeader
 | `void` | [`setError`](#seterror-4) `virtual` | Set the internal error. Note: Setting the error does not `[close()](#close-20)` the connection. |
 | `bool` | [`onSocketConnect`](#onsocketconnect-3) `virtual` | [net::SocketAdapter](net.md#socketadapter) interface |
 | `bool` | [`onSocketRecv`](#onsocketrecv-3) `virtual` | Called when data is received from the socket. Forwards the event to all registered receivers in priority order. |
-| `bool` | [`onSocketError`](#onsocketerror-2) `virtual` | Called when the socket encounters an error. Forwards the event to all registered receivers in priority order. |
+| `bool` | [`onSocketError`](#onsocketerror-3) `virtual` | Called when the socket encounters an error. Forwards the event to all registered receivers in priority order. |
 | `bool` | [`onSocketClose`](#onsocketclose-2) `virtual` | Called when the socket is closed. Forwards the event to all registered receivers in priority order. |
 
 ---
@@ -2392,7 +2420,7 @@ true to stop propagation to subsequent receivers.
 
 ---
 
-{#onsocketerror-2}
+{#onsocketerror-3}
 
 #### onSocketError
 
@@ -5897,7 +5925,7 @@ inline void reset()
 | `size_t` | [`bytesConsumed`](#bytesconsumed)  |  |
 | `bool` | [`messageComplete`](#messagecomplete)  |  |
 | `bool` | [`upgrade`](#upgrade-1)  |  |
-| `Error` | [`error`](#error-10)  |  |
+| `Error` | [`error`](#error-11)  |  |
 
 ---
 
@@ -5931,7 +5959,7 @@ bool upgrade = false
 
 ---
 
-{#error-10}
+{#error-11}
 
 #### error
 

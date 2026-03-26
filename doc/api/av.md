@@ -277,6 +277,7 @@ Legacy alias for [IEncoder](#iencoder) kept for 0.8.x compatibility.
 | `void` | [`printInputFormats`](#printinputformats)  | Print all available FFmpeg demuxer (input) format names to the given stream. |
 | `void` | [`printOutputFormats`](#printoutputformats)  | Print all available FFmpeg muxer (output) format names to the given stream. |
 | `void` | [`printEncoders`](#printencoders)  | Print all available FFmpeg encoder names to the given stream. |
+| `AVPacketHolder` | [`makeOwnedPacket`](#makeownedpacket)  | Allocate an owning AVPacket with FFmpeg-required padding and timestamp metadata. The packet payload is copied into FFmpeg-managed storage, which is required by decoders such as H.264 that may overread AV_INPUT_BUFFER_PADDING_SIZE bytes. |
 | `AVFrame *` | [`createVideoFrame`](#createvideoframe)  | Allocate a new AVFrame with the given pixel format and dimensions. Uses av_frame_get_buffer for reference-counted allocation with 16-byte alignment. |
 | `AVFrame *` | [`cloneVideoFrame`](#clonevideoframe)  | Perform a deep copy of an AVFrame including its buffer data and properties. |
 | `void` | [`initVideoCodecFromContext`](#initvideocodecfromcontext)  | Populate a [VideoCodec](#videocodec) from an open AVStream and AVCodecContext. |
@@ -504,6 +505,18 @@ Print all available FFmpeg encoder names to the given stream.
 * `ost` The output stream to write to. 
 
 * `delim` Delimiter inserted between each name.
+
+---
+
+{#makeownedpacket}
+
+#### makeOwnedPacket
+
+```cpp
+AVPacketHolder makeOwnedPacket(const MediaPacket & packet, int streamIndex, AVRational timeBase)
+```
+
+Allocate an owning AVPacket with FFmpeg-required padding and timestamp metadata. The packet payload is copied into FFmpeg-managed storage, which is required by decoders such as H.264 that may overread AV_INPUT_BUFFER_PADDING_SIZE bytes.
 
 ---
 

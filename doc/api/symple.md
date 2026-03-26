@@ -29,7 +29,7 @@ Symple protocol messages, peers, client, and server helpers.
 | [`Message`](#message-10) | Base Symple protocol message with addressing, status, data, and notes. |
 | [`Peer`](#peer-1) | Symple peer record containing identity, presence, and custom fields. |
 | [`Presence`](#presence) | Symple presence message indicating a peer's online status. |
-| [`Roster`](#roster-1) | The [Roster](#roster-1) provides a registry for active network peers indexed by session ID. |
+| [`Roster`](#roster-2) | The [Roster](#roster-2) provides a registry for active network peers indexed by session ID. |
 | [`Server`](#server-9) | Symple v4 server. |
 | [`ServerPeer`](#serverpeer) | Per-connection state for a connected Symple peer. |
 | [`Address`](#address-13) | The [Address](#address-13) structure is an endpoint identifier for a peer on the network. The format is like so: user\|id |
@@ -127,7 +127,7 @@ Modify the outgoing peer object before presence broadcast.
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`Client`](#client-6)  |  |
-|  | [`Client`](#client-7)  | Default constructor with default [Options](#options-13). |
+|  | [`Client`](#client-7)  | Default constructor with default [Options](#options-14). |
 | `void` | [`connect`](#connect-14)  | Connect to the Symple server. |
 | `void` | [`close`](#close-24)  | Disconnect from the server. |
 | `int` | [`send`](#send-17) `virtual` | Send a Symple message. Sets the `from` field automatically. |
@@ -166,7 +166,7 @@ Client(const Options & options, uv::Loop * loop)
 Client()
 ```
 
-Default constructor with default [Options](#options-13).
+Default constructor with default [Options](#options-14).
 
 ---
 
@@ -433,167 +433,16 @@ virtual void onPresenceData(const json::Value & data, bool whiny)
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `Options` | [`_options`](#_options-5)  |  |
-| `uv::Loop *` | [`_loop`](#_loop-3)  |  |
-| `http::ClientConnection::Ptr` | [`_ws`](#_ws)  |  |
-| `Roster` | [`_roster`](#_roster)  |  |
-| `std::string` | [`_ourID`](#_ourid)  |  |
-| `std::unordered_set< std::string >` | [`_currentRooms`](#_currentrooms)  | Authoritative rooms from welcome / acks. |
-| `std::unordered_set< std::string >` | [`_desiredRooms`](#_desiredrooms)  | Rooms the client wants persisted across reconnects. |
-| `std::unordered_set< std::string >` | [`_pendingJoins`](#_pendingjoins)  | Join requests sent but not yet acknowledged. |
-| `std::unordered_set< std::string >` | [`_pendingLeaves`](#_pendingleaves)  | Leave requests sent but not yet acknowledged. |
-| `int` | [`_announceStatus`](#_announcestatus)  |  |
-| `Timer` | [`_reconnectTimer`](#_reconnecttimer)  |  |
-| `int` | [`_reconnectCount`](#_reconnectcount)  |  |
-| `bool` | [`_wasOnline`](#_wasonline)  |  |
-| `bool` | [`_closing`](#_closing)  |  |
+| `std::unique_ptr< ClientData >` | [`_data`](#_data-1)  |  |
 
 ---
 
-{#_options-5}
+{#_data-1}
 
-#### _options
-
-```cpp
-Options _options
-```
-
----
-
-{#_loop-3}
-
-#### _loop
+#### _data
 
 ```cpp
-uv::Loop * _loop
-```
-
----
-
-{#_ws}
-
-#### _ws
-
-```cpp
-http::ClientConnection::Ptr _ws
-```
-
----
-
-{#_roster}
-
-#### _roster
-
-```cpp
-Roster _roster
-```
-
----
-
-{#_ourid}
-
-#### _ourID
-
-```cpp
-std::string _ourID
-```
-
----
-
-{#_currentrooms}
-
-#### _currentRooms
-
-```cpp
-std::unordered_set< std::string > _currentRooms
-```
-
-Authoritative rooms from welcome / acks.
-
----
-
-{#_desiredrooms}
-
-#### _desiredRooms
-
-```cpp
-std::unordered_set< std::string > _desiredRooms
-```
-
-Rooms the client wants persisted across reconnects.
-
----
-
-{#_pendingjoins}
-
-#### _pendingJoins
-
-```cpp
-std::unordered_set< std::string > _pendingJoins
-```
-
-Join requests sent but not yet acknowledged.
-
----
-
-{#_pendingleaves}
-
-#### _pendingLeaves
-
-```cpp
-std::unordered_set< std::string > _pendingLeaves
-```
-
-Leave requests sent but not yet acknowledged.
-
----
-
-{#_announcestatus}
-
-#### _announceStatus
-
-```cpp
-int _announceStatus = 0
-```
-
----
-
-{#_reconnecttimer}
-
-#### _reconnectTimer
-
-```cpp
-Timer _reconnectTimer
-```
-
----
-
-{#_reconnectcount}
-
-#### _reconnectCount
-
-```cpp
-int _reconnectCount = 0
-```
-
----
-
-{#_wasonline}
-
-#### _wasOnline
-
-```cpp
-bool _wasOnline = false
-```
-
----
-
-{#_closing}
-
-#### _closing
-
-```cpp
-bool _closing = false
+std::unique_ptr< ClientData > _data
 ```
 
 ### Private Methods
@@ -601,9 +450,10 @@ bool _closing = false
 | Return | Name | Description |
 |--------|------|-------------|
 | `void` | [`doConnect`](#doconnect)  |  |
+| `void` | [`onTransportError`](#ontransporterror)  |  |
 | `void` | [`onSocketRecv`](#onsocketrecv-9)  |  |
 | `void` | [`onSocketClose`](#onsocketclose-6)  |  |
-| `void` | [`onSocketError`](#onsocketerror-3)  |  |
+| `void` | [`onSocketError`](#onsocketerror-4)  |  |
 | `void` | [`onWelcome`](#onwelcome)  |  |
 | `void` | [`onServerMessage`](#onservermessage)  |  |
 | `void` | [`startReconnect`](#startreconnect)  |  |
@@ -620,6 +470,16 @@ bool _closing = false
 
 ```cpp
 void doConnect()
+```
+
+---
+
+{#ontransporterror}
+
+#### onTransportError
+
+```cpp
+void onTransportError(const icy::Error & error)
 ```
 
 ---
@@ -644,7 +504,7 @@ void onSocketClose()
 
 ---
 
-{#onsocketerror-3}
+{#onsocketerror-4}
 
 #### onSocketError
 
@@ -724,7 +584,200 @@ int sendJson(const json::Value & msg)
 std::string buildUrl() const
 ```
 
+{#clientdata}
+
+## ClientData
+
+```cpp
+#include </home/kam/dev/icey/src/symple/src/client/detail.h>
+```
+
+### Public Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `Options` | [`options`](#options-13)  |  |
+| `uv::Loop *` | [`loop`](#loop-8)  |  |
+| `http::ClientConnection::Ptr` | [`ws`](#ws-1)  |  |
+| `Roster` | [`roster`](#roster-1)  |  |
+| `std::string` | [`ourID`](#ourid-1)  |  |
+| `std::unordered_set< std::string >` | [`currentRooms`](#currentrooms)  | Authoritative rooms from welcome / acks. |
+| `std::unordered_set< std::string >` | [`desiredRooms`](#desiredrooms)  | Rooms the client wants persisted across reconnects. |
+| `std::unordered_set< std::string >` | [`pendingJoins`](#pendingjoins)  | Join requests sent but not yet acknowledged. |
+| `std::unordered_set< std::string >` | [`pendingLeaves`](#pendingleaves)  | Leave requests sent but not yet acknowledged. |
+| `int` | [`announceStatus`](#announcestatus)  |  |
+| `Timer` | [`reconnectTimer`](#reconnecttimer)  |  |
+| `int` | [`reconnectCount`](#reconnectcount)  |  |
+| `bool` | [`wasOnline`](#wasonline)  |  |
+| `bool` | [`closing`](#closing-2)  |  |
+
+---
+
 {#options-13}
+
+#### options
+
+```cpp
+Options options
+```
+
+---
+
+{#loop-8}
+
+#### loop
+
+```cpp
+uv::Loop * loop
+```
+
+---
+
+{#ws-1}
+
+#### ws
+
+```cpp
+http::ClientConnection::Ptr ws
+```
+
+---
+
+{#roster-1}
+
+#### roster
+
+```cpp
+Roster roster
+```
+
+---
+
+{#ourid-1}
+
+#### ourID
+
+```cpp
+std::string ourID
+```
+
+---
+
+{#currentrooms}
+
+#### currentRooms
+
+```cpp
+std::unordered_set< std::string > currentRooms
+```
+
+Authoritative rooms from welcome / acks.
+
+---
+
+{#desiredrooms}
+
+#### desiredRooms
+
+```cpp
+std::unordered_set< std::string > desiredRooms
+```
+
+Rooms the client wants persisted across reconnects.
+
+---
+
+{#pendingjoins}
+
+#### pendingJoins
+
+```cpp
+std::unordered_set< std::string > pendingJoins
+```
+
+Join requests sent but not yet acknowledged.
+
+---
+
+{#pendingleaves}
+
+#### pendingLeaves
+
+```cpp
+std::unordered_set< std::string > pendingLeaves
+```
+
+Leave requests sent but not yet acknowledged.
+
+---
+
+{#announcestatus}
+
+#### announceStatus
+
+```cpp
+int announceStatus = 0
+```
+
+---
+
+{#reconnecttimer}
+
+#### reconnectTimer
+
+```cpp
+Timer reconnectTimer
+```
+
+---
+
+{#reconnectcount}
+
+#### reconnectCount
+
+```cpp
+int reconnectCount = 0
+```
+
+---
+
+{#wasonline}
+
+#### wasOnline
+
+```cpp
+bool wasOnline = false
+```
+
+---
+
+{#closing-2}
+
+#### closing
+
+```cpp
+bool closing = false
+```
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`ClientData`](#clientdata-1) `inline` `explicit` |  |
+
+---
+
+{#clientdata-1}
+
+#### ClientData
+
+`inline` `explicit`
+
+```cpp
+inline explicit ClientData(Options opts, uv::Loop * targetLoop)
+```
+
+{#options-14}
 
 ## Options
 
@@ -869,11 +922,11 @@ Auth token (optional)
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`Options`](#options-14)  | Defaulted constructor. |
+|  | [`Options`](#options-15)  | Defaulted constructor. |
 
 ---
 
-{#options-14}
+{#options-15}
 
 #### Options
 
@@ -3196,7 +3249,7 @@ Sets or clears the probe flag on this presence message.
 #### Parameters
 * `flag` True to mark this as a probe.
 
-{#roster-1}
+{#roster-2}
 
 ## Roster
 
@@ -3206,7 +3259,7 @@ Sets or clears the probe flag on this presence message.
 
 > **Inherits:** [`string, Peer >`](base.md#keyedstore)
 
-The [Roster](#roster-1) provides a registry for active network peers indexed by session ID.
+The [Roster](#roster-2) provides a registry for active network peers indexed by session ID.
 
 ### Public Attributes
 
@@ -3241,7 +3294,7 @@ Signal< void(constPeer &)> PeerRemoved
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`Roster`](#roster-2)  |  |
+|  | [`Roster`](#roster-3)  |  |
 | `Peer *` | [`getByHost`](#getbyhost)  | Returns the first peer which matches the given host address. |
 | `Map` | [`peers`](#peers) `const` | Returns a deep copy of the peer map. |
 | `void` | [`print`](#print-18) `const` |  |
@@ -3249,7 +3302,7 @@ Signal< void(constPeer &)> PeerRemoved
 
 ---
 
-{#roster-2}
+{#roster-3}
 
 #### Roster
 
@@ -3419,6 +3472,7 @@ Signal< void(ServerPeer &)> PeerDisconnected
 | `void` | [`addVirtualPeer`](#addvirtualpeer)  | Register a virtual peer that receives messages via callback. |
 | `void` | [`removeVirtualPeer`](#removevirtualpeer)  | Remove a virtual peer by session ID. |
 | `http::Server &` | [`httpServer`](#httpserver) `inline` | Access the underlying HTTP server (e.g. to serve static files). |
+| `uv::Loop *` | [`loop`](#loop-9) `const` `inline` | [Event](#event-1) loop that owns the Symple server and all peer connections. |
 
 ---
 
@@ -3621,15 +3675,29 @@ inline http::Server & httpServer()
 
 Access the underlying HTTP server (e.g. to serve static files).
 
+---
+
+{#loop-9}
+
+#### loop
+
+`const` `inline`
+
+```cpp
+inline uv::Loop * loop() const
+```
+
+[Event](#event-1) loop that owns the Symple server and all peer connections.
+
 ### Private Attributes
 
 | Return | Name | Description |
 |--------|------|-------------|
 | `Options` | [`_opts`](#_opts)  |  |
-| `uv::Loop *` | [`_loop`](#_loop-4)  |  |
+| `uv::Loop *` | [`_loop`](#_loop-3)  |  |
 | `std::unique_ptr< http::Server >` | [`_http`](#_http)  |  |
-| `PeerRegistry` | [`_peerRegistry`](#_peerregistry)  |  |
-| `RoomIndex` | [`_roomIndex`](#_roomindex)  |  |
+| `std::unique_ptr< PeerRegistry >` | [`_peerRegistry`](#_peerregistry)  |  |
+| `std::unique_ptr< RoomIndex >` | [`_roomIndex`](#_roomindex)  |  |
 | `std::mutex` | [`_mutex`](#_mutex-16)  |  |
 | `std::atomic< bool >` | [`_shuttingDown`](#_shuttingdown)  |  |
 | `std::unique_ptr< http::ServerConnectionFactory >` | [`_httpFallback`](#_httpfallback)  | Fallback factory for non-WebSocket HTTP requests. |
@@ -3646,7 +3714,7 @@ Options _opts
 
 ---
 
-{#_loop-4}
+{#_loop-3}
 
 #### _loop
 
@@ -3671,7 +3739,7 @@ std::unique_ptr< http::Server > _http
 #### _peerRegistry
 
 ```cpp
-PeerRegistry _peerRegistry
+std::unique_ptr< PeerRegistry > _peerRegistry
 ```
 
 ---
@@ -3681,7 +3749,7 @@ PeerRegistry _peerRegistry
 #### _roomIndex
 
 ```cpp
-RoomIndex _roomIndex
+std::unique_ptr< RoomIndex > _roomIndex
 ```
 
 ---
@@ -3823,6 +3891,10 @@ void sendPresenceSnapshot(ServerPeer & recipient, const std::unordered_set< std:
 {#peerregistry}
 
 ## PeerRegistry
+
+```cpp
+#include </home/kam/dev/icey/src/symple/src/server/detail.h>
+```
 
 ### Public Methods
 
@@ -4046,6 +4118,10 @@ std::unordered_map< http::ServerConnection *, std::string > _connToPeer
 
 ## RoomIndex
 
+```cpp
+#include </home/kam/dev/icey/src/symple/src/server/detail.h>
+```
+
 ### Public Methods
 
 | Return | Name | Description |
@@ -4153,7 +4229,7 @@ std::unordered_set< std::string > MemberSet()
 std::unordered_map< std::string, MemberSet > _rooms
 ```
 
-{#options-15}
+{#options-16}
 
 ## Options
 
@@ -4268,44 +4344,13 @@ double rateSeconds = 10.0
 
 Rate window in seconds.
 
-{#presencebuilder}
-
-## PresenceBuilder
-
-### Public Static Methods
-
-| Return | Name | Description |
-|--------|------|-------------|
-| `json::Value` | [`make`](#make) `static` |  |
-| `void` | [`rewrite`](#rewrite) `static` |  |
-
----
-
-{#make}
-
-#### make
-
-`static`
-
-```cpp
-static json::Value make(const Peer & peer, const std::string & id, bool online, const json::Value * extra)
-```
-
----
-
-{#rewrite}
-
-#### rewrite
-
-`static`
-
-```cpp
-static void rewrite(json::Value & data, const Peer & peer, const std::string & id, bool online)
-```
-
 {#routingpolicy}
 
 ## RoutingPolicy
+
+```cpp
+#include </home/kam/dev/icey/src/symple/src/server/detail.h>
+```
 
 ### Public Static Methods
 
@@ -4367,6 +4412,10 @@ static bool canBroadcastToRoom(const ServerPeer & sender, const std::string & ro
 {#virtualpeer}
 
 ## VirtualPeer
+
+```cpp
+#include </home/kam/dev/icey/src/symple/src/server/detail.h>
+```
 
 ### Public Attributes
 

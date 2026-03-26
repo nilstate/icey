@@ -4,31 +4,19 @@
 
 WebRTC media transport via libdatachannel; peer sessions, media bridge, codec negotiation.
 
-### Namespaces
-
-| Name | Description |
-|------|-------------|
-| [`wrtc`](#wrtc) | WebRTC codec negotiation and track setup helpers. |
-
-{#wrtc}
-
-# wrtc
-
-WebRTC codec negotiation and track setup helpers.
-
 ### Classes
 
 | Name | Description |
 |------|-------------|
-| [`CodecNegotiator`](#codecnegotiator) | Maps RTP codec names to FFmpeg encoders and queries FFmpeg at runtime to determine what codecs are available. |
+| [`SignallingInterface`](#signallinginterface) | Transport-agnostic signalling interface for WebRTC session setup. |
 | [`MediaBridge`](#mediabridge) | Convenience wrapper that creates WebRTC tracks on a PeerConnection and exposes per-track sender/receiver adapters for [PacketStream](base.md#packetstream) integration. |
 | [`PeerSession`](#peersession) | Manages a WebRTC peer connection lifecycle over any signalling transport that implements [SignallingInterface](#signallinginterface). |
-| [`SignallingInterface`](#signallinginterface) | Transport-agnostic signalling interface for WebRTC session setup. |
-| [`WebRtcTrackReceiver`](#webrtctrackreceiver) | [PacketStreamAdapter](base.md#packetstreamadapter) that receives depacketized frames from a single remote libdatachannel Track and emits them as VideoPacket or AudioPacket into a [PacketStream](base.md#packetstream). |
 | [`WebRtcTrackSender`](#webrtctracksender) | [PacketProcessor](base.md#packetprocessor) that sends encoded media to a single libdatachannel Track via sendFrame(). |
+| [`WebRtcTrackReceiver`](#webrtctrackreceiver) | [PacketStreamAdapter](base.md#packetstreamadapter) that receives depacketized frames from a single remote libdatachannel Track and emits them as VideoPacket or AudioPacket into a [PacketStream](base.md#packetstream). |
+| [`CodecNegotiator`](#codecnegotiator) | Maps RTP codec names to FFmpeg encoders and queries FFmpeg at runtime to determine what codecs are available. |
+| [`TrackHandle`](#trackhandle) | Result of creating a track: the track itself plus its RTP config. Keep the config around - you need it for [WebRtcTrackSender](#webrtctracksender). |
 | [`CodecSpec`](#codecspec) | Canonical description of a codec supported by Icey's WebRTC helpers. |
 | [`NegotiatedCodec`](#negotiatedcodec) | Result of codec negotiation between a remote SDP offer and the local FFmpeg codec inventory. |
-| [`TrackHandle`](#trackhandle) | Result of creating a track: the track itself plus its RTP config. Keep the config around - you need it for [WebRtcTrackSender](#webrtctracksender). |
 
 ### Enumerations
 
@@ -84,28 +72,13 @@ Stable codec identifiers used across negotiation and track setup.
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `const char *` | [`stateToString`](#statetostring)  | Convert a [PeerSession::State](#state-4) to a lowercase C string for logging. |
 | `TrackHandle` | [`createVideoTrack`](#createvideotrack)  | Create a video send track on a PeerConnection. |
 | `TrackHandle` | [`createAudioTrack`](#createaudiotrack)  | Create an audio send track on a PeerConnection. |
+| `std::shared_ptr< rtc::Track >` | [`createVideoReceiveTrack`](#createvideoreceivetrack)  | Create a pure receive-side video track on a PeerConnection. |
+| `std::shared_ptr< rtc::Track >` | [`createAudioReceiveTrack`](#createaudioreceivetrack)  | Create a pure receive-side audio track on a PeerConnection. |
 | `bool` | [`setupReceiveTrack`](#setupreceivetrack)  | Set up the receive-side media handler chain on a remote track. |
 | `uint32_t` | [`generateSsrc`](#generatessrc)  | Generate a random SSRC. |
-
----
-
-{#statetostring}
-
-#### stateToString
-
-```cpp
-const char * stateToString(PeerSession::State state)
-```
-
-Convert a [PeerSession::State](#state-4) to a lowercase C string for logging. 
-#### Parameters
-* `state` [State](base.md#state) value to convert. 
-
-#### Returns
-One of: "idle", "outgoing-init", "incoming-init", "negotiating", "active", "ending", "ended".
+| `const char *` | [`stateToString`](#statetostring)  | Convert a [PeerSession::State](#state-4) to a lowercase C string for logging. |
 
 ---
 
@@ -114,14 +87,14 @@ One of: "idle", "outgoing-init", "incoming-init", "negotiating", "active", "endi
 #### createVideoTrack
 
 ```cpp
-TrackHandle createVideoTrack(std::shared_ptr< rtc::PeerConnection > pc, const av::VideoCodec & codec, uint32_t ssrc, const std::string & cname, unsigned nackBuffer, std::function< void()> onPli, std::function< void(unsigned int)> onRemb)
+TrackHandle createVideoTrack(std::shared_ptr< rtc::PeerConnection > pc, const av::VideoCodec & codec, uint32_t ssrc, const std::string & cname, const std::string & mid, rtc::Description::Direction direction, unsigned nackBuffer, std::function< void()> onPli, std::function< void(unsigned int)> onRemb, int payloadType)
 ```
 
 Create a video send track on a PeerConnection.
 
 Sets up the full outgoing media handler chain: Packetizer → SrReporter → NackResponder → PliHandler → RembHandler
 
-The packetizer is selected based on the codec: H264 → H264RtpPacketizer (Annex-B long start sequence) H265 → H265RtpPacketizer VP8/VP9/other → generic RtpPacketizer
+The packetizer is selected based on the codec: H264 → H264RtpPacketizer (Annex-B long start sequence) H265 → H265RtpPacketizer (Annex-B long start sequence) VP8/VP9/other → generic RtpPacketizer
 
 #### Parameters
 * `pc` PeerConnection to add the track to. 
@@ -132,11 +105,17 @@ The packetizer is selected based on the codec: H264 → H264RtpPacketizer (Annex
 
 * `cname` RTCP CNAME. Empty = "icey". 
 
+* `mid` MID to use for the track when answering an existing offer. 
+
+* `direction` Direction to advertise for the negotiated m-line. 
+
 * `nackBuffer` Max packets stored for NACK retransmission. 
 
 * `onPli` Callback when remote peer requests a keyframe. Connect to your encoder to force IDR. 
 
 * `onRemb` Callback when remote peer reports bandwidth estimate. Bitrate in bits/sec. 
+
+* `payloadType` Explicit RTP payload type to reuse when answering an offer. -1 = use the codec's default/preferred type. 
 
 #### Returns
 [TrackHandle](#trackhandle) with the track and its RTP config.
@@ -148,7 +127,7 @@ The packetizer is selected based on the codec: H264 → H264RtpPacketizer (Annex
 #### createAudioTrack
 
 ```cpp
-TrackHandle createAudioTrack(std::shared_ptr< rtc::PeerConnection > pc, const av::AudioCodec & codec, uint32_t ssrc, const std::string & cname)
+TrackHandle createAudioTrack(std::shared_ptr< rtc::PeerConnection > pc, const av::AudioCodec & codec, uint32_t ssrc, const std::string & cname, const std::string & mid, rtc::Description::Direction direction, int payloadType)
 ```
 
 Create an audio send track on a PeerConnection.
@@ -166,8 +145,42 @@ The packetizer clock rate is selected based on codec: opus → 48kHz, PCMU/PCMA 
 
 * `cname` RTCP CNAME. Empty = "icey". 
 
+* `mid` MID to use for the track when answering an existing offer. 
+
+* `direction` Direction to advertise for the negotiated m-line. 
+
+* `payloadType` Explicit RTP payload type to reuse when answering an offer. -1 = use the codec's default/preferred type. 
+
 #### Returns
 [TrackHandle](#trackhandle) with the track and its RTP config.
+
+---
+
+{#createvideoreceivetrack}
+
+#### createVideoReceiveTrack
+
+```cpp
+std::shared_ptr< rtc::Track > createVideoReceiveTrack(std::shared_ptr< rtc::PeerConnection > pc, const av::VideoCodec & codec, const std::string & mid, rtc::Description::Direction direction, int payloadType)
+```
+
+Create a pure receive-side video track on a PeerConnection.
+
+Unlike [createVideoTrack()](#createvideotrack), this does not add a local SSRC or sender packetizer chain. It is for answers that only receive remote media.
+
+---
+
+{#createaudioreceivetrack}
+
+#### createAudioReceiveTrack
+
+```cpp
+std::shared_ptr< rtc::Track > createAudioReceiveTrack(std::shared_ptr< rtc::PeerConnection > pc, const av::AudioCodec & codec, const std::string & mid, rtc::Description::Direction direction, int payloadType)
+```
+
+Create a pure receive-side audio track on a PeerConnection.
+
+Unlike [createAudioTrack()](#createaudiotrack), this does not add a local SSRC or sender packetizer chain. It is for answers that only receive remote media.
 
 ---
 
@@ -205,262 +218,152 @@ uint32_t generateSsrc()
 
 Generate a random SSRC.
 
-{#codecnegotiator}
+---
 
-## CodecNegotiator
+{#statetostring}
+
+#### stateToString
 
 ```cpp
-#include <icy/webrtc/codecnegotiator.h>
+const char * stateToString(PeerSession::State state)
 ```
 
-Maps RTP codec names to FFmpeg encoders and queries FFmpeg at runtime to determine what codecs are available.
+Convert a [PeerSession::State](#state-4) to a lowercase C string for logging. 
+#### Parameters
+* `state` [State](base.md#state) value to convert. 
 
-This is stateless - all methods are static. Call negotiate*() with a list of RTP codec names offered by the remote peer, and it returns the best match that FFmpeg can encode.
+#### Returns
+One of: "idle", "outgoing-init", "incoming-init", "negotiating", "active", "ending", "ended".
 
-### Public Static Methods
+{#signallinginterface}
+
+## SignallingInterface
+
+```cpp
+#include <icy/webrtc/signalling.h>
+```
+
+> **Subclassed by:** [`SympleServerSignaller`](webrtcsupport.md#sympleserversignaller), [`SympleSignaller`](webrtcsupport.md#symplesignaller), [`WebSocketSignaller`](webrtcsupport.md#websocketsignaller)
+
+Transport-agnostic signalling interface for WebRTC session setup.
+
+Implementations handle the exchange of SDP offers/answers and ICE candidates between peers over whatever transport is available: Symple, plain WebSocket, REST, MQTT, carrier pigeon, etc.
+
+[PeerSession](#peersession) takes a reference to this interface. Implement it to plug in your own signalling backend.
+
+The three message categories:
+
+* SDP: offer/answer exchange (the session description)
+
+* Candidate: trickle ICE candidates
+
+* Control: call lifecycle (init, accept, reject, hangup)
+
+### Public Attributes
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `std::optional< NegotiatedCodec >` | [`negotiateVideo`](#negotiatevideo) `static` | Negotiate the best video codec from a list of offered RTP codec names. Returns the first match that FFmpeg can encode, in preference order: H264 > VP8 > VP9 > AV1 > H265 |
-| `std::optional< NegotiatedCodec >` | [`negotiateAudio`](#negotiateaudio) `static` | Negotiate the best audio codec from a list of offered RTP codec names. Returns the first match that FFmpeg can encode, in preference order: opus > PCMU > PCMA |
-| `bool` | [`hasEncoder`](#hasencoder) `static` | Check if FFmpeg has an encoder for the given codec name. Accepts both FFmpeg names ("libx264") and RTP names ("H264"). |
-| `std::string` | [`rtpToFfmpeg`](#rtptoffmpeg) `static` | Map an RTP codec name to the preferred FFmpeg encoder name. Returns empty string if no mapping exists. |
-| `std::string` | [`ffmpegToRtp`](#ffmpegtortp) `static` | Map an FFmpeg encoder name to the RTP codec name. Returns empty string if no mapping exists. |
-| `uint32_t` | [`clockRate`](#clockrate) `static` | Get the standard RTP clock rate for a codec. |
-| `int` | [`defaultPayloadType`](#defaultpayloadtype) `static` | Get the default RTP payload type for a codec. Returns 0 for dynamic payload types (caller should assign). |
-| `std::optional< CodecSpec >` | [`specFromRtp`](#specfromrtp) `static` | Return the canonical codec spec for an RTP name, if known. |
-| `std::optional< CodecSpec >` | [`specFromFfmpeg`](#specfromffmpeg) `static` | Return the canonical codec spec for an FFmpeg encoder name, if known. |
-| `std::optional< CodecSpec >` | [`specFromVideoCodec`](#specfromvideocodec) `static` | Resolve the canonical codec spec from an explicit video codec config. Prefers the FFmpeg encoder when present, otherwise falls back to RTP name. |
-| `std::optional< CodecSpec >` | [`specFromAudioCodec`](#specfromaudiocodec) `static` | Resolve the canonical codec spec from an explicit audio codec config. Prefers the FFmpeg encoder when present, otherwise falls back to RTP name. |
-| `CodecSpec` | [`requireVideoSpec`](#requirevideospec) `static` | Resolve a strict canonical video codec spec or throw. |
-| `CodecSpec` | [`requireAudioSpec`](#requireaudiospec) `static` | Resolve a strict canonical audio codec spec or throw. |
-| `av::VideoCodec` | [`resolveWebRtcVideoCodec`](#resolvewebrtcvideocodec) `static` | Resolve a browser-safe WebRTC video codec config from an explicit codec. |
-| `av::AudioCodec` | [`resolveWebRtcAudioCodec`](#resolvewebrtcaudiocodec) `static` | Resolve a browser-safe WebRTC audio codec config from an explicit codec. |
-| `std::optional< CodecSpec >` | [`detectCodec`](#detectcodec) `static` | Detect the first known codec present in an SDP snippet for the given media type. |
+| `ThreadSignal< void(const std::string &, const std::string &, const std::string &)>` | [`SdpReceived`](#sdpreceived)  | Fires when an SDP offer or answer arrives from a remote peer. Parameters: peerId, type ("offer"/"answer"), sdp. |
+| `ThreadSignal< void(const std::string &, const std::string &, const std::string &)>` | [`CandidateReceived`](#candidatereceived)  | Fires when an ICE candidate arrives from a remote peer. Parameters: peerId, candidate, mid. |
+| `ThreadSignal< void(const std::string &, const std::string &, const std::string &)>` | [`ControlReceived`](#controlreceived)  | Fires when a control message arrives from a remote peer. Parameters: peerId, type ("init"/"accept"/"reject"/"hangup"), reason. |
 
 ---
 
-{#negotiatevideo}
+{#sdpreceived}
 
-#### negotiateVideo
-
-`static`
+#### SdpReceived
 
 ```cpp
-static std::optional< NegotiatedCodec > negotiateVideo(const std::vector< std::string > & offeredCodecs)
+ThreadSignal< void(const std::string &, const std::string &, const std::string &)> SdpReceived
 ```
 
-Negotiate the best video codec from a list of offered RTP codec names. Returns the first match that FFmpeg can encode, in preference order: H264 > VP8 > VP9 > AV1 > H265
+Fires when an SDP offer or answer arrives from a remote peer. Parameters: peerId, type ("offer"/"answer"), sdp.
 
 ---
 
-{#negotiateaudio}
+{#candidatereceived}
 
-#### negotiateAudio
-
-`static`
+#### CandidateReceived
 
 ```cpp
-static std::optional< NegotiatedCodec > negotiateAudio(const std::vector< std::string > & offeredCodecs)
+ThreadSignal< void(const std::string &, const std::string &, const std::string &)> CandidateReceived
 ```
 
-Negotiate the best audio codec from a list of offered RTP codec names. Returns the first match that FFmpeg can encode, in preference order: opus > PCMU > PCMA
+Fires when an ICE candidate arrives from a remote peer. Parameters: peerId, candidate, mid.
 
 ---
 
-{#hasencoder}
+{#controlreceived}
 
-#### hasEncoder
-
-`static`
+#### ControlReceived
 
 ```cpp
-static bool hasEncoder(const std::string & name)
+ThreadSignal< void(const std::string &, const std::string &, const std::string &)> ControlReceived
 ```
 
-Check if FFmpeg has an encoder for the given codec name. Accepts both FFmpeg names ("libx264") and RTP names ("H264").
+Fires when a control message arrives from a remote peer. Parameters: peerId, type ("init"/"accept"/"reject"/"hangup"), reason.
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `void` | [`sendSdp`](#sendsdp)  | Send an SDP offer or answer to the remote peer. |
+| `void` | [`sendCandidate`](#sendcandidate)  | Send an ICE candidate to the remote peer. |
+| `void` | [`sendControl`](#sendcontrol)  | Send a control message to the remote peer. |
 
 ---
 
-{#rtptoffmpeg}
+{#sendsdp}
 
-#### rtpToFfmpeg
-
-`static`
+#### sendSdp
 
 ```cpp
-static std::string rtpToFfmpeg(const std::string & rtpName)
+void sendSdp(const std::string & peerId, const std::string & type, const std::string & sdp)
 ```
 
-Map an RTP codec name to the preferred FFmpeg encoder name. Returns empty string if no mapping exists.
+Send an SDP offer or answer to the remote peer. 
+#### Parameters
+* `peerId` Remote peer identifier. 
+
+* `type` "offer" or "answer". 
+
+* `sdp` The SDP string.
 
 ---
 
-{#ffmpegtortp}
+{#sendcandidate}
 
-#### ffmpegToRtp
-
-`static`
+#### sendCandidate
 
 ```cpp
-static std::string ffmpegToRtp(const std::string & ffmpegName)
+void sendCandidate(const std::string & peerId, const std::string & candidate, const std::string & mid)
 ```
 
-Map an FFmpeg encoder name to the RTP codec name. Returns empty string if no mapping exists.
+Send an ICE candidate to the remote peer. 
+#### Parameters
+* `peerId` Remote peer identifier. 
+
+* `candidate` The candidate string (from RTCIceCandidate). 
+
+* `mid` The sdpMid value.
 
 ---
 
-{#clockrate}
+{#sendcontrol}
 
-#### clockRate
-
-`static`
+#### sendControl
 
 ```cpp
-static uint32_t clockRate(const std::string & rtpName)
+void sendControl(const std::string & peerId, const std::string & type, const std::string & reason)
 ```
 
-Get the standard RTP clock rate for a codec.
+Send a control message to the remote peer. 
+#### Parameters
+* `peerId` Remote peer identifier. 
 
----
+* `type` Control type: "init", "accept", "reject", "hangup". 
 
-{#defaultpayloadtype}
-
-#### defaultPayloadType
-
-`static`
-
-```cpp
-static int defaultPayloadType(const std::string & rtpName)
-```
-
-Get the default RTP payload type for a codec. Returns 0 for dynamic payload types (caller should assign).
-
----
-
-{#specfromrtp}
-
-#### specFromRtp
-
-`static`
-
-```cpp
-static std::optional< CodecSpec > specFromRtp(const std::string & rtpName)
-```
-
-Return the canonical codec spec for an RTP name, if known.
-
----
-
-{#specfromffmpeg}
-
-#### specFromFfmpeg
-
-`static`
-
-```cpp
-static std::optional< CodecSpec > specFromFfmpeg(const std::string & ffmpegName)
-```
-
-Return the canonical codec spec for an FFmpeg encoder name, if known.
-
----
-
-{#specfromvideocodec}
-
-#### specFromVideoCodec
-
-`static`
-
-```cpp
-static std::optional< CodecSpec > specFromVideoCodec(const av::VideoCodec & codec)
-```
-
-Resolve the canonical codec spec from an explicit video codec config. Prefers the FFmpeg encoder when present, otherwise falls back to RTP name.
-
----
-
-{#specfromaudiocodec}
-
-#### specFromAudioCodec
-
-`static`
-
-```cpp
-static std::optional< CodecSpec > specFromAudioCodec(const av::AudioCodec & codec)
-```
-
-Resolve the canonical codec spec from an explicit audio codec config. Prefers the FFmpeg encoder when present, otherwise falls back to RTP name.
-
----
-
-{#requirevideospec}
-
-#### requireVideoSpec
-
-`static`
-
-```cpp
-static CodecSpec requireVideoSpec(const av::VideoCodec & codec)
-```
-
-Resolve a strict canonical video codec spec or throw.
-
----
-
-{#requireaudiospec}
-
-#### requireAudioSpec
-
-`static`
-
-```cpp
-static CodecSpec requireAudioSpec(const av::AudioCodec & codec)
-```
-
-Resolve a strict canonical audio codec spec or throw.
-
----
-
-{#resolvewebrtcvideocodec}
-
-#### resolveWebRtcVideoCodec
-
-`static`
-
-```cpp
-static av::VideoCodec resolveWebRtcVideoCodec(const av::VideoCodec & codec)
-```
-
-Resolve a browser-safe WebRTC video codec config from an explicit codec.
-
----
-
-{#resolvewebrtcaudiocodec}
-
-#### resolveWebRtcAudioCodec
-
-`static`
-
-```cpp
-static av::AudioCodec resolveWebRtcAudioCodec(const av::AudioCodec & codec)
-```
-
-Resolve a browser-safe WebRTC audio codec config from an explicit codec.
-
----
-
-{#detectcodec}
-
-#### detectCodec
-
-`static`
-
-```cpp
-static std::optional< CodecSpec > detectCodec(std::string_view sdp, CodecMediaType mediaType)
-```
-
-Detect the first known codec present in an SDP snippet for the given media type.
+* `reason` Optional reason string (for reject/hangup).
 
 {#mediabridge}
 
@@ -757,6 +660,8 @@ True if [attach()](#attach) has been called and a PeerConnection is held.
 | `TrackHandle` | [`_audioHandle`](#_audiohandle)  |  |
 | `WebRtcTrackReceiver` | [`_videoReceiver`](#_videoreceiver)  |  |
 | `WebRtcTrackReceiver` | [`_audioReceiver`](#_audioreceiver)  |  |
+| `std::shared_ptr< rtc::Track >` | [`_videoReceiveTrack`](#_videoreceivetrack)  |  |
+| `std::shared_ptr< rtc::Track >` | [`_audioReceiveTrack`](#_audioreceivetrack)  |  |
 | `std::mutex` | [`_mutex`](#_mutex-17)  |  |
 
 ---
@@ -831,6 +736,26 @@ WebRtcTrackReceiver _audioReceiver
 
 ---
 
+{#_videoreceivetrack}
+
+#### _videoReceiveTrack
+
+```cpp
+std::shared_ptr< rtc::Track > _videoReceiveTrack
+```
+
+---
+
+{#_audioreceivetrack}
+
+#### _audioReceiveTrack
+
+```cpp
+std::shared_ptr< rtc::Track > _audioReceiveTrack
+```
+
+---
+
 {#_mutex-17}
 
 #### _mutex
@@ -839,7 +764,7 @@ WebRtcTrackReceiver _audioReceiver
 std::mutex _mutex
 ```
 
-{#options-16}
+{#options-17}
 
 ## Options
 
@@ -857,7 +782,13 @@ std::mutex _mutex
 | `av::AudioCodec` | [`audioCodec`](#audiocodec-5)  | Audio codec for the send track. Leave both name and encoder empty to skip creating an audio track. |
 | `uint32_t` | [`videoSsrc`](#videossrc)  | 0 = auto-generate |
 | `uint32_t` | [`audioSsrc`](#audiossrc)  | 0 = auto-generate |
+| `int` | [`videoPayloadType`](#videopayloadtype)  | Reuse negotiated offer payload type when answering, -1 = default. |
+| `int` | [`audioPayloadType`](#audiopayloadtype)  | Reuse negotiated offer payload type when answering, -1 = default. |
 | `std::string` | [`cname`](#cname)  | CNAME for RTCP (auto if empty) |
+| `std::string` | [`videoMid`](#videomid)  | Explicit MID for the negotiated video m-line when answering an offer. |
+| `std::string` | [`audioMid`](#audiomid)  | Explicit MID for the negotiated audio m-line when answering an offer. |
+| `rtc::Description::Direction` | [`videoDirection`](#videodirection)  |  |
+| `rtc::Description::Direction` | [`audioDirection`](#audiodirection)  |  |
 | `unsigned` | [`nackBufferSize`](#nackbuffersize)  | Max RTP packets retained for video NACK retransmission. |
 
 ---
@@ -910,6 +841,30 @@ uint32_t audioSsrc = 0
 
 ---
 
+{#videopayloadtype}
+
+#### videoPayloadType
+
+```cpp
+int videoPayloadType = -1
+```
+
+Reuse negotiated offer payload type when answering, -1 = default.
+
+---
+
+{#audiopayloadtype}
+
+#### audioPayloadType
+
+```cpp
+int audioPayloadType = -1
+```
+
+Reuse negotiated offer payload type when answering, -1 = default.
+
+---
+
 {#cname}
 
 #### cname
@@ -919,6 +874,50 @@ std::string cname
 ```
 
 CNAME for RTCP (auto if empty)
+
+---
+
+{#videomid}
+
+#### videoMid
+
+```cpp
+std::string videoMid
+```
+
+Explicit MID for the negotiated video m-line when answering an offer.
+
+---
+
+{#audiomid}
+
+#### audioMid
+
+```cpp
+std::string audioMid
+```
+
+Explicit MID for the negotiated audio m-line when answering an offer.
+
+---
+
+{#videodirection}
+
+#### videoDirection
+
+```cpp
+rtc::Description::Direction videoDirection = rtc::Description::Direction::SendRecv
+```
+
+---
+
+{#audiodirection}
+
+#### audioDirection
+
+```cpp
+rtc::Description::Direction audioDirection = rtc::Description::Direction::SendRecv
+```
 
 ---
 
@@ -942,9 +941,9 @@ Max RTP packets retained for video NACK retransmission.
 
 Manages a WebRTC peer connection lifecycle over any signalling transport that implements [SignallingInterface](#signallinginterface).
 
-Works with SympleSignaller (Symple call protocol), WebSocketSignaller (plain JSON over WSS), or any custom implementation.
+Works with [SympleSignaller](webrtcsupport.md#symplesignaller) (Symple call protocol), [WebSocketSignaller](webrtcsupport.md#websocketsignaller) (plain JSON over WSS), or any custom implementation.
 
-Media is optional. Set mediaOpts codecs to enable tracks. Leave codec encoders empty for data-channel-only sessions.
+Media is optional. Set `[Config::media](#media-2)` codecs to enable tracks. Leave codec encoders empty for data-channel-only sessions.
 
 ### Public Attributes
 
@@ -1245,6 +1244,9 @@ High-level lifecycle phases for a single peer-to-peer call session.
 | `std::shared_ptr< CallbackGuard >` | [`_callbackGuard`](#_callbackguard)  |  |
 | `bool` | [`_remoteDescriptionSet`](#_remotedescriptionset)  |  |
 | `std::vector< PendingCandidate >` | [`_pendingRemoteCandidates`](#_pendingremotecandidates)  |  |
+| `Synchronizer` | [`_callbackSync`](#_callbacksync)  |  |
+| `std::deque< std::function< void()> >` | [`_pendingCallbacks`](#_pendingcallbacks)  |  |
+| `std::mutex` | [`_callbackMutex`](#_callbackmutex)  |  |
 | `std::mutex` | [`_mutex`](#_mutex-18)  |  |
 
 ---
@@ -1349,6 +1351,36 @@ std::vector< PendingCandidate > _pendingRemoteCandidates
 
 ---
 
+{#_callbacksync}
+
+#### _callbackSync
+
+```cpp
+Synchronizer _callbackSync
+```
+
+---
+
+{#_pendingcallbacks}
+
+#### _pendingCallbacks
+
+```cpp
+std::deque< std::function< void()> > _pendingCallbacks
+```
+
+---
+
+{#_callbackmutex}
+
+#### _callbackMutex
+
+```cpp
+std::mutex _callbackMutex
+```
+
+---
+
 {#_mutex-18}
 
 #### _mutex
@@ -1369,6 +1401,8 @@ std::mutex _mutex
 | `void` | [`beginEndCall`](#beginendcall)  |  |
 | `void` | [`finishEndCall`](#finishendcall)  |  |
 | `void` | [`transitionEndedToIdle`](#transitionendedtoidle)  |  |
+| `void` | [`enqueueCallback`](#enqueuecallback)  |  |
+| `void` | [`drainCallbacks`](#draincallbacks)  |  |
 
 ---
 
@@ -1407,7 +1441,7 @@ void onControlReceived(const std::string & peerId, const std::string & type, con
 #### createPeerConnection
 
 ```cpp
-std::shared_ptr< rtc::PeerConnection > createPeerConnection(bool createDataChannel)
+std::shared_ptr< rtc::PeerConnection > createPeerConnection(bool createDataChannel, const MediaBridge::Options * mediaOpts)
 ```
 
 ---
@@ -1450,6 +1484,26 @@ void finishEndCall()
 void transitionEndedToIdle()
 ```
 
+---
+
+{#enqueuecallback}
+
+#### enqueueCallback
+
+```cpp
+void enqueueCallback(std::function< void()> callback)
+```
+
+---
+
+{#draincallbacks}
+
+#### drainCallbacks
+
+```cpp
+void drainCallbacks()
+```
+
 {#callbackguard}
 
 ## CallbackGuard
@@ -1485,7 +1539,7 @@ std::atomic< bool > alive {true}
 | Return | Name | Description |
 |--------|------|-------------|
 | `rtc::Configuration` | [`rtcConfig`](#rtcconfig)  | libdatachannel connection options, ICE servers, and transport settings. |
-| `MediaBridge::Options` | [`mediaOpts`](#mediaopts)  | Media tracks to create when the session negotiates media. |
+| `MediaConfig` | [`media`](#media-2)  | Desired media codecs and directions for the session. |
 | `bool` | [`enableDataChannel`](#enabledatachannel)  | True to create a data channel on outgoing calls and accept one on incoming calls. |
 | `std::string` | [`dataChannelLabel`](#datachannellabel)  | Label to use for the application data channel. |
 
@@ -1503,15 +1557,15 @@ libdatachannel connection options, ICE servers, and transport settings.
 
 ---
 
-{#mediaopts}
+{#media-2}
 
-#### mediaOpts
+#### media
 
 ```cpp
-MediaBridge::Options mediaOpts
+MediaConfig media
 ```
 
-Media tracks to create when the session negotiates media.
+Desired media codecs and directions for the session.
 
 ---
 
@@ -1536,6 +1590,69 @@ std::string dataChannelLabel = "data"
 ```
 
 Label to use for the application data channel.
+
+{#mediaconfig}
+
+## MediaConfig
+
+```cpp
+#include <icy/webrtc/peersession.h>
+```
+
+[Configuration](base.md#configuration) for WebRTC peer session establishment.
+
+### Public Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `av::VideoCodec` | [`videoCodec`](#videocodec-7)  | Desired video codec for send/receive negotiation. |
+| `av::AudioCodec` | [`audioCodec`](#audiocodec-6)  | Desired audio codec for send/receive negotiation. |
+| `rtc::Description::Direction` | [`videoDirection`](#videodirection-1)  |  |
+| `rtc::Description::Direction` | [`audioDirection`](#audiodirection-1)  |  |
+
+---
+
+{#videocodec-7}
+
+#### videoCodec
+
+```cpp
+av::VideoCodec videoCodec
+```
+
+Desired video codec for send/receive negotiation.
+
+---
+
+{#audiocodec-6}
+
+#### audioCodec
+
+```cpp
+av::AudioCodec audioCodec
+```
+
+Desired audio codec for send/receive negotiation.
+
+---
+
+{#videodirection-1}
+
+#### videoDirection
+
+```cpp
+rtc::Description::Direction videoDirection = rtc::Description::Direction::SendRecv
+```
+
+---
+
+{#audiodirection-1}
+
+#### audioDirection
+
+```cpp
+rtc::Description::Direction audioDirection = rtc::Description::Direction::SendRecv
+```
 
 {#pendingcandidate}
 
@@ -1568,155 +1685,27 @@ std::string candidate
 std::string mid
 ```
 
-{#signallinginterface}
+{#webrtctracksender}
 
-## SignallingInterface
-
-```cpp
-#include <icy/webrtc/signalling.h>
-```
-
-Transport-agnostic signalling interface for WebRTC session setup.
-
-Implementations handle the exchange of SDP offers/answers and ICE candidates between peers over whatever transport is available: Symple, plain WebSocket, REST, MQTT, carrier pigeon, etc.
-
-[PeerSession](#peersession) takes a reference to this interface. Implement it to plug in your own signalling backend.
-
-The three message categories:
-
-* SDP: offer/answer exchange (the session description)
-
-* Candidate: trickle ICE candidates
-
-* Control: call lifecycle (init, accept, reject, hangup)
-
-### Public Attributes
-
-| Return | Name | Description |
-|--------|------|-------------|
-| `ThreadSignal< void(const std::string &, const std::string &, const std::string &)>` | [`SdpReceived`](#sdpreceived)  | Fires when an SDP offer or answer arrives from a remote peer. Parameters: peerId, type ("offer"/"answer"), sdp. |
-| `ThreadSignal< void(const std::string &, const std::string &, const std::string &)>` | [`CandidateReceived`](#candidatereceived)  | Fires when an ICE candidate arrives from a remote peer. Parameters: peerId, candidate, mid. |
-| `ThreadSignal< void(const std::string &, const std::string &, const std::string &)>` | [`ControlReceived`](#controlreceived)  | Fires when a control message arrives from a remote peer. Parameters: peerId, type ("init"/"accept"/"reject"/"hangup"), reason. |
-
----
-
-{#sdpreceived}
-
-#### SdpReceived
+## WebRtcTrackSender
 
 ```cpp
-ThreadSignal< void(const std::string &, const std::string &, const std::string &)> SdpReceived
+#include <icy/webrtc/tracksender.h>
 ```
 
-Fires when an SDP offer or answer arrives from a remote peer. Parameters: peerId, type ("offer"/"answer"), sdp.
+> **Inherits:** [`PacketProcessor`](base.md#packetprocessor)
 
----
+[PacketProcessor](base.md#packetprocessor) that sends encoded media to a single libdatachannel Track via sendFrame().
 
-{#candidatereceived}
+Bind to one track (video or audio). Accepts the corresponding packet type from the [PacketStream](base.md#packetstream) and converts timestamps from FFmpeg microseconds to the track's RTP clock rate.
 
-#### CandidateReceived
+Usage: auto vh = createVideoTrack(pc, codec); [WebRtcTrackSender](#webrtctracksender) videoSender(vh);
 
-```cpp
-ThreadSignal< void(const std::string &, const std::string &, const std::string &)> CandidateReceived
-```
+[PacketStream](base.md#packetstream) stream; stream.attachSource(capture); stream.attach(encoder, 1, true); stream.attach(&videoSender, 5, false); stream.start();
 
-Fires when an ICE candidate arrives from a remote peer. Parameters: peerId, candidate, mid.
+Only emits the packet downstream on successful send, so a chained recorder won't record frames that failed to transmit.
 
----
-
-{#controlreceived}
-
-#### ControlReceived
-
-```cpp
-ThreadSignal< void(const std::string &, const std::string &, const std::string &)> ControlReceived
-```
-
-Fires when a control message arrives from a remote peer. Parameters: peerId, type ("init"/"accept"/"reject"/"hangup"), reason.
-
-### Public Methods
-
-| Return | Name | Description |
-|--------|------|-------------|
-| `void` | [`sendSdp`](#sendsdp)  | Send an SDP offer or answer to the remote peer. |
-| `void` | [`sendCandidate`](#sendcandidate)  | Send an ICE candidate to the remote peer. |
-| `void` | [`sendControl`](#sendcontrol)  | Send a control message to the remote peer. |
-
----
-
-{#sendsdp}
-
-#### sendSdp
-
-```cpp
-void sendSdp(const std::string & peerId, const std::string & type, const std::string & sdp)
-```
-
-Send an SDP offer or answer to the remote peer. 
-#### Parameters
-* `peerId` Remote peer identifier. 
-
-* `type` "offer" or "answer". 
-
-* `sdp` The SDP string.
-
----
-
-{#sendcandidate}
-
-#### sendCandidate
-
-```cpp
-void sendCandidate(const std::string & peerId, const std::string & candidate, const std::string & mid)
-```
-
-Send an ICE candidate to the remote peer. 
-#### Parameters
-* `peerId` Remote peer identifier. 
-
-* `candidate` The candidate string (from RTCIceCandidate). 
-
-* `mid` The sdpMid value.
-
----
-
-{#sendcontrol}
-
-#### sendControl
-
-```cpp
-void sendControl(const std::string & peerId, const std::string & type, const std::string & reason)
-```
-
-Send a control message to the remote peer. 
-#### Parameters
-* `peerId` Remote peer identifier. 
-
-* `type` Control type: "init", "accept", "reject", "hangup". 
-
-* `reason` Optional reason string (for reject/hangup).
-
-{#webrtctrackreceiver}
-
-## WebRtcTrackReceiver
-
-```cpp
-#include <icy/webrtc/trackreceiver.h>
-```
-
-> **Inherits:** [`PacketStreamAdapter`](base.md#packetstreamadapter)
-
-[PacketStreamAdapter](base.md#packetstreamadapter) that receives depacketized frames from a single remote libdatachannel Track and emits them as VideoPacket or AudioPacket into a [PacketStream](base.md#packetstream).
-
-Call [setupReceiveTrack()](#setupreceivetrack) on the track first to install the correct depacketizer, then bind this receiver to it.
-
-Usage: pc->onTrack([&](shared_ptr<rtc::Track> track) { if (setupReceiveTrack(track)) videoReceiver.bind(track); });
-
-videoReceiver.emitter += packetSlot(&recorder, &Recorder::onEncodedVideo);
-
-Emits owning packets - the frame data is copied, so downstream processors can safely queue packets asynchronously.
-
-Emits VideoPacket for video tracks, AudioPacket for audio tracks. Use those packets to drive a decoder, recorder, or custom pipeline. See `samples/media-recorder` for a complete receive -> decode -> file example.
+Accepts only the packet type that matches the bound track. Non-matching packets are passed through unchanged so mixed audio/video [PacketStream](base.md#packetstream) chains can share one source cleanly.
 
 ### Public Attributes
 
@@ -1738,83 +1727,12 @@ PacketSignal emitter
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`WebRtcTrackReceiver`](#webrtctrackreceiver-1)  | Construct an unbound receiver. Call [bind()](#bind-5) to attach a remote track. |
-| `void` | [`bind`](#bind-5)  | Bind to a remote track. Must be called after [setupReceiveTrack()](#setupreceivetrack) returned true. Installs an onFrame callback that converts each depacketized frame to a VideoPacket or AudioPacket and emits it on the [PacketStream](base.md#packetstream). The track type (video/audio) is detected from the SDP description. |
-
----
-
-{#webrtctrackreceiver-1}
-
-#### WebRtcTrackReceiver
-
-```cpp
-WebRtcTrackReceiver()
-```
-
-Construct an unbound receiver. Call [bind()](#bind-5) to attach a remote track.
-
----
-
-{#bind-5}
-
-#### bind
-
-```cpp
-void bind(std::shared_ptr< rtc::Track > track)
-```
-
-Bind to a remote track. Must be called after [setupReceiveTrack()](#setupreceivetrack) returned true. Installs an onFrame callback that converts each depacketized frame to a VideoPacket or AudioPacket and emits it on the [PacketStream](base.md#packetstream). The track type (video/audio) is detected from the SDP description. 
-#### Parameters
-* `track` Remote track from the PeerConnection::onTrack callback.
-
-{#webrtctracksender}
-
-## WebRtcTrackSender
-
-```cpp
-#include <icy/webrtc/tracksender.h>
-```
-
-> **Inherits:** [`PacketProcessor`](base.md#packetprocessor)
-
-[PacketProcessor](base.md#packetprocessor) that sends encoded media to a single libdatachannel Track via sendFrame().
-
-Bind to one track (video or audio). Accepts the corresponding packet type from the [PacketStream](base.md#packetstream) and converts timestamps from FFmpeg microseconds to the track's RTP clock rate.
-
-Usage: auto vh = createVideoTrack(pc, codec); [WebRtcTrackSender](#webrtctracksender) videoSender(vh);
-
-[PacketStream](base.md#packetstream) stream; stream.attachSource(capture); stream.attach(encoder, 1, true); stream.attach(&videoSender, 5, false); stream.start();
-
-Only emits the packet downstream on successful send, so a chained recorder won't record frames that failed to transmit.
-
-Accepts both VideoPacket and AudioPacket. It determines which to handle based on the track type (video or audio) set at construction.
-
-### Public Attributes
-
-| Return | Name | Description |
-|--------|------|-------------|
-| `PacketSignal` | [`emitter`](#emitter-9)  |  |
-
----
-
-{#emitter-9}
-
-#### emitter
-
-```cpp
-PacketSignal emitter
-```
-
-### Public Methods
-
-| Return | Name | Description |
-|--------|------|-------------|
-|  | [`WebRtcTrackSender`](#webrtctracksender-1)  | Construct an unbound sender. Call [bind()](#bind-6) before use. |
+|  | [`WebRtcTrackSender`](#webrtctracksender-1)  | Construct an unbound sender. Call [bind()](#bind-5) before use. |
 |  | [`WebRtcTrackSender`](#webrtctracksender-2) `explicit` | Construct bound to a track handle from [createVideoTrack()](#createvideotrack) or [createAudioTrack()](#createaudiotrack). |
-| `void` | [`bind`](#bind-6)  | Bind to a track. Can be called to rebind to a different track. |
+| `void` | [`bind`](#bind-5)  | Bind to a track. Can be called to rebind to a different track. |
 | `void` | [`unbind`](#unbind-1)  | Unbind from the current track. |
 | `void` | [`process`](#process-7) `virtual` | Send an encoded media frame to the bound WebRTC track. Converts the FFmpeg microsecond timestamp to an RTP timestamp using the track's clock rate, then calls rtc::Track::sendFrame(). Only forwards the packet downstream on a successful send. |
-| `bool` | [`accepts`](#accepts-3) `virtual` | Return true if packet is an [av::MediaPacket](av.md#mediapacket) (VideoPacket or AudioPacket). |
+| `bool` | [`accepts`](#accepts-3) `virtual` | Return true only for the packet type that matches the bound track. |
 | `void` | [`onStreamStateChange`](#onstreamstatechange-6) `virtual` | Called by the [PacketStream](base.md#packetstream) when stream state changes. Logs when the stream is stopping; no other action is taken. |
 | `bool` | [`isVideo`](#isvideo) `const` | True if this sender is bound to a video track. |
 | `bool` | [`bound`](#bound) `const` | True if bound to any track. |
@@ -1829,7 +1747,7 @@ PacketSignal emitter
 WebRtcTrackSender()
 ```
 
-Construct an unbound sender. Call [bind()](#bind-6) before use.
+Construct an unbound sender. Call [bind()](#bind-5) before use.
 
 ---
 
@@ -1847,7 +1765,7 @@ Construct bound to a track handle from [createVideoTrack()](#createvideotrack) o
 
 ---
 
-{#bind-6}
+{#bind-5}
 
 #### bind
 
@@ -1897,7 +1815,7 @@ Send an encoded media frame to the bound WebRTC track. Converts the FFmpeg micro
 virtual bool accepts(IPacket * packet)
 ```
 
-Return true if packet is an [av::MediaPacket](av.md#mediapacket) (VideoPacket or AudioPacket). 
+Return true only for the packet type that matches the bound track. 
 #### Parameters
 * `packet` Packet to test. May be nullptr. 
 
@@ -1954,7 +1872,7 @@ True if bound to any track.
 |--------|------|-------------|
 | `std::shared_ptr< rtc::Track >` | [`_track`](#_track)  |  |
 | `std::shared_ptr< rtc::RtpPacketizationConfig >` | [`_rtpConfig`](#_rtpconfig)  |  |
-| `bool` | [`_isVideo`](#_isvideo)  |  |
+| `std::atomic< TrackKind >` | [`_kind`](#_kind)  |  |
 | `std::mutex` | [`_mutex`](#_mutex-19)  |  |
 
 ---
@@ -1979,12 +1897,12 @@ std::shared_ptr< rtc::RtpPacketizationConfig > _rtpConfig
 
 ---
 
-{#_isvideo}
+{#_kind}
 
-#### _isVideo
+#### _kind
 
 ```cpp
-bool _isVideo = true
+std::atomic< TrackKind > _kind {TrackKind::Unbound}
 ```
 
 ---
@@ -1996,6 +1914,493 @@ bool _isVideo = true
 ```cpp
 std::mutex _mutex
 ```
+
+{#webrtctrackreceiver}
+
+## WebRtcTrackReceiver
+
+```cpp
+#include <icy/webrtc/trackreceiver.h>
+```
+
+> **Inherits:** [`PacketStreamAdapter`](base.md#packetstreamadapter)
+
+[PacketStreamAdapter](base.md#packetstreamadapter) that receives depacketized frames from a single remote libdatachannel Track and emits them as VideoPacket or AudioPacket into a [PacketStream](base.md#packetstream).
+
+Call [setupReceiveTrack()](#setupreceivetrack) on the track first to install the correct depacketizer, then bind this receiver to it.
+
+Usage: pc->onTrack([&](shared_ptr<rtc::Track> track) { if (setupReceiveTrack(track)) videoReceiver.bind(track); });
+
+videoReceiver.emitter += packetSlot(&recorder, &Recorder::onEncodedVideo);
+
+Emits owning packets - the frame data is copied, so downstream processors can safely queue packets asynchronously.
+
+Emits VideoPacket for video tracks, AudioPacket for audio tracks. Use those packets to drive a decoder, recorder, or custom pipeline. See `samples/media-recorder` for a complete receive -> decode -> file example.
+
+### Public Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `PacketSignal` | [`emitter`](#emitter-9)  |  |
+
+---
+
+{#emitter-9}
+
+#### emitter
+
+```cpp
+PacketSignal emitter
+```
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`WebRtcTrackReceiver`](#webrtctrackreceiver-1)  | Construct an unbound receiver. Call [bind()](#bind-6) to attach a remote track. |
+| `void` | [`bind`](#bind-6)  | Bind to a remote track. Must be called after [setupReceiveTrack()](#setupreceivetrack) returned true. Installs an onFrame callback that converts each depacketized frame to a VideoPacket or AudioPacket and emits it on the [PacketStream](base.md#packetstream). The track type (video/audio) is detected from the SDP description. |
+
+---
+
+{#webrtctrackreceiver-1}
+
+#### WebRtcTrackReceiver
+
+```cpp
+WebRtcTrackReceiver()
+```
+
+Construct an unbound receiver. Call [bind()](#bind-6) to attach a remote track.
+
+---
+
+{#bind-6}
+
+#### bind
+
+```cpp
+void bind(std::shared_ptr< rtc::Track > track)
+```
+
+Bind to a remote track. Must be called after [setupReceiveTrack()](#setupreceivetrack) returned true. Installs an onFrame callback that converts each depacketized frame to a VideoPacket or AudioPacket and emits it on the [PacketStream](base.md#packetstream). The track type (video/audio) is detected from the SDP description. 
+#### Parameters
+* `track` Remote track from the PeerConnection::onTrack callback.
+
+### Private Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `Synchronizer` | [`_dispatch`](#_dispatch)  |  |
+| `std::mutex` | [`_mutex`](#_mutex-20)  |  |
+| `std::deque< std::unique_ptr< IPacket > >` | [`_pending`](#_pending)  |  |
+| `std::shared_ptr< DispatchState >` | [`_state`](#_state-4)  |  |
+| `uint64_t` | [`_generation`](#_generation)  |  |
+
+---
+
+{#_dispatch}
+
+#### _dispatch
+
+```cpp
+Synchronizer _dispatch
+```
+
+---
+
+{#_mutex-20}
+
+#### _mutex
+
+```cpp
+std::mutex _mutex
+```
+
+---
+
+{#_pending}
+
+#### _pending
+
+```cpp
+std::deque< std::unique_ptr< IPacket > > _pending
+```
+
+---
+
+{#_state-4}
+
+#### _state
+
+```cpp
+std::shared_ptr< DispatchState > _state = std::make_shared<DispatchState>()
+```
+
+---
+
+{#_generation}
+
+#### _generation
+
+```cpp
+uint64_t _generation = 0
+```
+
+### Private Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `void` | [`enqueue`](#enqueue)  |  |
+| `void` | [`flushPending`](#flushpending)  |  |
+
+---
+
+{#enqueue}
+
+#### enqueue
+
+```cpp
+void enqueue(std::unique_ptr< IPacket > packet)
+```
+
+---
+
+{#flushpending}
+
+#### flushPending
+
+```cpp
+void flushPending()
+```
+
+{#dispatchstate}
+
+## DispatchState
+
+### Public Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `std::atomic< bool >` | [`alive`](#alive-2)  |  |
+| `std::atomic< uint64_t >` | [`generation`](#generation)  |  |
+
+---
+
+{#alive-2}
+
+#### alive
+
+```cpp
+std::atomic< bool > alive {true}
+```
+
+---
+
+{#generation}
+
+#### generation
+
+```cpp
+std::atomic< uint64_t > generation {0}
+```
+
+{#codecnegotiator}
+
+## CodecNegotiator
+
+```cpp
+#include <icy/webrtc/codecnegotiator.h>
+```
+
+Maps RTP codec names to FFmpeg encoders and queries FFmpeg at runtime to determine what codecs are available.
+
+This is stateless - all methods are static. Call negotiate*() with a list of RTP codec names offered by the remote peer, and it returns the best match that FFmpeg can encode.
+
+### Public Static Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `std::optional< NegotiatedCodec >` | [`negotiateVideo`](#negotiatevideo) `static` | Negotiate the best video codec from a list of offered RTP codec names. Returns the first match that FFmpeg can encode, in preference order: H264 > VP8 > VP9 > AV1 > H265 |
+| `std::optional< NegotiatedCodec >` | [`negotiateAudio`](#negotiateaudio) `static` | Negotiate the best audio codec from a list of offered RTP codec names. Returns the first match that FFmpeg can encode, in preference order: opus > PCMU > PCMA |
+| `bool` | [`hasEncoder`](#hasencoder) `static` | Check if FFmpeg has an encoder for the given codec name. Accepts both FFmpeg names ("libx264") and RTP names ("H264"). |
+| `std::string` | [`rtpToFfmpeg`](#rtptoffmpeg) `static` | Map an RTP codec name to the preferred FFmpeg encoder name. Returns empty string if no mapping exists. |
+| `std::string` | [`ffmpegToRtp`](#ffmpegtortp) `static` | Map an FFmpeg encoder name to the RTP codec name. Returns empty string if no mapping exists. |
+| `uint32_t` | [`clockRate`](#clockrate-2) `static` | Get the standard RTP clock rate for a codec. |
+| `int` | [`defaultPayloadType`](#defaultpayloadtype) `static` | Get the default RTP payload type for a codec. Returns 0 for dynamic payload types (caller should assign). |
+| `std::optional< CodecSpec >` | [`specFromRtp`](#specfromrtp) `static` | Return the canonical codec spec for an RTP name, if known. |
+| `std::optional< CodecSpec >` | [`specFromFfmpeg`](#specfromffmpeg) `static` | Return the canonical codec spec for an FFmpeg encoder name, if known. |
+| `std::optional< CodecSpec >` | [`specFromVideoCodec`](#specfromvideocodec) `static` | Resolve the canonical codec spec from an explicit video codec config. Prefers the FFmpeg encoder when present, otherwise falls back to RTP name. |
+| `std::optional< CodecSpec >` | [`specFromAudioCodec`](#specfromaudiocodec) `static` | Resolve the canonical codec spec from an explicit audio codec config. Prefers the FFmpeg encoder when present, otherwise falls back to RTP name. |
+| `CodecSpec` | [`requireVideoSpec`](#requirevideospec) `static` | Resolve a strict canonical video codec spec or throw. |
+| `CodecSpec` | [`requireAudioSpec`](#requireaudiospec) `static` | Resolve a strict canonical audio codec spec or throw. |
+| `av::VideoCodec` | [`resolveWebRtcVideoCodec`](#resolvewebrtcvideocodec) `static` | Resolve a browser-safe WebRTC video codec config from an explicit codec. |
+| `av::AudioCodec` | [`resolveWebRtcAudioCodec`](#resolvewebrtcaudiocodec) `static` | Resolve a browser-safe WebRTC audio codec config from an explicit codec. |
+| `std::optional< CodecSpec >` | [`detectCodec`](#detectcodec) `static` | Detect the first known codec present in an SDP snippet for the given media type. |
+
+---
+
+{#negotiatevideo}
+
+#### negotiateVideo
+
+`static`
+
+```cpp
+static std::optional< NegotiatedCodec > negotiateVideo(const std::vector< std::string > & offeredCodecs)
+```
+
+Negotiate the best video codec from a list of offered RTP codec names. Returns the first match that FFmpeg can encode, in preference order: H264 > VP8 > VP9 > AV1 > H265
+
+---
+
+{#negotiateaudio}
+
+#### negotiateAudio
+
+`static`
+
+```cpp
+static std::optional< NegotiatedCodec > negotiateAudio(const std::vector< std::string > & offeredCodecs)
+```
+
+Negotiate the best audio codec from a list of offered RTP codec names. Returns the first match that FFmpeg can encode, in preference order: opus > PCMU > PCMA
+
+---
+
+{#hasencoder}
+
+#### hasEncoder
+
+`static`
+
+```cpp
+static bool hasEncoder(const std::string & name)
+```
+
+Check if FFmpeg has an encoder for the given codec name. Accepts both FFmpeg names ("libx264") and RTP names ("H264").
+
+---
+
+{#rtptoffmpeg}
+
+#### rtpToFfmpeg
+
+`static`
+
+```cpp
+static std::string rtpToFfmpeg(const std::string & rtpName)
+```
+
+Map an RTP codec name to the preferred FFmpeg encoder name. Returns empty string if no mapping exists.
+
+---
+
+{#ffmpegtortp}
+
+#### ffmpegToRtp
+
+`static`
+
+```cpp
+static std::string ffmpegToRtp(const std::string & ffmpegName)
+```
+
+Map an FFmpeg encoder name to the RTP codec name. Returns empty string if no mapping exists.
+
+---
+
+{#clockrate-2}
+
+#### clockRate
+
+`static`
+
+```cpp
+static uint32_t clockRate(const std::string & rtpName)
+```
+
+Get the standard RTP clock rate for a codec.
+
+---
+
+{#defaultpayloadtype}
+
+#### defaultPayloadType
+
+`static`
+
+```cpp
+static int defaultPayloadType(const std::string & rtpName)
+```
+
+Get the default RTP payload type for a codec. Returns 0 for dynamic payload types (caller should assign).
+
+---
+
+{#specfromrtp}
+
+#### specFromRtp
+
+`static`
+
+```cpp
+static std::optional< CodecSpec > specFromRtp(const std::string & rtpName)
+```
+
+Return the canonical codec spec for an RTP name, if known.
+
+---
+
+{#specfromffmpeg}
+
+#### specFromFfmpeg
+
+`static`
+
+```cpp
+static std::optional< CodecSpec > specFromFfmpeg(const std::string & ffmpegName)
+```
+
+Return the canonical codec spec for an FFmpeg encoder name, if known.
+
+---
+
+{#specfromvideocodec}
+
+#### specFromVideoCodec
+
+`static`
+
+```cpp
+static std::optional< CodecSpec > specFromVideoCodec(const av::VideoCodec & codec)
+```
+
+Resolve the canonical codec spec from an explicit video codec config. Prefers the FFmpeg encoder when present, otherwise falls back to RTP name.
+
+---
+
+{#specfromaudiocodec}
+
+#### specFromAudioCodec
+
+`static`
+
+```cpp
+static std::optional< CodecSpec > specFromAudioCodec(const av::AudioCodec & codec)
+```
+
+Resolve the canonical codec spec from an explicit audio codec config. Prefers the FFmpeg encoder when present, otherwise falls back to RTP name.
+
+---
+
+{#requirevideospec}
+
+#### requireVideoSpec
+
+`static`
+
+```cpp
+static CodecSpec requireVideoSpec(const av::VideoCodec & codec)
+```
+
+Resolve a strict canonical video codec spec or throw.
+
+---
+
+{#requireaudiospec}
+
+#### requireAudioSpec
+
+`static`
+
+```cpp
+static CodecSpec requireAudioSpec(const av::AudioCodec & codec)
+```
+
+Resolve a strict canonical audio codec spec or throw.
+
+---
+
+{#resolvewebrtcvideocodec}
+
+#### resolveWebRtcVideoCodec
+
+`static`
+
+```cpp
+static av::VideoCodec resolveWebRtcVideoCodec(const av::VideoCodec & codec)
+```
+
+Resolve a browser-safe WebRTC video codec config from an explicit codec.
+
+---
+
+{#resolvewebrtcaudiocodec}
+
+#### resolveWebRtcAudioCodec
+
+`static`
+
+```cpp
+static av::AudioCodec resolveWebRtcAudioCodec(const av::AudioCodec & codec)
+```
+
+Resolve a browser-safe WebRTC audio codec config from an explicit codec.
+
+---
+
+{#detectcodec}
+
+#### detectCodec
+
+`static`
+
+```cpp
+static std::optional< CodecSpec > detectCodec(std::string_view sdp, CodecMediaType mediaType)
+```
+
+Detect the first known codec present in an SDP snippet for the given media type.
+
+{#trackhandle}
+
+## TrackHandle
+
+```cpp
+#include <icy/webrtc/track.h>
+```
+
+Result of creating a track: the track itself plus its RTP config. Keep the config around - you need it for [WebRtcTrackSender](#webrtctracksender).
+
+### Public Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `std::shared_ptr< rtc::Track >` | [`track`](#track)  | The libdatachannel track added to the PeerConnection. |
+| `std::shared_ptr< rtc::RtpPacketizationConfig >` | [`rtpConfig`](#rtpconfig)  | RTP packetization state required by [WebRtcTrackSender](#webrtctracksender). |
+
+---
+
+{#track}
+
+#### track
+
+```cpp
+std::shared_ptr< rtc::Track > track
+```
+
+The libdatachannel track added to the PeerConnection.
+
+---
+
+{#rtpconfig}
+
+#### rtpConfig
+
+```cpp
+std::shared_ptr< rtc::RtpPacketizationConfig > rtpConfig
+```
+
+RTP packetization state required by [WebRtcTrackSender](#webrtctracksender).
 
 {#codecspec}
 
@@ -2015,7 +2420,7 @@ Canonical description of a codec supported by Icey's WebRTC helpers.
 | `CodecMediaType` | [`mediaType`](#mediatype)  | Audio or video media kind. |
 | `std::string` | [`rtpName`](#rtpname)  | Canonical RTP codec name. |
 | `std::string` | [`ffmpegName`](#ffmpegname)  | Preferred FFmpeg encoder name. |
-| `uint32_t` | [`clockRate`](#clockrate-1)  | RTP clock rate in Hz. |
+| `uint32_t` | [`clockRate`](#clockrate)  | RTP clock rate in Hz. |
 | `int` | [`payloadType`](#payloadtype)  | Default static or preferred dynamic payload type. |
 | `std::string` | [`fmtp`](#fmtp)  | Canonical fmtp line for SDP generation. |
 
@@ -2069,7 +2474,7 @@ Preferred FFmpeg encoder name.
 
 ---
 
-{#clockrate-1}
+{#clockrate}
 
 #### clockRate
 
@@ -2138,7 +2543,7 @@ Result of codec negotiation between a remote SDP offer and the local FFmpeg code
 | `std::string` | [`rtpName`](#rtpname-1)  | RTP codec name (e.g. "H264", "VP8", "opus") |
 | `std::string` | [`ffmpegName`](#ffmpegname-1)  | FFmpeg encoder name (e.g. "libx264", "libvpx", "libopus") |
 | `int` | [`payloadType`](#payloadtype-1)  | RTP payload type from SDP. |
-| `uint32_t` | [`clockRate`](#clockrate-2)  | RTP clock rate (90000 for video, 48000 for opus) |
+| `uint32_t` | [`clockRate`](#clockrate-1)  | RTP clock rate (90000 for video, 48000 for opus) |
 | `std::string` | [`fmtp`](#fmtp-1)  | Format parameters (e.g. "profile-level-id=42e01f") |
 
 ---
@@ -2179,7 +2584,7 @@ RTP payload type from SDP.
 
 ---
 
-{#clockrate-2}
+{#clockrate-1}
 
 #### clockRate
 
@@ -2265,45 +2670,4 @@ av::AudioCodec toWebRtcAudioCodec(int channels) const
 ```
 
 Create an [av::AudioCodec](av.md#audiocodec) configured for WebRTC browser playback. Forces 48000 Hz for Opus, sets appropriate options.
-
-{#trackhandle}
-
-## TrackHandle
-
-```cpp
-#include <icy/webrtc/track.h>
-```
-
-Result of creating a track: the track itself plus its RTP config. Keep the config around - you need it for [WebRtcTrackSender](#webrtctracksender).
-
-### Public Attributes
-
-| Return | Name | Description |
-|--------|------|-------------|
-| `std::shared_ptr< rtc::Track >` | [`track`](#track)  | The libdatachannel track added to the PeerConnection. |
-| `std::shared_ptr< rtc::RtpPacketizationConfig >` | [`rtpConfig`](#rtpconfig)  | RTP packetization state required by [WebRtcTrackSender](#webrtctracksender). |
-
----
-
-{#track}
-
-#### track
-
-```cpp
-std::shared_ptr< rtc::Track > track
-```
-
-The libdatachannel track added to the PeerConnection.
-
----
-
-{#rtpconfig}
-
-#### rtpConfig
-
-```cpp
-std::shared_ptr< rtc::RtpPacketizationConfig > rtpConfig
-```
-
-RTP packetization state required by [WebRtcTrackSender](#webrtctracksender).
 
