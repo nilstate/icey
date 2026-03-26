@@ -135,7 +135,7 @@ public:
     [[nodiscard]] const TransactionID& transactionID() const { return _transactionID; }
 
     /// @return Total body size in bytes (sum of padded attribute headers and bodies).
-    [[nodiscard]] size_t size() const { return static_cast<size_t>(computeBodySize()); }
+    [[nodiscard]] size_t size() const override { return static_cast<size_t>(computeBodySize()); }
 
     /// @return Human-readable method name (e.g. "BINDING", "ALLOCATE").
     [[nodiscard]] std::string methodString() const;
@@ -185,20 +185,20 @@ public:
     /// Parses a STUN/TURN packet from the given buffer.
     /// @param buf Buffer containing at least one complete STUN message.
     /// @return Number of bytes consumed, or 0 on parse failure.
-    ssize_t read(const ConstBuffer& buf);
+    ssize_t read(const ConstBuffer& buf) override;
 
     /// Serialises this message into a STUN/TURN wire-format packet.
     /// @param buf Destination buffer; data is appended.
-    void write(Buffer& buf) const;
+    void write(Buffer& buf) const override;
 
     /// @return A concise string representation for logging (method, transaction ID, attribute types).
     [[nodiscard]] std::string toString() const;
 
     /// Writes the same representation as toString() to the given stream.
     /// @param os Output stream.
-    void print(std::ostream& os) const;
+    void print(std::ostream& os) const override;
 
-    virtual const char* className() const { return "StunMessage"; }
+    const char* className() const override { return "StunMessage"; }
 
 protected:
     uint16_t _class;

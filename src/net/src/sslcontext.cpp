@@ -300,7 +300,14 @@ void SSLContext::flushSessionCache()
         throw std::logic_error("flushSessionCache requires a server context");
 
     Timestamp now;
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#endif
     SSL_CTX_flush_sessions(_sslContext, static_cast<long>(now.epochTime()));
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 }
 
 

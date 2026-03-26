@@ -34,7 +34,7 @@ std::string computeHMAC(std::string_view input, std::string_view key)
     //    keyLength=" << key.size() << std::endl;
     unsigned int len = 0;
     char buf[20];
-    HMAC(EVP_sha1(), key.data(), key.size(),
+    HMAC(EVP_sha1(), key.data(), static_cast<int>(key.size()),
          reinterpret_cast<const unsigned char*>(input.data()), input.size(),
          reinterpret_cast<unsigned char*>(&buf), &len);
     if (len != 20)

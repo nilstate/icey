@@ -100,7 +100,7 @@ public:
 
     /// Starts the transaction timer and sends the request.
     /// Overriding classes should implement send logic here.
-    virtual bool send()
+    virtual bool send() override
     {
         if (!canResend())
             return false;
@@ -119,7 +119,7 @@ public:
     /// a failure, but will wait the duration of the transaction
     /// timeout for a response.
     /// Transitions the transaction to the `Cancelled` state.
-    void cancel();
+    void cancel() override;
 
     /// @return True if the transaction is in the `Cancelled` state.
     bool cancelled() const;

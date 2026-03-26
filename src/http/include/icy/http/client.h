@@ -120,10 +120,10 @@ protected:
     /// All sent data is buffered until the connection is made.
     virtual void connect();
 
-    http::Message* incomingHeader();
-    http::Message* outgoingHeader();
+    http::Message* incomingHeader() override;
+    http::Message* outgoingHeader() override;
 
-    bool onSocketConnect(net::Socket& socket);
+    bool onSocketConnect(net::Socket& socket) override;
 
 protected:
     struct PendingWrite

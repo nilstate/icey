@@ -22,7 +22,7 @@ if(@HAVE_OPENCV@)
   find_dependency(OpenCV)
 endif()
 
-if(@HAVE_LIBDATACHANNEL@)
+if(@HAVE_LIBDATACHANNEL@ AND "webrtc" IN_LIST icey_FIND_COMPONENTS)
   if(NOT TARGET LibDataChannel::LibDataChannelStatic AND NOT TARGET LibDataChannel::LibDataChannel)
     find_dependency(LibDataChannel CONFIG)
   endif()

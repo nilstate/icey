@@ -49,7 +49,7 @@ if(@HAVE_OPENSSL@)
   find_dependency(OpenSSL)
 endif()
 
-if(@HAVE_LIBDATACHANNEL@)
+if(@HAVE_LIBDATACHANNEL@ AND "webrtc" IN_LIST icey_FIND_COMPONENTS)
   find_dependency(LibDataChannel CONFIG)
   _icey_add_compat_target(LibDataChannel::LibDataChannelStatic LibDataChannel::LibDataChannel)
 endif()

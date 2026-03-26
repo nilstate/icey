@@ -172,8 +172,8 @@ public:
     /// @param len Number of bytes to send.
     /// @param flags Send flags (unused for HTTP, used for WebSocket frame type).
     /// @return Number of bytes sent, or -1 on error.
-    virtual ssize_t send(const char* data, size_t len, int flags = 0);
-    virtual ssize_t sendOwned(Buffer&& buffer, int flags = 0);
+    virtual ssize_t send(const char* data, size_t len, int flags = 0) override;
+    virtual ssize_t sendOwned(Buffer&& buffer, int flags = 0) override;
 
     /// Remove the given receiver.
     ///
@@ -269,7 +269,7 @@ public:
     virtual ~ConnectionStream();
 
     /// Send data via the Outgoing stream.
-    virtual ssize_t send(const char* data, size_t len, int flags = 0);
+    virtual ssize_t send(const char* data, size_t len, int flags = 0) override;
 
     /// Return a reference to the underlying connection.
     [[nodiscard]] Connection::Ptr connection();

@@ -69,7 +69,7 @@ static void queryVideoCapabilities(IMFActivate* activate, Device& device)
     DWORD typeIndex = 0;
     IMFMediaType* mediaType = nullptr;
     while (SUCCEEDED(reader->GetNativeMediaType(
-               MF_SOURCE_READER_FIRST_VIDEO_STREAM, typeIndex, &mediaType))) {
+               static_cast<DWORD>(MF_SOURCE_READER_FIRST_VIDEO_STREAM), typeIndex, &mediaType))) {
 
         UINT32 width = 0, height = 0;
         if (SUCCEEDED(MFGetAttributeSize(mediaType, MF_MT_FRAME_SIZE, &width, &height))) {

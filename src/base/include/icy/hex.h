@@ -124,7 +124,7 @@ struct Decoder : public basic::Decoder
     /// @return Number of decoded bytes written to outbuf.
     virtual ssize_t decode(const char* inbuf, size_t nread, char* outbuf) override
     {
-        int n;
+        int n = 0;
         char c;
         size_t rpos = 0;
         size_t nwrite = 0;
