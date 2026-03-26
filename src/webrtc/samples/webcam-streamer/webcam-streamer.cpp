@@ -102,7 +102,7 @@ public:
         client.StateChange += slot(this, &WebcamStreamer::onStateChange);
         client.CreatePresence += slot(this, &WebcamStreamer::onCreatePresence);
 
-        client.connect();
+        client.start();
     }
 
     void shutdown()
@@ -114,7 +114,7 @@ public:
         session.reset();
         encoder.reset();
         capture.reset();
-        client.close();
+        client.stop();
     }
 
 private:

@@ -41,11 +41,11 @@ Client::Client(const Options& options, uv::Loop* loop)
 Client::~Client()
 {
     _data->reconnectTimer.stop();
-    close();
+    stop();
 }
 
 
-void Client::connect()
+void Client::start()
 {
     auto& data = *_data;
     if (data.options.host.empty())
@@ -92,11 +92,11 @@ void Client::doConnect()
         onSocketClose();
     };
 
-    data.ws->submit();
+    data.ws->start();
 }
 
 
-void Client::close()
+void Client::stop()
 {
     auto& data = *_data;
     if (data.closing)

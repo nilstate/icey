@@ -148,7 +148,7 @@ int main(int argc, char** argv)
     std::cout << "WebSocket streamer listening on ws://localhost:329" << '\n';
 
     waitForShutdown([](void* opaque) {
-        reinterpret_cast<http::Server*>(opaque)->shutdown();
+        reinterpret_cast<http::Server*>(opaque)->stop();
     }, &server);
 
     gCapture->stop();

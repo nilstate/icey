@@ -2299,7 +2299,7 @@ This is the abstract class for all encoders.
 | `void` | [`init`](#init)  | Initialise the encoder, open codec contexts, and transition to Ready or Encoding state. |
 | `void` | [`uninit`](#uninit)  | Flush remaining packets, close codec contexts, and release all encoder resources. |
 | `void` | [`cleanup`](#cleanup) `virtual` `inline` | Perform any additional cleanup after [uninit()](#uninit). Default is a no-op. |
-| `EncoderOptions &` | [`options`](#options-1)  | #### Returns |
+| `const EncoderOptions &` | [`options`](#options-1) `const` | #### Returns |
 | `void` | [`createVideo`](#createvideo) `virtual` `inline` | Initialise the video codec context and stream. |
 | `void` | [`freeVideo`](#freevideo) `virtual` `inline` | Free the video codec context and stream. |
 | `bool` | [`encodeVideo`](#encodevideo) `virtual` `inline` | Encode a single AVFrame of video. |
@@ -2357,12 +2357,14 @@ Perform any additional cleanup after [uninit()](#uninit). Default is a no-op.
 
 #### options
 
+`const`
+
 ```cpp
-EncoderOptions & options()
+const EncoderOptions & options() const
 ```
 
 #### Returns
-A reference to the encoder's configuration options.
+A read-only view of the encoder's configuration options.
 
 ---
 
@@ -3202,7 +3204,7 @@ PacketSignal emitter
 | `bool` | [`encodeAudio`](#encodeaudio) `virtual` | Encode a single interleaved audio frame. |
 | `bool` | [`encodeAudio`](#encodeaudio-1) `virtual` | Encode a single planar audio frame. |
 | `void` | [`flush`](#flush-4) `virtual` | Flush any buffered or queued packets to the output container. |
-| `EncoderOptions &` | [`options`](#options-2) `virtual` | #### Returns |
+| `const EncoderOptions &` | [`options`](#options-2) `virtual` `const` | #### Returns |
 | `VideoEncoder *` | [`video`](#video-2)  | #### Returns |
 | `AudioEncoder *` | [`audio`](#audio-2)  | #### Returns |
 
@@ -3468,14 +3470,14 @@ Flush any buffered or queued packets to the output container.
 
 #### options
 
-`virtual`
+`virtual` `const`
 
 ```cpp
-virtual EncoderOptions & options()
+virtual const EncoderOptions & options() const
 ```
 
 #### Returns
-A reference to the encoder's configuration options.
+A read-only view of the encoder's configuration options.
 
 ---
 

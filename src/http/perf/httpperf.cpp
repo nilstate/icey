@@ -82,7 +82,7 @@ void runMulticoreInstance()
     };
 
     waitForShutdown([&](void*) {
-        srv.shutdown();
+        srv.stop();
     },
                     nullptr, loop);
 }

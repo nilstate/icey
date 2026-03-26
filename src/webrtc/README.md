@@ -144,7 +144,7 @@ session.IncomingCall += [&](const std::string& peerId) {
     session.accept();  // or session.reject()
 };
 
-sympleClient.connect();
+sympleClient.start();
 session.call("remote-peer-id");
 ```
 

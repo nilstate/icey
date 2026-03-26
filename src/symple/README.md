@@ -69,7 +69,7 @@ client.StateChange += [](void*, smpl::ClientState& state, const smpl::ClientStat
 
 client += packetSlot(&handler, &Handler::onMessage);
 
-client.connect();
+client.start();
 ```
 
 ## WebRTC Signalling
@@ -78,7 +78,7 @@ client.connect();
 #include "icy/webrtc/support/symplesignaller.h"
 
 smpl::Client symple(opts);
-symple.connect();
+symple.start();
 
 wrtc::SympleSignaller signaller(symple);
 wrtc::PeerSession session(signaller, config);

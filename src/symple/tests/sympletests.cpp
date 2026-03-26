@@ -327,7 +327,7 @@ int main(int argc, char** argv)
         icy::smpl::Server server;
         server.start({.host = SERVER_HOST, .port = SERVER_PORT});
         expect(server.peerCount() == 0);
-        server.shutdown();
+        server.stop();
     });
 
     icy_test::describe("server: virtual peer registration", []() {
@@ -351,7 +351,7 @@ int main(int argc, char** argv)
         expect(server.peerCount() == 0);
         expect(!delivered);
 
-        server.shutdown();
+        server.stop();
     });
 
     icy_test::describe("client: sees virtual peer on connect", []() {
@@ -377,7 +377,7 @@ int main(int argc, char** argv)
         opts.reconnection = false;
         TestClient client(opts);
 
-        client.connect();
+        client.start();
         expect(test::waitFor([&] { return client.gotOnline; }));
         expect(test::waitFor([&] {
             return client.client.roster().get("media-server") != nullptr;
@@ -387,8 +387,8 @@ int main(int argc, char** argv)
         expect(remote->user() == "media-server");
         expect(remote->type() == "media-server");
 
-        client.client.close();
-        server.shutdown();
+        client.client.stop();
+        server.stop();
     });
 
 
@@ -423,15 +423,15 @@ int main(int argc, char** argv)
                 gotOnline = true;
         };
 
-        client.connect();
+        client.start();
         expect(test::waitFor([&] { return gotOnline; }));
         expect(announceStatus == 200);
         expect(!client.ourID().empty());
         expect(peerConnected);
         expect(server.peerCount() == 1);
 
-        client.close();
-        server.shutdown();
+        client.stop();
+        server.stop();
     });
 
 
@@ -453,10 +453,10 @@ int main(int argc, char** argv)
         optsB.reconnection = false;
         TestClient bob(optsB);
 
-        alice.connect();
+        alice.start();
         expect(test::waitFor([&] { return alice.gotOnline; }));
 
-        bob.connect();
+        bob.start();
         expect(test::waitFor([&] { return bob.gotOnline; }));
         expect(test::waitFor([&] { return clientHasRoom(alice.client, "test") && clientHasRoom(bob.client, "test"); }));
 
@@ -465,9 +465,9 @@ int main(int argc, char** argv)
         expect(test::waitFor([&] { return alice.gotRemotePresence && bob.gotRemotePresence; }));
         expect(server.peerCount() == 2);
 
-        alice.client.close();
-        bob.client.close();
-        server.shutdown();
+        alice.client.stop();
+        bob.client.stop();
+        server.stop();
     });
 
 
@@ -489,8 +489,8 @@ int main(int argc, char** argv)
         optsB.reconnection = false;
         TestClient receiver(optsB);
 
-        sender.connect();
-        receiver.connect();
+        sender.start();
+        receiver.start();
         expect(test::waitFor([&] { return sender.gotOnline && receiver.gotOnline; }));
         expect(test::waitFor([&] { return clientHasRoom(sender.client, "test") && clientHasRoom(receiver.client, "test"); }));
 
@@ -502,9 +502,9 @@ int main(int argc, char** argv)
         expect(test::waitFor([&] { return !receiver.receivedMessage.empty(); }));
         expect(receiver.receivedMessage == "hello");
 
-        sender.client.close();
-        receiver.client.close();
-        server.shutdown();
+        sender.client.stop();
+        receiver.client.stop();
+        server.stop();
     });
 
 
@@ -536,13 +536,13 @@ int main(int argc, char** argv)
                 gotError = true;
         };
 
-        client.connect();
+        client.start();
         expect(test::waitFor([&] { return gotError; }));
         expect(announceStatus == 401);
         expect(client.ourID().empty());
 
-        client.close();
-        server.shutdown();
+        client.stop();
+        server.stop();
     });
 
     icy_test::describe("client: transport connect failure surfaces as error", []() {
@@ -563,11 +563,11 @@ int main(int argc, char** argv)
                 gotClosed = true;
         };
 
-        client.connect();
+        client.start();
         expect(test::waitFor([&] { return gotError; }, 3000));
         expect(!gotClosed);
 
-        client.close();
+        client.stop();
     });
 
 
@@ -589,10 +589,10 @@ int main(int argc, char** argv)
         optsB.reconnection = false;
         TestClient bob(optsB);
 
-        alice.connect();
+        alice.start();
         expect(test::waitFor([&] { return alice.gotOnline; }));
 
-        bob.connect();
+        bob.start();
         expect(test::waitFor([&] { return bob.gotOnline; }));
         expect(test::waitFor([&] { return clientHasRoom(alice.client, "test") && clientHasRoom(bob.client, "test"); }));
 
@@ -607,12 +607,12 @@ int main(int argc, char** argv)
                 aliceGotOffline = true;
         };
 
-        bob.client.close();
+        bob.client.stop();
         expect(test::waitFor([&] { return aliceGotOffline; }));
         expect(server.peerCount() == 1);
 
-        alice.client.close();
-        server.shutdown();
+        alice.client.stop();
+        server.stop();
     });
 
 
@@ -641,12 +641,12 @@ int main(int argc, char** argv)
         optsB.reconnection = false;
         TestClient bob(optsB);
 
-        alice.connect();
+        alice.start();
         expect(test::waitFor([&] { return alice.gotOnline; }));
         expect(server.peerCount() == 1);
 
         // Bob should be rejected (max 1 connection)
-        bob.connect();
+        bob.start();
         bool bobClosed = false;
         bob.client.StateChange += [&](void*, smpl::ClientState& state, const smpl::ClientState&) {
             if (state.id() == smpl::ClientState::Closed ||
@@ -656,8 +656,8 @@ int main(int argc, char** argv)
         expect(test::waitFor([&] { return bobClosed; }));
         expect(server.peerCount() == 1);
 
-        alice.client.close();
-        server.shutdown();
+        alice.client.stop();
+        server.stop();
     });
 
 
@@ -687,7 +687,7 @@ int main(int argc, char** argv)
                 disconnected = true;
         };
 
-        client.connect();
+        client.start();
         expect(test::waitFor([&] { return gotOnline; }));
 
         // Send an oversized message - server should close the connection
@@ -699,8 +699,8 @@ int main(int argc, char** argv)
 
         expect(test::waitFor([&] { return disconnected; }));
 
-        client.close();
-        server.shutdown();
+        client.stop();
+        server.stop();
     });
 
 
@@ -720,7 +720,7 @@ int main(int argc, char** argv)
         opts.reconnection = false;
         TestClient spammer(opts);
 
-        spammer.connect();
+        spammer.start();
         expect(test::waitFor([&] { return spammer.gotOnline; }));
 
         // Flood messages - sender should be disconnected after exceeding rate
@@ -739,7 +739,7 @@ int main(int argc, char** argv)
         }
 
         expect(test::waitFor([&] { return disconnected; }));
-        server.shutdown();
+        server.stop();
     });
 
 
@@ -764,16 +764,16 @@ int main(int argc, char** argv)
                 closed = true;
         };
 
-        client.connect();
+        client.start();
         expect(test::waitFor([&] { return gotOnline; }));
 
         // Shutdown broadcasts event then closes
-        server.shutdown();
+        server.stop();
 
         // The client should be disconnected (server closed the connection)
         expect(test::waitFor([&] { return closed; }, 2000));
 
-        client.close();
+        client.stop();
     });
 
 
@@ -801,10 +801,10 @@ int main(int argc, char** argv)
         optsB.reconnection = false;
         TestClient bob(optsB);
 
-        alice.connect();
+        alice.start();
         expect(test::waitFor([&] { return alice.gotOnline; }));
 
-        bob.connect();
+        bob.start();
         expect(test::waitFor([&] { return bob.gotOnline; }));
         alice.client.joinRoom("shared");
         bob.client.joinRoom("shared");
@@ -838,9 +838,9 @@ int main(int argc, char** argv)
         expect((*alicePeer)["online"].get<bool>());
         expect(bob.client.roster().get("FORGED_ID") == nullptr);
 
-        alice.client.close();
-        bob.client.close();
-        server.shutdown();
+        alice.client.stop();
+        bob.client.stop();
+        server.stop();
     });
 
 
@@ -893,8 +893,8 @@ int main(int argc, char** argv)
         };
         bob += packetSlot(&counter, &MessageCounter::onMessage);
 
-        alice.connect();
-        bob.connect();
+        alice.start();
+        bob.start();
         expect(test::waitFor([&] { return aliceOnline && bobOnline; }));
 
         smpl::Message byUser;
@@ -910,9 +910,9 @@ int main(int argc, char** argv)
         icy::sleep(300);
         expect(counter.count == 0);
 
-        alice.close();
-        bob.close();
-        server.shutdown();
+        alice.stop();
+        bob.stop();
+        server.stop();
     });
 
 
@@ -950,23 +950,23 @@ int main(int argc, char** argv)
             return std::find(rooms.begin(), rooms.end(), room) != rooms.end();
         };
 
-        client.connect();
+        client.start();
         expect(test::waitFor([&] { return onlineTransitions == 1; }));
 
         client.joinRoom("desired");
         expect(test::waitFor([&] { return hasRoom("alpha") && hasRoom("desired") && hasRoom("alice"); }));
 
-        client.close();
+        client.stop();
         icy::sleep(200);
 
         assignedRoom = "beta";
-        client.connect();
+        client.start();
         expect(test::waitFor([&] { return onlineTransitions == 2; }));
         expect(test::waitFor([&] { return hasRoom("beta") && hasRoom("desired") && hasRoom("alice"); }));
         expect(!hasRoom("alpha"));
 
-        client.close();
-        server.shutdown();
+        client.stop();
+        server.stop();
     });
 
 
@@ -1009,8 +1009,8 @@ int main(int argc, char** argv)
 
         bob.client += packetSlot(&counter, &MessageCounter::onMessage);
 
-        alice.connect();
-        bob.connect();
+        alice.start();
+        bob.start();
         expect(test::waitFor([&] { return alice.gotOnline && bob.gotOnline; }));
 
         alice.client.joinRoom("one");
@@ -1039,9 +1039,9 @@ int main(int argc, char** argv)
 
         expect(test::waitFor([&] { return counter.count == 1; }));
 
-        alice.client.close();
-        bob.client.close();
-        server.shutdown();
+        alice.client.stop();
+        bob.client.stop();
+        server.stop();
     });
 
 
@@ -1070,10 +1070,10 @@ int main(int argc, char** argv)
         optsB.reconnection = false;
         TestClient bob(optsB);
 
-        alice.connect();
+        alice.start();
         expect(test::waitFor([&] { return alice.gotOnline; }));
 
-        bob.connect();
+        bob.start();
         expect(test::waitFor([&] { return bob.gotOnline; }));
 
         // Bob joins a private room
@@ -1094,9 +1094,9 @@ int main(int argc, char** argv)
         // Bob should NOT have received the message
         expect(bob.receivedMessage != "SNEAKY");
 
-        alice.client.close();
-        bob.client.close();
-        server.shutdown();
+        alice.client.stop();
+        bob.client.stop();
+        server.stop();
     });
 
 

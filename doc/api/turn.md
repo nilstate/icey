@@ -610,11 +610,11 @@ TURN client that manages relay allocations, permissions, and data relay via RFC 
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`Client`](#client-3)  | #### Parameters |
-| `void` | [`initiate`](#initiate) `virtual` | Connects the socket to the TURN server and starts the allocation sequence. Permissions must be added via [addPermission()](#addpermission) before calling this. |
-| `void` | [`shutdown`](#shutdown-11) `virtual` | Stops the timer, cancels pending transactions, and closes the socket. |
+| `void` | [`start`](#start-13) `virtual` | Connects the socket to the TURN server and starts the allocation sequence. Permissions must be added via [addPermission()](#addpermission) before calling this. |
+| `void` | [`stop`](#stop-10) `virtual` | Stops the timer, cancels pending transactions, and closes the socket. |
 | `void` | [`sendAllocate`](#sendallocate) `virtual` | Sends an Allocate request to the server with the configured transport and lifetime. On first call the server will typically respond with a 401 challenge; the client re-sends with credentials automatically. |
 | `void` | [`addPermission`](#addpermission) `virtual` | Adds multiple peer IP addresses to the permission list. |
-| `void` | [`addPermission`](#addpermission-1) `virtual` | Adds a single peer IP to the permission list, or refreshes it if already present. Permissions should be added before [initiate()](#initiate); they may also be added later, in which case a new CreatePermission request is required. |
+| `void` | [`addPermission`](#addpermission-1) `virtual` | Adds a single peer IP to the permission list, or refreshes it if already present. Permissions should be added before [start()](#start-13); they may also be added later, in which case a new CreatePermission request is required. |
 | `void` | [`sendCreatePermission`](#sendcreatepermission) `virtual` | Sends a CreatePermission request for all IPs currently in the permission list. Called automatically after allocation succeeds and periodically by the timer to refresh expiring permissions. |
 | `void` | [`sendChannelBind`](#sendchannelbind) `virtual` | Channel bindings (RFC 5766 Section 11) are intentionally not implemented. They are a bandwidth optimization that replaces STUN-framed Send/Data indications with a compact 4-byte ChannelData header. This only benefits high-throughput media relay scenarios; in practice, media flows directly via ICE/DTLS rather than through this TURN client's data path, so the optimization is not worth the complexity (channel number allocation, 10-minute binding refresh timers, ChannelData wire framing). Data relay uses [sendData()](#senddata) with Send Indications instead. |
 | `void` | [`sendRefresh`](#sendrefresh) `virtual` | Sends a Refresh request to extend the allocation lifetime. Called automatically by the timer when roughly one-third of the lifetime remains. |
@@ -662,28 +662,28 @@ Client(ClientObserver & observer, const Options & options, const net::Socket::Pt
 
 ---
 
-{#initiate}
+{#start-13}
 
-#### initiate
+#### start
 
 `virtual`
 
 ```cpp
-virtual void initiate()
+virtual void start()
 ```
 
 Connects the socket to the TURN server and starts the allocation sequence. Permissions must be added via [addPermission()](#addpermission) before calling this.
 
 ---
 
-{#shutdown-11}
+{#stop-10}
 
-#### shutdown
+#### stop
 
 `virtual`
 
 ```cpp
-virtual void shutdown()
+virtual void stop()
 ```
 
 Stops the timer, cancels pending transactions, and closes the socket.
@@ -730,7 +730,7 @@ Adds multiple peer IP addresses to the permission list.
 virtual void addPermission(const std::string & ip)
 ```
 
-Adds a single peer IP to the permission list, or refreshes it if already present. Permissions should be added before [initiate()](#initiate); they may also be added later, in which case a new CreatePermission request is required. 
+Adds a single peer IP to the permission list, or refreshes it if already present. Permissions should be added before [start()](#start-13); they may also be added later, in which case a new CreatePermission request is required.
 #### Parameters
 * `ip` IPv4 address string of the permitted peer.
 
@@ -2604,8 +2604,8 @@ TURN server RFC 5766 / RFC 6062 implementation. Listens on UDP and/or TCP, authe
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`Server`](#server-7)  | #### Parameters |
-| `void` | [`start`](#start-11) `virtual` | Binds and listens on the configured address, then starts the maintenance timer. |
-| `void` | [`stop`](#stop-8) `virtual` | Stops the timer, destroys all allocations, and closes server sockets. |
+| `void` | [`start`](#start-14) `virtual` | Binds and listens on the configured address, then starts the maintenance timer. |
+| `void` | [`stop`](#stop-11) `virtual` | Stops the timer, destroys all allocations, and closes server sockets. |
 | `void` | [`handleRequest`](#handlerequest)  | Routes an authenticated request to the appropriate handler based on state. Pending (Authenticating) requests are held until the observer calls back. |
 | `void` | [`handleAuthorizedRequest`](#handleauthorizedrequest)  | Dispatches an already-authorized request to the specific method handler. |
 | `void` | [`handleBindingRequest`](#handlebindingrequest)  | Handles a Binding request; responds with XOR-MAPPED-ADDRESS. |
@@ -2649,7 +2649,7 @@ Server(ServerObserver & observer, const ServerOptions & options)
 
 ---
 
-{#start-11}
+{#start-14}
 
 #### start
 
@@ -2663,7 +2663,7 @@ Binds and listens on the configured address, then starts the maintenance timer.
 
 ---
 
-{#stop-8}
+{#stop-11}
 
 #### stop
 
@@ -3718,8 +3718,8 @@ TCP transport TURN client with relay connection management per RFC 6062. Uses a 
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`TCPClient`](#tcpclient-1)  | #### Parameters |
-| `void` | [`initiate`](#initiate-1) `virtual` | Connects the socket to the TURN server and starts the allocation sequence. Permissions must be added via [addPermission()](#addpermission) before calling this. |
-| `void` | [`shutdown`](#shutdown-12) `virtual` | Shuts down the control connection, cancels all relay connections, and calls the base class shutdown. |
+| `void` | [`start`](#start-15) `virtual` | Connects the socket to the TURN server and starts the allocation sequence. Permissions must be added via [addPermission()](#addpermission) before calling this. |
+| `void` | [`stop`](#stop-12) `virtual` | Stops the control connection, cancels all relay connections, and calls the base class [stop()](#stop-12). |
 | `void` | [`sendConnectRequest`](#sendconnectrequest) `virtual` | Sends a Connect request to the server asking it to open a TCP connection to `peerAddress` on the client's behalf (RFC 6062 section 4.3). |
 | `void` | [`sendData`](#senddata-1) `virtual` | Sends raw data to `peerAddress` over the established relay connection. The peer must have an active permission and a bound relay connection. |
 | `bool` | [`handleResponse`](#handleresponse-1) `virtual` | Extends the base handler with Connect, ConnectionBind, and ConnectionAttempt responses. |
@@ -3755,31 +3755,31 @@ TCPClient(TCPClientObserver & observer, const Client::Options & options)
 
 ---
 
-{#initiate-1}
+{#start-15}
 
-#### initiate
+#### start
 
 `virtual`
 
 ```cpp
-virtual void initiate()
+virtual void start()
 ```
 
 Connects the socket to the TURN server and starts the allocation sequence. Permissions must be added via [addPermission()](#addpermission) before calling this.
 
 ---
 
-{#shutdown-12}
+{#stop-12}
 
-#### shutdown
+#### stop
 
 `virtual`
 
 ```cpp
-virtual void shutdown()
+virtual void stop()
 ```
 
-Shuts down the control connection, cancels all relay connections, and calls the base class shutdown.
+Stops the control connection, cancels all relay connections, and calls the base class [stop()](#stop-12).
 
 ---
 
@@ -5456,4 +5456,3 @@ Called when the server sends a ConnectionAttempt indication indicating that a re
 
 #### Returns
 true to accept and bind, false to ignore.
-

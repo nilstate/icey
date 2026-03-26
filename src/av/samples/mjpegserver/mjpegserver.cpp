@@ -151,7 +151,7 @@ int main(int argc, char** argv)
     std::cout << "MJPEG server listening on http://localhost:328" << '\n';
 
     waitForShutdown([](void* opaque) {
-        reinterpret_cast<http::Server*>(opaque)->shutdown();
+        reinterpret_cast<http::Server*>(opaque)->stop();
     }, &server);
 
     gCapture->stop();

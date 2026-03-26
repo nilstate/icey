@@ -98,8 +98,8 @@ public:
     /// Perform any additional cleanup after uninit(). Default is a no-op.
     virtual void cleanup() {}
 
-    /// @return A reference to the encoder's configuration options.
-    virtual EncoderOptions& options() = 0;
+    /// @return A read-only view of the encoder's configuration options.
+    [[nodiscard]] virtual const EncoderOptions& options() const = 0;
 
     /// Initialise the video codec context and stream.
     virtual void createVideo() {}

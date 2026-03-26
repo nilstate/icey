@@ -300,14 +300,14 @@ int main(int argc, char** argv)
             complete = true;
         };
         conn->request().setKeepAlive(false);
-        conn->submit();
+        conn->start();
 
         expect(test::waitFor([&] { return complete; }));
         expect(headersReceived);
         expect(received == "hello");
         expect(!conn->error().any());
 
-        server->shutdown();
+        server->stop();
     });
 
     describe("http: POST request", []() {
@@ -340,7 +340,7 @@ int main(int argc, char** argv)
         expect(received == "accepted");
         expect(!conn->error().any());
 
-        server->shutdown();
+        server->stop();
     });
 
     describe("http: multiple concurrent requests", []() {
@@ -356,12 +356,12 @@ int main(int argc, char** argv)
                 numComplete++;
             };
             conn->request().setKeepAlive(false);
-            conn->submit();
+            conn->start();
         }
 
         expect(test::waitFor([&] { return numComplete == numRequests; }));
 
-        server->shutdown();
+        server->stop();
     });
 
     describe("http: connection close", []() {
@@ -375,13 +375,13 @@ int main(int argc, char** argv)
             closed = true;
         };
         conn->request().setKeepAlive(false);
-        conn->submit();
+        conn->start();
 
         expect(test::waitFor([&] { return closed; }));
         expect(conn->closed());
         expect(!conn->error().any());
 
-        server->shutdown();
+        server->stop();
     });
 
     describe("websocket echo: payload roundtrip", []() {
@@ -404,7 +404,7 @@ int main(int argc, char** argv)
         expect(test::waitFor([&] { return gotPayload; }));
         expect(received == "PING");
 
-        server->shutdown();
+        server->stop();
     });
 
     describe("websocket echo: multi-echo", []() {
@@ -430,7 +430,7 @@ int main(int argc, char** argv)
         expect(test::waitFor([&] { return numSuccess == numWanted; }, 5000));
         expect(numSuccess == numWanted);
 
-        server->shutdown();
+        server->stop();
     });
 
     describe("websocket handshake: tokenized connection header", []() {
@@ -460,12 +460,12 @@ int main(int argc, char** argv)
         };
         conn.request().setKeepAlive(false);
         conn.setReadStream(new std::stringstream);
-        conn.submit();
+        conn.start();
 
         expect(test::waitFor([&] { return complete; }));
         expect(!conn.error().any());
 
-        server->shutdown();
+        server->stop();
     });
 
     describe("http: server shutdown closes connections", []() {
@@ -483,7 +483,7 @@ int main(int argc, char** argv)
         expect(test::waitFor([&] { return connected; }));
 
         // Shutdown server while client is connected
-        server->shutdown();
+        server->stop();
 
         expect(test::waitFor([&] { return closed; }));
         expect(conn->closed());
@@ -507,13 +507,13 @@ int main(int argc, char** argv)
 
         conn->replaceAdapter(std::make_unique<http::ConnectionAdapter>(conn.get(), HTTP_RESPONSE));
         conn->request().setKeepAlive(false);
-        conn->submit();
+        conn->start();
 
         expect(test::waitFor([&] { return conn->closed(); }));
         expect(headersReceived);
         expect(!conn->error().any());
 
-        server->shutdown();
+        server->stop();
     });
 
     describe("http server state: keep-alive returns to receiving headers and idles out", []() {
@@ -537,7 +537,7 @@ int main(int argc, char** argv)
         conn->Complete += [&](const http::Response&) { complete = true; };
         conn->Close += [&](http::Connection&) { closed = true; };
         conn->request().setKeepAlive(true);
-        conn->submit();
+        conn->start();
 
         expect(test::waitFor([&] { return complete && serverConn != nullptr; }, 5000));
         expect(serverConn->state() == http::ServerConnectionState::ReceivingHeaders);
@@ -545,7 +545,7 @@ int main(int argc, char** argv)
         expect(test::waitFor([&] { return closed && serverConn->closed(); }, 5000));
         expect(serverConn->state() == http::ServerConnectionState::Closed);
 
-        server->shutdown();
+        server->stop();
     });
 
     describe("http server state: streaming bypasses idle timeout", []() {
@@ -571,7 +571,7 @@ int main(int argc, char** argv)
         conn->Headers += [&](http::Response&) { headers = true; };
         conn->Close += [&](http::Connection&) { closed = true; };
         conn->request().setKeepAlive(true);
-        conn->submit();
+        conn->start();
 
         expect(test::waitFor([&] { return headers && serverConn != nullptr; }, 5000));
         expect(serverConn->state() == http::ServerConnectionState::Streaming);
@@ -585,7 +585,7 @@ int main(int argc, char** argv)
         conn->close();
         expect(test::waitFor([&] { return closed || serverConn->closed(); }, 5000));
 
-        server->shutdown();
+        server->stop();
     });
 
     describe("http server state: websocket upgrade bypasses idle timeout", []() {
@@ -615,7 +615,7 @@ int main(int argc, char** argv)
         expect(!serverConn->closed());
         expect(serverConn->state() == http::ServerConnectionState::Upgraded);
 
-        server->shutdown();
+        server->stop();
         expect(test::waitFor([&] { return closed; }, 5000));
     });
 
@@ -1363,7 +1363,7 @@ int main(int argc, char** argv)
         expect(test::waitFor([&] { return gotReply; }));
         expect(received == "Hello from client");
 
-        server->shutdown();
+        server->stop();
     });
 
     describe("websocket integration: binary echo", []() {
@@ -1393,7 +1393,7 @@ int main(int argc, char** argv)
         expect(received.size() == sizeof(binData));
         expect(memcmp(received.data(), binData, sizeof(binData)) == 0);
 
-        server->shutdown();
+        server->stop();
     });
 
     describe("websocket integration: rapid bidirectional exchange", []() {
@@ -1423,7 +1423,7 @@ int main(int argc, char** argv)
         expect(test::waitFor([&] { return recvCount == total; }, 10000));
         expect(recvCount == total);
 
-        server->shutdown();
+        server->stop();
     });
 
     describe("websocket integration: large binary payload", []() {
@@ -1452,7 +1452,7 @@ int main(int argc, char** argv)
         expect(received.size() == payload.size());
         expect(received == payload);
 
-        server->shutdown();
+        server->stop();
     });
 
 
@@ -1828,7 +1828,7 @@ int main(int argc, char** argv)
         conn->close();
         expect(test::waitFor([&] { return closed; }, 5000));
 
-        server->shutdown();
+        server->stop();
     });
 
     describe("websocket integration: ping pong end-to-end", []() {
@@ -1859,7 +1859,7 @@ int main(int argc, char** argv)
         conn->send("post-ping", 9);
         expect(test::waitFor([&] { return gotPostPing; }, 5000));
 
-        server->shutdown();
+        server->stop();
     });
 
     describe("websocket integration: binary roundtrip all byte values", []() {
@@ -1888,7 +1888,7 @@ int main(int argc, char** argv)
         expect(received.size() == 256);
         expect(memcmp(received.data(), allBytes, 256) == 0);
 
-        server->shutdown();
+        server->stop();
     });
 
     describe("websocket integration: interleaved text and binary", []() {
@@ -1920,7 +1920,7 @@ int main(int argc, char** argv)
         expect(received[2] == "text2");
         expect(received[3] == std::string(bin2, 2));
 
-        server->shutdown();
+        server->stop();
     });
 
     describe("websocket integration: 100KB binary payload", []() {
@@ -1950,7 +1950,7 @@ int main(int argc, char** argv)
         expect(received.size() == payloadSize);
         expect(received == payload);
 
-        server->shutdown();
+        server->stop();
     });
 
 
@@ -2009,7 +2009,7 @@ int main(int argc, char** argv)
         expect(test::waitFor([&] { return gotReply; }, 5000));
         expect(received == "HelloWorld");
 
-        server->shutdown();
+        server->stop();
     });
 
     describe("websocket integration: fragmented binary with interleaved ping", []() {
@@ -2077,11 +2077,11 @@ int main(int argc, char** argv)
         expect(received[4] == 0x05);
         expect(received[5] == 0x06);
 
-        server->shutdown();
+        server->stop();
     });
 
     describe("websocket: shutdown produces valid close frame", []() {
-        // Verify that shutdown() generates a properly framed Close message
+        // Verify that stop() generates a properly framed Close message
         // by writing to a buffer and parsing the result
         http::ws::WebSocketFramer clientFramer(http::ws::ClientSide);
         wsFramerTestAccess(clientFramer, 2);
@@ -2089,7 +2089,7 @@ int main(int argc, char** argv)
         http::ws::WebSocketFramer serverFramer(http::ws::ServerSide);
         wsFramerTestAccess(serverFramer, 2);
 
-        // Build close payload and frame it like shutdown() does
+        // Build close payload and frame it like stop() does
         char closePayload[125];
         BitWriter pw(closePayload, sizeof(closePayload));
         pw.putU16(1000);
@@ -2174,7 +2174,7 @@ int main(int argc, char** argv)
         expect(test::waitFor([&] { return gotReply; }, 5000));
         expect(received == "split-test-data");
 
-        server->shutdown();
+        server->stop();
     });
 
 

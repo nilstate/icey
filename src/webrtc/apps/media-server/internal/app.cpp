@@ -146,12 +146,12 @@ void MediaServerApp::start()
 }
 
 
-void MediaServerApp::shutdown()
+void MediaServerApp::stop()
 {
     _sessions.clear();
     _relay->clear();
     _symple.removeVirtualPeer(_serverPeerId);
-    _symple.shutdown();
+    _symple.stop();
     if (_turn)
         _turn->stop();
 }

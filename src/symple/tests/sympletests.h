@@ -41,12 +41,17 @@ public:
 
     ~TestClient()
     {
-        client.close();
+        client.stop();
     }
 
-    void connect()
+    void start()
     {
-        client.connect();
+        client.start();
+    }
+
+    void stop()
+    {
+        client.stop();
     }
 
     void onRecvPresence(smpl::Presence& presence)

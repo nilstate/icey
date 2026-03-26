@@ -49,7 +49,7 @@ Symple v4 client.
 
 Connects to a Symple server over plain WebSocket (no Socket.IO). Handles authentication, presence, roster management, rooms, and message routing.
 
-Usage: [smpl::Client](#client-5) client({ .host = "localhost", .port = 4500, .user = "alice", .name = "Alice" }); client.connect();
+Usage: [smpl::Client](#client-5) client({ .host = "localhost", .port = 4500, .user = "alice", .name = "Alice" }); client.start();
 
 client += packetSlot(&handler, &Handler::onMessage); client.Announce += slot(&handler, &Handler::onAnnounce);
 
@@ -128,8 +128,8 @@ Modify the outgoing peer object before presence broadcast.
 |--------|------|-------------|
 |  | [`Client`](#client-6)  |  |
 |  | [`Client`](#client-7)  | Default constructor with default [Options](#options-14). |
-| `void` | [`connect`](#connect-14)  | Connect to the Symple server. |
-| `void` | [`close`](#close-24)  | Disconnect from the server. |
+| `void` | [`start`](#start-16)  | Start the Symple client. |
+| `void` | [`stop`](#stop-13)  | Stop the Symple client. |
 | `int` | [`send`](#send-17) `virtual` | Send a Symple message. Sets the `from` field automatically. |
 | `int` | [`send`](#send-18) `virtual` | Send a string message (parsed as JSON). |
 | `int` | [`respond`](#respond-1) `virtual` | Swap to/from and send. |
@@ -170,27 +170,27 @@ Default constructor with default [Options](#options-14).
 
 ---
 
-{#connect-14}
+{#start-16}
 
-#### connect
+#### start
 
 ```cpp
-void connect()
+void start()
 ```
 
-Connect to the Symple server.
+Start the Symple client.
 
 ---
 
-{#close-24}
+{#stop-13}
 
-#### close
+#### stop
 
 ```cpp
-void close()
+void stop()
 ```
 
-Disconnect from the server.
+Stop the Symple client.
 
 ---
 
@@ -3459,9 +3459,9 @@ Signal< void(ServerPeer &)> PeerDisconnected
 |--------|------|-------------|
 |  | [`Server`](#server-10)  | Constructs a server using the given event loop. |
 |  | [`Server`](#server-11)  | Deleted constructor. |
-| `void` | [`start`](#start-12)  | Starts the server with the given options. Begins accepting WebSocket connections on opts.host:opts.port. |
-| `void` | [`start`](#start-13)  | Starts the server with a custom HTTP factory for non-WebSocket requests. The Symple server handles WebSocket upgrades internally; any other HTTP request (e.g. static files, REST API) is delegated to this factory. |
-| `void` | [`shutdown`](#shutdown-13)  | Broadcasts a shutdown notice to all peers, closes the listen socket, and releases all internal state. Safe to call more than once. |
+| `void` | [`start`](#start-17)  | Starts the server with the given options. Begins accepting WebSocket connections on opts.host:opts.port. |
+| `void` | [`start`](#start-18)  | Starts the server with a custom HTTP factory for non-WebSocket requests. The Symple server handles WebSocket upgrades internally; any other HTTP request (e.g. static files, REST API) is delegated to this factory. |
+| `void` | [`stop`](#stop-14)  | Broadcasts a shutdown notice to all peers, closes the listen socket, and releases all internal state. Safe to call more than once. |
 | `void` | [`broadcast`](#broadcast)  | Broadcast a message to all peers in a room (excluding sender). |
 | `void` | [`broadcastRooms`](#broadcastrooms)  | Broadcast to multiple rooms with per-recipient dedup. |
 | `bool` | [`sendTo`](#sendto)  | Send a message to a specific peer by session ID. |
@@ -3502,7 +3502,7 @@ Deleted constructor.
 
 ---
 
-{#start-12}
+{#start-17}
 
 #### start
 
@@ -3516,7 +3516,7 @@ Starts the server with the given options. Begins accepting WebSocket connections
 
 ---
 
-{#start-13}
+{#start-18}
 
 #### start
 
@@ -3532,12 +3532,12 @@ Starts the server with a custom HTTP factory for non-WebSocket requests. The Sym
 
 ---
 
-{#shutdown-13}
+{#stop-14}
 
-#### shutdown
+#### stop
 
 ```cpp
-void shutdown()
+void stop()
 ```
 
 Broadcasts a shutdown notice to all peers, closes the listen socket, and releases all internal state. Safe to call more than once.

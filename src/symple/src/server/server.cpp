@@ -80,11 +80,11 @@ Server::Server(uv::Loop* loop)
 
 Server::~Server()
 {
-    shutdown();
+    stop();
 }
 
 
-void Server::shutdown()
+void Server::stop()
 {
     if (_shuttingDown)
         return;
@@ -110,7 +110,7 @@ void Server::shutdown()
     // and emits Shutdown. Connection cleanup happens asynchronously
     // via uv_close callbacks.
     if (_http)
-        _http->shutdown();
+        _http->stop();
 
     // Clear all state. Responder::onClose is guarded by _shuttingDown
     // so it won't try to access these collections.
@@ -120,7 +120,7 @@ void Server::shutdown()
         _peerRegistry->clear();
     }
 
-    // Release the HTTP server. Its destructor calls shutdown() again
+    // Release the HTTP server. Its destructor calls stop() again
     // (no-op due to _shuttingDown guard on the http side - the socket
     // is already closed). Connections and responders are destroyed here.
     _http.reset();

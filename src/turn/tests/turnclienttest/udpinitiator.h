@@ -36,22 +36,22 @@ public:
     {
     }
 
-    void initiate(const std::string& peerIP)
+    void start(const std::string& peerIP)
     {
         LDebug(id, ": Initializing");
         try {
             client.addPermission(peerIP);
             client.addPermission("127.0.0.1");
             client.addPermission("192.168.1.1");
-            client.initiate();
+            client.start();
         } catch (std::exception& exc) {
             LError(id, ": ", exc.what());
         }
     }
 
-    void shutdown()
+    void stop()
     {
-        client.shutdown();
+        client.stop();
         timer.stop();
     }
 
@@ -121,5 +121,4 @@ protected:
 
 
 } //  namespace icy
-
 

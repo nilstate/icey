@@ -502,7 +502,7 @@ Signals on task completion for both success and failure cases.
 |  | [`InstallTask`](#installtask-1)  | #### Parameters |
 |  | [`InstallTask`](#installtask-2)  | Deleted constructor. |
 |  | [`InstallTask`](#installtask-3)  | Deleted constructor. |
-| `void` | [`start`](#start-10) `virtual` | Validates options, resolves the install directory, and launches the background runner. |
+| `void` | [`start`](#start-12) `virtual` | Validates options, resolves the install directory, and launches the background runner. |
 | `void` | [`cancel`](#cancel-3) `virtual` | Transitions the task to the Cancelled state. |
 | `void` | [`doDownload`](#dodownload) `virtual` | Downloads the package archive from the server. |
 | `void` | [`doExtract`](#doextract) `virtual` | Extracts the downloaded package files to the intermediate directory. |
@@ -511,7 +511,7 @@ Signals on task completion for both success and failure cases.
 | `Package::Asset` | [`getRemoteAsset`](#getremoteasset) `virtual` `const` | Returns the remote asset selected by the current [InstallOptions](#installoptions). Respects version and sdkVersion overrides; falls back to latestAsset(). |
 | `LocalPackage *` | [`local`](#local) `virtual` `const` | Returns a pointer to the local package record. |
 | `RemotePackage *` | [`remote`](#remote) `virtual` `const` | Returns a pointer to the remote package record. |
-| `InstallOptions &` | [`options`](#options-4) `virtual` | Returns a reference to the installation options for this task. |
+| `const InstallOptions &` | [`options`](#options-4) `virtual` `const` | Returns a read-only view of the installation options for this task. |
 | `uv::Loop *` | [`loop`](#loop-7) `virtual` `const` | Returns the libuv event loop used for async operations. |
 | `bool` | [`valid`](#valid-2) `virtual` `const` | Returns true if the task is not in a Failed state and both local and remote (if set) packages are valid. |
 | `bool` | [`cancelled`](#cancelled-2) `virtual` `const` | Returns true if the task is in the Cancelled state. |
@@ -570,7 +570,7 @@ Deleted constructor.
 
 ---
 
-{#start-10}
+{#start-12}
 
 #### start
 
@@ -702,13 +702,13 @@ Returns a pointer to the remote package record.
 
 #### options
 
-`virtual`
+`virtual` `const`
 
 ```cpp
-virtual InstallOptions & options()
+virtual const InstallOptions & options() const
 ```
 
-Returns a reference to the installation options for this task.
+Returns a read-only view of the installation options for this task.
 
 ---
 
@@ -1135,7 +1135,8 @@ Signals when a package installation tasks completes, either successfully or in e
 | `bool` | [`isSupportedFileType`](#issupportedfiletype)  | Checks if the file type is a supported package archive. |
 | `std::string` | [`getCacheFilePath`](#getcachefilepath)  | Returns the full path of the cached file if it exists, or an empty path if the file doesn't exist. |
 | `std::string` | [`getPackageDataDir`](#getpackagedatadir)  | Returns the package data directory for the given package ID. |
-| `Options &` | [`options`](#options-5) `virtual` | Accessors. |
+| `Options &` | [`mutableOptions`](#mutableoptions) `virtual` | Accessors. |
+| `const Options &` | [`options`](#options-5) `virtual` `const` | Returns a read-only view of the current options. |
 | `RemotePackageStore &` | [`remotePackages`](#remotepackages) `virtual` | Returns a reference to the in-memory remote package store. |
 | `LocalPackageStore &` | [`localPackages`](#localpackages) `virtual` | Returns a reference to the in-memory local package store. |
 
@@ -1697,19 +1698,33 @@ Returns the package data directory for the given package ID.
 
 ---
 
-{#options-5}
+{#mutableoptions}
 
-#### options
+#### mutableOptions
 
 `virtual`
 
 ```cpp
-virtual Options & options()
+virtual Options & mutableOptions()
 ```
 
 Accessors.
 
-Returns a reference to the current options.
+Returns the mutable startup configuration for this manager. Callers should finish edits before [initialize()](#initialize).
+
+---
+
+{#options-5}
+
+#### options
+
+`virtual` `const`
+
+```cpp
+virtual const Options & options() const
+```
+
+Returns a read-only view of the current options.
 
 ---
 

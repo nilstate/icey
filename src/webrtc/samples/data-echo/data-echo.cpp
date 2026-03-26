@@ -53,7 +53,7 @@ public:
         client.Announce += slot(this, &DataEchoApp::onAnnounce);
         client.StateChange += slot(this, &DataEchoApp::onStateChange);
         client.CreatePresence += slot(this, &DataEchoApp::onCreatePresence);
-        client.connect();
+        client.start();
     }
 
     void shutdown()
@@ -62,7 +62,7 @@ public:
             session->hangup("shutdown");
         session.reset();
         signaller.reset();
-        client.close();
+        client.stop();
     }
 
 private:

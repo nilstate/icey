@@ -10,7 +10,7 @@ Client side:
 
 ```text
 createConnectionT(ws:// or wss://)
-  -> submit()
+  -> start()
   -> HTTP handshake
   -> Connect fires when the WebSocket handshake is complete
   -> send/receive framed payload
@@ -49,12 +49,12 @@ conn->Close += [](http::Connection&) {
     uv_stop(uv::defaultLoop());
 };
 
-conn->submit();
+conn->start();
 ```
 
 Two rules matter here:
 
-- `submit()` starts the handshake
+- `start()` starts the handshake
 - `Connect` fires after the WebSocket handshake succeeds, not after bare TCP connect
 
 That second rule is important. It means application code does not race the handshake.
@@ -167,4 +167,3 @@ Do not start by debugging your JSON message layer if the upgrade never completed
 - [HTTP Lifecycle](../concepts/http-lifecycle.md) for upgrade and connection-state detail
 - [HTTP Server](http-server.md) for the plain request/response path around it
 - [`wsclient`](../../src/http/samples/wsclient/) for the runnable client sample
-

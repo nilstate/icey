@@ -182,7 +182,7 @@ config.dataChannelLabel = "data";
 #include "icy/webrtc/support/symplesignaller.h"
 
 smpl::Client client(opts);
-client.connect();
+client.start();
 
 wrtc::SympleSignaller signaller(client);
 wrtc::PeerSession session(signaller, config);
@@ -415,7 +415,7 @@ client.StateChange += [&](void*, smpl::ClientState& state, const smpl::ClientSta
     if (state.id() == smpl::ClientState::Online)
         client.joinRoom("public");
 };
-client.connect();
+client.start();
 
 wrtc::SympleSignaller signaller(client);
 wrtc::PeerSession session(signaller, config);

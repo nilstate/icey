@@ -73,7 +73,7 @@ struct ClientState : public State
 ///       .user = "alice",
 ///       .name = "Alice"
 ///   });
-///   client.connect();
+///   client.start();
 ///
 ///   client += packetSlot(&handler, &Handler::onMessage);
 ///   client.Announce += slot(&handler, &Handler::onAnnounce);
@@ -112,11 +112,12 @@ public:
     Client(); ///< Default constructor with default Options.
     virtual ~Client();
 
-    /// Connect to the Symple server.
-    void connect();
+    /// Start the Symple client.
+    void start();
 
-    /// Disconnect from the server.
-    void close();
+    /// Stop the Symple client.
+    void stop();
+
 
     /// Send a Symple message. Sets the `from` field automatically.
     virtual int send(Message& message);

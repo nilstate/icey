@@ -69,7 +69,7 @@ public:
         client.StateChange += slot(this, &FileStreamer::onStateChange);
         client.CreatePresence += slot(this, &FileStreamer::onCreatePresence);
 
-        client.connect();
+        client.start();
     }
 
     void shutdown()
@@ -81,7 +81,7 @@ public:
         session.reset();
         encoder.reset();
         capture.reset();
-        client.close();
+        client.stop();
     }
 
 private:

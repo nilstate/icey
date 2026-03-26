@@ -58,7 +58,7 @@ public:
         }
     }
 
-    void shutdown()
+    void stop()
     {
         timer.stop();
         socket.close();
@@ -98,7 +98,7 @@ public:
     bool onSocketClose(net::Socket&)
     {
         LDebug(id, ": On close");
-        shutdown();
+        stop();
         return false;
     }
 };

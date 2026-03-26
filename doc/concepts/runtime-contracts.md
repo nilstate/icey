@@ -143,11 +143,11 @@ Build the graph, then start it. Tear it down after it stops. Changing topology m
 
 Use local signals when they are local. Use borrowed send when the payload naturally lives long enough. Use queues only when you actually need a thread hop or retention boundary.
 
-### Do not treat HTTP client `submit()` and connection `send()` as synonyms
+### Do not treat HTTP client `start()` and connection `send()` as synonyms
 
 They are different on purpose.
 
-- `submit()` starts the HTTP transaction
+- `start()` starts the HTTP transaction
 - `send()` writes bytes on an already-established transaction or upgraded connection
 
 If you mix those up, you are fighting the model instead of using it.
@@ -158,4 +158,3 @@ If you mix those up, you are fighting the model instead of using it.
 - [PacketStream](packetstream.md) for the pipeline and ownership model
 - [HTTP Lifecycle](http-lifecycle.md) for connection, keep-alive, streaming, and upgrade flow
 - [Net](../modules/net.md) for socket-level send and receive rules
-

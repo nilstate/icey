@@ -44,6 +44,7 @@ Lightweight WebRTC media stack via libdatachannel now ships in-tree. See `src/we
 - HTTP comparative workload harness now lives under `src/http/perf/`, separate from reportable microbench targets under `src/http/bench/`
 - Protocol fuzz targets for HTTP, WebSocket, STUN, and TURN landed
 - Remaining networking work is now higher-end polish rather than base capability:
+  - HTTP/2 (h2 over TLS, h2c upgrade, stream multiplexing, header compression, server push)
   - HTTP proxy (CONNECT, SOCKS5)
   - TLS 1.3 advanced features (0-RTT, session tickets, key update)
   - Certificate pinning

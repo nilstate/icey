@@ -50,19 +50,19 @@ ClientConnection::~ClientConnection()
 }
 
 
-void ClientConnection::submit()
+void ClientConnection::start()
 {
     if (_connect) {
-        throw std::runtime_error("ClientConnection::submit: already connecting");
+        throw std::runtime_error("ClientConnection::start: already connecting");
     }
     connect();
 }
 
 
-void ClientConnection::submit(http::Request& req)
+void ClientConnection::start(http::Request& req)
 {
     if (_connect) {
-        throw std::runtime_error("ClientConnection::submit: already connecting");
+        throw std::runtime_error("ClientConnection::start: already connecting");
     }
     _request = req;
     connect();
@@ -240,11 +240,11 @@ Client::Client()
 
 Client::~Client()
 {
-    shutdown();
+    stop();
 }
 
 
-void Client::shutdown()
+void Client::stop()
 {
     Shutdown.emit();
 
@@ -253,7 +253,7 @@ void Client::shutdown()
         conn->close(); // close and remove via callback
     }
     if (!_connections.empty())
-        LWarn("Client::shutdown: ", _connections.size(), " connections still active");
+        LWarn("Client::stop: ", _connections.size(), " connections still active");
 }
 
 

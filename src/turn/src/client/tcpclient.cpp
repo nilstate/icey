@@ -36,22 +36,22 @@ TCPClient::TCPClient(TCPClientObserver& observer, const Client::Options& options
 TCPClient::~TCPClient()
 {
     LTrace("Destroy");
-    shutdown();
+    stop();
 }
 
 
-void TCPClient::initiate()
+void TCPClient::start()
 {
-    Client::initiate();
+    Client::start();
 }
 
 
-void TCPClient::shutdown()
+void TCPClient::stop()
 {
     LTrace("Shutdown");
 
     // Destroy transactions and stop timer
-    Client::shutdown();
+    Client::stop();
 
     {
         auto connections = _connections.map();

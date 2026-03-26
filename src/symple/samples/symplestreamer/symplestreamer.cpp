@@ -150,7 +150,7 @@ public:
         client.StateChange += slot(this, &SympleStreamer::onStateChange);
         client.CreatePresence += slot(this, &SympleStreamer::onCreatePresence);
 
-        client.connect();
+        client.start();
 
         // Start the WebSocket media server
         streamServer.start();
@@ -160,8 +160,8 @@ public:
 
     void shutdown()
     {
-        streamServer.shutdown();
-        client.close();
+        streamServer.stop();
+        client.stop();
     }
 
     /// Handle incoming Symple messages for call signalling.

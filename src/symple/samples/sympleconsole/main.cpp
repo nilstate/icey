@@ -118,7 +118,7 @@ public:
         shuttingDown = true;
 
         ipc.close();
-        client.close();
+        client.stop();
         Application::stop();
     }
 
@@ -138,7 +138,7 @@ public:
             client.Announce += slot(this, &SympleApplication::onClientAnnounce);
             client.StateChange += slot(this, &SympleApplication::onClientStateChange);
             client.CreatePresence += slot(this, &SympleApplication::onCreatePresence);
-            client.connect();
+            client.start();
 
             // Console input runs on a separate thread because std::getchar()
             // blocks, and we can't block the libuv event loop

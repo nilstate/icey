@@ -51,7 +51,7 @@ public:
         }
     }
 
-    void shutdown()
+    void stop()
     {
         socket.close();
         timer.stop();

@@ -10,7 +10,7 @@ This page is about that flow.
 
 The first thing to get straight is this:
 
-- `submit()` starts an outgoing HTTP transaction
+- `start()` starts an outgoing HTTP transaction
 - `send()` writes bytes on a live connection
 
 That split is intentional.
@@ -154,7 +154,7 @@ The flow is:
 
 ```text
 build URL and request
-  -> submit()
+  -> start()
   -> connect socket if needed
   -> write request line, headers, optional body
   -> receive response headers
@@ -162,7 +162,7 @@ build URL and request
   -> complete or close
 ```
 
-`ClientConnection::submit()` is the transaction entry point.
+`ClientConnection::start()` is the transaction entry point.
 
 Then:
 

@@ -118,8 +118,8 @@ public:
     /// Flush any buffered or queued packets to the output container.
     void flush() override;
 
-    /// @return A reference to the encoder's configuration options.
-    EncoderOptions& options();
+    /// @return A read-only view of the encoder's configuration options.
+    [[nodiscard]] const EncoderOptions& options() const override;
 
     /// @return The active VideoEncoder, or nullptr if video has not been created.
     VideoEncoder* video();

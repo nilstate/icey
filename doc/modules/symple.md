@@ -77,7 +77,7 @@ Client                              Server
 
 ### Connecting (Client)
 
-Configure a `smpl::Client::Options` struct and call `connect()`. All signal connections should be made before `connect()` is called.
+Configure a `smpl::Client::Options` struct and call `start()`. All signal connections should be made before `start()` is called.
 
 ```cpp
 #include "icy/symple/client.h"
@@ -112,7 +112,7 @@ client.Announce += [](const int& status) {
         throw std::runtime_error("Auth failed: " + std::to_string(status));
 };
 
-client.connect();
+client.start();
 
 // Drive the event loop
 uv::runLoop();
@@ -555,7 +555,7 @@ session.StateChanged += [&](wrtc::PeerSession::State state) {
         stopMediaPipeline();
 };
 
-symple.connect();
+symple.start();
 
 // Outgoing call flow (once the client is online)
 session.call(remotePeerId);
@@ -585,7 +585,7 @@ client += packetSlot(this, &SympleApplication::onRecvEvent);
 client.Announce += slot(this, &SympleApplication::onClientAnnounce);
 client.StateChange += slot(this, &SympleApplication::onClientStateChange);
 client.CreatePresence += slot(this, &SympleApplication::onCreatePresence);
-client.connect();
+client.start();
 
 // Console thread: push work to the event loop thread via IPC queue
 app->ipc.push(new icy::ipc::Action(

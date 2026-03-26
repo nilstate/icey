@@ -37,18 +37,18 @@ Client::Client(ClientObserver& observer, const Options& options, const net::Sock
 Client::~Client()
 {
     LTrace("Destroy");
-    shutdown();
+    stop();
 }
 
 
-void Client::initiate()
+void Client::start()
 {
     LDebug("TURN client connecting to ", _options.serverAddr);
 
     if (_permissions.empty())
-        throw std::runtime_error("permissions not set before initiating TURN client");
+        throw std::runtime_error("permissions not set before starting TURN client");
     if (!_socket.impl)
-        throw std::runtime_error("socket not set before initiating TURN client");
+        throw std::runtime_error("socket not set before starting TURN client");
 
     auto udpSocket = dynamic_cast<net::UDPSocket*>(_socket.impl.get());
     if (udpSocket) {
@@ -62,7 +62,7 @@ void Client::initiate()
 }
 
 
-void Client::shutdown()
+void Client::stop()
 {
     _timer.stop();
 
@@ -122,7 +122,7 @@ bool Client::onSocketClose(net::Socket& socket)
     LTrace("Control socket closed");
     if (!_socket->closed())
         throw std::logic_error("socket reported close but is not in closed state");
-    shutdown();
+    stop();
     setError(_socket->error());
     return false;
 }

@@ -44,22 +44,22 @@ struct TCPInitiator : public turn::TCPClientObserver
         LDebug(id, ": Destroying");
     }
 
-    void initiate(const std::string& peerIP)
+    void start(const std::string& peerIP)
     {
         LDebug(id, ": Initializing");
         try {
             client.addPermission(peerIP);
             client.addPermission("127.0.0.1");
             client.addPermission("192.168.1.1");
-            client.initiate();
+            client.start();
         } catch (std::exception& exc) {
             LError(id, ": Error: ", exc.what());
         }
     }
 
-    void shutdown()
+    void stop()
     {
-        client.shutdown();
+        client.stop();
     }
 
     void sendPacketToResponder()
@@ -138,5 +138,4 @@ struct TCPInitiator : public turn::TCPClientObserver
 
 
 } //  namespace icy
-
 

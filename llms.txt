@@ -110,7 +110,7 @@ srv.Connection += [](http::ServerConnection::Ptr conn) {
 };
 
 srv.start();
-srv.shutdown();
+srv.stop();
 
 // Configuration
 srv.setReusePort(true);
@@ -163,7 +163,7 @@ ws.send(data, len, ws::SendFlags::Text);
 ws.send(data, len, ws::SendFlags::Binary);
 
 // Close
-ws.shutdown(ws::CloseStatusCode::NormalClose, "bye");
+ws.shutdown(uint16_t(ws::CloseStatusCode::NormalClose), "bye");
 ```
 
 Opcodes: Continuation, Text, Binary, Close, Ping, Pong.
@@ -241,8 +241,8 @@ Manages WebRTC peer connection lifecycle with Symple call signalling.
 
 wrtc::PeerSession::Config config;
 config.rtcConfig.iceServers.emplace_back("stun:stun.l.google.com:19302");
-config.mediaOpts.videoCodec = av::VideoCodec("H264", "libx264", 1280, 720, 30);
-config.mediaOpts.audioCodec = av::AudioCodec("opus", "libopus", 2, 48000);
+config.media.videoCodec = av::VideoCodec("H264", "libx264", 1280, 720, 30);
+config.media.audioCodec = av::AudioCodec("opus", "libopus", 2, 48000);
 config.enableDataChannel = true;
 
 wrtc::SympleSignaller signaller(sympleClient);
@@ -259,8 +259,8 @@ session.IncomingCall += [&](const std::string& peerId) {
 
 // State changes
 session.StateChanged += [&](wrtc::PeerSession::State state) {
-    // Idle -> Ringing -> Connecting -> Active -> Ended
-    // Idle -> Incoming -> Connecting -> Active -> Ended
+    // Idle -> OutgoingInit -> Negotiating -> Active -> Ending -> Ended
+    // Idle -> IncomingInit -> Negotiating -> Active -> Ending -> Ended
 };
 
 // Data channel
@@ -341,7 +341,7 @@ opts.secure = false;             // wss:// if true
 opts.reconnection = true;
 opts.reconnectDelay = 3000;      // ms
 
-smpl::TCPClient client(opts);    // or smpl::SSLClient for TLS
+smpl::Client client(opts);       // set opts.secure = true for wss://
 
 // Signals
 client.Announce += [](const int& status) { /* 200 = auth ok */ };
@@ -352,7 +352,7 @@ client.CreatePresence += [](smpl::Peer& peer) {
 };
 // StateChange inherited from Stateful<ClientState>
 
-client.connect();
+client.start();
 client.joinRoom("public");
 client.leaveRoom("public");
 
@@ -397,7 +397,7 @@ tcp->listen(64);
 // Use operator+= to subscribe
 
 tcp->close();
-tcp->shutdown();
+tcp->stop();
 
 // Properties
 tcp->address();      // net::Address (local)
@@ -440,12 +440,12 @@ smpl::Client::Options opts;
 opts.host = "symple-server.example.com";
 opts.port = 4500;
 opts.user = "streamer";
-smpl::TCPClient client(opts);
+smpl::Client client(opts);
 
 // 2. Configure WebRTC
 wrtc::PeerSession::Config config;
 config.rtcConfig.iceServers.emplace_back("stun:stun.l.google.com:19302");
-config.mediaOpts.videoCodec = av::VideoCodec("H264", "libx264", 1280, 720, 30);
+config.media.videoCodec = av::VideoCodec("H264", "libx264", 1280, 720, 30);
 
 // 3. Create signaller and session
 wrtc::SympleSignaller signaller(client);
@@ -472,7 +472,7 @@ session.StateChanged += [&](wrtc::PeerSession::State state) {
 };
 
 // 6. Connect and wait
-client.connect();
+client.start();
 ```
 
 ### Media pipeline (capture to file)

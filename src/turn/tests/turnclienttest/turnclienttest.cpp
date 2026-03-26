@@ -71,13 +71,13 @@ int main(int argc, char** argv)
             testDone = true;
         };
 
-        initiator.initiate(TURN_AUTHORIZE_PEER_IP);
+        initiator.start(TURN_AUTHORIZE_PEER_IP);
 
         expect(test::waitFor([&] { return testDone; }, 30000));
         expect(testSuccess);
 
-        initiator.shutdown();
-        responder.shutdown();
+        initiator.stop();
+        responder.stop();
         srv.stop();
 
         // Drain the event loop to let libuv close callbacks complete
@@ -124,13 +124,13 @@ int main(int argc, char** argv)
             testDone = true;
         };
 
-        initiator.initiate(TURN_AUTHORIZE_PEER_IP);
+        initiator.start(TURN_AUTHORIZE_PEER_IP);
 
         expect(test::waitFor([&] { return testDone; }, 30000));
         expect(testSuccess);
 
-        initiator.shutdown();
-        responder.shutdown();
+        initiator.stop();
+        responder.stop();
         srv.stop();
         test::waitFor([] { return false; }, 200);
     });

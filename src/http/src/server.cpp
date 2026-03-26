@@ -65,7 +65,7 @@ Server::Server(const net::Address& address, net::TCPSocket::Ptr socket, std::uni
 
 Server::~Server()
 {
-    shutdown();
+    stop();
 }
 
 
@@ -91,7 +91,7 @@ void Server::start()
 }
 
 
-void Server::shutdown()
+void Server::stop()
 {
     // Stop accepting new connections
     if (_socket) {

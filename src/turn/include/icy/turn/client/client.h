@@ -163,10 +163,11 @@ public:
 
     /// Connects the socket to the TURN server and starts the allocation sequence.
     /// Permissions must be added via addPermission() before calling this.
-    virtual void initiate();
+    virtual void start();
 
     /// Stops the timer, cancels pending transactions, and closes the socket.
-    virtual void shutdown();
+    virtual void stop();
+
 
     /// Sends an Allocate request to the server with the configured transport
     /// and lifetime. On first call the server will typically respond with a
@@ -178,7 +179,7 @@ public:
     virtual void addPermission(const IPList& peerIPs);
 
     /// Adds a single peer IP to the permission list, or refreshes it if
-    /// already present. Permissions should be added before initiate(); they
+    /// already present. Permissions should be added before start(); they
     /// may also be added later, in which case a new CreatePermission request
     /// is required.
     /// @param ip IPv4 address string of the permitted peer.

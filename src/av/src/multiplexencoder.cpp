@@ -213,7 +213,7 @@ void MultiplexEncoder::flush()
 }
 
 
-EncoderOptions& MultiplexEncoder::options()
+const EncoderOptions& MultiplexEncoder::options() const
 {
     return _options;
 }

@@ -43,20 +43,20 @@ public:
 
     virtual ~ClientConnection();
 
-    /// Submits the internal HTTP request.
+    /// Starts the internal HTTP request.
     ///
     /// Calls connect() internally if the socket is not already connecting
     /// or connected. The actual request will be sent when the socket is connected.
     /// @throws std::runtime_error if already connecting.
-    virtual void submit();
+    virtual void start();
 
-    /// Submits the given HTTP request, replacing the internal request object.
+    /// Starts the given HTTP request, replacing the internal request object.
     ///
     /// Calls connect() internally if the socket is not already connecting
     /// or connected. The actual request will be sent when the socket is connected.
     /// @param req The HTTP request to send. Replaces the internal request.
     /// @throws std::runtime_error if already connecting.
-    virtual void submit(http::Request& req);
+    virtual void start(http::Request& req);
 
     /// Sends raw data to the peer, initiating a connection first if needed.
     /// Data is buffered internally until the connection is established.
@@ -68,7 +68,7 @@ public:
 
     /// Sets the output stream to which incoming response body data is written.
     /// The stream pointer is owned by the connection and freed with it.
-    /// Must be called before submit().
+    /// Must be called before start().
     /// @param os Pointer to the output stream. Takes ownership.
     /// @throws std::runtime_error if already connecting.
     virtual void setReadStream(std::ostream* os);
@@ -201,8 +201,9 @@ public:
     /// Destroys the default HTTP Client singleton.
     static void destroy();
 
-    /// Shutdown the Client and close all connections.
-    void shutdown();
+    /// Stop the Client and close all connections.
+    void stop();
+
 
     /// Creates and registers a typed client connection for the given URL.
     /// The connection type is inferred from the URL scheme (http, https, ws, wss).
@@ -234,7 +235,7 @@ public:
         return connection;
     }
 
-    /// Registers a connection with this client so it is tracked and cleaned up on shutdown.
+    /// Registers a connection with this client so it is tracked and cleaned up on stop().
     /// @param conn The connection to add.
     virtual void addConnection(ClientConnection::Ptr conn);
 

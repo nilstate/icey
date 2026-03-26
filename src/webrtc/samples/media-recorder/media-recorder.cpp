@@ -65,7 +65,7 @@ public:
         client.StateChange += slot(this, &MediaRecorder::onStateChange);
         client.CreatePresence += slot(this, &MediaRecorder::onCreatePresence);
 
-        client.connect();
+        client.start();
     }
 
     void shutdown()
@@ -74,7 +74,7 @@ public:
         if (session)
             session->hangup("shutdown");
         session.reset();
-        client.close();
+        client.stop();
     }
 
 private:

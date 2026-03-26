@@ -1197,10 +1197,10 @@ NullSignal Shutdown
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`Client`](#client-1)  |  |
-| `void` | [`shutdown`](#shutdown-7)  | Shutdown the [Client](#client) and close all connections. |
+| `void` | [`stop`](#stop-7)  | Stop the [Client](#client) and close all connections. |
 | `ClientConnection::Ptr` | [`createConnectionT`](#createconnectiont-1) `inline` | Creates and registers a typed client connection for the given [URL](#url). The connection type is inferred from the [URL](#url) scheme (http, https, ws, wss). |
 | `ClientConnection::Ptr` | [`createConnection`](#createconnection-1) `inline` | Creates and registers a [ClientConnection](#clientconnection) for the given [URL](#url). The socket type is chosen based on the [URL](#url) scheme (http/https/ws/wss). |
-| `void` | [`addConnection`](#addconnection) `virtual` | Registers a connection with this client so it is tracked and cleaned up on shutdown. |
+| `void` | [`addConnection`](#addconnection) `virtual` | Registers a connection with this client so it is tracked and cleaned up on [stop()](#stop-7). |
 | `void` | [`removeConnection`](#removeconnection) `virtual` | Removes a previously registered connection from the client. |
 
 ---
@@ -1215,15 +1215,15 @@ Client()
 
 ---
 
-{#shutdown-7}
+{#stop-7}
 
-#### shutdown
+#### stop
 
 ```cpp
-void shutdown()
+void stop()
 ```
 
-Shutdown the [Client](#client) and close all connections.
+Stop the [Client](#client) and close all connections.
 
 ---
 
@@ -1282,7 +1282,7 @@ Shared pointer to the created connection.
 virtual void addConnection(ClientConnection::Ptr conn)
 ```
 
-Registers a connection with this client so it is tracked and cleaned up on shutdown. 
+Registers a connection with this client so it is tracked and cleaned up on [stop()](#stop-7).
 #### Parameters
 * `conn` The connection to add.
 
@@ -1500,10 +1500,10 @@ Signals download progress (0-100%)
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`ClientConnection`](#clientconnection-1)  | Creates a [ClientConnection](#clientconnection) to the given [URL](#url), pre-populating the request URI and Host header. The response status is initialised to 502 Bad Gateway until a real response is received. |
-| `void` | [`submit`](#submit) `virtual` | Submits the internal HTTP request. |
-| `void` | [`submit`](#submit-1) `virtual` | Submits the given HTTP request, replacing the internal request object. |
+| `void` | [`start`](#start-8) `virtual` | Starts the internal HTTP request. |
+| `void` | [`start`](#start-9) `virtual` | Starts the given HTTP request, replacing the internal request object. |
 | `ssize_t` | [`send`](#send-10) `virtual` | Sends raw data to the peer, initiating a connection first if needed. Data is buffered internally until the connection is established. |
-| `void` | [`setReadStream`](#setreadstream) `virtual` | Sets the output stream to which incoming response body data is written. The stream pointer is owned by the connection and freed with it. Must be called before [submit()](#submit). |
+| `void` | [`setReadStream`](#setreadstream) `virtual` | Sets the output stream to which incoming response body data is written. The stream pointer is owned by the connection and freed with it. Must be called before [start()](#start-8). |
 | `StreamT &` | [`readStream`](#readstream) `inline` | Returns a reference to the read stream cast to the specified type. |
 
 ---
@@ -1524,17 +1524,17 @@ Creates a [ClientConnection](#clientconnection) to the given [URL](#url), pre-po
 
 ---
 
-{#submit}
+{#start-8}
 
-#### submit
+#### start
 
 `virtual`
 
 ```cpp
-virtual void submit()
+virtual void start()
 ```
 
-Submits the internal HTTP request.
+Starts the internal HTTP request.
 
 Calls [connect()](#connect-12) internally if the socket is not already connecting or connected. The actual request will be sent when the socket is connected. 
 #### Exceptions
@@ -1542,17 +1542,17 @@ Calls [connect()](#connect-12) internally if the socket is not already connectin
 
 ---
 
-{#submit-1}
+{#start-9}
 
-#### submit
+#### start
 
 `virtual`
 
 ```cpp
-virtual void submit(http::Request & req)
+virtual void start(http::Request & req)
 ```
 
-Submits the given HTTP request, replacing the internal request object.
+Starts the given HTTP request, replacing the internal request object.
 
 Calls [connect()](#connect-12) internally if the socket is not already connecting or connected. The actual request will be sent when the socket is connected. 
 #### Parameters
@@ -1596,7 +1596,7 @@ Number of bytes sent or buffered.
 virtual void setReadStream(std::ostream * os)
 ```
 
-Sets the output stream to which incoming response body data is written. The stream pointer is owned by the connection and freed with it. Must be called before [submit()](#submit). 
+Sets the output stream to which incoming response body data is written. The stream pointer is owned by the connection and freed with it. Must be called before [start()](#start-8).
 #### Parameters
 * `os` Pointer to the output stream. Takes ownership. 
 
@@ -4060,8 +4060,8 @@ The outgoing packet emitter.
 |--------|------|-------------|
 |  | [`~FormWriter`](#formwriter-1) `virtual` | Destroys the [FormWriter](#formwriter). |
 | `void` | [`addPart`](#addpart)  | Adds a part or file attachment to the multipart form. |
-| `void` | [`start`](#start-8) `virtual` | Starts the sending thread. |
-| `void` | [`stop`](#stop-7) `virtual` | Stops the sending thread. |
+| `void` | [`start`](#start-10) `virtual` | Starts the sending thread. |
+| `void` | [`stop`](#stop-8) `virtual` | Stops the sending thread. |
 | `bool` | [`complete`](#complete-1) `const` | Returns true if the request is complete. |
 | `bool` | [`cancelled`](#cancelled-1) `const` | Returns true if the request is cancelled. |
 | `void` | [`prepareSubmit`](#preparesubmit)  | Prepares the outgoing HTTP request object for submitting the form. |
@@ -4109,7 +4109,7 @@ The [FormWriter](#formwriter) takes ownership of `part` and deletes it when done
 
 ---
 
-{#start-8}
+{#start-10}
 
 #### start
 
@@ -4123,7 +4123,7 @@ Starts the sending thread.
 
 ---
 
-{#stop-7}
+{#stop-8}
 
 #### stop
 
@@ -6962,7 +6962,7 @@ This HTTP server is not strictly standards compliant. It was created to be a fas
 | Return | Name | Description |
 |--------|------|-------------|
 | `LocalSignal< void(ServerConnection::Ptr)>` | [`Connection`](#connection-8)  | Signals when a new connection has been created. A reference to the new connection object is provided. |
-| `LocalSignal< void()>` | [`Shutdown`](#shutdown-8)  | Signals when the server is shutting down. |
+| `LocalSignal< void()>` | [`Shutdown`](#shutdown-7)  | Signals when the server is shutting down. |
 
 ---
 
@@ -6978,7 +6978,7 @@ Signals when a new connection has been created. A reference to the new connectio
 
 ---
 
-{#shutdown-8}
+{#shutdown-7}
 
 #### Shutdown
 
@@ -6996,9 +6996,9 @@ Signals when the server is shutting down.
 |  | [`Server`](#server-2)  | Constructs an HTTP server on the given address using an internally created TCP socket. |
 |  | [`Server`](#server-3)  | Constructs an HTTP server on the given host and port using a caller-supplied socket. Useful for HTTPS by passing an SSLSocket. The event loop is derived from the socket. |
 |  | [`Server`](#server-4)  | Constructs an HTTP server on the given address using a caller-supplied socket. The event loop is derived from the socket. |
-| `void` | [`start`](#start-9)  | Start the HTTP server. |
-| `void` | [`shutdown`](#shutdown-9)  | Shutdown the HTTP server. |
-| `void` | [`setReusePort`](#setreuseport-1) `inline` | Enable SO_REUSEPORT for multicore server instances. Must be called before [start()](#start-9). Allows multiple server instances to bind the same address:port with kernel-level load balancing (Linux 3.9+). |
+| `void` | [`start`](#start-11)  | Start the HTTP server. |
+| `void` | [`stop`](#stop-9)  | Stop the HTTP server. |
+| `void` | [`setReusePort`](#setreuseport-1) `inline` | Enable SO_REUSEPORT for multicore server instances. Must be called before [start()](#start-11). Allows multiple server instances to bind the same address:port with kernel-level load balancing (Linux 3.9+). |
 | `void` | [`setMaxPooledConnections`](#setmaxpooledconnections) `inline` | Set the maximum number of pooled connections (default 128). Set to 0 to disable connection pooling entirely. |
 | `void` | [`setKeepAliveTimeout`](#setkeepalivetimeout) `inline` | Set the keep-alive idle timeout in seconds (default 30). Connections idle longer than this are closed by the timer. Set to 0 to disable idle timeout. |
 | `size_t` | [`connectionCount`](#connectioncount) `const` `inline` | Return the number of active connections (all states). |
@@ -7083,7 +7083,7 @@ Constructs an HTTP server on the given address using a caller-supplied socket. T
 
 ---
 
-{#start-9}
+{#start-11}
 
 #### start
 
@@ -7095,15 +7095,15 @@ Start the HTTP server.
 
 ---
 
-{#shutdown-9}
+{#stop-9}
 
-#### shutdown
+#### stop
 
 ```cpp
-void shutdown()
+void stop()
 ```
 
-Shutdown the HTTP server.
+Stop the HTTP server.
 
 ---
 
@@ -7117,7 +7117,7 @@ Shutdown the HTTP server.
 inline void setReusePort(bool enable)
 ```
 
-Enable SO_REUSEPORT for multicore server instances. Must be called before [start()](#start-9). Allows multiple server instances to bind the same address:port with kernel-level load balancing (Linux 3.9+).
+Enable SO_REUSEPORT for multicore server instances. Must be called before [start()](#start-11). Allows multiple server instances to bind the same address:port with kernel-level load balancing (Linux 3.9+).
 
 ---
 
@@ -9564,7 +9564,7 @@ Pointer to the underlying socket. Sent data will be proxied to this socket.
 | `ssize_t` | [`send`](#send-15) `virtual` | Frames and sends data to a specific peer address (for UDP-backed sockets). |
 | `ssize_t` | [`sendOwned`](#sendowned-12) `virtual` | Sends an owned payload buffer to the connected peer. |
 | `ssize_t` | [`sendOwned`](#sendowned-13) `virtual` |  |
-| `bool` | [`shutdown`](#shutdown-10) `virtual` | Sends a [WebSocket](#websocket) CLOSE frame with the given status code and message, then closes the underlying socket. |
+| `bool` | [`shutdown`](#shutdown-8) `virtual` | Sends a [WebSocket](#websocket) CLOSE frame with the given status code and message, then closes the underlying socket. |
 | `void` | [`sendClientRequest`](#sendclientrequest) `virtual` | [Client](#client) side. |
 | `void` | [`handleClientResponse`](#handleclientresponse) `virtual` | Parses the server's HTTP upgrade response and completes the handshake. Any data remaining in the buffer after the HTTP response is re-fed as [WebSocket](#websocket) frames. |
 | `void` | [`handleServerRequest`](#handleserverrequest) `virtual` | [Server](#server) side. |
@@ -9668,7 +9668,7 @@ virtual ssize_t sendOwned(Buffer && buffer, const net::Address & peerAddr, int f
 
 ---
 
-{#shutdown-10}
+{#shutdown-8}
 
 #### shutdown
 
@@ -10322,4 +10322,3 @@ Buffer _incompleteFrame
 ```
 
 Buffer for incomplete frame data across TCP segments.
-

@@ -92,12 +92,12 @@ public:
     TCPClient(TCPClientObserver& observer, const Client::Options& options = Client::Options());
     virtual ~TCPClient();
 
-    /// @copydoc Client::initiate
-    void initiate() override;
+    /// @copydoc Client::start
+    void start() override;
 
-    /// Shuts down the control connection, cancels all relay connections, and
-    /// calls the base class shutdown.
-    void shutdown() override;
+    /// Stops the control connection, cancels all relay connections, and
+    /// calls the base class stop().
+    void stop() override;
 
     /// Sends a Connect request to the server asking it to open a TCP connection
     /// to @p peerAddress on the client's behalf (RFC 6062 section 4.3).

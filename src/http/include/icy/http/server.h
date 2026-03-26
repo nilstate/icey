@@ -345,8 +345,9 @@ public:
     /// Start the HTTP server.
     void start();
 
-    /// Shutdown the HTTP server.
-    void shutdown();
+    /// Stop the HTTP server.
+    void stop();
+
 
     /// Enable SO_REUSEPORT for multicore server instances.
     /// Must be called before start(). Allows multiple server

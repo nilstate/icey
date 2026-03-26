@@ -372,7 +372,7 @@ turn::UDPClient client(obs, opts);
 client.addPermission("203.0.113.42");
 client.addPermission("198.51.100.7");
 
-client.initiate(); // connect socket and send first Allocate
+client.start(); // connect socket and send first Allocate
 ```
 
 Once `onClientStateChange` delivers `ClientState::Success`, send data:
@@ -427,14 +427,14 @@ The internal timer fires every 30 seconds. When less than one-third of the alloc
 To tear down cleanly:
 
 ```cpp
-client.shutdown(); // sends Refresh with LIFETIME=0, then closes the socket
+client.stop(); // sends Refresh with LIFETIME=0, then closes the socket
 ```
 
-`onAllocationDeleted()` fires when the server confirms deletion. After `shutdown()`, do not call any other client methods.
+`onAllocationDeleted()` fires when the server confirms deletion. After `stop()`, do not call any other client methods.
 
 #### Adding permissions after allocation
 
-Permissions can be added after `initiate()`. If the client is already in `Success` state, call `sendCreatePermission()` manually after adding the new IP:
+Permissions can be added after `start()`. If the client is already in `Success` state, call `sendCreatePermission()` manually after adding the new IP:
 
 ```cpp
 client.addPermission("203.0.113.99");
@@ -494,13 +494,13 @@ public:
 };
 ```
 
-Construct and initiate:
+Construct and start:
 
 ```cpp
 MyTCPObserver obs;
 turn::TCPClient client(obs, opts);
 client.addPermission("203.0.113.42");
-client.initiate();
+client.start();
 ```
 
 Once in `Success` state, open a relay connection to a peer:

@@ -174,7 +174,8 @@ public:
 
     /// Broadcasts a shutdown notice to all peers, closes the listen socket,
     /// and releases all internal state. Safe to call more than once.
-    void shutdown();
+    void stop();
+
 
     /// Broadcast a message to all peers in a room (excluding sender).
     void broadcast(const std::string& room, const json::Value& msg,

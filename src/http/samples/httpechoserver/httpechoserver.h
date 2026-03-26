@@ -67,7 +67,7 @@ void raiseMulticoreEchoServer()
     };
 
     waitForShutdown([&](void*) {
-        srv.shutdown();
+        srv.stop();
     },
                     nullptr, loop);
 }
@@ -126,7 +126,7 @@ void raiseMulticoreBenchmarkServer()
     };
 
     waitForShutdown([&](void*) {
-        srv.shutdown();
+        srv.stop();
     },
                     nullptr, loop);
 }
