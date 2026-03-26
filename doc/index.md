@@ -13,7 +13,7 @@ If you are here to do a specific job, start there first.
 | Build Icey and link a first program | [Getting Started](getting-started.md) | [Installation](installation.md) |
 | Understand the runtime rules before writing code | [Runtime Contracts](concepts/runtime-contracts.md) | [PacketStream](concepts/packetstream.md) and [HTTP Lifecycle](concepts/http-lifecycle.md) |
 | Understand the module layout | [Module Map](modules.md) | one of the module guides below |
-| Build a fast HTTP service | [HTTP Server](recipes/http-server.md) | [HTTP benchmark harness](../src/http/bench/README.md) |
+| Build a fast HTTP service | [HTTP Server](recipes/http-server.md) | [HTTP performance harness](../src/http/perf/README.md) |
 | Build a WebSocket client or upgraded server | [WebSocket Client And Server](recipes/websocket-client-server.md) | [HTTP Lifecycle](concepts/http-lifecycle.md) |
 | Run your own TURN relay | [TURN Server](recipes/turn-server.md) | [turnserver sample](../src/turn/samples/turnserver/README.md) |
 | Stream a webcam to a browser | [Webcam To Browser](recipes/webrtc-webcam-to-browser.md) | [webcam-streamer sample](../src/webrtc/samples/webcam-streamer/README.md) |

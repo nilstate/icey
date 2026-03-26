@@ -21,6 +21,7 @@ set(Icey_BUILD_TESTS "" CACHE INTERNAL "Tests built")
 set(Icey_BUILD_SAMPLES "" CACHE INTERNAL "Samples built")
 set(Icey_BUILD_FUZZERS "" CACHE INTERNAL "Fuzz targets built")
 set(Icey_BUILD_BENCHMARKS "" CACHE INTERNAL "Benchmark targets built")
+set(Icey_BUILD_PERF "" CACHE INTERNAL "Comparative performance targets built")
 set(Icey_REPORT_BENCHMARKS "" CACHE INTERNAL "Machine-readable benchmark targets built")
 
 # ----------------------------------------------------------------------------
@@ -209,6 +210,11 @@ function(icy_add_module name)
   # Build benchmark targets if requested
   if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/bench AND BUILD_BENCHMARKS)
     add_subdirectory(bench)
+  endif()
+
+  # Build comparative performance targets if requested
+  if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/perf AND BUILD_PERF)
+    add_subdirectory(perf)
   endif()
 endfunction()
 

@@ -127,7 +127,7 @@ See [src/turn/samples/turnserver/](src/turn/samples/turnserver/).
 
 Icey delivers **75% of raw libuv throughput** while providing a complete HTTP stack (connection management, header construction, WebSocket upgrade, streaming responses). It outperforms Go's `net/http` by 34% and Node.js by 59%. All three share the same foundation (libuv for async IO, llhttp for HTTP parsing); the difference is pure runtime overhead.
 
-See [src/http/bench/](src/http/bench/) for methodology.
+See [src/http/perf/](src/http/perf/) for the cross-stack methodology, and [src/http/bench/](src/http/bench/) for the reportable HTTP microbenchmarks.
 
 ## Docs Start Here
 

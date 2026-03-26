@@ -36,7 +36,7 @@ Test with: `curl -k -d "hello" https://localhost:1337/`
 ## Notes
 
 - The default executable path is the HTTPS variant. If you want the plain HTTP or multicore variants, read `httpechoserver.h`.
-- `raiseBenchmarkServer()` and `runMulticoreBenchmarkServers()` exist to exercise the lean server path. The real benchmark harness still lives under [`src/http/bench/`](../../bench/README.md).
+- `raiseBenchmarkServer()` and `runMulticoreBenchmarkServers()` exist to exercise the lean server path. The cross-stack performance harness lives under [`src/http/perf/`](../../perf/README.md), and the reportable microbenchmarks live under [`src/http/bench/`](../../bench/).
 
 ## See Also
 

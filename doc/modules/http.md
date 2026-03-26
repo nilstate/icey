@@ -835,7 +835,7 @@ auto adapter = std::make_shared<http::MultipartAdapter>("image/jpeg");
 
 Icey's HTTP server is built on the same libuv async I/O and llhttp parser that power Node.js, without the JavaScript runtime, garbage collector, or language bridge. All three servers in the benchmark below share the same underlying async I/O and parsing foundation; the difference is pure runtime overhead.
 
-Benchmarked on a single-core micro VM using [wrk](https://github.com/wg/wrk) (`wrk -t4 -c400 -d30s http://127.0.0.1:1337/`) against the `httpbench` benchmark:
+Benchmarked on a single-core micro VM using [wrk](https://github.com/wg/wrk) (`wrk -t4 -c400 -d30s http://127.0.0.1:1337/`) against the `httpperf` comparative harness:
 
 | Server | Req/sec | Latency | Notes |
 | ------ | ------: | ------: | ----- |
@@ -871,17 +871,17 @@ setenv("UV_THREADPOOL_SIZE",
 
 ```bash
 # Build in release mode with logging disabled
-cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_LOGGING=OFF -DBUILD_BENCHMARKS=ON
-cmake --build build --parallel $(nproc)
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_LOGGING=OFF -DBUILD_PERF=ON
+cmake --build build --target httpperf --parallel $(nproc)
 
 # Single-core with keep-alive
-./build/http/bench/httpbench keepalive
+./build/http/perf/httpperf keepalive
 
 # Multicore with SO_REUSEPORT
-./build/http/bench/httpbench multi
+./build/http/perf/httpperf multi
 
 # Raw libuv+llhttp ceiling
-./build/http/bench/httpbench raw-keepalive
+./build/http/perf/httpperf raw-keepalive
 ```
 
 Then in another terminal:
@@ -891,6 +891,14 @@ wrk -t4 -c400 -d30s http://127.0.0.1:1337/
 ```
 
 Available modes: `single`, `keepalive`, `multi`, `echo`, `raw`, `raw-keepalive`.
+
+**Reportable microbenchmarks:**
+
+```bash
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_LOGGING=OFF -DBUILD_BENCHMARKS=ON
+cmake --build build --target httpbench httpparsebench wsbench --parallel $(nproc)
+./build/http/bench/httpbench --json
+```
 
 ## Samples
 
@@ -1028,11 +1036,15 @@ To test locally, run `httpechoserver` first and connect to `ws://localhost:1337`
 
 Usage: `wsclient [url] [message]`
 
+### [httpperf](../../src/http/perf/)
+
+The comparative harness used to produce the performance table above. Includes six modes covering single-core, keep-alive, multicore `SO_REUSEPORT`, echo, and a raw libuv+llhttp baseline with zero-copy fixed buffers and no heap allocation per connection (the theoretical ceiling).
+
+Usage: `httpperf [single|keepalive|multi|echo|raw|raw-keepalive]`
+
 ### [httpbench](../../src/http/bench/)
 
-The benchmark used to produce the performance table above. Includes six modes covering single-core, keep-alive, multicore `SO_REUSEPORT`, echo, and a raw libuv+llhttp baseline with zero-copy fixed buffers and no heap allocation per connection (the theoretical ceiling).
-
-Usage: `httpbench [single|keepalive|multi|echo|raw|raw-keepalive]`
+Reportable HTTP microbenchmarks for request/response serialization and a small parse/write cycle. Pair with `httpparsebench` and `wsbench` when you want machine-readable hot-path numbers rather than cross-stack throughput comparisons.
 
 ## Configuration
 
@@ -1106,4 +1118,5 @@ uv_run(uv::defaultLoop(), UV_RUN_DEFAULT);
 - [HTTP Server](../recipes/http-server.md) for the shortest path to a real service
 - [WebSocket Client And Server](../recipes/websocket-client-server.md) for the upgrade and frame path specifically
 - [`httpechoserver`](../../src/http/samples/httpechoserver/README.md) for runnable server code
-- [`httpbench`](../../src/http/bench/README.md) if you care about throughput rather than API surface
+- [`httpperf`](../../src/http/perf/README.md) if you care about cross-stack throughput rather than API surface
+- [`httpbench`](../../src/http/bench/) if you want reportable HTTP microbenchmarks

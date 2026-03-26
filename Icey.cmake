@@ -44,6 +44,7 @@ option(BUILD_TESTS                "Build module tests"                        OF
 option(BUILD_SAMPLES              "Build module samples"                      OFF)
 option(BUILD_FUZZERS              "Build module fuzz targets"                 OFF)
 option(BUILD_BENCHMARKS          "Build module benchmark targets"            OFF)
+option(BUILD_PERF                "Build module comparative performance targets" OFF)
 option(BUILD_ALPHA                "Build alpha development modules"           OFF)
 option(ENABLE_SOLUTION_FOLDERS    "IDE solution folders"                      ON)
 option(ENABLE_LOGGING             "Enable internal debug logging"             ON)

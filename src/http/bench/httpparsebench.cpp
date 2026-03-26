@@ -54,43 +54,11 @@ void benchParse(bench::Reporter& reporter)
     });
 }
 
-void benchWrite(bench::Reporter& reporter)
-{
-    http::Response response(http::StatusCode::OK);
-    response.setContentType("application/json");
-    response.setContentLength(27);
-    response.setKeepAlive(true);
-    response.add("Server", "icey-bench");
-    response.add("X-Bench", "1");
-
-    Buffer buffer;
-    buffer.reserve(512);
-
-    constexpr uint64_t iterations = 200000;
-    uint64_t bytes = 0;
-
-    const auto measurement = bench::measure(reporter.options(), iterations, [&] {
-        bytes = 0;
-        for (uint64_t index = 0; index < iterations; ++index) {
-            buffer.clear();
-            response.write(buffer);
-            bytes += buffer.size();
-        }
-    });
-
-    reporter.add({
-        .name = "http response write",
-        .measurement = measurement,
-        .metrics = {bench::metric("bytes", bytes / iterations)},
-    });
-}
-
 } // namespace
 
 int main(int argc, char** argv)
 {
     bench::Reporter reporter(argc, argv);
     benchParse(reporter);
-    benchWrite(reporter);
     return reporter.finish();
 }

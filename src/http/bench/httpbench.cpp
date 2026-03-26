@@ -1,295 +1,153 @@
-///
-//
-// Icey HTTP Benchmark
-// Copyright (c) 2005, Icey <https://0state.com>
-//
-// SPDX-License-Identifier: LGPL-2.1+
-//
+#include "icy/http/parser.h"
+#include "icy/http/request.h"
+#include "icy/http/response.h"
 
-#include "icy/application.h"
-#include "icy/http/server.h"
-#include "icy/logger.h"
+#include "benchutil.h"
 
-#include <uv.h>
-#include <llhttp.h>
-
-#include <cstring>
+#include <cstdint>
+#include <cstdlib>
 #include <iostream>
-#include <thread>
-
+#include <string>
 
 using namespace icy;
 
+namespace {
 
-constexpr uint16_t BenchmarkPort = 1337;
-static const net::Address address("0.0.0.0", BenchmarkPort);
-
-
-// =============================================================================
-// Icey HTTP server variants
-// =============================================================================
-
-/// Single-threaded benchmark server.
-/// Sends a minimal HTTP response with no body.
-void runSingleCore()
+http::Request makeRequest()
 {
-    http::Server srv(address);
-    srv.start();
-
-    srv.Connection += [&](http::ServerConnection::Ptr conn) {
-        conn->response().add("Content-Length", "0");
-        conn->response().add("Connection", "close");
-        conn->sendHeader();
-    };
-
-    std::cout << "Icey HTTP benchmark (single-core) listening on port "
-              << BenchmarkPort << '\n';
-    waitForShutdown();
+    http::Request request(http::Method::Post, "/api/v1/items?limit=10");
+    request.setHost("127.0.0.1", 8080);
+    request.setKeepAlive(true);
+    request.setContentType("application/json");
+    request.setContentLength(26);
+    request.add("User-Agent", "icey-bench");
+    request.add("Accept", "application/json");
+    return request;
 }
 
-
-/// Single-threaded keep-alive benchmark server.
-/// Sends a minimal HTTP response and keeps the connection open.
-void runKeepAlive()
+http::Response makeResponse()
 {
-    http::Server srv(address);
-    srv.start();
-
-    srv.Connection += [&](http::ServerConnection::Ptr conn) {
-        conn->response().set("Content-Length", "0");
-        conn->sendHeader();
-    };
-
-    std::cout << "Icey HTTP benchmark (keep-alive) listening on port "
-              << BenchmarkPort << '\n';
-    waitForShutdown();
+    http::Response response(http::StatusCode::OK);
+    response.setContentType("application/json");
+    response.setContentLength(27);
+    response.setKeepAlive(true);
+    response.add("Server", "icey-bench");
+    response.add("X-Bench", "1");
+    return response;
 }
 
-
-/// Per-core server instance for multicore mode.
-void runMulticoreInstance()
+const std::string& requestWire()
 {
-    uv::ScopedLoop loop;
-
-    http::Server srv(address, loop);
-    srv.setReusePort();
-    srv.start();
-
-    srv.Connection += [&](http::ServerConnection::Ptr conn) {
-        conn->response().add("Content-Length", "0");
-        conn->response().add("Connection", "close");
-        conn->sendHeader();
-    };
-
-    waitForShutdown([&](void*) {
-        srv.shutdown();
-    },
-                    nullptr, loop);
+    static const std::string wire =
+        "POST /api/v1/items?limit=10 HTTP/1.1\r\n"
+        "Host: 127.0.0.1:8080\r\n"
+        "User-Agent: icey-bench\r\n"
+        "Accept: application/json\r\n"
+        "Content-Type: application/json\r\n"
+        "Content-Length: 26\r\n"
+        "Connection: keep-alive\r\n"
+        "\r\n"
+        "{\"name\":\"icey\",\"count\":42}";
+    return wire;
 }
 
-
-/// Multicore benchmark server.
-/// Spawns one server instance per CPU core with SO_REUSEPORT.
-void runMultiCore()
+void benchRequestWrite(bench::Reporter& reporter)
 {
-    int ncpus = std::thread::hardware_concurrency();
-    std::vector<std::unique_ptr<Thread>> threads;
+    const http::Request request = makeRequest();
+    Buffer buffer;
+    buffer.reserve(512);
 
-    for (int i = 0; i < ncpus; ++i) {
-        threads.push_back(std::make_unique<Thread>([]() { runMulticoreInstance(); }));
-    }
+    constexpr uint64_t iterations = 200000;
+    uint64_t bytes = 0;
 
-    std::cout << "Icey HTTP benchmark (multicore x" << ncpus
-              << ") listening on port " << BenchmarkPort << '\n';
-
-    for (auto& thread : threads) {
-        thread->join();
-    }
-}
-
-
-/// Single-threaded echo server for echo benchmarks.
-void runEcho()
-{
-    http::Server srv(address);
-    srv.start();
-
-    srv.Connection += [](http::ServerConnection::Ptr conn) {
-        conn->Payload += [](http::ServerConnection& conn, const MutableBuffer& buffer) {
-            conn.sendOwned(Buffer(bufferCast<const char*>(buffer),
-                                  bufferCast<const char*>(buffer) + buffer.size()));
-            conn.close();
-        };
-    };
-
-    std::cout << "Icey HTTP echo (single-core) listening on port "
-              << BenchmarkPort << '\n';
-    waitForShutdown();
-}
-
-
-// =============================================================================
-// Raw libuv + llhttp baseline (theoretical maximum)
-// =============================================================================
-
-namespace rawuv {
-
-static constexpr char RESPONSE_CLOSE[] =
-    "HTTP/1.1 200 OK\r\n"
-    "Content-Length: 0\r\n"
-    "Connection: close\r\n"
-    "\r\n";
-static constexpr size_t RESPONSE_CLOSE_LEN = sizeof(RESPONSE_CLOSE) - 1;
-
-static constexpr char RESPONSE_KEEPALIVE[] =
-    "HTTP/1.1 200 OK\r\n"
-    "Content-Length: 0\r\n"
-    "\r\n";
-static constexpr size_t RESPONSE_KEEPALIVE_LEN = sizeof(RESPONSE_KEEPALIVE) - 1;
-
-static bool keepalive = false;
-
-struct Client
-{
-    uv_tcp_t handle;
-    llhttp_t parser;
-    uv_write_t write_req;  // reused per connection
-    char readbuf[4096];     // fixed read buffer, no heap alloc
-};
-
-static llhttp_settings_t settings;
-static uv_loop_t* loop;
-
-void on_close(uv_handle_t* handle)
-{
-    delete static_cast<Client*>(handle->data);
-}
-
-void on_write_close(uv_write_t* req, int /*status*/)
-{
-    uv_close(reinterpret_cast<uv_handle_t*>(req->handle), on_close);
-}
-
-void on_write_keepalive(uv_write_t* /*req*/, int /*status*/)
-{
-    // Connection stays open for next request
-}
-
-int on_message_complete(llhttp_t* parser)
-{
-    auto* client = static_cast<Client*>(parser->data);
-
-    if (keepalive) {
-        uv_buf_t buf = uv_buf_init(const_cast<char*>(RESPONSE_KEEPALIVE), RESPONSE_KEEPALIVE_LEN);
-        uv_write(&client->write_req,
-                 reinterpret_cast<uv_stream_t*>(&client->handle),
-                 &buf, 1, on_write_keepalive);
-    } else {
-        uv_buf_t buf = uv_buf_init(const_cast<char*>(RESPONSE_CLOSE), RESPONSE_CLOSE_LEN);
-        uv_write(&client->write_req,
-                 reinterpret_cast<uv_stream_t*>(&client->handle),
-                 &buf, 1, on_write_close);
-    }
-    return 0;
-}
-
-void alloc_cb(uv_handle_t* handle, size_t /*suggested*/, uv_buf_t* buf)
-{
-    // Use per-connection fixed buffer: zero heap allocation per read
-    auto* client = static_cast<Client*>(handle->data);
-    buf->base = client->readbuf;
-    buf->len = sizeof(client->readbuf);
-}
-
-void on_read(uv_stream_t* tcp, ssize_t nread, const uv_buf_t* /*buf*/)
-{
-    auto* client = static_cast<Client*>(tcp->data);
-    if (nread > 0) {
-        llhttp_errno_t err = llhttp_execute(&client->parser, client->readbuf, nread);
-        if (err != HPE_OK && err != HPE_PAUSED_UPGRADE) {
-            uv_close(reinterpret_cast<uv_handle_t*>(&client->handle), on_close);
+    const auto measurement = bench::measure(reporter.options(), iterations, [&] {
+        bytes = 0;
+        for (uint64_t index = 0; index < iterations; ++index) {
+            buffer.clear();
+            request.write(buffer);
+            bytes += buffer.size();
         }
-    } else if (nread < 0) {
-        uv_close(reinterpret_cast<uv_handle_t*>(&client->handle), on_close);
-    }
+    });
+
+    reporter.add({
+        .name = "http request write",
+        .measurement = measurement,
+        .metrics = {bench::metric("bytes", bytes / iterations)},
+    });
 }
 
-void on_connection(uv_stream_t* server, int status)
+void benchResponseWrite(bench::Reporter& reporter)
 {
-    if (status < 0) return;
+    const http::Response response = makeResponse();
+    Buffer buffer;
+    buffer.reserve(512);
 
-    auto* client = new Client();
-    uv_tcp_init(loop, &client->handle);
-    client->handle.data = client;
+    constexpr uint64_t iterations = 200000;
+    uint64_t bytes = 0;
 
-    llhttp_init(&client->parser, HTTP_REQUEST, &settings);
-    client->parser.data = client;
+    const auto measurement = bench::measure(reporter.options(), iterations, [&] {
+        bytes = 0;
+        for (uint64_t index = 0; index < iterations; ++index) {
+            buffer.clear();
+            response.write(buffer);
+            bytes += buffer.size();
+        }
+    });
 
-    if (uv_accept(server, reinterpret_cast<uv_stream_t*>(&client->handle)) == 0) {
-        uv_tcp_nodelay(&client->handle, 1);
-        uv_read_start(reinterpret_cast<uv_stream_t*>(&client->handle), alloc_cb, on_read);
-    } else {
-        uv_close(reinterpret_cast<uv_handle_t*>(&client->handle), on_close);
-    }
+    reporter.add({
+        .name = "http response write",
+        .measurement = measurement,
+        .metrics = {bench::metric("bytes", bytes / iterations)},
+    });
 }
 
-void run()
+void benchRequestResponseCycle(bench::Reporter& reporter)
 {
-    llhttp_settings_init(&settings);
-    settings.on_message_complete = on_message_complete;
+    const std::string& wire = requestWire();
+    const http::Response response = makeResponse();
+    Buffer responseBuffer;
+    responseBuffer.reserve(512);
 
-    loop = uv_default_loop();
+    constexpr uint64_t iterations = 100000;
+    uint64_t bytes = 0;
+    uint64_t checksum = 0;
 
-    uv_tcp_t server;
-    uv_tcp_init(loop, &server);
+    const auto measurement = bench::measure(reporter.options(), iterations, [&] {
+        bytes = 0;
+        checksum = 0;
+        for (uint64_t index = 0; index < iterations; ++index) {
+            http::Request request;
+            http::Parser parser(&request);
+            const auto result = parser.parse(wire.data(), wire.size());
+            if (!result.ok() || !result.messageComplete) {
+                std::cerr << "httpbench: cycle parse failed\n";
+                std::exit(1);
+            }
 
-    struct sockaddr_in addr;
-    uv_ip4_addr("0.0.0.0", BenchmarkPort, &addr);
-    uv_tcp_bind(&server, reinterpret_cast<const struct sockaddr*>(&addr), 0);
-    uv_listen(reinterpret_cast<uv_stream_t*>(&server), 1000, on_connection);
+            responseBuffer.clear();
+            response.write(responseBuffer);
 
-    std::cout << "Raw libuv+llhttp benchmark ("
-              << (keepalive ? "keep-alive" : "single-core")
-              << ") listening on port " << BenchmarkPort << '\n';
+            bytes += result.bytesConsumed + responseBuffer.size();
+            checksum += request.getMethod().size() + request.getURI().size()
+                + responseBuffer.size();
+        }
+    });
 
-    uv_run(loop, UV_RUN_DEFAULT);
+    reporter.add({
+        .name = "http request-response cycle",
+        .measurement = measurement,
+        .metrics = {bench::metric("bytes", bytes / iterations),
+                    bench::metric("checksum", checksum)},
+    });
 }
 
-} // namespace rawuv
-
-
-// =============================================================================
-// Main
-// =============================================================================
+} // namespace
 
 int main(int argc, char** argv)
 {
-    // Match libuv's thread pool size to CPU cores
-#ifdef ICY_UNIX
-    int ncores = std::thread::hardware_concurrency();
-    setenv("UV_THREADPOOL_SIZE", std::to_string(ncores).c_str(), 1);
-#endif
-
-    std::string mode = (argc > 1) ? argv[1] : "single";
-
-    if (mode == "single") {
-        runSingleCore();
-    } else if (mode == "keepalive") {
-        runKeepAlive();
-    } else if (mode == "multi") {
-        runMultiCore();
-    } else if (mode == "echo") {
-        runEcho();
-    } else if (mode == "raw") {
-        rawuv::run();
-    } else if (mode == "raw-keepalive") {
-        rawuv::keepalive = true;
-        rawuv::run();
-    } else {
-        std::cerr << "Usage: " << argv[0] << " [single|keepalive|multi|echo|raw|raw-keepalive]" << '\n';
-        return 1;
-    }
-
-    Logger::destroy();
-    return 0;
+    bench::Reporter reporter(argc, argv);
+    benchRequestWrite(reporter);
+    benchResponseWrite(reporter);
+    benchRequestResponseCycle(reporter);
+    return reporter.finish();
 }

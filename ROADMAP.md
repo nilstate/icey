@@ -40,6 +40,7 @@ Lightweight WebRTC media stack via libdatachannel now ships in-tree. See `src/we
 
 - HTTP connection pooling and keep-alive landed
 - Benchmark targets and reportable microbenchmark runner landed
+- HTTP comparative workload harness now lives under `src/http/perf/`, separate from reportable microbench targets under `src/http/bench/`
 - Protocol fuzz targets for HTTP, WebSocket, STUN, and TURN landed
 - Remaining networking work is now higher-end polish rather than base capability:
   - HTTP proxy (CONNECT, SOCKS5)

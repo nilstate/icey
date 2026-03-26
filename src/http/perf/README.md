@@ -1,6 +1,8 @@
-# HTTP Benchmark
+# HTTP Performance Harness
 
 Benchmarks Icey's HTTP server against Node.js and Go using [wrk](https://github.com/wg/wrk).
+
+This directory contains the comparative workload harness. The reportable microbenchmarks live under [`../bench/`](../bench/).
 
 ## Variants
 
@@ -32,22 +34,29 @@ Benchmarks Icey's HTTP server against Node.js and Go using [wrk](https://github.
 ## Build
 
 ```bash
-cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_BENCHMARKS=ON -DENABLE_LOGGING=OFF
-cmake --build build --target httpbench -j$(nproc)
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_PERF=ON -DENABLE_LOGGING=OFF
+cmake --build build --target httpperf -j$(nproc)
 ```
 
 ## Run
 
 ```bash
 # Automated comparison (runs all variants + wrk)
-./src/http/bench/benchmark.sh build/http/bench/httpbench
+./src/http/perf/benchmark.sh build/http/perf/httpperf
 
 # Or through CMake
-cmake --build build --target httpbench_compare
+cmake --build build --target httpperf_compare
 
 # Manual (run server then benchmark separately)
-build/http/bench/httpbench keepalive &
+build/http/perf/httpperf keepalive &
 wrk -t4 -c100 -d10s http://localhost:1337/
+```
+
+For reportable microbenchmarks, build `BUILD_BENCHMARKS=ON` and run:
+
+```bash
+cmake --build build --target httpbench httpparsebench wsbench
+./build/http/bench/httpbench --json
 ```
 
 ## Prerequisites

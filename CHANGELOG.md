@@ -53,7 +53,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 - Dedicated protocol fuzz targets under `BUILD_FUZZERS` for the HTTP parser, WebSocket frame parser, STUN message parser, and TURN indication/request parsing
 - Build-tree and install-tree consumer validation for the exported CMake package surface
-- Dedicated benchmark targets under `BUILD_BENCHMARKS`: `signalbench`, `httpbench`, and the `httpbench_compare` wrk/Node.js/Go comparison harness
+- Dedicated microbenchmark targets under `BUILD_BENCHMARKS`: `signalbench`, `httpbench`, `httpparsebench`, and `wsbench`, plus the separate `BUILD_PERF` `httpperf`/`httpperf_compare` wrk/Node.js/Go comparison harness
 - WebRTC loopback/media regression coverage for:
   - data-channel roundtrip
   - encoded H.264 roundtrip
@@ -64,7 +64,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ### Changed
 
-- HTTP benchmark assets moved out of `src/http/samples/httpbenchmark/` into `src/http/bench/`, and `src/http/samples/` now contains samples only
+- HTTP benchmark assets moved out of `src/http/samples/httpbenchmark/` into `src/http/perf/`, while `src/http/bench/` now stays microbench-only and `src/http/samples/` contains samples only
 - `PacketStream` queue retention and ownership semantics are now explicit at queue boundaries, with deterministic overload/drop accounting and synchronized multi-source passthrough
 - `PeerSession` now uses explicit call phases and stricter signaling ordering, and WebRTC track setup requires explicit codec selection instead of fallback codec guessing
 - The canonical WebRTC send path used by the samples and `media-server` is now encode -> RTP packetize -> sender, with stable sender bindings across call lifecycles

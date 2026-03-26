@@ -5,17 +5,17 @@
 # Prerequisites:
 #   - wrk (https://github.com/wg/wrk)
 #   - node (for Node.js comparison)
-#   - httpbench binary (built with -DBUILD_BENCHMARKS=ON -DCMAKE_BUILD_TYPE=Release)
+#   - httpperf binary (built with -DBUILD_PERF=ON -DCMAKE_BUILD_TYPE=Release)
 #
 # Usage:
-#   ./benchmark.sh [path/to/httpbench]
+#   ./benchmark.sh [path/to/httpperf]
 #
 # The script runs each server variant, benchmarks with wrk, then prints
 # a comparison table.
 
 set -euo pipefail
 
-HTTPBENCH="${1:-./httpbench}"
+HTTPPERF="${1:-./httpperf}"
 PORT=1337
 URL="http://localhost:${PORT}/"
 WRK_DURATION="10s"
@@ -36,7 +36,7 @@ die() { echo -e "${RED}Error: $*${NC}" >&2; exit 1; }
 
 command -v wrk >/dev/null 2>&1 || die "wrk not found. Install: sudo apt install wrk"
 command -v node >/dev/null 2>&1 || die "node not found."
-[[ -x "$HTTPBENCH" ]] || die "httpbench binary not found at: $HTTPBENCH\nBuild with: cmake --build build --target httpbench"
+[[ -x "$HTTPPERF" ]] || die "httpperf binary not found at: $HTTPPERF\nBuild with: cmake --build build --target httpperf"
 HAS_GO=false
 GO_BIN=""
 if command -v go >/dev/null 2>&1; then
@@ -99,21 +99,21 @@ echo
 
 # --- Raw libuv+llhttp baseline ---
 kill_server
-"$HTTPBENCH" raw &
+"$HTTPPERF" raw &
 SERVER_PID=$!
 wait_for_port
 run_wrk "Raw libuv+llhttp (baseline)"
 kill_server
 
 # --- Icey single-core ---
-"$HTTPBENCH" single &
+"$HTTPPERF" single &
 SERVER_PID=$!
 wait_for_port
 run_wrk "Icey (single-core)"
 kill_server
 
 # --- Icey multi-core ---
-"$HTTPBENCH" multi &
+"$HTTPPERF" multi &
 SERVER_PID=$!
 wait_for_port
 run_wrk "Icey (multi-core)"
@@ -146,14 +146,14 @@ fi
 echo -e "\n${BOLD}--- Keep-Alive Benchmarks ---${NC}"
 
 # --- Raw libuv+llhttp keep-alive ---
-"$HTTPBENCH" raw-keepalive &
+"$HTTPPERF" raw-keepalive &
 SERVER_PID=$!
 wait_for_port
 run_wrk "Raw libuv+llhttp (keep-alive)"
 kill_server
 
 # --- Icey keep-alive ---
-"$HTTPBENCH" keepalive &
+"$HTTPPERF" keepalive &
 SERVER_PID=$!
 wait_for_port
 run_wrk "Icey (keep-alive)"

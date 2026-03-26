@@ -232,5 +232,6 @@ without turning into a giant pile of special cases.
 
 - [HTTP](../modules/http.md) for the full module guide
 - [Runtime Contracts](runtime-contracts.md) for loop, buffer, and send ownership rules
-- [HTTP benchmark harness](../../src/http/bench/README.md) if you care about throughput and compare runs
+- [HTTP performance harness](../../src/http/perf/README.md) if you care about cross-stack throughput runs
+- [HTTP microbenchmarks](../../src/http/bench/) if you want reportable hot-path numbers
 - [wsclient sample](../../src/http/samples/wsclient/) for the standalone WebSocket client path
