@@ -43,6 +43,12 @@ grep -Eq '^[[:space:]]*pkgrel = 1$' packaging/arch/.SRCINFO \
     || fail "packaging/arch/.SRCINFO should reset pkgrel = 1 for a new release"
 grep -Eq '^[[:space:]]*source = icey-'"$version"'.tar.gz::https://github.com/nilstate/icey/archive/refs/tags/'"$version"'.tar.gz$' packaging/arch/.SRCINFO \
     || fail "packaging/arch/.SRCINFO source URL is not synced to $version"
+grep -Eq '^  url "https://github.com/nilstate/icey/archive/refs/tags/'"$version"'.tar.gz"$' packaging/homebrew/Formula/icey.rb \
+    || fail "packaging/homebrew/Formula/icey.rb source URL is not synced to $version"
+grep -Eq '^  version "'"$version"'"$' packaging/homebrew/Formula/icey.rb \
+    || fail "packaging/homebrew/Formula/icey.rb is not synced to $version"
+grep -Eq '^icey \('"$version"'-1\) ' packaging/debian/debian/changelog \
+    || fail "packaging/debian/debian/changelog is not synced to $version-1"
 
 for file in "${docs[@]}"; do
     grep -Eq 'GIT_TAG '"$version"'([^0-9]|$)' "$file" \

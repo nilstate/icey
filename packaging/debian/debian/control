@@ -1,0 +1,48 @@
+Source: icey
+Section: libs
+Priority: optional
+Maintainer: 0state OSS <oss@0state.com>
+Rules-Requires-Root: no
+Build-Depends:
+ debhelper-compat (= 13),
+ cmake,
+ pkgconf,
+ libssl-dev,
+ libavcodec-dev,
+ libavdevice-dev,
+ libavformat-dev,
+ libavutil-dev,
+ libnice-dev,
+ libsrtp2-dev,
+ libswresample-dev,
+ libswscale-dev,
+ libusrsctp-dev,
+ nlohmann-json3-dev
+Standards-Version: 4.7.0
+Homepage: https://0state.com/icey/
+Vcs-Browser: https://github.com/nilstate/icey
+Vcs-Git: https://github.com/nilstate/icey.git
+
+Package: libicey2
+Section: libs
+Architecture: any
+Multi-Arch: same
+Depends:
+ ${misc:Depends},
+ ${shlibs:Depends}
+Description: Runtime libraries for the icey C++20 media stack
+ icey is a modular C++20 media stack and libwebrtc alternative for real-time
+ video, signalling, TURN, HTTP, and media server workloads.
+
+Package: libicey-dev
+Section: libdevel
+Architecture: any
+Multi-Arch: same
+Depends:
+ ${misc:Depends},
+ libicey2 (= ${binary:Version})
+Recommends:
+ pkgconf
+Description: Development files for the icey C++20 media stack
+ Development headers, CMake package exports, and pkg-config metadata for
+ building applications and services against icey.

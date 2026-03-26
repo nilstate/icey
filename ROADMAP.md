@@ -17,6 +17,7 @@ CMake 3.21 minimum, deps via FetchContent (libuv 1.50, llhttp 9.2.1, zlib 1.3.1,
   - WebRTC/Symple hot-path microbenchmarks
 - [x] Move the docs toolchain onto published `moxygen` / `sourcey` npm packages and add API quality checks
 - [x] Add repo-local Conan / vcpkg packaging layouts and Makefile entry points
+- [x] Add Arch, Homebrew, and Debian / PPA packaging seeds plus release hooks
 - [x] Finish the lowercase `icey` package/docs cutover and clear the final sequential local package verification pass
 - [x] Tag and publish the 2.4.0 git release with the current changelog
 - [ ] Upstream the icey package recipes to ConanCenter and the vcpkg registry
@@ -53,7 +54,7 @@ Lightweight WebRTC media stack via libdatachannel now ships in-tree. See `src/we
 ### 2.3 - Docs, Packaging, and Release Surface (Completed)
 
 - Sourcey-based docs site, generated API reference, and docs quality checks are in place
-- Conan and vcpkg repo-local packaging layouts are in place and pass the final sequential local verification path
+- Conan, vcpkg, Arch, Homebrew, and Debian / PPA packaging seeds are in place, with the registry-facing publication work still remaining
 - Symple/WebRTC support helpers and runtime internals have been extracted into reusable protocol/state/support layers instead of living inside samples and monolithic sources
 - Reportable microbenchmarks now cover WebRTC sender/receiver dispatch plus Symple fanout and client parse/dispatch hot paths
 - Remaining work is registry publication and downstream package-manager handoff:

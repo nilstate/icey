@@ -1,12 +1,15 @@
-.PHONY: docs docs-install docs-xml docs-api-md docs-site docs-check docs-dev docs-docker clean-docs package-conan package-vcpkg package-arch release release-check release-pin release-pin-vcpkg release-pin-arch media-server-docker
+.PHONY: docs docs-install docs-xml docs-api-md docs-site docs-check docs-dev docs-docker clean-docs package-conan package-vcpkg package-arch package-homebrew package-debian-source release release-check release-pin release-pin-vcpkg release-pin-arch release-pin-homebrew media-server-docker
 
-DOCS_NPM = npm --prefix doc
+DOCS_NPM = npm --prefix docs
 DOCS_RUN = $(DOCS_NPM) run
 CONAN ?= conan
 VCPKG ?= vcpkg
 MAKEPKG ?= makepkg
+BREW ?= brew
+DPKG_BUILDPACKAGE ?= dpkg-buildpackage
 VCPKG_MAX_CONCURRENCY ?= 1
 ICEY_VCPKG_SOURCE_PATH ?= $(CURDIR)
+ICEY_DEBIAN_STAGE_DIR ?= $(CURDIR)/build/package/debian
 
 ## Build the Sourcey site from prose docs + Doxygen XML
 docs: docs-site
@@ -59,6 +62,15 @@ package-vcpkg:
 package-arch:
 	cd packaging/arch && $(MAKEPKG) --force --cleanbuild --syncdeps
 
+## Install the tap-local Homebrew formulae from packaging/homebrew
+package-homebrew:
+	$(BREW) install --formula ./packaging/homebrew/Formula/libdatachannel.rb
+	$(BREW) install --formula ./packaging/homebrew/Formula/icey.rb
+
+## Build a Debian source package / PPA seed under build/package/debian
+package-debian-source:
+	ICEY_DEBIAN_STAGE_DIR="$(ICEY_DEBIAN_STAGE_DIR)" DPKG_BUILDPACKAGE="$(DPKG_BUILDPACKAGE)" ./scripts/package-debian-source.sh
+
 ## Sync release metadata for VERSION, package recipes, and FetchContent examples
 release:
 	@if [ -z "$(VERSION)" ]; then echo "usage: make release VERSION=2.4.0" >&2; exit 1; fi
@@ -69,7 +81,7 @@ release-check:
 	@if [ -n "$(VERSION)" ]; then ./scripts/release-check.sh "$(VERSION)"; else ./scripts/release-check.sh; fi
 
 ## Pin release archive hashes for all package-manager recipes
-release-pin: release-pin-vcpkg release-pin-arch
+release-pin: release-pin-vcpkg release-pin-arch release-pin-homebrew
 
 ## After pushing a git tag, pin the vcpkg fallback archive ref and sha512
 release-pin-vcpkg:
@@ -80,6 +92,11 @@ release-pin-vcpkg:
 release-pin-arch:
 	@if [ -z "$(VERSION)" ]; then echo "usage: make release-pin-arch VERSION=2.4.0" >&2; exit 1; fi
 	./scripts/release-pin-arch.sh "$(VERSION)"
+
+## After pushing a git tag, pin the Homebrew formula source sha256
+release-pin-homebrew:
+	@if [ -z "$(VERSION)" ]; then echo "usage: make release-pin-homebrew VERSION=2.4.0" >&2; exit 1; fi
+	./scripts/release-pin-homebrew.sh "$(VERSION)"
 
 ## Build and run the media-server Docker demo
 media-server-docker:

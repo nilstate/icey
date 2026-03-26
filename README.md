@@ -223,9 +223,17 @@ ICEY_VCPKG_SOURCE_PATH=$PWD vcpkg install icey --overlay-ports=$PWD/packaging/vc
 # Arch package / AUR seed
 cd packaging/arch && makepkg --force --cleanbuild --syncdeps
 # or: make package-arch
+
+# Homebrew tap-local formulae
+brew install --formula ./packaging/homebrew/Formula/libdatachannel.rb
+brew install --formula ./packaging/homebrew/Formula/icey.rb
+# or: make package-homebrew
+
+# Debian source package / Launchpad PPA seed
+make package-debian-source
 ```
 
-The Conan recipe lives at `packaging/conan/conanfile.py`, the `vcpkg` overlay port lives at `packaging/vcpkg/icey/`, and the Arch packaging files live at `packaging/arch/`.
+The Conan recipe lives at `packaging/conan/conanfile.py`, the `vcpkg` overlay port lives at `packaging/vcpkg/icey/`, the Arch packaging files live at `packaging/arch/`, the Homebrew tap formulae live at `packaging/homebrew/Formula/`, and the Debian / PPA seed lives at `packaging/debian/debian/`.
 
 For the release/tag/archive-pin flow behind those package managers, use [`docs/releasing.md`](docs/releasing.md).
 

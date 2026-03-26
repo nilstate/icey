@@ -1,0 +1,4 @@
+usr/include/*
+usr/lib/*/cmake/icey/*
+usr/lib/*/libicy_*.so
+usr/lib/*/pkgconfig/icey.pc

@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Added
 
 - Repo-local package manager layouts under `packaging/` with `make package-conan` and `make package-vcpkg` entry points for local consumer validation
+- Homebrew tap formulae, Debian / PPA source-package scaffolding, and release hooks for those package surfaces
 - Browser smoke coverage for the `src/webrtc/apps/media-server/web/` frontend and media-server interop path
 - Reportable microbenchmark runner plus focused parse/probe benches for packet stream, HTTP, WebSocket, and STUN hot paths
 - Focused `webrtcbench` and `symplebench` targets covering:
@@ -39,6 +40,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - API reference coverage has been deepened across the core modules, WebRTC, and the pacm/pluga surfaces, with reorganized Sourcey guides and workflows
 - icey docs now consume published `moxygen` / `sourcey` npm releases instead of git-pinned or exact-pinned toolchain versions
 - Packaging assets are centralized under `packaging/` instead of spreading Conan and vcpkg files across the repo root
+- Installed `icey.pc` metadata now uses the current package-manager-facing description instead of the old networking-only tagline
 - Browser support claims are now explicit:
   - Chromium and Firefox are validated by the committed Playwright smoke
   - Playwright WebKit on Linux is treated as non-authoritative for Safari/WebRTC publish-path claims

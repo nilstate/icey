@@ -1,0 +1,17 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: icey
+Upstream-Contact: 0state OSS <oss@0state.com>
+Source: https://github.com/nilstate/icey
+
+Files: *
+Copyright: 2005-2026 0state contributors
+License: LGPL-2.1-or-later
+
+License: LGPL-2.1-or-later
+ This package is free software; you can redistribute it and/or modify it
+ under the terms of the GNU Lesser General Public License as published by
+ the Free Software Foundation; either version 2.1 of the License, or
+ (at your option) any later version.
+ .
+ On Debian systems the full text of the GNU Lesser General Public License
+ version 2.1 can be found in /usr/share/common-licenses/LGPL-2.1.

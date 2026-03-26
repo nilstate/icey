@@ -125,9 +125,18 @@ ICEY_VCPKG_SOURCE_PATH=$PWD vcpkg install icey --overlay-ports=$PWD/packaging/vc
 # Arch package / AUR seed
 cd packaging/arch && makepkg --force --cleanbuild --syncdeps
 # or: make package-arch
+
+# Homebrew tap-local formulae
+brew install --formula ./packaging/homebrew/Formula/libdatachannel.rb
+brew install --formula ./packaging/homebrew/Formula/icey.rb
+# or: make package-homebrew
+
+# Debian source package / Launchpad PPA seed
+make package-debian-source
 ```
 
 Use these from the repository root. The `vcpkg` port is intended as an overlay/custom-registry seed until the upstream registry submissions happen.
+The Homebrew formulae are tap-local seeds until they are published in a real tap, and the Debian flow stages a full source package under `build/package/debian/`.
 
 If you only need a first success, the shorter version of both flows is already in [getting-started.md](getting-started.md).
 

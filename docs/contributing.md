@@ -93,7 +93,7 @@ What each step does:
 - The GitHub release workflow runs on plain semantic-version tags from `main` and fails if the pushed tag does not match `VERSION`.
 - `make release-pin` is the post-tag helper for package-manager archive hashes.
 
-Use [releasing.md](releasing.md) for the package-specific flow, including Conan verification, `vcpkg` archive pinning, and Arch / AUR publication.
+Use [releasing.md](releasing.md) for the package-specific flow, including Conan verification, `vcpkg` archive pinning, Arch / AUR publication, the Homebrew tap formulae, and the Debian / PPA source-package staging path.
 
 ## Licence
 

@@ -43,6 +43,11 @@ perl -0pi -e 's/^[[:space:]]*pkgver = \d+\.\d+\.\d+$/\tpkgver = '"$version"'/m' 
 perl -0pi -e 's/^[[:space:]]*pkgrel = \d+$/\tpkgrel = 1/m' packaging/arch/.SRCINFO
 perl -0pi -e 's#^[[:space:]]*source = [^[:space:]]+$#\tsource = icey-'"$version"'.tar.gz::https://github.com/nilstate/icey/archive/refs/tags/'"$version"'.tar.gz#m' packaging/arch/.SRCINFO
 perl -0pi -e 's/^[[:space:]]*sha256sums = [0-9a-f]+$/\tsha256sums = 0000000000000000000000000000000000000000000000000000000000000000/m' packaging/arch/.SRCINFO
+perl -0pi -e 's#url "https://github.com/nilstate/icey/archive/refs/tags/\d+\.\d+\.\d+\.tar\.gz"#url "https://github.com/nilstate/icey/archive/refs/tags/'"$version"'.tar.gz"#' packaging/homebrew/Formula/icey.rb
+perl -0pi -e 's/version "\d+\.\d+\.\d+"/version "'"$version"'"/' packaging/homebrew/Formula/icey.rb
+perl -0pi -e 's/sha256 "[0-9a-f]+"/sha256 "0000000000000000000000000000000000000000000000000000000000000000"/' packaging/homebrew/Formula/icey.rb
+perl -0pi -e 's/^icey \(\d+\.\d+\.\d+-\d+\) /icey ('"$version"'-1) /m' packaging/debian/debian/changelog
+perl -0pi -e 's/^ -- .*$/ -- 0state OSS <oss\@0state.com>  '"$(date -R)"'/m' packaging/debian/debian/changelog
 
 for file in "${docs[@]}"; do
     perl -0pi -e 's/GIT_TAG v?\d+\.\d+\.\d+/GIT_TAG '"$version"'/g' "$file"

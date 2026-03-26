@@ -36,7 +36,7 @@ git push origin main 2.4.0
 
 What those steps do:
 
-- `make release` syncs `VERSION`, package recipe versions, Arch metadata, and the public `FetchContent` examples.
+- `make release` syncs `VERSION`, package recipe versions, Arch metadata, Homebrew metadata, Debian source metadata, and the public `FetchContent` examples.
 - `make release-check` fails if `VERSION`, package metadata, docs examples, and the matching `CHANGELOG.md` heading drift apart.
 - the release tag must be a plain semantic version such as `2.4.0`
 - the GitHub source archive for that tag is the thing the package-manager pinning steps use
@@ -55,6 +55,7 @@ That runs:
 
 - `make release-pin-vcpkg VERSION=2.4.0`
 - `make release-pin-arch VERSION=2.4.0`
+- `make release-pin-homebrew VERSION=2.4.0`
 
 Then commit the resulting packaging changes:
 
@@ -127,6 +128,59 @@ What gets updated:
 
 For a real AUR publish, copy the final `PKGBUILD` and `.SRCINFO` into the AUR repo after the hash is pinned and the local `makepkg` run passes.
 
+## Homebrew
+
+The Homebrew packaging in this repo is a tap-local seed:
+
+- [`packaging/homebrew/Formula/libdatachannel.rb`](../packaging/homebrew/Formula/libdatachannel.rb)
+- [`packaging/homebrew/Formula/icey.rb`](../packaging/homebrew/Formula/icey.rb)
+
+Release sequence:
+
+```bash
+make release VERSION=2.4.0
+git tag 2.4.0
+git push origin main 2.4.0
+make release-pin-homebrew VERSION=2.4.0
+brew install --formula ./packaging/homebrew/Formula/libdatachannel.rb
+brew install --formula ./packaging/homebrew/Formula/icey.rb
+```
+
+What gets updated:
+
+- `version`, source URL, and placeholder SHA are synced by `make release`
+- the final release archive SHA256 is pinned by `make release-pin-homebrew`
+
+The `icey` formula depends on the tap-local `libdatachannel` formula because Homebrew core does not currently ship that dependency.
+
+## Debian / PPA
+
+The Debian packaging in this repo is a source-package seed intended for Debian-style apt repositories and Launchpad PPAs:
+
+- [`packaging/debian/debian/control`](../packaging/debian/debian/control)
+- [`packaging/debian/debian/rules`](../packaging/debian/debian/rules)
+- [`scripts/package-debian-source.sh`](../scripts/package-debian-source.sh)
+
+Release sequence:
+
+```bash
+make release VERSION=2.4.0
+make release-check VERSION=2.4.0
+make package-debian-source
+```
+
+For a Launchpad target series, set the distribution explicitly:
+
+```bash
+DEBIAN_DISTRIBUTION=noble make package-debian-source
+```
+
+What gets updated:
+
+- the Debian changelog version is synced by `make release`
+- `make package-debian-source` stages a full source package under `build/package/debian/`
+- that staging flow vendors the pinned source tarballs needed for a WebRTC-enabled build where distro packages do not exist yet
+
 ## Release Checklist
 
 - update [`CHANGELOG.md`](../CHANGELOG.md) and [`ROADMAP.md`](../ROADMAP.md)
@@ -137,6 +191,7 @@ For a real AUR publish, copy the final `PKGBUILD` and `.SRCINFO` into the AUR re
 - run `make release-pin VERSION=x.y.z`
 - commit the pinned package-manager archive hashes
 - verify the package-manager entry points you intend to publish
+- if you are targeting apt or Launchpad, run `make package-debian-source` after the version sync
 
 ## Related Pages
 
