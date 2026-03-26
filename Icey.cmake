@@ -20,6 +20,13 @@ include(CMakePackageConfigHelpers)
 include(IceyModules)
 include(IceyCompilerOptions)
 
+function(icy_add_compat_target compat_target actual_target)
+  if(TARGET "${actual_target}" AND NOT TARGET "${compat_target}")
+    add_library("${compat_target}" INTERFACE IMPORTED)
+    set_property(TARGET "${compat_target}" PROPERTY INTERFACE_LINK_LIBRARIES "${actual_target}")
+  endif()
+endfunction()
+
 # Debug postfix
 if(WIN32)
   set(Icey_DEBUG_POSTFIX "d")
@@ -182,17 +189,24 @@ else()
   find_package(llhttp CONFIG REQUIRED)
   find_package(ZLIB REQUIRED)
 
+  # Package managers do not agree on canonical target names.
+  icy_add_compat_target(uv_a libuv::uv_a)
+  icy_add_compat_target(uv_a libuv::libuv)
+  icy_add_compat_target(llhttp_static llhttp::llhttp_static)
+  icy_add_compat_target(llhttp_static llhttp::llhttp)
+
   # Alias system zlib to match the target name used by modules
   if(NOT TARGET zlibstatic)
     add_library(zlibstatic ALIAS ZLIB::ZLIB)
   endif()
 
-  # minizip: try vcpkg's unofficial-minizip first, fall back to building from source
+  # minizip: try packaged targets first, fall back to building from source
   find_package(unofficial-minizip CONFIG QUIET)
+  find_package(minizip CONFIG QUIET)
   if(TARGET unofficial-minizip::minizip)
-    if(NOT TARGET minizip)
-      add_library(minizip ALIAS unofficial-minizip::minizip)
-    endif()
+    icy_add_compat_target(minizip unofficial-minizip::minizip)
+  elseif(TARGET minizip::minizip)
+    icy_add_compat_target(minizip minizip::minizip)
   else()
     # Build minizip from zlib's contrib (requires zlib headers on system)
     find_path(ZLIB_SOURCE_DIR NAMES contrib/minizip/unzip.h
@@ -213,6 +227,16 @@ else()
       target_include_directories(minizip PUBLIC
         $<BUILD_INTERFACE:${MINIZIP_SOURCE_DIR}>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+      install(TARGETS minizip
+        EXPORT IceyTargets
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT dev)
+      install(FILES
+        ${MINIZIP_SOURCE_DIR}/crypt.h
+        ${MINIZIP_SOURCE_DIR}/ioapi.h
+        ${MINIZIP_SOURCE_DIR}/mztools.h
+        ${MINIZIP_SOURCE_DIR}/unzip.h
+        ${MINIZIP_SOURCE_DIR}/zip.h
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT dev)
     else()
       message(WARNING "minizip sources not found; archo module will not be available")
     endif()

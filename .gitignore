@@ -39,3 +39,11 @@ LibSourceyConfigVersion.cmake
 *.aac
 *.raw
 .plans
+
+# Local Python environments
+.venv
+.venv*/
+venv
+venv*/
+__pycache__/
+*.pyc

@@ -6,70 +6,52 @@ CMake 3.21 minimum, deps via FetchContent (libuv 1.50, llhttp 9.2.1, zlib 1.3.1,
 
 ---
 
-## Current: 2.0.1 Release
+## Current: 2.3.x Release Prep
 
-- [ ] Generate SocketIO API docs (api-socketio.md is empty)
-- [ ] Review and update vcpkg port
-- [ ] Tag 2.0.1 release with changelog
+- [x] Ship the WebRTC module, codec negotiation, canonical media path, and browser smoke coverage
+- [x] Land benchmark targets, protocol fuzzers, and exported-package consumer validation
+- [x] Move the docs toolchain onto published `moxygen` / `sourcey` npm packages and add API quality checks
+- [x] Add repo-local Conan / vcpkg packaging layouts and Makefile entry points
+- [ ] Tag and publish the 2.3.x git release with the current changelog
+- [ ] Upstream the Icey package recipes to ConanCenter and the vcpkg registry
+- [ ] Fold the recent browser-smoke, pacm/pluga, and docs coverage work into the final release notes
 
 ---
 
 ## Post-2.0 Roadmap
 
-### 2.1 - WebRTC Integration (PRIORITY)
+### 2.1 - WebRTC Integration (Completed)
 
-Lightweight WebRTC media stack via libdatachannel. See `src/webrtc/README.md`
+Lightweight WebRTC media stack via libdatachannel now ships in-tree. See `src/webrtc/README.md`
 
-- New `src/webrtc/` module: MediaBridge, PeerSession, CodecNegotiator
-- libdatachannel via FetchContent (libjuice ICE, libsrtp SRTP, usrsctp data channels)
-- FFmpeg encode/decode <> libdatachannel RTP Track bridge
-- VideoEncoder PacketProcessor for the capture → RTP pipeline
-- Symple signalling for SDP/candidate exchange
-- icey TURN server as self-hosted relay infrastructure
-- Samples: webcam-streamer, file-streamer, media-recorder, data-echo
+- `src/webrtc/` module with `MediaBridge`, `PeerSession`, `CodecNegotiator`, and transport-agnostic signalling
+- libdatachannel via FetchContent (ICE, SRTP, data channels)
+- Canonical send path is now capture/encode → RTP packetize → track sender, with browser-offer verification and browser smoke coverage
+- Samples and apps: webcam-streamer, file-streamer, media-recorder, data-echo, and the `media-server` relay/record flows
+- Symple signalling and Icey TURN integration are part of the supported path rather than placeholders
 
-#### Media encode adapter (BLOCKER — WebRTC streams not playable without this)
+### 2.2 - Networking & Performance (Completed / Ongoing polish)
 
-The WebRTC samples wire `MediaCapture` (decoded raw frames) directly to `WebRtcTrackSender` (expects encoded codec frames). No video or audio plays in the browser.
+- HTTP connection pooling and keep-alive landed
+- Benchmark targets and reportable microbenchmark runner landed
+- Protocol fuzz targets for HTTP, WebSocket, STUN, and TURN landed
+- Remaining networking work is now higher-end polish rather than base capability:
+  - HTTP proxy (CONNECT, SOCKS5)
+  - TLS 1.3 advanced features (0-RTT, session tickets, key update)
+  - Certificate pinning
+  - OCSP stapling
 
-The av module already has `VideoEncoder` and `AudioEncoder` (FFmpeg `AVCodecContext` wrappers). The webrtc module already has `WebRtcTrackSender` (a `PacketProcessor` that calls `rtc::Track::sendFrame()`). `MediaBridge` already documents the correct pipeline in its header (mediabridge.h:53):
+### 2.3 - Docs, Packaging, and Release Surface (Largely completed)
 
-```text
-capture → encoder → bridge.videoSender()
-```
+- Sourcey-based docs site, generated API reference, and docs quality checks are in place
+- Conan and vcpkg repo-local packaging layouts exist and validate locally
+- Remaining work is registry publication and release hygiene:
+  - ConanCenter submission
+  - vcpkg registry submission
+  - git tags / release archives
+  - release-note consolidation for recent browser/docs/submodule work
 
-What's missing is a `PacketProcessor` adapter in `src/av/` that bridges the decoded `MediaPacket` from capture to the existing `VideoEncoder`/`AudioEncoder::encode(AVFrame*)` and emits the encoded `MediaPacket` back into the `PacketStream`. This is the same pattern as `MultiplexPacketEncoder` but without the muxer — encode only, no file I/O.
-
-**`StreamEncoder`** — single `PacketProcessor` class in `src/av/`:
-
-- Wraps an `av::VideoEncoder` and/or `av::AudioEncoder` (the existing classes).
-- `process(IPacket&)`: casts to `VideoPacket`/`AudioPacket`, feeds `AVFrame` to the corresponding encoder's `encode(AVFrame*)`, emits the encoded packet downstream.
-- Configured via `av::VideoCodec` / `av::AudioCodec` (same structs `MediaBridge::Options` already uses).
-- Exposes `forceKeyframe()` for `MediaBridge::KeyframeRequested` signal.
-- Exposes `setBitrate(unsigned bps)` for `MediaBridge::BitrateEstimate` signal.
-- No new FFmpeg wrapping — delegates entirely to existing `VideoEncoder`/`AudioEncoder`.
-
-**Sample wiring** (all three WebRTC samples):
-
-```text
-PacketStream stream;
-stream.attachSource(capture);
-stream.attach(&streamEncoder, 1, true);     // encode raw → compressed
-stream.attach(&bridge.videoSender(), 5, false);  // compressed → RTP
-```
-
-No changes to `MediaBridge`, `WebRtcTrackSender`, or libdatachannel.
-
-### 2.2 - Networking
-
-- Connection timeout support (read/write/connect)
-- HTTP proxy (CONNECT, SOCKS5)
-- HTTP connection pooling and keep-alive
-- TLS 1.3 (0-RTT, session tickets, key update)
-- Certificate pinning
-- OCSP stapling
-
-### 2.3 - AV
+### 2.4 - AV
 
 - Hardware acceleration (NVENC, QuickSync, VideoToolbox, VAAPI)
 - HLS/DASH output
@@ -79,7 +61,7 @@ No changes to `MediaBridge`, `WebRtcTrackSender`, or libdatachannel.
 - Encoding statistics/metrics
 - VideoPacket/AudioPacket ownership semantics
 
-### 2.4 - Further C++ Modernisation
+### 2.5 - Further C++ Modernisation
 
 - `std::jthread` + `std::stop_token` replacing Thread/Runner
 - Coroutine-based scheduling (C++20)
@@ -92,7 +74,7 @@ No changes to `MediaBridge`, `WebRtcTrackSender`, or libdatachannel.
 - `std::optional` for nullable returns
 - MutableBuffer/ConstBuffer -> `std::span<std::byte>` evaluation
 
-### 2.5 - Package Manager
+### 2.6 - Package Manager
 
 - Package signature verification (RSA/ECDSA)
 - Dependency resolution
@@ -104,7 +86,7 @@ No changes to `MediaBridge`, `WebRtcTrackSender`, or libdatachannel.
 - Remote package caching
 - CLI credential handling (not command-line args)
 
-### 2.6 - Quality
+### 2.7 - Quality
 
 - Fuzz testing (HTTP, STUN, JSON parsers)
 - Benchmark suite (nanobench or Google Benchmark)
@@ -122,8 +104,7 @@ No changes to `MediaBridge`, `WebRtcTrackSender`, or libdatachannel.
 | crypto | Core | |
 | http | Core | |
 | json | Core | |
-| socketio | Active | |
-| symple | Active | WebRTC signalling layer |
+| symple | Core | Native WebSocket signalling and room/routing layer |
 | av | Active | FFmpeg 5+/6+/7+ |
 | stun | Active | |
 | turn | Active | Self-hosted relay |
@@ -135,9 +116,9 @@ No changes to `MediaBridge`, `WebRtcTrackSender`, or libdatachannel.
 
 ---
 
-## Completed (2.0)
+## Completed (2.0 - 2.3)
 
-Build system overhaul (target-based CMake, FetchContent). Dependency updates (libuv 1.50, OpenSSL 3.x, llhttp, nlohmann/json 3.11.3, zlib 1.3.1, FFmpeg 5+). C++ modernisation (pragma once, nodiscard, enum class, string_view, filesystem, chrono, shared_mutex, smart pointers). All modules updated, tests for all 15 modules, CI (Linux/macOS/Windows, sanitizers, coverage), documentation, vcpkg port.
+Build system overhaul (target-based CMake, FetchContent). Dependency updates (libuv 1.50, OpenSSL 3.x, llhttp, nlohmann/json 3.11.3, zlib 1.3.1, FFmpeg 5+). C++ modernisation (pragma once, nodiscard, enum class, string_view, filesystem, chrono, shared_mutex, smart pointers). All modules updated, tests for all 15 modules, CI (Linux/macOS/Windows, sanitizers, coverage), documentation, vcpkg port, WebRTC module, benchmark/fuzz coverage, and exported-package validation.
 
 ### 2.0 C++ modernisation (completed)
 

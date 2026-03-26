@@ -1,7 +1,9 @@
-.PHONY: docs docs-install docs-xml docs-api-md docs-site docs-check docs-dev docs-docker clean-docs
+.PHONY: docs docs-install docs-xml docs-api-md docs-site docs-check docs-dev docs-docker clean-docs package-conan package-vcpkg
 
 DOCS_NPM = npm --prefix doc
 DOCS_RUN = $(DOCS_NPM) run
+CONAN ?= conan
+VCPKG ?= vcpkg
 
 ## Build the Sourcey site from prose docs + Doxygen XML
 docs: docs-site
@@ -41,3 +43,11 @@ docs-docker:
 ## Clean generated docs artifacts
 clean-docs:
 	rm -rf build/doxygen dist
+
+## Build the local Conan package from packaging/conan
+package-conan:
+	$(CONAN) create packaging/conan --build=missing -s compiler.cppstd=20
+
+## Install Icey through the local vcpkg overlay port
+package-vcpkg:
+	$(VCPKG) install icey --overlay-ports="$(CURDIR)/packaging/vcpkg"

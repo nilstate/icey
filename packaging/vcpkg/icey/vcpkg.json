@@ -1,0 +1,32 @@
+{
+  "name": "icey",
+  "version": "2.3.0",
+  "description": "C++ Networking Evolved - cross-platform modules for high-performance networked and media streaming applications",
+  "homepage": "https://0state.com/code/icey",
+  "license": "LGPL-2.1-or-later",
+  "dependencies": [
+    "openssl",
+    "libuv",
+    "llhttp",
+    "zlib",
+    "minizip",
+    { "name": "vcpkg-cmake", "host": true },
+    { "name": "vcpkg-cmake-config", "host": true }
+  ],
+  "features": {
+    "ffmpeg": {
+      "description": "Enable FFmpeg-backed codecs and capture in Icey::av",
+      "dependencies": [
+        {
+          "name": "ffmpeg",
+          "default-features": false,
+          "features": ["avcodec", "avformat", "avutil", "swscale"]
+        }
+      ]
+    },
+    "opencv": {
+      "description": "Enable OpenCV integration in Icey::av",
+      "dependencies": ["opencv"]
+    }
+  }
+}

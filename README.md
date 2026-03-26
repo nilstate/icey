@@ -193,6 +193,22 @@ find_package(Icey REQUIRED)
 target_link_libraries(myapp PRIVATE Icey::base Icey::net Icey::http)
 ```
 
+### Package Managers
+
+Public registry submission is not live yet, but the repo now carries local package-manager support:
+
+```bash
+# Conan
+conan create packaging/conan --build=missing -s compiler.cppstd=20
+# or: make package-conan
+
+# vcpkg overlay port
+vcpkg install icey --overlay-ports=$PWD/packaging/vcpkg
+# or: make package-vcpkg
+```
+
+The Conan recipe lives at `packaging/conan/conanfile.py`, and the `vcpkg` overlay port lives at `packaging/vcpkg/icey/`.
+
 ## Code Examples
 
 ### Media pipeline

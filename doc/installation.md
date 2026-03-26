@@ -109,6 +109,22 @@ find_package(Icey REQUIRED)
 target_link_libraries(myapp PRIVATE Icey::base Icey::net Icey::http)
 ```
 
+### Package Managers
+
+The upstream public registries are not published yet, but the repo contains working local packaging entry points:
+
+```bash
+# Conan
+conan create packaging/conan --build=missing -s compiler.cppstd=20
+# or: make package-conan
+
+# vcpkg overlay port
+vcpkg install icey --overlay-ports=$PWD/packaging/vcpkg
+# or: make package-vcpkg
+```
+
+Use these from the repository root. The `vcpkg` port is intended as an overlay/custom-registry seed until the upstream registry submissions happen.
+
 If you only need a first success, the shorter version of both flows is already in [getting-started.md](getting-started.md).
 
 ## Docker

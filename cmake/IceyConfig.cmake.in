@@ -2,13 +2,32 @@
 
 include(CMakeFindDependencyMacro)
 
+function(_icey_add_compat_target compat_target actual_target)
+  if(TARGET "${actual_target}" AND NOT TARGET "${compat_target}")
+    add_library("${compat_target}" INTERFACE IMPORTED)
+    set_property(TARGET "${compat_target}" PROPERTY INTERFACE_LINK_LIBRARIES "${actual_target}")
+  endif()
+endfunction()
+
+set(_Icey_supported_components "@Icey_BUILD_MODULES@")
+
 # Re-find dependencies that our targets need
 find_dependency(Threads)
 find_dependency(libuv CONFIG)
 find_dependency(llhttp CONFIG)
+_icey_add_compat_target(uv_a libuv::uv_a)
+_icey_add_compat_target(uv_a libuv::libuv)
+_icey_add_compat_target(llhttp_static llhttp::llhttp_static)
+_icey_add_compat_target(llhttp_static llhttp::llhttp)
 
 if(@USE_SYSTEM_DEPS@)
   find_dependency(ZLIB)
+  if("archo" IN_LIST _Icey_supported_components OR "pacm" IN_LIST _Icey_supported_components)
+    find_dependency(unofficial-minizip CONFIG QUIET)
+    find_dependency(minizip CONFIG QUIET)
+    _icey_add_compat_target(minizip unofficial-minizip::minizip)
+    _icey_add_compat_target(minizip minizip::minizip)
+  endif()
 endif()
 
 if(@HAVE_OPENSSL@)
@@ -26,7 +45,6 @@ endif()
 # Import targets
 include("${CMAKE_CURRENT_LIST_DIR}/IceyTargets.cmake")
 
-set(_Icey_supported_components "@Icey_BUILD_MODULES@")
 foreach(_Icey_component ${_Icey_supported_components})
   set(Icey_${_Icey_component}_FOUND TRUE)
 endforeach()

@@ -2,13 +2,13 @@
   "name": "icey-docs",
   "private": true,
   "type": "module",
-  "description": "Pinned Sourcey and Moxygen toolchain for Icey documentation",
+  "description": "Sourcey and Moxygen toolchain for Icey documentation",
   "scripts": {
     "site:build": "sourcey build -o ../dist",
     "site:dev": "sourcey dev"
   },
   "devDependencies": {
-    "moxygen": "github:sourcey/moxygen#0dcf0d45bc2f6b832c50c18c19aef558b6a3c707",
-    "sourcey": "^3.3.3"
+    "moxygen": "^2.1.1",
+    "sourcey": "^3.3.5"
   }
 }
