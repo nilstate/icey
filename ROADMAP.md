@@ -10,11 +10,16 @@ CMake 3.21 minimum, deps via FetchContent (libuv 1.50, llhttp 9.2.1, zlib 1.3.1,
 
 - [x] Ship the WebRTC module, codec negotiation, canonical media path, and browser smoke coverage
 - [x] Land benchmark targets, protocol fuzzers, and exported-package consumer validation
+- [x] Finish the WebRTC/Symple runtime cutover:
+  - private `webrtc_support` signaller layer
+  - split `PeerSession` / `media-server` internals
+  - split Symple client/server implementation units
+  - WebRTC/Symple hot-path microbenchmarks
 - [x] Move the docs toolchain onto published `moxygen` / `sourcey` npm packages and add API quality checks
 - [x] Add repo-local Conan / vcpkg packaging layouts and Makefile entry points
 - [ ] Tag and publish the 2.3.x git release with the current changelog
 - [ ] Upstream the Icey package recipes to ConanCenter and the vcpkg registry
-- [ ] Fold the remaining Symple/WebRTC runtime refactor and any pacm/pluga deltas into the final release notes before tagging
+- [x] Fold the Symple/WebRTC runtime refactor and current pacm/pluga deltas into the release prep notes before tagging
 
 ---
 
@@ -25,8 +30,9 @@ CMake 3.21 minimum, deps via FetchContent (libuv 1.50, llhttp 9.2.1, zlib 1.3.1,
 Lightweight WebRTC media stack via libdatachannel now ships in-tree. See `src/webrtc/README.md`
 
 - `src/webrtc/` module with `MediaBridge`, `PeerSession`, `CodecNegotiator`, and transport-agnostic signalling
+- Private `src/webrtc/support/` layer for Symple/WebSocket signallers used by samples and `media-server`, without adding a core `webrtc -> symple` dependency
 - libdatachannel via FetchContent (ICE, SRTP, data channels)
-- Canonical send path is now capture/encode → RTP packetize → track sender, with browser-offer verification and browser smoke coverage
+- Canonical send path is now capture/encode → RTP packetize → track sender, with browser-offer verification and committed Chromium/Firefox browser smoke coverage
 - Samples and apps: webcam-streamer, file-streamer, media-recorder, data-echo, and the `media-server` relay/record flows
 - Symple signalling and Icey TURN integration are part of the supported path rather than placeholders
 
@@ -45,7 +51,8 @@ Lightweight WebRTC media stack via libdatachannel now ships in-tree. See `src/we
 
 - Sourcey-based docs site, generated API reference, and docs quality checks are in place
 - Conan and vcpkg repo-local packaging layouts exist with Makefile entry points for one final sequential validation pass
-- Symple/WebRTC support helpers have been extracted into reusable protocol/state/support layers instead of living inside samples and monolithic sources
+- Symple/WebRTC support helpers and runtime internals have been extracted into reusable protocol/state/support layers instead of living inside samples and monolithic sources
+- Reportable microbenchmarks now cover WebRTC sender/receiver dispatch plus Symple fanout and client parse/dispatch hot paths
 - Remaining work is registry publication and release hygiene:
   - ConanCenter submission
   - vcpkg registry submission

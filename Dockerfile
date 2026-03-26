@@ -1,5 +1,5 @@
 FROM ubuntu:24.04 AS builder
-LABEL maintainer="Kam Low <hello@icey.com>"
+LABEL maintainer="Kam Low <kam@0state.com>"
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -23,7 +23,7 @@ RUN cd /icey && mkdir -p build && cd build && \
   cmake --install .
 
 FROM ubuntu:24.04
-LABEL maintainer="Kam Low <hello@icey.com>"
+LABEL maintainer="Kam Low <kam@0state.com>"
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
   libssl3t64 \

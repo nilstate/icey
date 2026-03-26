@@ -11,6 +11,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Repo-local package manager layouts under `packaging/` with `make package-conan` and `make package-vcpkg` entry points for local consumer validation
 - Browser smoke coverage for the `src/webrtc/apps/media-server/web/` frontend and media-server interop path
 - Reportable microbenchmark runner plus focused parse/probe benches for packet stream, HTTP, WebSocket, and STUN hot paths
+- Focused `webrtcbench` and `symplebench` targets covering:
+  - WebRTC sender dispatch
+  - WebRTC receiver dispatch
+  - Symple room fanout
+  - Symple client parse/dispatch
 - API overview quality checks in the docs toolchain to catch shallow or missing generated reference summaries
 - Internal Symple protocol/state helpers for welcome parsing, sanitized presence emission, room reconciliation, and roster presence application, backed by focused unit coverage
 - `webrtc_support` as a dedicated support library for Symple/WebSocket signallers, including the server-side virtual-peer adapter now used by samples and `media-server`
@@ -18,17 +23,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Changed
 
 - WebRTC browser/media-server behavior after 2.3.0: codec negotiation is tighter, browser offer handling is stricter, and `PeerSession` / track flow is more defensive under real browser traffic
+- WebRTC internals are now cut along explicit seams instead of monolithic translation units:
+  - `PeerSession` state/signalling/RTC work is split across `peersession.cpp`, `peersessionsignalling.cpp`, and `peersessionrtc.cpp`
+  - remote answer scoping lives in `remotemediaplan.cpp`
+  - codec support is centralized in `codecregistry.cpp`
+  - `media-server` runtime code is split under `apps/media-server/internal/`
 - Public Symple and TURN configuration handoff now favors value-style option snapshots instead of live mutable option bags
 - `PeerSession::Config` now exposes media settings under `config.media`, and answer-session media options are derived explicitly from the remote offer's mids, directions, and payload types instead of relying on looser implicit defaults
-- Symple client/server internals are split into focused protocol, room-state, roster-state, routing, and presence helpers instead of monolithic translation units
+- Symple client/server internals are now organized under `src/symple/src/client/` and `src/symple/src/server/`, with shared wire helpers in `src/symple/src/protocol.*`
 - API reference coverage has been deepened across the core modules, WebRTC, and the pacm/pluga surfaces, with reorganized Sourcey guides and workflows
 - Icey docs now consume published `moxygen` / `sourcey` npm releases instead of git-pinned or exact-pinned toolchain versions
 - Packaging assets are centralized under `packaging/` instead of spreading Conan and vcpkg files across the repo root
+- Browser support claims are now explicit:
+  - Chromium and Firefox are validated by the committed Playwright smoke
+  - Playwright WebKit on Linux is treated as non-authoritative for Safari/WebRTC publish-path claims
 
 ### Fixed
 
 - Exported CMake package consumers now tolerate dependency target-name differences across FetchContent, Conan, and vcpkg installs
 - Browser media-server smoke harness failures and related WebRTC sample pipeline regressions that were blocking stricter interop coverage
+- Symple-backed WebRTC signalling now enforces full `user|id` peer identity on the public call boundary instead of accepting ambiguous bare user/session forms
+- WebRTC receive-side codec detection no longer stringifies track descriptions back into SDP just to rediscover codec/clock data on bind or record paths
 - Symple clients now transition cleanly to `Error` on underlying transport failures, including initial WebSocket connect failures, via explicit `http::ClientConnection` error propagation
 - pacm JSON handling in the submodule update path, keeping the external package-manager surface aligned with the current docs/API snapshots
 
