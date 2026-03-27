@@ -61,8 +61,10 @@ public:
         // LDebug("On recv: ", &socket, ": ", buffer.str());
 
         // Echo it back
-        socket.sendOwned(Buffer(bufferCast<const char*>(buffer),
-                                bufferCast<const char*>(buffer) + buffer.size()));
+        if (socket.sendOwned(Buffer(bufferCast<const char*>(buffer),
+                                    bufferCast<const char*>(buffer) + buffer.size())) < 0) {
+            LError("Failed to echo TCP payload");
+        }
         return false;
     }
 

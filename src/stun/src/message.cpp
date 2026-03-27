@@ -34,8 +34,8 @@ Message::Message()
 
 
 Message::Message(ClassType clss, MethodType meth)
-    : _class(clss)
-    , _method(meth)
+    : _class(static_cast<uint16_t>(clss))
+    , _method(static_cast<uint16_t>(meth))
     , _size(0)
     , _transactionID(util::randomString(kTransactionIdLength))
 {
@@ -426,12 +426,12 @@ Message::MethodType Message::methodType() const
 
 void Message::setClass(ClassType type)
 {
-    _class = type;
+    _class = static_cast<uint16_t>(type);
 }
 
 void Message::setMethod(MethodType type)
 {
-    _method = type;
+    _method = static_cast<uint16_t>(type);
 }
 } // namespace stun
 } // namespace icy

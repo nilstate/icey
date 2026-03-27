@@ -29,6 +29,7 @@ class Symple_API Message : public json::Value
 {
 public:
     using IPacket::data; // inherit IPacket::data()
+    using IPacket::hasData;
 
     /// Constructs a new message with a random ID and type set to "message".
     Message();
@@ -195,9 +196,9 @@ public:
 
     /// Pretty-prints the message JSON to the given stream.
     /// @param os Output stream.
-    void print(std::ostream& os) const;
+    void print(std::ostream& os) const override;
 
-    virtual const char* className() const { return "Symple::Message"; }
+    const char* className() const override { return "Symple::Message"; }
 };
 
 

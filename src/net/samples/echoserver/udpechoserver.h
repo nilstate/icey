@@ -40,9 +40,11 @@ public:
         LDebug("On recv: ", peerAddress, ": ", buffer.size());
 
         // Echo back to client
-        server->sendOwned(Buffer(bufferCast<const char*>(buffer),
-                                 bufferCast<const char*>(buffer) + buffer.size()),
-                          peerAddress);
+        if (server->sendOwned(Buffer(bufferCast<const char*>(buffer),
+                                     bufferCast<const char*>(buffer) + buffer.size()),
+                              peerAddress) < 0) {
+            LError("Failed to echo UDP payload");
+        }
         return false;
     }
 

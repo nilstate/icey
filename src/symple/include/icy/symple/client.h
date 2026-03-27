@@ -203,7 +203,7 @@ private:
     void reset();
     void syncDesiredRooms();
 
-    int sendJson(const json::Value& msg);
+    ssize_t sendJson(const json::Value& msg);
     std::string buildUrl() const;
 
     std::unique_ptr<ClientData> _data;

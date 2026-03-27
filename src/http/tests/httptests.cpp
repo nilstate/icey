@@ -57,8 +57,8 @@ static std::unique_ptr<http::Server> makeEchoServer(uint16_t port)
     server->start();
     server->Connection += [](http::ServerConnection::Ptr conn) {
         conn->Payload += [](http::ServerConnection& conn, const MutableBuffer& buffer) {
-            conn.sendOwned(Buffer(bufferCast<const char*>(buffer),
-                                  bufferCast<const char*>(buffer) + buffer.size()));
+            expect(conn.sendOwned(Buffer(bufferCast<const char*>(buffer),
+                                         bufferCast<const char*>(buffer) + buffer.size())) > 0);
         };
     };
     return server;
@@ -256,10 +256,6 @@ int main(int argc, char** argv)
                                  "encoding=Base64&packetizer=chunked&"
                                  "rand=0.09983996045775712",
                                  params);
-        for (const auto& [key, val] : params) {
-            // std::cout << "URL Parameter: " << key << ": " << val << endl;
-        }
-
         expect(params.get("format") == "MJPEG");
         expect(params.get("Format") == "MJPEG");
         expect(params.get("width") == "400");
@@ -1993,7 +1989,7 @@ int main(int argc, char** argv)
             frameBuf.reserve(64);
             DynamicBitWriter writer(frameBuf);
             fragFramer.writeFrame("Hello", 5, flags, writer);
-            conn->socket()->sendOwned(std::move(frameBuf));
+            expect(conn->socket()->sendOwned(std::move(frameBuf)) > 0);
         }
 
         // Frame 2: Continuation, FIN=1 (final fragment)
@@ -2003,7 +1999,7 @@ int main(int argc, char** argv)
             frameBuf.reserve(64);
             DynamicBitWriter writer(frameBuf);
             fragFramer.writeFrame("World", 5, flags, writer);
-            conn->socket()->sendOwned(std::move(frameBuf));
+            expect(conn->socket()->sendOwned(std::move(frameBuf)) > 0);
         }
 
         expect(test::waitFor([&] { return gotReply; }, 5000));
@@ -2046,7 +2042,7 @@ int main(int argc, char** argv)
             Buffer buf; buf.reserve(64);
             DynamicBitWriter w(buf);
             fragFramer.writeFrame(data, 3, flags, w);
-            conn->socket()->sendOwned(std::move(buf));
+            expect(conn->socket()->sendOwned(std::move(buf)) > 0);
         }
 
         // Interleaved Ping (RFC 6455 allows control frames during fragmentation)
@@ -2055,7 +2051,7 @@ int main(int argc, char** argv)
             Buffer buf; buf.reserve(64);
             DynamicBitWriter w(buf);
             fragFramer.writeFrame("hi", 2, flags, w);
-            conn->socket()->sendOwned(std::move(buf));
+            expect(conn->socket()->sendOwned(std::move(buf)) > 0);
         }
 
         // Fragment 2: Continuation, FIN=1
@@ -2065,7 +2061,7 @@ int main(int argc, char** argv)
             Buffer buf; buf.reserve(64);
             DynamicBitWriter w(buf);
             fragFramer.writeFrame(data, 3, flags, w);
-            conn->socket()->sendOwned(std::move(buf));
+            expect(conn->socket()->sendOwned(std::move(buf)) > 0);
         }
 
         expect(test::waitFor([&] { return gotReply; }, 5000));
@@ -2163,13 +2159,13 @@ int main(int argc, char** argv)
         size_t splitPoint = totalLen / 2; // split in the middle
 
         // Send first half
-        conn->socket()->sendOwned(Buffer(frameBuf.begin(), frameBuf.begin() + splitPoint));
+        expect(conn->socket()->sendOwned(Buffer(frameBuf.begin(), frameBuf.begin() + splitPoint)) > 0);
 
         // Small delay to ensure the first half is processed before the second
         test::waitFor([] { return false; }, 50);
 
         // Send second half
-        conn->socket()->sendOwned(Buffer(frameBuf.begin() + splitPoint, frameBuf.end()));
+        expect(conn->socket()->sendOwned(Buffer(frameBuf.begin() + splitPoint, frameBuf.end())) > 0);
 
         expect(test::waitFor([&] { return gotReply; }, 5000));
         expect(received == "split-test-data");

@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <cstdio>
 #include <cstring>
+#include <limits>
 #include <stdexcept>
 
 
@@ -56,6 +57,13 @@ template <typename T>
 std::unique_ptr<Attribute> createVariableAttribute(uint16_t size)
 {
     return std::make_unique<T>(size);
+}
+
+uint16_t checkedAttributeLength(unsigned size)
+{
+    if (size > std::numeric_limits<uint16_t>::max())
+        throw std::length_error("STUN attribute payload exceeds 16-bit length field");
+    return static_cast<uint16_t>(size);
 }
 
 } // namespace
@@ -688,13 +696,13 @@ std::unique_ptr<Attribute> StringAttribute::clone()
 void StringAttribute::setBytes(const char* bytes, unsigned size)
 {
     _bytes.assign(bytes, bytes + size);
-    setLength(size);
+    setLength(checkedAttributeLength(size));
 }
 
 
 void StringAttribute::copyBytes(const char* bytes)
 {
-    copyBytes(bytes, static_cast<uint16_t>(std::strlen(bytes)));
+    copyBytes(bytes, checkedAttributeLength(static_cast<unsigned>(std::strlen(bytes))));
 }
 
 
@@ -702,7 +710,7 @@ void StringAttribute::copyBytes(const void* bytes, unsigned size)
 {
     const char* src = static_cast<const char*>(bytes);
     _bytes.assign(src, src + size);
-    setLength(size);
+    setLength(checkedAttributeLength(size));
 }
 
 

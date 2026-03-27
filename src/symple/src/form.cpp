@@ -12,6 +12,7 @@
 #include "icy/symple/form.h"
 #include "icy/util.h"
 
+#include <limits>
 #include <stdexcept>
 
 
@@ -205,7 +206,10 @@ bool FormElement::valid() const
 
 int FormElement::numElements()
 {
-    return root()["elements"].size();
+    const auto count = root()["elements"].size();
+    if (count > static_cast<size_t>(std::numeric_limits<int>::max()))
+        throw std::overflow_error("Form element count exceeds int range");
+    return static_cast<int>(count);
 }
 
 

@@ -48,7 +48,10 @@ public:
     {
         LDebug("Connected");
 
-        sock.send("client > server", 15);
+        if (sock.send("client > server", 15) < 0) {
+            LError("Client send failed");
+            stop();
+        }
         return false;
     }
 

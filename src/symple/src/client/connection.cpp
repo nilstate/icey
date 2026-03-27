@@ -201,7 +201,7 @@ void Client::syncDesiredRooms()
 }
 
 
-int Client::sendJson(const json::Value& msg)
+ssize_t Client::sendJson(const json::Value& msg)
 {
     auto& data = *_data;
     if (!data.ws)

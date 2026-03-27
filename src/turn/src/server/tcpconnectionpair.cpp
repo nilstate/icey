@@ -136,7 +136,11 @@ bool TCPConnectionPair::makeDataConnection()
     // Send early data from peer to client
     if (earlyPeerData.size()) {
         LTrace("Flushing early media: ", earlyPeerData.size());
-        client->sendOwned(std::move(earlyPeerData));
+        if (client->sendOwned(std::move(earlyPeerData)) < 0) {
+            LError("Failed to flush early media to client");
+            requestDeletion();
+            return false;
+        }
         earlyPeerData.clear();
     }
 
@@ -158,7 +162,11 @@ bool TCPConnectionPair::onPeerDataReceived(net::Socket&,
         if (allocation.deleted())
             return false;
 
-        client->sendOwned(Buffer(buf, buf + len));
+        if (client->sendOwned(Buffer(buf, buf + len)) < 0) {
+            LError("Failed to relay peer data to client");
+            requestDeletion();
+            return false;
+        }
     }
 
     // Buffer early media
@@ -192,7 +200,11 @@ bool TCPConnectionPair::onClientDataReceived(net::Socket&,
         if (allocation.deleted())
             return false;
 
-        peer->send(bufferCast<char*>(buffer), buffer.size());
+        if (peer->send(bufferCast<const char*>(buffer), buffer.size()) < 0) {
+            LError("Failed to relay client data to peer");
+            requestDeletion();
+            return false;
+        }
     }
     return false;
 }
