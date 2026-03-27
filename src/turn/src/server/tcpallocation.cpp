@@ -226,7 +226,7 @@ void TCPAllocation::sendPeerConnectResponse(TCPConnectionPair* pair, bool succes
 }
 
 
-int TCPAllocation::sendToControl(stun::Message& message)
+ssize_t TCPAllocation::sendToControl(stun::Message& message)
 {
     LTrace("Send to control: ", message);
     return _control->sendPacket(message, 0);

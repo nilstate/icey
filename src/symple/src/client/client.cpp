@@ -24,7 +24,7 @@ namespace icy {
 namespace smpl {
 
 
-int Client::send(Message& m)
+ssize_t Client::send(Message& m)
 {
     if (!isOnline())
         throw std::runtime_error("Cannot send message while offline");
@@ -46,7 +46,7 @@ int Client::send(Message& m)
 }
 
 
-int Client::send(const std::string& data)
+ssize_t Client::send(const std::string& data)
 {
     if (!isOnline())
         throw std::runtime_error("Cannot send message while offline");
@@ -77,7 +77,7 @@ int Client::send(const std::string& data)
 }
 
 
-int Client::respond(Message& m)
+ssize_t Client::respond(Message& m)
 {
     m.setTo(m.value("from", ""));
     return send(m);

@@ -120,13 +120,13 @@ public:
 
 
     /// Send a Symple message. Sets the `from` field automatically.
-    virtual int send(Message& message);
+    virtual ssize_t send(Message& message);
 
     /// Send a string message (parsed as JSON).
-    virtual int send(const std::string& message);
+    virtual ssize_t send(const std::string& message);
 
     /// Swap to/from and send.
-    virtual int respond(Message& message);
+    virtual ssize_t respond(Message& message);
 
     /// Broadcast presence to joined rooms.
     virtual int sendPresence(bool probe = false);

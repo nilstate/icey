@@ -387,7 +387,7 @@ public:
     /// updates the attribute's reported size.
     /// @param bytes Source data pointer.
     /// @param size  Number of bytes to copy.
-    void setBytes(const char* bytes, unsigned size);
+    void setBytes(const char* bytes, size_t size);
 
     /// @return The stored bytes as a std::string.
     [[nodiscard]] std::string asString() const;
@@ -400,7 +400,7 @@ public:
     /// Copies an arbitrary block of memory into the attribute.
     /// @param bytes Source data pointer.
     /// @param size  Number of bytes to copy.
-    void copyBytes(const void* bytes, unsigned size);
+    void copyBytes(const void* bytes, size_t size);
 
     /// Returns a single byte from the stored buffer.
     /// @param index Zero-based byte offset.

@@ -172,6 +172,16 @@ function(icy_add_module name)
   endif()
 
   if(NOT _is_header_only)
+    if(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE OR CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELWITHDEBINFO)
+      if(MSVC)
+        target_link_options(${name} INTERFACE
+          $<$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>:/LTCG>)
+      elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        target_link_options(${name} INTERFACE
+          $<$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>:-flto>)
+      endif()
+    endif()
+
     # Warnings as errors (per-target, avoids breaking FetchContent deps)
     if(ENABLE_WARNINGS_ARE_ERRORS)
       if(MSVC)

@@ -59,7 +59,7 @@ std::unique_ptr<Attribute> createVariableAttribute(uint16_t size)
     return std::make_unique<T>(size);
 }
 
-uint16_t checkedAttributeLength(unsigned size)
+uint16_t checkedAttributeLength(size_t size)
 {
     if (size > std::numeric_limits<uint16_t>::max())
         throw std::length_error("STUN attribute payload exceeds 16-bit length field");
@@ -693,7 +693,7 @@ std::unique_ptr<Attribute> StringAttribute::clone()
 }
 
 
-void StringAttribute::setBytes(const char* bytes, unsigned size)
+void StringAttribute::setBytes(const char* bytes, size_t size)
 {
     _bytes.assign(bytes, bytes + size);
     setLength(checkedAttributeLength(size));
@@ -702,11 +702,11 @@ void StringAttribute::setBytes(const char* bytes, unsigned size)
 
 void StringAttribute::copyBytes(const char* bytes)
 {
-    copyBytes(bytes, checkedAttributeLength(static_cast<unsigned>(std::strlen(bytes))));
+    copyBytes(bytes, std::strlen(bytes));
 }
 
 
-void StringAttribute::copyBytes(const void* bytes, unsigned size)
+void StringAttribute::copyBytes(const void* bytes, size_t size)
 {
     const char* src = static_cast<const char*>(bytes);
     _bytes.assign(src, src + size);

@@ -69,7 +69,7 @@ public:
     /// Sends a STUN message to the client over the control TCP connection.
     /// @param message Message to send.
     /// @return Number of bytes sent, or a negative value on error.
-    int sendToControl(stun::Message& message);
+    ssize_t sendToControl(stun::Message& message);
 
     /// @return Reference to the TCP control socket.
     net::TCPSocket& control();
