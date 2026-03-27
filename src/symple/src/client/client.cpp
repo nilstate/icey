@@ -98,7 +98,7 @@ void Client::createPresence(Presence& p)
 }
 
 
-int Client::sendPresence(bool probe)
+ssize_t Client::sendPresence(bool probe)
 {
     Presence p;
     createPresence(p);
@@ -107,7 +107,7 @@ int Client::sendPresence(bool probe)
 }
 
 
-int Client::sendPresence(const Address& to, bool probe)
+ssize_t Client::sendPresence(const Address& to, bool probe)
 {
     Presence p;
     createPresence(p);

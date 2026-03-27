@@ -129,10 +129,10 @@ public:
     virtual ssize_t respond(Message& message);
 
     /// Broadcast presence to joined rooms.
-    virtual int sendPresence(bool probe = false);
+    virtual ssize_t sendPresence(bool probe = false);
 
     /// Send directed presence to a specific peer.
-    virtual int sendPresence(const Address& to, bool probe = false);
+    virtual ssize_t sendPresence(const Address& to, bool probe = false);
 
     /// Join a room on the server.
     virtual int joinRoom(const std::string& room);
