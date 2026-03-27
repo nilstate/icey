@@ -18,7 +18,7 @@ If you are here to do a specific job, start there first.
 | Run your own TURN relay | [TURN Server](recipes/turn-server.md) | [turnserver sample](../src/turn/samples/turnserver/README.md) |
 | Stream a webcam to a browser | [Webcam To Browser](recipes/webrtc-webcam-to-browser.md) | [webcam-streamer sample](../src/webrtc/samples/webcam-streamer/README.md) |
 | Record browser media on the server | [Browser To Recorder](recipes/webrtc-browser-to-recorder.md) | [media-recorder sample](../src/webrtc/samples/media-recorder/README.md) |
-| Run the self-hosted media stack | [Media Server Demo](../src/webrtc/apps/media-server/docker/README.md) | [Media Server Stack](recipes/media-server-stack.md) |
+| Run the self-hosted media stack | [Media Server Stack](recipes/media-server-stack.md) | deploy the separate `icey-cli` server surface |
 
 ## What These Pages Are For
 
@@ -37,6 +37,7 @@ icey is organized around a few load-bearing modules:
 - [`base`](modules/base.md): event loop, signals, PacketStream, handles, timers, logging, buffers, and the rest of the runtime substrate
 - [`net`](modules/net.md) and [`http`](modules/http.md): sockets, TLS, HTTP client/server, WebSocket, streaming, and transport adapters
 - [`av`](modules/av.md) and [`webrtc`](modules/webrtc.md): capture, encode/decode, RTP track send/receive, session control, and browser media flows
+- [`vision`](modules/vision.md) and [`speech`](modules/speech.md): sampled decoded-media analysis and event emission without changing the transport layer
 - [`symple`](modules/symple.md), [`stun`](modules/stun.md), and [`turn`](modules/turn.md): signalling, presence, NAT traversal, and relay
 
 A lot of icey reduces to this:
@@ -69,6 +70,8 @@ That shape keeps showing up across the library:
 - [HTTP](modules/http.md) if you care about throughput, keep-alive, WebSocket upgrade, or streaming.
 - [WebSocket Client And Server](recipes/websocket-client-server.md) if the handshake and frame path is the thing you are actually building.
 - [WebRTC](modules/webrtc.md) if you are building browser media flows.
+- [Vision](modules/vision.md) if you need decoded frame sampling, async detection boundaries, or event emission.
+- [Speech](modules/speech.md) if you need decoded audio branching, VAD, or speech activity events.
 - [TURN](modules/turn.md) if you need self-hosted relay for difficult NATs.
 - [Symple](modules/symple.md) if you need signalling, presence, rooms, or call control transport.
 

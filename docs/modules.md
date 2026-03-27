@@ -1,6 +1,6 @@
 # Modules
 
-icey is organised into 14 modules. Each module builds as a separate library and declares its dependencies via CMake. Enable only what you need; dependencies resolve automatically.
+icey is organised into 16 modules. Each module builds as a separate library and declares its dependencies via CMake. Enable only what you need; dependencies resolve automatically.
 
 This page is the map. If you want the quickest path to a task, use the table below and then jump into the module guide that actually owns the work.
 
@@ -13,6 +13,7 @@ This page is the map. If you want the quickest path to a task, use the table bel
 | HTTP server or WebSocket service | [recipes/http-server.md](recipes/http-server.md) |
 | Browser media send path | [recipes/webrtc-webcam-to-browser.md](recipes/webrtc-webcam-to-browser.md) |
 | Browser media receive and recording | [recipes/webrtc-browser-to-recorder.md](recipes/webrtc-browser-to-recorder.md) |
+| Decoded media intelligence branches | [modules/vision.md](modules/vision.md) and [modules/speech.md](modules/speech.md) |
 | Full self-hosted media stack | [recipes/media-server-stack.md](recipes/media-server-stack.md) |
 | Signalling, presence, and rooms | [modules/symple.md](modules/symple.md) |
 | TURN relay and NAT traversal | [recipes/turn-server.md](recipes/turn-server.md) |
@@ -66,6 +67,13 @@ This page is the map. If you want the quickest path to a task, use the table bel
         |   |    |     |
        ...  |   ...   base
            base
+
+        speech   vision
+           \      /
+            \    /
+             av json
+              \ /
+              base
 ```
 
 ## Module Overview
@@ -78,6 +86,8 @@ This page is the map. If you want the quickest path to a task, use the table bel
 | **[http](modules/http.md)** | HTTP client/server, WebSocket, forms, cookies, streaming | base, net, crypto |
 | **[json](modules/json.md)** | JSON serialization (nlohmann/json), configuration | base |
 | **[av](modules/av.md)** | FFmpeg capture, encode, decode, device management | base, FFmpeg (optional) |
+| **[speech](modules/speech.md)** | Audio intelligence primitives for decoded media streams | base, av, json |
+| **[vision](modules/vision.md)** | Video intelligence primitives for sampled decoded frames | base, av, json |
 | **[webrtc](modules/webrtc.md)** | WebRTC media transport via libdatachannel | base, net, crypto, av, json, libdatachannel, OpenSSL 3.x, FFmpeg 5+ |
 | **[symple](modules/symple.md)** | Real-time messaging, presence, rooms, WebRTC signalling | base, crypto, net, http, json |
 | **[stun](modules/stun.md)** | RFC 5389 STUN for NAT traversal | base, net, crypto |

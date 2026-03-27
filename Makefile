@@ -1,4 +1,4 @@
-.PHONY: docs docs-install docs-xml docs-api-md docs-site docs-check docs-dev docs-docker clean-docs package-conan package-vcpkg package-arch package-homebrew package-debian-source release release-check release-pin release-pin-vcpkg release-pin-arch release-pin-homebrew media-server-docker
+.PHONY: docs docs-install docs-xml docs-api-md docs-site docs-check docs-dev docs-docker clean-docs package-conan package-vcpkg package-arch package-homebrew package-debian-source release release-check release-pin release-pin-vcpkg release-pin-arch release-pin-homebrew
 
 DOCS_NPM = npm --prefix docs
 DOCS_RUN = $(DOCS_NPM) run
@@ -97,7 +97,3 @@ release-pin-arch:
 release-pin-homebrew:
 	@if [ -z "$(VERSION)" ]; then echo "usage: make release-pin-homebrew VERSION=2.4.0" >&2; exit 1; fi
 	./scripts/release-pin-homebrew.sh "$(VERSION)"
-
-## Build and run the media-server Docker demo
-media-server-docker:
-	cd src/webrtc/apps/media-server/docker && docker compose up --build

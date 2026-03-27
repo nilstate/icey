@@ -203,6 +203,22 @@ CodecNegotiator::detectCodec(std::string_view sdp, CodecMediaType mediaType)
 }
 
 
+std::optional<CodecSpec>
+CodecNegotiator::detectCodecInMedia(const rtc::Description::Media& media,
+                                    CodecMediaType mediaType)
+{
+    return codec_registry::detectInMedia(media, mediaType);
+}
+
+
+#ifdef HAVE_FFMPEG
+AVCodecID CodecNegotiator::decoderCodecId(const CodecSpec& spec)
+{
+    return codec_registry::decoderCodecId(spec);
+}
+#endif
+
+
 av::VideoCodec NegotiatedCodec::toVideoCodec(int width, int height, double fps) const
 {
     return av::VideoCodec(rtpName, ffmpegName, width, height, fps);

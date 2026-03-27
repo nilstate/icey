@@ -49,6 +49,8 @@ export default {
               "modules/http",
               "modules/json",
               "modules/av",
+              "modules/speech",
+              "modules/vision",
               "modules/webrtc",
               "modules/symple",
               "modules/stun",

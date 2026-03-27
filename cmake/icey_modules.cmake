@@ -301,6 +301,14 @@ function(icy_add_test name)
     target_link_libraries(${name} PRIVATE ${TEST_DEPENDS})
   endif()
 
+  if(ENABLE_WARNINGS_ARE_ERRORS)
+    if(MSVC)
+      target_compile_options(${name} PRIVATE /WX)
+    else()
+      target_compile_options(${name} PRIVATE -Werror)
+    endif()
+  endif()
+
   # Config header access
   target_include_directories(${name} PRIVATE ${CMAKE_BINARY_DIR})
   target_compile_definitions(${name} PRIVATE ICY_DATA_DIR="${icey_SOURCE_DIR}/data")

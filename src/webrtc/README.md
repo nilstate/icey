@@ -10,7 +10,7 @@
 
 WebRTC media transport without Google's libwebrtc. Uses libdatachannel for ICE, DTLS-SRTP, and data channels; icey's AV module for FFmpeg encode/decode; and Symple for signalling. Point the ICE config at your icey TURN server for fully self-hosted relay.
 
-Current browser validation for the bundled `media-server` path:
+Current browser validation for the packaged `icey-cli` media server path:
 - Chromium: validated by committed Playwright smoke
 - Firefox: validated by committed Playwright smoke
 - WebKit: smoke target exists, but Linux Playwright WebKit/WPE is not treated as authoritative for publish-path support

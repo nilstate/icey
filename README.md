@@ -21,7 +21,7 @@ icey is the connective tissue: a modular C++20 toolkit that pulls FFmpeg, libuv,
 
 ## Fastest Path
 
-If you want the shortest path from zero to browser video, use the published [Media Server Demo](src/webrtc/apps/media-server/docker/README.md) image.
+If you want the shortest path from zero to browser video, use the published `icey-cli` media server image.
 
 One command. One URL. One click.
 
@@ -29,9 +29,9 @@ One command. One URL. One click.
 docker run --rm --network host 0state/icey-media-server-demo:latest
 ```
 
-Then open `http://localhost:4500` and click `Watch` on the `Media Server` peer.
+Then open `http://localhost:4500` and click `Watch` on the `icey` peer.
 
-This express path targets Linux host networking. If you want the source-backed path for local edits, use `docker compose up --build` from [`src/webrtc/apps/media-server/docker/`](src/webrtc/apps/media-server/docker/).
+This express path targets Linux host networking. If you want the source-backed path for local edits, use the separate `icey-cli` app surface on top of the core `icey` modules.
 
 ## Why icey
 
@@ -51,7 +51,7 @@ libdatachannel gives you the WebRTC transport pipe. icey gives you the pipe, the
 
 ## Architecture
 
-Everything flows through `PacketStream`. Plug in a source, chain processors, attach a sink. Borrowed packets stay zero-copy until the first queue or retained adapter; that boundary is explicit in the graph. The pipeline handles backpressure, frame dropping, and teardown so you don't. Nothing runs that you didn't ask for.
+Everything flows through `PacketStream`. Plug in a source, chain processors, attach a sink. Borrowed packets stay zero-copy until the first queue or retained adapter; that boundary is explicit in the graph. The pipeline handles backpressure, frame dropping, and teardown so you don't. Nothing runs that you didn't ask for. Decoded branches can feed `vision` and `speech` processors without changing the transport path.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -286,7 +286,7 @@ session.StateChanged += [&](wrtc::PeerSession::State state) {
 
 ## Modules
 
-14 modules. Include only what you need; dependencies resolve automatically.
+16 modules. Include only what you need; dependencies resolve automatically.
 
 | Module | What it does |
 |--------|-------------|
@@ -296,6 +296,8 @@ session.StateChanged += [&](wrtc::PeerSession::State state) {
 | **http** | HTTP server/client, WebSocket, cookies, streaming, keep-alive |
 | **json** | JSON serialisation (nlohmann/json) |
 | **av** | FFmpeg capture, encode, decode, record, stream (FFmpeg 5/6/7) |
+| **speech** | Audio intelligence primitives for decoded media streams |
+| **vision** | Video intelligence primitives for sampled decoded frames |
 | **symple** | Real-time messaging, presence, rooms, WebRTC call signalling |
 | **stun** | RFC 5389 STUN for NAT traversal |
 | **turn** | RFC 5766 TURN relay server |

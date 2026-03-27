@@ -10,28 +10,34 @@ This is the full self-hosted path:
 
 in one C++ binary.
 
-That is what makes `media-server` interesting. It is not a thin demo around a managed service. It is the whole stack in one place.
+That is what makes the deployable `icey` media server interesting. It is not a thin demo around a managed service. It is the whole stack in one place.
+
+The deployable product surface now lives outside the LGPL core tree in the separate `icey-cli` app layer. This recipe documents the architecture and bring-up shape the app is built around.
 
 ## Express Path
 
-If you want the shortest path to a running browser demo, start with the published Media Server Demo image:
-
-- [Media Server Demo](../../src/webrtc/apps/media-server/docker/README.md)
+If you want the shortest path to a running browser demo, start with the published `icey-cli` media server image:
 
 ```bash
 docker run --rm --network host 0state/icey-media-server-demo:latest
 ```
 
 Then open `http://localhost:4500`.
-In the default `stream` mode, click `Watch` on the `Media Server` peer.
+In the default `stream` mode, click `Watch` on the `icey` peer.
 
 ## Source Path
 
-If you want the repo-backed path instead, use the same demo directory from source:
+If you want the source-backed path instead, build the separate `icey-cli` app against this repo:
 
 ```bash
-cd src/webrtc/apps/media-server/docker
-docker compose up --build
+cmake -S /path/to/icey-cli -B /path/to/icey-cli/build \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DICEY_SOURCE_DIR=/path/to/icey
+cmake --build /path/to/icey-cli/build --target icey-server
+
+cd /path/to/icey-cli/web
+npm install
+npm run build
 ```
 
 ## What Runs
@@ -43,13 +49,11 @@ The server exposes:
 - WebRTC media sessions
 - TURN relay on a second port unless disabled
 
-The browser side is the bundled UI under:
-
-- [`src/webrtc/apps/media-server/web/`](../../src/webrtc/apps/media-server/web/)
+The browser side is the bundled `icey-cli/web/` UI build.
 
 ## Modes
 
-`media-server` has three real modes now:
+The deployable server has three real modes now:
 
 | Mode | Browser sends | Server sends | What it is for |
 | --- | --- | --- | --- |
@@ -64,14 +68,16 @@ These are not aspirational docs modes. They are the modes the app actually imple
 Build the server:
 
 ```bash
-cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_APPLICATIONS=ON
-cmake --build build --target media-server
+cmake -S /path/to/icey-cli -B /path/to/icey-cli/build \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DICEY_SOURCE_DIR=/path/to/icey
+cmake --build /path/to/icey-cli/build --target icey-server
 ```
 
 Build the UI:
 
 ```bash
-cd src/webrtc/apps/media-server/web
+cd /path/to/icey-cli/web
 npm install
 npm run build
 ```
@@ -79,8 +85,8 @@ npm run build
 Then run the server:
 
 ```bash
-./build/bin/media-server \
-  --web-root src/webrtc/apps/media-server/web/dist \
+/path/to/icey-cli/build/src/server/icey-server \
+  --web-root /path/to/icey-cli/web/dist \
   --source /path/to/video.mp4
 ```
 
@@ -115,7 +121,7 @@ That last step is the main difference:
 
 ## The Important Runtime Pieces
 
-`media-server` works because it is sitting on top of the rest of icey, not re-implementing it.
+The deployable server works because it is sitting on top of the rest of icey, not re-implementing it.
 
 - `http` serves the UI and status endpoints
 - `symple` carries signalling and presence
@@ -124,7 +130,7 @@ That last step is the main difference:
 - `av` handles capture, encode, decode, and mux
 - `base` and `net` hold the runtime together underneath
 
-If you are debugging the stack, debug it in those layers. Do not treat `media-server` as one monolithic mystery box.
+If you are debugging the stack, debug it in those layers. Do not treat the app as one monolithic mystery box.
 
 ## Deployment Checklist
 
@@ -154,8 +160,7 @@ instead of testing all four at once.
 
 ## Good Next Stops
 
-- [Media Server Demo](../../src/webrtc/apps/media-server/docker/README.md) for the canonical end-to-end path
 - [WebRTC guide](../modules/webrtc.md) for the session and track layers
 - [TURN guide](../modules/turn.md) for relay behavior
 - [HTTP Lifecycle](../concepts/http-lifecycle.md) for the server side of the UI and signalling transport
-- [`media-server`](../../src/webrtc/apps/media-server/README.md) for the app-local operational README
+- the separate `icey-cli` app README for the app-local operational surface

@@ -16,6 +16,14 @@
 
 #include "icy/av/codec.h"
 
+#include <rtc/description.hpp>
+
+#ifdef HAVE_FFMPEG
+extern "C" {
+#include <libavcodec/avcodec.h>
+}
+#endif
+
 #include <cstdint>
 #include <optional>
 #include <string>
@@ -177,6 +185,17 @@ public:
     /// media type.
     [[nodiscard]] static std::optional<CodecSpec>
     detectCodec(std::string_view sdp, CodecMediaType mediaType);
+
+    /// Detect the first known codec from a structured rtc::Description::Media
+    /// object for the given media type.
+    [[nodiscard]] static std::optional<CodecSpec>
+    detectCodecInMedia(const rtc::Description::Media& media, CodecMediaType mediaType);
+
+#ifdef HAVE_FFMPEG
+    /// Return the FFmpeg decoder codec ID for a given codec spec.
+    /// Returns AV_CODEC_ID_NONE if no mapping is known.
+    [[nodiscard]] static AVCodecID decoderCodecId(const CodecSpec& spec);
+#endif
 };
 
 

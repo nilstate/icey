@@ -1027,6 +1027,7 @@ int main(int argc, char** argv)
     describe("packet stream queue clone boundary", new PacketStreamQueueCloneBoundaryTest);
     describe("packet stream async queue clone boundary", new PacketStreamAsyncQueueCloneBoundaryTest);
     describe("packet stream retention contract", new PacketStreamRetentionContractTest);
+    describe("packet stream shared source branch clone boundary", new PacketStreamSharedSourceBranchCloneBoundaryTest);
     // describe("multi packet stream", new MultiPacketStreamTest);
 
     test::runAll();

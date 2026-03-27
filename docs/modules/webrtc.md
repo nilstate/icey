@@ -718,9 +718,11 @@ session->DataReceived += [this](rtc::message_variant msg) {
 };
 ```
 
-### [media-server](../../src/webrtc/apps/media-server/)
+### Deployable media server
 
 A complete self-hosted media server in a single binary: Symple signalling server, HTTP static file server, and per-peer WebRTC sessions all in one process. No Node.js, no cloud services; two TCP ports and one binary.
+
+The deployable app surface now lives in the separate `icey-cli` layer rather than inside the core `icey` tree. The architecture below is still the reference shape for the shipped server.
 
 The server registers as a virtual peer in its own Symple network. Browsers discover it via presence, call it, and either receive server-originated media (`stream` mode), send media up to the server for recording (`record` mode), or join the live encoded relay (`relay` mode). Each connecting browser gets its own `MediaSession` and its own media pipeline; stream mode isolates capture + encoder state per peer, record mode isolates decoder + mux state per peer, and relay mode elects one active caller as the source and fans that encoded stream out to the other callers.
 
@@ -776,7 +778,7 @@ _symple.PeerDisconnected += [this](smpl::ServerPeer& peer) {
 Configuration is loaded from `config.json` with CLI overrides. The `--mode` flag selects `stream` (file to browsers), `record` (browser video to MP4), or `relay` (first active caller becomes the upstream source and later callers receive that feed). The `--source` flag sets the input file for stream mode. `--record-dir` selects the output directory for record mode. `--web-root` points at the built web UI directory.
 
 ```bash
-media-server --source video.mp4 --web-root web/dist --port 4500
+icey-server --source video.mp4 --web-root web/dist --port 4500
 ```
 
 ---

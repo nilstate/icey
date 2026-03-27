@@ -1140,6 +1140,57 @@ class PacketStreamRetentionContractTest : public Test
 };
 
 
+class PacketStreamSharedSourceBranchCloneBoundaryTest : public Test
+{
+    std::string syncReceived;
+    std::string asyncReceived;
+
+    void onSyncPacket(IPacket& packet)
+    {
+        syncReceived.assign(packet.data(), packet.size());
+    }
+
+    void onAsyncPacket(IPacket& packet)
+    {
+        asyncReceived.assign(packet.data(), packet.size());
+    }
+
+    void run()
+    {
+        PacketSignal source;
+        PacketStream syncBranch("sync-branch");
+        PacketStream asyncBranch("async-branch");
+        auto queue = std::make_shared<AsyncPacketQueue<>>(16);
+
+        syncBranch.attachSource(source);
+        asyncBranch.attachSource(source);
+        asyncBranch.attach(queue, 0);
+
+        syncBranch.emitter += slot(this, &PacketStreamSharedSourceBranchCloneBoundaryTest::onSyncPacket);
+        asyncBranch.emitter += slot(this, &PacketStreamSharedSourceBranchCloneBoundaryTest::onAsyncPacket);
+
+        syncBranch.start();
+        asyncBranch.start();
+
+        char data[] = {'b', 'r', 'a', 'n', 'c', 'h'};
+        RawPacket packet(data, sizeof(data));
+
+        source.emit(packet);
+        std::memcpy(data, "xxxxxx", sizeof(data));
+
+        expect(syncReceived == "branch");
+        expect(test::waitFor([&]() {
+            return asyncReceived == "branch";
+        }, 2000));
+
+        syncBranch.close();
+        asyncBranch.close();
+
+        expect(queue->retention() == PacketRetention::Cloned);
+    }
+};
+
+
 } // namespace icy
 
 

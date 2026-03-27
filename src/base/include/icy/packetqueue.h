@@ -193,12 +193,16 @@ protected:
 template <class T>
 inline void AsyncPacketQueue<T>::close()
 {
-    // Flush queued items, some protocols can't afford dropped packets
+    Queue::cancel();
+    if (Queue::_thread.tid() != Thread::currentID())
+        Queue::_thread.join();
+
+    // Drain any packets that were still queued after the worker exited.
+    Queue::cancel(false);
     Queue::flush();
     if (!Queue::empty())
         LWarn("Queue not empty after flush during close");
     Queue::cancel();
-    Queue::_thread.join();
 }
 
 

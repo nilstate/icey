@@ -159,7 +159,8 @@ jobs:
             -DWITH_LIBDATACHANNEL=ON \
             -DBUILD_TESTS=ON \
             -DBUILD_SAMPLES=OFF \
-            -DBUILD_APPLICATIONS=OFF
+            -DBUILD_APPLICATIONS=OFF \
+            -DENABLE_WARNINGS_ARE_ERRORS=ON
 
       - name: Build
         run: cmake --build build --parallel $(nproc)

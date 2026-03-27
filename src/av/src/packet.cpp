@@ -119,7 +119,7 @@ PlanarAudioPacket::PlanarAudioPacket(const PlanarAudioPacket& r)
 
     // Deep copy audio data from source frame
     av_samples_copy(buffer, const_cast<uint8_t* const*>(r.buffer), 0, 0,
-                    channels, static_cast<int>(numSamples), fmt);
+                    static_cast<int>(numSamples), channels, fmt);
 }
 
 

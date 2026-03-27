@@ -376,7 +376,8 @@ class AudioEncoderTest : public Test
 
         auto testSamples = createTestAudioSamplesDBL(kNumberFramesWanted, kInNumSamples, iparams);
         for (auto samples : testSamples) {
-            encoder.encode(reinterpret_cast<uint8_t*>(samples), kInNumSamples, AV_NOPTS_VALUE);
+            expect(encoder.encode(
+                reinterpret_cast<uint8_t*>(samples), kInNumSamples, AV_NOPTS_VALUE));
         }
 
         encoder.flush();
@@ -523,7 +524,8 @@ class AudioCaptureTest : public Test
         // capture.openFile("test.mp4");
         av::AudioCapture capture(device.id, inNbChannels, inSampleRate);
 
-        capture.emitter.attach(packetSlot(this, &AudioCaptureTest::onAudioCaptured));
+        static_cast<void>(capture.emitter.attach(
+            packetSlot(this, &AudioCaptureTest::onAudioCaptured)));
         capture.start();
 
         av::AudioCodec oparams;
@@ -592,8 +594,10 @@ class AudioCaptureEncoderTest : public Test
         encoder.create();
         encoder.open();
 
-        capture.emitter.attach(packetSlot(this, &AudioCaptureEncoderTest::onAudioCaptured));
-        encoder.emitter.attach(packetSlot(this, &AudioCaptureEncoderTest::onAudioEncoded));
+        static_cast<void>(capture.emitter.attach(
+            packetSlot(this, &AudioCaptureEncoderTest::onAudioCaptured)));
+        static_cast<void>(encoder.emitter.attach(
+            packetSlot(this, &AudioCaptureEncoderTest::onAudioEncoded)));
 
         expect(iparams.channels == inNbChannels);
         expect(iparams.sampleRate == inSampleRate);
@@ -639,7 +643,8 @@ class AudioCaptureEncoderTest : public Test
     {
         STrace << "On audio packet: samples=" << packet.numSamples
                << ", time=" << packet.time;
-        encoder.encode(reinterpret_cast<uint8_t*>(packet.data()), packet.numSamples, AV_NOPTS_VALUE);
+        expect(encoder.encode(
+            reinterpret_cast<uint8_t*>(packet.data()), packet.numSamples, AV_NOPTS_VALUE));
     }
 
     void onAudioEncoded(av::AudioPacket& packet)
@@ -692,7 +697,8 @@ class AudioCaptureResamplerTest : public Test
         output.open("test.pcm", std::ios::out | std::ios::binary);
 
         resampler.open();
-        capture.emitter.attach(packetSlot(this, &AudioCaptureResamplerTest::onAudioCaptured));
+        static_cast<void>(capture.emitter.attach(
+            packetSlot(this, &AudioCaptureResamplerTest::onAudioCaptured)));
 
         while (numFramesRemaining > 0) {
             LDebug("Waiting for completion: ", numFramesRemaining);
@@ -1985,7 +1991,7 @@ class VideoEncoderTest : public Test
             }
 
             frame->pts = i;
-            encoder.encode(frame);
+            expect(encoder.encode(frame));
         }
 
         encoder.flush();
@@ -2136,7 +2142,7 @@ class VideoDecoderTest : public Test
         AVPacket* pkt = av_packet_alloc();
         while (av_read_frame(formatCtx, pkt) >= 0) {
             if (pkt->stream_index == videoStream->index) {
-                decoder.decode(*pkt);
+                expect(decoder.decode(*pkt));
             }
             av_packet_unref(pkt);
         }
@@ -2252,7 +2258,7 @@ class AudioDecoderTest : public Test
         AVPacket* pkt = av_packet_alloc();
         while (av_read_frame(formatCtx, pkt) >= 0) {
             if (pkt->stream_index == audioStream->index) {
-                decoder.decode(*pkt);
+                expect(decoder.decode(*pkt));
             }
             av_packet_unref(pkt);
         }
