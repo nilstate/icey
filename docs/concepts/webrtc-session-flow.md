@@ -210,5 +210,5 @@ That is what lets the module stay usable without turning into a pile of browser-
 - [WebRTC](../modules/webrtc.md) for the full module guide
 - [Webcam To Browser](../recipes/webrtc-webcam-to-browser.md) for the clean send path
 - [Browser To Recorder](../recipes/webrtc-browser-to-recorder.md) for the clean receive path
-- [Media Server Stack](../recipes/media-server-stack.md) for the full deployed shape
+- [Run icey-server](../run/index.md) for the full deployed shape
 

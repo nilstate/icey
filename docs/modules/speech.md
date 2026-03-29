@@ -2,7 +2,7 @@
 
 > Audio intelligence primitives for decoded media streams.
 
-**[Source →](../../src/speech/)** · **CMake target:** `icey::speech`
+**[Source →](https://github.com/nilstate/icey/tree/main/src/speech/)** · **CMake target:** `icey::speech`
 
 ## Overview
 

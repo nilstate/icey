@@ -99,7 +99,7 @@ It is not a substitute for understanding TURN permissions. It is a convenience f
 
 The included sample is still the fastest way to prove the server path works:
 
-- [`turnserver`](../../src/turn/samples/turnserver/README.md)
+- [`turnserver`](https://github.com/nilstate/icey/tree/main/src/turn/samples/turnserver/)
 
 You can hit it with coturn's `turnutils_uclient`:
 
@@ -121,5 +121,5 @@ That gives you a much faster signal than trying to debug a full browser stack be
 
 - [TURN guide](../modules/turn.md) for the full server and client surface
 - [STUN guide](../modules/stun.md) for the shared message model
-- [`turnserver`](../../src/turn/samples/turnserver/README.md) for the sample binary
-- [Media server stack](media-server-stack.md) if TURN is part of a full self-hosted browser media deployment
+- [`turnserver`](https://github.com/nilstate/icey/tree/main/src/turn/samples/turnserver/) for the sample binary
+- [Run icey-server](../run/index.md) if TURN is part of a full self-hosted browser media deployment

@@ -2,7 +2,7 @@
 
 > Task scheduler for deferred and periodic jobs
 
-**[API Reference →](../api/sched.md)** · **[Source →](../../src/sched/)**
+**[API Reference →](../api/sched.md)** · **[Source →](https://github.com/nilstate/icey/tree/main/src/sched/)**
 
 ## Overview
 

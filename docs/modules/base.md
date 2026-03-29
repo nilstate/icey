@@ -2,7 +2,7 @@
 
 > The foundational module: event loop, signals, packet pipelines, logging, and system utilities.
 
-**[API Reference →](../api/base.md)** · **[Source →](../../src/base/)**
+**[API Reference →](../api/base.md)** · **[Source →](https://github.com/nilstate/icey/tree/main/src/base/)**
 
 ## Overview
 

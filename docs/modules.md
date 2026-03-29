@@ -14,7 +14,7 @@ This page is the map. If you want the quickest path to a task, use the table bel
 | Browser media send path | [recipes/webrtc-webcam-to-browser.md](recipes/webrtc-webcam-to-browser.md) |
 | Browser media receive and recording | [recipes/webrtc-browser-to-recorder.md](recipes/webrtc-browser-to-recorder.md) |
 | Decoded media intelligence branches | [modules/vision.md](modules/vision.md) and [modules/speech.md](modules/speech.md) |
-| Full self-hosted media stack | [recipes/media-server-stack.md](recipes/media-server-stack.md) |
+| Full self-hosted media stack | [run/index.md](run/index.md) |
 | Signalling, presence, and rooms | [modules/symple.md](modules/symple.md) |
 | TURN relay and NAT traversal | [recipes/turn-server.md](recipes/turn-server.md) |
 | Low-level STUN message work | [modules/stun.md](modules/stun.md) |

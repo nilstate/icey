@@ -25,18 +25,25 @@ That is the whole shape.
 
 The current `webcam-streamer` sample does this:
 
-1. connect the Symple client
-2. join a room
-3. create a `SympleSignaller`
-4. create a `PeerSession`
-5. auto-accept incoming calls
-6. build the media pipeline once
-7. start capture and streaming when the session reaches `Active`
-8. stop the pipeline when the call ends
+:::steps
 
-The important part is step 7.
+1. Connect the Symple client and join a room
 
+2. Create a `SympleSignaller` and `PeerSession`
+
+3. Auto-accept incoming calls
+
+4. Build the media pipeline once
+
+5. Start capture and streaming when the session reaches `Active`
+
+6. Stop the pipeline when the call ends
+
+:::
+
+:::warning
 Do not start pushing media just because you saw `call:init`. Wait for `PeerSession::State::Active`. That is when the transport is actually ready.
+:::
 
 ## Minimal Shape
 
@@ -114,5 +121,4 @@ This is not meant to be a generic signalling demo. It is the concrete "stream H.
 - [WebRTC guide](../modules/webrtc.md) for the full module surface
 - [Runtime Contracts](../concepts/runtime-contracts.md) for buffer and loop rules
 - [PacketStream](../concepts/packetstream.md) for the pipeline model
-- [`webcam-streamer`](../../src/webrtc/samples/webcam-streamer/README.md) for the runnable sample
-
+- [`webcam-streamer`](https://github.com/nilstate/icey/tree/main/src/webrtc/samples/webcam-streamer/) for the runnable sample

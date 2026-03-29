@@ -2,7 +2,7 @@
 
 > Embeddable C++ package manager for native applications
 
-**[API Reference →](../api/pacm.md)** · **[Source →](../../src/pacm/)**
+**[API Reference →](../api/pacm.md)** · **[Source →](https://github.com/nilstate/icey/tree/main/src/pacm/)**
 
 ## Overview
 
@@ -240,7 +240,7 @@ None → Downloading → Extracting → Finalizing → Installed
 
 ## Samples
 
-### [pacm-cli](../../src/pacm/apps/pacm-cli/)
+### [pacm-cli](https://github.com/nilstate/icey/tree/main/src/pacm/apps/pacm-cli/)
 
 The redistributable command-line tool bundled with icey. It wraps the full `PackageManager` API and can be compiled and shipped alongside existing applications as a standalone package management utility.
 

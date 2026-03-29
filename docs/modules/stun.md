@@ -2,7 +2,7 @@
 
 > RFC 5389 message codec, typed attributes, HMAC-SHA1 integrity, and transaction layer for NAT traversal.
 
-**[API Reference →](../api/stun.md)** · **[Source →](../../src/stun/)**
+**[API Reference →](../api/stun.md)** · **[Source →](https://github.com/nilstate/icey/tree/main/src/stun/)**
 
 ## Overview
 
@@ -509,7 +509,7 @@ bool isNominating = (msg.get<stun::ICEUseCandidate>() != nullptr);
 
 ## Samples
 
-The STUN module has no standalone samples. See the [TURN turnserver sample](../../src/turn/samples/turnserver/) for a complete example that builds STUN responses, signs them with `MessageIntegrity`, and handles the full 401 challenge/re-auth flow.
+The STUN module has no standalone samples. See the [TURN turnserver sample](https://github.com/nilstate/icey/tree/main/src/turn/samples/turnserver/) for a complete example that builds STUN responses, signs them with `MessageIntegrity`, and handles the full 401 challenge/re-auth flow.
 
 ## Configuration
 

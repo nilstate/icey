@@ -2,7 +2,7 @@
 
 > Plugin system for loading shared libraries at runtime
 
-**[API Reference →](../api/pluga.md)** · **[Source →](../../src/pluga/)**
+**[API Reference →](../api/pluga.md)** · **[Source →](https://github.com/nilstate/icey/tree/main/src/pluga/)**
 
 ## Overview
 

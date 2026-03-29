@@ -31,6 +31,8 @@ Format your changes before committing:
 clang-format -i src/path/to/file.cpp
 ```
 
+Repo-specific structure and design rules live in [conventions.md](conventions.md). Read that alongside this page if you are adding modules, moving public headers, or changing runtime-facing behaviour.
+
 ## Commit messages
 
 Use [conventional commits](https://www.conventionalcommits.org/): `feat:`, `fix:`, `refactor:`, `test:`, `docs:`, `chore:`, etc. Keep the subject line short, lowercase, imperative mood.
@@ -42,7 +44,7 @@ refactor: replace raw pointers with unique_ptr in http client
 
 ## Tests
 
-If your change touches runtime behaviour, add or update a test. Tests live in `test/` and are built when `-DBUILD_TESTS=ON` is set. Run them with:
+If your change touches runtime behaviour, add or update a test. Tests live in `tests/` and module-local `src/*/tests/` directories and are built when `-DBUILD_TESTS=ON` is set. Run them with:
 
 ```bash
 ctest --test-dir build --output-on-failure

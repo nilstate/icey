@@ -2,7 +2,7 @@
 
 > RFC 5766 relay server and client with TCP extensions (RFC 6062) for NAT traversal through symmetric NATs.
 
-**[API Reference →](../api/turn.md)** · **[Source →](../../src/turn/)**
+**[API Reference →](../api/turn.md)** · **[Source →](https://github.com/nilstate/icey/tree/main/src/turn/)**
 
 ## Overview
 
@@ -545,7 +545,7 @@ The peer must have an active relay connection (established via `Connect` / `Conn
 
 ## Samples
 
-### [turnserver](../../src/turn/samples/turnserver/)
+### [turnserver](https://github.com/nilstate/icey/tree/main/src/turn/samples/turnserver/)
 
 A minimal but complete RFC 5766 relay server with long-term credential authentication. It demonstrates the full `ServerObserver` implementation, `ServerOptions` configuration, and the `Application::waitForShutdown()` event loop pattern.
 
@@ -713,6 +713,6 @@ See [webrtc.md](webrtc.md) for the full peer session and signalling setup.
 ## Best Next Reads
 
 - [TURN Server](../recipes/turn-server.md) for the practical server bring-up path
-- [Media Server Stack](../recipes/media-server-stack.md) for TURN as part of a full browser media deployment
-- [`turnserver`](../../src/turn/samples/turnserver/README.md) for the runnable sample
+- [Run icey-server](../run/index.md) for TURN as part of a full browser media deployment
+- [`turnserver`](https://github.com/nilstate/icey/blob/main/src/turn/samples/turnserver/README.md) for the runnable sample
 - [STUN](stun.md) if you need the message and attribute model underneath TURN

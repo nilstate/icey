@@ -166,4 +166,4 @@ Do not start by debugging your JSON message layer if the upgrade never completed
 - [HTTP guide](../modules/http.md) for the full HTTP and WebSocket surface
 - [HTTP Lifecycle](../concepts/http-lifecycle.md) for upgrade and connection-state detail
 - [HTTP Server](http-server.md) for the plain request/response path around it
-- [`wsclient`](../../src/http/samples/wsclient/) for the runnable client sample
+- [`wsclient`](https://github.com/nilstate/icey/tree/main/src/http/samples/wsclient/) for the runnable client sample

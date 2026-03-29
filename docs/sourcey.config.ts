@@ -1,5 +1,7 @@
 export default {
   name: "icey",
+  repo: "https://github.com/nilstate/icey",
+  editBranch: "main",
   theme: {
     colors: { primary: "#2563eb" },
   },
@@ -9,19 +11,20 @@ export default {
         tab: "Documentation",
         groups: [
           {
-            group: "Start Here",
+            group: "Run",
             pages: [
               "index",
-              "getting-started",
-              "installation",
-              "installation-linux",
-              "installation-osx",
-              "installation-windows",
+              "run/index",
+              "run/install",
+              "run/modes",
+              "run/cli",
             ],
           },
           {
-            group: "Core Concepts",
+            group: "Understand",
             pages: [
+              "concepts/architecture",
+              "modules",
               "concepts/runtime-contracts",
               "concepts/packetstream",
               "concepts/http-lifecycle",
@@ -29,20 +32,31 @@ export default {
             ],
           },
           {
-            group: "Workflows",
+            group: "Build",
             pages: [
+              "build/getting-started",
+              "build/installation",
               "recipes/http-server",
               "recipes/websocket-client-server",
               "recipes/turn-server",
               "recipes/webrtc-webcam-to-browser",
               "recipes/webrtc-browser-to-recorder",
-              "recipes/media-server-stack",
+            ],
+          },
+          {
+            group: "Operate",
+            pages: [
+              "operate/config",
+              "operate/deploy",
+              "operate/tls",
+              "operate/turn",
+              "operate/health",
+              "operate/troubleshoot",
             ],
           },
           {
             group: "Module Guides",
             pages: [
-              "modules",
               "modules/base",
               "modules/crypto",
               "modules/net",
@@ -65,6 +79,7 @@ export default {
             group: "Project",
             pages: [
               "contributing",
+              "conventions",
               "releasing",
             ],
           },
@@ -75,6 +90,7 @@ export default {
         doxygen: {
           xml: "../build/doxygen/xml",
           language: "cpp",
+          index: "rich",
         },
       },
     ],

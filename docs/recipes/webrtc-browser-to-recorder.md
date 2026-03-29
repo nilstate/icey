@@ -86,6 +86,5 @@ The intended local pairing is with the Symple player stack, but the important pa
 
 - [WebRTC guide](../modules/webrtc.md) for the wider send/receive model
 - [PacketStream](../concepts/packetstream.md) for how the decode and mux stages fit together
-- [`media-recorder`](../../src/webrtc/samples/media-recorder/README.md) for the runnable sample
-- [Media server stack](media-server-stack.md) if you want this receive-and-record flow as part of a single deployed service
-
+- [`media-recorder`](https://github.com/nilstate/icey/tree/main/src/webrtc/samples/media-recorder/) for the runnable sample
+- [Run icey-server](../run/index.md) if you want this receive-and-record flow as part of a single deployed service

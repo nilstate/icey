@@ -2,7 +2,7 @@
 
 > WebRTC media transport built on libdatachannel; peer sessions, codec negotiation, and PacketStream integration without Google's libwebrtc.
 
-**[Source →](../../src/webrtc/)**
+**[Source →](https://github.com/nilstate/icey/tree/main/src/webrtc/)**
 
 **CMake target**: `icey::webrtc`
 **Dependencies**: `icey::base`, `icey::net`, `icey::crypto`, `icey::av`, `icey::symple`, libdatachannel (auto-fetched), OpenSSL 3.x, FFmpeg 5+
@@ -585,7 +585,7 @@ Caller C++                        Signaller                       Callee (browse
 
 ## Samples
 
-### [webcam-streamer](../../src/webrtc/samples/webcam-streamer/)
+### [webcam-streamer](https://github.com/nilstate/icey/tree/main/src/webrtc/samples/webcam-streamer/)
 
 Captures from a camera (or loops a test file), encodes to H.264 with FFmpeg, and streams to any browser peer via WebRTC and Symple signalling. Demonstrates the complete send path: `MediaCapture` source selection, pipeline construction, and graceful teardown on hangup.
 
@@ -647,7 +647,7 @@ class WebcamStreamer
 };
 ```
 
-### [media-recorder](../../src/webrtc/samples/media-recorder/)
+### [media-recorder](https://github.com/nilstate/icey/tree/main/src/webrtc/samples/media-recorder/)
 
 Receives H.264 video from a browser via WebRTC and records it server-side. Demonstrates the real receive path used in icey today: `WebRtcTrackReceiver` emits encoded frames, a small callback bridge wraps them in FFmpeg `AVPacket`s for `av::VideoDecoder`, and the decoded frames feed `av::MultiplexPacketEncoder` to write MP4 output. Useful for building server-side recording for telehealth, video depositions, or proctoring without cloud vendor lock-in.
 
@@ -657,7 +657,7 @@ The sample configures a video codec in the SDP to signal receive capability to t
 
 The muxer is created lazily on the first decoded frame so width, height, and pixel format are taken from the actual stream rather than guessed up front.
 
-### [file-streamer](../../src/webrtc/samples/file-streamer/)
+### [file-streamer](https://github.com/nilstate/icey/tree/main/src/webrtc/samples/file-streamer/)
 
 Reads any FFmpeg-supported media file, loops it at real-time rate, and streams to a browser. Also opens a data channel so the sample can receive simple control messages alongside the media stream. Demonstrates mixing media streaming and data channel messaging in the same session.
 
@@ -688,7 +688,7 @@ capture->setLoopInput(true);
 capture->setLimitFramerate(true);
 ```
 
-### [data-echo](../../src/webrtc/samples/data-echo/)
+### [data-echo](https://github.com/nilstate/icey/tree/main/src/webrtc/samples/data-echo/)
 
 The simplest sample: no media, no FFmpeg, no `PacketStream`. Connects to Symple, waits for incoming calls, and echoes every data channel message back to the sender. Useful as a baseline for testing signalling and data channel connectivity, and as a template for pure data channel applications (remote control, telemetry, chat).
 
@@ -869,5 +869,5 @@ icey includes a production-grade RFC 5766 TURN server in the `turn` module. See 
 - [WebRTC Session Flow](../concepts/webrtc-session-flow.md) for the split between signalling, session state, and media attachment
 - [Webcam To Browser](../recipes/webrtc-webcam-to-browser.md) for the clean send path
 - [Browser To Recorder](../recipes/webrtc-browser-to-recorder.md) for the clean receive path
-- [Media Server Stack](../recipes/media-server-stack.md) for the full deployed shape
+- [Run icey-server](../run/index.md) for the full deployed shape
 - [PacketStream](../concepts/packetstream.md) for the media graph that ties capture, encode, receive, and mux together

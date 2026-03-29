@@ -2,7 +2,7 @@
 
 > Async TCP, SSL/TLS, and UDP networking built on libuv and OpenSSL.
 
-**[API Reference →](../api/net.md)** · **[Source →](../../src/net/)**
+**[API Reference →](../api/net.md)** · **[Source →](https://github.com/nilstate/icey/tree/main/src/net/)**
 
 ## Overview
 
@@ -730,7 +730,7 @@ The `nativeSocketFd(handle)` macro extracts the OS file descriptor from a libuv 
 
 ## Samples
 
-### [echoserver](../../src/net/samples/echoserver/)
+### [echoserver](https://github.com/nilstate/icey/tree/main/src/net/samples/echoserver/)
 
 Runs three echo servers simultaneously — TCP on port 1337, SSL on port 1338, UDP on port 1339 — in a single binary. This is the canonical reference for the adapter pattern and for handling all three transports in one codebase.
 

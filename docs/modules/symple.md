@@ -2,7 +2,7 @@
 
 > Real-time messaging, peer presence, and WebRTC call signalling over native WebSocket.
 
-**[API Reference →](../api/symple.md)** · **[Source →](../../src/symple/)**
+**[API Reference →](../api/symple.md)** · **[Source →](https://github.com/nilstate/icey/tree/main/src/symple/)**
 
 ## Overview
 
@@ -569,7 +569,7 @@ uv::runLoop();
 
 ## Samples
 
-### [sympleconsole](../../src/symple/samples/sympleconsole/)
+### [sympleconsole](https://github.com/nilstate/icey/tree/main/src/symple/samples/sympleconsole/)
 
 An interactive console client that demonstrates connection, presence, room management, and message sending. The key pattern it illustrates is bridging blocking console I/O (`std::getchar`) to the libuv event loop using `ipc::SyncQueue`. All Symple operations must happen on the event loop thread; the IPC queue lets the console thread push work to it safely.
 
@@ -623,7 +623,7 @@ Run with:
 sympleconsole -host localhost -port 4500 -user alice -name Alice -token <token>
 ```
 
-### [symplestreamer](../../src/symple/samples/symplestreamer/)
+### [symplestreamer](https://github.com/nilstate/icey/tree/main/src/symple/samples/symplestreamer/)
 
 Demonstrates using Symple purely for signalling while actual media travels over a separate WebSocket connection. The streamer connects to Symple for peer discovery, listens for `call:init` messages, starts an MJPEG WebSocket server, and returns the stream URL to the caller in `call:accept`. The media itself never touches the Symple connection.
 
@@ -777,10 +777,10 @@ target_link_libraries(myapp PRIVATE icey::symple)
 
 - [WebRTC](webrtc.md) — `PeerSession`, `SympleSignaller`, and media pipeline
 - [HTTP](http.md) — WebSocket transport, `http::Server`, and `http::ClientConnection`
-- [Protocol spec](../../src/symple/PROTOCOL.md) — full wire protocol specification
+- [Protocol spec](https://github.com/nilstate/icey/tree/main/src/symple/PROTOCOL.md) — full wire protocol specification
 
 ## Best Next Reads
 
-- [`sympleconsole`](../../src/symple/samples/sympleconsole/README.md) for the quickest way to exercise rooms, presence, and direct messages locally
+- [`sympleconsole`](https://github.com/nilstate/icey/blob/main/src/symple/samples/sympleconsole/README.md) for the quickest way to exercise rooms, presence, and direct messages locally
 - [WebRTC](webrtc.md) if you are using Symple as the signalling transport for browser calls
-- [Media Server Stack](../recipes/media-server-stack.md) if you want to see Symple as part of a full self-hosted service
+- [Run icey-server](../run/index.md) if you want to see Symple as part of a full self-hosted service

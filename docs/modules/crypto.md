@@ -2,7 +2,7 @@
 
 > OpenSSL 3.x EVP cryptography wrapped in a clean, RAII C++ interface; hashing, HMAC, symmetric encryption, X.509 certificates, and RSA keys.
 
-**[API Reference →](../api/crypto.md)** · **[Source →](../../src/crypto/)**
+**[API Reference →](../api/crypto.md)** · **[Source →](https://github.com/nilstate/icey/tree/main/src/crypto/)**
 
 ## Overview
 

@@ -9,6 +9,6 @@
   },
   "devDependencies": {
     "moxygen": "^2.1.1",
-    "sourcey": "^3.3.5"
+    "sourcey": "file:../../sourcey"
   }
 }

@@ -51,7 +51,9 @@ It also matters for reasoning about code. A loop-local signal says something use
 
 ## Borrowed Buffers Mean Borrowed
 
+:::warning
 This is the most common mistake people make in async code.
+:::
 
 When you receive a `MutableBuffer` in `net` or `http`, that buffer is borrowed for the duration of the callback. Nothing more.
 
@@ -135,9 +137,9 @@ The base runtime now does a much better job of making that safe, but the model i
 
 ## A Few Rules That Save Real Debugging Time
 
-### Do not mutate live `PacketStream` graphs
-
-Build the graph, then start it. Tear it down after it stops. Changing topology mid-flight is one of the fastest ways to make a clean pipeline confusing.
+:::warning
+Do not mutate live `PacketStream` graphs. Build the graph, then start it. Tear it down after it stops. Changing topology mid-flight is one of the fastest ways to make a clean pipeline confusing.
+:::
 
 ### Do not widen contracts "just in case"
 

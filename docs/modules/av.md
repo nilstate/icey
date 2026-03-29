@@ -2,7 +2,7 @@
 
 > FFmpeg-backed capture, encode, decode, and mux for audio and video, wired into the PacketStream pipeline.
 
-**[API Reference →](../api/av.md)** · **[Source →](../../src/av/)**
+**[API Reference →](../api/av.md)** · **[Source →](https://github.com/nilstate/icey/tree/main/src/av/)**
 
 ## Overview
 
@@ -915,31 +915,31 @@ stream.emitter += [&counter](IPacket&) {
 
 ## Samples
 
-### [deviceenumerator](../../src/av/samples/deviceenumerator/)
+### [deviceenumerator](https://github.com/nilstate/icey/tree/main/src/av/samples/deviceenumerator/)
 
 Lists all cameras, microphones, and speakers with their full capability lists (resolutions, frame rates, pixel formats, sample rates). Also prints all detected hardware codecs and all FFmpeg input/output format names. No hardware is required to understand what this reports; run it first on any new machine to confirm device visibility.
 
-### [devicecapture](../../src/av/samples/devicecapture/)
+### [devicecapture](https://github.com/nilstate/icey/tree/main/src/av/samples/devicecapture/)
 
 Opens the default camera (or a named camera passed as argv[1]) using `negotiateVideoCapture` to pick the best parameters the device actually supports for 720p at 30fps. Captures for 5 seconds, prints a frame count, and exits cleanly. This is the minimum end-to-end example for live video capture.
 
-### [devicerecorder](../../src/av/samples/devicerecorder/)
+### [devicerecorder](https://github.com/nilstate/icey/tree/main/src/av/samples/devicerecorder/)
 
 Records H.264 video and AAC audio from the default camera and microphone to `deviceoutput.mp4` until Ctrl-C. Uses `negotiateVideoCapture` and `negotiateAudioCapture` to pick the best parameters for both devices. Both capture sources feed a single `MultiplexPacketEncoder`. This is the canonical example for the full AV capture-to-file pipeline.
 
-### [devicewatcher](../../src/av/samples/devicewatcher/)
+### [devicewatcher](https://github.com/nilstate/icey/tree/main/src/av/samples/devicewatcher/)
 
 Demonstrates hot-plug detection. Prints the initial device state, then watches for device add/remove events until Ctrl-C. Plug and unplug a camera or microphone to see `DevicesChanged` fire. Shows the thread-safety concern: the signal callback re-enumerates devices immediately, which is safe here because it runs on the event thread, but in a real application you would post a flag and enumerate on the main thread.
 
-### [filetranscode](../../src/av/samples/filetranscode/)
+### [filetranscode](https://github.com/nilstate/icey/tree/main/src/av/samples/filetranscode/)
 
 Reads a media file, re-encodes it as H.264 + AAC in MP4, and writes the result. No capture hardware required. Passing `0` for codec dimensions, channels, and rates instructs the encoder to inherit all parameters from the input file. This is the simplest example that exercises `MediaCapture`, `getEncoderFormat()`, `MultiplexPacketEncoder`, and `PacketStream` together without any device dependency.
 
-### [mjpegserver](../../src/av/samples/mjpegserver/)
+### [mjpegserver](https://github.com/nilstate/icey/tree/main/src/av/samples/mjpegserver/)
 
 HTTP MJPEG streaming server. A shared `MediaCapture` instance (file or camera; toggle `USE_AVDEVICE_CAPTURE`) is shared across all connected clients. Each HTTP connection gets its own encoding pipeline: the shared capture is attached as a non-owned source to a per-connection `PacketStream`. A `MultiplexPacketEncoder` converts frames to MJPEG, and `http::MultipartAdapter` wraps each JPEG frame with MIME multipart boundaries so browsers render it as a live stream. Open `http://localhost:328` in any browser. This pattern is the basis for any multi-client streaming server.
 
-### [wsstreamer](../../src/av/samples/wsstreamer/)
+### [wsstreamer](https://github.com/nilstate/icey/tree/main/src/av/samples/wsstreamer/)
 
 WebSocket media streamer. Identical architecture to `mjpegserver` but delivers encoded frames as WebSocket binary frames instead of HTTP multipart. Each frame is a complete JPEG. A small JavaScript snippet (`ws.onmessage`) creates a Blob URL and sets it as an image source, giving frame-by-frame video in any browser without plugins. Listens on `ws://localhost:329`.
 

@@ -13,8 +13,8 @@ A real `icey` release has two parts:
 
 The manual part stays in:
 
-- [`CHANGELOG.md`](../CHANGELOG.md)
-- [`ROADMAP.md`](../ROADMAP.md)
+- [`CHANGELOG.md`](https://github.com/nilstate/icey/blob/main/CHANGELOG.md)
+- [`ROADMAP.md`](https://github.com/nilstate/icey/blob/main/ROADMAP.md)
 
 The mechanical part is handled by the top-level release helpers:
 
@@ -183,7 +183,7 @@ What gets updated:
 
 ## Release Checklist
 
-- update [`CHANGELOG.md`](../CHANGELOG.md) and [`ROADMAP.md`](../ROADMAP.md)
+- update [`CHANGELOG.md`](https://github.com/nilstate/icey/blob/main/CHANGELOG.md) and [`ROADMAP.md`](https://github.com/nilstate/icey/blob/main/ROADMAP.md)
 - run `make release VERSION=x.y.z`
 - run `make release-check VERSION=x.y.z`
 - commit the pre-tag release metadata
@@ -195,6 +195,6 @@ What gets updated:
 
 ## Related Pages
 
-- [Installation](installation.md)
+- [Installation](build/installation.md)
 - [Contributing](contributing.md)
-- [Repository README](../README.md)
+- [Repository README](https://github.com/nilstate/icey/blob/main/README.md)

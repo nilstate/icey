@@ -2,7 +2,7 @@
 
 > HTTP/1.1 server and client, WebSocket, streaming, forms, cookies, and authentication; all async, no threads required.
 
-**[API Reference →](../api/http.md)** · **[Source →](../../src/http/)**
+**[API Reference →](../api/http.md)** · **[Source →](https://github.com/nilstate/icey/tree/main/src/http/)**
 
 ## Overview
 
@@ -902,7 +902,7 @@ cmake --build build --target httpbench httpparsebench wsbench --parallel $(nproc
 
 ## Samples
 
-### [httpechoserver](../../src/http/samples/httpechoserver/)
+### [httpechoserver](https://github.com/nilstate/icey/tree/main/src/http/samples/httpechoserver/)
 
 An HTTP/HTTPS echo server that sends the request body back as the response body. Demonstrates plain HTTP, HTTPS with `SSLSocket`, and multicore `SO_REUSEPORT` variants in a single sample.
 
@@ -961,7 +961,7 @@ void raiseMulticoreEchoServer() {
 
 Usage: `httpechoserver <key.pem> <cert.pem>`
 
-### [httpclient](../../src/http/samples/httpclient/)
+### [httpclient](https://github.com/nilstate/icey/tree/main/src/http/samples/httpclient/)
 
 A minimal HTTP GET client that prints response status, headers, and body. Demonstrates `createConnectionT`, signal-based response handling, and event loop management.
 
@@ -998,7 +998,7 @@ uv_run(uv::defaultLoop(), UV_RUN_DEFAULT);
 
 Usage: `httpclient [url]` (default: `http://example.com`)
 
-### [wsclient](../../src/http/samples/wsclient/)
+### [wsclient](https://github.com/nilstate/icey/tree/main/src/http/samples/wsclient/)
 
 A WebSocket client that connects to an echo server, sends a message, and prints the response. Demonstrates `ws://` scheme handling, the `Connect` signal timing (fires after the WebSocket handshake, not just TCP connect), and graceful shutdown via `waitForShutdown`.
 
@@ -1036,13 +1036,13 @@ To test locally, run `httpechoserver` first and connect to `ws://localhost:1337`
 
 Usage: `wsclient [url] [message]`
 
-### [httpperf](../../src/http/perf/)
+### [httpperf](https://github.com/nilstate/icey/tree/main/src/http/perf/)
 
 The comparative harness used to produce the performance table above. Includes six modes covering single-core, keep-alive, multicore `SO_REUSEPORT`, echo, and a raw libuv+llhttp baseline with zero-copy fixed buffers and no heap allocation per connection (the theoretical ceiling).
 
 Usage: `httpperf [single|keepalive|multi|echo|raw|raw-keepalive]`
 
-### [httpbench](../../src/http/bench/)
+### [httpbench](https://github.com/nilstate/icey/tree/main/src/http/bench/)
 
 Reportable HTTP microbenchmarks for request/response serialization and a small parse/write cycle. Pair with `httpparsebench` and `wsbench` when you want machine-readable hot-path numbers rather than cross-stack throughput comparisons.
 
@@ -1117,6 +1117,6 @@ uv_run(uv::defaultLoop(), UV_RUN_DEFAULT);
 - [HTTP Lifecycle](../concepts/http-lifecycle.md) for the connection, keep-alive, streaming, and upgrade flow
 - [HTTP Server](../recipes/http-server.md) for the shortest path to a real service
 - [WebSocket Client And Server](../recipes/websocket-client-server.md) for the upgrade and frame path specifically
-- [`httpechoserver`](../../src/http/samples/httpechoserver/README.md) for runnable server code
-- [`httpperf`](../../src/http/perf/README.md) if you care about cross-stack throughput rather than API surface
-- [`httpbench`](../../src/http/bench/) if you want reportable HTTP microbenchmarks
+- [`httpechoserver`](https://github.com/nilstate/icey/blob/main/src/http/samples/httpechoserver/README.md) for runnable server code
+- [`httpperf`](https://github.com/nilstate/icey/blob/main/src/http/perf/README.md) if you care about cross-stack throughput rather than API surface
+- [`httpbench`](https://github.com/nilstate/icey/tree/main/src/http/bench/) if you want reportable HTTP microbenchmarks

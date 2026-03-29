@@ -1,85 +1,96 @@
-# icey Documentation
+# icey
 
-icey exists because the usual C++ stack for realtime and media work is a mess. HTTP on one side, FFmpeg on another, WebRTC hidden behind Google's toolchain, TURN treated as somebody else's problem, and the docs scattered across a README, generated API, and sample code.
+The usual C++ stack for realtime and media work is a mess. HTTP on one side, FFmpeg on another, WebRTC hidden behind Google's monolith, TURN treated as somebody else's problem, signalling left as an exercise for the reader.
 
-icey pulls those layers into one library with one runtime model. libuv for the loop, PacketStream for the data plane, FFmpeg for media, libdatachannel for WebRTC transport, Symple for signalling, TURN when NAT gets ugly.
+icey pulls those layers into one runtime. WebRTC, signalling, TURN relay, and media encoding in one C++ stack. Run it as a product. Embed it as a library. Same modules either way.
 
-If you are here to do a specific job, start there first.
+A small `PacketStream` graph is the core shape:
+
+```cpp
+PacketStream stream;
+stream.attachSource(capture.get());
+stream.attach(&session->media().videoSender(), 5);
+stream.start();
+```
+
+If you're evaluating alternatives, the split is simple:
+
+| | libWebRTC (Google) | libdatachannel | GStreamer | **icey** |
+| --- | --- | --- | --- | --- |
+| Build system | GN/Ninja | CMake | Meson | **CMake** |
+| Build time | Hours | Minutes | 30+ min | **Minutes** |
+| Binary size | 50MB+ | Small | Large | **Small** |
+| SSL | BoringSSL (conflicts) | OpenSSL | OpenSSL | **OpenSSL** |
+| Media codecs | Bundled | None | GObject plugins | **FFmpeg (any codec)** |
+| Capture/encode | Included | No | Plugin pipeline | **PacketStream pipeline** |
+| Signalling | No | No | No | **Symple (built-in)** |
+| TURN server | No | No | No | **RFC 5766 (built-in)** |
+| Language | C++ | C++17 | C/GObject | **C++20** |
+
+libdatachannel gives you the WebRTC transport pipe. icey gives you the pipe, the water, and the faucet.
+
+## See It Work
+
+:::steps
+
+1. Run the server
+
+   ```bash
+   docker run --rm --network host 0state/icey
+   ```
+
+2. Open `http://localhost:4500`
+
+3. Click **Watch** on the `icey` peer
+
+:::
+
+Live video in your browser. One binary, no external services.
+
+That binary — `icey-server` — is built entirely from icey's library modules. The same modules you can use in your own C++ application. The server proves the library works. The library means you are not locked into the server's opinions.
+
+:::card-group{cols="3"}
+
+::card{title="Run" icon="play" href="run/"}
+Install and run icey-server. Docker, release binaries, package managers. Stream, record, or relay in under a minute.
+::
+
+::card{title="Build" icon="code" href="build/getting-started"}
+Use icey modules in your own C++ project. FetchContent, CMake targets, recipes for HTTP, WebRTC, TURN, and more.
+::
+
+::card{title="Operate" icon="settings" href="operate/config"}
+Deploy to production. Config reference, TLS, TURN, health endpoints, monitoring, and troubleshooting.
+::
+
+:::
 
 ## Start With The Job
 
-| Goal | Best first page | Next concrete stop |
-| --- | --- | --- |
-| Build icey and link a first program | [Getting Started](getting-started.md) | [Installation](installation.md) |
-| Understand the runtime rules before writing code | [Runtime Contracts](concepts/runtime-contracts.md) | [PacketStream](concepts/packetstream.md) and [HTTP Lifecycle](concepts/http-lifecycle.md) |
-| Understand the module layout | [Module Map](modules.md) | one of the module guides below |
-| Build a fast HTTP service | [HTTP Server](recipes/http-server.md) | [HTTP performance harness](../src/http/perf/README.md) |
-| Build a WebSocket client or upgraded server | [WebSocket Client And Server](recipes/websocket-client-server.md) | [HTTP Lifecycle](concepts/http-lifecycle.md) |
-| Run your own TURN relay | [TURN Server](recipes/turn-server.md) | [turnserver sample](../src/turn/samples/turnserver/README.md) |
-| Stream a webcam to a browser | [Webcam To Browser](recipes/webrtc-webcam-to-browser.md) | [webcam-streamer sample](../src/webrtc/samples/webcam-streamer/README.md) |
-| Record browser media on the server | [Browser To Recorder](recipes/webrtc-browser-to-recorder.md) | [media-recorder sample](../src/webrtc/samples/media-recorder/README.md) |
-| Run the self-hosted media stack | [Media Server Stack](recipes/media-server-stack.md) | deploy the separate `icey-cli` server surface |
+| Goal | Start here |
+| --- | --- |
+| Run the media server now | [See It Work](run/) |
+| Install icey-server | [Install](run/install) |
+| Understand the three modes (stream, record, relay) | [Modes](run/modes) |
+| Understand how the server maps to the library | [Architecture](concepts/architecture) |
+| Build icey into my own C++ project | [Getting Started](build/getting-started) |
+| Understand the runtime rules | [Runtime Contracts](concepts/runtime-contracts) |
+| Understand the module layout | [Module Map](modules) |
+| Build a fast HTTP service | [HTTP Server](recipes/http-server) |
+| Stream a webcam to a browser | [Webcam To Browser](recipes/webrtc-webcam-to-browser) |
+| Record browser media on the server | [Browser To Recorder](recipes/webrtc-browser-to-recorder) |
+| Deploy to production | [Deploy](operate/deploy) |
+| Configure TLS | [TLS](operate/tls) |
+| Debug a TURN problem | [TURN Deployment](operate/turn) |
 
-## What These Pages Are For
+## Docs vs API Reference
 
-These docs and the generated API reference are not trying to do the same thing.
+The pages here explain architecture, runtime contracts, workflows, and operations. The **API Reference** tab is the generated C++ reference from Doxygen. Use the prose docs to understand the shape. Use the API tab for exact type signatures.
 
-- The pages here explain architecture, runtime rules, workflows, and operations.
-- The `API Reference` tab is the canonical generated reference surface in the site.
-- The `src/*/README.md` files stay as the exact local docs for samples, apps, benchmarks, and important source directories.
+## Repository
 
-Use the prose docs when you need to understand the shape of the system. Use the API tab when you need the exact surface of a type.
-
-## The Shape Of The System
-
-icey is organized around a few load-bearing modules:
-
-- [`base`](modules/base.md): event loop, signals, PacketStream, handles, timers, logging, buffers, and the rest of the runtime substrate
-- [`net`](modules/net.md) and [`http`](modules/http.md): sockets, TLS, HTTP client/server, WebSocket, streaming, and transport adapters
-- [`av`](modules/av.md) and [`webrtc`](modules/webrtc.md): capture, encode/decode, RTP track send/receive, session control, and browser media flows
-- [`vision`](modules/vision.md) and [`speech`](modules/speech.md): sampled decoded-media analysis and event emission without changing the transport layer
-- [`symple`](modules/symple.md), [`stun`](modules/stun.md), and [`turn`](modules/turn.md): signalling, presence, NAT traversal, and relay
-
-A lot of icey reduces to this:
-
-```text
-source -> PacketStream -> processors -> sink
-
-camera/file/network -> encode/decode/transform -> socket / recorder / WebRTC track
-```
-
-That shape keeps showing up across the library:
-
-- HTTP payloads and upgraded WebSocket connections run on the same base/net runtime
-- TURN and STUN build on the same socket, buffer, and crypto foundations
-- WebRTC media send/receive uses PacketStream to connect capture, encode/decode, and track transport
-
-## Where To Go Next
-
-- Start with [Getting Started](getting-started.md) if you need a buildable first program quickly.
-- Use [Module Map](modules.md) if you want to understand where a feature lives before diving into code.
-- Go straight to a module guide if you already know the subsystem you need.
-- Use the generated API reference when you need type/member detail rather than design guidance.
-
-## Good First Stops
-
-- [Base](modules/base.md) if you need to understand runtime contracts, loops, signals, or PacketStream.
-- [Runtime Contracts](concepts/runtime-contracts.md) if you want the rules without reading three module guides to find them.
-- [PacketStream](concepts/packetstream.md) if you are working on capture, encode/decode, or transport pipelines.
-- [HTTP Lifecycle](concepts/http-lifecycle.md) if you care about keep-alive reuse, streaming, or WebSocket upgrade flow.
-- [HTTP](modules/http.md) if you care about throughput, keep-alive, WebSocket upgrade, or streaming.
-- [WebSocket Client And Server](recipes/websocket-client-server.md) if the handshake and frame path is the thing you are actually building.
-- [WebRTC](modules/webrtc.md) if you are building browser media flows.
-- [Vision](modules/vision.md) if you need decoded frame sampling, async detection boundaries, or event emission.
-- [Speech](modules/speech.md) if you need decoded audio branching, VAD, or speech activity events.
-- [TURN](modules/turn.md) if you need self-hosted relay for difficult NATs.
-- [Symple](modules/symple.md) if you need signalling, presence, rooms, or call control transport.
-
-## Repository Context
-
-If you are reading the docs inside the repository, these are also useful:
-
-- [Repository README](../README.md)
+- [README](https://github.com/nilstate/icey/blob/main/README.md)
 - [Contributing](contributing.md)
+- [Repository Conventions](conventions.md)
 - [Releasing](releasing.md)
-- [Change log](../CHANGELOG.md)
+- [Changelog](https://github.com/nilstate/icey/blob/main/CHANGELOG.md)

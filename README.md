@@ -147,8 +147,11 @@ See [src/http/perf/](src/http/perf/) for the cross-stack methodology, and [src/h
 
 If you just want the right page:
 
-- Build and link your first program: [docs/getting-started.md](docs/getting-started.md)
-- Full build and install options: [docs/installation.md](docs/installation.md)
+- Run icey-server: [docs/run/index.md](docs/run/index.md)
+- Install icey-server: [docs/run/install.md](docs/run/install.md)
+- Deploy to production: [docs/operate/deploy.md](docs/operate/deploy.md)
+- Build and link your first program: [docs/build/getting-started.md](docs/build/getting-started.md)
+- Full library build and install: [docs/build/installation.md](docs/build/installation.md)
 - Module map and dependency picture: [docs/modules.md](docs/modules.md)
 - HTTP and WebSocket: [docs/modules/http.md](docs/modules/http.md)
 - TURN relay: [docs/modules/turn.md](docs/modules/turn.md)

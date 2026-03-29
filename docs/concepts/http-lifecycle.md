@@ -232,6 +232,6 @@ without turning into a giant pile of special cases.
 
 - [HTTP](../modules/http.md) for the full module guide
 - [Runtime Contracts](runtime-contracts.md) for loop, buffer, and send ownership rules
-- [HTTP performance harness](../../src/http/perf/README.md) if you care about cross-stack throughput runs
-- [HTTP microbenchmarks](../../src/http/bench/) if you want reportable hot-path numbers
-- [wsclient sample](../../src/http/samples/wsclient/) for the standalone WebSocket client path
+- [HTTP performance harness](https://github.com/nilstate/icey/blob/main/src/http/perf/README.md) if you care about cross-stack throughput runs
+- [HTTP microbenchmarks](https://github.com/nilstate/icey/tree/main/src/http/bench/) if you want reportable hot-path numbers
+- [wsclient sample](https://github.com/nilstate/icey/tree/main/src/http/samples/wsclient/) for the standalone WebSocket client path
