@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cmake -S . -B build -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_INSTALL_PREFIX="${PREFIX}" \
+  -DBUILD_SHARED_LIBS=ON \
+  -DUSE_SYSTEM_DEPS=ON \
+  -DBUILD_TESTS=OFF \
+  -DBUILD_SAMPLES=OFF \
+  -DBUILD_APPLICATIONS=OFF \
+  -DBUILD_FUZZERS=OFF \
+  -DBUILD_BENCHMARKS=OFF \
+  -DBUILD_PERF=OFF \
+  -DBUILD_ALPHA=OFF \
+  -DCMAKE_DISABLE_FIND_PACKAGE_Doxygen=TRUE \
+  -DENABLE_NATIVE_ARCH=OFF \
+  -DWITH_FFMPEG=ON \
+  -DWITH_LIBDATACHANNEL=OFF \
+  -DBUILD_MODULE_webrtc=OFF \
+  -DWITH_OPENCV=OFF
+
+cmake --build build -j"${CPU_COUNT:-1}"
+cmake --install build

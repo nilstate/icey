@@ -1,0 +1,52 @@
+{% set name = "icey" %}
+{% set version = "2.4.0" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  url: https://github.com/nilstate/icey/archive/refs/tags/{{ version }}.tar.gz
+  sha256: 0c402b56093f392613b61320087bb888d291e80cdcb038dbb360555b6e1b6cc3
+
+build:
+  number: 0
+  skip: true  # [win]
+  run_exports:
+    - {{ pin_subpackage("icey", max_pin="x") }}
+
+requirements:
+  build:
+    - {{ compiler('cxx') }}
+    - cmake >=3.21
+    - ninja
+    - pkg-config
+  host:
+    - ffmpeg >=5
+    - libuv
+    - llhttp
+    - minizip
+    - openssl >=3
+    - zlib
+
+test:
+  commands:
+    - test -f ${PREFIX}/include/icy/base/base.h  # [unix]
+    - test -f ${PREFIX}/lib/pkgconfig/icey.pc  # [unix]
+
+about:
+  home: https://0state.com/icey/
+  summary: C++20 media stack and libwebrtc alternative for real-time video, signalling, TURN, and media servers
+  description: |
+    icey is a modular C++20 media stack and libwebrtc alternative for
+    real-time video, signalling, TURN, HTTP, and media server workloads.
+    The conda-forge recipe keeps FFmpeg enabled and leaves WebRTC disabled
+    until libdatachannel packaging is standardized there.
+  license: LGPL-2.1-or-later
+  license_file: LICENSE.md
+  dev_url: https://github.com/nilstate/icey
+  doc_url: https://0state.com/icey/docs
+
+extra:
+  recipe-maintainers:
+    - nilstate

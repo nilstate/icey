@@ -5,8 +5,8 @@ else()
     vcpkg_from_github(
         OUT_SOURCE_PATH SOURCE_PATH
         REPO nilstate/icey
-        REF "2.3.0"
-        SHA512 8ac194aa4da0b6ad315cf86923dab0364259a979fccd9cc9f61c6c8fbcb525924be67bd56bd47f1991883bf11c77bd45b5da6f1ac8c02f73ca28ee0c0a3fa869
+        REF "2.4.0"
+        SHA512 496f3682ebbdaf4ebdba06d5b81fa7bbcbb4f45b97a270edbc7c0c34eccb00a8bd62cbc7f9c434bb816ac5245eaa0590ad10011a19704ffdb6e6ef75dd006637
         HEAD_REF master
     )
 endif()

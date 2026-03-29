@@ -8,6 +8,7 @@ dist
 build*
 !docs/build/
 !docs/build/*.md
+!packaging/conda-forge/build.sh
 private
 doxygen2md
 _book

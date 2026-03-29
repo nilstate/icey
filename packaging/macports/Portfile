@@ -1,0 +1,48 @@
+PortSystem          1.0
+PortGroup           cmake 1.1
+PortGroup           github 1.0
+
+github.setup        nilstate icey 2.4.0
+github.tarball_from archive
+
+categories          devel multimedia net
+maintainers         nomaintainer
+license             LGPL-2.1+
+homepage            https://0state.com/icey/
+description         C++20 media stack and libwebrtc alternative for real-time video, signalling, TURN, and media servers
+long_description    ${description}
+
+checksums           rmd160  e362ca032690894cc65a3ecde0e8d28f6b2d4f5b \
+                    sha256  0c402b56093f392613b61320087bb888d291e80cdcb038dbb360555b6e1b6cc3 \
+                    size    6377908
+
+depends_build-append \
+                    port:pkgconfig
+
+depends_lib-append  \
+                    port:ffmpeg \
+                    port:libuv \
+                    port:llhttp \
+                    port:minizip \
+                    port:openssl3 \
+                    port:zlib
+
+configure.args-append \
+                    -DBUILD_SHARED_LIBS=ON \
+                    -DUSE_SYSTEM_DEPS=ON \
+                    -DBUILD_TESTS=OFF \
+                    -DBUILD_SAMPLES=OFF \
+                    -DBUILD_APPLICATIONS=OFF \
+                    -DBUILD_FUZZERS=OFF \
+                    -DBUILD_BENCHMARKS=OFF \
+                    -DBUILD_PERF=OFF \
+                    -DBUILD_ALPHA=OFF \
+                    -DCMAKE_DISABLE_FIND_PACKAGE_Doxygen=TRUE \
+                    -DENABLE_NATIVE_ARCH=OFF \
+                    -DWITH_FFMPEG=ON \
+                    -DWITH_LIBDATACHANNEL=OFF \
+                    -DBUILD_MODULE_webrtc=OFF \
+                    -DWITH_OPENCV=OFF \
+                    -DOPENSSL_ROOT_DIR=${prefix}/libexec/openssl3
+
+test.run            no

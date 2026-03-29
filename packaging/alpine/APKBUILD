@@ -1,0 +1,54 @@
+# Contributor: 0state OSS <oss@0state.com>
+# Maintainer: 0state OSS <oss@0state.com>
+pkgname=icey
+pkgver=2.4.0
+pkgrel=0
+pkgdesc="C++20 media stack and libwebrtc alternative for real-time video, signalling, TURN, and media servers"
+url="https://0state.com/icey/"
+arch="all"
+license="LGPL-2.1-or-later"
+options="!check"
+makedepends="
+	cmake
+	ffmpeg-dev
+	libuv-dev
+	llhttp-dev
+	minizip-dev
+	openssl-dev
+	pkgconf
+	samurai
+	zlib-dev
+"
+subpackages="$pkgname-dev"
+source="$pkgname-$pkgver.tar.gz::https://github.com/nilstate/icey/archive/refs/tags/$pkgver.tar.gz"
+sha512sums="
+496f3682ebbdaf4ebdba06d5b81fa7bbcbb4f45b97a270edbc7c0c34eccb00a8bd62cbc7f9c434bb816ac5245eaa0590ad10011a19704ffdb6e6ef75dd006637  icey-2.4.0.tar.gz
+"
+
+build() {
+	cmake -G Ninja -B build -S "$builddir/$pkgname-$pkgver" \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DBUILD_SHARED_LIBS=ON \
+		-DUSE_SYSTEM_DEPS=ON \
+		-DBUILD_TESTS=OFF \
+		-DBUILD_SAMPLES=OFF \
+		-DBUILD_APPLICATIONS=OFF \
+		-DBUILD_FUZZERS=OFF \
+		-DBUILD_BENCHMARKS=OFF \
+		-DBUILD_PERF=OFF \
+		-DBUILD_ALPHA=OFF \
+		-DCMAKE_DISABLE_FIND_PACKAGE_Doxygen=TRUE \
+		-DENABLE_NATIVE_ARCH=OFF \
+		-DWITH_FFMPEG=ON \
+		-DWITH_LIBDATACHANNEL=OFF \
+		-DBUILD_MODULE_webrtc=OFF \
+		-DWITH_OPENCV=OFF
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+	install -Dm644 "$builddir/$pkgname-$pkgver/LICENSE.md" \
+		"$pkgdir/usr/share/licenses/$pkgname/LICENSE.md"
+}
