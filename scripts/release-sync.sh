@@ -54,7 +54,7 @@ perl -0pi -e 's/^[0-9a-f]{128}[[:space:]]+icey-\d+\.\d+\.\d+\.tar\.gz$/000000000
 perl -0pi -e 's/github.setup\s+nilstate\s+icey\s+\d+\.\d+\.\d+/github.setup        nilstate icey '"$version"'/g' packaging/macports/Portfile
 perl -0pi -e 's/^([[:space:]]*rmd160[[:space:]]+)[0-9a-f]{40}( \\\\)$/\10000000000000000000000000000000000000000\2/m' packaging/macports/Portfile
 perl -0pi -e 's/^([[:space:]]*sha256[[:space:]]+)[0-9a-f]{64}( \\\\)$/\10000000000000000000000000000000000000000000000000000000000000000\2/m' packaging/macports/Portfile
-perl -0pi -e 's/^([[:space:]]*size[[:space:]]+)\d+$/\10/m' packaging/macports/Portfile
+perl -0pi -e 's/^([[:space:]]*size[[:space:]]+)\d+$/${1}0/m' packaging/macports/Portfile
 perl -0pi -e 's/version\("\d+\.\d+\.\d+", sha256="[0-9a-f]+"\)/version("'"$version"'", sha256="0000000000000000000000000000000000000000000000000000000000000000")/' packaging/spack/package.py
 perl -0pi -e 's/\{\% set version = "\d+\.\d+\.\d+" \%\}/{% set version = "'"$version"'" %}/' packaging/conda-forge/meta.yaml
 perl -0pi -e 's/^  sha256: [0-9a-f]{64}$/  sha256: 0000000000000000000000000000000000000000000000000000000000000000/m' packaging/conda-forge/meta.yaml

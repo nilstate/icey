@@ -1,0 +1,148 @@
+name: Publish Debian Source
+
+on:
+  push:
+    tags:
+      - "*.*.*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-source:
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate release metadata
+        id: meta
+        run: |
+          version="$(tr -d '[:space:]' < VERSION)"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+          if [[ "${GITHUB_EVENT_NAME}" == "push" ]]; then
+            tag="${GITHUB_REF_NAME}"
+            case "$tag" in
+              [0-9]*.[0-9]*.[0-9]*) ;;
+              *)
+                echo "expected a plain semantic version tag, got: $tag" >&2
+                exit 1
+                ;;
+            esac
+            [[ "$tag" == "$version" ]] || {
+              echo "VERSION contains $version, expected $tag" >&2
+              exit 1
+            }
+            git fetch origin main --no-tags
+            git merge-base --is-ancestor "${GITHUB_SHA}" origin/main || {
+              echo "release tags must point to commits reachable from origin/main" >&2
+              exit 1
+            }
+          fi
+
+          ./scripts/release-check.sh "$version"
+
+      - name: Install packaging dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            cmake \
+            curl \
+            debhelper \
+            devscripts \
+            dpkg-dev \
+            dput \
+            gnupg \
+            libavcodec-dev libavdevice-dev libavformat-dev libavutil-dev \
+            libnice-dev \
+            libssl-dev \
+            libsrtp2-dev \
+            libswresample-dev libswscale-dev \
+            libusrsctp-dev \
+            nlohmann-json3-dev \
+            pkgconf \
+            rsync
+
+      - name: Build Debian source package
+        run: ./scripts/package-debian-source.sh "${{ steps.meta.outputs.version }}"
+        env:
+          DEBIAN_DISTRIBUTION: unstable
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: debian-source-${{ steps.meta.outputs.version }}
+          path: |
+            build/package/debian/*.dsc
+            build/package/debian/*.debian.tar.*
+            build/package/debian/*.orig.tar.gz
+            build/package/debian/*_source.changes
+            build/package/debian/*.buildinfo
+
+  publish-ppa:
+    runs-on: ubuntu-24.04
+    needs: build-source
+    steps:
+      - name: Check PPA publish credentials
+        id: gate
+        env:
+          PPA_GPG_PRIVATE_KEY: ${{ secrets.PPA_GPG_PRIVATE_KEY }}
+        run: |
+          if [[ -n "${PPA_GPG_PRIVATE_KEY:-}" ]]; then
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping PPA publish: PPA_GPG_PRIVATE_KEY is not configured."
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.gate.outputs.publish == 'true'
+
+      - name: Install upload dependencies
+        if: steps.gate.outputs.publish == 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y devscripts dput gnupg
+
+      - uses: actions/download-artifact@v4
+        if: steps.gate.outputs.publish == 'true'
+        with:
+          name: debian-source-${{ needs.build-source.outputs.version }}
+          path: .stage/debian-source
+
+      - name: Import PPA signing key
+        if: steps.gate.outputs.publish == 'true'
+        env:
+          PPA_GPG_PRIVATE_KEY: ${{ secrets.PPA_GPG_PRIVATE_KEY }}
+          PPA_GPG_PASSPHRASE: ${{ secrets.PPA_GPG_PASSPHRASE }}
+        run: |
+          export GNUPGHOME="$RUNNER_TEMP/ppa-gnupg"
+          mkdir -p "$GNUPGHOME"
+          chmod 700 "$GNUPGHOME"
+          printf '%s\n' "$PPA_GPG_PRIVATE_KEY" | gpg --batch --import
+          key_id="$(gpg --batch --with-colons --list-secret-keys | awk -F: '/^sec:/ { print $5; exit }')"
+          if [[ -z "$key_id" ]]; then
+            echo "Failed to discover imported PPA signing key" >&2
+            exit 1
+          fi
+          echo "GNUPGHOME=$GNUPGHOME" >> "$GITHUB_ENV"
+          echo "PPA_SIGNING_KEY_ID=$key_id" >> "$GITHUB_ENV"
+          if [[ -n "${PPA_GPG_PASSPHRASE:-}" ]]; then
+            echo "PPA_GPG_PASSPHRASE=$PPA_GPG_PASSPHRASE" >> "$GITHUB_ENV"
+          fi
+
+      - name: Publish to Launchpad PPA
+        if: steps.gate.outputs.publish == 'true'
+        env:
+          PPA_TARGET: ${{ vars.PPA_TARGET }}
+        run: |
+          changes_file="$(find .stage/debian-source -maxdepth 1 -type f -name '*_source.changes' | head -n1)"
+          if [[ -z "$changes_file" ]]; then
+            echo "No Debian source changes file found to upload" >&2
+            exit 1
+          fi
+          ./scripts/publish-ppa.sh "$changes_file" "${PPA_TARGET:-ppa:nilstate/icey}"

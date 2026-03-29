@@ -44,7 +44,7 @@ fi
 perl -0pi -e 's/github.setup\s+nilstate\s+icey\s+\d+\.\d+\.\d+/github.setup        nilstate icey '"$version"'/g' packaging/macports/Portfile
 perl -0pi -e 's/^([[:space:]]*rmd160[[:space:]]+)[0-9a-f]{40}( \\\\)$/\1'"$rmd160"'\2/m' packaging/macports/Portfile
 perl -0pi -e 's/^([[:space:]]*sha256[[:space:]]+)[0-9a-f]{64}( \\\\)$/\1'"$sha256"'\2/m' packaging/macports/Portfile
-perl -0pi -e 's/^([[:space:]]*size[[:space:]]+)\d+$/\1'"$size"'/m' packaging/macports/Portfile
+perl -0pi -e 's/^([[:space:]]*size[[:space:]]+)\d+$/${1}'"$size"'/m' packaging/macports/Portfile
 
 echo "updated packaging/macports/Portfile for $version"
 echo "rmd160: $rmd160"
