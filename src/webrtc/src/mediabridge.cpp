@@ -79,6 +79,31 @@ bool receives(rtc::Description::Direction direction)
 }
 
 
+template <typename Fn>
+void sendTrackFeedback(const std::shared_ptr<rtc::Track>& track,
+                       const char* feedbackName,
+                       Fn&& fn)
+{
+    if (!track)
+        return;
+
+    // Receive-only tracks can exist before libdatachannel reports them open.
+    // Feedback is best-effort, so skip early or late requests instead of
+    // letting transport timing crash the process.
+    if (!track->isOpen()) {
+        LDebug("Ignoring ", feedbackName, " request on non-open track");
+        return;
+    }
+
+    try {
+        fn(*track);
+    }
+    catch (const std::exception& exc) {
+        LDebug("Ignoring ", feedbackName, " request: ", exc.what());
+    }
+}
+
+
 void applyReceiveVideoDescription(const std::shared_ptr<rtc::Track>& track,
                                   const MediaBridge::Options& opts)
 {
@@ -237,8 +262,9 @@ void MediaBridge::requestKeyframe()
 {
     std::lock_guard lock(_mutex);
     auto track = _videoReceiveTrack ? _videoReceiveTrack : _videoHandle.track;
-    if (track)
-        track->requestKeyframe();
+    sendTrackFeedback(track, "keyframe", [](rtc::Track& selectedTrack) {
+        selectedTrack.requestKeyframe();
+    });
 }
 
 
@@ -246,8 +272,9 @@ void MediaBridge::requestBitrate(unsigned int bitrate)
 {
     std::lock_guard lock(_mutex);
     auto track = _videoReceiveTrack ? _videoReceiveTrack : _videoHandle.track;
-    if (track)
-        track->requestBitrate(bitrate);
+    sendTrackFeedback(track, "bitrate", [bitrate](rtc::Track& selectedTrack) {
+        selectedTrack.requestBitrate(bitrate);
+    });
 }
 
 

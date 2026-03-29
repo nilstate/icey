@@ -1002,6 +1002,34 @@ int main(int argc, char** argv)
         pc->close();
     });
 
+    describe("media bridge: feedback on unopened receive-only track is ignored", []() {
+        rtc::Configuration config;
+        auto pc = std::make_shared<rtc::PeerConnection>(config);
+
+        MediaBridge bridge;
+        MediaBridge::Options opts;
+        opts.videoCodec = av::VideoCodec("H264", 640, 480, 30);
+        opts.videoDirection = rtc::Description::Direction::RecvOnly;
+
+        bridge.attach(pc, opts);
+        expect(bridge.attached());
+        expect(bridge.hasVideo());
+        expect(bridge.videoTrack() != nullptr);
+
+        bool threw = false;
+        try {
+            bridge.requestKeyframe();
+            bridge.requestBitrate(512000);
+        }
+        catch (...) {
+            threw = true;
+        }
+        expect(!threw);
+
+        bridge.detach();
+        pc->close();
+    });
+
     describe("media bridge: video + audio", []() {
         rtc::Configuration config;
         auto pc = std::make_shared<rtc::PeerConnection>(config);
