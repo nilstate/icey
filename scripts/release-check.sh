@@ -47,8 +47,41 @@ grep -Eq '^  url "https://github.com/nilstate/icey/archive/refs/tags/'"$version"
     || fail "packaging/homebrew/Formula/icey.rb source URL is not synced to $version"
 grep -Eq '^  version "'"$version"'"$' packaging/homebrew/Formula/icey.rb \
     || fail "packaging/homebrew/Formula/icey.rb is not synced to $version"
+grep -Eq '^  sha256 "[0-9a-f]{64}"$' packaging/homebrew/Formula/icey.rb \
+    || fail "packaging/homebrew/Formula/icey.rb is missing a real sha256"
+grep -Eq '^        REF "'"$version"'"$' packaging/vcpkg/icey/portfile.cmake \
+    || fail "packaging/vcpkg/icey/portfile.cmake REF is not synced to $version"
+grep -Eq '^        SHA512 [0-9a-f]{128}$' packaging/vcpkg/icey/portfile.cmake \
+    || fail "packaging/vcpkg/icey/portfile.cmake is missing a real SHA512"
+grep -Eq '^Version:[[:space:]]+'"${version}"'$' packaging/rpm/icey.spec \
+    || fail "packaging/rpm/icey.spec is not synced to $version"
+grep -Eq '^pkgver='"$version"'$' packaging/alpine/APKBUILD \
+    || fail "packaging/alpine/APKBUILD is not synced to $version"
+grep -Eq '^github.setup[[:space:]]+nilstate[[:space:]]+icey[[:space:]]+'"${version}"'$' packaging/macports/Portfile \
+    || fail "packaging/macports/Portfile is not synced to $version"
+grep -Eq '^    version\("'"$version"'", sha256="[0-9a-f]{64}"\)$' packaging/spack/package.py \
+    || fail "packaging/spack/package.py is not synced to $version"
+grep -Eq '^\{\% set version = "'"$version"'" \%\}$' packaging/conda-forge/meta.yaml \
+    || fail "packaging/conda-forge/meta.yaml is not synced to $version"
 grep -Eq '^icey \('"$version"'-1\) ' packaging/debian/debian/changelog \
     || fail "packaging/debian/debian/changelog is not synced to $version-1"
+
+grep -Eq '^  sha256 "0{64}"$' packaging/homebrew/Formula/icey.rb \
+    && fail "packaging/homebrew/Formula/icey.rb still has a placeholder sha256"
+grep -Eq '^        SHA512 0{128}$' packaging/vcpkg/icey/portfile.cmake \
+    && fail "packaging/vcpkg/icey/portfile.cmake still has a placeholder SHA512"
+grep -Eq '^0{128}[[:space:]]+icey-'"$version"'\.tar\.gz$' packaging/alpine/APKBUILD \
+    && fail "packaging/alpine/APKBUILD still has a placeholder sha512"
+grep -Eq '^                    rmd160[[:space:]]+0{40} \\\\$' packaging/macports/Portfile \
+    && fail "packaging/macports/Portfile still has a placeholder rmd160"
+grep -Eq '^                    sha256[[:space:]]+0{64} \\\\$' packaging/macports/Portfile \
+    && fail "packaging/macports/Portfile still has a placeholder sha256"
+grep -Eq '^                    size[[:space:]]+0$' packaging/macports/Portfile \
+    && fail "packaging/macports/Portfile still has a placeholder size"
+grep -Eq '^    version\("'"$version"'", sha256="0{64}"\)$' packaging/spack/package.py \
+    && fail "packaging/spack/package.py still has a placeholder sha256"
+grep -Eq '^  sha256: 0{64}$' packaging/conda-forge/meta.yaml \
+    && fail "packaging/conda-forge/meta.yaml still has a placeholder sha256"
 
 for file in "${docs[@]}"; do
     grep -Eq 'GIT_TAG '"$version"'([^0-9]|$)' "$file" \

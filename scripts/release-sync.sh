@@ -43,9 +43,21 @@ perl -0pi -e 's/^[[:space:]]*pkgver = \d+\.\d+\.\d+$/\tpkgver = '"$version"'/m' 
 perl -0pi -e 's/^[[:space:]]*pkgrel = \d+$/\tpkgrel = 1/m' packaging/arch/.SRCINFO
 perl -0pi -e 's#^[[:space:]]*source = [^[:space:]]+$#\tsource = icey-'"$version"'.tar.gz::https://github.com/nilstate/icey/archive/refs/tags/'"$version"'.tar.gz#m' packaging/arch/.SRCINFO
 perl -0pi -e 's/^[[:space:]]*sha256sums = [0-9a-f]+$/\tsha256sums = 0000000000000000000000000000000000000000000000000000000000000000/m' packaging/arch/.SRCINFO
+perl -0pi -e 's/REF "\d+\.\d+\.\d+"/REF "'"$version"'"/' packaging/vcpkg/icey/portfile.cmake
+perl -0pi -e 's/SHA512 [0-9a-f]+/SHA512 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000/' packaging/vcpkg/icey/portfile.cmake
 perl -0pi -e 's#url "https://github.com/nilstate/icey/archive/refs/tags/\d+\.\d+\.\d+\.tar\.gz"#url "https://github.com/nilstate/icey/archive/refs/tags/'"$version"'.tar.gz"#' packaging/homebrew/Formula/icey.rb
 perl -0pi -e 's/version "\d+\.\d+\.\d+"/version "'"$version"'"/' packaging/homebrew/Formula/icey.rb
 perl -0pi -e 's/sha256 "[0-9a-f]+"/sha256 "0000000000000000000000000000000000000000000000000000000000000000"/' packaging/homebrew/Formula/icey.rb
+perl -0pi -e 's/^Version:\s+\d+\.\d+\.\d+$/Version:        '"$version"'/m' packaging/rpm/icey.spec
+perl -0pi -e 's/^pkgver=\d+\.\d+\.\d+$/pkgver='"$version"'/m' packaging/alpine/APKBUILD
+perl -0pi -e 's/^[0-9a-f]{128}[[:space:]]+icey-\d+\.\d+\.\d+\.tar\.gz$/00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000  icey-'"$version"'.tar.gz/m' packaging/alpine/APKBUILD
+perl -0pi -e 's/github.setup\s+nilstate\s+icey\s+\d+\.\d+\.\d+/github.setup        nilstate icey '"$version"'/g' packaging/macports/Portfile
+perl -0pi -e 's/^([[:space:]]*rmd160[[:space:]]+)[0-9a-f]{40}( \\\\)$/\10000000000000000000000000000000000000000\2/m' packaging/macports/Portfile
+perl -0pi -e 's/^([[:space:]]*sha256[[:space:]]+)[0-9a-f]{64}( \\\\)$/\10000000000000000000000000000000000000000000000000000000000000000\2/m' packaging/macports/Portfile
+perl -0pi -e 's/^([[:space:]]*size[[:space:]]+)\d+$/\10/m' packaging/macports/Portfile
+perl -0pi -e 's/version\("\d+\.\d+\.\d+", sha256="[0-9a-f]+"\)/version("'"$version"'", sha256="0000000000000000000000000000000000000000000000000000000000000000")/' packaging/spack/package.py
+perl -0pi -e 's/\{\% set version = "\d+\.\d+\.\d+" \%\}/{% set version = "'"$version"'" %}/' packaging/conda-forge/meta.yaml
+perl -0pi -e 's/^  sha256: [0-9a-f]{64}$/  sha256: 0000000000000000000000000000000000000000000000000000000000000000/m' packaging/conda-forge/meta.yaml
 perl -0pi -e 's/^icey \(\d+\.\d+\.\d+-\d+\) /icey ('"$version"'-1) /m' packaging/debian/debian/changelog
 perl -0pi -e 's/^ -- .*$/ -- 0state OSS <oss\@0state.com>  '"$(date -R)"'/m' packaging/debian/debian/changelog
 
