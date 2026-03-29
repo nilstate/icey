@@ -141,6 +141,7 @@ public:
     {
         std::string host = "0.0.0.0";
         uint16_t port = 4500;
+        net::TCPSocket::Ptr socket;   ///< Optional pre-created listen socket (e.g. SSLSocket for HTTPS/WSS).
         bool authentication = false;  ///< Require token in auth message
         bool dynamicRooms = true;     ///< Allow clients to join/leave rooms
 

@@ -179,10 +179,18 @@ void Server::start(const Options& opts,
     _opts = opts;
     _httpFallback = std::move(httpFactory);
 
-    _http = std::make_unique<http::Server>(
-        opts.host, opts.port,
-        _loop,
-        std::make_unique<Factory>(*this));
+    if (opts.socket) {
+        _http = std::make_unique<http::Server>(
+            opts.host, opts.port,
+            opts.socket,
+            std::make_unique<Factory>(*this));
+    }
+    else {
+        _http = std::make_unique<http::Server>(
+            opts.host, opts.port,
+            _loop,
+            std::make_unique<Factory>(*this));
+    }
 
     _http->start();
 
