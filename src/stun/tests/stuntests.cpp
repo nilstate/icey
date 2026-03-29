@@ -640,8 +640,8 @@ int main(int argc, char** argv)
         msg.write(buf);
 
         // Corrupt the magic cookie (bytes 4-7 in the header)
-        buf[4] = 0xFF;
-        buf[5] = 0xFF;
+        buf[4] = static_cast<char>(0xFF);
+        buf[5] = static_cast<char>(0xFF);
 
         stun::Message parsed;
         auto nread = parsed.read(constBuffer(buf));
@@ -702,7 +702,7 @@ int main(int argc, char** argv)
 
         // Set message length to something huge
         buf[2] = 0x0F;
-        buf[3] = 0xFC; // 4092 bytes, way larger than our buffer
+        buf[3] = static_cast<char>(0xFC); // 4092 bytes, way larger than our buffer
 
         stun::Message parsed;
         auto nread = parsed.read(constBuffer(buf));

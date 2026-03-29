@@ -22,8 +22,8 @@ fi
 
 docs=(
     README.md
-    docs/getting-started.md
-    docs/installation.md
+    docs/build/getting-started.md
+    docs/build/installation.md
     docs/modules/av.md
     docs/modules/base.md
     docs/modules/http.md

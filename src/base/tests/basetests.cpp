@@ -215,7 +215,7 @@ int main(int argc, char** argv)
         try {
             writer.seek(1200);
             expect(0 && "must throw");
-        } catch (std::out_of_range& exc) {
+        } catch (const std::out_of_range&) {
         }
     });
 

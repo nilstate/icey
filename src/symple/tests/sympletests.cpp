@@ -21,6 +21,15 @@ namespace icy_test = icy::test;
 
 namespace {
 
+smpl::Server::Options makeServerOptions(uint16_t port, bool dynamicRooms = false)
+{
+    smpl::Server::Options opts;
+    opts.host = SERVER_HOST;
+    opts.port = port;
+    opts.dynamicRooms = dynamicRooms;
+    return opts;
+}
+
 bool clientHasRoom(const smpl::Client& client, const std::string& room)
 {
     auto rooms = client.rooms();
@@ -325,14 +334,14 @@ int main(int argc, char** argv)
     //
     icy_test::describe("server: start and shutdown", []() {
         icy::smpl::Server server;
-        server.start({.host = SERVER_HOST, .port = SERVER_PORT});
+        server.start(makeServerOptions(SERVER_PORT));
         expect(server.peerCount() == 0);
         server.stop();
     });
 
     icy_test::describe("server: virtual peer registration", []() {
         icy::smpl::Server server;
-        server.start({.host = SERVER_HOST, .port = SERVER_PORT + 20});
+        server.start(makeServerOptions(SERVER_PORT + 20));
 
         icy::smpl::Peer peer;
         peer.setID("media-server");
@@ -360,7 +369,7 @@ int main(int argc, char** argv)
             allowed = true;
             rooms.push_back("public");
         };
-        server.start({.host = SERVER_HOST, .port = SERVER_PORT + 21, .dynamicRooms = true});
+        server.start(makeServerOptions(SERVER_PORT + 21, true));
 
         smpl::Peer peer;
         peer.setID("media-server");
@@ -401,7 +410,7 @@ int main(int argc, char** argv)
     //
     icy_test::describe("client: connect and authenticate", []() {
         smpl::Server server;
-        server.start({.host = SERVER_HOST, .port = SERVER_PORT, .dynamicRooms = true});
+        server.start(makeServerOptions(SERVER_PORT, true));
 
         bool peerConnected = false;
         server.PeerConnected += [&](smpl::ServerPeer&) { peerConnected = true; };
@@ -437,7 +446,7 @@ int main(int argc, char** argv)
 
     icy_test::describe("client: two peers presence", []() {
         smpl::Server server;
-        server.start({.host = SERVER_HOST, .port = SERVER_PORT + 1, .dynamicRooms = true});
+        server.start(makeServerOptions(SERVER_PORT + 1, true));
 
         smpl::Client::Options optsA;
         optsA.host = SERVER_HOST;
@@ -473,7 +482,7 @@ int main(int argc, char** argv)
 
     icy_test::describe("client: message routing", []() {
         smpl::Server server;
-        server.start({.host = SERVER_HOST, .port = SERVER_PORT + 2, .dynamicRooms = true});
+        server.start(makeServerOptions(SERVER_PORT + 2, true));
 
         smpl::Client::Options optsA;
         optsA.host = SERVER_HOST;
@@ -573,7 +582,7 @@ int main(int argc, char** argv)
 
     icy_test::describe("client: disconnect presence", []() {
         smpl::Server server;
-        server.start({.host = SERVER_HOST, .port = SERVER_PORT + 4, .dynamicRooms = true});
+        server.start(makeServerOptions(SERVER_PORT + 4, true));
 
         smpl::Client::Options optsA;
         optsA.host = SERVER_HOST;
@@ -745,7 +754,7 @@ int main(int argc, char** argv)
 
     icy_test::describe("hardening: graceful shutdown broadcast", []() {
         smpl::Server server;
-        server.start({.host = SERVER_HOST, .port = SERVER_PORT + 8});
+        server.start(makeServerOptions(SERVER_PORT + 8));
 
         smpl::Client::Options opts;
         opts.host = SERVER_HOST;
