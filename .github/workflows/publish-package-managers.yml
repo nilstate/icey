@@ -1,0 +1,148 @@
+name: Publish Package Managers
+
+on:
+  push:
+    tags:
+      - "*.*.*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate release metadata
+        id: meta
+        run: |
+          version="$(tr -d '[:space:]' < VERSION)"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+          if [[ "${GITHUB_EVENT_NAME}" == "push" ]]; then
+            tag="${GITHUB_REF_NAME}"
+            case "$tag" in
+              [0-9]*.[0-9]*.[0-9]*) ;;
+              *)
+                echo "expected a plain semantic version tag, got: $tag" >&2
+                exit 1
+                ;;
+            esac
+            [[ "$tag" == "$version" ]] || {
+              echo "VERSION contains $version, expected $tag" >&2
+              exit 1
+            }
+            git fetch origin main --no-tags
+            git merge-base --is-ancestor "${GITHUB_SHA}" origin/main || {
+              echo "release tags must point to commits reachable from origin/main" >&2
+              exit 1
+            }
+          fi
+
+          ./scripts/release-check.sh "$version"
+
+  publish-homebrew:
+    runs-on: ubuntu-24.04
+    needs: prepare
+    steps:
+      - name: Check Homebrew publish credentials
+        id: gate
+        env:
+          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+        run: |
+          if [[ -n "${HOMEBREW_TAP_TOKEN:-}" ]]; then
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping Homebrew publish: HOMEBREW_TAP_TOKEN is not configured."
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.gate.outputs.publish == 'true'
+
+      - name: Checkout tap repo
+        if: steps.gate.outputs.publish == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: nilstate/homebrew-icey
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          path: .stage/homebrew-icey
+
+      - name: Publish formulae
+        if: steps.gate.outputs.publish == 'true'
+        env:
+          TAP_REPO_DIR: ${{ github.workspace }}/.stage/homebrew-icey
+        run: ./scripts/publish-homebrew.sh
+
+      - name: Commit formula update
+        if: steps.gate.outputs.publish == 'true'
+        run: |
+          git -C .stage/homebrew-icey config user.name "github-actions[bot]"
+          git -C .stage/homebrew-icey config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C .stage/homebrew-icey add Formula/icey.rb Formula/libdatachannel.rb
+          if git -C .stage/homebrew-icey diff --cached --quiet; then
+            exit 0
+          fi
+          git -C .stage/homebrew-icey commit -m "icey ${{ needs.prepare.outputs.version }}"
+          git -C .stage/homebrew-icey push
+
+  publish-aur:
+    runs-on: ubuntu-24.04
+    needs: prepare
+    steps:
+      - name: Check AUR publish credentials
+        id: gate
+        env:
+          AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+        run: |
+          if [[ -n "${AUR_SSH_PRIVATE_KEY:-}" ]]; then
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping AUR publish: AUR_SSH_PRIVATE_KEY is not configured."
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.gate.outputs.publish == 'true'
+
+      - name: Configure SSH
+        if: steps.gate.outputs.publish == 'true'
+        env:
+          AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "${AUR_SSH_PRIVATE_KEY}" > ~/.ssh/aur
+          chmod 600 ~/.ssh/aur
+          ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts
+
+      - name: Checkout AUR package
+        if: steps.gate.outputs.publish == 'true'
+        env:
+          GIT_SSH_COMMAND: ssh -i ~/.ssh/aur -o IdentitiesOnly=yes
+        run: git clone ssh://aur@aur.archlinux.org/icey.git .stage/aur-icey
+
+      - name: Publish AUR package
+        if: steps.gate.outputs.publish == 'true'
+        env:
+          AUR_REPO_DIR: ${{ github.workspace }}/.stage/aur-icey
+        run: ./scripts/publish-aur.sh
+
+      - name: Commit AUR update
+        if: steps.gate.outputs.publish == 'true'
+        env:
+          GIT_SSH_COMMAND: ssh -i ~/.ssh/aur -o IdentitiesOnly=yes
+        run: |
+          git -C .stage/aur-icey config user.name "0state OSS"
+          git -C .stage/aur-icey config user.email "oss@0state.com"
+          git -C .stage/aur-icey add PKGBUILD .SRCINFO
+          if git -C .stage/aur-icey diff --cached --quiet; then
+            exit 0
+          fi
+          git -C .stage/aur-icey commit -m "icey ${{ needs.prepare.outputs.version }}"
+          git -C .stage/aur-icey push
