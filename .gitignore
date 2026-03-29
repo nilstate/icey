@@ -6,6 +6,8 @@ node_modules
 bak
 dist
 build*
+!docs/build/
+!docs/build/*.md
 private
 doxygen2md
 _book
