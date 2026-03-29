@@ -17,7 +17,7 @@ Open `http://localhost:4500`.
 For production, pin the version:
 
 ```bash
-docker run --rm --network host 0state/icey:0.1.0
+docker run --rm --network host 0state/icey:0.1.1
 ```
 
 If you need to pass a config file or mount a source directory:

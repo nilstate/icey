@@ -20,7 +20,7 @@ icey-server exposes REST endpoints for health checks, readiness probes, and runt
   "status": "ok",
   "product": "icey",
   "service": "icey-server",
-  "version": "0.1.0"
+  "version": "0.1.1"
 }
 ```
 
@@ -56,7 +56,7 @@ icey-server exposes REST endpoints for health checks, readiness probes, and runt
   "product": "icey",
   "service": "icey-server",
   "mode": "stream",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "peer": {
     "id": "server",
     "name": "Icey Server",
@@ -91,7 +91,7 @@ icey-server exposes REST endpoints for health checks, readiness probes, and runt
   "mode": "stream",
   "product": "icey",
   "service": "icey-server",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "http": {
     "host": "0.0.0.0",
     "scheme": "https",

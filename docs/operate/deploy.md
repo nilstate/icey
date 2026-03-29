@@ -10,7 +10,7 @@ How to run `icey-server` in production. Pick the deployment method that fits you
 version: "3.8"
 services:
   icey:
-    image: 0state/icey:0.1.0
+    image: 0state/icey:0.1.1
     network_mode: host
     volumes:
       - ./config.json:/etc/icey-server/config.json:ro
@@ -81,7 +81,7 @@ spec:
     spec:
       containers:
       - name: icey-server
-        image: 0state/icey:0.1.0
+        image: 0state/icey:0.1.1
         ports:
         - containerPort: 4500
           name: http
