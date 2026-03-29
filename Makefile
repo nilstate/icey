@@ -1,4 +1,4 @@
-.PHONY: docs docs-install docs-xml docs-api-md docs-site docs-check docs-dev docs-docker clean-docs package-conan package-vcpkg package-arch package-homebrew package-debian-source release release-check release-pin release-pin-vcpkg release-pin-arch release-pin-homebrew
+.PHONY: docs docs-install docs-xml docs-api-md docs-site docs-check docs-dev docs-docker clean-docs package-conan package-vcpkg package-arch package-homebrew package-debian-source release release-check release-pin release-pin-vcpkg release-pin-arch release-pin-homebrew release-pin-alpine release-pin-macports release-pin-spack release-pin-conda
 
 DOCS_NPM = npm --prefix docs
 DOCS_RUN = $(DOCS_NPM) run
@@ -81,7 +81,7 @@ release-check:
 	@if [ -n "$(VERSION)" ]; then ./scripts/release-check.sh "$(VERSION)"; else ./scripts/release-check.sh; fi
 
 ## Pin release archive hashes for all package-manager recipes
-release-pin: release-pin-vcpkg release-pin-arch release-pin-homebrew
+release-pin: release-pin-vcpkg release-pin-arch release-pin-homebrew release-pin-alpine release-pin-macports release-pin-spack release-pin-conda
 
 ## After pushing a git tag, pin the vcpkg fallback archive ref and sha512
 release-pin-vcpkg:
@@ -97,3 +97,23 @@ release-pin-arch:
 release-pin-homebrew:
 	@if [ -z "$(VERSION)" ]; then echo "usage: make release-pin-homebrew VERSION=2.4.0" >&2; exit 1; fi
 	./scripts/release-pin-homebrew.sh "$(VERSION)"
+
+## After pushing a git tag, pin the Alpine archive sha512
+release-pin-alpine:
+	@if [ -z "$(VERSION)" ]; then echo "usage: make release-pin-alpine VERSION=2.4.0" >&2; exit 1; fi
+	./scripts/release-pin-alpine.sh "$(VERSION)"
+
+## After pushing a git tag, pin the MacPorts archive checksums and size
+release-pin-macports:
+	@if [ -z "$(VERSION)" ]; then echo "usage: make release-pin-macports VERSION=2.4.0" >&2; exit 1; fi
+	./scripts/release-pin-macports.sh "$(VERSION)"
+
+## After pushing a git tag, pin the Spack recipe version sha256
+release-pin-spack:
+	@if [ -z "$(VERSION)" ]; then echo "usage: make release-pin-spack VERSION=2.4.0" >&2; exit 1; fi
+	./scripts/release-pin-spack.sh "$(VERSION)"
+
+## After pushing a git tag, pin the conda-forge recipe sha256
+release-pin-conda:
+	@if [ -z "$(VERSION)" ]; then echo "usage: make release-pin-conda VERSION=2.4.0" >&2; exit 1; fi
+	./scripts/release-pin-conda.sh "$(VERSION)"
