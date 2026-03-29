@@ -1,5 +1,5 @@
 ---
-# LibSourcey clang-tidy configuration
+# icey clang-tidy configuration
 # Run: clang-tidy -p build src/base/src/*.cpp
 
 Checks: >
@@ -31,7 +31,7 @@ Checks: >
 
 WarningsAsErrors: ''
 
-HeaderFilterRegex: 'src/.*/include/scy/.*\.h$'
+HeaderFilterRegex: 'src/.*/include/icy/.*\.h$'
 
 CheckOptions:
   - key: modernize-use-nullptr.NullMacros
