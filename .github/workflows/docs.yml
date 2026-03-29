@@ -29,7 +29,9 @@ jobs:
           sudo apt-get install -y --no-install-recommends doxygen graphviz
 
       - name: Generate Doxygen XML
-        run: doxygen
+        run: |
+          mkdir -p build/doxygen
+          doxygen
 
       - uses: actions/setup-node@v4
         with:
