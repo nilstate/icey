@@ -24,7 +24,7 @@ let
     owner = "nodejs";
     repo = "llhttp";
     rev = "release/v9.2.1";
-    hash = "sha256-PBY4kURuUpYEtZD5rQl7Lpi1735NPdzxz5i2LKZo8j4=";
+    hash = "sha256-cnEp7Ds32bqu3jeUU/rqJOr/VW3KNmJU4pmNNaTpXRs=";
   };
 
   vendoredZlib = fetchFromGitHub {
