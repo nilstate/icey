@@ -31,7 +31,7 @@ let
     owner = "madler";
     repo = "zlib";
     rev = "v1.3.1";
-    hash = "sha256-F+iIY/NgBnKrSRgvIXKBtvxNPHYr3jYZNeQ2qVIU0Fw=";
+    hash = "sha256-TkPLWSN5QcPlL9D0kc/yhH0/puE9bFND24aj5NVDKYs=";
   };
 in
 stdenv.mkDerivation {
