@@ -22,6 +22,42 @@ namespace icy {
 namespace av {
 
 
+namespace {
+
+struct SupportedPixelFormats
+{
+    const AVPixelFormat* values = nullptr;
+    int count = 0;
+};
+
+
+SupportedPixelFormats getSupportedPixelFormats(const AVCodec* codec)
+{
+    SupportedPixelFormats formats;
+
+#if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(61, 12, 100)
+    const void* configs = nullptr;
+    int numConfigs = 0;
+    if (avcodec_get_supported_config(nullptr, codec, AV_CODEC_CONFIG_PIX_FORMAT,
+                                     0, &configs, &numConfigs) < 0) {
+        return formats;
+    }
+    formats.values = static_cast<const AVPixelFormat*>(configs);
+    formats.count = numConfigs;
+#else
+    formats.values = codec->pix_fmts;
+    if (!formats.values)
+        return formats;
+    while (formats.values[formats.count] != AV_PIX_FMT_NONE)
+        ++formats.count;
+#endif
+
+    return formats;
+}
+
+} // namespace
+
+
 VideoContext::VideoContext()
     : stream(nullptr)
     , ctx(nullptr)
@@ -247,19 +283,24 @@ void initVideoCodecFromContext(const AVStream* stream, const AVCodecContext* ctx
 
 AVPixelFormat selectPixelFormat(const AVCodec* codec, VideoCodec& params)
 {
+    const SupportedPixelFormats supported = getSupportedPixelFormats(codec);
+    if (!supported.values || supported.count == 0)
+        return av_get_pix_fmt(params.pixelFmt.c_str());
+
     enum AVPixelFormat compatible = AV_PIX_FMT_NONE;
     enum AVPixelFormat requested = av_get_pix_fmt(params.pixelFmt.c_str());
-    int nplanes = av_pix_fmt_count_planes(requested);
-    const enum AVPixelFormat* p = codec->pix_fmts;
-    while (*p != AV_PIX_FMT_NONE) {
-        if (compatible == AV_PIX_FMT_NONE && (nplanes == 0 || av_pix_fmt_count_planes(*p) == nplanes))
-            compatible = *p; // or use the first compatible format
-        if (*p == requested)
+    int nplanes = requested == AV_PIX_FMT_NONE ? 0 : av_pix_fmt_count_planes(requested);
+    for (int i = 0; i < supported.count; ++i) {
+        const AVPixelFormat candidate = supported.values[i];
+        if (compatible == AV_PIX_FMT_NONE &&
+            (nplanes <= 0 || av_pix_fmt_count_planes(candidate) == nplanes)) {
+            compatible = candidate;
+        }
+        if (candidate == requested)
             return requested; // always try to return requested format
-        p++;
     }
     if (compatible == AV_PIX_FMT_NONE)
-        compatible = p[0];
+        compatible = supported.values[0];
     return compatible;
 }
 
