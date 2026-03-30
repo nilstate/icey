@@ -8,7 +8,9 @@
     "site:dev": "sourcey dev"
   },
   "devDependencies": {
-    "moxygen": "^2.1.1",
-    "sourcey": "^3.3.9"
+    "moxygen": "^2.1.1"
+  },
+  "dependencies": {
+    "sourcey": "^3.3.10"
   }
 }
