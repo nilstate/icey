@@ -15,8 +15,15 @@
 #include "icy/archo/archo.h"
 #include <filesystem>
 #include <string>
-#include <unzip.h> // zlib
 #include <vector>
+
+#if __has_include(<unzip.h>)
+#include <unzip.h>
+#elif __has_include(<minizip/unzip.h>)
+#include <minizip/unzip.h>
+#else
+#error "minizip unzip.h header not found"
+#endif
 
 
 namespace icy {
