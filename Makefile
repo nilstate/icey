@@ -8,6 +8,7 @@ MAKEPKG ?= makepkg
 BREW ?= brew
 DPKG_BUILDPACKAGE ?= dpkg-buildpackage
 NIX ?= nix
+NIX_BUILD_FLAGS ?=
 RPMBUILD ?= rpmbuild
 VCPKG_MAX_CONCURRENCY ?= 1
 ICEY_VCPKG_SOURCE_PATH ?= $(CURDIR)
@@ -76,7 +77,7 @@ package-debian-source:
 
 ## Build the repo-root Nix flake package
 package-nix:
-	$(NIX) build .#icey
+	$(NIX) build $(NIX_BUILD_FLAGS) .#icey
 
 ## Build an SRPM staging tree under build/package/rpm
 package-rpm-srpm:

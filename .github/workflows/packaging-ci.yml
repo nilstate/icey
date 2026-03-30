@@ -78,4 +78,4 @@ jobs:
       - name: Build flake package
         run: |
           . "$HOME/.nix-profile/etc/profile.d/nix.sh"
-          make package-nix
+          NIX_BUILD_FLAGS=-L make package-nix
