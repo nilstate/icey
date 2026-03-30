@@ -130,4 +130,4 @@ jobs:
             echo "No Debian source changes file found to upload" >&2
             exit 1
           fi
-          ./scripts/publish-ppa.sh "$changes_file" "${PPA_TARGET:-ppa:nilstate/icey}"
+          ./scripts/publish-ppa.sh "$changes_file" "${PPA_TARGET:-ppa:0state/icey}"
