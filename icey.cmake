@@ -198,10 +198,14 @@ else()
   find_package(ZLIB REQUIRED)
   if(NOT TARGET llhttp_static
      AND NOT TARGET llhttp::llhttp_static
+     AND NOT TARGET llhttp::llhttp_shared
      AND NOT TARGET llhttp::llhttp
      AND NOT TARGET llhttp
      AND PkgConfig_FOUND)
     pkg_check_modules(LLHTTP QUIET IMPORTED_TARGET GLOBAL llhttp)
+    if(NOT TARGET PkgConfig::LLHTTP)
+      pkg_check_modules(LLHTTP QUIET IMPORTED_TARGET GLOBAL libllhttp)
+    endif()
   endif()
 
   # Package managers do not agree on canonical target names.
@@ -209,6 +213,7 @@ else()
   icy_add_compat_target(uv_a libuv::libuv)
   icy_add_compat_target(uv_a PkgConfig::LIBUV)
   icy_add_compat_target(llhttp_static llhttp::llhttp_static)
+  icy_add_compat_target(llhttp_static llhttp::llhttp_shared)
   icy_add_compat_target(llhttp_static llhttp::llhttp)
   icy_add_compat_target(llhttp_static llhttp)
   icy_add_compat_target(llhttp_static PkgConfig::LLHTTP)
