@@ -64,6 +64,8 @@ jobs:
     name: Nix Flake
     env:
       NIX_CONFIG: experimental-features = nix-command flakes
+      NIX_BUILD_CORES: 1
+      CMAKE_BUILD_PARALLEL_LEVEL: 1
     steps:
       - uses: actions/checkout@v4
         with:
