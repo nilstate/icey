@@ -7,7 +7,7 @@ else()
         REPO nilstate/icey
         REF "2.4.0"
         SHA512 496f3682ebbdaf4ebdba06d5b81fa7bbcbb4f45b97a270edbc7c0c34eccb00a8bd62cbc7f9c434bb816ac5245eaa0590ad10011a19704ffdb6e6ef75dd006637
-        HEAD_REF master
+        HEAD_REF main
     )
 endif()
 

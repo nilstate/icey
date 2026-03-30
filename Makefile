@@ -1,4 +1,4 @@
-.PHONY: docs docs-install docs-xml docs-api-md docs-site docs-check docs-dev docs-docker clean-docs package-conan package-vcpkg package-arch package-homebrew package-debian-source package-nix package-rpm-srpm package-fedora-srpm package-alpine-apkbuild release release-check release-pin release-pin-vcpkg release-pin-arch release-pin-homebrew release-pin-alpine release-pin-macports release-pin-spack release-pin-conda
+.PHONY: docs docs-install docs-xml docs-api-md docs-site docs-check docs-dev docs-docker clean-docs package-conan package-vcpkg package-arch package-homebrew package-debian-source package-nix package-rpm-srpm package-fedora-srpm package-alpine-apkbuild release release-check release-pin release-finalize release-pin-conan release-pin-vcpkg release-pin-arch release-pin-homebrew release-pin-alpine release-pin-macports release-pin-spack release-pin-conda
 
 DOCS_NPM = npm --prefix docs
 DOCS_RUN = $(DOCS_NPM) run
@@ -101,7 +101,15 @@ release-check:
 	@if [ -n "$(VERSION)" ]; then ./scripts/release-check.sh "$(VERSION)"; else ./scripts/release-check.sh; fi
 
 ## Pin release archive hashes for all package-manager recipes
-release-pin: release-pin-vcpkg release-pin-arch release-pin-homebrew release-pin-alpine release-pin-macports release-pin-spack release-pin-conda
+release-pin: release-pin-conan release-pin-vcpkg release-pin-arch release-pin-homebrew release-pin-alpine release-pin-macports release-pin-spack release-pin-conda
+
+## After pushing a git tag, pin archive hashes and verify the release metadata
+release-finalize: release-pin release-check
+
+## After pushing a git tag, pin the Conan source URL and sha256
+release-pin-conan:
+	@if [ -z "$(VERSION)" ]; then echo "usage: make release-pin-conan VERSION=2.4.0" >&2; exit 1; fi
+	./scripts/release-pin-conan.sh "$(VERSION)"
 
 ## After pushing a git tag, pin the vcpkg fallback archive ref and sha512
 release-pin-vcpkg:

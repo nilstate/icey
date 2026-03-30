@@ -31,6 +31,12 @@ current_version=$(tr -d '[:space:]' < VERSION)
 
 grep -Eq '^    version = "'"$version"'"$' packaging/conan/conanfile.py \
     || fail "packaging/conan/conanfile.py is not synced to $version"
+grep -Eq '^  "'"$version"'":$' packaging/conan/conandata.yml \
+    || fail "packaging/conan/conandata.yml is not synced to $version"
+grep -Eq '^    url: "https://github.com/nilstate/icey/archive/refs/tags/'"$version"'.tar.gz"$' packaging/conan/conandata.yml \
+    || fail "packaging/conan/conandata.yml source URL is not synced to $version"
+grep -Eq '^    sha256: "[0-9a-f]{64}"$' packaging/conan/conandata.yml \
+    || fail "packaging/conan/conandata.yml is missing a real sha256"
 grep -Eq '^[[:space:]]*"version": "'"$version"'"' packaging/vcpkg/icey/vcpkg.json \
     || fail "packaging/vcpkg/icey/vcpkg.json is not synced to $version"
 grep -Eq '^pkgver='"$version"'$' packaging/arch/PKGBUILD \
@@ -66,6 +72,8 @@ grep -Eq '^\{\% set version = "'"$version"'" \%\}$' packaging/conda-forge/meta.y
 grep -Eq '^icey \('"$version"'-1\) ' packaging/debian/debian/changelog \
     || fail "packaging/debian/debian/changelog is not synced to $version-1"
 
+grep -Eq '^    sha256: "0{64}"$' packaging/conan/conandata.yml \
+    && fail "packaging/conan/conandata.yml still has a placeholder sha256"
 grep -Eq '^  sha256 "0{64}"$' packaging/homebrew/Formula/icey.rb \
     && fail "packaging/homebrew/Formula/icey.rb still has a placeholder sha256"
 grep -Eq '^        SHA512 0{128}$' packaging/vcpkg/icey/portfile.cmake \
