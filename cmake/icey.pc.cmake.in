@@ -2,10 +2,10 @@ Name: icey
 Description: C++20 media stack and libwebrtc alternative for real-time video, signalling, TURN, and media servers
 Version: @icey_VERSION@
 
-prefix=@CMAKE_INSTALL_PREFIX@
+prefix=@PKG_CONFIG_PREFIX@
 exec_prefix=${prefix}
-libdir=${prefix}/@CMAKE_INSTALL_LIBDIR@
-includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
+libdir=@PKG_CONFIG_LIBDIR@
+includedir=@PKG_CONFIG_INCLUDEDIR@
 
 Requires:
 Libs: -L${libdir} @PKG_CONFIG_LIBS@

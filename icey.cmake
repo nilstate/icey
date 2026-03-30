@@ -407,6 +407,18 @@ foreach(_mod ${icey_BUILD_MODULES})
   string(APPEND PKG_CONFIG_LIBS " -licy_${_mod}")
 endforeach()
 
+set(PKG_CONFIG_PREFIX "${CMAKE_INSTALL_PREFIX}")
+if(IS_ABSOLUTE "${CMAKE_INSTALL_LIBDIR}")
+  set(PKG_CONFIG_LIBDIR "${CMAKE_INSTALL_LIBDIR}")
+else()
+  set(PKG_CONFIG_LIBDIR "\${prefix}/${CMAKE_INSTALL_LIBDIR}")
+endif()
+if(IS_ABSOLUTE "${CMAKE_INSTALL_INCLUDEDIR}")
+  set(PKG_CONFIG_INCLUDEDIR "${CMAKE_INSTALL_INCLUDEDIR}")
+else()
+  set(PKG_CONFIG_INCLUDEDIR "\${prefix}/${CMAKE_INSTALL_INCLUDEDIR}")
+endif()
+
 message(STATUS "  Generating icey.pc")
 configure_file(
   ${icey_DIR}/cmake/icey.pc.cmake.in
