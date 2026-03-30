@@ -19,6 +19,8 @@
 #include "icy/sched/taskfactory.h"
 #include "icy/task.h"
 
+#include <cstddef>
+#include <memory>
 #include <vector>
 
 
@@ -37,8 +39,14 @@ public:
 
     /// Adds @p task to the scheduler and starts running it on its configured trigger.
     /// The scheduler takes ownership of the task.
+    /// The task's scheduler back-pointer is assigned before start.
+    /// Newly-created recurring triggers normalize their first firing here.
     /// @param task Task to schedule; must have a trigger set.
     virtual void schedule(sched::Task* task);
+
+    /// Adds @p task to the scheduler, transferring ownership immediately.
+    /// @param task Owning pointer to the task; must not be null and must have a trigger set.
+    virtual void schedule(std::unique_ptr<sched::Task> task);
 
     using TaskRunner::cancel; // inherit cancel(Task*) and cancel(bool)
 
@@ -49,11 +57,19 @@ public:
     /// Removes all scheduled tasks.
     void clear() override;
 
+    /// Returns the number of tasks currently owned by the scheduler.
+    [[nodiscard]] std::size_t size() const;
+
+    /// Returns true when no tasks are scheduled.
+    [[nodiscard]] bool empty() const;
+
     /// Serializes all scheduled tasks and their triggers to @p root.
     /// @param root JSON array to append serialized task entries to.
     virtual void serialize(json::Value& root) override;
 
     /// Reconstructs the task list from @p root using the TaskFactory.
+    /// Recurring triggers resume at their next valid future slot instead of
+    /// replaying stale backlog from persisted state.
     /// Skips entries that fail to deserialize and logs the error.
     /// @param root JSON array previously produced by serialize().
     virtual void deserialize(json::Value& root) override;

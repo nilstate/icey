@@ -12,6 +12,7 @@
 #include "icy/task.h"
 #include "icy/logger.h"
 #include "icy/platform.h"
+#include "icy/thread.h"
 #include "icy/util.h"
 
 #include <iostream>
@@ -82,8 +83,12 @@ TaskRunner::TaskRunner(std::shared_ptr<Runner> runner)
 TaskRunner::~TaskRunner()
 {
     Shutdown.emit();
-    if (_runner)
+    if (_runner) {
         _runner->cancel();
+        if (_runner->async() && _runner->running() &&
+            _runner->tid() != Thread::currentID())
+            _runner->waitForExit();
+    }
     clear();
 }
 

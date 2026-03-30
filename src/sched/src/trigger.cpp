@@ -14,6 +14,9 @@
 #include "icy/logger.h"
 #include "icy/sched/scheduler.h"
 
+#include <algorithm>
+#include <stdexcept>
+
 
 using namespace std;
 
@@ -26,6 +29,16 @@ Trigger::Trigger(const std::string& type, const std::string& name)
     : type(type)
     , name(name)
     , timesRun(0)
+{
+}
+
+
+void Trigger::prepareForSchedule()
+{
+}
+
+
+void Trigger::restore()
 {
 }
 
@@ -120,6 +133,32 @@ void IntervalTrigger::update()
 }
 
 
+void IntervalTrigger::prepareForSchedule()
+{
+    if (timesRun == 0 && scheduleAt == createdAt) {
+        scheduleAt = createdAt;
+        scheduleAt += interval;
+    }
+}
+
+
+void IntervalTrigger::restore()
+{
+    if (!interval.totalMicroseconds())
+        throw std::runtime_error(
+            "Interval trigger must have non zero interval.");
+
+    DateTime now;
+    if (scheduleAt > now)
+        return;
+
+    auto intervalMicros = interval.totalMicroseconds();
+    Timespan overdue = now - scheduleAt;
+    auto steps = overdue.totalMicroseconds() / intervalMicros + 1;
+    scheduleAt += Timespan(steps * intervalMicros);
+}
+
+
 bool IntervalTrigger::expired()
 {
     return maxTimes > 0 && timesRun >= maxTimes;
@@ -136,6 +175,7 @@ void IntervalTrigger::serialize(json::Value& root)
     root["interval"]["hours"] = interval.hours();
     root["interval"]["minutes"] = interval.minutes();
     root["interval"]["seconds"] = interval.seconds();
+    root["maxTimes"] = maxTimes;
 }
 
 
@@ -150,6 +190,7 @@ void IntervalTrigger::deserialize(json::Value& root)
     json::assertMember(root["interval"], "seconds");
 
     Trigger::deserialize(root);
+    maxTimes = root.contains("maxTimes") ? root["maxTimes"].get<int>() : 0;
 
     interval.assign(root["interval"]["days"].get<int>(),
                     root["interval"]["hours"].get<int>(),
@@ -159,10 +200,6 @@ void IntervalTrigger::deserialize(json::Value& root)
     if (!interval.totalSeconds())
         throw std::runtime_error(
             "Interval trigger must have non zero interval.");
-
-    DateTime now;
-    scheduleAt = now;
-    scheduleAt += interval;
 }
 
 
@@ -174,53 +211,88 @@ DailyTrigger::DailyTrigger()
 }
 
 
+namespace {
+
+
+DateTime nextDailySchedule(const DateTime& now, const DateTime& timeOfDay,
+                           const std::vector<DaysOfTheWeek>& daysExcluded,
+                           bool allowToday)
+{
+    DateTime candidate(now.year(), now.month(), now.day(), timeOfDay.hour(),
+                       timeOfDay.minute(), timeOfDay.second(),
+                       timeOfDay.millisecond(), timeOfDay.microsecond());
+
+    if (!allowToday || candidate <= now)
+        candidate += Timespan(1, 0, 0, 0, 0);
+
+    for (int i = 0; i < 7; ++i) {
+        auto day = static_cast<DaysOfTheWeek>(candidate.dayOfWeek());
+        if (std::find(daysExcluded.begin(), daysExcluded.end(), day) ==
+            daysExcluded.end())
+            return candidate;
+        candidate += Timespan(1, 0, 0, 0, 0);
+    }
+
+    throw std::runtime_error(
+        "Daily trigger excludes every day of the week.");
+}
+
+
+} // namespace
+
+
 void DailyTrigger::update()
 {
     DateTime now;
-    DateTime next;
-    DateTime prev(scheduleAt);
-    Timespan day(1, 0, 0, 0, 0);
-    bool initial = createdAt == scheduleAt;
+    scheduleAt = nextDailySchedule(now, timeOfDay, daysExcluded, false);
+}
 
-    // Set next date as tomorrow if the schedule
-    // timeout is expired, or if we are setting up.
-    if (!initial && now > scheduleAt)
-        next += day;
 
-    // Get the next day the task can run
-    bool match = false;
-    for (unsigned i = 0; i < 6; i++) {
-        match = false;
-        for (unsigned x = 0; x < daysExcluded.size(); x++) {
-            if (daysExcluded[x] == next.dayOfWeek()) {
-                match = true;
-
-                // Increment the start date
-                next += day;
-            }
-        }
-        if (!match)
-            break;
+void DailyTrigger::prepareForSchedule()
+{
+    if (scheduleAt == createdAt) {
+        DateTime now;
+        scheduleAt = nextDailySchedule(now, timeOfDay, daysExcluded, true);
     }
+}
 
-    // Assign the next scheduled time
-    scheduleAt.assign(next.year(), next.month(), next.day(), timeOfDay.hour(),
-                      timeOfDay.minute(), timeOfDay.second(),
-                      timeOfDay.millisecond(), timeOfDay.microsecond());
 
-    /*
-    STrace << "[DailyTrigger] Updating: "
-            << "\n\tDayOfWeek: " << next.dayOfWeek()
-            << "\n\tNowTime: " << DateTimeFormatter::format(now,
-    Poco::DateTimeFormat::ISO8601_FORMAT)
-            << "\n\tPrevTime: " << DateTimeFormatter::format(prev,
-    Poco::DateTimeFormat::ISO8601_FORMAT)
-            << "\n\tNextTime: " << DateTimeFormatter::format(next,
-    Poco::DateTimeFormat::ISO8601_FORMAT)
-            << "\n\tScheduleTime: " << DateTimeFormatter::format(scheduleAt,
-    Poco::DateTimeFormat::ISO8601_FORMAT)
-;
-            */
+void DailyTrigger::restore()
+{
+    DateTime now;
+    scheduleAt = nextDailySchedule(now, timeOfDay, daysExcluded, true);
+}
+
+
+void DailyTrigger::serialize(json::Value& root)
+{
+    Trigger::serialize(root);
+    root["timeOfDay"] =
+        DateTimeFormatter::format(timeOfDay, DateTimeFormat::ISO8601_FORMAT);
+    auto& excluded = root["daysExcluded"];
+    for (const auto day : daysExcluded)
+        excluded[excluded.size()] = day;
+}
+
+
+void DailyTrigger::deserialize(json::Value& root)
+{
+    Trigger::deserialize(root);
+
+    json::assertMember(root, "timeOfDay");
+    int tzd;
+    timeOfDay = DateTimeParser::parse(DateTimeFormat::ISO8601_FORMAT,
+                                      root["timeOfDay"].get<std::string>(), tzd);
+
+    daysExcluded.clear();
+    if (root.contains("daysExcluded")) {
+        for (const auto& day : root["daysExcluded"]) {
+            auto value = day.get<int>();
+            if (value < Sunday || value > Saturday)
+                throw std::runtime_error("Invalid daily trigger excluded day.");
+            daysExcluded.push_back(static_cast<DaysOfTheWeek>(value));
+        }
+    }
 }
 
 

@@ -65,6 +65,15 @@ struct Trigger : public json::ISerializable
     /// next scheduled time.
     virtual void update() = 0;
 
+    /// Normalizes the first scheduled firing for a newly-created task.
+    /// This is called by the scheduler before a task is first added.
+    virtual void prepareForSchedule();
+
+    /// Normalizes a deserialized trigger for runtime use after restore.
+    /// Recurring triggers use this to skip stale backlog and resume at the
+    /// next valid future slot instead of replaying missed executions.
+    virtual void restore();
+
     /// Returns the milliseconds remaining
     /// until the next scheduled timeout.
     virtual std::int64_t remaining();
@@ -138,10 +147,19 @@ struct IntervalTrigger : public Trigger
     /// Advances scheduleAt by one `interval` period.
     virtual void update() override;
 
+    /// Schedules the first run one interval after creation unless
+    /// scheduleAt was explicitly set before scheduling.
+    virtual void prepareForSchedule() override;
+
+    /// Advances stale persisted scheduleAt values forward to the first
+    /// future interval boundary while preserving cadence.
+    virtual void restore() override;
+
     /// Returns true when maxTimes > 0 and timesRun >= maxTimes.
     virtual bool expired() override;
 
-    /// Serializes interval fields (days, hours, minutes, seconds) in addition to base fields.
+    /// Serializes interval fields (days, hours, minutes, seconds, maxTimes)
+    /// in addition to base fields.
     /// @param root JSON object to populate.
     virtual void serialize(json::Value& root) override;
 
@@ -169,13 +187,25 @@ struct DailyTrigger : public Trigger
     /// Constructs the trigger with type "DailyTrigger".
     DailyTrigger();
 
-    /// Computes the next scheduleAt value by advancing to the next non-excluded weekday
-    /// at the configured timeOfDay.
+    /// Computes the next scheduleAt value by advancing to the next non-excluded
+    /// weekday at the configured timeOfDay.
     virtual void update() override;
 
-    /// This value represents the time of day the
-    /// task will trigger.
-    /// The date part of the timestamp is redundant.
+    /// Computes the first valid future daily firing from the configured time-of-day.
+    virtual void prepareForSchedule() override;
+
+    /// Restores the next valid future daily firing without replaying missed runs.
+    virtual void restore() override;
+
+    /// Serializes the configured time of day and excluded weekdays.
+    virtual void serialize(json::Value& root) override;
+
+    /// Deserializes the configured time of day and excluded weekdays.
+    virtual void deserialize(json::Value& root) override;
+
+    /// This value represents the time of day the task will trigger.
+    /// The date part of the timestamp is serialized but only the time portion
+    /// is used when computing the next daily slot.
     DateTime timeOfDay;
 
     /// Days of the week can be excluded by adding

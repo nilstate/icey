@@ -28,6 +28,22 @@ Scheduler
 TaskFactory  (singleton registry; type name → constructor)
 ```
 
+## Semantics
+
+The scheduler is intentionally small, so its timing rules should be explicit:
+
+- `Scheduler::schedule()` transfers ownership immediately and assigns the task's scheduler back-pointer before the task starts running.
+- `OnceOnlyTrigger` fires at `scheduleAt`. If `scheduleAt` is left at its default current time, the task runs on the next scheduler iteration.
+- `IntervalTrigger` does not fire immediately by default. On first schedule, the scheduler normalizes the first run to `createdAt + interval` unless `scheduleAt` was explicitly overridden.
+- `DailyTrigger` computes the next valid future wall-clock slot from `timeOfDay` and `daysExcluded`; it does not run immediately just because it was added after today's slot already passed.
+- `deserialize()` replaces the current in-memory schedule. Invalid entries are skipped and logged; valid entries still load.
+- Restore behavior is intentionally different for recurring triggers:
+  - overdue once-only tasks run immediately after restore
+  - overdue interval tasks skip missed backlog and resume on the next future interval boundary
+  - overdue daily tasks skip stale slots and resume on the next valid future day/time
+
+`sched` uses wall-clock time (`DateTime`) rather than a monotonic clock. That makes it appropriate for service maintenance work and persisted schedules, but it also means clock changes can affect when jobs fire.
+
 ## Usage
 
 ### Defining a task
@@ -60,24 +76,24 @@ The type string (`"SyncTask"`) must match the name registered with `TaskFactory`
 #include <icy/sched/scheduler.h>
 
 // Run every 30 minutes, indefinitely.
-auto* task = new SyncTask();
+auto task = std::make_unique<SyncTask>();
 auto* trigger = task->createTrigger<icy::sched::IntervalTrigger>();
 trigger->interval = Timespan(0, 0, 30, 0, 0); // days, hours, mins, secs, usecs
 
-icy::sched::Scheduler::getDefault().schedule(task);
+icy::sched::Scheduler::getDefault().schedule(std::move(task));
 ```
 
-`schedule()` takes ownership of the raw pointer. We must not delete the task after scheduling it.
+Passing a `std::unique_ptr` is the preferred path. The scheduler still owns the task after `schedule()` either way. The first run happens after one full interval unless `trigger->scheduleAt` was explicitly set before scheduling.
 
 ### Scheduling a one-shot task
 
 `OnceOnlyTrigger` fires once at `scheduleAt` and then marks itself expired. `scheduleAt` defaults to the current time, so the task runs on the scheduler's next iteration.
 
 ```cpp
-auto* task = new SyncTask();
+auto task = std::make_unique<SyncTask>();
 task->createTrigger<icy::sched::OnceOnlyTrigger>();
 
-icy::sched::Scheduler::getDefault().schedule(task);
+icy::sched::Scheduler::getDefault().schedule(std::move(task));
 ```
 
 To defer it: set `trigger->scheduleAt` to a future `DateTime` before calling `schedule()`.
@@ -87,14 +103,14 @@ To defer it: set `trigger->scheduleAt` to a future `DateTime` before calling `sc
 `DailyTrigger` fires once per day at a configured time-of-day. Individual days of the week can be excluded.
 
 ```cpp
-auto* task = new SyncTask();
+auto task = std::make_unique<SyncTask>();
 auto* trigger = task->createTrigger<icy::sched::DailyTrigger>();
 
 // Fire at 03:00 every weekday.
 trigger->timeOfDay.assign(2026, 1, 1, 3, 0, 0); // only H:M:S matters
 trigger->daysExcluded = { icy::sched::Saturday, icy::sched::Sunday };
 
-icy::sched::Scheduler::getDefault().schedule(task);
+icy::sched::Scheduler::getDefault().schedule(std::move(task));
 ```
 
 `DailyTrigger::update()` advances `scheduleAt` past any excluded days automatically.
@@ -109,6 +125,15 @@ std::cout << "fires in " << ms << " ms\n";
 ```
 
 `remaining()` delegates to the task's trigger, so the trigger must be set before calling it.
+
+### Inspecting scheduler state
+
+```cpp
+auto& scheduler = icy::sched::Scheduler::getDefault();
+std::cout << "pending: " << scheduler.size() << "\n";
+if (scheduler.empty())
+    std::cout << "no pending work\n";
+```
 
 ### Cancelling tasks
 
@@ -143,7 +168,13 @@ icy::json::loadFile("schedule.json", saved);
 icy::sched::Scheduler::getDefault().deserialize(saved);
 ```
 
-Entries that fail to deserialize are skipped and logged; the remaining tasks are still loaded.
+`deserialize()` replaces the current in-memory schedule with the decoded one. Entries that fail to deserialize are skipped and logged; the remaining tasks are still loaded.
+
+Recurring triggers are normalized on restore:
+
+- `IntervalTrigger` preserves cadence and advances `scheduleAt` to the first future interval boundary instead of waiting a full new interval from restore time.
+- `DailyTrigger` resumes at the next valid future daily slot based on `timeOfDay` and `daysExcluded`.
+- `OnceOnlyTrigger` keeps its serialized `scheduleAt`, so an overdue one-shot runs immediately after restore.
 
 ### Printing scheduler state
 
@@ -160,14 +191,14 @@ The default singleton is convenient for simple applications. For more complex ca
 ```cpp
 icy::sched::Scheduler scheduler;
 
-auto* task = new SyncTask();
+auto task = std::make_unique<SyncTask>();
 task->createTrigger<icy::sched::IntervalTrigger>()->interval = Timespan(0, 1, 0, 0, 0);
-scheduler.schedule(task);
+scheduler.schedule(std::move(task));
 ```
 
 ## Configuration
 
-`IntervalTrigger` serializes its interval as separate day/hour/minute/second fields. The JSON for a task scheduled every 30 minutes looks like this:
+`IntervalTrigger` serializes its interval as separate day/hour/minute/second fields plus `maxTimes`. The JSON for a task scheduled every 30 minutes looks like this:
 
 ```json
 {
@@ -180,6 +211,7 @@ scheduler.schedule(task);
     "scheduleAt": "2026-01-01T00:30:00Z",
     "lastRunAt":  "2026-01-01T00:00:00Z",
     "timesRun": 0,
+    "maxTimes": 0,
     "interval": {
       "days": 0,
       "hours": 0,
@@ -190,7 +222,46 @@ scheduler.schedule(task);
 }
 ```
 
-`OnceOnlyTrigger` and `DailyTrigger` use the same base fields (`type`, `name`, `createdAt`, `scheduleAt`, `lastRunAt`, `timesRun`) but do not add interval fields. `DailyTrigger` does not currently serialize `daysExcluded`; that must be reconfigured at startup.
+`OnceOnlyTrigger` uses only the base fields (`type`, `name`, `createdAt`, `scheduleAt`, `lastRunAt`, `timesRun`).
+
+`DailyTrigger` adds `timeOfDay` and `daysExcluded`, so its configuration now round-trips fully:
+
+```json
+{
+  "type": "SyncTask",
+  "name": "Remote Sync",
+  "trigger": {
+    "type": "DailyTrigger",
+    "name": "Daily",
+    "createdAt": "2026-01-01T00:00:00Z",
+    "scheduleAt": "2026-01-02T03:00:00Z",
+    "lastRunAt": "2026-01-01T03:00:00Z",
+    "timesRun": 1,
+    "timeOfDay": "2026-01-01T03:00:00Z",
+    "daysExcluded": [0, 6]
+  }
+}
+```
+
+## Service Patterns
+
+These are the kinds of jobs `sched` is best at inside long-running services:
+
+### Retention cleanup
+
+Use a daily trigger to prune old recordings, snapshots, or temporary files during a quiet maintenance window.
+
+### Periodic health work
+
+Use an interval trigger for things like metrics flushes, heartbeat snapshots, or periodic cache refreshes. Set `maxTimes = 0` to keep the job running indefinitely.
+
+### Snapshot and clip housekeeping
+
+Use one-shot triggers for delayed cleanup that should happen after an artifact is created, such as deleting a temporary preview file ten minutes later.
+
+### Retry/backoff orchestration
+
+Wrap a retry attempt in a task and schedule the next attempt explicitly with a one-shot trigger. `sched` is not a cron engine, but it is a good fit for bounded service-side retry loops where the retry state lives in the task itself.
 
 ## See Also
 

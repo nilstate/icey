@@ -37,19 +37,48 @@ Scheduler::~Scheduler()
 
 void Scheduler::schedule(sched::Task* task)
 {
+    if (!task)
+        throw std::invalid_argument("Cannot schedule null task");
+    task->_scheduler = this;
+    task->trigger().prepareForSchedule();
     TaskRunner::start(task);
+}
+
+
+void Scheduler::schedule(std::unique_ptr<sched::Task> task)
+{
+    if (!task)
+        throw std::invalid_argument("Cannot schedule null task");
+    schedule(task.release());
 }
 
 
 void Scheduler::cancel(sched::Task* task)
 {
+    if (!task)
+        return;
+
     TaskRunner::cancel(task);
+    remove(task);
 }
 
 
 void Scheduler::clear()
 {
     TaskRunner::clear();
+}
+
+
+std::size_t Scheduler::size() const
+{
+    std::lock_guard<std::mutex> guard(_mutex);
+    return _tasks.size();
+}
+
+
+bool Scheduler::empty() const
+{
+    return size() == 0;
 }
 
 
@@ -173,6 +202,7 @@ void Scheduler::serialize(json::Value& root)
 void Scheduler::deserialize(json::Value& root)
 {
     LTrace("Deserializing");
+    clear();
 
     for (auto& elem : root) {
         try {
@@ -182,8 +212,9 @@ void Scheduler::deserialize(json::Value& root)
             auto trigger =
                 factory().createTrigger(elem["trigger"]["type"].get<std::string>());
             trigger->deserialize(elem["trigger"]);
+            trigger->restore();
             task->setTrigger(std::move(trigger));
-            schedule(task.release()); // transfers ownership to TaskRunner
+            schedule(std::move(task));
         } catch (std::exception& exc) {
             LError("Deserialization Error: ", exc.what());
         }

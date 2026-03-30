@@ -5,174 +5,403 @@
 #include "icy/sched/scheduler.h"
 #include "icy/test.h"
 
+#include <atomic>
+#include <memory>
+#include <thread>
+#include <vector>
 
-using namespace std;
+
 using namespace icy;
 using namespace icy::test;
 
 
-static sched::Scheduler scheduler;
-static int taskRunTimes = 0;
+namespace {
 
 
-// =============================================================================
-// Test Scheduled Task
-//
+std::atomic<int> taskRunTimes{0};
+std::atomic<bool> blockingTaskEntered{false};
+std::atomic<bool> blockingTaskAllowExit{false};
+std::atomic<bool> blockingTaskCompleted{false};
+std::atomic<bool> blockingTaskDestroyedBeforeCompletion{false};
+
+constexpr long kShortDelayUsec = 100000;
+constexpr long kMediumDelayUsec = 300000;
+
+
+bool waitUntil(const std::function<bool()>& predicate, int timeoutMs = 2000)
+{
+    for (int waited = 0; waited < timeoutMs; waited += 10) {
+        if (predicate())
+            return true;
+        icy::sleep(10);
+    }
+    return predicate();
+}
+
+
+void resetBlockingTaskState()
+{
+    blockingTaskEntered = false;
+    blockingTaskAllowExit = false;
+    blockingTaskCompleted = false;
+    blockingTaskDestroyedBeforeCompletion = false;
+}
+
+
 struct ScheduledTask : public sched::Task
 {
     ScheduledTask()
-        : sched::Task("ScheduledTask")
+        : sched::Task("ScheduledTask", "ScheduledTask")
     {
     }
 
-    virtual ~ScheduledTask() {}
+    void run() override
+    {
+        ++taskRunTimes;
+    }
 
-    void run() { taskRunTimes++; }
-
-    void serialize(json::Value& root)
+    void serialize(json::Value& root) override
     {
         sched::Task::serialize(root);
-
-        root["CustomField"] = "blah";
+        root["custom-field"] = "ok";
     }
 
-    void deserialize(json::Value& root)
+    void deserialize(json::Value& root) override
     {
-        json::assertMember(root, "CustomField");
-
+        json::assertMember(root, "custom-field");
         sched::Task::deserialize(root);
     }
 };
+
+
+struct BlockingTask : public sched::Task
+{
+    BlockingTask()
+        : sched::Task("BlockingTask", "BlockingTask")
+    {
+    }
+
+    ~BlockingTask() override
+    {
+        if (!blockingTaskCompleted.load())
+            blockingTaskDestroyedBeforeCompletion = true;
+    }
+
+    void run() override
+    {
+        blockingTaskEntered = true;
+        while (!blockingTaskAllowExit.load())
+            icy::sleep(10);
+        blockingTaskCompleted = true;
+    }
+};
+
+
+void registerFixtureTypes()
+{
+    auto& factory = sched::Scheduler::factory();
+    factory.registerTask<ScheduledTask>("ScheduledTask");
+    factory.registerTask<BlockingTask>("BlockingTask");
+    factory.registerTrigger<sched::OnceOnlyTrigger>("OnceOnlyTrigger");
+    factory.registerTrigger<sched::DailyTrigger>("DailyTrigger");
+    factory.registerTrigger<sched::IntervalTrigger>("IntervalTrigger");
+}
+
+
+std::unique_ptr<ScheduledTask> onceOnlyTask(const Timespan& delay)
+{
+    auto task = std::make_unique<ScheduledTask>();
+    auto* trigger = task->createTrigger<sched::OnceOnlyTrigger>();
+    DateTime when;
+    when += delay;
+    trigger->scheduleAt = when;
+    return task;
+}
+
+
+std::unique_ptr<ScheduledTask> intervalTask(const Timespan& interval, int maxTimes)
+{
+    auto task = std::make_unique<ScheduledTask>();
+    auto* trigger = task->createTrigger<sched::IntervalTrigger>();
+    trigger->interval = interval;
+    trigger->maxTimes = maxTimes;
+    return task;
+}
+
+
+json::Value makeIntervalSnapshot(const Timespan& interval, const DateTime& scheduleAt,
+                                 int maxTimes, uint32_t id)
+{
+    json::Value snapshot = json::Value::array();
+    auto task = std::make_unique<ScheduledTask>();
+    auto* trigger = task->createTrigger<sched::IntervalTrigger>();
+    trigger->interval = interval;
+    trigger->maxTimes = maxTimes;
+    trigger->createdAt = scheduleAt;
+    trigger->scheduleAt = scheduleAt;
+    trigger->lastRunAt = scheduleAt;
+
+    task->serialize(snapshot[0]);
+    snapshot[0]["id"] = id;
+    trigger->serialize(snapshot[0]["trigger"]);
+    return snapshot;
+}
+
+
+json::Value makeDailySnapshot(const DateTime& scheduleAt, const DateTime& timeOfDay,
+                              const std::vector<sched::DaysOfTheWeek>& exclusions,
+                              uint32_t id)
+{
+    json::Value snapshot = json::Value::array();
+    auto task = std::make_unique<ScheduledTask>();
+    auto* trigger = task->createTrigger<sched::DailyTrigger>();
+    trigger->createdAt = scheduleAt;
+    trigger->scheduleAt = scheduleAt;
+    trigger->lastRunAt = scheduleAt;
+    trigger->timeOfDay = timeOfDay;
+    trigger->daysExcluded = exclusions;
+
+    task->serialize(snapshot[0]);
+    snapshot[0]["id"] = id;
+    trigger->serialize(snapshot[0]["trigger"]);
+    return snapshot;
+}
+
+
+} // namespace
 
 
 int main(int argc, char** argv)
 {
     Logger::instance().add(std::make_unique<ConsoleChannel>("debug", Level::Trace));
     test::init();
+    registerFixtureTypes();
 
-    // Register tasks and triggers
-    scheduler.factory().registerTask<ScheduledTask>("ScheduledTask");
-    scheduler.factory().registerTrigger<sched::OnceOnlyTrigger>("OnceOnlyTrigger");
-    scheduler.factory().registerTrigger<sched::DailyTrigger>("DailyTrigger");
-    scheduler.factory().registerTrigger<sched::IntervalTrigger>("IntervalTrigger");
+    describe("schedule assigns scheduler back pointer", []() {
+        sched::Scheduler scheduler;
 
-    describe("once only task serialization", []() {
-        json::Value json;
-        Timespan hundredMs(0, 1);
+        auto task = onceOnlyTask(Timespan(0, kMediumDelayUsec));
+        auto* raw = task.get();
+        scheduler.schedule(std::move(task));
 
-        // Schedule a once only task to run in 100ms time.
-        {
-            taskRunTimes = 0;
-
-            auto task = new ScheduledTask();
-            auto trigger = task->createTrigger<sched::OnceOnlyTrigger>();
-
-            DateTime dt;
-            dt += hundredMs;
-            trigger->scheduleAt = dt;
-
-            scheduler.start(task);
-
-            // Serialize the task
-            scheduler.serialize(json);
-
-            // Wait for the task to complete
-            icy::sleep(1500);
-            expect(taskRunTimes == 1);
+        bool hasScheduler = false;
+        try {
+            hasScheduler = &raw->scheduler() == &scheduler;
+        } catch (...) {
+            hasScheduler = false;
         }
 
-        // Deserialize the previous task from JSON and run it again
-        {
-            taskRunTimes = 0;
-
-            // Set the task to run in 100ms time
-            {
-                DateTime dt;
-                dt += hundredMs;
-                json[0]["trigger"]["scheduleAt"] =
-                    DateTimeFormatter::format(dt, DateTimeFormat::ISO8601_FORMAT);
-            }
-
-            // Dynamically create the task from JSON
-            LDebug("Sched Input JSON:\n", json.dump(4));
-            scheduler.deserialize(json);
-
-            // Print to cout
-            // LDebug("##### Sched Print Output:");
-            // scheduler.print(cout);
-            // LDebug("##### Sched Print Output END");
-
-            // Output scheduler tasks as JSON before run
-            json::Value before;
-            scheduler.serialize(before);
-            SDebug << "Sched Output JSON Before Run:\n"
-                   << before.dump(4);
-
-            // Wait for the task to complete
-            icy::sleep(1500);
-            expect(taskRunTimes == 1);
-
-            // Output scheduler tasks as JSON after run
-            json::Value after;
-            scheduler.serialize(after);
-            SDebug << "Sched Output JSON After Run:\n"
-                   << json.dump(4);
-        }
+        expect(hasScheduler);
+        scheduler.cancel(raw);
+        expect(scheduler.empty());
     });
 
-    describe("interval task", []() {
-        LDebug("Running Scheduled Task Test");
+    describe("once only task serialization round trip", []() {
+        sched::Scheduler scheduler;
+        json::Value snapshot;
 
         taskRunTimes = 0;
+        scheduler.schedule(onceOnlyTask(Timespan(0, kShortDelayUsec)));
+        expect(!scheduler.empty());
+        expect(scheduler.size() == 1);
 
-        // Schedule an interval task to run 3 times at 100ms intervals
-        {
-            auto task = new ScheduledTask();
-            sched::IntervalTrigger* trigger =
-                task->createTrigger<sched::IntervalTrigger>();
+        scheduler.serialize(snapshot);
+        icy::sleep(1500);
+        expect(taskRunTimes == 1);
+        expect(scheduler.empty());
 
-            trigger->interval = Timespan(0, 1);
-            trigger->maxTimes = 3;
+        taskRunTimes = 0;
+        DateTime when;
+        when += Timespan(0, kShortDelayUsec);
+        snapshot[0]["trigger"]["scheduleAt"] =
+            DateTimeFormatter::format(when, DateTimeFormat::ISO8601_FORMAT);
 
-            scheduler.start(task);
-
-            // Print to cout
-            // LDebug("##### Sched Print Output:");
-            // scheduler.print(cout);
-            // LDebug("##### Sched Print Output END");
-
-            // Wait for the task to complete
-            icy::sleep(1000);
-            expect(taskRunTimes == 3);
-        }
-
-        LDebug("Running Scheduled Task Test: END");
+        scheduler.deserialize(snapshot);
+        expect(scheduler.size() == 1);
+        icy::sleep(1500);
+        expect(taskRunTimes == 1);
+        expect(scheduler.empty());
     });
 
-    // // Schedule to fire once now, and in two days time.
-    // {
-    //     auto task = new ScheduledTask();
-    //     auto trigger = task->createTrigger<DailyTrigger>();
-    //
-    //     // 2 secs from now
-    //     DateTime dt;
-    //     Timespan ts(2, 0);
-    //     dt += ts;
-    //     trigger->timeOfDay = dt;
-    //
-    //     // skip tomorrow
-    //     trigger->daysExcluded.push_back((DaysOfTheWeek)(dt.dayOfWeek() + 1));
-    //
-    //     scheduler.schedule(task);
-    //
-    //     // TODO: Assert running date
-    //     expect(task->trigger().remaining() == 1);
-    //     expect(task->trigger().timesRun == 1);
-    // }
+    describe("interval task waits one interval before first run", []() {
+        sched::Scheduler scheduler;
+
+        taskRunTimes = 0;
+        scheduler.schedule(intervalTask(Timespan(0, 0, 0, 0, kMediumDelayUsec), 1));
+        icy::sleep(150);
+        expect(taskRunTimes == 0);
+        icy::sleep(400);
+        expect(taskRunTimes == 1);
+        expect(scheduler.empty());
+    });
+
+    describe("deserialize replaces existing schedule", []() {
+        sched::Scheduler scheduler;
+        json::Value snapshot;
+
+        taskRunTimes = 0;
+        scheduler.schedule(intervalTask(Timespan(0, 0, 0, 1, 0), 10));
+        expect(scheduler.size() == 1);
+        scheduler.serialize(snapshot);
+
+        auto replacement = onceOnlyTask(Timespan(0, kShortDelayUsec));
+        replacement->serialize(snapshot[0]);
+        replacement->trigger().serialize(snapshot[0]["trigger"]);
+
+        scheduler.deserialize(snapshot);
+        expect(scheduler.size() == 1);
+        icy::sleep(1500);
+        expect(taskRunTimes == 1);
+        expect(scheduler.empty());
+    });
+
+    describe("interval restore preserves cadence instead of restarting from restore time", []() {
+        sched::Scheduler scheduler;
+        DateTime now;
+        DateTime past = now;
+        past -= Timespan(0, 0, 0, 1, 800000); // 1.8s overdue on a 1s interval
+
+        auto snapshot =
+            makeIntervalSnapshot(Timespan(0, 0, 0, 1, 0), past, 1, 4242);
+
+        taskRunTimes = 0;
+        scheduler.deserialize(snapshot);
+
+        auto* raw = static_cast<sched::Task*>(scheduler.get(4242));
+        expect(raw != nullptr);
+        expect(raw->remaining() > 0);
+        expect(raw->remaining() < 600);
+
+        icy::sleep(900);
+        expect(taskRunTimes == 1);
+        expect(scheduler.empty());
+    });
+
+    describe("daily trigger serializes time of day and excluded days", []() {
+        sched::DailyTrigger trigger;
+        json::Value data;
+
+        trigger.timeOfDay.assign(2026, 1, 1, 3, 15, 30, 0, 0);
+        trigger.daysExcluded = {sched::Saturday, sched::Sunday};
+        trigger.serialize(data);
+
+        sched::DailyTrigger restored;
+        restored.deserialize(data);
+
+        expect(restored.timeOfDay.hour() == 3);
+        expect(restored.timeOfDay.minute() == 15);
+        expect(restored.timeOfDay.second() == 30);
+        expect(restored.daysExcluded.size() == 2);
+        expect(restored.daysExcluded[0] == sched::Saturday);
+        expect(restored.daysExcluded[1] == sched::Sunday);
+    });
+
+    describe("daily trigger restore skips stale runs and schedules the next valid slot", []() {
+        sched::Scheduler scheduler;
+        DateTime now;
+        DateTime stale = now;
+        stale -= Timespan(0, 1, 0, 0, 0);
+
+        auto snapshot = makeDailySnapshot(
+            stale,
+            DateTime(2026, 1, 1, stale.hour(), stale.minute(), stale.second(), 0, 0),
+            {}, 5555);
+
+        taskRunTimes = 0;
+        scheduler.deserialize(snapshot);
+
+        auto* raw = static_cast<sched::Task*>(scheduler.get(5555));
+        expect(raw != nullptr);
+        expect(raw->remaining() > 0);
+        icy::sleep(300);
+        expect(taskRunTimes == 0);
+        scheduler.cancel(raw);
+    });
+
+    describe("interval task fires exact max count", []() {
+        sched::Scheduler scheduler;
+
+        taskRunTimes = 0;
+        scheduler.schedule(intervalTask(Timespan(0, 0, 0, 0, kShortDelayUsec), 3));
+        icy::sleep(1000);
+        expect(taskRunTimes == 3);
+        expect(scheduler.empty());
+    });
+
+    describe("cancel removes pending task", []() {
+        sched::Scheduler scheduler;
+
+        taskRunTimes = 0;
+        auto task = onceOnlyTask(Timespan(0, kShortDelayUsec));
+        auto* raw = task.get();
+        scheduler.schedule(std::move(task));
+        expect(scheduler.size() == 1);
+
+        scheduler.cancel(raw);
+        expect(scheduler.empty());
+        icy::sleep(1500);
+        expect(taskRunTimes == 0);
+    });
+
+    describe("clear drops all scheduled work", []() {
+        sched::Scheduler scheduler;
+
+        taskRunTimes = 0;
+        scheduler.schedule(onceOnlyTask(Timespan(0, kShortDelayUsec)));
+        scheduler.schedule(onceOnlyTask(Timespan(0, kShortDelayUsec)));
+        expect(scheduler.size() == 2);
+
+        scheduler.clear();
+        expect(scheduler.empty());
+        icy::sleep(1500);
+        expect(taskRunTimes == 0);
+    });
+
+    describe("deserialize skips invalid entries", []() {
+        sched::Scheduler scheduler;
+        json::Value snapshot = json::Value::array();
+
+        auto valid = onceOnlyTask(Timespan(0, kShortDelayUsec));
+        valid->serialize(snapshot[0]);
+        valid->trigger().serialize(snapshot[0]["trigger"]);
+
+        snapshot[1]["type"] = "MissingTaskType";
+        snapshot[1]["name"] = "broken";
+        snapshot[1]["trigger"]["type"] = "OnceOnlyTrigger";
+        snapshot[1]["trigger"]["scheduleAt"] = snapshot[0]["trigger"]["scheduleAt"];
+
+        scheduler.deserialize(snapshot);
+        expect(scheduler.size() == 1);
+
+        taskRunTimes = 0;
+        icy::sleep(1500);
+        expect(taskRunTimes == 1);
+        expect(scheduler.empty());
+    });
+
+    describe("scheduler shutdown waits for running task completion", []() {
+        resetBlockingTaskState();
+
+        auto scheduler = std::make_unique<sched::Scheduler>();
+        auto task = std::make_unique<BlockingTask>();
+        task->createTrigger<sched::OnceOnlyTrigger>();
+        scheduler->schedule(std::move(task));
+
+        expect(waitUntil([]() { return blockingTaskEntered.load(); }));
+
+        std::thread destroyer(
+            [owned = std::move(scheduler)]() mutable { owned.reset(); });
+
+        icy::sleep(100);
+        expect(!blockingTaskDestroyedBeforeCompletion.load());
+        blockingTaskAllowExit = true;
+        destroyer.join();
+
+        expect(blockingTaskCompleted.load());
+        expect(!blockingTaskDestroyedBeforeCompletion.load());
+    });
 
     test::runAll();
-
     Logger::destroy();
-
     return test::finalize();
 }
