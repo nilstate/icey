@@ -43,6 +43,22 @@ jobs:
           python3 -m py_compile packaging/conan/conanfile.py packaging/spack/package.py
           ruby -c packaging/homebrew/Formula/icey.rb
 
+  debian-source:
+    runs-on: ubuntu-24.04
+    name: Debian Source
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Install Debian source tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl debhelper devscripts dpkg-dev rsync
+
+      - name: Build Debian source package
+        run: make package-debian-source
+
   rpm-srpm:
     runs-on: ubuntu-24.04
     name: RPM SRPM

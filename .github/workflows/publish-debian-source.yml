@@ -50,23 +50,7 @@ jobs:
       - name: Install packaging dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            cmake \
-            curl \
-            debhelper \
-            devscripts \
-            dpkg-dev \
-            dput \
-            gnupg \
-            libavcodec-dev libavdevice-dev libavformat-dev libavutil-dev \
-            libnice-dev \
-            libssl-dev \
-            libsrtp2-dev \
-            libswresample-dev libswscale-dev \
-            libusrsctp-dev \
-            nlohmann-json3-dev \
-            pkgconf \
-            rsync
+          sudo apt-get install -y curl debhelper devscripts dpkg-dev rsync
 
       - name: Build Debian source package
         run: ./scripts/package-debian-source.sh "${{ steps.meta.outputs.version }}"
