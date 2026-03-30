@@ -1,4 +1,4 @@
-.PHONY: docs docs-install docs-xml docs-api-md docs-site docs-check docs-dev docs-docker clean-docs package-conan package-vcpkg package-arch package-homebrew package-debian-source release release-check release-pin release-pin-vcpkg release-pin-arch release-pin-homebrew release-pin-alpine release-pin-macports release-pin-spack release-pin-conda
+.PHONY: docs docs-install docs-xml docs-api-md docs-site docs-check docs-dev docs-docker clean-docs package-conan package-vcpkg package-arch package-homebrew package-debian-source package-nix package-rpm-srpm release release-check release-pin release-pin-vcpkg release-pin-arch release-pin-homebrew release-pin-alpine release-pin-macports release-pin-spack release-pin-conda
 
 DOCS_NPM = npm --prefix docs
 DOCS_RUN = $(DOCS_NPM) run
@@ -7,9 +7,12 @@ VCPKG ?= vcpkg
 MAKEPKG ?= makepkg
 BREW ?= brew
 DPKG_BUILDPACKAGE ?= dpkg-buildpackage
+NIX ?= nix
+RPMBUILD ?= rpmbuild
 VCPKG_MAX_CONCURRENCY ?= 1
 ICEY_VCPKG_SOURCE_PATH ?= $(CURDIR)
 ICEY_DEBIAN_STAGE_DIR ?= $(CURDIR)/build/package/debian
+ICEY_RPM_STAGE_DIR ?= $(CURDIR)/build/package/rpm
 
 ## Build the Sourcey site from prose docs + Doxygen XML
 docs: docs-site
@@ -70,6 +73,14 @@ package-homebrew:
 ## Build a Debian source package / PPA seed under build/package/debian
 package-debian-source:
 	ICEY_DEBIAN_STAGE_DIR="$(ICEY_DEBIAN_STAGE_DIR)" DPKG_BUILDPACKAGE="$(DPKG_BUILDPACKAGE)" ./scripts/package-debian-source.sh
+
+## Build the repo-root Nix flake package
+package-nix:
+	$(NIX) build .#icey
+
+## Build an SRPM staging tree under build/package/rpm
+package-rpm-srpm:
+	ICEY_RPM_STAGE_DIR="$(ICEY_RPM_STAGE_DIR)" RPMBUILD="$(RPMBUILD)" ./scripts/package-rpm-srpm.sh
 
 ## Sync release metadata for VERSION, package recipes, and FetchContent examples
 release:

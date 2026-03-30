@@ -1,0 +1,79 @@
+name: Packaging CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  metadata:
+    runs-on: ubuntu-24.04
+    name: Package Metadata
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate release metadata
+        run: ./scripts/release-check.sh
+
+      - name: Validate packaging helper scripts
+        run: |
+          bash -n scripts/package-debian-source.sh
+          bash -n scripts/package-rpm-srpm.sh
+          bash -n scripts/publish-aur.sh
+          bash -n scripts/publish-homebrew.sh
+          bash -n scripts/publish-ppa.sh
+          bash -n scripts/release-pin-alpine.sh
+          bash -n scripts/release-pin-arch.sh
+          bash -n scripts/release-pin-conda.sh
+          bash -n scripts/release-pin-homebrew.sh
+          bash -n scripts/release-pin-macports.sh
+          bash -n scripts/release-pin-spack.sh
+          bash -n scripts/release-pin-vcpkg.sh
+
+      - name: Validate package recipe syntax
+        run: |
+          python3 -m py_compile packaging/conan/conanfile.py packaging/spack/package.py
+          ruby -c packaging/homebrew/Formula/icey.rb
+
+  rpm-srpm:
+    runs-on: ubuntu-24.04
+    name: RPM SRPM
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install RPM tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl rpm
+
+      - name: Build SRPM
+        run: make package-rpm-srpm
+
+  nix:
+    runs-on: ubuntu-24.04
+    name: Nix Flake
+    env:
+      NIX_CONFIG: experimental-features = nix-command flakes
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Nix
+        run: |
+          sh <(curl --proto '=https' --tlsv1.2 -L https://nixos.org/nix/install) --no-daemon
+
+      - name: Build flake package
+        run: |
+          . "$HOME/.nix-profile/etc/profile.d/nix.sh"
+          make package-nix
