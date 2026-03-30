@@ -68,10 +68,20 @@ stdenv.mkDerivation {
     "-DWITH_LIBDATACHANNEL=${if withWebrtc then "ON" else "OFF"}"
     "-DBUILD_MODULE_webrtc=${if withWebrtc then "ON" else "OFF"}"
     "-DWITH_OPENCV=OFF"
-    "-DFETCHCONTENT_SOURCE_DIR_LIBUV=${vendoredLibuv}"
-    "-DFETCHCONTENT_SOURCE_DIR_LLHTTP=${vendoredLlhttp}"
-    "-DFETCHCONTENT_SOURCE_DIR_ZLIB=${vendoredZlib}"
   ];
+
+  preConfigure = ''
+    mkdir -p .nix-vendored
+    cp -R ${vendoredLibuv} .nix-vendored/libuv
+    cp -R ${vendoredLlhttp} .nix-vendored/llhttp
+    cp -R ${vendoredZlib} .nix-vendored/zlib
+    chmod -R u+w .nix-vendored
+    cmakeFlagsArray+=(
+      "-DFETCHCONTENT_SOURCE_DIR_LIBUV=$PWD/.nix-vendored/libuv"
+      "-DFETCHCONTENT_SOURCE_DIR_LLHTTP=$PWD/.nix-vendored/llhttp"
+      "-DFETCHCONTENT_SOURCE_DIR_ZLIB=$PWD/.nix-vendored/zlib"
+    )
+  '';
 
   doCheck = false;
 
