@@ -55,7 +55,7 @@ jobs:
       - name: Build Debian source package
         run: ./scripts/package-debian-source.sh "${{ steps.meta.outputs.version }}"
         env:
-          DEBIAN_DISTRIBUTION: unstable
+          DEBIAN_DISTRIBUTION: ${{ vars.PPA_UBUNTU_SERIES || 'noble' }}
 
       - uses: actions/upload-artifact@v4
         with:
@@ -76,9 +76,11 @@ jobs:
         env:
           PPA_GPG_PRIVATE_KEY: ${{ secrets.PPA_GPG_PRIVATE_KEY }}
           PPA_PUBLISH_ENABLED: ${{ vars.PPA_PUBLISH_ENABLED }}
+          PPA_UBUNTU_SERIES: ${{ vars.PPA_UBUNTU_SERIES || 'noble' }}
         run: |
           if [[ "${PPA_PUBLISH_ENABLED:-false}" == "true" && -n "${PPA_GPG_PRIVATE_KEY:-}" ]]; then
             echo "publish=true" >> "$GITHUB_OUTPUT"
+            echo "Publishing Ubuntu series: ${PPA_UBUNTU_SERIES:-noble}"
           else
             echo "publish=false" >> "$GITHUB_OUTPUT"
             echo "Skipping PPA publish: set PPA_PUBLISH_ENABLED=true after the Launchpad account is ready and PPA_GPG_PRIVATE_KEY is configured."
