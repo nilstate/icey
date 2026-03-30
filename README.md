@@ -306,7 +306,7 @@ session.StateChanged += [&](wrtc::PeerSession::State state) {
 | **turn** | RFC 5766 TURN relay server |
 | **webrtc** | WebRTC via libdatachannel: media bridge, peer sessions, codec negotiation |
 | **archo** | ZIP/archive handling |
-| **pluga** | Plugin system (shared library loading) |
+| **graft** | Native plugin ABI and shared library loading |
 | **pacm** | Package manager for plugin distribution |
 | **sched** | Task scheduler for deferred/periodic jobs |
 

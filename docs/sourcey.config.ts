@@ -1,5 +1,6 @@
 export default {
   name: "icey",
+  logo: "icey.png",
   repo: "https://github.com/nilstate/icey",
   editBranch: "main",
   theme: {
@@ -72,7 +73,7 @@ export default {
               "modules/archo",
               "modules/sched",
               "modules/pacm",
-              "modules/pluga",
+              "modules/graft",
             ],
           },
           {

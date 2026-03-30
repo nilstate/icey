@@ -29,7 +29,7 @@ set(_package_cmake_args
   -DBUILD_MODULE_av=OFF
   -DBUILD_MODULE_json=OFF
   -DBUILD_MODULE_pacm=OFF
-  -DBUILD_MODULE_pluga=OFF
+  -DBUILD_MODULE_graft=OFF
   -DBUILD_MODULE_sched=OFF
   -DBUILD_MODULE_stun=OFF
   -DBUILD_MODULE_symple=OFF

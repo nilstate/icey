@@ -763,7 +763,7 @@ endif()
 | --- | --- | --- |
 | `-DBUILD_TESTS=ON` | `OFF` | Builds `cryptotests` in `src/crypto/tests/` |
 
-OpenSSL is auto-detected. If it is not found, the crypto module and all modules that depend on it (`net`, `stun`, `turn`, `webrtc`) are disabled. The `base`, `json`, `archo`, `sched`, and `pluga` modules build without OpenSSL. Install OpenSSL 3.x (`libssl-dev` on Ubuntu/Debian) to enable the crypto module.
+OpenSSL is auto-detected. If it is not found, the crypto module and all modules that depend on it (`net`, `stun`, `turn`, `webrtc`) are disabled. The `base`, `json`, `archo`, `sched`, and `graft` modules build without OpenSSL. Install OpenSSL 3.x (`libssl-dev` on Ubuntu/Debian) to enable the crypto module.
 
 ### Windows considerations
 

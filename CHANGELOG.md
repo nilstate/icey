@@ -6,6 +6,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Added
+
+- Signed APT repo at `apt.0state.com/icey`
+- Ubuntu PPA source package at `ppa:0state/icey`
+- Nix flake (`nix build github:nilstate/icey`)
+- Nixpkgs PR (NixOS/nixpkgs#504863)
+- Fedora RPM spec and SRPM generation
+- Alpine APKBUILD with system llhttp support
+- MacPorts, Spack, and conda-forge recipe scaffolds
+- Packaging CI: Debian source-package generation, RPM SRPM staging, Nix flake build, Fedora/Alpine containerized packaging checks
+- Launchpad PPA signing and upload automation
+
+### Changed
+
+- Packaging assets centralized under `packaging/` with per-format subdirectories
+- All packaging metadata homepage set to `0state.com/icey`
+
+### Fixed
+
+- Vendored libuv, llhttp, zlib source hashes for Nix builds
+- Distro llhttp target name compatibility (Alpine/Fedora shared layouts)
+- Packaged minizip header path compatibility
+- FFmpeg 8 pixel format selection and avio write callback gating
+- pkg-config install paths in generated `.pc` files
+
 ## [2.4.0] - 2026-03-27
 
 ### Added
@@ -276,7 +301,7 @@ Keep-alive benchmark results (single vCPU, wrk -t4 -c100 -d10s):
 - AV test data integrity verification: codec, sample rate, channel count, and duration checks via avformat
 - SSL hostname verification integration test (connects to google.com with certificate verification enabled)
 
-## [2.0.0] - Unreleased
+## [2.0.0] - 2026-03-15
 
 ### Build system
 

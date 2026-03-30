@@ -179,7 +179,7 @@ STRIP_FROM_INC_PATH    = ./src/archo/include \
                          ./src/json/include \
                          ./src/net/include \
                          ./src/pacm/include \
-                         ./src/pluga/include \
+                         ./src/graft/include \
                          ./src/sched/include \
                          ./src/stun/include \
                          ./src/symple/include \
@@ -2060,7 +2060,7 @@ PREDEFINED             = HAVE_FFMPEG \
                          Crypto_API= \
                          Sched_API= \
                          Pacm_API= \
-                         Pluga_API=
+                         Graft_API=
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then this
 # tag can be used to specify a list of macro names that should be expanded. The

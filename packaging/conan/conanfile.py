@@ -131,7 +131,7 @@ class iceyConan(ConanFile):
             "json",
             "net",
             "pacm",
-            "pluga",
+            "graft",
             "sched",
             "stun",
             "symple",
@@ -141,11 +141,7 @@ class iceyConan(ConanFile):
         for mod in modules:
             self.cpp_info.components[mod].set_property("cmake_target_name", f"icey::{mod}")
             self.cpp_info.components[mod].includedirs = ["include"]
-
-            if mod == "pluga":
-                self.cpp_info.components[mod].libdirs = []
-            else:
-                self.cpp_info.components[mod].libs = [f"icy_{mod}"]
+            self.cpp_info.components[mod].libs = [f"icy_{mod}"]
 
         self.cpp_info.components["base"].requires = ["libuv::libuv"]
         self.cpp_info.components["archo"].requires = ["base", "minizip::minizip"]
@@ -157,7 +153,7 @@ class iceyConan(ConanFile):
         self.cpp_info.components["json"].requires = ["base"]
         self.cpp_info.components["net"].requires = ["base", "crypto", "openssl::openssl"]
         self.cpp_info.components["pacm"].requires = ["base", "crypto", "net", "http", "json", "archo", "openssl::openssl"]
-        self.cpp_info.components["pluga"].requires = ["base"]
+        self.cpp_info.components["graft"].requires = ["base"]
         self.cpp_info.components["sched"].requires = ["base", "json"]
         self.cpp_info.components["stun"].requires = ["base", "net", "crypto", "openssl::openssl"]
         self.cpp_info.components["turn"].requires = ["base", "net", "crypto", "stun"]

@@ -40,7 +40,7 @@
 #cmakedefine HAVE_ICY_sched
 #cmakedefine HAVE_ICY_archo
 #cmakedefine HAVE_ICY_pacm
-#cmakedefine HAVE_ICY_pluga
+#cmakedefine HAVE_ICY_graft
 // OpenSSL library
 #cmakedefine HAVE_OPENSSL
 

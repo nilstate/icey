@@ -42,7 +42,7 @@ This page is the map. If you want the quickest path to a task, use the table bel
                       \
                 openssl (system)
 
-            archo     pluga     av
+            archo     graft     av
               |         |       |
              base      base    base (+FFmpeg)
 
@@ -94,7 +94,7 @@ This page is the map. If you want the quickest path to a task, use the table bel
 | **[turn](modules/turn.md)** | RFC 5766 TURN relay server and client | base, net, stun, crypto |
 | **[archo](modules/archo.md)** | ZIP archive extraction | base |
 | **[pacm](modules/pacm.md)** | Package manager for plugin distribution | base, net, json, http, archo, crypto |
-| **[pluga](modules/pluga.md)** | Plugin system for shared library loading | base |
+| **[graft](modules/graft.md)** | Native plugin ABI and shared library loading | base |
 | **[sched](modules/sched.md)** | Task scheduler for deferred and periodic jobs | base, json |
 
 ## Read This With The Sidebar

@@ -6,7 +6,7 @@
 
 ## Overview
 
-The `pacm` module is an embeddable package manager. We use it to give native applications the ability to install, update, and uninstall versioned archives (plugins, assets, or any packaged payload) from a remote HTTP endpoint, without shipping a separate management tool.
+The `pacm` module is an embeddable package manager. We use it to give native applications the ability to install, update, and uninstall versioned archives (native extensions, worker processes, assets, or any packaged payload) from a remote HTTP endpoint, without shipping a separate management tool.
 
 The server side is a plain JSON index served over HTTP; no special server software is required. The client fetches the index, compares it against locally-stored manifests, and downloads only what has changed. Downloads are verified by checksum before extraction. Installation is a three-phase pipeline: download, extract (via `archo`), finalize (move files into place).
 
@@ -17,7 +17,7 @@ The server side is a plain JSON index served over HTTP; no special server softwa
 Five classes carry the module's responsibilities:
 
 - `PackageManager` is the central coordinator. It owns the local and remote package stores, creates `InstallTask` instances on demand, and emits signals at key lifecycle points.
-- `Package` / `RemotePackage` / `LocalPackage` are JSON-backed value types describing packages on the server and on disk.
+- `Package` / `RemotePackage` / `LocalPackage` are JSON-backed value types describing packages on the server and on disk, including optional extension metadata (`loader`, `runtime`, `entrypoint`, `abi-version`, `capabilities`).
 - `InstallTask` runs one installation pipeline asynchronously: download → extract → finalize. It is a state machine and emits progress and completion signals.
 - `InstallMonitor` coordinates multiple concurrent `InstallTask` instances and aggregates their progress into a single overall signal.
 - `InstallOptions` carries per-operation overrides (version pin, SDK version pin, install directory override).
@@ -46,7 +46,7 @@ Construct a `PackageManager` with an `Options` struct, then call `initialize()`.
 icy::pacm::PackageManager::Options opts;
 opts.endpoint   = "https://packages.example.com";
 opts.indexURI   = "/packages.json";
-opts.installDir = "/opt/myapp/plugins";
+opts.installDir = "/opt/myapp/extensions";
 opts.dataDir    = "/var/myapp/pacm/data";
 opts.tempDir    = "/tmp/myapp/pacm";
 
@@ -131,7 +131,33 @@ opts.installDir = "/opt/myapp/experimental";
 pm.installPackage("myplugin", opts);
 ```
 
-SDK version matching is intended for plugins that must be compiled against a specific SDK release. The package JSON must include a `"sdk-version"` field on each asset for this to work.
+SDK version matching is intended for native extensions that must be compiled against a specific SDK release. The package JSON must include a `"sdk-version"` field on each asset for this to work.
+
+### Extension metadata
+
+Packages can describe a loadable extension payload with an optional `extension` object:
+
+```json
+{
+  "extension": {
+    "loader": "graft",
+    "runtime": "native",
+    "entrypoint": "lib/libmotion_detector.so",
+    "abi-version": 1,
+    "capabilities": ["processor.video", "detector"]
+  }
+}
+```
+
+`Package::extension()` exposes this metadata and `LocalPackage::extensionEntryPointPath()` resolves the install-relative entrypoint against `installDir`.
+
+```cpp
+auto& pkg = *pm.localPackages().map().at("motion-detector");
+if (pkg.hasExtension()) {
+    auto extension = pkg.extension();
+    std::string path = pkg.extensionEntryPointPath();
+}
+```
 
 ### Version locking on a local package
 
@@ -181,7 +207,7 @@ if (pm.hasUnfinalizedPackages())
 
 ### Inspecting package pairs
 
-`PackagePair` binds a `LocalPackage*` and a `RemotePackage*` together; either pointer may be null if the package exists on only one side.
+`PackagePair` binds a `LocalPackage*` and a `RemotePackage*` together; either pointer may be null if the package exists on only one side. `hasExtension()` tells us whether either side carries extension metadata.
 
 ```cpp
 for (auto& pair : pm.getPackagePairs()) {
@@ -214,6 +240,13 @@ The server responds to `GET /packages.json` with a JSON array. Each element desc
     "name": "My Plugin",
     "author": "Example Corp",
     "description": "An example plugin.",
+    "extension": {
+        "loader": "graft",
+        "runtime": "native",
+        "entrypoint": "lib/myplugin.so",
+        "abi-version": 1,
+        "capabilities": ["processor.video"]
+    },
     "assets": [{
         "version": "1.0.0",
         "sdk-version": "2.0.0",
@@ -294,6 +327,6 @@ All directory defaults are relative to the current working directory.
 ## See Also
 
 - [Archo](archo.md) — ZIP extraction used internally by `InstallTask`
-- [Pluga](pluga.md) — plugin loading; use alongside `pacm` for full remote plugin support
+- [Graft](graft.md) — native plugin loading; use alongside `pacm` for distributed native extensions
 - [JSON](json.md) — JSON types and file I/O used throughout `pacm`
 - [Base](base.md) — signals, tasks, collections, and filesystem helpers

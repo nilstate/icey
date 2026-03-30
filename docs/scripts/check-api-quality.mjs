@@ -15,7 +15,7 @@ const modules = [
   'json.md',
   'net.md',
   'pacm.md',
-  'pluga.md',
+  'graft.md',
   'sched.md',
   'stun.md',
   'symple.md',

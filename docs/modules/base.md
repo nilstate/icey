@@ -1037,7 +1037,7 @@ std::string b64 = out.str();
 
 ### Shared library loading
 
-`SharedLibrary` wraps libuv's `uv_lib_t` for runtime shared library loading and symbol resolution. The `pluga` module builds its plugin system on top of this:
+`SharedLibrary` wraps libuv's `uv_lib_t` for runtime shared library loading and symbol resolution. The `graft` module builds its native plugin loading on top of this:
 
 ```cpp
 #include "icy/sharedlibrary.h"
@@ -1158,7 +1158,7 @@ target_link_libraries(myapp PRIVATE icey::base)
 - [WebRTC](webrtc.md) — `WebRtcTrackSender` and `WebRtcTrackReceiver` are sinks and sources that connect directly to `PacketStream`.
 - [Symple](symple.md) — Real-time messaging; uses the signal/slot system throughout for event dispatch.
 - [Sched](sched.md) — Task scheduler; builds on `Thread` and `Runner` for deferred and periodic job execution.
-- [Pluga](pluga.md) — Plugin system; uses `SharedLibrary` for runtime shared-library loading.
+- [Graft](graft.md) — Native plugin ABI and loader; uses `SharedLibrary` for runtime shared-library loading.
 
 ## Best Next Reads
 

@@ -420,7 +420,7 @@ target_link_libraries(myapp PRIVATE icy_base icy_net icy_http icy_av icy_webrtc 
 
 # Available targets: icy_base, icy_crypto, icy_net, icy_http, icy_json,
 # icy_av, icy_symple, icy_stun, icy_turn, icy_webrtc,
-# icy_archo, icy_pluga, icy_pacm, icy_sched
+# icy_archo, icy_graft, icy_pacm, icy_sched
 ```
 
 ```bash
