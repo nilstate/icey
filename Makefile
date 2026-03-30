@@ -1,4 +1,4 @@
-.PHONY: docs docs-install docs-xml docs-api-md docs-site docs-check docs-dev docs-docker clean-docs package-conan package-vcpkg package-arch package-homebrew package-debian-source package-nix package-rpm-srpm release release-check release-pin release-pin-vcpkg release-pin-arch release-pin-homebrew release-pin-alpine release-pin-macports release-pin-spack release-pin-conda
+.PHONY: docs docs-install docs-xml docs-api-md docs-site docs-check docs-dev docs-docker clean-docs package-conan package-vcpkg package-arch package-homebrew package-debian-source package-nix package-rpm-srpm package-fedora-srpm package-alpine-apkbuild release release-check release-pin release-pin-vcpkg release-pin-arch release-pin-homebrew release-pin-alpine release-pin-macports release-pin-spack release-pin-conda
 
 DOCS_NPM = npm --prefix docs
 DOCS_RUN = $(DOCS_NPM) run
@@ -82,6 +82,14 @@ package-nix:
 ## Build an SRPM staging tree under build/package/rpm
 package-rpm-srpm:
 	ICEY_RPM_STAGE_DIR="$(ICEY_RPM_STAGE_DIR)" RPMBUILD="$(RPMBUILD)" ./scripts/package-rpm-srpm.sh
+
+## Validate the RPM SRPM flow inside a Fedora container
+package-fedora-srpm:
+	CMAKE_BUILD_PARALLEL_LEVEL="$(CMAKE_BUILD_PARALLEL_LEVEL)" ./scripts/package-fedora-srpm.sh
+
+## Validate the Alpine APKBUILD inside an Alpine container
+package-alpine-apkbuild:
+	CMAKE_BUILD_PARALLEL_LEVEL="$(CMAKE_BUILD_PARALLEL_LEVEL)" ./scripts/package-alpine-apkbuild.sh
 
 ## Sync release metadata for VERSION, package recipes, and FetchContent examples
 release:

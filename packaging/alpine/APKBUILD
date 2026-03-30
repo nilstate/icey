@@ -13,6 +13,7 @@ makedepends="
 	ffmpeg-dev
 	libuv-dev
 	llhttp-dev
+	linux-headers
 	minizip-dev
 	openssl-dev
 	pkgconf
@@ -21,12 +22,9 @@ makedepends="
 "
 subpackages="$pkgname-dev"
 source="$pkgname-$pkgver.tar.gz::https://github.com/nilstate/icey/archive/refs/tags/$pkgver.tar.gz"
-sha512sums="
-496f3682ebbdaf4ebdba06d5b81fa7bbcbb4f45b97a270edbc7c0c34eccb00a8bd62cbc7f9c434bb816ac5245eaa0590ad10011a19704ffdb6e6ef75dd006637  icey-2.4.0.tar.gz
-"
 
 build() {
-	cmake -G Ninja -B build -S "$builddir/$pkgname-$pkgver" \
+	cmake -G Ninja -B build -S "$builddir" \
 		-DCMAKE_BUILD_TYPE=None \
 		-DCMAKE_INSTALL_PREFIX=/usr \
 		-DBUILD_SHARED_LIBS=ON \
@@ -49,6 +47,9 @@ build() {
 
 package() {
 	DESTDIR="$pkgdir" cmake --install build
-	install -Dm644 "$builddir/$pkgname-$pkgver/LICENSE.md" \
+	install -Dm644 "$builddir/LICENSE.md" \
 		"$pkgdir/usr/share/licenses/$pkgname/LICENSE.md"
 }
+sha512sums="
+496f3682ebbdaf4ebdba06d5b81fa7bbcbb4f45b97a270edbc7c0c34eccb00a8bd62cbc7f9c434bb816ac5245eaa0590ad10011a19704ffdb6e6ef75dd006637  icey-2.4.0.tar.gz
+"
