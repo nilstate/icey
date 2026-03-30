@@ -10,7 +10,7 @@ class Icey(CMakePackage):
 
     license("LGPL-2.1-or-later")
 
-    version("2.4.0", sha256="0c402b56093f392613b61320087bb888d291e80cdcb038dbb360555b6e1b6cc3")
+    version("2.4.1", sha256="0000000000000000000000000000000000000000000000000000000000000000")
 
     variant("ffmpeg", default=True, description="Enable icey::av with FFmpeg")
     variant("webrtc", default=False, description="Enable icey::webrtc with libdatachannel")

@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+## [2.4.1] - 2026-03-30
+
+### Changed
+
+- Release tooling now treats Conan like the rest of the package-manager surfaces:
+  - `make release` seeds `packaging/conan/conandata.yml`
+  - `make release-finalize` pins the tagged archive hash and runs the final consistency check
+- The documented release flow is now explicit about the post-tag finalize step instead of suggesting a pre-tag `release-check` that could only fail on placeholder hashes
+
+### Fixed
+
+- Alpine system-package builds now accept the shared `llhttp` targets exported by Alpine's `llhttp-dev` package instead of hard-linking `llhttp_static`
+- The local Conan recipe now builds from immutable tagged GitHub archives instead of exporting a live checkout into the package
+
 ## [2.4.0] - 2026-03-27
 
 ### Added
