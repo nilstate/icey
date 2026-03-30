@@ -191,8 +191,15 @@ else()
   if(NOT TARGET libuv::uv_a AND NOT TARGET libuv::libuv AND PkgConfig_FOUND)
     pkg_check_modules(LIBUV QUIET IMPORTED_TARGET GLOBAL libuv)
   endif()
-  find_package(llhttp CONFIG REQUIRED)
+  find_package(llhttp CONFIG QUIET)
   find_package(ZLIB REQUIRED)
+  if(NOT TARGET llhttp_static
+     AND NOT TARGET llhttp::llhttp_static
+     AND NOT TARGET llhttp::llhttp
+     AND NOT TARGET llhttp
+     AND PkgConfig_FOUND)
+    pkg_check_modules(LLHTTP QUIET IMPORTED_TARGET GLOBAL llhttp)
+  endif()
 
   # Package managers do not agree on canonical target names.
   icy_add_compat_target(uv_a libuv::uv_a)
@@ -200,8 +207,13 @@ else()
   icy_add_compat_target(uv_a PkgConfig::LIBUV)
   icy_add_compat_target(llhttp_static llhttp::llhttp_static)
   icy_add_compat_target(llhttp_static llhttp::llhttp)
+  icy_add_compat_target(llhttp_static llhttp)
+  icy_add_compat_target(llhttp_static PkgConfig::LLHTTP)
   if(NOT TARGET uv_a)
     message(FATAL_ERROR "libuv not found; install libuv with a CMake package config or pkg-config metadata")
+  endif()
+  if(NOT TARGET llhttp_static)
+    message(FATAL_ERROR "llhttp not found; install llhttp with a CMake package config or pkg-config metadata")
   endif()
 
   # Alias system zlib to match the target name used by modules
