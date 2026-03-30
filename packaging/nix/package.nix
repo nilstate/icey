@@ -17,7 +17,7 @@ let
     owner = "libuv";
     repo = "libuv";
     rev = "v1.50.0";
-    hash = "sha256-sexWRE7j8eEMi9Pu0WukcBbtC5T+QhN0Nary4L1XRXk=";
+    hash = "sha256-1Z/zf4qZYDM5upHdRtc1HGpHaGTRHm147azJZ0pT5pU=";
   };
 
   vendoredLlhttp = fetchFromGitHub {
