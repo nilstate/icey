@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-24.04
     name: Package Metadata
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -47,7 +47,7 @@ jobs:
     runs-on: ubuntu-24.04
     name: RPM SRPM
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -67,7 +67,7 @@ jobs:
       NIX_BUILD_CORES: 1
       CMAKE_BUILD_PARALLEL_LEVEL: 1
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 

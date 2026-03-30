@@ -15,7 +15,7 @@ jobs:
     outputs:
       version: ${{ steps.meta.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -63,12 +63,12 @@ jobs:
             echo "Skipping Homebrew publish: HOMEBREW_TAP_TOKEN is not configured."
           fi
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         if: steps.gate.outputs.publish == 'true'
 
       - name: Checkout tap repo
         if: steps.gate.outputs.publish == 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: nilstate/homebrew-icey
           token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
@@ -108,7 +108,7 @@ jobs:
             echo "Skipping AUR publish: AUR_SSH_PRIVATE_KEY is not configured."
           fi
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         if: steps.gate.outputs.publish == 'true'
 
       - name: Configure SSH

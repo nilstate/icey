@@ -15,7 +15,7 @@ jobs:
     outputs:
       version: ${{ steps.meta.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -99,7 +99,7 @@ jobs:
             echo "Skipping PPA publish: PPA_GPG_PRIVATE_KEY is not configured."
           fi
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         if: steps.gate.outputs.publish == 'true'
 
       - name: Install upload dependencies

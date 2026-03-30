@@ -28,7 +28,7 @@ jobs:
             cxx: clang++-18
     name: Linux (${{ matrix.cxx }})
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           submodules: recursive
 
@@ -65,7 +65,7 @@ jobs:
     runs-on: macos-14
     name: macOS (AppleClang)
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           submodules: recursive
 
@@ -99,7 +99,7 @@ jobs:
     runs-on: windows-2022
     name: Windows (MSVC 2022)
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           submodules: recursive
 
@@ -132,7 +132,7 @@ jobs:
     runs-on: ubuntu-24.04
     name: WebRTC (libdatachannel + FFmpeg)
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           submodules: recursive
 
@@ -189,7 +189,7 @@ jobs:
             env_value: print_stacktrace=1
     name: Sanitizer (${{ matrix.sanitizer }})
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           submodules: recursive
 
@@ -227,7 +227,7 @@ jobs:
     runs-on: ubuntu-24.04
     name: Coverage
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           submodules: recursive
 
