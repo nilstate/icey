@@ -4,6 +4,7 @@ PortGroup           github 1.0
 
 github.setup        nilstate icey 2.4.2
 github.tarball_from archive
+revision            0
 
 categories          devel multimedia net
 maintainers         nomaintainer
@@ -12,9 +13,14 @@ homepage            https://0state.com/icey/
 description         C++20 media stack and libwebrtc alternative for real-time video, signalling, TURN, and media servers
 long_description    ${description}
 
-checksums           rmd160  e362ca032690894cc65a3ecde0e8d28f6b2d4f5b \
-                    sha256  0c402b56093f392613b61320087bb888d291e80cdcb038dbb360555b6e1b6cc3 \
+checksums           rmd160  b0299e8d906a4203fd4a237fcbfdad88f113d252 \
+                    sha256  6912ad57336f061e197cc1b969728464a9a658a1d426c67d6af03ef95bff2345 \
                     size    6421710
+
+cmake.build_type    Release
+
+compiler.cxx_standard \
+                    2020
 
 depends_build-append \
                     port:pkgconfig
