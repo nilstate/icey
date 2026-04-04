@@ -10,6 +10,12 @@ if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     exit 1
 fi
 
+debian_revision="${DEBIAN_REVISION:-1}"
+if [[ ! "$debian_revision" =~ ^[0-9]+$ ]]; then
+    echo "expected DEBIAN_REVISION to be a positive integer like 1 or 2" >&2
+    exit 1
+fi
+
 stage_root="${ICEY_DEBIAN_STAGE_DIR:-$repo_root/build/package/debian}"
 distribution="${DEBIAN_DISTRIBUTION:-unstable}"
 dpkg_buildpackage="${DPKG_BUILDPACKAGE:-dpkg-buildpackage}"
@@ -73,7 +79,7 @@ rsync -a \
 
 rm -rf "$work_dir/debian"
 cp -a "$repo_root/packaging/debian/debian" "$work_dir/debian"
-perl -0pi -e 's/^icey \(\d+\.\d+\.\d+-\d+\) .*/icey ('"$version"'-1) '"$distribution"'; urgency=medium/m' "$work_dir/debian/changelog"
+perl -0pi -e 's/^icey \(\d+\.\d+\.\d+-\d+\) .*/icey ('"$version"'-'"$debian_revision"') '"$distribution"'; urgency=medium/m' "$work_dir/debian/changelog"
 perl -0pi -e 's/^ -- .*$/ -- 0state OSS <oss\@0state.com>  '"$(date -R)"'/m' "$work_dir/debian/changelog"
 
 mkdir -p "$work_dir/vendor"

@@ -5,6 +5,11 @@ on:
     tags:
       - "*.*.*"
   workflow_dispatch:
+    inputs:
+      debian_revision:
+        description: "Debian revision for the source upload"
+        required: false
+        default: "1"
 
 permissions:
   contents: read
@@ -56,6 +61,7 @@ jobs:
         run: ./scripts/package-debian-source.sh "${{ steps.meta.outputs.version }}"
         env:
           DEBIAN_DISTRIBUTION: ${{ vars.PPA_UBUNTU_SERIES || 'noble' }}
+          DEBIAN_REVISION: ${{ github.event.inputs.debian_revision || '1' }}
 
       - uses: actions/upload-artifact@v4
         with:
