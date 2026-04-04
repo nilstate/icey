@@ -21,6 +21,8 @@ distribution="${DEBIAN_DISTRIBUTION:-unstable}"
 dpkg_buildpackage="${DPKG_BUILDPACKAGE:-dpkg-buildpackage}"
 work_dir="$stage_root/icey-$version"
 orig_tarball="$stage_root/icey_${version}.orig.tar.gz"
+source_package_name="${DEBIAN_SOURCE_PACKAGE:-icey}"
+debian_ppa_target="${DEBIAN_PPA_TARGET:-${PPA_TARGET:-}}"
 tmp_dir=$(mktemp -d)
 trap 'rm -rf "$tmp_dir"' EXIT
 
@@ -53,6 +55,78 @@ download_extract() {
     fi
 
     tar -xzf "$archive" -C "$destination" --strip-components=1
+}
+
+download_existing_orig_tarball() {
+    local upload_link
+    local owner
+    local archive
+    local upload_id
+    local upload_url
+
+    if [[ -n "${DEBIAN_ORIG_TARBALL_URL:-}" ]]; then
+        echo "reusing published orig tarball from ${DEBIAN_ORIG_TARBALL_URL}"
+        curl --fail --location --retry 3 --retry-delay 1 \
+            --output "$orig_tarball" "${DEBIAN_ORIG_TARBALL_URL}"
+        return
+    fi
+
+    if [[ ! "$debian_ppa_target" =~ ^ppa:([^/]+)/([^/]+)$ ]]; then
+        echo "DEBIAN_PPA_TARGET must look like ppa:<owner>/<archive> for revision uploads" >&2
+        echo "or set DEBIAN_ORIG_TARBALL_URL to the accepted orig tarball URL" >&2
+        exit 1
+    fi
+
+    owner="${BASH_REMATCH[1]}"
+    archive="${BASH_REMATCH[2]}"
+    upload_link=$(python3 - "$owner" "$archive" "$source_package_name" "$version" "$debian_revision" <<'PY'
+import json
+import re
+import sys
+import urllib.parse
+import urllib.request
+
+owner, archive, source_name, version, revision = sys.argv[1:]
+revision = int(revision)
+api_url = (
+    f"https://api.launchpad.net/devel/~{urllib.parse.quote(owner, safe='')}"
+    f"/+archive/ubuntu/{urllib.parse.quote(archive, safe='')}"
+    f"?ws.op=getPublishedSources&source_name={urllib.parse.quote(source_name, safe='')}"
+)
+pattern = re.compile(rf"^{re.escape(version)}-(\d+)$")
+best_revision = -1
+best_upload_link = ""
+
+with urllib.request.urlopen(api_url, timeout=30) as response:
+    payload = json.load(response)
+
+for entry in payload.get("entries", []):
+    match = pattern.match(entry.get("source_package_version", ""))
+    if not match:
+        continue
+    current_revision = int(match.group(1))
+    if current_revision >= revision or current_revision <= best_revision:
+        continue
+    upload_link = entry.get("packageupload_link")
+    if not upload_link:
+        continue
+    best_revision = current_revision
+    best_upload_link = upload_link
+
+print(best_upload_link)
+PY
+)
+
+    if [[ -z "$upload_link" ]]; then
+        echo "could not find an accepted Launchpad upload for ${source_package_name} ${version} before Debian revision ${debian_revision}" >&2
+        echo "set DEBIAN_ORIG_TARBALL_URL explicitly or upload revision 1 first" >&2
+        exit 1
+    fi
+
+    upload_id="${upload_link##*/}"
+    upload_url="https://launchpad.net/ubuntu/${distribution}/+upload/${upload_id}/+files/${source_package_name}_${version}.orig.tar.gz"
+    echo "reusing published orig tarball from ${upload_url}"
+    curl --fail --location --retry 3 --retry-delay 1 --output "$orig_tarball" "$upload_url"
 }
 
 mkdir -p "$stage_root"
@@ -101,12 +175,22 @@ download_extract "https://github.com/SergiusTheBest/plog/archive/94899e0b926ac1b
     "$work_dir/vendor/libdatachannel/deps/plog"
 
 rm -f "$orig_tarball"
-tar --exclude="icey-$version/debian" -czf "$orig_tarball" -C "$stage_root" "icey-$version"
+if (( debian_revision > 1 )); then
+    download_existing_orig_tarball
+else
+    tar --exclude="icey-$version/debian" -czf "$orig_tarball" -C "$stage_root" "icey-$version"
+fi
 
 (
     cd "$work_dir"
     if command -v dh >/dev/null 2>&1; then
-        "$dpkg_buildpackage" -S -us -uc -d
+        build_args=(-S -us -uc -d)
+        if (( debian_revision > 1 )); then
+            build_args+=(-sd)
+        else
+            build_args+=(-sa)
+        fi
+        "$dpkg_buildpackage" "${build_args[@]}"
     else
         dpkg-source -b .
         echo "warning: dh is not installed; generated the source package without a .changes file" >&2

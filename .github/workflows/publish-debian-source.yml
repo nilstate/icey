@@ -62,6 +62,7 @@ jobs:
         env:
           DEBIAN_DISTRIBUTION: ${{ vars.PPA_UBUNTU_SERIES || 'noble' }}
           DEBIAN_REVISION: ${{ github.event.inputs.debian_revision || '1' }}
+          DEBIAN_PPA_TARGET: ${{ vars.PPA_TARGET || 'ppa:0state/icey' }}
 
       - uses: actions/upload-artifact@v4
         with:
