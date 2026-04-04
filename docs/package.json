@@ -11,6 +11,6 @@
     "moxygen": "^2.1.1"
   },
   "dependencies": {
-    "sourcey": "^3.3.10"
+    "sourcey": "^3.4.2"
   }
 }
