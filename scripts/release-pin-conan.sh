@@ -40,5 +40,19 @@ sources:
     sha256: "$sha256"
 EOF
 
+cat > packaging/conan-center-index/recipes/icey/config.yml <<EOF
+versions:
+  "$version":
+    folder: all
+EOF
+
+cat > packaging/conan-center-index/recipes/icey/all/conandata.yml <<EOF
+sources:
+  "$version":
+    url: "https://github.com/nilstate/icey/archive/refs/tags/$version.tar.gz"
+    sha256: "$sha256"
+EOF
+
 echo "updated packaging/conan/conandata.yml for $version"
+echo "updated packaging/conan-center-index/recipes/icey/all/conandata.yml for $version"
 echo "sha256: $sha256"
