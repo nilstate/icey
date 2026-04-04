@@ -1,6 +1,6 @@
-icey (2.4.1-1) unstable; urgency=medium
+icey (2.4.2-1) unstable; urgency=medium
 
   * Package icey for Debian-style source builds and Launchpad PPAs.
   * Stage pinned vendor sources for the full WebRTC-enabled build.
 
- -- 0state OSS <oss@0state.com>  Mon, 30 Mar 2026 14:37:53 +1000
+ -- 0state OSS <oss@0state.com>  Sat, 04 Apr 2026 15:15:28 +1000

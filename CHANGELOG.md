@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+## [2.4.2] - 2026-04-04
+
+### Fixed
+
+- Package-manager builds now accept the shared `libuv::uv` target exported by `vcpkg` and other system package layouts
+- Windows consumers no longer rely on backported export/linkage fixes for `Timeout`, `PacketFactory`, `Transaction`, and the base `uv` wrapper templates
+- FFmpeg-backed builds now propagate discovered library search directories so Windows link steps can resolve `avcodec.lib` and related FFmpeg libraries
+
 ## [2.4.1] - 2026-03-30
 
 ### Changed

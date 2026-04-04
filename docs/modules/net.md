@@ -796,7 +796,7 @@ target_link_libraries(myapp PRIVATE icey::net)
 include(FetchContent)
 FetchContent_Declare(icey
   GIT_REPOSITORY https://github.com/nilstate/icey.git
-  GIT_TAG 2.4.1
+  GIT_TAG 2.4.2
 )
 FetchContent_MakeAvailable(icey)
 target_link_libraries(myapp PRIVATE icey::net)
