@@ -68,5 +68,8 @@ building applications and services against icey.
 %{_libdir}/cmake/icey/
 
 %changelog
+* Sat Apr 04 2026 0state OSS <oss@0state.com> - 2.4.2-1
+- Refresh RPM packaging for icey 2.4.2
+
 * Mon Mar 30 2026 0state OSS <oss@0state.com> - 2.4.0-1
 - Initial RPM packaging for Fedora and OBS
