@@ -96,6 +96,10 @@ class /* Base_API */ PacketFactory
 {
 public:
     PacketFactory() = default;
+    PacketFactory(const PacketFactory&) = delete;
+    PacketFactory& operator=(const PacketFactory&) = delete;
+    PacketFactory(PacketFactory&&) = default;
+    PacketFactory& operator=(PacketFactory&&) = default;
     virtual ~PacketFactory() = default;
 
     /// Registers a `PacketCreationStrategy<PacketT>` at the given priority.
