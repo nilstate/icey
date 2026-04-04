@@ -24,7 +24,7 @@ namespace net {
 
 /// Request/response helper for packet types emitted from a socket.
 template <class PacketT>
-class Net_API Transaction : public PacketTransaction<PacketT>
+class Transaction : public PacketTransaction<PacketT>
     , public PacketSocketEmitter
 {
 public:

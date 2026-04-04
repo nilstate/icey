@@ -1,0 +1,12 @@
+usr/lib/*/cmake/LibDataChannel/*
+usr/lib/*/cmake/libuv/*
+usr/lib/*/cmake/llhttp/*
+usr/lib/*/libdatachannel.so*
+usr/lib/*/libllhttp.a
+usr/lib/*/libminizip.a
+usr/lib/*/libuv.a
+usr/lib/*/libz.a
+usr/lib/*/pkgconfig/libllhttp.pc
+usr/lib/*/pkgconfig/libuv-static.pc
+usr/share/doc/icey/LICENSE
+usr/share/doc/icey/LICENSE-extra

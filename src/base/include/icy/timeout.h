@@ -29,7 +29,7 @@ namespace icy {
 
 /// Timeout counter which expires after a given delay.
 /// Delay is specified in milliseconds.
-class Timeout
+class Base_API Timeout
 {
 public:
     /// Constructs a Timeout with the given delay.

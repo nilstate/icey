@@ -26,7 +26,7 @@ namespace uv {
 
 
 template <typename T>
-class Base_API Handle;
+class Handle;
 
 
 /// Default request callback event carrying a libuv status code.

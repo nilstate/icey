@@ -16,21 +16,27 @@ set(_icey_have_libdatachannel "@HAVE_LIBDATACHANNEL@")
 find_dependency(Threads)
 find_package(PkgConfig QUIET)
 find_package(libuv CONFIG QUIET)
-if(NOT TARGET libuv::uv_a AND NOT TARGET libuv::libuv AND PkgConfig_FOUND)
+if(NOT TARGET libuv::uv_a AND NOT TARGET libuv::uv AND NOT TARGET libuv::libuv AND PkgConfig_FOUND)
   pkg_check_modules(LIBUV QUIET IMPORTED_TARGET GLOBAL libuv)
 endif()
 find_package(llhttp CONFIG QUIET)
 if(NOT TARGET llhttp_static
    AND NOT TARGET llhttp::llhttp_static
+   AND NOT TARGET llhttp::llhttp_shared
    AND NOT TARGET llhttp::llhttp
    AND NOT TARGET llhttp
    AND PkgConfig_FOUND)
   pkg_check_modules(LLHTTP QUIET IMPORTED_TARGET GLOBAL llhttp)
+  if(NOT TARGET PkgConfig::LLHTTP)
+    pkg_check_modules(LLHTTP QUIET IMPORTED_TARGET GLOBAL libllhttp)
+  endif()
 endif()
 _icey_add_compat_target(uv_a libuv::uv_a)
+_icey_add_compat_target(uv_a libuv::uv)
 _icey_add_compat_target(uv_a libuv::libuv)
 _icey_add_compat_target(uv_a PkgConfig::LIBUV)
 _icey_add_compat_target(llhttp_static llhttp::llhttp_static)
+_icey_add_compat_target(llhttp_static llhttp::llhttp_shared)
 _icey_add_compat_target(llhttp_static llhttp::llhttp)
 _icey_add_compat_target(llhttp_static llhttp)
 _icey_add_compat_target(llhttp_static PkgConfig::LLHTTP)

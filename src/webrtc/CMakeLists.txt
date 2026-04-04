@@ -21,6 +21,9 @@ if(HAVE_LIBDATACHANNEL AND HAVE_OPENSSL AND HAVE_FFMPEG)
     endif()
     target_link_libraries(webrtc PRIVATE ${ICEY_LIBDATACHANNEL_TARGET})
 
+    if(FFMPEG_LIBRARY_DIRS)
+      target_link_directories(webrtc PUBLIC ${FFMPEG_LIBRARY_DIRS})
+    endif()
     target_link_libraries(webrtc PUBLIC ${FFMPEG_LIBRARIES})
     target_include_directories(webrtc PUBLIC ${FFMPEG_INCLUDE_DIRS})
 

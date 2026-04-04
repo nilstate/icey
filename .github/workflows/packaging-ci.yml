@@ -26,6 +26,8 @@ jobs:
       - name: Validate packaging helper scripts
         run: |
           bash -n scripts/package-debian-source.sh
+          bash -n scripts/package-alpine-apkbuild.sh
+          bash -n scripts/package-fedora-srpm.sh
           bash -n scripts/package-rpm-srpm.sh
           bash -n scripts/publish-aur.sh
           bash -n scripts/publish-homebrew.sh
@@ -74,6 +76,32 @@ jobs:
 
       - name: Build SRPM
         run: make package-rpm-srpm
+
+  fedora-srpm:
+    runs-on: ubuntu-24.04
+    name: Fedora SRPM
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: 1
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Build SRPM inside Fedora
+        run: make package-fedora-srpm
+
+  alpine-apkbuild:
+    runs-on: ubuntu-24.04
+    name: Alpine APKBUILD
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: 1
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Build package inside Alpine
+        run: make package-alpine-apkbuild
 
   nix:
     runs-on: ubuntu-24.04
