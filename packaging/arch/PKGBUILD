@@ -19,7 +19,7 @@ makedepends=(
   'pkgconf'
 )
 source=("${pkgname}-${pkgver}.tar.gz::https://github.com/nilstate/icey/archive/refs/tags/${pkgver}.tar.gz")
-sha256sums=('0000000000000000000000000000000000000000000000000000000000000000')
+sha256sums=('6912ad57336f061e197cc1b969728464a9a658a1d426c67d6af03ef95bff2345')
 
 build() {
   local cmake_args=(
