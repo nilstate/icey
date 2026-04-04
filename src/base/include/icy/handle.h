@@ -31,7 +31,7 @@ namespace uv {
 
 
 template <typename T>
-class Base_API Handle;
+class Handle;
 
 template <typename T>
 struct Context;
@@ -130,7 +130,7 @@ struct Context : public RefCounted<Context<T>>
 /// This class manages the handle during its lifecycle and safely handles the
 /// asynchronous destruction mechanism.
 template <typename T>
-class Base_API Handle
+class Handle
 {
 public:
     /// Construct the handle bound to the given event loop.
