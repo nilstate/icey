@@ -14,7 +14,7 @@ long_description    ${description}
 
 checksums           rmd160  e362ca032690894cc65a3ecde0e8d28f6b2d4f5b \
                     sha256  0c402b56093f392613b61320087bb888d291e80cdcb038dbb360555b6e1b6cc3 \
-                    size    0
+                    size    6421710
 
 depends_build-append \
                     port:pkgconfig
