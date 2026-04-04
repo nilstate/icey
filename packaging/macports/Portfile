@@ -2,7 +2,7 @@ PortSystem          1.0
 PortGroup           cmake 1.1
 PortGroup           github 1.0
 
-github.setup        nilstate icey 2.4.1
+github.setup        nilstate icey 2.4.2
 github.tarball_from archive
 
 categories          devel multimedia net

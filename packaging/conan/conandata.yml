@@ -1,4 +1,4 @@
 sources:
-  "2.4.1":
-    url: "https://github.com/nilstate/icey/archive/refs/tags/2.4.1.tar.gz"
+  "2.4.2":
+    url: "https://github.com/nilstate/icey/archive/refs/tags/2.4.2.tar.gz"
     sha256: "0000000000000000000000000000000000000000000000000000000000000000"
