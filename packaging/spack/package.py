@@ -1,3 +1,5 @@
+from spack_repo.builtin.build_systems.cmake import CMakePackage
+
 from spack.package import *
 
 
@@ -7,13 +9,15 @@ class Icey(CMakePackage):
 
     homepage = "https://0state.com/icey/"
     url = "https://github.com/nilstate/icey/archive/refs/tags/2.4.2.tar.gz"
+    git = "https://github.com/nilstate/icey.git"
 
     license("LGPL-2.1-or-later")
 
     version("2.4.2", sha256="6912ad57336f061e197cc1b969728464a9a658a1d426c67d6af03ef95bff2345")
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
     variant("ffmpeg", default=True, description="Enable icey::av with FFmpeg")
-    variant("webrtc", default=False, description="Enable icey::webrtc with libdatachannel")
 
     depends_on("cmake@3.21:", type="build")
     depends_on("pkgconfig", type="build")
@@ -23,10 +27,8 @@ class Icey(CMakePackage):
     depends_on("minizip")
     depends_on("zlib")
     depends_on("ffmpeg@5:", when="+ffmpeg")
-    depends_on("libdatachannel", when="+webrtc")
 
     def cmake_args(self):
-        spec = self.spec
         return [
             self.define("BUILD_SHARED_LIBS", True),
             self.define("USE_SYSTEM_DEPS", True),
@@ -40,7 +42,7 @@ class Icey(CMakePackage):
             self.define("CMAKE_DISABLE_FIND_PACKAGE_Doxygen", True),
             self.define("ENABLE_NATIVE_ARCH", False),
             self.define_from_variant("WITH_FFMPEG", "ffmpeg"),
-            self.define_from_variant("WITH_LIBDATACHANNEL", "webrtc"),
-            self.define_from_variant("BUILD_MODULE_webrtc", "webrtc"),
+            self.define("WITH_LIBDATACHANNEL", False),
+            self.define("BUILD_MODULE_webrtc", False),
             self.define("WITH_OPENCV", False),
         ]
