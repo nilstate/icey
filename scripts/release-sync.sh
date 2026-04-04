@@ -35,6 +35,12 @@ docs=(
 printf '%s\n' "$version" > VERSION
 
 perl -0pi -e 's/version = "\d+\.\d+\.\d+"/version = "'"$version"'"/' packaging/conan/conanfile.py
+cat > packaging/conan/conandata.yml <<EOF
+sources:
+  "$version":
+    url: "https://github.com/nilstate/icey/archive/refs/tags/$version.tar.gz"
+    sha256: "0000000000000000000000000000000000000000000000000000000000000000"
+EOF
 perl -0pi -e 's/"version": "\d+\.\d+\.\d+"/"version": "'"$version"'"/' packaging/vcpkg/icey/vcpkg.json
 perl -0pi -e 's/^pkgver=\d+\.\d+\.\d+$/pkgver='"$version"'/m' packaging/arch/PKGBUILD
 perl -0pi -e 's/^pkgrel=\d+$/pkgrel=1/m' packaging/arch/PKGBUILD
@@ -66,5 +72,5 @@ for file in "${docs[@]}"; do
 done
 
 echo "synced release metadata to $version"
-echo "next: make release-check VERSION=$version"
-echo "then: make release-pin VERSION=$version"
+echo "next: commit, tag, and push $version"
+echo "then: make release-finalize VERSION=$version"

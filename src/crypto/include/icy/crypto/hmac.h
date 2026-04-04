@@ -30,7 +30,7 @@ namespace crypto {
 /// @param key   Secret key used for the HMAC computation.
 /// @return 20-byte raw binary HMAC-SHA1 digest.
 /// @throws std::runtime_error if OpenSSL returns an unexpected digest length.
-[[nodiscard]] std::string computeHMAC(std::string_view input, std::string_view key);
+[[nodiscard]] Crypto_API std::string computeHMAC(std::string_view input, std::string_view key);
 
 
 } // namespace crypto

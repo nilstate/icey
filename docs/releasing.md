@@ -28,16 +28,18 @@ Start from a clean, reviewed `main` branch with the release notes already writte
 
 ```bash
 make release VERSION=2.4.0
-make release-check VERSION=2.4.0
 git commit -am "release: prepare 2.4.0"
 git tag 2.4.0
 git push origin main 2.4.0
+make release-finalize VERSION=2.4.0
+git commit -am "build: pin release archives for 2.4.0"
+git push origin main
 ```
 
 What those steps do:
 
-- `make release` syncs `VERSION`, package recipe versions, Arch metadata, Homebrew metadata, Debian source metadata, and the public `FetchContent` examples.
-- `make release-check` fails if `VERSION`, package metadata, docs examples, and the matching `CHANGELOG.md` heading drift apart.
+- `make release` syncs `VERSION`, package recipe versions, Debian source metadata, Conan release metadata, and the public `FetchContent` examples.
+- `make release-finalize` pins the release archive hashes and then verifies that `VERSION`, package metadata, docs examples, and the matching `CHANGELOG.md` heading all line up.
 - the release tag must be a plain semantic version such as `2.4.0`
 - the GitHub source archive for that tag is the thing the package-manager pinning steps use
 
@@ -48,25 +50,24 @@ After the tag is pushed, the GitHub tarball becomes immutable. That is when arch
 The combined post-tag helper is:
 
 ```bash
-make release-pin VERSION=2.4.0
+make release-finalize VERSION=2.4.0
 ```
 
 That runs:
 
+- `make release-pin-conan VERSION=2.4.0`
 - `make release-pin-vcpkg VERSION=2.4.0`
 - `make release-pin-arch VERSION=2.4.0`
 - `make release-pin-homebrew VERSION=2.4.0`
-
-Then commit the resulting packaging changes:
-
-```bash
-git commit -am "build: pin release archives for 2.4.0"
-git push origin main
-```
+- `make release-pin-alpine VERSION=2.4.0`
+- `make release-pin-macports VERSION=2.4.0`
+- `make release-pin-spack VERSION=2.4.0`
+- `make release-pin-conda VERSION=2.4.0`
+- `make release-check VERSION=2.4.0`
 
 ## Conan
 
-Local Conan packaging is version-synced by `make release`, but it does not have a post-tag archive pin step in this repo.
+Local Conan packaging is version-synced by `make release`, and `make release-pin-conan` pins the post-tag archive hash used by the recipe.
 
 Use it to verify the shipped recipe still builds:
 
@@ -77,6 +78,7 @@ make package-conan
 Current scope:
 
 - local recipe path: [`packaging/conan/conanfile.py`](../packaging/conan/conanfile.py)
+- local source metadata: [`packaging/conan/conandata.yml`](../packaging/conan/conandata.yml)
 - local consumer test: [`packaging/conan/test_package`](../packaging/conan/test_package)
 
 Current non-scope:
@@ -185,11 +187,10 @@ What gets updated:
 
 - update [`CHANGELOG.md`](https://github.com/nilstate/icey/blob/main/CHANGELOG.md) and [`ROADMAP.md`](https://github.com/nilstate/icey/blob/main/ROADMAP.md)
 - run `make release VERSION=x.y.z`
-- run `make release-check VERSION=x.y.z`
 - commit the pre-tag release metadata
 - create and push the plain semantic-version tag
-- run `make release-pin VERSION=x.y.z`
-- commit the pinned package-manager archive hashes
+- run `make release-finalize VERSION=x.y.z`
+- commit the pinned package-manager archive hashes and successful final check
 - verify the package-manager entry points you intend to publish
 - if you are targeting apt or Launchpad, run `make package-debian-source` after the version sync
 

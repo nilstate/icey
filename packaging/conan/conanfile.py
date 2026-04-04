@@ -1,12 +1,11 @@
 from conan import ConanFile
 from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
-from conan.tools.files import copy, rmdir
-import os
+from conan.tools.files import copy, get, rmdir
 
 
 class iceyConan(ConanFile):
     name = "icey"
-    version = "2.4.0"
+    version = "2.4.2"
     package_type = "library"
     license = "LGPL-2.1-or-later"
     author = "0state OSS <oss@0state.com>"
@@ -30,40 +29,8 @@ class iceyConan(ConanFile):
     }
     no_copy_source = True
 
-    def export_sources(self):
-        repo_root = os.path.abspath(os.path.join(self.recipe_folder, "..", ".."))
-        src_root = os.path.join(repo_root, "src")
-        cmake_root = os.path.join(repo_root, "cmake")
-        skip_dirs = {"node_modules", "dist", "build", "tests", "samples", "apps", "support"}
-        excludes = (
-            "*/node_modules/*",
-            "*/dist/*",
-            "*/build/*",
-            "*/tests/*",
-            "*/samples/*",
-            "*/apps/*",
-            "*/support/*",
-        )
-
-        for filename in ("icey.cmake", "VERSION", "LICENSE.md", "README.md", "Doxyfile"):
-            copy(self, filename, src=repo_root, dst=self.export_sources_folder)
-
-        for root, dirs, files in os.walk(repo_root):
-            dirs[:] = [dirname for dirname in dirs if dirname not in skip_dirs and dirname != ".git"]
-            if "CMakeLists.txt" not in files:
-                continue
-
-            rel_root = os.path.relpath(root, repo_root)
-            dst = self.export_sources_folder if rel_root == "." else os.path.join(self.export_sources_folder, rel_root)
-            copy(self, "CMakeLists.txt", src=root, dst=dst, keep_path=False)
-
-        copy(self, "*.cmake", src=cmake_root, dst=os.path.join(self.export_sources_folder, "cmake"))
-        copy(self, "*.in", src=cmake_root, dst=os.path.join(self.export_sources_folder, "cmake"))
-        copy(self, "*.cpp", src=src_root, dst=os.path.join(self.export_sources_folder, "src"), excludes=excludes)
-        copy(self, "*.c", src=src_root, dst=os.path.join(self.export_sources_folder, "src"), excludes=excludes)
-        copy(self, "*.h", src=src_root, dst=os.path.join(self.export_sources_folder, "src"), excludes=excludes)
-        copy(self, "*.hpp", src=src_root, dst=os.path.join(self.export_sources_folder, "src"), excludes=excludes)
-        copy(self, "*.mm", src=src_root, dst=os.path.join(self.export_sources_folder, "src"), excludes=excludes)
+    def source(self):
+        get(self, **self.conan_data["sources"][self.version], strip_root=True)
 
     def config_options(self):
         if self.settings.os == "Windows":

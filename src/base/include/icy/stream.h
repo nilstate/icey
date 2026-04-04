@@ -27,7 +27,7 @@ namespace icy {
 
 /// Basic stream type for sockets and pipes.
 template <typename T>
-class Base_API Stream : public uv::Handle<T>
+class Stream : public uv::Handle<T>
 {
 public:
     using Handle = uv::Handle<T>;

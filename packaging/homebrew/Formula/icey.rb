@@ -1,9 +1,9 @@
 class Icey < Formula
   desc "C++20 media stack and libwebrtc alternative for real-time video, signalling, TURN, and media servers"
   homepage "https://0state.com/icey/"
-  url "https://github.com/nilstate/icey/archive/refs/tags/2.4.0.tar.gz"
-  version "2.4.0"
-  sha256 "0c402b56093f392613b61320087bb888d291e80cdcb038dbb360555b6e1b6cc3"
+  url "https://github.com/nilstate/icey/archive/refs/tags/2.4.2.tar.gz"
+  version "2.4.2"
+  sha256 "6912ad57336f061e197cc1b969728464a9a658a1d426c67d6af03ef95bff2345"
   license "LGPL-2.1-or-later"
 
   depends_on "cmake" => :build

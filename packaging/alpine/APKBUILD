@@ -1,7 +1,7 @@
 # Contributor: 0state OSS <oss@0state.com>
 # Maintainer: 0state OSS <oss@0state.com>
 pkgname=icey
-pkgver=2.4.0
+pkgver=2.4.2
 pkgrel=0
 pkgdesc="C++20 media stack and libwebrtc alternative for real-time video, signalling, TURN, and media servers"
 url="https://0state.com/icey/"
@@ -13,6 +13,7 @@ makedepends="
 	ffmpeg-dev
 	libuv-dev
 	llhttp-dev
+	linux-headers
 	minizip-dev
 	openssl-dev
 	pkgconf
@@ -21,12 +22,9 @@ makedepends="
 "
 subpackages="$pkgname-dev"
 source="$pkgname-$pkgver.tar.gz::https://github.com/nilstate/icey/archive/refs/tags/$pkgver.tar.gz"
-sha512sums="
-496f3682ebbdaf4ebdba06d5b81fa7bbcbb4f45b97a270edbc7c0c34eccb00a8bd62cbc7f9c434bb816ac5245eaa0590ad10011a19704ffdb6e6ef75dd006637  icey-2.4.0.tar.gz
-"
 
 build() {
-	cmake -G Ninja -B build -S "$builddir/$pkgname-$pkgver" \
+	cmake -G Ninja -B build -S "$builddir" \
 		-DCMAKE_BUILD_TYPE=None \
 		-DCMAKE_INSTALL_PREFIX=/usr \
 		-DBUILD_SHARED_LIBS=ON \
@@ -49,6 +47,9 @@ build() {
 
 package() {
 	DESTDIR="$pkgdir" cmake --install build
-	install -Dm644 "$builddir/$pkgname-$pkgver/LICENSE.md" \
+	install -Dm644 "$builddir/LICENSE.md" \
 		"$pkgdir/usr/share/licenses/$pkgname/LICENSE.md"
 }
+sha512sums="
+1b56b3c9f082d4d35f9150c75c1c23972c696f853f3f0627787f33882e07c44de843b3896dc4a54f04cefd20dd7b4a6f64a52c5cdabc11d98b5be57c17193dfb  icey-2.4.2.tar.gz
+"
