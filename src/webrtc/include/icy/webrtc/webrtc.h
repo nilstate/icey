@@ -18,14 +18,10 @@
 
 
 // Shared library exports
-#if defined(ICY_WIN) && defined(ICY_SHARED_LIBRARY)
 #if defined(WebRTC_EXPORTS)
-#define WEBRTC_API __declspec(dllexport)
+#define WEBRTC_API ICY_EXPORT
 #else
-#define WEBRTC_API __declspec(dllimport)
-#endif
-#else
-#define WEBRTC_API // nothing
+#define WEBRTC_API ICY_IMPORT
 #endif
 
 

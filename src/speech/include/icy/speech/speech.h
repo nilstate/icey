@@ -17,14 +17,10 @@
 #include "icy/base.h"
 
 
-#if defined(ICY_WIN) && defined(ICY_SHARED_LIBRARY)
 #if defined(Speech_EXPORTS)
-#define Speech_API __declspec(dllexport)
+#define Speech_API ICY_EXPORT
 #else
-#define Speech_API __declspec(dllimport)
-#endif
-#else
-#define Speech_API
+#define Speech_API ICY_IMPORT
 #endif
 
 

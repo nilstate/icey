@@ -69,14 +69,10 @@ using socklen_t = int;
 
 
 // Shared library exports
-#if defined(ICY_WIN) && defined(ICY_SHARED_LIBRARY)
 #if defined(Net_EXPORTS)
-#define Net_API __declspec(dllexport)
+#define Net_API ICY_EXPORT
 #else
-#define Net_API __declspec(dllimport)
-#endif
-#else
-#define Net_API // nothing
+#define Net_API ICY_IMPORT
 #endif
 /// @endcond
 

@@ -18,14 +18,10 @@
 
 
 // Shared library exports
-#if defined(ICY_WIN) && defined(ICY_SHARED_LIBRARY)
 #if defined(Vision_EXPORTS)
-#define Vision_API __declspec(dllexport)
+#define Vision_API ICY_EXPORT
 #else
-#define Vision_API __declspec(dllimport)
-#endif
-#else
-#define Vision_API // nothing
+#define Vision_API ICY_IMPORT
 #endif
 
 

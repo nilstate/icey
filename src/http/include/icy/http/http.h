@@ -16,14 +16,10 @@
 
 
 // Shared library exports
-#if defined(ICY_WIN) && defined(ICY_SHARED_LIBRARY)
 #if defined(HTTP_EXPORTS)
-#define HTTP_API __declspec(dllexport)
+#define HTTP_API ICY_EXPORT
 #else
-#define HTTP_API __declspec(dllimport)
-#endif
-#else
-#define HTTP_API // nothing
+#define HTTP_API ICY_IMPORT
 #endif
 
 /// @}

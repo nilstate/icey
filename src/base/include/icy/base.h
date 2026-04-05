@@ -17,12 +17,24 @@
 #include "icey.h"
 
 // Shared library exports
-#if defined(ICY_WIN) && defined(ICY_SHARED_LIBRARY)
-#if defined(Base_EXPORTS)
-#define Base_API __declspec(dllexport)
+#if defined(ICY_SHARED_LIBRARY)
+#if defined(ICY_WIN)
+#define ICY_EXPORT __declspec(dllexport)
+#define ICY_IMPORT __declspec(dllimport)
+#elif defined(__GNUC__) || defined(__clang__)
+#define ICY_EXPORT __attribute__((visibility("default")))
+#define ICY_IMPORT __attribute__((visibility("default")))
 #else
-#define Base_API __declspec(dllimport)
+#define ICY_EXPORT
+#define ICY_IMPORT
 #endif
 #else
-#define Base_API // nothing
+#define ICY_EXPORT
+#define ICY_IMPORT
+#endif
+
+#if defined(Base_EXPORTS)
+#define Base_API ICY_EXPORT
+#else
+#define Base_API ICY_IMPORT
 #endif

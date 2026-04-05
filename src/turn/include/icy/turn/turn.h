@@ -12,16 +12,14 @@
 
 #pragma once
 
+#include "icy/base.h"
+
 
 // Shared library exports
-#if defined(ICY_WIN) && defined(ICY_SHARED_LIBRARY)
 #if defined(TURN_EXPORTS)
-#define TURN_API __declspec(dllexport)
+#define TURN_API ICY_EXPORT
 #else
-#define TURN_API __declspec(dllimport)
-#endif
-#else
-#define TURN_API // nothing
+#define TURN_API ICY_IMPORT
 #endif
 
 

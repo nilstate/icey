@@ -21,14 +21,10 @@
 
 
 // Shared library exports
-#if defined(ICY_WIN) && defined(ICY_SHARED_LIBRARY)
 #if defined(STUN_EXPORTS)
-#define STUN_API __declspec(dllexport)
+#define STUN_API ICY_EXPORT
 #else
-#define STUN_API __declspec(dllimport)
-#endif
-#else
-#define STUN_API // nothing
+#define STUN_API ICY_IMPORT
 #endif
 
 

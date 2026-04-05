@@ -30,14 +30,10 @@
 #endif
 
 // Shared library exports
-#if defined(ICY_WIN) && defined(ICY_SHARED_LIBRARY)
 #if defined(Crypto_EXPORTS)
-#define Crypto_API __declspec(dllexport)
+#define Crypto_API ICY_EXPORT
 #else
-#define Crypto_API __declspec(dllimport)
-#endif
-#else
-#define Crypto_API // nothing
+#define Crypto_API ICY_IMPORT
 #endif
 
 
