@@ -40,7 +40,7 @@ docker run --rm \
 
         su builder -c "
             mkdir -p ~/.abuild &&
-            yes | abuild-keygen -a -n >/dev/null 2>&1 &&
+            yes | abuild-keygen -a -i -n >/dev/null 2>&1 &&
             cd /workspace/packaging/alpine &&
             before=\$(sha256sum APKBUILD | cut -d\" \" -f1) &&
             abuild checksum &&

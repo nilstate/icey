@@ -6,7 +6,7 @@ index 76f74ee8..26f6c71d 100644
  namespace coreaudio {
  
  
-+#if defined(kAudioObjectPropertyElementMain)
++#if defined(__MAC_OS_X_VERSION_MAX_ALLOWED) && __MAC_OS_X_VERSION_MAX_ALLOWED >= 120000
 +static constexpr UInt32 kCoreAudioMainElement = kAudioObjectPropertyElementMain;
 +#else
 +static constexpr UInt32 kCoreAudioMainElement = kAudioObjectPropertyElementMaster;
@@ -30,7 +30,7 @@ index 76f74ee8..26f6c71d 100644
              : kAudioHardwarePropertyDefaultInputDevice,
          kAudioObjectPropertyScopeGlobal,
 -        kAudioObjectPropertyElementMain
-+        kCoreAudioMainElement
++        coreaudio::kCoreAudioMainElement
      };
      AudioDeviceID defaultDeviceID = kAudioObjectUnknown;
      UInt32 defaultSize = sizeof(AudioDeviceID);

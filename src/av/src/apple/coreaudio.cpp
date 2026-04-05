@@ -22,7 +22,9 @@ namespace av {
 namespace coreaudio {
 
 
-#if defined(kAudioObjectPropertyElementMain)
+// `kAudioObjectPropertyElementMain` replaces the deprecated
+// `kAudioObjectPropertyElementMaster` in the macOS 12 SDK and later.
+#if defined(__MAC_OS_X_VERSION_MAX_ALLOWED) && __MAC_OS_X_VERSION_MAX_ALLOWED >= 120000
 static constexpr UInt32 kCoreAudioMainElement = kAudioObjectPropertyElementMain;
 #else
 static constexpr UInt32 kCoreAudioMainElement = kAudioObjectPropertyElementMaster;
@@ -198,7 +200,7 @@ struct AppleDeviceWatcher::Impl
     AudioObjectPropertyAddress devicesAddr{
         kAudioHardwarePropertyDevices,
         kAudioObjectPropertyScopeGlobal,
-        kCoreAudioMainElement
+        coreaudio::kCoreAudioMainElement
     };
     bool active{false};
     DeviceManager* manager{nullptr};
