@@ -10,20 +10,24 @@ How to run `icey-server` in production. Pick the deployment method that fits you
 version: "3.8"
 services:
   icey:
-    image: 0state/icey:0.1.1
+    image: 0state/icey-server:0.1.1
     network_mode: host
+    environment:
+      ICEY_MODE: stream
+      ICEY_SOURCE: /app/media/video.mp4
+      ICEY_LOOP: 1
     volumes:
-      - ./config.json:/etc/icey-server/config.json:ro
-      - ./recordings:/data/recordings
-    command: >
-      --config /etc/icey-server/config.json
-      --source /path/to/video.mp4
-      --record-dir /data/recordings
+      - ./media:/app/media:ro
+      - ./recordings:/app/recordings
     restart: unless-stopped
 ```
 
 :::note
-`network_mode: host` is the simplest path. It avoids port mapping and NAT complications. If you need bridge networking, you must publish ports 4500 and 3478 and set `turn.externalIp` to the host's public IP.
+`network_mode: host` is the simplest path. It avoids port mapping and NAT complications. If you need bridge networking, you must publish ports 4500 and 3478 and set `ICEY_TURN_EXTERNAL_IP` to the host's public IP.
+:::
+
+:::note
+The published Docker image is environment-driven (`ICEY_MODE`, `ICEY_SOURCE`, `ICEY_LOOP`, `ICEY_TURN_EXTERNAL_IP`). For config-file-driven bring-up, use a native `icey-server` install or the repo-backed `nilstate/icey-cli` source path.
 :::
 
 ::
@@ -81,19 +85,16 @@ spec:
     spec:
       containers:
       - name: icey-server
-        image: 0state/icey:0.1.1
+        image: 0state/icey-server:0.1.1
         ports:
         - containerPort: 4500
           name: http
         - containerPort: 3478
           name: turn
           protocol: UDP
-        args:
-        - --config
-        - /etc/icey-server/config.json
-        volumeMounts:
-        - name: config
-          mountPath: /etc/icey-server
+        env:
+        - name: ICEY_MODE
+          value: relay
         livenessProbe:
           httpGet:
             path: /api/health
@@ -104,10 +105,6 @@ spec:
             path: /api/ready
             port: 4500
           periodSeconds: 5
-      volumes:
-      - name: config
-        configMap:
-          name: icey-server-config
 ```
 
 :::warning

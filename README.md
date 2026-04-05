@@ -21,17 +21,17 @@ icey is the connective tissue: a modular C++20 toolkit that pulls FFmpeg, libuv,
 
 ## Fastest Path
 
-If you want the shortest path from zero to browser video, use the published `icey-cli` media server image.
+If you want the shortest path from zero to browser video, use the published `icey-server` image from the separate `icey-cli` repo.
 
 One command. One URL. One click.
 
 ```bash
-docker run --rm --network host 0state/icey-media-server-demo:latest
+docker run --rm --network host 0state/icey-server:latest
 ```
 
 Then open `http://localhost:4500` and click `Watch` on the `icey` peer.
 
-This express path targets Linux host networking. If you want the source-backed path for local edits, use the separate `icey-cli` app surface on top of the core `icey` modules.
+This express path ships from `nilstate/icey-cli` and starts `stream` mode with the bundled demo source. If you want the repo-backed app path for local edits or richer runtime control, use the separate `icey-cli` app surface on top of the core `icey` modules.
 
 ## Why icey
 

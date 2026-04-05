@@ -9,7 +9,7 @@ icey-server is a single C++ binary for browser-facing realtime media over WebRTC
 1. Run the server
 
    ```bash
-   docker run --rm --network host 0state/icey
+   docker run --rm --network host 0state/icey-server:latest
    ```
 
 2. Open a browser
