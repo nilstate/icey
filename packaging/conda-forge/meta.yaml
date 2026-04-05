@@ -17,7 +17,9 @@ build:
 
 requirements:
   build:
+    - {{ compiler('c') }}
     - {{ compiler('cxx') }}
+    - {{ stdlib('c') }}
     - cmake >=3.21
     - ninja
     - pkg-config
@@ -31,7 +33,7 @@ requirements:
 
 test:
   commands:
-    - test -f ${PREFIX}/include/icy/base/base.h  # [unix]
+    - test -f ${PREFIX}/include/icy/base.h  # [unix]
     - test -f ${PREFIX}/lib/pkgconfig/icey.pc  # [unix]
 
 about:
