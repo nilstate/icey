@@ -8,6 +8,8 @@ package:
 source:
   url: https://github.com/nilstate/icey/archive/refs/tags/{{ version }}.tar.gz
   sha256: 6912ad57336f061e197cc1b969728464a9a658a1d426c67d6af03ef95bff2345
+  patches:
+    - 0001-export-shared-library-symbols-on-unix.patch
 
 build:
   number: 0
