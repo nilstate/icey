@@ -1,5 +1,6 @@
 export default {
   name: "icey",
+  logo: "./icey.png",
   repo: "https://github.com/nilstate/icey",
   editBranch: "main",
   theme: {

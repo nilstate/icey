@@ -9,7 +9,7 @@ Every path to a running `icey-server`. Pick the one that fits your environment.
 The fastest path. No build tools, no system dependencies.
 
 ```bash
-docker run --rm --network host 0state/icey
+docker run --rm --network host 0state/icey-server:latest
 ```
 
 Open `http://localhost:4500`.
@@ -17,19 +17,19 @@ Open `http://localhost:4500`.
 For production, pin the version:
 
 ```bash
-docker run --rm --network host 0state/icey:0.1.1
+docker run --rm --network host 0state/icey-server:0.1.1
 ```
 
-If you need to pass a config file or mount a source directory:
+If you need to override the mode or source in Docker, use environment variables:
 
 ```bash
 docker run --rm --network host \
-  -v /path/to/config.json:/etc/icey-server/config.json \
-  -v /path/to/media:/media \
-  0state/icey \
-  --config /etc/icey-server/config.json \
-  --source /media/video.mp4
+  -e ICEY_SOURCE=rtsp://camera.local/stream1 \
+  -e ICEY_LOOP=0 \
+  0state/icey-server:0.1.1
 ```
+
+For config-file-driven bring-up or direct `icey-server` flags, use a native `icey-server` install or the repo-backed `nilstate/icey-cli` source path.
 
 ::
 

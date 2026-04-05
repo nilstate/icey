@@ -36,7 +36,7 @@ libdatachannel gives you the WebRTC transport pipe. icey gives you the pipe, the
 1. Run the server
 
    ```bash
-   docker run --rm --network host 0state/icey
+   docker run --rm --network host 0state/icey-server:latest
    ```
 
 2. Open `http://localhost:4500`
