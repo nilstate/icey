@@ -1,0 +1,90 @@
+diff --git a/src/av/src/apple/coreaudio.cpp b/src/av/src/apple/coreaudio.cpp
+index 76f74ee8..26f6c71d 100644
+--- a/src/av/src/apple/coreaudio.cpp
++++ b/src/av/src/apple/coreaudio.cpp
+@@ -22,6 +22,13 @@ namespace av {
+ namespace coreaudio {
+ 
+ 
++#if defined(kAudioObjectPropertyElementMain)
++static constexpr UInt32 kCoreAudioMainElement = kAudioObjectPropertyElementMain;
++#else
++static constexpr UInt32 kCoreAudioMainElement = kAudioObjectPropertyElementMaster;
++#endif
++
++
+ // Helper to get a string property from an AudioObject
+ static std::string getStringProperty(AudioObjectID objID, const AudioObjectPropertyAddress& addr)
+ {
+@@ -42,7 +49,7 @@ static std::string getStringProperty(AudioObjectID objID, const AudioObjectPrope
+ static bool hasStreamsInDirection(AudioObjectID deviceID, AudioObjectPropertyScope scope)
+ {
+     AudioObjectPropertyAddress addr = {
+-        kAudioDevicePropertyStreams, scope, kAudioObjectPropertyElementMain
++        kAudioDevicePropertyStreams, scope, kCoreAudioMainElement
+     };
+     UInt32 size = 0;
+     OSStatus status = AudioObjectGetPropertyDataSize(deviceID, &addr, 0, nullptr, &size);
+@@ -65,7 +72,7 @@ bool getDeviceList(Device::Type type, std::vector<av::Device>& devices)
+             ? kAudioHardwarePropertyDefaultOutputDevice
+             : kAudioHardwarePropertyDefaultInputDevice,
+         kAudioObjectPropertyScopeGlobal,
+-        kAudioObjectPropertyElementMain
++        kCoreAudioMainElement
+     };
+     AudioDeviceID defaultDeviceID = kAudioObjectUnknown;
+     UInt32 defaultSize = sizeof(AudioDeviceID);
+@@ -76,7 +83,7 @@ bool getDeviceList(Device::Type type, std::vector<av::Device>& devices)
+     AudioObjectPropertyAddress devicesAddr = {
+         kAudioHardwarePropertyDevices,
+         kAudioObjectPropertyScopeGlobal,
+-        kAudioObjectPropertyElementMain
++        kCoreAudioMainElement
+     };
+     UInt32 dataSize = 0;
+     OSStatus status = AudioObjectGetPropertyDataSize(
+@@ -104,7 +111,7 @@ bool getDeviceList(Device::Type type, std::vector<av::Device>& devices)
+         AudioObjectPropertyAddress nameAddr = {
+             kAudioObjectPropertyName,
+             kAudioObjectPropertyScopeGlobal,
+-            kAudioObjectPropertyElementMain
++            kCoreAudioMainElement
+         };
+         std::string name = getStringProperty(deviceID, nameAddr);
+         if (name.empty())
+@@ -114,7 +121,7 @@ bool getDeviceList(Device::Type type, std::vector<av::Device>& devices)
+         AudioObjectPropertyAddress uidAddr = {
+             kAudioDevicePropertyDeviceUID,
+             kAudioObjectPropertyScopeGlobal,
+-            kAudioObjectPropertyElementMain
++            kCoreAudioMainElement
+         };
+         std::string uid = getStringProperty(deviceID, uidAddr);
+         if (uid.empty())
+@@ -127,7 +134,7 @@ bool getDeviceList(Device::Type type, std::vector<av::Device>& devices)
+         AudioObjectPropertyAddress ratesAddr = {
+             kAudioDevicePropertyAvailableNominalSampleRates,
+             scope,
+-            kAudioObjectPropertyElementMain
++            kCoreAudioMainElement
+         };
+         UInt32 ratesSize = 0;
+         if (AudioObjectGetPropertyDataSize(deviceID, &ratesAddr, 0, nullptr, &ratesSize) == noErr
+@@ -139,7 +146,7 @@ bool getDeviceList(Device::Type type, std::vector<av::Device>& devices)
+                 AudioObjectPropertyAddress fmtAddr = {
+                     kAudioDevicePropertyStreamFormat,
+                     scope,
+-                    kAudioObjectPropertyElementMain
++                    kCoreAudioMainElement
+                 };
+                 AudioStreamBasicDescription streamFmt = {};
+                 UInt32 fmtSize = sizeof(streamFmt);
+@@ -191,7 +198,7 @@ struct AppleDeviceWatcher::Impl
+     AudioObjectPropertyAddress devicesAddr{
+         kAudioHardwarePropertyDevices,
+         kAudioObjectPropertyScopeGlobal,
+-        kAudioObjectPropertyElementMain
++        kCoreAudioMainElement
+     };
+     bool active{false};
+     DeviceManager* manager{nullptr};

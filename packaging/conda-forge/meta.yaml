@@ -10,6 +10,7 @@ source:
   sha256: 6912ad57336f061e197cc1b969728464a9a658a1d426c67d6af03ef95bff2345
   patches:
     - 0001-export-shared-library-symbols-on-unix.patch
+    - 0002-coreaudio-main-element-compat.patch
 
 build:
   number: 0
