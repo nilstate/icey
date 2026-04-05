@@ -37,14 +37,10 @@
 
 
 // Shared library exports
-#if defined(ICY_WIN) && defined(ICY_SHARED_LIBRARY)
 #if defined(AV_EXPORTS)
-#define AV_API __declspec(dllexport)
+#define AV_API ICY_EXPORT
 #else
-#define AV_API __declspec(dllimport)
-#endif
-#else
-#define AV_API // nothing
+#define AV_API ICY_IMPORT
 #endif
 
 

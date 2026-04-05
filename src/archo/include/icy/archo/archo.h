@@ -18,14 +18,10 @@
 
 
 /// Shared library exports
-#if defined(ICY_WIN) && defined(ICY_SHARED_LIBRARY)
 #if defined(Archo_EXPORTS)
-#define Archo_API __declspec(dllexport)
+#define Archo_API ICY_EXPORT
 #else
-#define Archo_API __declspec(dllimport)
-#endif
-#else
-#define Archo_API // nothing
+#define Archo_API ICY_IMPORT
 #endif
 
 

@@ -24,14 +24,10 @@
 
 
 // Shared library exports
-#if defined(ICY_WIN) && defined(ICY_SHARED_LIBRARY)
 #if defined(JSON_EXPORTS)
-#define JSON_API __declspec(dllexport)
+#define JSON_API ICY_EXPORT
 #else
-#define JSON_API __declspec(dllimport)
-#endif
-#else
-#define JSON_API // nothing
+#define JSON_API ICY_IMPORT
 #endif
 
 

@@ -18,14 +18,10 @@
 
 
 // Shared library exports
-#if defined(ICY_WIN) && defined(ICY_SHARED_LIBRARY)
 #if defined(Symple_EXPORTS)
-#define Symple_API __declspec(dllexport)
+#define Symple_API ICY_EXPORT
 #else
-#define Symple_API __declspec(dllimport)
-#endif
-#else
-#define Symple_API // nothing
+#define Symple_API ICY_IMPORT
 #endif
 
 

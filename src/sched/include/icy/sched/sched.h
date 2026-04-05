@@ -18,14 +18,10 @@
 
 
 // Shared library exports
-#if defined(ICY_WIN) && defined(ICY_SHARED_LIBRARY)
 #if defined(Sched_EXPORTS)
-#define Sched_API __declspec(dllexport)
+#define Sched_API ICY_EXPORT
 #else
-#define Sched_API __declspec(dllimport)
-#endif
-#else
-#define Sched_API // nothing
+#define Sched_API ICY_IMPORT
 #endif
 
 
