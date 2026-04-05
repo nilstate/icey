@@ -1,0 +1,6 @@
+-------------------------------------------------------------------
+Sat Apr 05 07:15:00 UTC 2026 - 0state OSS <oss@0state.com>
+
+- Initial openSUSE package for icey 2.4.2
+- Build against system llhttp, libuv, OpenSSL, minizip, zlib, and FFmpeg
+- Keep WebRTC disabled until libdatachannel is packaged for Factory

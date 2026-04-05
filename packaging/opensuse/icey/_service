@@ -1,0 +1,16 @@
+<services>
+  <service name="obs_scm" mode="manual">
+    <param name="url">https://github.com/nilstate/icey.git</param>
+    <param name="scm">git</param>
+    <param name="revision">2.4.2</param>
+    <param name="versionformat">@PARENT_TAG@</param>
+    <param name="exclude">.git</param>
+    <param name="changesgenerate">disable</param>
+  </service>
+  <service name="set_version" mode="buildtime"/>
+  <service name="tar" mode="buildtime"/>
+  <service name="recompress" mode="buildtime">
+    <param name="file">*.tar</param>
+    <param name="compression">xz</param>
+  </service>
+</services>
