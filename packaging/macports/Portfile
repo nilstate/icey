@@ -1,6 +1,7 @@
 PortSystem          1.0
 PortGroup           cmake 1.1
 PortGroup           github 1.0
+PortGroup           openssl 1.0
 
 github.setup        nilstate icey 2.4.2
 github.tarball_from archive
@@ -17,21 +18,22 @@ checksums           rmd160  b0299e8d906a4203fd4a237fcbfdad88f113d252 \
                     sha256  6912ad57336f061e197cc1b969728464a9a658a1d426c67d6af03ef95bff2345 \
                     size    6421710
 
-cmake.build_type    Release
+openssl.branch      3
 
-compiler.cxx_standard \
-                    2020
+set ffmpeg_ver      8
 
 depends_build-append \
-                    port:pkgconfig
+                    path:bin/pkg-config:pkgconfig
 
 depends_lib-append  \
-                    port:ffmpeg \
+                    path:libexec/ffmpeg${ffmpeg_ver}/lib/libavcodec.dylib:ffmpeg${ffmpeg_ver} \
                     port:libuv \
                     port:llhttp \
                     port:minizip \
-                    port:openssl3 \
                     port:zlib
+
+configure.pkg_config_path-prepend \
+                    ${prefix}/libexec/ffmpeg${ffmpeg_ver}/lib/pkgconfig
 
 configure.args-append \
                     -DBUILD_SHARED_LIBS=ON \
@@ -48,7 +50,4 @@ configure.args-append \
                     -DWITH_FFMPEG=ON \
                     -DWITH_LIBDATACHANNEL=OFF \
                     -DBUILD_MODULE_webrtc=OFF \
-                    -DWITH_OPENCV=OFF \
-                    -DOPENSSL_ROOT_DIR=${prefix}/libexec/openssl3
-
-test.run            no
+                    -DWITH_OPENCV=OFF

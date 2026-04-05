@@ -1,8 +1,8 @@
 class Libdatachannel < Formula
   desc "Standalone WebRTC network library featuring data channels and media transport"
   homepage "https://github.com/paullouisageneau/libdatachannel"
-  url "https://github.com/paullouisageneau/libdatachannel/archive/refs/tags/v0.24.1.tar.gz"
-  sha256 "e6fc363497a41b5dce38602937c12d30e5e536943cf09c5ee5671c8f206eee08"
+  url "https://github.com/paullouisageneau/libdatachannel/archive/refs/tags/v0.24.2.tar.gz"
+  sha256 "91a4795c98e13e91935127ab7880109309bf35b5e5a96c8fcc08e08322576402"
   license "MPL-2.0"
 
   depends_on "cmake" => :build
