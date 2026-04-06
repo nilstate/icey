@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+## [2.4.3] - 2026-04-06
+
+### Fixed
+
+- Downstream package-manager builds now resolve `libuv` correctly when the system dependency is exported as a shared target instead of a static-only alias
+- RPM source-package staging now carries the downstream compatibility patch set and claims the installed umbrella and vendored JSON headers in the development package
+- MacPorts builds now force the supported `Release` CMake build type instead of inheriting the unsupported default from the port group
+- The GitHub release workflow now validates the pre-finalize tag state, so tagged releases can publish before `make release-finalize` pins the archive hashes on `main`
+
 ## [2.4.2] - 2026-04-04
 
 ### Fixed

@@ -1,5 +1,5 @@
 Name:           icey
-Version:        2.4.2
+Version:        2.4.3
 Release:        1%{?dist}
 Summary:        C++20 media stack and libwebrtc alternative for real-time video, signalling, TURN, and media servers
 

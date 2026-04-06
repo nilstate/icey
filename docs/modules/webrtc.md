@@ -810,7 +810,7 @@ OpenSSL is shared with the rest of icey rather than duplicated.
 include(FetchContent)
 FetchContent_Declare(icey
     GIT_REPOSITORY https://github.com/nilstate/icey.git
-    GIT_TAG 2.4.2
+    GIT_TAG 2.4.3
 )
 FetchContent_MakeAvailable(icey)
 
