@@ -18,6 +18,8 @@
 #include "icy/packetsignal.h"
 #include "icy/packetstream.h"
 #include "icy/synchronizer.h"
+#include "icy/timer.h"
+#include "icy/webrtc/jitterbuffer.h"
 
 #include <rtc/rtc.hpp>
 
@@ -29,6 +31,10 @@
 
 namespace icy {
 namespace wrtc {
+
+namespace detail {
+class ReceiverJitterBuffer;
+}
 
 
 /// PacketStreamAdapter that receives depacketized frames from a single
@@ -67,6 +73,17 @@ public:
     /// @param track  Remote track from the PeerConnection::onTrack callback.
     void bind(std::shared_ptr<rtc::Track> track);
 
+    /// Replace the receive-side jitter-buffer settings.
+    ///
+    /// Reconfiguring resets any buffered media still waiting for release.
+    void configureJitterBuffer(const JitterBufferConfig& config);
+
+    /// Current jitter-buffer settings for this receiver.
+    [[nodiscard]] JitterBufferConfig jitterBufferConfig() const;
+
+    /// True when depacketized receive frames are buffered before emission.
+    [[nodiscard]] bool jitterBufferEnabled() const;
+
     PacketSignal emitter;
 
 private:
@@ -80,8 +97,13 @@ private:
     void flushPending();
 
     Synchronizer _dispatch;
-    std::mutex _mutex;
+    Timer _timer;
+    mutable std::mutex _mutex;
     std::deque<std::unique_ptr<IPacket>> _pending;
+    std::unique_ptr<detail::ReceiverJitterBuffer> _jitterBuffer;
+    JitterBufferConfig _jitterConfig;
+    std::int64_t _timerTickMs = 5;
+    bool _timerNeedsUpdate = false;
     std::shared_ptr<DispatchState> _state = std::make_shared<DispatchState>();
     uint64_t _generation = 0;
 };

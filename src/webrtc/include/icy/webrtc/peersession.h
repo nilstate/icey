@@ -64,6 +64,8 @@ public:
         av::AudioCodec audioCodec;   ///< Desired audio codec for send/receive negotiation.
         rtc::Description::Direction videoDirection = rtc::Description::Direction::SendRecv;
         rtc::Description::Direction audioDirection = rtc::Description::Direction::SendRecv;
+        JitterBufferConfig videoJitterBuffer; ///< Receive-side buffering for depacketized remote video frames.
+        JitterBufferConfig audioJitterBuffer; ///< Receive-side buffering for depacketized remote audio frames.
     };
 
     /// Configuration for WebRTC peer session establishment.
