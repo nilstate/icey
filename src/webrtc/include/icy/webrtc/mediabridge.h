@@ -90,6 +90,8 @@ public:
         rtc::Description::Direction videoDirection = rtc::Description::Direction::SendRecv;
         rtc::Description::Direction audioDirection = rtc::Description::Direction::SendRecv;
         unsigned nackBufferSize = 512; ///< Max RTP packets retained for video NACK retransmission.
+        JitterBufferConfig videoJitterBuffer; ///< Receive-side playout buffering for depacketized video frames.
+        JitterBufferConfig audioJitterBuffer; ///< Receive-side playout buffering for depacketized audio frames.
     };
 
     /// Construct a detached bridge with stable sender and receiver adapters.

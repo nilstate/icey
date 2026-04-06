@@ -81,6 +81,11 @@ sendStream.start();
 
 // Receive: WebRTC -> your decode / record callback
 wrtc::WebRtcTrackReceiver videoReceiver;
+videoReceiver.configureJitterBuffer({
+    .enabled = true,
+    .minDelayMs = 25,
+    .maxDelayMs = 120
+});
 pc->onTrack([&](std::shared_ptr<rtc::Track> track) {
     if (wrtc::setupReceiveTrack(track))
         videoReceiver.bind(track);
@@ -93,6 +98,8 @@ videoReceiver.emitter += packetSlot(&recorder, &Recorder::onEncodedVideo);
 
 `WebRtcTrackReceiver` emits owning encoded `VideoPacket`/`AudioPacket` instances that downstream processors can safely queue asynchronously. For a complete receive -> decode -> MP4 example, see `samples/media-recorder`.
 
+If your receive path needs smoother playout under bursty UDP delivery, enable `JitterBufferConfig` on the receiver. The buffer sits after libdatachannel depacketization, reorders by media timestamp, and adapts its release delay within the configured min/max window.
+
 ### Layer 3: Convenience (`mediabridge.h`, `peersession.h`)
 
 `MediaBridge` creates tracks and adapters for the common case. Video-only, audio-only, or both. The sender and receiver adapter objects stay stable across attach/detach, so a `PacketStream` can keep a `videoSender()` or `audioSender()` attachment alive across repeated calls while the underlying WebRTC tracks are rebound internally.
@@ -103,7 +110,12 @@ videoReceiver.emitter += packetSlot(&recorder, &Recorder::onEncodedVideo);
 wrtc::MediaBridge bridge;
 bridge.attach(pc, {
     .videoCodec = av::VideoCodec("H264", "libx264", 1280, 720, 30),
-    .audioCodec = av::AudioCodec("opus", "libopus", 2, 48000)
+    .audioCodec = av::AudioCodec("opus", "libopus", 2, 48000),
+    .audioJitterBuffer = {
+        .enabled = true,
+        .minDelayMs = 30,
+        .maxDelayMs = 120
+    }
 });
 
 // Per-track senders/receivers for PacketStream
@@ -209,6 +221,7 @@ icey handles: media capture, FFmpeg codecs, signalling, TURN relay, PacketStream
 include/icy/webrtc/
   webrtc.h            Module header, DLL exports
   codecnegotiator.h   RTP <-> FFmpeg codec mapping
+  jitterbuffer.h      Receive-side jitter buffer configuration
   track.h             Layer 1: track factory functions
   tracksender.h       Layer 2: per-track PacketProcessor
   trackreceiver.h     Layer 2: per-track PacketStreamAdapter

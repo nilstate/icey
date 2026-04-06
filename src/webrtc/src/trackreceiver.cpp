@@ -8,6 +8,8 @@
 
 
 #include "icy/webrtc/trackreceiver.h"
+#include "icy/time.h"
+#include "icy/webrtc/detail/receiverjitterbuffer.h"
 #include "codecregistry.h"
 
 
@@ -18,16 +20,27 @@ namespace wrtc {
 WebRtcTrackReceiver::WebRtcTrackReceiver()
     : PacketStreamAdapter(emitter)
     , _dispatch([this]() { flushPending(); })
+    , _timer(uv::defaultLoop())
+    , _jitterBuffer(std::make_unique<detail::ReceiverJitterBuffer>())
 {
+    _timer.Timeout += [this]() { flushPending(); };
+    _jitterBuffer->configure(_jitterConfig);
+    _timerTickMs = std::max<int64_t>(1, _jitterConfig.tickIntervalMs);
+    _timer.setTimeout(_timerTickMs);
+    _timer.setInterval(_timerTickMs);
 }
 
 
 WebRtcTrackReceiver::~WebRtcTrackReceiver()
 {
     _state->alive.store(false, std::memory_order_release);
+    if (_timer.active())
+        _timer.stop();
     _dispatch.close();
     std::lock_guard lock(_mutex);
     _pending.clear();
+    if (_jitterBuffer)
+        _jitterBuffer->reset();
 }
 
 
@@ -42,6 +55,12 @@ void WebRtcTrackReceiver::bind(std::shared_ptr<rtc::Track> track)
     }
     const auto generation = ++_generation;
     _state->generation.store(generation, std::memory_order_release);
+    {
+        std::lock_guard lock(_mutex);
+        _pending.clear();
+        _jitterBuffer->reset();
+    }
+    _dispatch.post();
     auto state = _state;
     track->onOpen([state, generation]() {
         if (!state->alive.load(std::memory_order_acquire) ||
@@ -91,11 +110,47 @@ void WebRtcTrackReceiver::bind(std::shared_ptr<rtc::Track> track)
 }
 
 
-void WebRtcTrackReceiver::enqueue(std::unique_ptr<IPacket> packet)
+void WebRtcTrackReceiver::configureJitterBuffer(const JitterBufferConfig& config)
 {
     {
         std::lock_guard lock(_mutex);
-        _pending.emplace_back(std::move(packet));
+        _jitterConfig = config;
+        _jitterBuffer->configure(_jitterConfig);
+        _pending.clear();
+        _timerTickMs = std::max<int64_t>(1, _jitterConfig.tickIntervalMs);
+        _timerNeedsUpdate = true;
+    }
+    _dispatch.post();
+}
+
+
+JitterBufferConfig WebRtcTrackReceiver::jitterBufferConfig() const
+{
+    std::lock_guard lock(_mutex);
+    return _jitterConfig;
+}
+
+
+bool WebRtcTrackReceiver::jitterBufferEnabled() const
+{
+    std::lock_guard lock(_mutex);
+    return _jitterBuffer && _jitterBuffer->enabled();
+}
+
+
+void WebRtcTrackReceiver::enqueue(std::unique_ptr<IPacket> packet)
+{
+    if (!packet)
+        return;
+
+    {
+        std::lock_guard lock(_mutex);
+        if (_jitterBuffer && _jitterBuffer->enabled()) {
+            _jitterBuffer->push(std::move(packet), time::hrtime() / 1000);
+        }
+        else {
+            _pending.emplace_back(std::move(packet));
+        }
     }
     _dispatch.post();
 }
@@ -104,9 +159,30 @@ void WebRtcTrackReceiver::enqueue(std::unique_ptr<IPacket> packet)
 void WebRtcTrackReceiver::flushPending()
 {
     std::deque<std::unique_ptr<IPacket>> pending;
+    bool shouldRunTimer = false;
     {
         std::lock_guard lock(_mutex);
+        if (_timerNeedsUpdate) {
+            if (_timer.active())
+                _timer.stop();
+            _timer.setTimeout(_timerTickMs);
+            _timer.setInterval(_timerTickMs);
+            _timerNeedsUpdate = false;
+        }
+
         pending.swap(_pending);
+        if (_jitterBuffer && _jitterBuffer->enabled()) {
+            _jitterBuffer->drainReady(time::hrtime() / 1000, pending);
+            shouldRunTimer = _jitterBuffer->hasPending();
+        }
+    }
+
+    if (shouldRunTimer) {
+        if (!_timer.active())
+            _timer.start();
+    }
+    else if (_timer.active()) {
+        _timer.stop();
     }
 
     for (auto& packet : pending)

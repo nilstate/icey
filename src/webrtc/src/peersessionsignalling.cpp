@@ -24,6 +24,8 @@ MediaBridge::Options makeBridgeOptions(const PeerSession::MediaConfig& media)
     opts.audioCodec = media.audioCodec;
     opts.videoDirection = media.videoDirection;
     opts.audioDirection = media.audioDirection;
+    opts.videoJitterBuffer = media.videoJitterBuffer;
+    opts.audioJitterBuffer = media.audioJitterBuffer;
     return opts;
 }
 

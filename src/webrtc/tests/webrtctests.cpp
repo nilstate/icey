@@ -11,6 +11,7 @@
 #include "../src/codecregistry.h"
 #include "../src/remotemediaplan.h"
 #include "../support/src/callprotocol.h"
+#include "icy/webrtc/detail/receiverjitterbuffer.h"
 #include "icy/webrtc/support/sympleserversignaller.h"
 #include "icy/webrtc/support/wssignaller.h"
 
@@ -134,6 +135,23 @@ struct ReentrantRejectSignaller : MockSignaller
         }
     }
 };
+
+
+std::unique_ptr<IPacket> makeTimedAudioPacket(int64_t timeUs)
+{
+    static const char payload[] = "pkt";
+    auto packet = std::make_unique<av::AudioPacket>();
+    packet->copyData(payload, sizeof(payload) - 1);
+    packet->time = timeUs;
+    return packet;
+}
+
+
+int64_t mediaTimeOf(const std::unique_ptr<IPacket>& packet)
+{
+    auto* media = dynamic_cast<av::MediaPacket*>(packet.get());
+    return media ? media->time : -1;
+}
 
 
 struct LoopbackSignaller : SignallingInterface
@@ -959,6 +977,85 @@ int main(int argc, char** argv)
         expect(adapter != nullptr);
     });
 
+    describe("receiver jitter buffer: fixed delay reorders out-of-order frames", []() {
+        detail::ReceiverJitterBuffer buffer;
+        JitterBufferConfig config;
+        config.enabled = true;
+        config.minDelayMs = 30;
+        config.maxDelayMs = 30;
+        config.adaptiveFactor = 0.0;
+        buffer.configure(config);
+
+        std::deque<std::unique_ptr<IPacket>> ready;
+        buffer.push(makeTimedAudioPacket(0), 0);
+        buffer.push(makeTimedAudioPacket(40000), 10000);
+        buffer.push(makeTimedAudioPacket(20000), 15000);
+
+        buffer.drainReady(29999, ready);
+        expect(ready.empty());
+
+        buffer.drainReady(35000, ready);
+        expect(ready.size() == 1);
+        expect(mediaTimeOf(ready.front()) == 0);
+        ready.clear();
+
+        buffer.drainReady(55000, ready);
+        expect(ready.size() == 1);
+        expect(mediaTimeOf(ready.front()) == 20000);
+        ready.clear();
+
+        buffer.drainReady(75000, ready);
+        expect(ready.size() == 1);
+        expect(mediaTimeOf(ready.front()) == 40000);
+        expect(!buffer.hasPending());
+    });
+
+    describe("receiver jitter buffer: adaptive delay expands after jitter spike", []() {
+        detail::ReceiverJitterBuffer buffer;
+        JitterBufferConfig config;
+        config.enabled = true;
+        config.minDelayMs = 20;
+        config.maxDelayMs = 80;
+        config.adaptiveFactor = 1.0;
+        buffer.configure(config);
+
+        std::deque<std::unique_ptr<IPacket>> ready;
+        buffer.push(makeTimedAudioPacket(0), 0);
+        buffer.push(makeTimedAudioPacket(20000), 45000);
+
+        buffer.drainReady(25000, ready);
+        expect(ready.size() == 1);
+        expect(mediaTimeOf(ready.front()) == 0);
+        ready.clear();
+
+        buffer.drainReady(60000, ready);
+        expect(ready.empty());
+
+        buffer.drainReady(66000, ready);
+        expect(ready.size() == 1);
+        expect(mediaTimeOf(ready.front()) == 20000);
+    });
+
+    describe("track receiver: jitter buffer config is configurable", []() {
+        WebRtcTrackReceiver receiver;
+        JitterBufferConfig config;
+        config.enabled = true;
+        config.minDelayMs = 40;
+        config.maxDelayMs = 140;
+        config.adaptiveFactor = 2.0;
+        config.tickIntervalMs = 7;
+
+        receiver.configureJitterBuffer(config);
+
+        auto applied = receiver.jitterBufferConfig();
+        expect(applied.enabled);
+        expect(applied.minDelayMs == 40);
+        expect(applied.maxDelayMs == 140);
+        expect(applied.adaptiveFactor == 2.0);
+        expect(applied.tickIntervalMs == 7);
+        expect(receiver.jitterBufferEnabled());
+    });
+
 
     // =========================================================================
     // Layer 3: MediaBridge
@@ -1025,6 +1122,32 @@ int main(int argc, char** argv)
             threw = true;
         }
         expect(!threw);
+
+        bridge.detach();
+        pc->close();
+    });
+
+    describe("media bridge: receive jitter buffer options reach the receiver", []() {
+        rtc::Configuration config;
+        auto pc = std::make_shared<rtc::PeerConnection>(config);
+
+        MediaBridge bridge;
+        MediaBridge::Options opts;
+        opts.audioCodec = av::AudioCodec("opus", "libopus", 2, 48000);
+        opts.audioDirection = rtc::Description::Direction::RecvOnly;
+        opts.audioJitterBuffer.enabled = true;
+        opts.audioJitterBuffer.minDelayMs = 35;
+        opts.audioJitterBuffer.maxDelayMs = 90;
+        opts.audioJitterBuffer.tickIntervalMs = 6;
+
+        bridge.attach(pc, opts);
+
+        const auto applied = bridge.audioReceiver().jitterBufferConfig();
+        expect(applied.enabled);
+        expect(applied.minDelayMs == 35);
+        expect(applied.maxDelayMs == 90);
+        expect(applied.tickIntervalMs == 6);
+        expect(bridge.audioReceiver().jitterBufferEnabled());
 
         bridge.detach();
         pc->close();

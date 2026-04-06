@@ -152,6 +152,9 @@ void MediaBridge::attach(std::shared_ptr<rtc::PeerConnection> pc,
     const bool wantVideo = opts.videoCodec.specified();
     const bool wantAudio = opts.audioCodec.specified();
 
+    _videoReceiver.configureJitterBuffer(opts.videoJitterBuffer);
+    _audioReceiver.configureJitterBuffer(opts.audioJitterBuffer);
+
     if (wantVideo) {
         const bool videoSends = sends(opts.videoDirection);
         const bool videoReceives = receives(opts.videoDirection);
