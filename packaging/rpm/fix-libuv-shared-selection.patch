@@ -1,0 +1,157 @@
+diff --git a/cmake/icey_build_config.cmake.in b/cmake/icey_build_config.cmake.in
+index b4d4168..aae2c22 100644
+--- a/cmake/icey_build_config.cmake.in
++++ b/cmake/icey_build_config.cmake.in
+@@ -9,6 +9,20 @@ function(_icey_add_compat_target compat_target actual_target)
+   endif()
+ endfunction()
+ 
++function(_icey_add_libuv_compat_target compat_target)
++  if(@BUILD_SHARED_LIBS@)
++    _icey_add_compat_target("${compat_target}" libuv::uv)
++    _icey_add_compat_target("${compat_target}" libuv::libuv)
++    _icey_add_compat_target("${compat_target}" PkgConfig::LIBUV)
++    _icey_add_compat_target("${compat_target}" libuv::uv_a)
++  else()
++    _icey_add_compat_target("${compat_target}" libuv::uv_a)
++    _icey_add_compat_target("${compat_target}" libuv::uv)
++    _icey_add_compat_target("${compat_target}" libuv::libuv)
++    _icey_add_compat_target("${compat_target}" PkgConfig::LIBUV)
++  endif()
++endfunction()
++
+ set(_icey_supported_components "@icey_BUILD_MODULES@")
+ set(_icey_have_libdatachannel "@HAVE_LIBDATACHANNEL@")
+ 
+@@ -47,16 +61,13 @@ if(@USE_SYSTEM_DEPS@)
+     endif()
+   endif()
+   find_dependency(ZLIB)
+-  _icey_add_compat_target(uv_a libuv::uv_a)
+-  _icey_add_compat_target(uv_a libuv::uv)
+-  _icey_add_compat_target(uv_a libuv::libuv)
+-  _icey_add_compat_target(uv_a PkgConfig::LIBUV)
++  _icey_add_libuv_compat_target(icey_libuv)
+   _icey_add_compat_target(llhttp_static llhttp::llhttp_static)
+   _icey_add_compat_target(llhttp_static llhttp::llhttp_shared)
+   _icey_add_compat_target(llhttp_static llhttp::llhttp)
+   _icey_add_compat_target(llhttp_static llhttp)
+   _icey_add_compat_target(llhttp_static PkgConfig::LLHTTP)
+-  if(NOT TARGET uv_a)
++  if(NOT TARGET icey_libuv)
+     message(FATAL_ERROR "icey requires libuv via a CMake package config or pkg-config")
+   endif()
+   if(NOT TARGET llhttp_static)
+@@ -77,6 +88,7 @@ if(@USE_SYSTEM_DEPS@)
+   endif()
+ else()
+   include("${CMAKE_CURRENT_LIST_DIR}/iceyVendoredTargets.cmake")
++  _icey_add_compat_target(icey_libuv uv_a)
+ endif()
+ 
+ include("${CMAKE_CURRENT_LIST_DIR}/iceyTargets.cmake")
+diff --git a/cmake/icey_config.cmake.in b/cmake/icey_config.cmake.in
+index 9ffbbe0..447929b 100644
+--- a/cmake/icey_config.cmake.in
++++ b/cmake/icey_config.cmake.in
+@@ -9,6 +9,20 @@ function(_icey_add_compat_target compat_target actual_target)
+   endif()
+ endfunction()
+ 
++function(_icey_add_libuv_compat_target compat_target)
++  if(@BUILD_SHARED_LIBS@)
++    _icey_add_compat_target("${compat_target}" libuv::uv)
++    _icey_add_compat_target("${compat_target}" libuv::libuv)
++    _icey_add_compat_target("${compat_target}" PkgConfig::LIBUV)
++    _icey_add_compat_target("${compat_target}" libuv::uv_a)
++  else()
++    _icey_add_compat_target("${compat_target}" libuv::uv_a)
++    _icey_add_compat_target("${compat_target}" libuv::uv)
++    _icey_add_compat_target("${compat_target}" libuv::libuv)
++    _icey_add_compat_target("${compat_target}" PkgConfig::LIBUV)
++  endif()
++endfunction()
++
+ set(_icey_supported_components "@icey_BUILD_MODULES@")
+ set(_icey_have_libdatachannel "@HAVE_LIBDATACHANNEL@")
+ 
+@@ -31,16 +45,13 @@ if(NOT TARGET llhttp_static
+     pkg_check_modules(LLHTTP QUIET IMPORTED_TARGET GLOBAL libllhttp)
+   endif()
+ endif()
+-_icey_add_compat_target(uv_a libuv::uv_a)
+-_icey_add_compat_target(uv_a libuv::uv)
+-_icey_add_compat_target(uv_a libuv::libuv)
+-_icey_add_compat_target(uv_a PkgConfig::LIBUV)
++_icey_add_libuv_compat_target(icey_libuv)
+ _icey_add_compat_target(llhttp_static llhttp::llhttp_static)
+ _icey_add_compat_target(llhttp_static llhttp::llhttp_shared)
+ _icey_add_compat_target(llhttp_static llhttp::llhttp)
+ _icey_add_compat_target(llhttp_static llhttp)
+ _icey_add_compat_target(llhttp_static PkgConfig::LLHTTP)
+-if(NOT TARGET uv_a)
++if(NOT TARGET icey_libuv)
+   message(FATAL_ERROR "icey requires libuv via a CMake package config or pkg-config")
+ endif()
+ if(NOT TARGET llhttp_static)
+diff --git a/icey.cmake b/icey.cmake
+index 816f1c3..f99c4f7 100644
+--- a/icey.cmake
++++ b/icey.cmake
+@@ -27,6 +27,20 @@ function(icy_add_compat_target compat_target actual_target)
+   endif()
+ endfunction()
+ 
++function(icy_add_libuv_compat_target compat_target)
++  if(BUILD_SHARED_LIBS)
++    icy_add_compat_target("${compat_target}" libuv::uv)
++    icy_add_compat_target("${compat_target}" libuv::libuv)
++    icy_add_compat_target("${compat_target}" PkgConfig::LIBUV)
++    icy_add_compat_target("${compat_target}" libuv::uv_a)
++  else()
++    icy_add_compat_target("${compat_target}" libuv::uv_a)
++    icy_add_compat_target("${compat_target}" libuv::uv)
++    icy_add_compat_target("${compat_target}" libuv::libuv)
++    icy_add_compat_target("${compat_target}" PkgConfig::LIBUV)
++  endif()
++endfunction()
++
+ # Debug postfix
+ if(WIN32)
+   set(icey_DEBUG_POSTFIX "d")
+@@ -121,6 +135,7 @@ if(NOT USE_SYSTEM_DEPS)
+   set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+   FetchContent_MakeAvailable(libuv)
+   set(BUILD_SHARED_LIBS ${ICEY_BUILD_SHARED_LIBS_SAVED} CACHE BOOL "" FORCE)
++  icy_add_compat_target(icey_libuv uv_a)
+ 
+   # llhttp - HTTP parser (replaces http_parser)
+   FetchContent_Declare(llhttp
+@@ -209,16 +224,13 @@ else()
+   endif()
+ 
+   # Package managers do not agree on canonical target names.
+-  icy_add_compat_target(uv_a libuv::uv_a)
+-  icy_add_compat_target(uv_a libuv::uv)
+-  icy_add_compat_target(uv_a libuv::libuv)
+-  icy_add_compat_target(uv_a PkgConfig::LIBUV)
++  icy_add_libuv_compat_target(icey_libuv)
+   icy_add_compat_target(llhttp_static llhttp::llhttp_static)
+   icy_add_compat_target(llhttp_static llhttp::llhttp_shared)
+   icy_add_compat_target(llhttp_static llhttp::llhttp)
+   icy_add_compat_target(llhttp_static llhttp)
+   icy_add_compat_target(llhttp_static PkgConfig::LLHTTP)
+-  if(NOT TARGET uv_a)
++  if(NOT TARGET icey_libuv)
+     message(FATAL_ERROR "libuv not found; install libuv with a CMake package config or pkg-config metadata")
+   endif()
+   if(NOT TARGET llhttp_static)
+diff --git a/src/base/CMakeLists.txt b/src/base/CMakeLists.txt
+index d26a003..f74b78d 100644
+--- a/src/base/CMakeLists.txt
++++ b/src/base/CMakeLists.txt
+@@ -1,3 +1,3 @@
+ icy_add_module(base
+-  PACKAGES uv_a Threads::Threads
++  PACKAGES icey_libuv Threads::Threads
+ )

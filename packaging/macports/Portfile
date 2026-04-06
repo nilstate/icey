@@ -35,6 +35,9 @@ depends_lib-append  \
 configure.pkg_config_path-prepend \
                     ${prefix}/libexec/ffmpeg${ffmpeg_ver}/lib/pkgconfig
 
+# Upstream rejects the cmake PortGroup's default "MacPorts" build type.
+cmake.build_type    Release
+
 configure.args-append \
                     -DBUILD_SHARED_LIBS=ON \
                     -DUSE_SYSTEM_DEPS=ON \

@@ -1,3 +1,3 @@
 icy_add_module(base
-  PACKAGES uv_a Threads::Threads
+  PACKAGES icey_libuv Threads::Threads
 )

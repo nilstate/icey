@@ -39,7 +39,7 @@ index 76f74ee8..26f6c71d 100644
          kAudioHardwarePropertyDevices,
          kAudioObjectPropertyScopeGlobal,
 -        kAudioObjectPropertyElementMain
-+        kCoreAudioMainElement
++        coreaudio::kCoreAudioMainElement
      };
      UInt32 dataSize = 0;
      OSStatus status = AudioObjectGetPropertyDataSize(
