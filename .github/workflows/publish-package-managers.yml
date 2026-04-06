@@ -1,9 +1,6 @@
 name: Publish Package Managers
 
 on:
-  push:
-    tags:
-      - "*.*.*"
   workflow_dispatch:
 
 permissions:

@@ -1,9 +1,6 @@
 name: Publish Debian Source
 
 on:
-  push:
-    tags:
-      - "*.*.*"
   workflow_dispatch:
     inputs:
       debian_revision:
