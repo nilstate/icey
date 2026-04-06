@@ -1,11 +1,13 @@
 diff --git a/src/av/src/apple/coreaudio.cpp b/src/av/src/apple/coreaudio.cpp
-index 76f74ee8..26f6c71d 100644
+index 76f74ee8..e009a156 100644
 --- a/src/av/src/apple/coreaudio.cpp
 +++ b/src/av/src/apple/coreaudio.cpp
-@@ -22,6 +22,13 @@ namespace av {
+@@ -22,6 +22,15 @@ namespace av {
  namespace coreaudio {
  
  
++// `kAudioObjectPropertyElementMain` replaces the deprecated
++// `kAudioObjectPropertyElementMaster` in the macOS 12 SDK and later.
 +#if defined(__MAC_OS_X_VERSION_MAX_ALLOWED) && __MAC_OS_X_VERSION_MAX_ALLOWED >= 120000
 +static constexpr UInt32 kCoreAudioMainElement = kAudioObjectPropertyElementMain;
 +#else
@@ -16,7 +18,7 @@ index 76f74ee8..26f6c71d 100644
  // Helper to get a string property from an AudioObject
  static std::string getStringProperty(AudioObjectID objID, const AudioObjectPropertyAddress& addr)
  {
-@@ -42,7 +49,7 @@ static std::string getStringProperty(AudioObjectID objID, const AudioObjectPrope
+@@ -42,7 +51,7 @@ static std::string getStringProperty(AudioObjectID objID, const AudioObjectPrope
  static bool hasStreamsInDirection(AudioObjectID deviceID, AudioObjectPropertyScope scope)
  {
      AudioObjectPropertyAddress addr = {
@@ -25,25 +27,25 @@ index 76f74ee8..26f6c71d 100644
      };
      UInt32 size = 0;
      OSStatus status = AudioObjectGetPropertyDataSize(deviceID, &addr, 0, nullptr, &size);
-@@ -65,7 +72,7 @@ bool getDeviceList(Device::Type type, std::vector<av::Device>& devices)
+@@ -65,7 +74,7 @@ bool getDeviceList(Device::Type type, std::vector<av::Device>& devices)
              ? kAudioHardwarePropertyDefaultOutputDevice
              : kAudioHardwarePropertyDefaultInputDevice,
          kAudioObjectPropertyScopeGlobal,
 -        kAudioObjectPropertyElementMain
-+        coreaudio::kCoreAudioMainElement
++        kCoreAudioMainElement
      };
      AudioDeviceID defaultDeviceID = kAudioObjectUnknown;
      UInt32 defaultSize = sizeof(AudioDeviceID);
-@@ -76,7 +83,7 @@ bool getDeviceList(Device::Type type, std::vector<av::Device>& devices)
+@@ -76,7 +85,7 @@ bool getDeviceList(Device::Type type, std::vector<av::Device>& devices)
      AudioObjectPropertyAddress devicesAddr = {
          kAudioHardwarePropertyDevices,
          kAudioObjectPropertyScopeGlobal,
 -        kAudioObjectPropertyElementMain
-+        coreaudio::kCoreAudioMainElement
++        kCoreAudioMainElement
      };
      UInt32 dataSize = 0;
      OSStatus status = AudioObjectGetPropertyDataSize(
-@@ -104,7 +111,7 @@ bool getDeviceList(Device::Type type, std::vector<av::Device>& devices)
+@@ -104,7 +113,7 @@ bool getDeviceList(Device::Type type, std::vector<av::Device>& devices)
          AudioObjectPropertyAddress nameAddr = {
              kAudioObjectPropertyName,
              kAudioObjectPropertyScopeGlobal,
@@ -52,7 +54,7 @@ index 76f74ee8..26f6c71d 100644
          };
          std::string name = getStringProperty(deviceID, nameAddr);
          if (name.empty())
-@@ -114,7 +121,7 @@ bool getDeviceList(Device::Type type, std::vector<av::Device>& devices)
+@@ -114,7 +123,7 @@ bool getDeviceList(Device::Type type, std::vector<av::Device>& devices)
          AudioObjectPropertyAddress uidAddr = {
              kAudioDevicePropertyDeviceUID,
              kAudioObjectPropertyScopeGlobal,
@@ -61,7 +63,7 @@ index 76f74ee8..26f6c71d 100644
          };
          std::string uid = getStringProperty(deviceID, uidAddr);
          if (uid.empty())
-@@ -127,7 +134,7 @@ bool getDeviceList(Device::Type type, std::vector<av::Device>& devices)
+@@ -127,7 +136,7 @@ bool getDeviceList(Device::Type type, std::vector<av::Device>& devices)
          AudioObjectPropertyAddress ratesAddr = {
              kAudioDevicePropertyAvailableNominalSampleRates,
              scope,
@@ -70,7 +72,7 @@ index 76f74ee8..26f6c71d 100644
          };
          UInt32 ratesSize = 0;
          if (AudioObjectGetPropertyDataSize(deviceID, &ratesAddr, 0, nullptr, &ratesSize) == noErr
-@@ -139,7 +146,7 @@ bool getDeviceList(Device::Type type, std::vector<av::Device>& devices)
+@@ -139,7 +148,7 @@ bool getDeviceList(Device::Type type, std::vector<av::Device>& devices)
                  AudioObjectPropertyAddress fmtAddr = {
                      kAudioDevicePropertyStreamFormat,
                      scope,
@@ -79,12 +81,12 @@ index 76f74ee8..26f6c71d 100644
                  };
                  AudioStreamBasicDescription streamFmt = {};
                  UInt32 fmtSize = sizeof(streamFmt);
-@@ -191,7 +198,7 @@ struct AppleDeviceWatcher::Impl
+@@ -191,7 +200,7 @@ struct AppleDeviceWatcher::Impl
      AudioObjectPropertyAddress devicesAddr{
          kAudioHardwarePropertyDevices,
          kAudioObjectPropertyScopeGlobal,
 -        kAudioObjectPropertyElementMain
-+        kCoreAudioMainElement
++        coreaudio::kCoreAudioMainElement
      };
      bool active{false};
      DeviceManager* manager{nullptr};
