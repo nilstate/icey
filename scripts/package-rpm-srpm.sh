@@ -32,6 +32,7 @@ mkdir -p \
 
 curl --fail --location --retry 3 --retry-delay 1 --output "$source_archive" "$archive_url"
 cp "$spec_file" "$topdir/SPECS/icey.spec"
+find "$repo_root/packaging/rpm" -maxdepth 1 -type f ! -name 'icey.spec' -exec cp {} "$topdir/SOURCES/" \;
 
 "$rpmbuild_bin" -bs "$topdir/SPECS/icey.spec" --define "_topdir $topdir"
 
