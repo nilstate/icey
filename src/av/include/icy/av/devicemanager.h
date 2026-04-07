@@ -25,17 +25,7 @@
 #include "icy/signal.h"
 
 #ifdef HAVE_FFMPEG
-
-#include "icy/av/ffmpeg.h"
-
-extern "C" {
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
-#ifdef HAVE_FFMPEG_AVDEVICE
-#include <libavdevice/avdevice.h>
-#endif
-}
-
+struct AVInputFormat;
 #endif
 
 
