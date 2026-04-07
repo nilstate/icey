@@ -1,36 +1,59 @@
-diff --git a/src/av/src/apple/avfoundation_mm b/src/av/src/apple/avfoundation_mm
-index c686596d..b2927285 100644
---- a/src/av/src/apple/avfoundation_mm
-+++ b/src/av/src/apple/avfoundation_mm
-@@ -4,7 +4,27 @@
+diff --git a/src/av/CMakeLists.txt b/src/av/CMakeLists.txt
+index 5c1e4860..4c15c54f 100644
+--- a/src/av/CMakeLists.txt
++++ b/src/av/CMakeLists.txt
+@@ -20,11 +20,13 @@ if(TARGET av)
+   elseif(APPLE)
+     find_library(COREAUDIO_LIBRARY CoreAudio)
+     find_library(COREFOUNDATION_LIBRARY CoreFoundation)
++    find_library(FOUNDATION_LIBRARY Foundation)
+     find_library(AVFOUNDATION_LIBRARY AVFoundation)
+     find_library(COREMEDIA_LIBRARY CoreMedia)
+     target_link_libraries(av PUBLIC
+       ${COREAUDIO_LIBRARY}
+       ${COREFOUNDATION_LIBRARY}
++      ${FOUNDATION_LIBRARY}
+       ${AVFOUNDATION_LIBRARY}
+       ${COREMEDIA_LIBRARY})
+   endif()
+diff --git a/src/av/include/icy/av/devicemanager.h b/src/av/include/icy/av/devicemanager.h
+index e15f6ece..cc9f4eb3 100644
+--- a/src/av/include/icy/av/devicemanager.h
++++ b/src/av/include/icy/av/devicemanager.h
+@@ -25,17 +25,7 @@
+ #include "icy/signal.h"
+ 
+ #ifdef HAVE_FFMPEG
+-
+-#include "icy/av/ffmpeg.h"
+-
+-extern "C" {
+-#include <libavcodec/avcodec.h>
+-#include <libavformat/avformat.h>
+-#ifdef HAVE_FFMPEG_AVDEVICE
+-#include <libavdevice/avdevice.h>
+-#endif
+-}
+-
++struct AVInputFormat;
  #endif
  
- #include "icy/logger.h"
-+
-+// AVFoundation defines AVMediaType in the global namespace, which collides with
-+// FFmpeg's enum AVMediaType. This translation unit only needs Device metadata,
-+// so keep the FFmpeg headers out of this file entirely.
-+#ifdef HAVE_FFMPEG_AVDEVICE
-+#define ICY_AVFOUNDATION_RESTORE_HAVE_FFMPEG_AVDEVICE 1
-+#undef HAVE_FFMPEG_AVDEVICE
-+#endif
-+#ifdef HAVE_FFMPEG
-+#define ICY_AVFOUNDATION_RESTORE_HAVE_FFMPEG 1
-+#undef HAVE_FFMPEG
-+#endif
+ 
+diff --git a/src/av/src/apple/avfoundation_mm b/src/av/src/apple/avfoundation_mm
+index c686596d..45ea3ae5 100644
+--- a/src/av/src/apple/avfoundation_mm
++++ b/src/av/src/apple/avfoundation_mm
+@@ -3,8 +3,8 @@
+ #define __has_feature(x) 0
+ #endif
+ 
+-#include "icy/logger.h"
  #include "icy/av/devicemanager.h"
-+#ifdef ICY_AVFOUNDATION_RESTORE_HAVE_FFMPEG
-+#define HAVE_FFMPEG 1
-+#undef ICY_AVFOUNDATION_RESTORE_HAVE_FFMPEG
-+#endif
-+#ifdef ICY_AVFOUNDATION_RESTORE_HAVE_FFMPEG_AVDEVICE
-+#define HAVE_FFMPEG_AVDEVICE 1
-+#undef ICY_AVFOUNDATION_RESTORE_HAVE_FFMPEG_AVDEVICE
-+#endif
++#include "icy/logger.h"
  
  #import <assert.h>
  #import <AVFoundation/AVFoundation.h>
-@@ -49,14 +69,17 @@ bool GetAVFoundationVideoDevices(Device::Type type, std::vector<Device>* devices
+@@ -49,14 +49,17 @@ bool GetAVFoundationVideoDevices(Device::Type type, std::vector<Device>* devices
    {
      // Use AVCaptureDeviceDiscoverySession (replaces deprecated [AVCaptureDevice devices])
      NSArray<AVCaptureDeviceType>* deviceTypes;
@@ -51,7 +74,7 @@ index c686596d..b2927285 100644
  #pragma clang diagnostic push
  #pragma clang diagnostic ignored "-Wdeprecated-declarations"
          externalType = AVCaptureDeviceTypeExternalUnknown;
-@@ -86,7 +109,7 @@ bool GetAVFoundationVideoDevices(Device::Type type, std::vector<Device>* devices
+@@ -86,7 +89,7 @@ bool GetAVFoundationVideoDevices(Device::Type type, std::vector<Device>* devices
              position:AVCaptureDevicePositionUnspecified];
  
      NSArray<AVCaptureDevice*>* capture_devices = discoverySession.devices;
@@ -60,7 +83,7 @@ index c686596d..b2927285 100644
  
      for (AVCaptureDevice* capture_device in capture_devices) {
          static NSString* const kFormat = @"localizedName: \"%@\", "
-@@ -99,7 +122,7 @@ bool GetAVFoundationVideoDevices(Device::Type type, std::vector<Device>* devices
+@@ -99,7 +102,7 @@ bool GetAVFoundationVideoDevices(Device::Type type, std::vector<Device>* devices
                               [capture_device uniqueID],
                               [capture_device isConnected],
                               [capture_device isInUseByAnotherApplication]];
@@ -69,3 +92,26 @@ index c686596d..b2927285 100644
  
          std::string uniqueID([[capture_device uniqueID] UTF8String]);
          std::string name([[capture_device localizedName] UTF8String]);
+diff --git a/src/av/src/devicemanager.cpp b/src/av/src/devicemanager.cpp
+index d3542bff..df65b554 100644
+--- a/src/av/src/devicemanager.cpp
++++ b/src/av/src/devicemanager.cpp
+@@ -12,6 +12,18 @@
+ #include "icy/av/devicemanager.h"
+ #include "icy/logger.h"
+ 
++#ifdef HAVE_FFMPEG
++#include "icy/av/ffmpeg.h"
++
++extern "C" {
++#include <libavcodec/avcodec.h>
++#include <libavformat/avformat.h>
++#ifdef HAVE_FFMPEG_AVDEVICE
++#include <libavdevice/avdevice.h>
++#endif
++}
++#endif
++
+ 
+ #if defined(ICY_WIN)
+ #include "icy/av/win32/mediafoundation.h"

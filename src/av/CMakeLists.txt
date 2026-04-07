@@ -20,11 +20,13 @@ if(TARGET av)
   elseif(APPLE)
     find_library(COREAUDIO_LIBRARY CoreAudio)
     find_library(COREFOUNDATION_LIBRARY CoreFoundation)
+    find_library(FOUNDATION_LIBRARY Foundation)
     find_library(AVFOUNDATION_LIBRARY AVFoundation)
     find_library(COREMEDIA_LIBRARY CoreMedia)
     target_link_libraries(av PUBLIC
       ${COREAUDIO_LIBRARY}
       ${COREFOUNDATION_LIBRARY}
+      ${FOUNDATION_LIBRARY}
       ${AVFOUNDATION_LIBRARY}
       ${COREMEDIA_LIBRARY})
   endif()
