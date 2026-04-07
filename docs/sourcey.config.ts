@@ -3,13 +3,14 @@ export default {
   logo: "./icey.png",
   repo: "https://github.com/nilstate/icey",
   editBranch: "main",
+  editBasePath: "docs",
   theme: {
-    colors: { primary: "#2563eb" },
+    colors: { primary: "#BD1E1E" },
   },
   navigation: {
     tabs: [
       {
-        tab: "Documentation",
+        tab: "Guides",
         groups: [
           {
             group: "Run",
@@ -19,17 +20,6 @@ export default {
               "run/install",
               "run/modes",
               "run/cli",
-            ],
-          },
-          {
-            group: "Understand",
-            pages: [
-              "concepts/architecture",
-              "modules",
-              "concepts/runtime-contracts",
-              "concepts/packetstream",
-              "concepts/http-lifecycle",
-              "concepts/webrtc-session-flow",
             ],
           },
           {
@@ -55,6 +45,22 @@ export default {
               "operate/troubleshoot",
             ],
           },
+        ],
+      },
+      {
+        tab: "Concepts",
+        groups: [
+          {
+            group: "Understand",
+            pages: [
+              "concepts/architecture",
+              "modules",
+              "concepts/runtime-contracts",
+              "concepts/packetstream",
+              "concepts/http-lifecycle",
+              "concepts/webrtc-session-flow",
+            ],
+          },
           {
             group: "Module Guides",
             pages: [
@@ -71,9 +77,9 @@ export default {
               "modules/stun",
               "modules/turn",
               "modules/archo",
-              "modules/sched",
+              "modules/graft",
               "modules/pacm",
-              "modules/pluga",
+              "modules/sched",
             ],
           },
           {

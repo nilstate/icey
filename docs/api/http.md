@@ -1282,7 +1282,7 @@ Shared pointer to the created connection.
 virtual void addConnection(ClientConnection::Ptr conn)
 ```
 
-Registers a connection with this client so it is tracked and cleaned up on [stop()](#stop-7).
+Registers a connection with this client so it is tracked and cleaned up on [stop()](#stop-7). 
 #### Parameters
 * `conn` The connection to add.
 
@@ -1596,7 +1596,7 @@ Number of bytes sent or buffered.
 virtual void setReadStream(std::ostream * os)
 ```
 
-Sets the output stream to which incoming response body data is written. The stream pointer is owned by the connection and freed with it. Must be called before [start()](#start-8).
+Sets the output stream to which incoming response body data is written. The stream pointer is owned by the connection and freed with it. Must be called before [start()](#start-8). 
 #### Parameters
 * `os` Pointer to the output stream. Takes ownership. 
 
@@ -10322,3 +10322,4 @@ Buffer _incompleteFrame
 ```
 
 Buffer for incomplete frame data across TCP segments.
+

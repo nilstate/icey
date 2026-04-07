@@ -2,7 +2,7 @@
 
 # pacm
 
-Package manager for distributing and installing plugins.
+Package manager for distributing and installing packaged extensions and assets.
 
 ### Namespaces
 
@@ -593,7 +593,7 @@ Validates options, resolves the install directory, and launches the background r
 `virtual`
 
 ```cpp
-virtual void cancel()
+virtual void cancel(bool flag)
 ```
 
 Transitions the task to the Cancelled state.
@@ -939,7 +939,7 @@ uv::Loop * _loop
 | Return | Name | Description |
 |--------|------|-------------|
 | `void` | [`run`](#run-5) `virtual` | Called asynchronously by the thread to do the work. |
-| `void` | [`onStateChange`](#onstatechange) `virtual` |  |
+| `void` | [`onStateChange`](#onstatechange)  |  |
 | `void` | [`onDownloadProgress`](#ondownloadprogress) `virtual` |  |
 | `void` | [`onDownloadComplete`](#ondownloadcomplete) `virtual` |  |
 | `void` | [`setProgress`](#setprogress-1) `virtual` |  |
@@ -964,10 +964,8 @@ Called asynchronously by the thread to do the work.
 
 #### onStateChange
 
-`virtual`
-
 ```cpp
-virtual void onStateChange(InstallationState & state, const InstallationState & oldState)
+void onStateChange(InstallationState & state, const InstallationState & oldState)
 ```
 
 ---
@@ -2181,6 +2179,7 @@ inline InstallOptions()
 | `Manifest` | [`manifest`](#manifest) `virtual` | Returns the installation manifest. |
 | `bool` | [`verifyInstallManifest`](#verifyinstallmanifest) `virtual` |  |
 | `std::string` | [`getInstalledFilePath`](#getinstalledfilepath) `virtual` | Returns the full full path of the installed file. Thrown an exception if the install directory is unset. |
+| `std::string` | [`extensionEntryPointPath`](#extensionentrypointpath) `virtual` `const` | Returns the install-relative extension entrypoint resolved against [installDir()](#installdir-1). Returns an empty string when no extension metadata is present. |
 | `json::Value &` | [`errors`](#errors-2) `virtual` | Returns a reference to the JSON array of accumulated error messages. |
 | `void` | [`addError`](#adderror) `virtual` | Appends `message` to the errors array. |
 | `std::string` | [`lastError`](#lasterror) `virtual` `const` | Returns the most recently added error message, or empty if none. |
@@ -2491,6 +2490,20 @@ Returns the full full path of the installed file. Thrown an exception if the ins
 
 ---
 
+{#extensionentrypointpath}
+
+#### extensionEntryPointPath
+
+`virtual` `const`
+
+```cpp
+virtual std::string extensionEntryPointPath(bool whiny) const
+```
+
+Returns the install-relative extension entrypoint resolved against [installDir()](#installdir-1). Returns an empty string when no extension metadata is present.
+
+---
+
 {#errors-2}
 
 #### errors
@@ -2662,6 +2675,8 @@ JSON-backed package metadata shared by local and remote package records.
 | `std::string` | [`type`](#type-11) `virtual` `const` | Returns the package type (e.g. "plugin", "asset"). |
 | `std::string` | [`author`](#author) `virtual` `const` | Returns the package author string. |
 | `std::string` | [`description`](#description) `virtual` `const` | Returns the package description string. |
+| `bool` | [`hasExtension`](#hasextension) `virtual` `const` | Returns true when the package has an "extension" object. |
+| `Extension` | [`extension`](#extension) `virtual` `const` | Returns a read-only view of the extension metadata. Throws if no extension object is present. |
 | `bool` | [`valid`](#valid-4) `virtual` `const` | Returns true if id, name and type are all non-empty. |
 | `json::Value` | [`toJson`](#tojson) `virtual` `const` | Returns a plain JSON copy of this package object. |
 | `void` | [`print`](#print-9) `virtual` `const` | Dumps the JSON representation of this package to `ost`. |
@@ -2761,6 +2776,34 @@ virtual std::string description() const
 ```
 
 Returns the package description string.
+
+---
+
+{#hasextension}
+
+#### hasExtension
+
+`virtual` `const`
+
+```cpp
+virtual bool hasExtension() const
+```
+
+Returns true when the package has an "extension" object.
+
+---
+
+{#extension}
+
+#### extension
+
+`virtual` `const`
+
+```cpp
+virtual Extension extension() const
+```
+
+Returns a read-only view of the extension metadata. Throws if no extension object is present.
 
 ---
 
@@ -3020,6 +3063,156 @@ virtual bool operator==(const Asset & r) const
 
 Returns true if file name, version and checksum all match `r`.
 
+{#extension-1}
+
+## Extension
+
+```cpp
+#include <icy/pacm/package.h>
+```
+
+Optional extension metadata that describes how a packaged runtime unit is loaded.
+
+### Public Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `const json::Value &` | [`root`](#root-3)  |  |
+
+---
+
+{#root-3}
+
+#### root
+
+```cpp
+const json::Value & root
+```
+
+### Public Methods
+
+| Return | Name | Description |
+|--------|------|-------------|
+|  | [`Extension`](#extension-2)  | #### Parameters |
+| `std::string` | [`loader`](#loader) `virtual` `const` | Returns the loader/runtime contract name (for example "graft"). |
+| `std::string` | [`runtime`](#runtime) `virtual` `const` | Returns the runtime kind (for example "native" or "worker"). |
+| `std::string` | [`entryPoint`](#entrypoint) `virtual` `const` | Returns the install-relative entrypoint path. |
+| `int` | [`abiVersion`](#abiversion) `virtual` `const` | Returns the extension ABI version, or 0 if not specified. |
+| `std::vector< std::string >` | [`capabilities`](#capabilities) `virtual` `const` | Returns the declared capabilities. |
+| `bool` | [`valid`](#valid-6) `virtual` `const` | Returns true when the metadata is internally consistent. |
+| `bool` | [`hasCapability`](#hascapability) `virtual` `const` | Returns true when `capability` is declared. |
+
+---
+
+{#extension-2}
+
+#### Extension
+
+```cpp
+Extension(const json::Value & src)
+```
+
+#### Parameters
+* `src` JSON object node that backs this extension metadata.
+
+---
+
+{#loader}
+
+#### loader
+
+`virtual` `const`
+
+```cpp
+virtual std::string loader() const
+```
+
+Returns the loader/runtime contract name (for example "graft").
+
+---
+
+{#runtime}
+
+#### runtime
+
+`virtual` `const`
+
+```cpp
+virtual std::string runtime() const
+```
+
+Returns the runtime kind (for example "native" or "worker").
+
+---
+
+{#entrypoint}
+
+#### entryPoint
+
+`virtual` `const`
+
+```cpp
+virtual std::string entryPoint() const
+```
+
+Returns the install-relative entrypoint path.
+
+---
+
+{#abiversion}
+
+#### abiVersion
+
+`virtual` `const`
+
+```cpp
+virtual int abiVersion() const
+```
+
+Returns the extension ABI version, or 0 if not specified.
+
+---
+
+{#capabilities}
+
+#### capabilities
+
+`virtual` `const`
+
+```cpp
+virtual std::vector< std::string > capabilities() const
+```
+
+Returns the declared capabilities.
+
+---
+
+{#valid-6}
+
+#### valid
+
+`virtual` `const`
+
+```cpp
+virtual bool valid() const
+```
+
+Returns true when the metadata is internally consistent.
+
+---
+
+{#hascapability}
+
+#### hasCapability
+
+`virtual` `const`
+
+```cpp
+virtual bool hasCapability(std::string_view capability) const
+```
+
+Returns true when `capability` is declared.
+
 {#packagepair}
 
 ## PackagePair
@@ -3064,11 +3257,12 @@ RemotePackage * remote
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`PackagePair`](#packagepair-1)  | #### Parameters |
-| `bool` | [`valid`](#valid-6) `virtual` `const` | Returns true if at least one of local/remote is set and that pointer is itself [valid()](#valid-6). |
+| `bool` | [`valid`](#valid-7) `virtual` `const` | Returns true if at least one of local/remote is set and that pointer is itself [valid()](#valid-7). |
 | `std::string` | [`id`](#id-3) `const` | Returns the package ID, preferring the local package if available. |
 | `std::string` | [`name`](#name-7) `const` | Returns the package display name, preferring the local package if available. |
 | `std::string` | [`type`](#type-12) `const` | Returns the package type, preferring the local package if available. |
 | `std::string` | [`author`](#author-1) `const` | Returns the package author, preferring the local package if available. |
+| `bool` | [`hasExtension`](#hasextension-1) `const` | Returns true when either side carries extension metadata. |
 
 ---
 
@@ -3087,7 +3281,7 @@ PackagePair(LocalPackage * local, RemotePackage * remote)
 
 ---
 
-{#valid-6}
+{#valid-7}
 
 #### valid
 
@@ -3097,7 +3291,7 @@ PackagePair(LocalPackage * local, RemotePackage * remote)
 virtual bool valid() const
 ```
 
-Returns true if at least one of local/remote is set and that pointer is itself [valid()](#valid-6).
+Returns true if at least one of local/remote is set and that pointer is itself [valid()](#valid-7).
 
 ---
 
@@ -3154,6 +3348,20 @@ std::string author() const
 ```
 
 Returns the package author, preferring the local package if available.
+
+---
+
+{#hasextension-1}
+
+#### hasExtension
+
+`const`
+
+```cpp
+bool hasExtension() const
+```
+
+Returns true when either side carries extension metadata.
 
 {#remotepackage}
 

@@ -336,7 +336,7 @@ Provides symmetric algorithms for encryption and decryption. The algorithms that
 | `int` | [`setPadding`](#setpadding)  | Enables or disables PKCS block padding. |
 | `const ByteVec &` | [`getKey`](#getkey) `const` | Returns the raw encryption key bytes. |
 | `const ByteVec &` | [`getIV`](#getiv) `const` | Returns the raw initialization vector bytes. |
-| `const std::string &` | [`name`](#name-10) `const` | Returns the OpenSSL cipher name this object was constructed with. |
+| `const std::string &` | [`name`](#name-11) `const` | Returns the OpenSSL cipher name this object was constructed with. |
 | `int` | [`blockSize`](#blocksize) `const` | Returns the cipher block size in bytes. |
 | `int` | [`keySize`](#keysize) `const` | Returns the required key length in bytes for this cipher. |
 | `int` | [`ivSize`](#ivsize) `const` | Returns the required initialization vector length in bytes. |
@@ -798,7 +798,7 @@ Reference to the internal IV byte vector.
 
 ---
 
-{#name-10}
+{#name-11}
 
 #### name
 

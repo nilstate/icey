@@ -52,7 +52,13 @@ function(icy_filter_platform_sources srcs_var hdrs_var)
   # Include Objective-C on Apple
   if(APPLE)
     file(GLOB_RECURSE _objc_srcs "src/*.mm")
-    list(APPEND _srcs ${_objc_srcs})
+    file(GLOB_RECURSE _objc_legacy_srcs "src/*_mm")
+    if(_objc_legacy_srcs)
+      # A few Apple sources still use the historical `_mm` suffix instead of
+      # `.mm`; mark them explicitly so CMake compiles them as Objective-C++.
+      set_source_files_properties(${_objc_legacy_srcs} PROPERTIES LANGUAGE OBJCXX)
+    endif()
+    list(APPEND _srcs ${_objc_srcs} ${_objc_legacy_srcs})
   endif()
 
   set(${srcs_var} ${_srcs} PARENT_SCOPE)

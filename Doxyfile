@@ -162,7 +162,7 @@ FULL_PATH_NAMES        = YES
 # will be relative from the directory where doxygen is started.
 # This tag requires that the tag FULL_PATH_NAMES is set to YES.
 
-STRIP_FROM_PATH        =
+STRIP_FROM_PATH        = .
 
 # The STRIP_FROM_INC_PATH tag can be used to strip a user-defined part of the
 # path mentioned in the documentation of a class, which tells the reader which
@@ -175,15 +175,17 @@ STRIP_FROM_INC_PATH    = ./src/archo/include \
                          ./src/av/include \
                          ./src/base/include \
                          ./src/crypto/include \
+                         ./src/graft/include \
                          ./src/http/include \
                          ./src/json/include \
                          ./src/net/include \
                          ./src/pacm/include \
-                         ./src/pluga/include \
                          ./src/sched/include \
+                         ./src/speech/include \
                          ./src/stun/include \
                          ./src/symple/include \
                          ./src/turn/include \
+                         ./src/vision/include \
                          ./src/webrtc/include \
                          ./src/webrtc/support/include
 

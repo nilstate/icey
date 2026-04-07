@@ -31,6 +31,7 @@ docs-xml:
 docs-api-md: docs-install docs-xml
 	find docs/api -maxdepth 1 -type f -name '*.md' -delete
 	$(DOCS_NPM) exec -- moxygen "$(CURDIR)/build/doxygen/xml" -g -o "$(CURDIR)/docs/api/%s.md" -n -a -l cpp -q --source-root "$(CURDIR)"
+	node docs/scripts/sanitize-api-markdown.mjs
 
 ## Build Sourcey static site
 docs-site: docs-install docs-xml

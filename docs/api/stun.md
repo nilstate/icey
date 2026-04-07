@@ -2120,7 +2120,7 @@ Pointer to the raw byte buffer.
 #### setBytes
 
 ```cpp
-void setBytes(const char * bytes, unsigned size)
+void setBytes(const char * bytes, size_t size)
 ```
 
 Replaces the stored bytes with a copy of the given buffer and updates the attribute's reported size. 
@@ -2165,7 +2165,7 @@ Copies a null-terminated string into the attribute, using strlen to determine th
 #### copyBytes
 
 ```cpp
-void copyBytes(const void * bytes, unsigned size)
+void copyBytes(const void * bytes, size_t size)
 ```
 
 Copies an arbitrary block of memory into the attribute. 

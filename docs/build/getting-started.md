@@ -55,8 +55,8 @@ If you need every build knob, install prefix, or platform package detail, use th
 | `icey::stun` | [STUN](../modules/stun.md) | — |
 | `icey::turn` | [TURN](../modules/turn.md) | — |
 | `icey::archo` | [Archo](../modules/archo.md) | — |
+| `icey::graft` | [Graft](../modules/graft.md) | — |
 | `icey::pacm` | [Pacm](../modules/pacm.md) | — |
-| `icey::pluga` | [Pluga](../modules/pluga.md) | — |
 | `icey::sched` | [Sched](../modules/sched.md) | — |
 
 ## Building from Source

@@ -22,7 +22,7 @@ Symple protocol messages, peers, client, and server helpers.
 |------|-------------|
 | [`Client`](#client-5) | Symple v4 client. |
 | [`Command`](#command) | Symple command message with a node path and action verb. |
-| [`Event`](#event-1) | Symple event message carrying a named occurrence with a timestamp. |
+| [`Event`](#event-2) | Symple event message carrying a named occurrence with a timestamp. |
 | [`Form`](#form) | Interactive form with pages, sections, and fields for command data exchange. |
 | [`FormElement`](#formelement) | Base element within a Symple form. |
 | [`FormField`](#formfield) | [Form](#form) input field with typed values and selectable options. |
@@ -59,7 +59,7 @@ Messages are emitted as polymorphic [IPacket](base.md#ipacket) via PacketSignal:
 
 * [smpl::Presence](#presence) (type "presence")
 
-* [smpl::Event](#event-1) (type "event")
+* [smpl::Event](#event-2) (type "event")
 
 * [smpl::Command](#command) (type "command")
 
@@ -130,11 +130,11 @@ Modify the outgoing peer object before presence broadcast.
 |  | [`Client`](#client-7)  | Default constructor with default [Options](#options-14). |
 | `void` | [`start`](#start-16)  | Start the Symple client. |
 | `void` | [`stop`](#stop-13)  | Stop the Symple client. |
-| `int` | [`send`](#send-17) `virtual` | Send a Symple message. Sets the `from` field automatically. |
-| `int` | [`send`](#send-18) `virtual` | Send a string message (parsed as JSON). |
-| `int` | [`respond`](#respond-1) `virtual` | Swap to/from and send. |
-| `int` | [`sendPresence`](#sendpresence) `virtual` | Broadcast presence to joined rooms. |
-| `int` | [`sendPresence`](#sendpresence-1) `virtual` | Send directed presence to a specific peer. |
+| `ssize_t` | [`send`](#send-17) `virtual` | Send a Symple message. Sets the `from` field automatically. |
+| `ssize_t` | [`send`](#send-18) `virtual` | Send a string message (parsed as JSON). |
+| `ssize_t` | [`respond`](#respond-1) `virtual` | Swap to/from and send. |
+| `ssize_t` | [`sendPresence`](#sendpresence) `virtual` | Broadcast presence to joined rooms. |
+| `ssize_t` | [`sendPresence`](#sendpresence-1) `virtual` | Send directed presence to a specific peer. |
 | `int` | [`joinRoom`](#joinroom) `virtual` | Join a room on the server. |
 | `int` | [`leaveRoom`](#leaveroom) `virtual` | Leave a room on the server. |
 | `bool` | [`isOnline`](#isonline) `const` | Return true if in Online state. |
@@ -201,7 +201,7 @@ Stop the Symple client.
 `virtual`
 
 ```cpp
-virtual int send(Message & message)
+virtual ssize_t send(Message & message)
 ```
 
 Send a Symple message. Sets the `from` field automatically.
@@ -215,7 +215,7 @@ Send a Symple message. Sets the `from` field automatically.
 `virtual`
 
 ```cpp
-virtual int send(const std::string & message)
+virtual ssize_t send(const std::string & message)
 ```
 
 Send a string message (parsed as JSON).
@@ -229,7 +229,7 @@ Send a string message (parsed as JSON).
 `virtual`
 
 ```cpp
-virtual int respond(Message & message)
+virtual ssize_t respond(Message & message)
 ```
 
 Swap to/from and send.
@@ -243,7 +243,7 @@ Swap to/from and send.
 `virtual`
 
 ```cpp
-virtual int sendPresence(bool probe)
+virtual ssize_t sendPresence(bool probe)
 ```
 
 Broadcast presence to joined rooms.
@@ -257,7 +257,7 @@ Broadcast presence to joined rooms.
 `virtual`
 
 ```cpp
-virtual int sendPresence(const Address & to, bool probe)
+virtual ssize_t sendPresence(const Address & to, bool probe)
 ```
 
 Send directed presence to a specific peer.
@@ -457,9 +457,9 @@ std::unique_ptr< ClientData > _data
 | `void` | [`onWelcome`](#onwelcome)  |  |
 | `void` | [`onServerMessage`](#onservermessage)  |  |
 | `void` | [`startReconnect`](#startreconnect)  |  |
-| `void` | [`reset`](#reset-14)  |  |
+| `void` | [`reset`](#reset-15)  |  |
 | `void` | [`syncDesiredRooms`](#syncdesiredrooms)  |  |
-| `int` | [`sendJson`](#sendjson)  |  |
+| `ssize_t` | [`sendJson`](#sendjson)  |  |
 | `std::string` | [`buildUrl`](#buildurl) `const` |  |
 
 ---
@@ -544,7 +544,7 @@ void startReconnect()
 
 ---
 
-{#reset-14}
+{#reset-15}
 
 #### reset
 
@@ -569,7 +569,7 @@ void syncDesiredRooms()
 #### sendJson
 
 ```cpp
-int sendJson(const json::Value & msg)
+ssize_t sendJson(const json::Value & msg)
 ```
 
 ---
@@ -589,7 +589,7 @@ std::string buildUrl() const
 ## ClientData
 
 ```cpp
-#include </home/kam/dev/icey/src/symple/src/client/detail.h>
+#include <src/symple/src/client/detail.h>
 ```
 
 ### Public Attributes
@@ -798,8 +798,8 @@ Connection and authentication options for the Symple client.
 | `int` | [`reconnectAttempts`](#reconnectattempts)  | 0 = unlimited |
 | `int` | [`reconnectDelay`](#reconnectdelay)  | Milliseconds between retries. |
 | `std::string` | [`user`](#user-1)  | User identifier (required) |
-| `std::string` | [`name`](#name-11)  | Display name. |
-| `std::string` | [`type`](#type-18)  | [Peer](#peer-1) type. |
+| `std::string` | [`name`](#name-12)  | Display name. |
+| `std::string` | [`type`](#type-19)  | [Peer](#peer-1) type. |
 | `std::string` | [`token`](#token)  | Auth token (optional) |
 
 ---
@@ -884,7 +884,7 @@ User identifier (required)
 
 ---
 
-{#name-11}
+{#name-12}
 
 #### name
 
@@ -896,7 +896,7 @@ Display name.
 
 ---
 
-{#type-18}
+{#type-19}
 
 #### type
 
@@ -961,7 +961,7 @@ The `node` field is a colon-delimited path (e.g. "camera:zoom:in"). Individual p
 | `std::string` | [`action`](#action-2) `const` | Returns the action verb (defaults to "execute"). |
 | `void` | [`setNode`](#setnode)  | Sets the node path field. |
 | `void` | [`setAction`](#setaction)  | Sets the action verb field. |
-| `bool` | [`valid`](#valid-9) `virtual` `const` | Returns true if the base message is valid and the `node` field is set. |
+| `bool` | [`valid`](#valid-11) `virtual` `const` | Returns true if the base message is valid and the `node` field is set. |
 | `std::string` | [`param`](#param) `const` | Returns the nth colon-separated segment of the node path (1-based). Throws std::out_of_range if n exceeds the number of segments. |
 | `std::vector< std::string >` | [`params`](#params)  | Returns all colon-separated segments of the node path. |
 | `bool` | [`matches`](#matches-3) `const` | Returns true if the node path matches the given pattern. Uses wildcard node matching via [util::matchNodes](base.md#matchnodes). |
@@ -1064,7 +1064,7 @@ Sets the action verb field.
 
 ---
 
-{#valid-9}
+{#valid-11}
 
 #### valid
 
@@ -1125,7 +1125,7 @@ Returns true if the node path matches the given pattern. Uses wildcard node matc
 #### Parameters
 * `xnode` Pattern to match against (colon-delimited, supports wildcards).
 
-{#event-1}
+{#event-2}
 
 ## Event
 
@@ -1143,18 +1143,18 @@ The `name` field identifies the event. The `time` field is stored as a Unix time
 
 | Return | Name | Description |
 |--------|------|-------------|
-|  | [`Event`](#event-2)  | Constructs an event with type "event" and time set to now. |
-|  | [`Event`](#event-3)  | Constructs an event from a JSON value; sets missing time to now. |
-|  | [`Event`](#event-4)  | Copy constructor; preserves or sets missing time to now. |
-| `bool` | [`valid`](#valid-10) `virtual` `const` | Returns true if the base message is valid and the `name` field is set. |
-| `std::string` | [`name`](#name-12) `const` | Returns the event name string. |
+|  | [`Event`](#event-3)  | Constructs an event with type "event" and time set to now. |
+|  | [`Event`](#event-4)  | Constructs an event from a JSON value; sets missing time to now. |
+|  | [`Event`](#event-5)  | Copy constructor; preserves or sets missing time to now. |
+| `bool` | [`valid`](#valid-12) `virtual` `const` | Returns true if the base message is valid and the `name` field is set. |
+| `std::string` | [`name`](#name-13) `const` | Returns the event name string. |
 | `std::time_t` | [`time`](#time-4) `const` | Returns the event timestamp as a Unix time_t value. |
 | `void` | [`setName`](#setname-2)  | Sets the event name field. |
 | `void` | [`setTime`](#settime)  | Sets the event timestamp. |
 
 ---
 
-{#event-2}
+{#event-3}
 
 #### Event
 
@@ -1166,7 +1166,7 @@ Constructs an event with type "event" and time set to now.
 
 ---
 
-{#event-3}
+{#event-4}
 
 #### Event
 
@@ -1180,7 +1180,7 @@ Constructs an event from a JSON value; sets missing time to now.
 
 ---
 
-{#event-4}
+{#event-5}
 
 #### Event
 
@@ -1194,7 +1194,7 @@ Copy constructor; preserves or sets missing time to now.
 
 ---
 
-{#valid-10}
+{#valid-12}
 
 #### valid
 
@@ -1208,7 +1208,7 @@ Returns true if the base message is valid and the `name` field is set.
 
 ---
 
-{#name-12}
+{#name-13}
 
 #### name
 
@@ -1246,7 +1246,7 @@ void setName(std::string_view name)
 
 Sets the event name field. 
 #### Parameters
-* `name` [Event](#event-1) name string.
+* `name` [Event](#event-2) name string.
 
 ---
 
@@ -1283,7 +1283,7 @@ Attach a [Form](#form) to a [Command](#command) message to carry structured inpu
 |  | [`Form`](#form-1)  | Constructs an unbound form (root pointer is null). |
 |  | [`Form`](#form-2)  | Constructs a form bound to the given JSON node. Sets the `type` field to "form". |
 |  | [`Form`](#form-3)  | Constructs a form from a [Command](#command), binding to `command["form"]`. Sets the `type` field to "form". |
-| `bool` | [`valid`](#valid-11)  | Returns true if the element is valid, non-empty, and has no errors. |
+| `bool` | [`valid`](#valid-13)  | Returns true if the element is valid, non-empty, and has no errors. |
 | `std::string` | [`action`](#action-3) `const` | Returns the form action string (defaults to "form"). |
 | `bool` | [`partial`](#partial) `const` | Returns true if this is a partial form submission. |
 | `void` | [`setAction`](#setaction-1)  | Sets the form action field. Throws std::invalid_argument for unrecognised values. Possible values: `form` - Form-processing entity requests form completion. `submit` - Form-submitting entity is sending data. `cancel` - Form-submitting entity cancelled submission. `result` - Form-processing entity is returning data. |
@@ -1331,7 +1331,7 @@ Constructs a form from a [Command](#command), binding to `command["form"]`. Sets
 
 ---
 
-{#valid-11}
+{#valid-13}
 
 #### valid
 
@@ -1419,8 +1419,8 @@ Base element within a Symple form.
 |  | [`FormElement`](#formelement-2)  | Constructs an element bound to the given JSON node. |
 |  | [`FormElement`](#formelement-3)  | Copy constructor; copies the root pointer reference (shallow). |
 | `FormElement &` | [`operator=`](#operator-29)  | Copy-assigns the root pointer reference. |
-| `std::string` | [`type`](#type-20) `const` | Returns the element type string. |
-| `std::string` | [`id`](#id-5) `const` | Returns the element ID string. |
+| `std::string` | [`type`](#type-21) `const` | Returns the element type string. |
+| `std::string` | [`id`](#id-6) `const` | Returns the element ID string. |
 | `std::string` | [`label`](#label) `const` | Returns the display label string. |
 | `void` | [`setType`](#settype-1)  | Sets the element type. Possible values: page, section, text, text-multi, list, list-multi, checkbox, media, custom |
 | `void` | [`setId`](#setid)  | Sets the element ID field. |
@@ -1437,11 +1437,11 @@ Base element within a Symple form.
 | `bool` | [`live`](#live) `const` | Returns true if this field is live, meaning the form-processing entity should auto-update this field's value whenever it changes. |
 | `bool` | [`clearElements`](#clearelements)  | Removes all child elements whose ID matches the given value. |
 | `void` | [`clear`](#clear-3)  | Clears all fields from the underlying JSON node. |
-| `bool` | [`valid`](#valid-12) `const` | Returns true if the form element is valid. |
+| `bool` | [`valid`](#valid-14) `const` | Returns true if the form element is valid. |
 | `int` | [`numElements`](#numelements)  | Returns the number of child elements. |
 | `bool` | [`hasErrors`](#haserrors)  | Returns true if any fields have errors. |
 | `bool` | [`hasPages`](#haspages)  | Returns true if the form has multiple pages. |
-| `json::Value &` | [`root`](#root-3) `const` | Returns a reference to the underlying JSON node. Throws std::runtime_error if the root pointer is null. |
+| `json::Value &` | [`root`](#root-4) `const` | Returns a reference to the underlying JSON node. Throws std::runtime_error if the root pointer is null. |
 
 ---
 
@@ -1505,7 +1505,7 @@ Copy-assigns the root pointer reference.
 
 ---
 
-{#type-20}
+{#type-21}
 
 #### type
 
@@ -1519,7 +1519,7 @@ Returns the element type string.
 
 ---
 
-{#id-5}
+{#id-6}
 
 #### id
 
@@ -1791,7 +1791,7 @@ Clears all fields from the underlying JSON node.
 
 ---
 
-{#valid-12}
+{#valid-14}
 
 #### valid
 
@@ -1841,7 +1841,7 @@ Returns true if the form has multiple pages.
 
 ---
 
-{#root-3}
+{#root-4}
 
 #### root
 
@@ -2158,7 +2158,7 @@ Returns the first value parsed as a boolean. Treats "1", "true", and "on" as tru
 ```
 
 > **Inherits:** `Value`, [`IPacket`](base.md#ipacket)
-> **Subclassed by:** [`Command`](#command), [`Event`](#event-1), [`Presence`](#presence)
+> **Subclassed by:** [`Command`](#command), [`Event`](#event-2), [`Presence`](#presence)
 
 Base Symple protocol message with addressing, status, data, and notes.
 
@@ -2170,12 +2170,12 @@ Base Symple protocol message with addressing, status, data, and notes.
 |  | [`Message`](#message-12)  | Constructs a message from a JSON value; sets missing id/type fields. |
 |  | [`Message`](#message-13)  | Copy constructor; preserves or generates id/type fields. |
 | `std::unique_ptr< IPacket >` | [`clone`](#clone-18) `virtual` `const` | Returns a heap-allocated copy of this message. |
-| `bool` | [`valid`](#valid-13) `virtual` `const` | Returns true if the message has both `type` and `id` fields. |
+| `bool` | [`valid`](#valid-15) `virtual` `const` | Returns true if the message has both `type` and `id` fields. |
 | `void` | [`clear`](#clear-4) `virtual` | Clears all JSON fields from this message. |
 | `void` | [`clearData`](#cleardata) `virtual` | Clears the `data` sub-object. |
 | `void` | [`clearNotes`](#clearnotes) `virtual` | Clears the `notes` array. |
-| `std::string` | [`type`](#type-21) `const` | Returns the message type string (defaults to "message"). |
-| `std::string` | [`id`](#id-6) `const` | Returns the message ID string. |
+| `std::string` | [`type`](#type-22) `const` | Returns the message type string (defaults to "message"). |
+| `std::string` | [`id`](#id-7) `const` | Returns the message ID string. |
 | `Address` | [`to`](#to) `const` | Returns the recipient address parsed from the `to` field. |
 | `Address` | [`from`](#from) `const` | Returns the sender address parsed from the `from` field. |
 | `std::string` | [`toUser`](#touser) `const` | Returns the user component of the `to` address without constructing an [Address](#address-13). |
@@ -2194,8 +2194,8 @@ Base Symple protocol message with addressing, status, data, and notes.
 | `json::Value &` | [`notes`](#notes)  | Returns a reference to the `notes` JSON array. |
 | `void` | [`setNote`](#setnote)  | Replaces all notes with a single note. |
 | `void` | [`addNote`](#addnote)  | Appends a note to the `notes` array. |
-| `json::Value` | [`data`](#data-3) `const` | Returns a copy of the named data field. |
-| `json::Value &` | [`data`](#data-4)  | Returns a reference to the named data field (creates it if absent). |
+| `json::Value` | [`data`](#data-4) `const` | Returns a copy of the named data field. |
+| `json::Value &` | [`data`](#data-5)  | Returns a reference to the named data field (creates it if absent). |
 | `json::Value &` | [`setData`](#setdata)  | Creates or replaces a named data field; returns a reference to it. |
 | `void` | [`setData`](#setdata-1)  | Sets a named data field to a C-string value. |
 | `void` | [`setData`](#setdata-2)  | Sets a named data field to a string value. |
@@ -2209,8 +2209,9 @@ Base Symple protocol message with addressing, status, data, and notes.
 | `bool` | [`isRequest`](#isrequest) `const` | Returns true if no status code has been set (i.e. [status()](#status-3) == -1). |
 | `size_t` | [`size`](#size-11) `virtual` `const` | Returns the serialised JSON size in bytes. |
 | `void` | [`print`](#print-16) `virtual` `const` | Pretty-prints the message JSON to the given stream. |
-| `const char *` | [`className`](#classname-9) `virtual` `const` `inline` | Returns the class name of this packet type for logging and diagnostics. |
-| `char *` | [`data`](#data-5) `virtual` `const` `inline` | The packet data pointer for buffered packets. |
+| `const char *` | [`className`](#classname-8) `virtual` `const` `inline` | Returns the class name of this packet type for logging and diagnostics. |
+| `char *` | [`data`](#data-6) `virtual` `const` `inline` | The packet data pointer for buffered packets. |
+| `bool` | [`hasData`](#hasdata-1) `virtual` `const` `inline` | Returns true if the packet has a non-null data pointer. |
 
 ---
 
@@ -2268,7 +2269,7 @@ Returns a heap-allocated copy of this message.
 
 ---
 
-{#valid-13}
+{#valid-15}
 
 #### valid
 
@@ -2324,7 +2325,7 @@ Clears the `notes` array.
 
 ---
 
-{#type-21}
+{#type-22}
 
 #### type
 
@@ -2338,7 +2339,7 @@ Returns the message type string (defaults to "message").
 
 ---
 
-{#id-6}
+{#id-7}
 
 #### id
 
@@ -2608,7 +2609,7 @@ Appends a note to the `notes` array.
 
 ---
 
-{#data-3}
+{#data-4}
 
 #### data
 
@@ -2624,7 +2625,7 @@ Returns a copy of the named data field.
 
 ---
 
-{#data-4}
+{#data-5}
 
 #### data
 
@@ -2842,7 +2843,7 @@ Pretty-prints the message JSON to the given stream.
 
 ---
 
-{#classname-9}
+{#classname-8}
 
 #### className
 
@@ -2856,7 +2857,7 @@ Returns the class name of this packet type for logging and diagnostics.
 
 ---
 
-{#data-5}
+{#data-6}
 
 #### data
 
@@ -2867,6 +2868,20 @@ virtual inline char * data() const
 ```
 
 The packet data pointer for buffered packets.
+
+---
+
+{#hasdata-1}
+
+#### hasData
+
+`virtual` `const` `inline`
+
+```cpp
+virtual inline bool hasData() const
+```
+
+Returns true if the packet has a non-null data pointer.
 
 {#peer-1}
 
@@ -2891,19 +2906,19 @@ A [Peer](#peer-1) object may also contain arbitrary application data set by the 
 | `Peer &` | [`operator=`](#operator-30)  | Copy-assigns peer data from another peer. |
 |  | [`Peer`](#peer-4)  | Constructs a peer from a raw JSON value. |
 | `Address` | [`address`](#address-17) `const` | Returns the peer's address (user + session ID). |
-| `std::string` | [`id`](#id-7) `const` | Returns the session ID assigned by the server. |
+| `std::string` | [`id`](#id-8) `const` | Returns the session ID assigned by the server. |
 | `std::string` | [`user`](#user-2) `const` | Returns the user identifier. |
-| `std::string` | [`name`](#name-13) `const` | Returns the display name. |
-| `std::string` | [`type`](#type-22) `const` | Returns the peer type string (e.g. "Peer", "bot"). |
+| `std::string` | [`name`](#name-14) `const` | Returns the display name. |
+| `std::string` | [`type`](#type-23) `const` | Returns the peer type string (e.g. "Peer", "bot"). |
 | `std::string` | [`host`](#host-3) `const` | Returns the host address associated with this peer. |
 | `void` | [`setID`](#setid-1)  | Sets the session ID field. |
 | `void` | [`setUser`](#setuser)  | Sets the user identifier field. |
 | `void` | [`setName`](#setname-3)  | Sets the display name field. |
 | `void` | [`setType`](#settype-3)  | Sets the peer type field. |
 | `void` | [`setHost`](#sethost-2)  | Sets the host address field. |
-| `bool` | [`valid`](#valid-14) `virtual` | Updates the peer from the given data object. |
+| `bool` | [`valid`](#valid-16) `virtual` | Updates the peer from the given data object. |
 | `void` | [`print`](#print-17) `const` | Writes the peer's JSON representation to the given stream. |
-| `const char *` | [`className`](#classname-10) `virtual` `const` `inline` |  |
+| `const char *` | [`className`](#classname-9) `virtual` `const` `inline` |  |
 
 ---
 
@@ -2977,7 +2992,7 @@ Returns the peer's address (user + session ID).
 
 ---
 
-{#id-7}
+{#id-8}
 
 #### id
 
@@ -3005,7 +3020,7 @@ Returns the user identifier.
 
 ---
 
-{#name-13}
+{#name-14}
 
 #### name
 
@@ -3019,7 +3034,7 @@ Returns the display name.
 
 ---
 
-{#type-22}
+{#type-23}
 
 #### type
 
@@ -3117,7 +3132,7 @@ Sets the host address field.
 
 ---
 
-{#valid-14}
+{#valid-16}
 
 #### valid
 
@@ -3149,7 +3164,7 @@ Writes the peer's JSON representation to the given stream.
 
 ---
 
-{#classname-10}
+{#classname-9}
 
 #### className
 
@@ -3298,7 +3313,7 @@ Signal< void(constPeer &)> PeerRemoved
 | `Peer *` | [`getByHost`](#getbyhost)  | Returns the first peer which matches the given host address. |
 | `Map` | [`peers`](#peers) `const` | Returns a deep copy of the peer map. |
 | `void` | [`print`](#print-18) `const` |  |
-| `constchar *` | [`className`](#classname-11) `virtual` `const` `inline` |  |
+| `constchar *` | [`className`](#classname-10) `virtual` `const` `inline` |  |
 
 ---
 
@@ -3350,7 +3365,7 @@ void print(std::ostream & os) const
 
 ---
 
-{#classname-11}
+{#classname-10}
 
 #### className
 
@@ -3472,7 +3487,7 @@ Signal< void(ServerPeer &)> PeerDisconnected
 | `void` | [`addVirtualPeer`](#addvirtualpeer)  | Register a virtual peer that receives messages via callback. |
 | `void` | [`removeVirtualPeer`](#removevirtualpeer)  | Remove a virtual peer by session ID. |
 | `http::Server &` | [`httpServer`](#httpserver) `inline` | Access the underlying HTTP server (e.g. to serve static files). |
-| `uv::Loop *` | [`loop`](#loop-9) `const` `inline` | [Event](#event-1) loop that owns the Symple server and all peer connections. |
+| `uv::Loop *` | [`loop`](#loop-9) `const` `inline` | [Event](#event-2) loop that owns the Symple server and all peer connections. |
 
 ---
 
@@ -3687,7 +3702,7 @@ Access the underlying HTTP server (e.g. to serve static files).
 inline uv::Loop * loop() const
 ```
 
-[Event](#event-1) loop that owns the Symple server and all peer connections.
+[Event](#event-2) loop that owns the Symple server and all peer connections.
 
 ### Private Attributes
 
@@ -3893,7 +3908,7 @@ void sendPresenceSnapshot(ServerPeer & recipient, const std::unordered_set< std:
 ## PeerRegistry
 
 ```cpp
-#include </home/kam/dev/icey/src/symple/src/server/detail.h>
+#include <src/symple/src/server/detail.h>
 ```
 
 ### Public Methods
@@ -4119,7 +4134,7 @@ std::unordered_map< http::ServerConnection *, std::string > _connToPeer
 ## RoomIndex
 
 ```cpp
-#include </home/kam/dev/icey/src/symple/src/server/detail.h>
+#include <src/symple/src/server/detail.h>
 ```
 
 ### Public Methods
@@ -4245,6 +4260,7 @@ std::unordered_map< std::string, MemberSet > _rooms
 |--------|------|-------------|
 | `std::string` | [`host`](#host-4)  |  |
 | `uint16_t` | [`port`](#port-3)  |  |
+| `net::TCPSocket::Ptr` | [`socket`](#socket-7)  | Optional pre-created listen socket (e.g. SSLSocket for HTTPS/WSS). |
 | `bool` | [`authentication`](#authentication)  | Require token in auth message. |
 | `bool` | [`dynamicRooms`](#dynamicrooms)  | Allow clients to join/leave rooms. |
 | `size_t` | [`maxConnections`](#maxconnections)  | Max WebSocket connections (0 = unlimited) |
@@ -4271,6 +4287,18 @@ std::string host = "0.0.0.0"
 ```cpp
 uint16_t port = 4500
 ```
+
+---
+
+{#socket-7}
+
+#### socket
+
+```cpp
+net::TCPSocket::Ptr socket
+```
+
+Optional pre-created listen socket (e.g. SSLSocket for HTTPS/WSS).
 
 ---
 
@@ -4349,7 +4377,7 @@ Rate window in seconds.
 ## RoutingPolicy
 
 ```cpp
-#include </home/kam/dev/icey/src/symple/src/server/detail.h>
+#include <src/symple/src/server/detail.h>
 ```
 
 ### Public Static Methods
@@ -4414,7 +4442,7 @@ static bool canBroadcastToRoom(const ServerPeer & sender, const std::string & ro
 ## VirtualPeer
 
 ```cpp
-#include </home/kam/dev/icey/src/symple/src/server/detail.h>
+#include <src/symple/src/server/detail.h>
 ```
 
 ### Public Attributes
@@ -4479,7 +4507,7 @@ Created by the server after successful authentication. Holds the peer data, room
 | `void` | [`leaveAll`](#leaveall-1)  | Removes this peer from all rooms (local tracking only). |
 | `Peer &` | [`peer`](#peer-6) `inline` | Returns a mutable reference to the peer data object. |
 | `const Peer &` | [`peer`](#peer-7) `const` `inline` | Returns a const reference to the peer data object. |
-| `std::string` | [`id`](#id-8) `const` | Returns the session ID assigned to this peer. |
+| `std::string` | [`id`](#id-9) `const` | Returns the session ID assigned to this peer. |
 | `const std::unordered_set< std::string > &` | [`rooms`](#rooms-2) `const` `inline` | Returns the set of room names this peer is currently joined to. |
 | `bool` | [`authenticated`](#authenticated) `const` `inline` | Returns true if the peer has completed authentication. |
 | `void` | [`setAuthenticated`](#setauthenticated) `inline` | Marks the peer as authenticated or unauthenticated. |
@@ -4598,7 +4626,7 @@ Returns a const reference to the peer data object.
 
 ---
 
-{#id-8}
+{#id-9}
 
 #### id
 
@@ -4793,7 +4821,7 @@ The [Address](#address-13) structure is an endpoint identifier for a peer on the
 | Return | Name | Description |
 |--------|------|-------------|
 | `std::string` | [`user`](#user)  |  |
-| `std::string` | [`id`](#id-4)  |  |
+| `std::string` | [`id`](#id-5)  |  |
 
 ---
 
@@ -4807,7 +4835,7 @@ std::string user
 
 ---
 
-{#id-4}
+{#id-5}
 
 #### id
 
@@ -4823,7 +4851,7 @@ std::string id
 |  | [`Address`](#address-15)  | Parses an address string of the form `user\|id`. |
 |  | [`Address`](#address-16)  | Constructs an address from explicit user and session ID components. |
 | `bool` | [`parse`](#parse-2)  | Parses an address string of the form `user\|id`. Populates the `user` and `id` fields. |
-| `bool` | [`valid`](#valid-8) `const` | Returns true if at least one of `user` or `id` is non-empty. |
+| `bool` | [`valid`](#valid-10) `const` | Returns true if at least one of `user` or `id` is non-empty. |
 | `void` | [`print`](#print-15) `const` | Writes the address in `user\|id` format to the given stream. |
 | `std::string` | [`toString`](#tostring-9) `const` | Returns the address as a string in `user\|id` format. |
 | `bool` | [`operator==`](#operator-27) `const` | Compares two addresses for equality (both user and id must match). |
@@ -4890,7 +4918,7 @@ True if the result is a valid address.
 
 ---
 
-{#valid-8}
+{#valid-10}
 
 #### valid
 
@@ -5000,11 +5028,11 @@ inline std::string str(unsigned int id) const
 
 | Name | Description |
 |------|-------------|
-| [`Type`](#type-19)  |  |
+| [`Type`](#type-20)  |  |
 
 ---
 
-{#type-19}
+{#type-20}
 
 #### Type
 
