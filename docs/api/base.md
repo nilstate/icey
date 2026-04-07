@@ -4567,7 +4567,7 @@ Number of bytes written, or 0 if nothing to flush.
 #include <icy/interface.h>
 ```
 
-> **Subclassed by:** [`RunnableQueue< IPacket >`](#runnablequeue), [`RunnableQueue< PacketT >`](#runnablequeue), [`AsyncDiagnostic`](#asyncdiagnostic), [`AsyncLogWriter`](#asynclogwriter), [`RunnableQueue< T >`](#runnablequeue), [`Task`](#task), [`TaskRunner`](#taskrunner), [`MediaCapture`](av.md#mediacapture), [`InstallTask`](pacm.md#installtask)
+> **Subclassed by:** [`RunnableQueue< IPacket >`](#runnablequeue), [`RunnableQueue< PacketT >`](#runnablequeue), [`PlanarAudioPacket >`](#runnablequeue), [`PlanarVideoPacket >`](#runnablequeue), [`AsyncDiagnostic`](#asyncdiagnostic), [`AsyncLogWriter`](#asynclogwriter), [`RunnableQueue< T >`](#runnablequeue), [`Task`](#task), [`TaskRunner`](#taskrunner), [`MediaCapture`](av.md#mediacapture), [`InstallTask`](pacm.md#installtask)
 
 Abstract interface for classes that can be run and cancelled.
 
@@ -6307,7 +6307,7 @@ virtual bool async() const
 #include <icy/queue.h>
 ```
 
-> **Subclassed by:** [`RunnableQueue< IPacket >`](#runnablequeue), [`RunnableQueue< PacketT >`](#runnablequeue)
+> **Subclassed by:** [`RunnableQueue< IPacket >`](#runnablequeue), [`RunnableQueue< PacketT >`](#runnablequeue), [`PlanarAudioPacket >`](#runnablequeue), [`PlanarVideoPacket >`](#runnablequeue)
 
 Thread-safe queue container.
 
@@ -6498,7 +6498,7 @@ std::mutex _mutex
 ```
 
 > **Inherits:** [`Queue< T * >`](#queue), [`Runnable`](#runnable)
-> **Subclassed by:** [`AsyncQueue< IPacket >`](#asyncqueue), [`AsyncQueue< PacketT >`](#asyncqueue), [`SyncQueue< IPacket >`](#syncqueue), [`AsyncQueue< T >`](#asyncqueue), [`SyncQueue< T >`](#syncqueue)
+> **Subclassed by:** [`AsyncQueue< IPacket >`](#asyncqueue), [`AsyncQueue< PacketT >`](#asyncqueue), [`PlanarAudioPacket >`](#asyncqueue), [`PlanarVideoPacket >`](#asyncqueue), [`SyncQueue< IPacket >`](#syncqueue), [`AsyncQueue< T >`](#asyncqueue), [`SyncQueue< T >`](#syncqueue)
 
 [Queue](#queue) of runnable tasks for sequential execution.
 
@@ -6926,7 +6926,7 @@ RunnableQueue< T > Queue()
 ```
 
 > **Inherits:** [`RunnableQueue< T >`](#runnablequeue)
-> **Subclassed by:** [`AsyncPacketQueue< PacketT >`](#asyncpacketqueue), [`AsyncPacketQueue< T >`](#asyncpacketqueue)
+> **Subclassed by:** [`AsyncPacketQueue< PacketT >`](#asyncpacketqueue), [`PlanarAudioPacket >`](#asyncpacketqueue), [`PlanarVideoPacket >`](#asyncpacketqueue), [`AsyncPacketQueue< T >`](#asyncpacketqueue)
 
 [AsyncQueue](#asyncqueue) is a thread-based queue which receives packets from any thread source and dispatches them asynchronously.
 
@@ -19591,7 +19591,7 @@ Deleted constructor.
 ```
 
 > **Inherits:** [`PacketStreamAdapter`](#packetstreamadapter)
-> **Subclassed by:** [`AsyncPacketQueue< PacketT >`](#asyncpacketqueue), [`AsyncPacketQueue< T >`](#asyncpacketqueue), [`Base64PacketEncoder`](#base64packetencoder), [`StreamWriter`](#streamwriter), [`SyncPacketQueue< T >`](#syncpacketqueue), [`AudioPacketEncoder`](av.md#audiopacketencoder), [`FPSLimiter`](av.md#fpslimiter), [`MultiplexPacketEncoder`](av.md#multiplexpacketencoder), [`VideoPacketEncoder`](av.md#videopacketencoder), [`ChunkedAdapter`](http.md#chunkedadapter), [`MultipartAdapter`](http.md#multipartadapter), [`WebRtcTrackSender`](webrtc.md#webrtctracksender)
+> **Subclassed by:** [`AsyncPacketQueue< PacketT >`](#asyncpacketqueue), [`PlanarAudioPacket >`](#asyncpacketqueue), [`PlanarVideoPacket >`](#asyncpacketqueue), [`AsyncPacketQueue< T >`](#asyncpacketqueue), [`Base64PacketEncoder`](#base64packetencoder), [`StreamWriter`](#streamwriter), [`SyncPacketQueue< T >`](#syncpacketqueue), [`AudioPacketEncoder`](av.md#audiopacketencoder), [`FPSLimiter`](av.md#fpslimiter), [`MultiplexPacketEncoder`](av.md#multiplexpacketencoder), [`VideoPacketEncoder`](av.md#videopacketencoder), [`ChunkedAdapter`](http.md#chunkedadapter), [`MultipartAdapter`](http.md#multipartadapter), [`FrameSampler`](vision.md#framesampler), [`WebRtcTrackSender`](webrtc.md#webrtctracksender)
 
 This class is a virtual interface for creating PacketStreamAdapters which process that and emit the [IPacket](#ipacket) type.
 
@@ -21266,6 +21266,8 @@ Priority-ordered factory that creates typed packets from raw buffers using regis
 | Return | Name | Description |
 |--------|------|-------------|
 |  | [`PacketFactory`](#packetfactory)  | Defaulted constructor. |
+|  | [`PacketFactory`](#packetfactory)  | Deleted constructor. |
+|  | [`PacketFactory`](#packetfactory)  | Defaulted constructor. |
 | `void` | [`registerPacketType`](#registerpackettype) `inline` | Registers a `[PacketCreationStrategy](#packetcreationstrategy)<PacketT>` at the given priority. Any previously registered strategy for `PacketT` is replaced. |
 | `void` | [`unregisterPacketType`](#unregisterpackettype) `inline` | Removes the `[PacketCreationStrategy](#packetcreationstrategy)<PacketT>` from the factory, if present. |
 | `void` | [`registerStrategy`](#registerstrategy) `inline` | Registers an arbitrary `[IPacketCreationStrategy](#ipacketcreationstrategy)` subclass at the given priority. Any previously registered instance of the same type is replaced. |
@@ -21283,6 +21285,30 @@ Priority-ordered factory that creates typed packets from raw buffers using regis
 
 ```cpp
 PacketFactory() = default
+```
+
+Defaulted constructor.
+
+---
+
+{#packetfactory}
+
+#### PacketFactory
+
+```cpp
+PacketFactory(const PacketFactory &) = delete
+```
+
+Deleted constructor.
+
+---
+
+{#packetfactory}
+
+#### PacketFactory
+
+```cpp
+PacketFactory(PacketFactory &&) = default
 ```
 
 Defaulted constructor.
@@ -22240,7 +22266,7 @@ inline int attempts() const
 ```
 
 #### Returns
-The number of times `[send()](#classicy_1_1PacketTransaction_1aba9724541a547c75ecd87406ac7ef90c)` has been called for this transaction.
+The number of times `[send()](#classicy_1_1PacketTransaction_1acf7a9bbcfff95999c0c227cb36f9cfd4)` has been called for this transaction.
 
 ---
 

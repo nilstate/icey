@@ -730,7 +730,7 @@ Adds multiple peer IP addresses to the permission list.
 virtual void addPermission(const std::string & ip)
 ```
 
-Adds a single peer IP to the permission list, or refreshes it if already present. Permissions should be added before [start()](#start-13); they may also be added later, in which case a new CreatePermission request is required.
+Adds a single peer IP to the permission list, or refreshes it if already present. Permissions should be added before [start()](#start-13); they may also be added later, in which case a new CreatePermission request is required. 
 #### Parameters
 * `ip` IPv4 address string of the permitted peer.
 
@@ -3468,7 +3468,7 @@ Server-side TCP TURN allocation with connection pair management per RFC 6062. Ma
 | `void` | [`handleConnectRequest`](#handleconnectrequest)  | Handles a Connect request; creates a [TCPConnectionPair](#tcpconnectionpair) and initiates a TCP connection to the peer address carried in XOR-PEER-ADDRESS. |
 | `void` | [`handleConnectionBindRequest`](#handleconnectionbindrequest-1)  | Handles a ConnectionBind request; associates the incoming TCP data socket with the pending [TCPConnectionPair](#tcpconnectionpair) and activates the relay pipe. |
 | `void` | [`sendPeerConnectResponse`](#sendpeerconnectresponse)  | Sends a Connect success or failure response to the control connection. |
-| `int` | [`sendToControl`](#sendtocontrol)  | Sends a STUN message to the client over the control TCP connection. |
+| `ssize_t` | [`sendToControl`](#sendtocontrol)  | Sends a STUN message to the client over the control TCP connection. |
 | `net::TCPSocket &` | [`control`](#control)  | #### Returns |
 | `net::Address` | [`relayedAddress`](#relayedaddress-2) `virtual` `const` | #### Returns |
 | `TCPConnectionPairMap &` | [`pairs`](#pairs)  | #### Returns |
@@ -3567,7 +3567,7 @@ Sends a Connect success or failure response to the control connection.
 #### sendToControl
 
 ```cpp
-int sendToControl(stun::Message & message)
+ssize_t sendToControl(stun::Message & message)
 ```
 
 Sends a STUN message to the client over the control TCP connection. 
@@ -4986,13 +4986,13 @@ uint8_t size = 0
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `bool` | [`valid`](#valid-7) `const` `inline` |  |
+| `bool` | [`valid`](#valid-8) `const` `inline` |  |
 | `bool` | [`matches`](#matches-1) `const` `inline` |  |
 | `bool` | [`matches`](#matches-2) `const` `inline` |  |
 
 ---
 
-{#valid-7}
+{#valid-8}
 
 #### valid
 
@@ -5456,3 +5456,4 @@ Called when the server sends a ConnectionAttempt indication indicating that a re
 
 #### Returns
 true to accept and bind, false to ignore.
+

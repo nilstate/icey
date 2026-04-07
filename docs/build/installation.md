@@ -196,7 +196,7 @@ cmake -B build -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON
 ```
 
 ```bash title="Disable modules you don't need"
-cmake -B build -DBUILD_MODULE_pacm=OFF -DBUILD_MODULE_pluga=OFF
+cmake -B build -DBUILD_MODULE_pacm=OFF -DBUILD_MODULE_graft=OFF
 ```
 
 ```bash title="Sanitizer build"

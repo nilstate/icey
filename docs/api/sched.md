@@ -370,7 +370,7 @@ Scheduled task with an attached trigger and scheduler association.
 | `Scheduler &` | [`scheduler`](#scheduler-2)  | Returns a reference to the associated [Scheduler](#scheduler) or throws an exception. |
 | `std::int64_t` | [`remaining`](#remaining) `const` | Returns the milliseconds remaining until the next scheduled timeout. An [sched::Trigger](#trigger-1) must be associated or an exception will be thrown. |
 | `std::string` | [`type`](#type-16) `const` | Returns the registered type string for this task. |
-| `std::string` | [`name`](#name-8) `const` | Returns the human-readable display name of this task. |
+| `std::string` | [`name`](#name-9) `const` | Returns the human-readable display name of this task. |
 | `void` | [`setName`](#setname-1)  | Sets the human-readable display name. |
 
 ---
@@ -522,7 +522,7 @@ Returns the registered type string for this task.
 
 ---
 
-{#name-8}
+{#name-9}
 
 #### name
 
@@ -1185,7 +1185,7 @@ Base class for scheduled task triggers that determine when a task should run.
 | Return | Name | Description |
 |--------|------|-------------|
 | `std::string` | [`type`](#type-17)  | The type of this trigger class. |
-| `std::string` | [`name`](#name-9)  | The display name of this trigger class. |
+| `std::string` | [`name`](#name-10)  | The display name of this trigger class. |
 | `int` | [`timesRun`](#timesrun)  | The number of times the task has run since creation; |
 | `DateTime` | [`createdAt`](#createdat)  | The time the task was created. |
 | `DateTime` | [`scheduleAt`](#scheduleat)  | The time the task is scheduled to run. |
@@ -1205,7 +1205,7 @@ The type of this trigger class.
 
 ---
 
-{#name-9}
+{#name-10}
 
 #### name
 

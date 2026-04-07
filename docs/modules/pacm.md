@@ -294,6 +294,6 @@ All directory defaults are relative to the current working directory.
 ## See Also
 
 - [Archo](archo.md) — ZIP extraction used internally by `InstallTask`
-- [Pluga](pluga.md) — plugin loading; use alongside `pacm` for full remote plugin support
+- [Graft](graft.md) — plugin ABI and runtime loading; use alongside `pacm` for full remote plugin support
 - [JSON](json.md) — JSON types and file I/O used throughout `pacm`
 - [Base](base.md) — signals, tasks, collections, and filesystem helpers

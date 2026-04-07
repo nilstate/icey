@@ -15,6 +15,7 @@ WebRTC media transport via libdatachannel; peer sessions, media bridge, codec ne
 | [`WebRtcTrackReceiver`](#webrtctrackreceiver) | [PacketStreamAdapter](base.md#packetstreamadapter) that receives depacketized frames from a single remote libdatachannel Track and emits them as VideoPacket or AudioPacket into a [PacketStream](base.md#packetstream). |
 | [`CodecNegotiator`](#codecnegotiator) | Maps RTP codec names to FFmpeg encoders and queries FFmpeg at runtime to determine what codecs are available. |
 | [`TrackHandle`](#trackhandle) | Result of creating a track: the track itself plus its RTP config. Keep the config around - you need it for [WebRtcTrackSender](#webrtctracksender). |
+| [`JitterBufferConfig`](#jitterbufferconfig) | Receive-side jitter buffer behaviour for depacketized WebRTC media frames. |
 | [`CodecSpec`](#codecspec) | Canonical description of a codec supported by icey's WebRTC helpers. |
 | [`NegotiatedCodec`](#negotiatedcodec) | Result of codec negotiation between a remote SDP offer and the local FFmpeg codec inventory. |
 
@@ -790,6 +791,8 @@ std::mutex _mutex
 | `rtc::Description::Direction` | [`videoDirection`](#videodirection)  |  |
 | `rtc::Description::Direction` | [`audioDirection`](#audiodirection)  |  |
 | `unsigned` | [`nackBufferSize`](#nackbuffersize)  | Max RTP packets retained for video NACK retransmission. |
+| `JitterBufferConfig` | [`videoJitterBuffer`](#videojitterbuffer)  | Receive-side playout buffering for depacketized video frames. |
+| `JitterBufferConfig` | [`audioJitterBuffer`](#audiojitterbuffer)  | Receive-side playout buffering for depacketized audio frames. |
 
 ---
 
@@ -930,6 +933,30 @@ unsigned nackBufferSize = 512
 ```
 
 Max RTP packets retained for video NACK retransmission.
+
+---
+
+{#videojitterbuffer}
+
+#### videoJitterBuffer
+
+```cpp
+JitterBufferConfig videoJitterBuffer
+```
+
+Receive-side playout buffering for depacketized video frames.
+
+---
+
+{#audiojitterbuffer}
+
+#### audioJitterBuffer
+
+```cpp
+JitterBufferConfig audioJitterBuffer
+```
+
+Receive-side playout buffering for depacketized audio frames.
 
 {#peersession}
 
@@ -1235,7 +1262,7 @@ High-level lifecycle phases for a single peer-to-peer call session.
 | Return | Name | Description |
 |--------|------|-------------|
 | `SignallingInterface &` | [`_signaller`](#_signaller)  |  |
-| `Config` | [`_config`](#_config)  |  |
+| `Config` | [`_config`](#_config-3)  |  |
 | `MediaBridge` | [`_media`](#_media)  |  |
 | `State` | [`_state`](#_state-3)  |  |
 | `std::string` | [`_remotePeerId`](#_remotepeerid)  |  |
@@ -1261,7 +1288,7 @@ SignallingInterface & _signaller
 
 ---
 
-{#_config}
+{#_config-3}
 
 #### _config
 
@@ -1524,7 +1551,7 @@ void drainCallbacks()
 std::atomic< bool > alive {true}
 ```
 
-{#config}
+{#config-3}
 
 ## Config
 
@@ -1609,6 +1636,8 @@ Label to use for the application data channel.
 | `av::AudioCodec` | [`audioCodec`](#audiocodec-6)  | Desired audio codec for send/receive negotiation. |
 | `rtc::Description::Direction` | [`videoDirection`](#videodirection-1)  |  |
 | `rtc::Description::Direction` | [`audioDirection`](#audiodirection-1)  |  |
+| `JitterBufferConfig` | [`videoJitterBuffer`](#videojitterbuffer-1)  | Receive-side buffering for depacketized remote video frames. |
+| `JitterBufferConfig` | [`audioJitterBuffer`](#audiojitterbuffer-1)  | Receive-side buffering for depacketized remote audio frames. |
 
 ---
 
@@ -1653,6 +1682,30 @@ rtc::Description::Direction videoDirection = rtc::Description::Direction::SendRe
 ```cpp
 rtc::Description::Direction audioDirection = rtc::Description::Direction::SendRecv
 ```
+
+---
+
+{#videojitterbuffer-1}
+
+#### videoJitterBuffer
+
+```cpp
+JitterBufferConfig videoJitterBuffer
+```
+
+Receive-side buffering for depacketized remote video frames.
+
+---
+
+{#audiojitterbuffer-1}
+
+#### audioJitterBuffer
+
+```cpp
+JitterBufferConfig audioJitterBuffer
+```
+
+Receive-side buffering for depacketized remote audio frames.
 
 {#pendingcandidate}
 
@@ -1711,11 +1764,11 @@ Accepts only the packet type that matches the bound track. Non-matching packets 
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `PacketSignal` | [`emitter`](#emitter-8)  |  |
+| `PacketSignal` | [`emitter`](#emitter-9)  |  |
 
 ---
 
-{#emitter-8}
+{#emitter-9}
 
 #### emitter
 
@@ -1731,8 +1784,8 @@ PacketSignal emitter
 |  | [`WebRtcTrackSender`](#webrtctracksender-2) `explicit` | Construct bound to a track handle from [createVideoTrack()](#createvideotrack) or [createAudioTrack()](#createaudiotrack). |
 | `void` | [`bind`](#bind-5)  | Bind to a track. Can be called to rebind to a different track. |
 | `void` | [`unbind`](#unbind-1)  | Unbind from the current track. |
-| `void` | [`process`](#process-7) `virtual` | Send an encoded media frame to the bound WebRTC track. Converts the FFmpeg microsecond timestamp to an RTP timestamp using the track's clock rate, then calls rtc::Track::sendFrame(). Only forwards the packet downstream on a successful send. |
-| `bool` | [`accepts`](#accepts-3) `virtual` | Return true only for the packet type that matches the bound track. |
+| `void` | [`process`](#process-10) `virtual` | Send an encoded media frame to the bound WebRTC track. Converts the FFmpeg microsecond timestamp to an RTP timestamp using the track's clock rate, then calls rtc::Track::sendFrame(). Only forwards the packet downstream on a successful send. |
+| `bool` | [`accepts`](#accepts-4) `virtual` | Return true only for the packet type that matches the bound track. |
 | `void` | [`onStreamStateChange`](#onstreamstatechange-6) `virtual` | Called by the [PacketStream](base.md#packetstream) when stream state changes. Logs when the stream is stopping; no other action is taken. |
 | `bool` | [`isVideo`](#isvideo) `const` | True if this sender is bound to a video track. |
 | `bool` | [`bound`](#bound) `const` | True if bound to any track. |
@@ -1789,7 +1842,7 @@ Unbind from the current track.
 
 ---
 
-{#process-7}
+{#process-10}
 
 #### process
 
@@ -1805,7 +1858,7 @@ Send an encoded media frame to the bound WebRTC track. Converts the FFmpeg micro
 
 ---
 
-{#accepts-3}
+{#accepts-4}
 
 #### accepts
 
@@ -1941,11 +1994,11 @@ Emits VideoPacket for video tracks, AudioPacket for audio tracks. Use those pack
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `PacketSignal` | [`emitter`](#emitter-9)  |  |
+| `PacketSignal` | [`emitter`](#emitter-10)  |  |
 
 ---
 
-{#emitter-9}
+{#emitter-10}
 
 #### emitter
 
@@ -1959,6 +2012,9 @@ PacketSignal emitter
 |--------|------|-------------|
 |  | [`WebRtcTrackReceiver`](#webrtctrackreceiver-1)  | Construct an unbound receiver. Call [bind()](#bind-6) to attach a remote track. |
 | `void` | [`bind`](#bind-6)  | Bind to a remote track. Must be called after [setupReceiveTrack()](#setupreceivetrack) returned true. Installs an onFrame callback that converts each depacketized frame to a VideoPacket or AudioPacket and emits it on the [PacketStream](base.md#packetstream). The track type (video/audio) is detected from the SDP description. |
+| `void` | [`configureJitterBuffer`](#configurejitterbuffer)  | Replace the receive-side jitter-buffer settings. |
+| `JitterBufferConfig` | [`jitterBufferConfig`](#jitterbufferconfig-1) `const` | Current jitter-buffer settings for this receiver. |
+| `bool` | [`jitterBufferEnabled`](#jitterbufferenabled) `const` | True when depacketized receive frames are buffered before emission. |
 
 ---
 
@@ -1986,13 +2042,60 @@ Bind to a remote track. Must be called after [setupReceiveTrack()](#setupreceive
 #### Parameters
 * `track` Remote track from the PeerConnection::onTrack callback.
 
+---
+
+{#configurejitterbuffer}
+
+#### configureJitterBuffer
+
+```cpp
+void configureJitterBuffer(const JitterBufferConfig & config)
+```
+
+Replace the receive-side jitter-buffer settings.
+
+Reconfiguring resets any buffered media still waiting for release.
+
+---
+
+{#jitterbufferconfig-1}
+
+#### jitterBufferConfig
+
+`const`
+
+```cpp
+JitterBufferConfig jitterBufferConfig() const
+```
+
+Current jitter-buffer settings for this receiver.
+
+---
+
+{#jitterbufferenabled}
+
+#### jitterBufferEnabled
+
+`const`
+
+```cpp
+bool jitterBufferEnabled() const
+```
+
+True when depacketized receive frames are buffered before emission.
+
 ### Private Attributes
 
 | Return | Name | Description |
 |--------|------|-------------|
 | `Synchronizer` | [`_dispatch`](#_dispatch)  |  |
+| `Timer` | [`_timer`](#_timer-3)  |  |
 | `std::mutex` | [`_mutex`](#_mutex-20)  |  |
 | `std::deque< std::unique_ptr< IPacket > >` | [`_pending`](#_pending)  |  |
+| `std::unique_ptr< detail::ReceiverJitterBuffer >` | [`_jitterBuffer`](#_jitterbuffer)  |  |
+| `JitterBufferConfig` | [`_jitterConfig`](#_jitterconfig)  |  |
+| `std::int64_t` | [`_timerTickMs`](#_timertickms)  |  |
+| `bool` | [`_timerNeedsUpdate`](#_timerneedsupdate)  |  |
 | `std::shared_ptr< DispatchState >` | [`_state`](#_state-4)  |  |
 | `uint64_t` | [`_generation`](#_generation)  |  |
 
@@ -2004,6 +2107,16 @@ Bind to a remote track. Must be called after [setupReceiveTrack()](#setupreceive
 
 ```cpp
 Synchronizer _dispatch
+```
+
+---
+
+{#_timer-3}
+
+#### _timer
+
+```cpp
+Timer _timer
 ```
 
 ---
@@ -2024,6 +2137,46 @@ std::mutex _mutex
 
 ```cpp
 std::deque< std::unique_ptr< IPacket > > _pending
+```
+
+---
+
+{#_jitterbuffer}
+
+#### _jitterBuffer
+
+```cpp
+std::unique_ptr< detail::ReceiverJitterBuffer > _jitterBuffer
+```
+
+---
+
+{#_jitterconfig}
+
+#### _jitterConfig
+
+```cpp
+JitterBufferConfig _jitterConfig
+```
+
+---
+
+{#_timertickms}
+
+#### _timerTickMs
+
+```cpp
+std::int64_t _timerTickMs = 5
+```
+
+---
+
+{#_timerneedsupdate}
+
+#### _timerNeedsUpdate
+
+```cpp
+bool _timerNeedsUpdate = false
 ```
 
 ---
@@ -2136,6 +2289,8 @@ This is stateless - all methods are static. Call negotiate*() with a list of RTP
 | `av::VideoCodec` | [`resolveWebRtcVideoCodec`](#resolvewebrtcvideocodec) `static` | Resolve a browser-safe WebRTC video codec config from an explicit codec. |
 | `av::AudioCodec` | [`resolveWebRtcAudioCodec`](#resolvewebrtcaudiocodec) `static` | Resolve a browser-safe WebRTC audio codec config from an explicit codec. |
 | `std::optional< CodecSpec >` | [`detectCodec`](#detectcodec) `static` | Detect the first known codec present in an SDP snippet for the given media type. |
+| `std::optional< CodecSpec >` | [`detectCodecInMedia`](#detectcodecinmedia) `static` | Detect the first known codec from a structured rtc::Description::Media object for the given media type. |
+| `AVCodecID` | [`decoderCodecId`](#decodercodecid) `static` | Return the FFmpeg decoder codec ID for a given codec spec. Returns AV_CODEC_ID_NONE if no mapping is known. |
 
 ---
 
@@ -2361,6 +2516,34 @@ static std::optional< CodecSpec > detectCodec(std::string_view sdp, CodecMediaTy
 
 Detect the first known codec present in an SDP snippet for the given media type.
 
+---
+
+{#detectcodecinmedia}
+
+#### detectCodecInMedia
+
+`static`
+
+```cpp
+static std::optional< CodecSpec > detectCodecInMedia(const rtc::Description::Media & media, CodecMediaType mediaType)
+```
+
+Detect the first known codec from a structured rtc::Description::Media object for the given media type.
+
+---
+
+{#decodercodecid}
+
+#### decoderCodecId
+
+`static`
+
+```cpp
+static AVCodecID decoderCodecId(const CodecSpec & spec)
+```
+
+Return the FFmpeg decoder codec ID for a given codec spec. Returns AV_CODEC_ID_NONE if no mapping is known.
+
 {#trackhandle}
 
 ## TrackHandle
@@ -2402,6 +2585,88 @@ std::shared_ptr< rtc::RtpPacketizationConfig > rtpConfig
 
 RTP packetization state required by [WebRtcTrackSender](#webrtctracksender).
 
+{#jitterbufferconfig}
+
+## JitterBufferConfig
+
+```cpp
+#include <icy/webrtc/jitterbuffer.h>
+```
+
+Receive-side jitter buffer behaviour for depacketized WebRTC media frames.
+
+The jitter buffer sits after libdatachannel depacketization and before icey emits encoded AudioPacket/VideoPacket objects to downstream decoders or recorders. It reorders frames by RTP-derived media timestamp and delays release long enough to absorb moderate network jitter.
+
+### Public Attributes
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `bool` | [`enabled`](#enabled-1)  | False keeps the current zero-buffer receive path. |
+| `std::int64_t` | [`minDelayMs`](#mindelayms)  | Base playout delay in milliseconds. |
+| `std::int64_t` | [`maxDelayMs`](#maxdelayms)  | Upper bound for the adaptive playout delay. |
+| `double` | [`adaptiveFactor`](#adaptivefactor)  | Extra delay multiplier applied to observed inter-arrival variance. |
+| `std::int64_t` | [`tickIntervalMs`](#tickintervalms)  | Poll interval for releasing buffered frames. |
+
+---
+
+{#enabled-1}
+
+#### enabled
+
+```cpp
+bool enabled = false
+```
+
+False keeps the current zero-buffer receive path.
+
+---
+
+{#mindelayms}
+
+#### minDelayMs
+
+```cpp
+std::int64_t minDelayMs = 20
+```
+
+Base playout delay in milliseconds.
+
+---
+
+{#maxdelayms}
+
+#### maxDelayMs
+
+```cpp
+std::int64_t maxDelayMs = 120
+```
+
+Upper bound for the adaptive playout delay.
+
+---
+
+{#adaptivefactor}
+
+#### adaptiveFactor
+
+```cpp
+double adaptiveFactor = 1.5
+```
+
+Extra delay multiplier applied to observed inter-arrival variance.
+
+---
+
+{#tickintervalms}
+
+#### tickIntervalMs
+
+```cpp
+std::int64_t tickIntervalMs = 5
+```
+
+Poll interval for releasing buffered frames.
+
 {#codecspec}
 
 ## CodecSpec
@@ -2416,7 +2681,7 @@ Canonical description of a codec supported by icey's WebRTC helpers.
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `CodecId` | [`id`](#id-9)  | Stable codec identifier. |
+| `CodecId` | [`id`](#id-10)  | Stable codec identifier. |
 | `CodecMediaType` | [`mediaType`](#mediatype)  | Audio or video media kind. |
 | `std::string` | [`rtpName`](#rtpname)  | Canonical RTP codec name. |
 | `std::string` | [`ffmpegName`](#ffmpegname)  | Preferred FFmpeg encoder name. |
@@ -2426,7 +2691,7 @@ Canonical description of a codec supported by icey's WebRTC helpers.
 
 ---
 
-{#id-9}
+{#id-10}
 
 #### id
 
@@ -2512,11 +2777,11 @@ Canonical fmtp line for SDP generation.
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `bool` | [`valid`](#valid-15) `const` `inline` |  |
+| `bool` | [`valid`](#valid-17) `const` `inline` |  |
 
 ---
 
-{#valid-15}
+{#valid-17}
 
 #### valid
 

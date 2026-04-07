@@ -2895,7 +2895,6 @@ std::shared_ptr< SSLContext > Ptr()
 | `Usage` | [`_usage`](#_usage)  |  |
 | `VerificationMode` | [`_mode`](#_mode)  |  |
 | `SSL_CTX *` | [`_sslContext`](#_sslcontext)  |  |
-| `bool` | [`_extendedVerificationErrorDetails`](#_extendedverificationerrordetails)  |  |
 | `std::vector< unsigned char >` | [`_alpnWire`](#_alpnwire)  | Wire-format ALPN protocols for server selection. |
 
 ---
@@ -2926,16 +2925,6 @@ VerificationMode _mode
 
 ```cpp
 SSL_CTX * _sslContext
-```
-
----
-
-{#_extendedverificationerrordetails}
-
-#### _extendedVerificationErrorDetails
-
-```cpp
-bool _extendedVerificationErrorDetails
 ```
 
 ---
