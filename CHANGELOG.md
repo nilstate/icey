@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Added
+
+- WebRTC receive jitter buffer for smoother inbound media playback
+- API reference docs for graft, speech, and vision modules
+- Markdown sanitization script for generated API docs
+
+### Changed
+
+- Doxygen config updated for new module coverage
+- Docs now use latest sourcey toolchain
+- Module guide updated with graft, speech, vision entries
+
+### Removed
+
+- pluga module and docs (replaced by graft)
+
 ## [2.4.3] - 2026-04-06
 
 ### Fixed
