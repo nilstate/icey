@@ -45,9 +45,16 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     endif()
   endif()
 
-  # Hide internal symbols by default (smaller binary, faster loads)
-  add_compile_options(-fvisibility=hidden)
-  add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-fvisibility-inlines-hidden>)
+  # Hide internal symbols by default (smaller binary, faster loads).
+  # Apple shared-library builds still expose much of the public C++ API via
+  # class-level export macros. Clang does not reliably export member symbols
+  # from those declarations under -fvisibility=hidden, which breaks downstream
+  # linkage for modules such as archo and av. Keep Darwin shared builds at the
+  # toolchain default visibility until the API is annotated per symbol.
+  if(NOT (APPLE AND BUILD_SHARED_LIBS))
+    add_compile_options(-fvisibility=hidden)
+    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-fvisibility-inlines-hidden>)
+  endif()
 
   if(ENABLE_PROFILING)
     add_compile_options(-pg -g)
