@@ -1,0 +1,71 @@
+diff --git a/src/av/src/apple/avfoundation_mm b/src/av/src/apple/avfoundation_mm
+index c686596d..b2927285 100644
+--- a/src/av/src/apple/avfoundation_mm
++++ b/src/av/src/apple/avfoundation_mm
+@@ -4,7 +4,27 @@
+ #endif
+ 
+ #include "icy/logger.h"
++
++// AVFoundation defines AVMediaType in the global namespace, which collides with
++// FFmpeg's enum AVMediaType. This translation unit only needs Device metadata,
++// so keep the FFmpeg headers out of this file entirely.
++#ifdef HAVE_FFMPEG_AVDEVICE
++#define ICY_AVFOUNDATION_RESTORE_HAVE_FFMPEG_AVDEVICE 1
++#undef HAVE_FFMPEG_AVDEVICE
++#endif
++#ifdef HAVE_FFMPEG
++#define ICY_AVFOUNDATION_RESTORE_HAVE_FFMPEG 1
++#undef HAVE_FFMPEG
++#endif
+ #include "icy/av/devicemanager.h"
++#ifdef ICY_AVFOUNDATION_RESTORE_HAVE_FFMPEG
++#define HAVE_FFMPEG 1
++#undef ICY_AVFOUNDATION_RESTORE_HAVE_FFMPEG
++#endif
++#ifdef ICY_AVFOUNDATION_RESTORE_HAVE_FFMPEG_AVDEVICE
++#define HAVE_FFMPEG_AVDEVICE 1
++#undef ICY_AVFOUNDATION_RESTORE_HAVE_FFMPEG_AVDEVICE
++#endif
+ 
+ #import <assert.h>
+ #import <AVFoundation/AVFoundation.h>
+@@ -49,14 +69,17 @@ bool GetAVFoundationVideoDevices(Device::Type type, std::vector<Device>* devices
+   {
+     // Use AVCaptureDeviceDiscoverySession (replaces deprecated [AVCaptureDevice devices])
+     NSArray<AVCaptureDeviceType>* deviceTypes;
+-    AVMediaType mediaType;
++    NSString* mediaType = nil;
+ 
+     // AVCaptureDeviceTypeExternal (macOS 14+) replaces
+     // AVCaptureDeviceTypeExternalUnknown (macOS 10.15-13.x)
+-    AVCaptureDeviceType externalType;
++    AVCaptureDeviceType externalType = nil;
++#if defined(__MAC_OS_X_VERSION_MAX_ALLOWED) && __MAC_OS_X_VERSION_MAX_ALLOWED >= 140000
+     if (@available(macOS 14.0, *)) {
+         externalType = AVCaptureDeviceTypeExternal;
+-    } else {
++    } else
++#endif
++    {
+ #pragma clang diagnostic push
+ #pragma clang diagnostic ignored "-Wdeprecated-declarations"
+         externalType = AVCaptureDeviceTypeExternalUnknown;
+@@ -86,7 +109,7 @@ bool GetAVFoundationVideoDevices(Device::Type type, std::vector<Device>* devices
+             position:AVCaptureDevicePositionUnspecified];
+ 
+     NSArray<AVCaptureDevice*>* capture_devices = discoverySession.devices;
+-    LDebug([capture_devices count], " capture device(s) found:")
++    LDebug([capture_devices count], " capture device(s) found:");
+ 
+     for (AVCaptureDevice* capture_device in capture_devices) {
+         static NSString* const kFormat = @"localizedName: \"%@\", "
+@@ -99,7 +122,7 @@ bool GetAVFoundationVideoDevices(Device::Type type, std::vector<Device>* devices
+                              [capture_device uniqueID],
+                              [capture_device isConnected],
+                              [capture_device isInUseByAnotherApplication]];
+-        LDebug('\t', [info UTF8String])
++        LDebug('\t', [info UTF8String]);
+ 
+         std::string uniqueID([[capture_device uniqueID] UTF8String]);
+         std::string name([[capture_device localizedName] UTF8String]);

@@ -13,6 +13,7 @@ source:
     - 0002-coreaudio-main-element-compat.patch
     - 0003-compile-legacy-objcxx-apple-sources.patch
     - 0004-enable-objcxx-language-on-apple.patch
+    - 0005-fix-avfoundation-sdk-compat.patch
 
 build:
   number: 0
