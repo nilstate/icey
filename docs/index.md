@@ -55,11 +55,11 @@ That binary — `icey-server` — is built entirely from icey's library modules.
 Install and run icey-server. Docker, release binaries, package managers. Stream, record, or relay in under a minute.
 ::
 
-::card{title="Build" icon="code" href="build/getting-started"}
+::card{title="Build" icon="code-bracket" href="build/getting-started"}
 Use icey modules in your own C++ project. FetchContent, CMake targets, recipes for HTTP, WebRTC, TURN, and more.
 ::
 
-::card{title="Operate" icon="settings" href="operate/config"}
+::card{title="Operate" icon="cog-6-tooth" href="operate/config"}
 Deploy to production. Config reference, TLS, TURN, health endpoints, monitoring, and troubleshooting.
 ::
 
