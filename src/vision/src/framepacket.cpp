@@ -17,9 +17,6 @@
 namespace icy {
 namespace vision {
 
-
-#ifdef HAVE_FFMPEG
-
 namespace {
 
 VisionFrameContext normalizeContext(const av::PlanarVideoPacket& packet,
@@ -35,36 +32,18 @@ VisionFrameContext normalizeContext(const av::PlanarVideoPacket& packet,
 
 } // namespace
 
-#endif
-
 
 VisionFramePacket::VisionFramePacket(const av::PlanarVideoPacket& packet,
                                      VisionFrameContext context)
-#ifdef HAVE_FFMPEG
-    : av::PlanarVideoPacket(const_cast<uint8_t**>(packet.buffer),
-                            packet.linesize,
-                            packet.pixelFmt,
-                            packet.width,
-                            packet.height,
-                            packet.time)
+    : av::PlanarVideoPacket(packet)
     , context(normalizeContext(packet, std::move(context)))
-#endif
 {
-#ifdef HAVE_FFMPEG
-    iframe = packet.iframe;
-    avframe = packet.avframe;
-    flags = packet.flags;
-    opaque = packet.opaque;
-    info = packet.info ? packet.info->clone() : nullptr;
-#endif
 }
 
 
 VisionFramePacket::VisionFramePacket(const VisionFramePacket& that)
-#ifdef HAVE_FFMPEG
     : av::PlanarVideoPacket(that)
     , context(that.context)
-#endif
 {
 }
 

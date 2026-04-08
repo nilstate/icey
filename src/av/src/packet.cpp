@@ -51,6 +51,7 @@ PlanarVideoPacket::PlanarVideoPacket(const PlanarVideoPacket& r)
     : VideoPacket(r)
     , pixelFmt(r.pixelFmt)
     , owns_buffer(true)
+    , avframe(r.avframe)
 {
     if (pixelFmt.empty())
         throw std::runtime_error("PlanarVideoPacket: pixel format required to copy");
@@ -129,6 +130,72 @@ PlanarAudioPacket::~PlanarAudioPacket() noexcept
         av_freep(&buffer[0]);
     }
 }
+
+
+} // namespace av
+} // namespace icy
+
+
+#else
+
+namespace icy {
+namespace av {
+
+
+PlanarVideoPacket::PlanarVideoPacket(uint8_t* data[4], const int linesize[4], const std::string& pixelFmt,
+                                     int width, int height, int64_t time)
+    : VideoPacket(data ? data[0] : nullptr, 0, width, height, time)
+    , pixelFmt(pixelFmt)
+{
+    for (int i = 0; i < 4; ++i) {
+        buffer[i] = data ? data[i] : nullptr;
+        this->linesize[i] = linesize ? linesize[i] : 0;
+    }
+}
+
+
+PlanarVideoPacket::PlanarVideoPacket(const PlanarVideoPacket& r)
+    : VideoPacket(r)
+    , pixelFmt(r.pixelFmt)
+    , owns_buffer(false)
+    , avframe(r.avframe)
+{
+    for (int i = 0; i < 4; ++i) {
+        buffer[i] = r.buffer[i];
+        linesize[i] = r.linesize[i];
+    }
+}
+
+
+PlanarVideoPacket::~PlanarVideoPacket() noexcept = default;
+
+
+PlanarAudioPacket::PlanarAudioPacket(uint8_t* data[4], int channels, size_t numSamples,
+                                     const std::string& sampleFmt, int64_t time)
+    : AudioPacket(data ? data[0] : nullptr, 0, numSamples, time)
+    , channels(channels)
+    , sampleFmt(sampleFmt)
+{
+    for (int i = 0; i < 4; ++i) {
+        buffer[i] = data ? data[i] : nullptr;
+    }
+}
+
+
+PlanarAudioPacket::PlanarAudioPacket(const PlanarAudioPacket& r)
+    : AudioPacket(r)
+    , linesize(r.linesize)
+    , channels(r.channels)
+    , sampleFmt(r.sampleFmt)
+    , owns_buffer(false)
+{
+    for (int i = 0; i < 4; ++i) {
+        buffer[i] = r.buffer[i];
+    }
+}
+
+
+PlanarAudioPacket::~PlanarAudioPacket() noexcept = default;
 
 
 } // namespace av

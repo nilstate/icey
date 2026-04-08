@@ -66,6 +66,19 @@ bool GetAVFoundationVideoDevices(Device::Type type, std::vector<Device>* devices
 #pragma clang diagnostic pop
     }
 
+    AVCaptureDeviceType microphoneType = nil;
+#if defined(__MAC_OS_X_VERSION_MAX_ALLOWED) && __MAC_OS_X_VERSION_MAX_ALLOWED >= 140000
+    if (@available(macOS 14.0, *)) {
+        microphoneType = AVCaptureDeviceTypeMicrophone;
+    } else
+#endif
+    {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        microphoneType = AVCaptureDeviceTypeBuiltInMicrophone;
+#pragma clang diagnostic pop
+    }
+
     if (type == Device::VideoInput) {
         deviceTypes = @[
             AVCaptureDeviceTypeBuiltInWideAngleCamera,
@@ -74,7 +87,7 @@ bool GetAVFoundationVideoDevices(Device::Type type, std::vector<Device>* devices
         mediaType = AVMediaTypeVideo;
     } else if (type == Device::AudioInput) {
         deviceTypes = @[
-            AVCaptureDeviceTypeBuiltInMicrophone,
+            microphoneType,
             externalType
         ];
         mediaType = AVMediaTypeAudio;
