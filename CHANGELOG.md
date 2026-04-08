@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - WebRTC receive jitter buffer for smoother inbound media playback
 - API reference docs for graft, speech, and vision modules
 - Markdown sanitization script for generated API docs
+- Permanent macOS system-deps + FFmpeg CI coverage matching downstream package-manager builds
 
 ### Changed
 
@@ -21,6 +22,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Removed
 
 - pluga module and docs (replaced by graft)
+
+### Fixed
+
+- Apple AVFoundation source compatibility for package-manager builds on modern macOS SDKs
 
 ## [2.4.3] - 2026-04-06
 
