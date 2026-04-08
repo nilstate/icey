@@ -12,8 +12,7 @@
 #pragma once
 
 
-#include "icy/av/packet.h"
-#include "icy/signal.h"
+#include "icy/vision/detector.h"
 #include "icy/vision/event.h"
 #include "icy/vision/vision.h"
 
@@ -29,6 +28,7 @@ namespace vision {
 struct Vision_API MotionDetectorConfig
 {
     std::string source;
+    std::string streamId;
     std::string detectorName = "motion";
     uint32_t gridWidth = 32;
     uint32_t gridHeight = 18;
@@ -46,28 +46,25 @@ struct Vision_API MotionDetectorStats
 };
 
 
-class Vision_API MotionDetector
+class Vision_API MotionDetector : public Detector
 {
 public:
-    Signal<void(const VisionEvent&)> Event;
-
     explicit MotionDetector(MotionDetectorConfig config = {});
 
     void setConfig(MotionDetectorConfig config);
     [[nodiscard]] MotionDetectorConfig config() const;
     [[nodiscard]] MotionDetectorStats stats() const;
-    void reset();
+    void reset() override;
 
-    void process(const av::PlanarVideoPacket& packet);
+    void process(const VisionFramePacket& packet) override;
 
 private:
     static MotionDetectorConfig sanitize(MotionDetectorConfig config);
-    void sampleLumaGrid(const av::PlanarVideoPacket& packet, std::vector<uint8_t>& out) const;
+    void sampleLumaGrid(const VisionFramePacket& packet, std::vector<uint8_t>& out) const;
     float diffScore(const std::vector<uint8_t>& current) const;
-    void emitEvent(const av::PlanarVideoPacket& packet, float score);
+    void emitEvent(const VisionFramePacket& packet, float score);
 
     MotionDetectorConfig _config;
-    uint64_t _sequence = 0;
     uint64_t _seen = 0;
     uint64_t _emitted = 0;
     uint32_t _warmedFrames = 0;

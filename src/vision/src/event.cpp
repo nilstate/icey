@@ -10,20 +10,29 @@
 
 
 #include "icy/vision/event.h"
+#include "icy/av/packet.h"
 
 
 namespace icy {
 namespace vision {
 
 
-FrameRef makeFrameRef(const av::PlanarVideoPacket& packet, uint64_t sequence)
+VisionFrameContext makeVisionFrameContext(const av::PlanarVideoPacket& packet,
+                                          uint64_t frameId,
+                                          const std::string& sourceId,
+                                          const std::string& streamId,
+                                          int64_t receivedAtUsec)
 {
     return {
-        .sequence = sequence,
-        .timeUsec = packet.time,
+        .sourceId = sourceId,
+        .streamId = streamId,
+        .frameId = frameId,
+        .ptsUsec = packet.time,
+        .receivedAtUsec = receivedAtUsec,
         .width = packet.width,
         .height = packet.height,
         .pixelFmt = packet.pixelFmt,
+        .keyframe = packet.iframe,
     };
 }
 
@@ -39,14 +48,18 @@ json::Value toJson(const Region& region)
 }
 
 
-json::Value toJson(const FrameRef& frame)
+json::Value toJson(const VisionFrameContext& frame)
 {
     json::Value value;
-    value["sequence"] = frame.sequence;
-    value["time"] = frame.timeUsec;
+    value["sourceId"] = frame.sourceId;
+    value["streamId"] = frame.streamId;
+    value["frameId"] = frame.frameId;
+    value["ptsUsec"] = frame.ptsUsec;
+    value["receivedAtUsec"] = frame.receivedAtUsec;
     value["width"] = frame.width;
     value["height"] = frame.height;
     value["pixelFmt"] = frame.pixelFmt;
+    value["keyframe"] = frame.keyframe;
     return value;
 }
 
@@ -63,17 +76,33 @@ json::Value toJson(const Detection& detection)
 }
 
 
+json::Value toJson(const Track& track)
+{
+    json::Value value;
+    value["trackId"] = track.trackId;
+    value["label"] = track.label;
+    value["confidence"] = track.confidence;
+    value["region"] = toJson(track.region);
+    value["data"] = track.data;
+    return value;
+}
+
+
 json::Value toJson(const VisionEvent& event)
 {
     json::Value value;
+    value["schema"] = event.schema;
     value["type"] = event.type;
     value["source"] = event.source;
     value["detector"] = event.detector;
-    value["time"] = event.emittedAtUsec;
+    value["emittedAtUsec"] = event.emittedAtUsec;
     value["frame"] = toJson(event.frame);
     value["detections"] = json::Value::array();
     for (const auto& detection : event.detections)
         value["detections"].push_back(toJson(detection));
+    value["tracks"] = json::Value::array();
+    for (const auto& track : event.tracks)
+        value["tracks"].push_back(toJson(track));
     value["data"] = event.data;
     return value;
 }

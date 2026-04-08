@@ -1028,6 +1028,9 @@ int main(int argc, char** argv)
     describe("packet stream async queue clone boundary", new PacketStreamAsyncQueueCloneBoundaryTest);
     describe("packet stream retention contract", new PacketStreamRetentionContractTest);
     describe("packet stream shared source branch clone boundary", new PacketStreamSharedSourceBranchCloneBoundaryTest);
+    describe("packet stream branch fanout sequence", new PacketStreamBranchFanoutSequenceTest);
+    describe("packet stream branch teardown order", new PacketStreamBranchTeardownOrderTest);
+    describe("packet stream async late drop after close", new PacketStreamAsyncLateDropAfterCloseTest);
     // describe("multi packet stream", new MultiPacketStreamTest);
 
     test::runAll();

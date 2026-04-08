@@ -8,6 +8,7 @@
 
 #include "icy/packet.h"
 #include "icy/packetstream.h"
+#include "icy/vision/framepacket.h"
 #include "icy/vision/framesampler.h"
 #include "icy/vision/motiondetector.h"
 
@@ -145,7 +146,15 @@ int main(int argc, char** argv)
             for (uint64_t index = 0; index < iterations; ++index) {
                 frame.frame->data[0][0] = static_cast<uint8_t>(index & 0xffu);
                 frame.packet.time = static_cast<int64_t>(index) * 33333;
-                detector.process(frame.packet);
+                auto packet = vision::VisionFramePacket(
+                    frame.packet,
+                    vision::makeVisionFrameContext(
+                        frame.packet,
+                        index + 1,
+                        "bench/camera",
+                        "bench/stream",
+                        frame.packet.time + 1000));
+                detector.process(packet);
             }
         });
 
