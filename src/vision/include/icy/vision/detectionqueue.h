@@ -12,8 +12,8 @@
 #pragma once
 
 
-#include "icy/av/packet.h"
 #include "icy/packetqueue.h"
+#include "icy/vision/framepacket.h"
 #include "icy/vision/vision.h"
 
 
@@ -21,15 +21,17 @@ namespace icy {
 namespace vision {
 
 
-/// Async queue for decoded video frames.
+/// Async queue for normalized detector-ready frames.
 ///
-/// This is the intentional clone boundary for detection work. Upstream stages
-/// can keep borrowed, zero-copy semantics until a frame enters this queue.
-class Vision_API DetectionQueue : public AsyncPacketQueue<av::PlanarVideoPacket>
+/// This is the intentional async boundary for detection work. Upstream stages
+/// can stay borrowed until `FrameNormalizer` materializes an owned
+/// `VisionFramePacket`, after which this queue bounds in-flight detection work
+/// by dropping the oldest queued frames first.
+class Vision_API DetectionQueue : public AsyncPacketQueue<VisionFramePacket>
 {
 public:
     explicit DetectionQueue(int maxFrames = 32)
-        : AsyncPacketQueue<av::PlanarVideoPacket>(maxFrames)
+        : AsyncPacketQueue<VisionFramePacket>(maxFrames)
     {
     }
 };

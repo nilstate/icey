@@ -51,7 +51,6 @@ MotionDetectorStats MotionDetector::stats() const
 
 void MotionDetector::reset()
 {
-    _sequence = 0;
     _seen = 0;
     _emitted = 0;
     _warmedFrames = 0;
@@ -64,12 +63,11 @@ void MotionDetector::reset()
 }
 
 
-void MotionDetector::process(const av::PlanarVideoPacket& packet)
+void MotionDetector::process(const VisionFramePacket& packet)
 {
     ++_seen;
-    ++_sequence;
 
-    if (!packet.buffer[0] || packet.width <= 0 || packet.height <= 0)
+    if (!packet.valid())
         return;
 
     if (packet.width != _width || packet.height != _height) {
@@ -99,11 +97,11 @@ void MotionDetector::process(const av::PlanarVideoPacket& packet)
     const bool intervalReady =
         _config.minEventIntervalUsec <= 0 ||
         _lastEventTimeUsec == 0 ||
-        (packet.time - _lastEventTimeUsec) >= _config.minEventIntervalUsec;
+        (packet.context.ptsUsec - _lastEventTimeUsec) >= _config.minEventIntervalUsec;
 
     if (score >= _config.threshold && intervalReady) {
         emitEvent(packet, score);
-        _lastEventTimeUsec = packet.time;
+        _lastEventTimeUsec = packet.context.ptsUsec;
     }
 
     _previousGrid = _currentGrid;
@@ -122,7 +120,7 @@ MotionDetectorConfig MotionDetector::sanitize(MotionDetectorConfig config)
 }
 
 
-void MotionDetector::sampleLumaGrid(const av::PlanarVideoPacket& packet,
+void MotionDetector::sampleLumaGrid(const VisionFramePacket& packet,
                                     std::vector<uint8_t>& out) const
 {
     const size_t gridSize = static_cast<size_t>(_config.gridWidth) *
@@ -164,14 +162,29 @@ float MotionDetector::diffScore(const std::vector<uint8_t>& current) const
 }
 
 
-void MotionDetector::emitEvent(const av::PlanarVideoPacket& packet, float score)
+void MotionDetector::emitEvent(const VisionFramePacket& packet, float score)
 {
     VisionEvent event;
     event.type = "detect";
-    event.source = _config.source;
+    event.source = packet.context.sourceId.empty()
+        ? _config.source
+        : packet.context.sourceId;
     event.detector = _config.detectorName;
-    event.emittedAtUsec = packet.time;
-    event.frame = makeFrameRef(packet, _sequence);
+    event.emittedAtUsec = packet.context.receivedAtUsec > 0
+        ? packet.context.receivedAtUsec
+        : packet.context.ptsUsec;
+    event.frame = packet.context;
+    if (event.frame.sourceId.empty())
+        event.frame.sourceId = _config.source;
+    if (event.frame.streamId.empty())
+        event.frame.streamId = _config.streamId;
+    if (event.frame.width <= 0)
+        event.frame.width = packet.width;
+    if (event.frame.height <= 0)
+        event.frame.height = packet.height;
+    if (event.frame.pixelFmt.empty())
+        event.frame.pixelFmt = packet.pixelFmt;
+    event.frame.keyframe = packet.iframe || event.frame.keyframe;
 
     Detection detection;
     detection.label = "motion";

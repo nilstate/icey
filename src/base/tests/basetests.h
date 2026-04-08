@@ -36,7 +36,10 @@
 #include "icy/util.h"
 
 #include <cstring>
+#include <mutex>
 #include <sstream>
+#include <thread>
+#include <vector>
 
 
 using icy::test::Test;
@@ -473,6 +476,89 @@ struct MockBurstPacketSource : public PacketSource
     void join()
     {
         runner.join();
+    }
+};
+
+
+struct BranchLifecyclePacketSource : public PacketSource
+    , public basic::Startable
+{
+    PacketSignal emitter;
+    Thread runner;
+    std::atomic<bool> running{false};
+    std::atomic<bool> started{false};
+    std::atomic<int> sent{0};
+    std::vector<std::string>* lifecycle = nullptr;
+    std::mutex* lifecycleMutex = nullptr;
+
+    BranchLifecyclePacketSource(std::vector<std::string>& lifecycleLog,
+                                std::mutex& lifecycleLogMutex)
+        : PacketSource(emitter)
+        , lifecycle(&lifecycleLog)
+        , lifecycleMutex(&lifecycleLogMutex)
+    {
+    }
+
+    ~BranchLifecyclePacketSource() override
+    {
+        stop();
+    }
+
+    void start() override
+    {
+        if (running.exchange(true))
+            return;
+
+        started = true;
+        record("source:start");
+
+        runner.start([this]() {
+            while (running.load()) {
+                const std::string payload = "pkt" + std::to_string(sent.fetch_add(1));
+                RawPacket packet(payload.data(), payload.size());
+                emitter.emit(packet);
+                icy::sleep(2);
+            }
+        });
+    }
+
+    void stop() override
+    {
+        const bool wasRunning = running.exchange(false);
+        if (wasRunning)
+            record("source:stop");
+
+        if (started.exchange(false) && Thread::currentID() != runner.tid())
+            runner.join();
+    }
+
+    void record(const std::string& entry)
+    {
+        std::lock_guard<std::mutex> guard(*lifecycleMutex);
+        lifecycle->push_back(entry);
+    }
+};
+
+
+class GatedAsyncPacketQueue : public AsyncPacketQueue<>
+{
+public:
+    explicit GatedAsyncPacketQueue(int maxSize = 16)
+        : AsyncPacketQueue<>(maxSize)
+    {
+    }
+
+    std::atomic<bool> enteredDispatch{false};
+    std::atomic<bool> releaseDispatch{false};
+
+protected:
+    void dispatch(IPacket& packet) override
+    {
+        enteredDispatch = true;
+        while (!releaseDispatch.load())
+            icy::sleep(1);
+
+        AsyncPacketQueue<>::dispatch(packet);
     }
 };
 
@@ -1187,6 +1273,199 @@ class PacketStreamSharedSourceBranchCloneBoundaryTest : public Test
         asyncBranch.close();
 
         expect(queue->retention() == PacketRetention::Cloned);
+    }
+};
+
+
+class PacketStreamBranchFanoutSequenceTest : public Test
+{
+    std::mutex receivedMutex;
+    std::vector<std::string> deliveryReceived;
+    std::vector<std::string> detectReceived;
+
+    static std::string packetString(IPacket& packet)
+    {
+        return std::string(packet.data(), packet.size());
+    }
+
+    void run()
+    {
+        PacketSignal ingress;
+        PacketStream deliveryBranch("delivery-branch");
+        PacketStream detectBranch("detect-branch");
+        auto detectQueue = std::make_shared<AsyncPacketQueue<>>(16);
+        const std::vector<std::string> expected = {"frame-0", "frame-1", "frame-2", "frame-3"};
+
+        deliveryBranch.attachSource(ingress);
+        detectBranch.attachSource(ingress);
+        detectBranch.attach(detectQueue, 0);
+
+        deliveryBranch.emitter += [&](IPacket& packet) {
+            std::lock_guard<std::mutex> guard(receivedMutex);
+            deliveryReceived.push_back(packetString(packet));
+        };
+        detectBranch.emitter += [&](IPacket& packet) {
+            std::lock_guard<std::mutex> guard(receivedMutex);
+            detectReceived.push_back(packetString(packet));
+        };
+
+        deliveryBranch.start();
+        detectBranch.start();
+
+        for (const auto& payload : expected) {
+            RawPacket packet(payload.data(), payload.size());
+            ingress.emit(packet);
+        }
+
+        expect(test::waitFor([&]() {
+            std::lock_guard<std::mutex> guard(receivedMutex);
+            return detectReceived.size() == expected.size();
+        }, 2000));
+
+        deliveryBranch.close();
+        detectBranch.close();
+
+        std::lock_guard<std::mutex> guard(receivedMutex);
+        expect(deliveryReceived == expected);
+        expect(detectReceived == expected);
+        expect(detectQueue->retention() == PacketRetention::Cloned);
+    }
+};
+
+
+class PacketStreamBranchTeardownOrderTest : public Test
+{
+    std::mutex lifecycleMutex;
+    std::vector<std::string> lifecycle;
+    std::atomic<int> deliveryReceived{0};
+    std::atomic<int> detectReceived{0};
+
+    void record(const std::string& entry)
+    {
+        std::lock_guard<std::mutex> guard(lifecycleMutex);
+        lifecycle.push_back(entry);
+    }
+
+    int indexOf(const std::string& entry)
+    {
+        std::lock_guard<std::mutex> guard(lifecycleMutex);
+        for (size_t index = 0; index < lifecycle.size(); ++index) {
+            if (lifecycle[index] == entry)
+                return static_cast<int>(index);
+        }
+
+        return -1;
+    }
+
+    void run()
+    {
+        PacketStream sourceStream("ingress-source");
+        auto source = std::make_shared<BranchLifecyclePacketSource>(lifecycle, lifecycleMutex);
+        PacketStream deliveryBranch("delivery-branch");
+        PacketStream detectBranch("detect-branch");
+        auto detectQueue = std::make_shared<AsyncPacketQueue<>>(16);
+
+        sourceStream.attachSource(source, true);
+        deliveryBranch.attachSource(sourceStream.emitter);
+        detectBranch.attachSource(sourceStream.emitter);
+        detectBranch.attach(detectQueue, 0);
+
+        deliveryBranch.emitter += [&](IPacket&) {
+            ++deliveryReceived;
+        };
+        detectBranch.emitter += [&](IPacket&) {
+            ++detectReceived;
+        };
+
+        deliveryBranch.StateChange += [&](void*, PacketStreamState& state, const PacketStreamState&) {
+            if (state.id() == PacketStreamState::Closed)
+                record("delivery:closed");
+        };
+        detectBranch.StateChange += [&](void*, PacketStreamState& state, const PacketStreamState&) {
+            if (state.id() == PacketStreamState::Closed)
+                record("detect:closed");
+        };
+
+        deliveryBranch.start();
+        detectBranch.start();
+        sourceStream.start();
+
+        expect(test::waitFor([&]() {
+            return deliveryReceived.load() > 0 && detectReceived.load() > 0;
+        }, 2000));
+
+        detectBranch.close();
+        expect(test::waitFor([&]() {
+            return detectBranch.closed();
+        }, 2000));
+
+        const int deliveryBefore = deliveryReceived.load();
+        expect(test::waitFor([&]() {
+            return deliveryReceived.load() > deliveryBefore;
+        }, 2000));
+        expect(source->running.load());
+        expect(indexOf("source:stop") == -1);
+
+        deliveryBranch.close();
+        expect(test::waitFor([&]() {
+            return deliveryBranch.closed();
+        }, 2000));
+        expect(source->running.load());
+        expect(indexOf("source:stop") == -1);
+
+        sourceStream.close();
+        expect(!source->running.load());
+
+        expect(indexOf("detect:closed") != -1);
+        expect(indexOf("delivery:closed") != -1);
+        expect(indexOf("source:stop") != -1);
+        expect(indexOf("detect:closed") < indexOf("source:stop"));
+        expect(indexOf("delivery:closed") < indexOf("source:stop"));
+    }
+};
+
+
+class PacketStreamAsyncLateDropAfterCloseTest : public Test
+{
+    std::atomic<int> received{0};
+
+    void onPacket(IPacket&)
+    {
+        ++received;
+    }
+
+    void run()
+    {
+        PacketStream stream("late-drop");
+        auto queue = std::make_shared<GatedAsyncPacketQueue>(16);
+
+        stream.attach(queue, 0);
+        stream.emitter += slot(this, &PacketStreamAsyncLateDropAfterCloseTest::onPacket);
+        stream.start();
+
+        stream.write(RawPacket("late", 4));
+
+        expect(test::waitFor([&]() {
+            return queue->enteredDispatch.load();
+        }, 2000));
+
+        std::atomic<bool> closeReturned{false};
+        std::thread closer([&]() {
+            stream.close();
+            closeReturned = true;
+        });
+
+        icy::sleep(25);
+        queue->releaseDispatch = true;
+
+        expect(test::waitFor([&]() {
+            return closeReturned.load();
+        }, 2000));
+
+        closer.join();
+
+        expect(received.load() == 0);
+        expect(stream.closed());
     }
 };
 

@@ -216,6 +216,51 @@ Use this when:
 
 This is the clean way to move work, not an excuse to make the whole graph vaguely asynchronous.
 
+## Branch Topology
+
+The real-time intelligence shape is not one long linear stream.
+
+It is:
+
+```text
+decoded ingress
+    |-> delivery branch -> encode/send -> browser
+    |-> detect branch   -> sample -> async clone boundary -> detector -> events
+```
+
+That means the two branches share one decoded source, but they do not share one latency budget.
+
+- the delivery branch stays close to the current transport hot path
+- the detect branch is allowed to sample, queue, and drop stale work
+- the first explicit `Cloned` or `Retained` adapter on the detect branch is the ownership handoff
+
+In practice the detect branch should cross that boundary before any worker-thread or slow detector stage:
+
+```text
+ingress PacketStream
+    |-> delivery PacketStream
+    |-> detect PacketStream -> AsyncPacketQueue -> detector
+```
+
+That keeps the contract honest:
+
+- decode once
+- branch from decoded packets, not from encoded sender output
+- keep browser delivery independent from detector backlog
+- make the async boundary visible in the graph instead of implicit in some callback
+
+### Shutdown Order
+
+The safe teardown order for that topology is:
+
+1. stop the detect branch
+2. stop the delivery branch
+3. stop the shared source
+
+Downstream branches can stop independently. The shared source should be the last thing to stop.
+
+Late packets after shutdown are expected around queue boundaries. They should be dropped cleanly after close, not dispatched into already-closed downstream sinks.
+
 ## Real Patterns
 
 ### Webcam to browser
@@ -277,4 +322,3 @@ That is what gives the library a coherent core instead of five separate async mo
 - [Runtime Contracts](runtime-contracts.md) for the loop, signal, and ownership rules around the pipeline
 - [WebRTC](../modules/webrtc.md) for the media send and receive layers built on top of it
 - [AV](../modules/av.md) for capture, decode, encode, and mux components
-
