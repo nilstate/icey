@@ -95,6 +95,71 @@ jobs:
       - name: Test
         run: ctest --test-dir build --output-on-failure --parallel $(sysctl -n hw.logicalcpu)
 
+  macos-system-deps:
+    runs-on: macos-14
+    name: macOS (System Deps + FFmpeg)
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          brew install pkgconf openssl@3 ffmpeg libuv llhttp minizip
+
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@v1
+        with:
+          key: macos-system-deps
+
+      - name: Configure
+        run: |
+          HOMEBREW_PREFIX=$(brew --prefix)
+          OPENSSL_PREFIX=$(brew --prefix openssl@3)
+          formulas=(openssl@3 ffmpeg libuv llhttp minizip)
+          pkg_config_paths=()
+          cmake_prefix_paths=()
+          cmake_library_paths=()
+          cmake_include_paths=()
+
+          for formula in "${formulas[@]}"; do
+            prefix=$(brew --prefix "${formula}")
+            pkg_config_paths+=("${prefix}/lib/pkgconfig")
+            cmake_prefix_paths+=("${prefix}")
+            cmake_library_paths+=("${prefix}/lib")
+            cmake_include_paths+=("${prefix}/include")
+          done
+
+          export PKG_CONFIG_PATH="$(IFS=:; echo "${pkg_config_paths[*]}")"
+          CMAKE_PREFIX_PATH_VALUE="$(IFS=';'; echo "${cmake_prefix_paths[*]}")"
+          CMAKE_LIBRARY_PATH_VALUE="$(IFS=';'; echo "${cmake_library_paths[*]}")"
+          CMAKE_INCLUDE_PATH_VALUE="$(IFS=';'; echo "${cmake_include_paths[*]}")"
+
+          cmake -B build-system-deps \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DBUILD_SHARED_LIBS=ON \
+            -DUSE_SYSTEM_DEPS=ON \
+            -DBUILD_TESTS=OFF \
+            -DBUILD_SAMPLES=OFF \
+            -DBUILD_APPLICATIONS=OFF \
+            -DBUILD_FUZZERS=OFF \
+            -DBUILD_BENCHMARKS=OFF \
+            -DBUILD_PERF=OFF \
+            -DBUILD_ALPHA=OFF \
+            -DBUILD_MODULE_webrtc=OFF \
+            -DWITH_FFMPEG=ON \
+            -DWITH_LIBDATACHANNEL=OFF \
+            -DOPENSSL_ROOT_DIR="${OPENSSL_PREFIX}" \
+            -DPKG_CONFIG_EXECUTABLE="${HOMEBREW_PREFIX}/bin/pkg-config" \
+            -DCMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH_VALUE}" \
+            -DCMAKE_LIBRARY_PATH="${CMAKE_LIBRARY_PATH_VALUE}" \
+            -DCMAKE_INCLUDE_PATH="${CMAKE_INCLUDE_PATH_VALUE}"
+
+      - name: Build
+        run: cmake --build build-system-deps --parallel $(sysctl -n hw.logicalcpu)
+
   windows:
     runs-on: windows-2022
     name: Windows (MSVC 2022)
