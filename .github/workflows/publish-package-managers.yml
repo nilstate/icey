@@ -21,28 +21,12 @@ jobs:
         run: |
           version="$(tr -d '[:space:]' < VERSION)"
           echo "version=$version" >> "$GITHUB_OUTPUT"
-
           if [[ "${GITHUB_EVENT_NAME}" == "push" ]]; then
-            tag="${GITHUB_REF_NAME}"
-            case "$tag" in
-              [0-9]*.[0-9]*.[0-9]*) ;;
-              *)
-                echo "expected a plain semantic version tag, got: $tag" >&2
-                exit 1
-                ;;
-            esac
-            [[ "$tag" == "$version" ]] || {
-              echo "VERSION contains $version, expected $tag" >&2
-              exit 1
-            }
-            git fetch origin main --no-tags
-            git merge-base --is-ancestor "${GITHUB_SHA}" origin/main || {
-              echo "release tags must point to commits reachable from origin/main" >&2
-              exit 1
-            }
+            bash ./scripts/validate-release-tag.sh "${GITHUB_REF_NAME}"
+          else
+            bash ./scripts/validate-release-tag.sh
           fi
-
-          ./scripts/release-check.sh "$version"
+          bash ./scripts/release-check.sh "$version"
 
   publish-homebrew:
     runs-on: ubuntu-24.04
@@ -75,7 +59,7 @@ jobs:
         if: steps.gate.outputs.publish == 'true'
         env:
           TAP_REPO_DIR: ${{ github.workspace }}/.stage/homebrew-icey
-        run: ./scripts/publish-homebrew.sh
+        run: bash ./scripts/publish-homebrew.sh
 
       - name: Commit formula update
         if: steps.gate.outputs.publish == 'true'
@@ -128,7 +112,7 @@ jobs:
         if: steps.gate.outputs.publish == 'true'
         env:
           AUR_REPO_DIR: ${{ github.workspace }}/.stage/aur-icey
-        run: ./scripts/publish-aur.sh
+        run: bash ./scripts/publish-aur.sh
 
       - name: Commit AUR update
         if: steps.gate.outputs.publish == 'true'

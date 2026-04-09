@@ -18,33 +18,7 @@ jobs:
 
       - name: Validate tag and release metadata
         run: |
-          tag="${GITHUB_REF_NAME}"
-          version="$(tr -d '[:space:]' < VERSION)"
-          git fetch origin main --no-tags
-          case "$tag" in
-            [0-9]*.[0-9]*.[0-9]*) ;;
-            *)
-              echo "expected a plain semantic version tag, got: $tag" >&2
-              exit 1
-              ;;
-          esac
-          git merge-base --is-ancestor "${GITHUB_SHA}" origin/main || {
-            echo "release tags must point to commits reachable from origin/main" >&2
-            exit 1
-          }
-          if [[ "$version" != "$tag" ]]; then
-            echo "VERSION contains $version, expected $tag" >&2
-            exit 1
-          fi
-          grep -Eq "^## \\[$tag\\]" CHANGELOG.md || {
-            echo "CHANGELOG.md is missing [$tag]" >&2
-            exit 1
-          }
-          section="$(awk '/^## \['"$tag"'\]/{found=1; next} /^## \[/{if(found) exit} found{print}' CHANGELOG.md)"
-          printf '%s\n' "$section" | grep -Eq '[^[:space:]]' || {
-            echo "CHANGELOG.md [$tag] section is empty" >&2
-            exit 1
-          }
+          bash ./scripts/validate-release-tag.sh "${GITHUB_REF_NAME}"
 
       - name: Extract changelog
         run: |

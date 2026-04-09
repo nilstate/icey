@@ -26,28 +26,12 @@ jobs:
         run: |
           version="$(tr -d '[:space:]' < VERSION)"
           echo "version=$version" >> "$GITHUB_OUTPUT"
-
           if [[ "${GITHUB_EVENT_NAME}" == "push" ]]; then
-            tag="${GITHUB_REF_NAME}"
-            case "$tag" in
-              [0-9]*.[0-9]*.[0-9]*) ;;
-              *)
-                echo "expected a plain semantic version tag, got: $tag" >&2
-                exit 1
-                ;;
-            esac
-            [[ "$tag" == "$version" ]] || {
-              echo "VERSION contains $version, expected $tag" >&2
-              exit 1
-            }
-            git fetch origin main --no-tags
-            git merge-base --is-ancestor "${GITHUB_SHA}" origin/main || {
-              echo "release tags must point to commits reachable from origin/main" >&2
-              exit 1
-            }
+            bash ./scripts/validate-release-tag.sh "${GITHUB_REF_NAME}"
+          else
+            bash ./scripts/validate-release-tag.sh
           fi
-
-          ./scripts/release-check.sh "$version"
+          bash ./scripts/release-check.sh "$version"
 
       - name: Install packaging dependencies
         run: |
@@ -55,7 +39,7 @@ jobs:
           sudo apt-get install -y curl debhelper devscripts dpkg-dev rsync
 
       - name: Build Debian source package
-        run: ./scripts/package-debian-source.sh "${{ steps.meta.outputs.version }}"
+        run: bash ./scripts/package-debian-source.sh "${{ steps.meta.outputs.version }}"
         env:
           DEBIAN_DISTRIBUTION: ${{ vars.PPA_UBUNTU_SERIES || 'noble' }}
           DEBIAN_REVISION: ${{ github.event.inputs.debian_revision || '1' }}
