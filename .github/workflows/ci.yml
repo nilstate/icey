@@ -168,52 +168,32 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Resolve OpenSSL
+      - name: Install OpenSSL
         shell: pwsh
         run: |
-          $candidates = New-Object System.Collections.Generic.List[string]
-
-          if (Get-Command openssl -ErrorAction SilentlyContinue) {
-            $opensslExe = (Get-Command openssl).Source
-            $binDir = Split-Path $opensslExe -Parent
-            $rootDir = Split-Path $binDir -Parent
-            $candidates.Add($rootDir)
+          $vcpkgRoot = if ($env:VCPKG_INSTALLATION_ROOT) { $env:VCPKG_INSTALLATION_ROOT } else { 'C:\vcpkg' }
+          $vcpkgExe = Join-Path $vcpkgRoot 'vcpkg.exe'
+          if (-not (Test-Path $vcpkgExe)) {
+            throw "vcpkg.exe not found at $vcpkgExe"
           }
 
-          foreach ($root in @(
-            "$env:ProgramFiles\OpenSSL-Win64",
-            "$env:ProgramFiles\OpenSSL",
-            "$env:ProgramFiles\OpenSSL-3",
-            "$env:ChocolateyInstall\lib\openssl\tools\OpenSSL-Win64",
-            "$env:ChocolateyInstall\lib\openssl\tools\OpenSSL"
-          )) {
-            if ($root) {
-              $candidates.Add($root)
-            }
+          & $vcpkgExe install openssl:x64-windows
+          if ($LASTEXITCODE -ne 0) {
+            throw 'vcpkg failed to install openssl:x64-windows'
           }
 
-          $resolved = $null
-          foreach ($candidate in $candidates | Select-Object -Unique) {
-            if (-not $candidate) {
-              continue
-            }
+          $resolved = Join-Path $vcpkgRoot 'installed\x64-windows'
+          $includeDir = Join-Path $resolved 'include\openssl\ssl.h'
+          $libCrypto = Join-Path $resolved 'lib\libcrypto.lib'
+          $libSsl = Join-Path $resolved 'lib\libssl.lib'
+          $binDir = Join-Path $resolved 'bin'
 
-            $includeDir = Join-Path $candidate 'include\openssl\ssl.h'
-            $libCrypto = Join-Path $candidate 'lib\libcrypto.lib'
-            $libSsl = Join-Path $candidate 'lib\libssl.lib'
-            $binDir = Join-Path $candidate 'bin'
-
-            if ((Test-Path $includeDir) -and (Test-Path $libCrypto) -and (Test-Path $libSsl)) {
-              $resolved = $candidate
-              if (Test-Path $binDir) {
-                Add-Content -Path $env:GITHUB_PATH -Value $binDir
-              }
-              break
-            }
+          if (-not ((Test-Path $includeDir) -and (Test-Path $libCrypto) -and (Test-Path $libSsl))) {
+            throw "OpenSSL files missing under $resolved after vcpkg install"
           }
 
-          if (-not $resolved) {
-            throw 'Failed to locate a usable OpenSSL installation on the windows-2022 runner.'
+          if (Test-Path $binDir) {
+            Add-Content -Path $env:GITHUB_PATH -Value $binDir
           }
 
           "OPENSSL_ROOT_DIR=$resolved" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
