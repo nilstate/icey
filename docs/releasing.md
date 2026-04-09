@@ -40,12 +40,13 @@ What those steps do:
 
 - `make release` syncs `VERSION`, package recipe versions, Debian source metadata, Conan release metadata, and the public `FetchContent` examples.
 - `make release-finalize` pins the release archive hashes and then verifies that `VERSION`, package metadata, docs examples, and the matching `CHANGELOG.md` heading all line up.
+- `make release-check` validates the exact live archive hashes and sizes used by each repo-local package recipe, not just that hash fields are non-empty.
 - the release tag must be a plain semantic version such as `2.4.0`
 - the GitHub source archive for that tag is the thing the package-manager pinning steps use
 
 ## Package-Specific Follow-Up
 
-After the tag is pushed, the GitHub tarball becomes immutable. That is when archive hashes should be pinned.
+After the tag is pushed, the provider-specific source archives are what get pinned. The release helpers now hash the exact URLs each package manager consumes.
 
 The combined post-tag helper is:
 

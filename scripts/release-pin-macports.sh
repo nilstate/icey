@@ -15,38 +15,41 @@ fi
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$repo_root"
 
-archive_url="https://github.com/nilstate/icey/archive/refs/tags/${version}.tar.gz"
-tmp_dir=$(mktemp -d)
-archive_path="$tmp_dir/${version}.tar.gz"
-trap 'rm -rf "$tmp_dir"' EXIT
+archive_url="https://github.com/nilstate/icey/archive/${version}/icey-${version}.tar.gz"
+eval "$("$repo_root"/scripts/release-archive-meta.sh "$archive_url")"
 
-curl --fail --location --retry 3 --retry-delay 1 --output "$archive_path" "$archive_url"
-
-size=$(wc -c < "$archive_path" | tr -d '[:space:]')
-if command -v openssl >/dev/null 2>&1; then
-    rmd160=$(openssl dgst -rmd160 "$archive_path" | awk '{print $NF}')
-else
+if [ -z "$ARCHIVE_RMD160" ]; then
     echo "need openssl to compute the MacPorts rmd160 checksum" >&2
     exit 1
 fi
 
-if command -v sha256sum >/dev/null 2>&1; then
-    sha256=$(sha256sum "$archive_path" | awk '{print $1}')
-elif command -v shasum >/dev/null 2>&1; then
-    sha256=$(shasum -a 256 "$archive_path" | awk '{print $1}')
-elif command -v openssl >/dev/null 2>&1; then
-    sha256=$(openssl dgst -sha256 "$archive_path" | awk '{print $NF}')
-else
-    echo "need sha256sum, shasum, or openssl to compute the archive hash" >&2
-    exit 1
-fi
-
 perl -0pi -e 's/github.setup\s+nilstate\s+icey\s+\d+\.\d+\.\d+/github.setup        nilstate icey '"$version"'/g' packaging/macports/Portfile
-perl -0pi -e 's/^([[:space:]]*rmd160[[:space:]]+)[0-9a-f]{40}( \\\\)$/\1'"$rmd160"'\2/m' packaging/macports/Portfile
-perl -0pi -e 's/^([[:space:]]*sha256[[:space:]]+)[0-9a-f]{64}( \\\\)$/\1'"$sha256"'\2/m' packaging/macports/Portfile
-perl -0pi -e 's/^([[:space:]]*size[[:space:]]+)\d+$/${1}'"$size"'/m' packaging/macports/Portfile
+tmp_portfile=$(mktemp)
+awk -v rmd160="$ARCHIVE_RMD160" -v sha256="$ARCHIVE_SHA256" -v size="$ARCHIVE_SIZE" '
+    /^checksums[[:space:]]+rmd160[[:space:]]+[0-9a-f]{40}[[:space:]]+\\$/ {
+        print "checksums           rmd160  " rmd160 " \\"
+        if (getline <= 0) {
+            exit 1
+        }
+        print "                    sha256  " sha256 " \\"
+        if (getline <= 0) {
+            exit 1
+        }
+        print "                    size    " size
+        next
+    }
+    { print }
+' packaging/macports/Portfile > "$tmp_portfile"
+mv "$tmp_portfile" packaging/macports/Portfile
+
+grep -Eq '^checksums[[:space:]]+rmd160[[:space:]]+'"${ARCHIVE_RMD160}"' \\$' packaging/macports/Portfile \
+    || { echo "failed to update packaging/macports/Portfile rmd160" >&2; exit 1; }
+grep -Eq '^[[:space:]]+sha256[[:space:]]+'"${ARCHIVE_SHA256}"' \\$' packaging/macports/Portfile \
+    || { echo "failed to update packaging/macports/Portfile sha256" >&2; exit 1; }
+grep -Eq '^[[:space:]]+size[[:space:]]+'"${ARCHIVE_SIZE}"'$' packaging/macports/Portfile \
+    || { echo "failed to update packaging/macports/Portfile size" >&2; exit 1; }
 
 echo "updated packaging/macports/Portfile for $version"
-echo "rmd160: $rmd160"
-echo "sha256: $sha256"
-echo "size: $size"
+echo "rmd160: $ARCHIVE_RMD160"
+echo "sha256: $ARCHIVE_SHA256"
+echo "size: $ARCHIVE_SIZE"

@@ -6,7 +6,7 @@ else()
         OUT_SOURCE_PATH SOURCE_PATH
         REPO nilstate/icey
         REF "2.4.3"
-        SHA512 e50418e18e87b299ae8213e340d596cf78ab7b993fac1769e146f20c388ddfa0ea5f97bd287dc2efdfcf5275bb74fc334559dc75ad09f6146c7f1a4bc36e5ba3
+        SHA512 eee274de69ff92f2c1d1abd16e0aa81408d18c39a02d587d59a69784fd478cc15a4aa63509f292129990d8bf7eacc3cbb89e3aafe9d63ed5f1cfc7e16e5483aa
         HEAD_REF main
     )
 endif()

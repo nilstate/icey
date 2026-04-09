@@ -16,26 +16,11 @@ repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$repo_root"
 
 archive_url="https://github.com/nilstate/icey/archive/refs/tags/${version}.tar.gz"
-tmp_dir=$(mktemp -d)
-archive_path="$tmp_dir/${version}.tar.gz"
-trap 'rm -rf "$tmp_dir"' EXIT
-
-curl --fail --location --retry 3 --retry-delay 1 --output "$archive_path" "$archive_url"
-
-if command -v sha512sum >/dev/null 2>&1; then
-    sha512=$(sha512sum "$archive_path" | awk '{print $1}')
-elif command -v shasum >/dev/null 2>&1; then
-    sha512=$(shasum -a 512 "$archive_path" | awk '{print $1}')
-elif command -v openssl >/dev/null 2>&1; then
-    sha512=$(openssl dgst -sha512 "$archive_path" | awk '{print $NF}')
-else
-    echo "need sha512sum, shasum, or openssl to compute the archive hash" >&2
-    exit 1
-fi
+eval "$("$repo_root"/scripts/release-archive-meta.sh "$archive_url")"
 
 perl -0pi -e 's/^pkgver=\d+\.\d+\.\d+$/pkgver='"$version"'/m' packaging/alpine/APKBUILD
 perl -0pi -e 's/^(source="\$pkgname-\$pkgver\.tar\.gz::https:\/\/github\.com\/nilstate\/icey\/archive\/refs\/tags\/)\$pkgver(\.tar\.gz")$/${1}\$pkgver${2}/m' packaging/alpine/APKBUILD
-perl -0pi -e 's/^[0-9a-f]{128}[[:space:]]+icey-\d+\.\d+\.\d+\.tar\.gz$/'"$sha512"'  icey-'"$version"'.tar.gz/m' packaging/alpine/APKBUILD
+perl -0pi -e 's/^[0-9a-f]{128}[[:space:]]+icey-\d+\.\d+\.\d+\.tar\.gz$/'"$ARCHIVE_SHA512"'  icey-'"$version"'.tar.gz/m' packaging/alpine/APKBUILD
 
 echo "updated packaging/alpine/APKBUILD for $version"
-echo "sha512: $sha512"
+echo "sha512: $ARCHIVE_SHA512"

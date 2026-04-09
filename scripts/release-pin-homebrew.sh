@@ -16,26 +16,11 @@ repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$repo_root"
 
 archive_url="https://github.com/nilstate/icey/archive/refs/tags/${version}.tar.gz"
-tmp_dir=$(mktemp -d)
-archive_path="$tmp_dir/${version}.tar.gz"
-trap 'rm -rf "$tmp_dir"' EXIT
-
-curl --fail --location --retry 3 --retry-delay 1 --output "$archive_path" "$archive_url"
-
-if command -v sha256sum >/dev/null 2>&1; then
-    sha256=$(sha256sum "$archive_path" | awk '{print $1}')
-elif command -v shasum >/dev/null 2>&1; then
-    sha256=$(shasum -a 256 "$archive_path" | awk '{print $1}')
-elif command -v openssl >/dev/null 2>&1; then
-    sha256=$(openssl dgst -sha256 "$archive_path" | awk '{print $NF}')
-else
-    echo "need sha256sum, shasum, or openssl to compute the archive hash" >&2
-    exit 1
-fi
+eval "$("$repo_root"/scripts/release-archive-meta.sh "$archive_url")"
 
 perl -0pi -e 's#url "https://github.com/nilstate/icey/archive/refs/tags/\d+\.\d+\.\d+\.tar\.gz"#url "https://github.com/nilstate/icey/archive/refs/tags/'"$version"'.tar.gz"#' packaging/homebrew/Formula/icey.rb
 perl -0pi -e 's/version "\d+\.\d+\.\d+"/version "'"$version"'"/' packaging/homebrew/Formula/icey.rb
-perl -0pi -e 's/sha256 "[0-9a-f]+"/sha256 "'"$sha256"'"/' packaging/homebrew/Formula/icey.rb
+perl -0pi -e 's/sha256 "[0-9a-f]+"/sha256 "'"$ARCHIVE_SHA256"'"/' packaging/homebrew/Formula/icey.rb
 
 echo "updated packaging/homebrew/Formula/icey.rb for $version"
-echo "sha256: $sha256"
+echo "sha256: $ARCHIVE_SHA256"
