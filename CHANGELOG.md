@@ -6,8 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+## [2.4.4] - 2026-04-09
+
 ### Added
 
+- Realtime intelligence pipeline primitives in the `vision` module, including frame normalization for detector-ready frames
 - WebRTC receive jitter buffer for smoother inbound media playback
 - API reference docs for graft, speech, and vision modules
 - Markdown sanitization script for generated API docs
@@ -26,6 +29,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Fixed
 
 - Apple AVFoundation source compatibility for package-manager builds on modern macOS SDKs
+- Darwin shared-library symbols are preserved for downstream package-manager builds
 
 ## [2.4.3] - 2026-04-06
 

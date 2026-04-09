@@ -1,7 +1,7 @@
 # Contributor: 0state OSS <oss@0state.com>
 # Maintainer: 0state OSS <oss@0state.com>
 pkgname=icey
-pkgver=2.4.3
+pkgver=2.4.4
 pkgrel=0
 pkgdesc="C++20 media stack and libwebrtc alternative for real-time video, signalling, TURN, and media servers"
 url="https://0state.com/icey/"
@@ -51,5 +51,5 @@ package() {
 		"$pkgdir/usr/share/licenses/$pkgname/LICENSE.md"
 }
 sha512sums="
-eee274de69ff92f2c1d1abd16e0aa81408d18c39a02d587d59a69784fd478cc15a4aa63509f292129990d8bf7eacc3cbb89e3aafe9d63ed5f1cfc7e16e5483aa  icey-2.4.3.tar.gz
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000  icey-2.4.4.tar.gz
 "
