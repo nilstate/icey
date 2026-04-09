@@ -168,8 +168,55 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install OpenSSL
-        run: choco install openssl -y --no-progress
+      - name: Resolve OpenSSL
+        shell: pwsh
+        run: |
+          $candidates = New-Object System.Collections.Generic.List[string]
+
+          if (Get-Command openssl -ErrorAction SilentlyContinue) {
+            $opensslExe = (Get-Command openssl).Source
+            $binDir = Split-Path $opensslExe -Parent
+            $rootDir = Split-Path $binDir -Parent
+            $candidates.Add($rootDir)
+          }
+
+          foreach ($root in @(
+            "$env:ProgramFiles\OpenSSL-Win64",
+            "$env:ProgramFiles\OpenSSL",
+            "$env:ProgramFiles\OpenSSL-3",
+            "$env:ChocolateyInstall\lib\openssl\tools\OpenSSL-Win64",
+            "$env:ChocolateyInstall\lib\openssl\tools\OpenSSL"
+          )) {
+            if ($root) {
+              $candidates.Add($root)
+            }
+          }
+
+          $resolved = $null
+          foreach ($candidate in $candidates | Select-Object -Unique) {
+            if (-not $candidate) {
+              continue
+            }
+
+            $includeDir = Join-Path $candidate 'include\openssl\ssl.h'
+            $libCrypto = Join-Path $candidate 'lib\libcrypto.lib'
+            $libSsl = Join-Path $candidate 'lib\libssl.lib'
+            $binDir = Join-Path $candidate 'bin'
+
+            if ((Test-Path $includeDir) -and (Test-Path $libCrypto) -and (Test-Path $libSsl)) {
+              $resolved = $candidate
+              if (Test-Path $binDir) {
+                Add-Content -Path $env:GITHUB_PATH -Value $binDir
+              }
+              break
+            }
+          }
+
+          if (-not $resolved) {
+            throw 'Failed to locate a usable OpenSSL installation on the windows-2022 runner.'
+          }
+
+          "OPENSSL_ROOT_DIR=$resolved" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@v1
@@ -184,6 +231,7 @@ jobs:
             -DBUILD_SAMPLES=OFF `
             -DBUILD_APPLICATIONS=OFF `
             -DENABLE_WARNINGS_ARE_ERRORS=ON `
+            -DOPENSSL_ROOT_DIR="${{ env.OPENSSL_ROOT_DIR }}" `
             -DCMAKE_C_COMPILER_LAUNCHER=sccache `
             -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
 
