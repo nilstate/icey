@@ -210,6 +210,7 @@ else()
     pkg_check_modules(LIBUV QUIET IMPORTED_TARGET GLOBAL libuv)
   endif()
   find_package(llhttp CONFIG QUIET)
+  find_package(nlohmann_json CONFIG REQUIRED)
   find_package(ZLIB REQUIRED)
   if(NOT TARGET llhttp_static
      AND NOT TARGET llhttp::llhttp_static

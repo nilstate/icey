@@ -1,6 +1,12 @@
-icy_add_module(json
-  DEPENDS base
-  PRETTY_NAME JSON
-)
-# nlohmann/json.hpp is vendored in include/nlohmann/ (MIT licensed, single-header)
-# so no external dependency is needed - icy_add_module already adds our include dir.
+if(USE_SYSTEM_DEPS)
+  icy_add_module(json
+    DEPENDS base
+    PACKAGES nlohmann_json::nlohmann_json
+    PRETTY_NAME JSON
+  )
+else()
+  icy_add_module(json
+    DEPENDS base
+    PRETTY_NAME JSON
+  )
+endif()
