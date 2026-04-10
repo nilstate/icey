@@ -44,6 +44,9 @@ if(_icey_have_libdatachannel AND DEFINED icey_FIND_COMPONENTS AND "webrtc" IN_LI
 endif()
 
 if(@USE_SYSTEM_DEPS@)
+  if("json" IN_LIST _icey_supported_components)
+    find_dependency(nlohmann_json CONFIG)
+  endif()
   find_package(libuv CONFIG QUIET)
   if(NOT TARGET libuv::uv_a AND NOT TARGET libuv::uv AND NOT TARGET libuv::libuv AND PkgConfig_FOUND)
     pkg_check_modules(LIBUV QUIET IMPORTED_TARGET GLOBAL libuv)
