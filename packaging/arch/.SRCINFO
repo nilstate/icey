@@ -15,6 +15,6 @@ pkgbase = icey
 	depends = openssl
 	depends = zlib
 	source = icey-2.4.5.tar.gz::https://github.com/nilstate/icey/archive/refs/tags/2.4.5.tar.gz
-	sha256sums = 0000000000000000000000000000000000000000000000000000000000000000
+	sha256sums = b8574956fcdd497b79cbb267935972348385b6c679d0239e0debc79afbedfbcf
 
 pkgname = icey

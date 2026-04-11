@@ -14,9 +14,9 @@ homepage            https://0state.com/icey/
 description         C++20 media stack and libwebrtc alternative for real-time video, signalling, TURN, and media servers
 long_description    ${description}
 
-checksums           rmd160  1563892248a729853d8d39c38682b446046d3139 \
-                    sha256  f6a09dede14f7b53d763a3284559ad3a42de2bac35586821f84a6a3c9caef71f \
-                    size    0
+checksums           rmd160  9a2f0145f1eea9a65d9289631a485c9436ee99dc \
+                    sha256  b8574956fcdd497b79cbb267935972348385b6c679d0239e0debc79afbedfbcf \
+                    size    6459512
 
 openssl.branch      3
 
