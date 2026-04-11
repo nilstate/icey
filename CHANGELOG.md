@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+## [2.4.5] - 2026-04-12
+
+### Fixed
+
+- System-dependency builds no longer vendor and install `nlohmann/json.hpp`, avoiding conflicts with downstream package managers that already provide `nlohmann-json`
+- Exported CMake package configs now propagate the `nlohmann_json` dependency when system deps are enabled
+
 ## [2.4.4] - 2026-04-09
 
 ### Added

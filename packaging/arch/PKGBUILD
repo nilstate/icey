@@ -1,5 +1,5 @@
 pkgname=icey
-pkgver=2.4.4
+pkgver=2.4.5
 pkgrel=1
 pkgdesc='C++20 media stack and libwebrtc alternative for real-time video, signalling, TURN, and media servers'
 arch=('x86_64')
@@ -19,7 +19,7 @@ makedepends=(
   'pkgconf'
 )
 source=("${pkgname}-${pkgver}.tar.gz::https://github.com/nilstate/icey/archive/refs/tags/${pkgver}.tar.gz")
-sha256sums=('f6a09dede14f7b53d763a3284559ad3a42de2bac35586821f84a6a3c9caef71f')
+sha256sums=('0000000000000000000000000000000000000000000000000000000000000000')
 
 build() {
   local cmake_args=(
