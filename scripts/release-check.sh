@@ -14,16 +14,16 @@ if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     fail "expected plain semantic version like 2.4.0"
 fi
 
-release_archive_url="https://github.com/nilstate/icey/archive/refs/tags/${version}.tar.gz"
-eval "$("$repo_root"/scripts/release-archive-meta.sh "$release_archive_url")"
-release_sha256="$ARCHIVE_SHA256"
-release_sha512="$ARCHIVE_SHA512"
-
-macports_archive_url="https://github.com/nilstate/icey/archive/${version}/icey-${version}.tar.gz"
-eval "$("$repo_root"/scripts/release-archive-meta.sh "$macports_archive_url")"
-macports_rmd160="$ARCHIVE_RMD160"
-macports_sha256="$ARCHIVE_SHA256"
-macports_size="$ARCHIVE_SIZE"
+eval "$(
+    RELEASE_REQUIRE_REMOTE_TAG=1 \
+    RELEASE_FETCH_ARCHIVE_META=1 \
+    bash "$repo_root"/scripts/release-manifest.sh "$version"
+)"
+release_sha256="$RELEASE_ARCHIVE_SHA256"
+release_sha512="$RELEASE_ARCHIVE_SHA512"
+macports_rmd160="$RELEASE_MACPORTS_RMD160"
+macports_sha256="$RELEASE_MACPORTS_SHA256"
+macports_size="$RELEASE_MACPORTS_SIZE"
 
 docs=(
     README.md

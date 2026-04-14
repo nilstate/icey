@@ -15,14 +15,17 @@ fi
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$repo_root"
 
-archive_url="https://github.com/nilstate/icey/archive/refs/tags/${version}.tar.gz"
-eval "$("$repo_root"/scripts/release-archive-meta.sh "$archive_url")"
+eval "$(
+    RELEASE_REQUIRE_REMOTE_TAG=1 \
+    RELEASE_FETCH_ARCHIVE_META=1 \
+    bash "$repo_root"/scripts/release-manifest.sh "$version"
+)"
 
 cat > packaging/conan/conandata.yml <<EOF
 sources:
   "$version":
     url: "https://github.com/nilstate/icey/archive/refs/tags/$version.tar.gz"
-    sha256: "$ARCHIVE_SHA256"
+    sha256: "$RELEASE_ARCHIVE_SHA256"
 EOF
 
 cat > packaging/conan-center-index/recipes/icey/config.yml <<EOF
@@ -35,9 +38,9 @@ cat > packaging/conan-center-index/recipes/icey/all/conandata.yml <<EOF
 sources:
   "$version":
     url: "https://github.com/nilstate/icey/archive/refs/tags/$version.tar.gz"
-    sha256: "$ARCHIVE_SHA256"
+    sha256: "$RELEASE_ARCHIVE_SHA256"
 EOF
 
 echo "updated packaging/conan/conandata.yml for $version"
 echo "updated packaging/conan-center-index/recipes/icey/all/conandata.yml for $version"
-echo "sha256: $ARCHIVE_SHA256"
+echo "sha256: $RELEASE_ARCHIVE_SHA256"

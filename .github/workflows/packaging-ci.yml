@@ -32,6 +32,7 @@ jobs:
           bash -n scripts/publish-aur.sh
           bash -n scripts/publish-homebrew.sh
           bash -n scripts/publish-ppa.sh
+          bash -n scripts/release-manifest.sh
           bash -n scripts/release-pin-alpine.sh
           bash -n scripts/release-pin-arch.sh
           bash -n scripts/release-pin-conda.sh

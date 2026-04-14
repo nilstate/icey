@@ -12,6 +12,8 @@ if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
   exit 1
 fi
 
+head_commit="$(git rev-parse HEAD)"
+
 if [[ -n "$tag" ]]; then
   case "$tag" in
     [0-9]*.[0-9]*.[0-9]*) ;;
@@ -26,9 +28,41 @@ if [[ -n "$tag" ]]; then
     exit 1
   fi
 
+  if [[ -n "${GITHUB_EVENT_PATH:-}" && -f "${GITHUB_EVENT_PATH:-}" ]]; then
+    forced="$(
+      python3 - "$GITHUB_EVENT_PATH" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], "r", encoding="utf-8") as fh:
+    event = json.load(fh)
+
+print("true" if event.get("forced") else "false")
+PY
+    )"
+    if [[ "$forced" == "true" ]]; then
+      echo "refusing force-updated release tag $tag; semver release tags must be immutable" >&2
+      exit 1
+    fi
+  fi
+
+  eval "$(
+    RELEASE_REQUIRE_REMOTE_TAG=1 \
+    bash "$repo_root"/scripts/release-manifest.sh "$version"
+  )"
+
+  if [[ -n "$RELEASE_LOCAL_TAG_COMMIT" && "$RELEASE_LOCAL_TAG_COMMIT" != "$head_commit" ]]; then
+    echo "local tag $tag points at $RELEASE_LOCAL_TAG_COMMIT, expected $head_commit" >&2
+    exit 1
+  fi
+
+  if [[ "$RELEASE_REMOTE_TAG_COMMIT" != "$head_commit" ]]; then
+    echo "remote tag $tag points at $RELEASE_REMOTE_TAG_COMMIT, expected $head_commit" >&2
+    exit 1
+  fi
+
   git fetch origin main --no-tags
-  commit_ref="${GITHUB_SHA:-HEAD}"
-  git merge-base --is-ancestor "$commit_ref" origin/main || {
+  git merge-base --is-ancestor "$head_commit" origin/main || {
     echo "release tags must point to commits reachable from origin/main" >&2
     exit 1
   }

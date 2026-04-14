@@ -15,12 +15,15 @@ fi
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$repo_root"
 
-archive_url="https://github.com/nilstate/icey/archive/refs/tags/${version}.tar.gz"
-eval "$("$repo_root"/scripts/release-archive-meta.sh "$archive_url")"
+eval "$(
+    RELEASE_REQUIRE_REMOTE_TAG=1 \
+    RELEASE_FETCH_ARCHIVE_META=1 \
+    bash "$repo_root"/scripts/release-manifest.sh "$version"
+)"
 
 perl -0pi -e 's/^pkgver=\d+\.\d+\.\d+$/pkgver='"$version"'/m' packaging/alpine/APKBUILD
 perl -0pi -e 's/^(source="\$pkgname-\$pkgver\.tar\.gz::https:\/\/github\.com\/nilstate\/icey\/archive\/refs\/tags\/)\$pkgver(\.tar\.gz")$/${1}\$pkgver${2}/m' packaging/alpine/APKBUILD
-perl -0pi -e 's/^[0-9a-f]{128}[[:space:]]+icey-\d+\.\d+\.\d+\.tar\.gz$/'"$ARCHIVE_SHA512"'  icey-'"$version"'.tar.gz/m' packaging/alpine/APKBUILD
+perl -0pi -e 's/^[0-9a-f]{128}[[:space:]]+icey-\d+\.\d+\.\d+\.tar\.gz$/'"$RELEASE_ARCHIVE_SHA512"'  icey-'"$version"'.tar.gz/m' packaging/alpine/APKBUILD
 
 echo "updated packaging/alpine/APKBUILD for $version"
-echo "sha512: $ARCHIVE_SHA512"
+echo "sha512: $RELEASE_ARCHIVE_SHA512"

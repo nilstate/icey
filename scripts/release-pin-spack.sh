@@ -15,11 +15,14 @@ fi
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$repo_root"
 
-archive_url="https://github.com/nilstate/icey/archive/refs/tags/${version}.tar.gz"
-eval "$("$repo_root"/scripts/release-archive-meta.sh "$archive_url")"
+eval "$(
+    RELEASE_REQUIRE_REMOTE_TAG=1 \
+    RELEASE_FETCH_ARCHIVE_META=1 \
+    bash "$repo_root"/scripts/release-manifest.sh "$version"
+)"
 
 perl -0pi -e 's#url = "https://github.com/nilstate/icey/archive/refs/tags/\d+\.\d+\.\d+\.tar\.gz"#url = "https://github.com/nilstate/icey/archive/refs/tags/'"$version"'.tar.gz"#' packaging/spack/package.py
-perl -0pi -e 's/version\("\d+\.\d+\.\d+", sha256="[0-9a-f]+"\)/version("'"$version"'", sha256="'"$ARCHIVE_SHA256"'")/' packaging/spack/package.py
+perl -0pi -e 's/version\("\d+\.\d+\.\d+", sha256="[0-9a-f]+"\)/version("'"$version"'", sha256="'"$RELEASE_ARCHIVE_SHA256"'")/' packaging/spack/package.py
 
 echo "updated packaging/spack/package.py for $version"
-echo "sha256: $ARCHIVE_SHA256"
+echo "sha256: $RELEASE_ARCHIVE_SHA256"

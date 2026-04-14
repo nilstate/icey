@@ -72,5 +72,6 @@ for file in "${docs[@]}"; do
 done
 
 echo "synced release metadata to $version"
-echo "next: commit, tag, and push $version"
-echo "then: make release-finalize VERSION=$version"
+echo "next: commit the release prep for $version"
+echo "then: create and push the $version tag exactly once; never move a semver release tag"
+echo "finally: make release-finalize VERSION=$version to pin the live archive metadata"

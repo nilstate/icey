@@ -15,11 +15,14 @@ fi
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$repo_root"
 
-archive_url="https://github.com/nilstate/icey/archive/refs/tags/${version}.tar.gz"
-eval "$("$repo_root"/scripts/release-archive-meta.sh "$archive_url")"
+eval "$(
+    RELEASE_REQUIRE_REMOTE_TAG=1 \
+    RELEASE_FETCH_ARCHIVE_META=1 \
+    bash "$repo_root"/scripts/release-manifest.sh "$version"
+)"
 
 perl -0pi -e 's/\{\% set version = "\d+\.\d+\.\d+" \%\}/{% set version = "'"$version"'" %}/' packaging/conda-forge/meta.yaml
-perl -0pi -e 's/^  sha256: [0-9a-f]{64}$/  sha256: '"$ARCHIVE_SHA256"'/m' packaging/conda-forge/meta.yaml
+perl -0pi -e 's/^  sha256: [0-9a-f]{64}$/  sha256: '"$RELEASE_ARCHIVE_SHA256"'/m' packaging/conda-forge/meta.yaml
 
 echo "updated packaging/conda-forge/meta.yaml for $version"
-echo "sha256: $ARCHIVE_SHA256"
+echo "sha256: $RELEASE_ARCHIVE_SHA256"
