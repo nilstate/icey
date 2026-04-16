@@ -106,7 +106,7 @@ Direct messages to a peer that doesn't share any room with the sender are silent
 
 ## Protocol
 
-See [PROTOCOL.md](PROTOCOL.md) for the full wire protocol specification.
+See the [protocol spec](https://github.com/nilstate/symple-docs/blob/main/docs/protocol.md) for the full wire protocol specification.
 
 ## Building
 

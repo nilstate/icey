@@ -777,7 +777,7 @@ target_link_libraries(myapp PRIVATE icey::symple)
 
 - [WebRTC](webrtc.md) — `PeerSession`, `SympleSignaller`, and media pipeline
 - [HTTP](http.md) — WebSocket transport, `http::Server`, and `http::ClientConnection`
-- [Protocol spec](https://github.com/nilstate/icey/tree/main/src/symple/PROTOCOL.md) — full wire protocol specification
+- [Protocol spec](https://github.com/nilstate/symple-docs/blob/main/docs/protocol.md) — full wire protocol specification
 
 ## Best Next Reads
 
