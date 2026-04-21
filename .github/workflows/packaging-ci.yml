@@ -96,6 +96,7 @@ jobs:
     name: Alpine APKBUILD
     env:
       CMAKE_BUILD_PARALLEL_LEVEL: 1
+      ICEY_ALPINE_SOURCE_MODE: worktree
     steps:
       - uses: actions/checkout@v5
         with:

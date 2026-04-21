@@ -25,6 +25,7 @@ endfunction()
 
 set(_icey_supported_components "@icey_BUILD_MODULES@")
 set(_icey_have_libdatachannel "@HAVE_LIBDATACHANNEL@")
+set(_icey_json_uses_system_package "@ICEY_JSON_SYSTEM_PACKAGE@")
 
 # Re-find dependencies that our targets need
 find_dependency(Threads)
@@ -59,7 +60,7 @@ if(NOT TARGET llhttp_static)
 endif()
 
 if(@USE_SYSTEM_DEPS@)
-  if("json" IN_LIST _icey_supported_components)
+  if(_icey_json_uses_system_package AND "json" IN_LIST _icey_supported_components)
     find_dependency(nlohmann_json CONFIG)
   endif()
   find_dependency(ZLIB)
