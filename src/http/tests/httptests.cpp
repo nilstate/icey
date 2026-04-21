@@ -1,5 +1,6 @@
 #include "httptests.h"
 
+#include "icy/filesystem.h"
 #include "icy/http/parser.h"
 #include "icy/http/request.h"
 #include "icy/http/response.h"
@@ -62,6 +63,89 @@ static std::unique_ptr<http::Server> makeEchoServer(uint16_t port)
         };
     };
     return server;
+}
+
+class StaticFileResponder : public http::ServerResponder
+{
+public:
+    StaticFileResponder(http::ServerConnection& conn,
+                        std::string path,
+                        std::string body)
+        : http::ServerResponder(conn)
+        , _path(std::move(path))
+        , _body(std::move(body))
+    {
+    }
+
+    void onRequest(http::Request& request, http::Response& response) override
+    {
+        http::StaticFileInfo info;
+        if (!http::statStaticFile(_path, info)) {
+            response.setStatus(http::StatusCode::NotFound);
+            response.setContentLength(0);
+            connection().sendHeader();
+            connection().close();
+            return;
+        }
+
+        response.setStatus(http::StatusCode::OK);
+        response.setContentType("text/plain");
+        const bool handled = http::prepareStaticFileResponse(request, response, info);
+        connection().sendHeader();
+        if (!handled &&
+            util::icompare(request.getMethod(), http::Method::Head) != 0) {
+            connection().send(_body.c_str(), _body.size());
+        }
+        connection().close();
+    }
+
+private:
+    std::string _path;
+    std::string _body;
+};
+
+class StaticFileFactory : public http::ServerConnectionFactory
+{
+public:
+    StaticFileFactory(std::string path, std::string body)
+        : _path(std::move(path))
+        , _body(std::move(body))
+    {
+    }
+
+    std::unique_ptr<http::ServerResponder> createResponder(
+        http::ServerConnection& connection) override
+    {
+        return std::make_unique<StaticFileResponder>(connection, _path, _body);
+    }
+
+private:
+    std::string _path;
+    std::string _body;
+};
+
+static std::unique_ptr<http::Server> makeStaticFileServer(
+    uint16_t port,
+    const std::string& path,
+    const std::string& body)
+{
+    auto server = std::make_unique<http::Server>(
+        net::Address("127.0.0.1", port),
+        uv::defaultLoop(),
+        std::make_unique<StaticFileFactory>(path, body));
+    server->start();
+    return server;
+}
+
+static std::string makeStaticFilePath(std::string_view stem)
+{
+    return fs::makePath("/tmp", "icey-httptests-" + std::string(stem) + ".txt");
+}
+
+static void cleanupStaticFilePath(const std::string& path)
+{
+    if (fs::exists(path))
+        fs::unlink(path);
 }
 
 static std::string computeWebSocketAccept(const std::string& key)
@@ -337,6 +421,135 @@ int main(int argc, char** argv)
         expect(!conn->error().any());
 
         server->stop();
+    });
+
+    describe("http: static file metadata prepares validators", []() {
+        const std::string body = "validator-body";
+        const auto path = makeStaticFilePath("validators");
+        cleanupStaticFilePath(path);
+        expect(fs::savefile(path, body.c_str(), body.size(), true));
+
+        http::StaticFileInfo info;
+        expect(http::statStaticFile(path, info));
+        expect(info.size == body.size());
+        expect(!info.etag.empty());
+
+        http::Request request;
+        http::Response response;
+        expect(!http::prepareStaticFileResponse(request, response, info));
+        expect(response.getContentLength() == body.size());
+        expect(response.get("ETag") == info.etag);
+        expect(!response.get("Last-Modified").empty());
+
+        cleanupStaticFilePath(path);
+    });
+
+    describe("http: static file If-None-Match uses weak comparison", []() {
+        const std::string body = "etag-body";
+        const auto path = makeStaticFilePath("etag");
+        cleanupStaticFilePath(path);
+        expect(fs::savefile(path, body.c_str(), body.size(), true));
+
+        http::StaticFileInfo info;
+        expect(http::statStaticFile(path, info));
+        expect(info.etag.size() > 2);
+
+        http::Request request;
+        request.set("If-None-Match", info.etag.substr(2));
+        http::Response response;
+
+        expect(http::prepareStaticFileResponse(request, response, info));
+        expect(response.getStatus() == http::StatusCode::NotModified);
+        expect(response.getContentLength() == 0);
+
+        cleanupStaticFilePath(path);
+    });
+
+    describe("http: static file If-None-Match beats If-Modified-Since", []() {
+        const std::string body = "precedence-body";
+        const auto path = makeStaticFilePath("precedence");
+        cleanupStaticFilePath(path);
+        expect(fs::savefile(path, body.c_str(), body.size(), true));
+
+        http::StaticFileInfo info;
+        expect(http::statStaticFile(path, info));
+
+        http::Request request;
+        request.set("If-None-Match", "\"definitely-not-this-etag\"");
+        request.set("If-Modified-Since",
+                    DateTimeFormatter::format(info.lastModified,
+                                              DateTimeFormat::HTTP_FORMAT));
+        http::Response response;
+
+        expect(!http::prepareStaticFileResponse(request, response, info));
+        expect(response.getStatus() == http::StatusCode::OK);
+        expect(response.getContentLength() == body.size());
+
+        cleanupStaticFilePath(path);
+    });
+
+    describe("http: static file precondition failed for unsafe methods", []() {
+        const std::string body = "unsafe-body";
+        const auto path = makeStaticFilePath("precondition");
+        cleanupStaticFilePath(path);
+        expect(fs::savefile(path, body.c_str(), body.size(), true));
+
+        http::StaticFileInfo info;
+        expect(http::statStaticFile(path, info));
+
+        http::Request request;
+        request.setMethod(http::Method::Put);
+        request.set("If-None-Match", info.etag);
+        http::Response response;
+
+        expect(http::prepareStaticFileResponse(request, response, info));
+        expect(response.getStatus() == http::StatusCode::PreconditionFailed);
+        expect(response.getContentLength() == 0);
+
+        cleanupStaticFilePath(path);
+    });
+
+    describe("http: static file conditional GET returns 304", []() {
+        const std::string body = "integration-body";
+        const auto path = makeStaticFilePath("integration");
+        cleanupStaticFilePath(path);
+        expect(fs::savefile(path, body.c_str(), body.size(), true));
+
+        http::StaticFileInfo info;
+        expect(http::statStaticFile(path, info));
+
+        auto server = makeStaticFileServer(TEST_HTTP_PORT + 200, path, body);
+        auto conn = http::Client::instance().createConnection(
+            "http://127.0.0.1:" + std::to_string(TEST_HTTP_PORT + 200) + "/asset.txt");
+
+        bool complete = false;
+        std::string received;
+        http::StatusCode status = http::StatusCode::InternalServerError;
+        std::string responseEtag;
+
+        conn->Headers += [&](http::Response& response) {
+            status = response.getStatus();
+            if (response.has("ETag"))
+                responseEtag = response.get("ETag");
+        };
+        conn->Payload += [&](const MutableBuffer& buffer) {
+            received.append(bufferCast<const char*>(buffer), buffer.size());
+        };
+        conn->Complete += [&](const http::Response& response) {
+            complete = true;
+        };
+        conn->request().setKeepAlive(false);
+        conn->request().set("If-None-Match", info.etag);
+        conn->start();
+
+        expect(test::waitFor([&] { return complete; }));
+        expect(status == http::StatusCode::NotModified);
+        expect(responseEtag == info.etag);
+        expect(received.empty());
+        expect(!conn->error().any());
+
+        server->stop();
+        cleanupStaticFilePath(path);
     });
 
     describe("http: multiple concurrent requests", []() {

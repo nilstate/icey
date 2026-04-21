@@ -257,6 +257,34 @@ struct DateCache
 };
 
 
+/// Metadata needed to serve a static file with HTTP validators.
+struct HTTP_API StaticFileInfo
+{
+    uint64_t size = 0;       ///< File size in bytes.
+    Timestamp lastModified;  ///< Last modification time, normalized to HTTP-second precision.
+    std::string etag;        ///< Weak validator suitable for ETag/If-None-Match.
+};
+
+/// Read static-file metadata from disk.
+/// @param path File path on disk.
+/// @param info Receives the file size, weak ETag, and HTTP-normalized last-modified time.
+/// @return True if the path exists and is a regular file.
+HTTP_API bool statStaticFile(std::string_view path, StaticFileInfo& info);
+
+/// Apply static-file headers and request conditionals to the response.
+///
+/// Sets `Content-Length`, `ETag`, and `Last-Modified` from @p info, then
+/// evaluates `If-None-Match` and `If-Modified-Since` for the current request.
+///
+/// @param request Incoming HTTP request.
+/// @param response Outgoing HTTP response to update.
+/// @param info Precomputed static-file metadata.
+/// @return True if the response should not send a body (`304` or `412`).
+HTTP_API bool prepareStaticFileResponse(const Request& request,
+                                        Response& response,
+                                        const StaticFileInfo& info);
+
+
 /// LIFO connection pool for reusing ServerConnection objects.
 /// Avoids per-request heap allocation by resetting and reusing
 /// connections instead of destroying and recreating them.

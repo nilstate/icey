@@ -15,12 +15,160 @@
 #include "icy/util.h"
 
 #include <algorithm>
+#include <chrono>
+#include <cstdio>
+#include <filesystem>
 #include <memory>
 #include <string_view>
+
+namespace stdfs = std::filesystem;
 
 
 namespace icy {
 namespace http {
+
+namespace {
+
+Timestamp normalizeHttpTimestamp(const Timestamp& ts)
+{
+    return Timestamp::fromEpochTime(ts.epochTime());
+}
+
+std::chrono::system_clock::time_point toSystemTime(stdfs::file_time_type fileTime)
+{
+    return std::chrono::file_clock::to_sys(fileTime);
+}
+
+std::string makeWeakETag(uint64_t size, long long version)
+{
+    char buf[64];
+    std::snprintf(buf, sizeof(buf), "W/\"%llx-%llx\"",
+                  static_cast<unsigned long long>(size),
+                  static_cast<unsigned long long>(version));
+    return buf;
+}
+
+std::string normalizeETagToken(std::string token)
+{
+    util::trimInPlace(token);
+    if (token.size() >= 2 &&
+        (token[0] == 'W' || token[0] == 'w') &&
+        token[1] == '/') {
+        token.erase(0, 2);
+        util::trimInPlace(token);
+    }
+    return token;
+}
+
+bool matchesIfNoneMatch(std::string_view header, std::string_view currentEtag)
+{
+    const std::string normalizedCurrent = normalizeETagToken(std::string(currentEtag));
+    for (auto token : util::split(header, ',')) {
+        util::trimInPlace(token);
+        if (token == "*")
+            return true;
+        if (normalizeETagToken(std::move(token)) == normalizedCurrent)
+            return true;
+    }
+    return false;
+}
+
+bool isGetOrHead(const Request& request)
+{
+    return util::icompare(request.getMethod(), Method::Get) == 0 ||
+           util::icompare(request.getMethod(), Method::Head) == 0;
+}
+
+bool parseHttpDate(std::string_view value, Timestamp& out)
+{
+    try {
+        int tzd = 0;
+        out = Timestamp::fromEpochTime(
+            DateTimeParser::parse(std::string(value), tzd).timestamp().epochTime());
+        return true;
+    }
+    catch (...) {
+        return false;
+    }
+}
+
+void setConditionalResponse(Response& response, StatusCode status)
+{
+    response.setStatus(status);
+    response.setChunkedTransferEncoding(false);
+    response.setContentLength(0);
+}
+
+} // namespace
+
+
+bool statStaticFile(std::string_view path, StaticFileInfo& info)
+{
+    std::error_code ec;
+    const stdfs::path filePath(path);
+    if (!stdfs::is_regular_file(filePath, ec) || ec)
+        return false;
+
+    const auto size = stdfs::file_size(filePath, ec);
+    if (ec)
+        return false;
+
+    const auto fileTime = stdfs::last_write_time(filePath, ec);
+    if (ec)
+        return false;
+
+    const auto systemTime = toSystemTime(fileTime);
+    const auto version = std::chrono::time_point_cast<std::chrono::nanoseconds>(
+        systemTime).time_since_epoch().count();
+
+    info.size = size;
+    info.lastModified = normalizeHttpTimestamp(
+        Timestamp::fromEpochTime(std::chrono::system_clock::to_time_t(systemTime)));
+    info.etag = makeWeakETag(info.size, version);
+    return true;
+}
+
+
+bool prepareStaticFileResponse(const Request& request,
+                               Response& response,
+                               const StaticFileInfo& info)
+{
+    response.setContentLength(info.size);
+    response.set("ETag", info.etag);
+    response.set("Last-Modified",
+                 DateTimeFormatter::format(info.lastModified,
+                                           DateTimeFormat::HTTP_FORMAT));
+
+    const auto& ifNoneMatch = request.get("If-None-Match", Message::EMPTY);
+    if (!ifNoneMatch.empty()) {
+        if (matchesIfNoneMatch(ifNoneMatch, info.etag)) {
+            setConditionalResponse(
+                response,
+                isGetOrHead(request) ? StatusCode::NotModified
+                                     : StatusCode::PreconditionFailed);
+            return true;
+        }
+        return false;
+    }
+
+    if (!isGetOrHead(request))
+        return false;
+
+    const auto& ifModifiedSince = request.get("If-Modified-Since", Message::EMPTY);
+    if (ifModifiedSince.empty())
+        return false;
+
+    Timestamp since;
+    if (!parseHttpDate(ifModifiedSince, since))
+        return false;
+
+    if (info.lastModified.epochTime() <= since.epochTime()) {
+        setConditionalResponse(response, StatusCode::NotModified);
+        return true;
+    }
+
+    return false;
+}
 
 
 Server::Server(const std::string& host, short port, uv::Loop* loop, std::unique_ptr<ServerConnectionFactory> factory)
