@@ -13,7 +13,6 @@
 
 
 #include "icy/delegate.h"
-#include <algorithm>
 #include <atomic>
 #include <memory>
 #include <mutex>
@@ -43,6 +42,10 @@ namespace internal {
 /// Signal slot storage class.
 template <typename RT, typename... Args>
 struct Slot;
+
+/// Internal list node used to keep slot storage stable across attach/detach.
+template <typename RT, typename... Args>
+struct SlotNode;
 
 } // namespace internal
 
@@ -142,6 +145,7 @@ public:
     using Function = std::function<RT(Args...)>;
     using SlotPtr = std::shared_ptr<internal::Slot<RT, Args...>>;
     using Slot = internal::Slot<RT, Args...>;
+    using SlotNode = internal::SlotNode<RT, Args...>;
 
     /// Connects a `lambda` or `std::function` to the signal.
     ///
@@ -176,19 +180,17 @@ public:
             slot->id = ++_lastId;
         } else {
             // Ensure explicit IDs don't collide with existing slots
-            for (auto const& s : _slots) {
-                if (s->alive() && s->id == slot->id)
+            for (auto* node = _head; node; node = node->next) {
+                auto& other = *node->slot;
+                if (other.alive() && other.id == slot->id)
                     throw std::logic_error("Signal slot ID already in use");
             }
             if (slot->id > _lastId)
                 _lastId = slot->id;
         }
-        _slots.push_back(slot);
-        ++_liveCount;
-        //_slots.sort(Slot::ComparePrioroty);
-        std::sort(_slots.begin(), _slots.end(),
-                  [](SlotPtr const& l, SlotPtr const& r) { return l->priority > r->priority; });
-        return slot->id;
+        const int assignedId = slot->id;
+        insertSlotLocked(std::move(slot));
+        return assignedId;
     }
 
     /// Detaches the slot with the given ID.
@@ -249,13 +251,13 @@ public:
         std::unique_lock<MutexT> guard(_mutex);
         if (_liveCount == 0)
             return;
-        for (auto const& slot : _slots) {
-            if (slot->alive())
-                slot->kill();
+        for (auto* node = _head; node; node = node->next) {
+            if (node->slot->alive())
+                node->slot->kill();
         }
         _liveCount = 0;
         if (emitDepthLocked() == 0)
-            _slots.clear();
+            clearNodesLocked();
         else
             requestSweepLocked();
     }
@@ -268,52 +270,78 @@ public:
     ///
     /// For `Signal<void(...)>`: calls every live slot unconditionally.
     ///
-    /// Emission snapshots raw slot pointers under a shared lock, then invokes
-    /// delegates without holding the lock. Dead slots are swept after the
-    /// outermost emission returns, allowing attach/detach inside callbacks
-    /// without copying `shared_ptr`s on the hot path.
+    /// Local `Signal<...>` traverses the stable slot list directly without any
+    /// snapshot allocation. `ThreadSignal<...>` snapshots raw node pointers
+    /// under a shared lock, then invokes delegates without holding the lock.
+    /// Dead slots are swept after the outermost emission returns, allowing
+    /// attach/detach inside callbacks without copying `shared_ptr`s on the hot
+    /// path.
     ///
     /// @param args  Arguments forwarded to each connected slot.
     /// @return For `bool` return type: `true` if any slot handled the event, `false` otherwise.
     ///         For `void` return type: nothing.
     virtual RT emit(Args... args)
     {
-        constexpr size_t inlineCapacity = 8;
-        Slot* inlineSlots[inlineCapacity];
-        std::unique_ptr<Slot*[]> heapSlots;
-        Slot** snapshot = inlineSlots;
-        size_t count = 0;
-
-        {
-            std::shared_lock<MutexT> guard(_mutex);
+        if constexpr (!threadSafe) {
             beginEmitLocked();
-            auto capacity = _slots.size();
-            if (capacity > inlineCapacity) {
-                heapSlots = std::make_unique<Slot*[]>(capacity);
-                snapshot = heapSlots.get();
+            if constexpr (std::is_same_v<RT, bool>) {
+                for (auto* node = _head; node;) {
+                    auto* next = node->next;
+                    if (node->slot->alive() &&
+                        (*node->slot->delegate)(std::forward<Args>(args)...)) {
+                        finishEmit();
+                        return true;
+                    }
+                    node = next;
+                }
+                finishEmit();
+                return false;
+            } else {
+                for (auto* node = _head; node;) {
+                    auto* next = node->next;
+                    if (node->slot->alive())
+                        (*node->slot->delegate)(std::forward<Args>(args)...);
+                    node = next;
+                }
+                finishEmit();
             }
-            for (auto const& slot : _slots) {
-                if (slot->alive())
-                    snapshot[count++] = slot.get();
-            }
-        }
+        } else {
+            constexpr size_t inlineCapacity = 8;
+            SlotNode* inlineSlots[inlineCapacity];
+            std::unique_ptr<SlotNode*[]> heapSlots;
+            SlotNode** snapshot = inlineSlots;
+            size_t count = 0;
 
-        if constexpr (std::is_same_v<RT, bool>) {
-            for (size_t i = 0; i < count; ++i) {
-                if (snapshot[i]->alive() &&
-                    (*snapshot[i]->delegate)(std::forward<Args>(args)...)) {
-                    finishEmit();
-                    return true;
+            {
+                std::shared_lock<MutexT> guard(_mutex);
+                beginEmitLocked();
+                if (_liveCount > inlineCapacity) {
+                    heapSlots = std::make_unique<SlotNode*[]>(_liveCount);
+                    snapshot = heapSlots.get();
+                }
+                for (auto* node = _head; node; node = node->next) {
+                    if (node->slot->alive())
+                        snapshot[count++] = node;
                 }
             }
-            finishEmit();
-            return false;
-        } else {
-            for (size_t i = 0; i < count; ++i) {
-                if (snapshot[i]->alive())
-                    (*snapshot[i]->delegate)(std::forward<Args>(args)...);
+
+            if constexpr (std::is_same_v<RT, bool>) {
+                for (size_t i = 0; i < count; ++i) {
+                    if (snapshot[i]->slot->alive() &&
+                        (*snapshot[i]->slot->delegate)(std::forward<Args>(args)...)) {
+                        finishEmit();
+                        return true;
+                    }
+                }
+                finishEmit();
+                return false;
+            } else {
+                for (size_t i = 0; i < count; ++i) {
+                    if (snapshot[i]->slot->alive())
+                        (*snapshot[i]->slot->delegate)(std::forward<Args>(args)...);
+                }
+                finishEmit();
             }
-            finishEmit();
         }
     }
 
@@ -328,17 +356,17 @@ public:
         std::shared_lock<MutexT> guard(_mutex);
         std::vector<SlotPtr> snapshot;
         snapshot.reserve(_liveCount);
-        for (auto const& slot : _slots) {
-            if (slot->alive())
-                snapshot.push_back(slot);
+        for (auto* node = _head; node; node = node->next) {
+            if (node->slot->alive())
+                snapshot.push_back(node->slot);
         }
         return snapshot;
     }
 
     /// Returns the number of slots currently registered with this signal.
     ///
-    /// The count is taken under a shared lock. Slots that were concurrently
-    /// killed but not yet erased may still be included in the count.
+    /// The count is taken under a shared lock and tracks only currently live
+    /// slots. Dead-but-not-yet-swept nodes are excluded.
     ///
     /// @return The number of entries in the internal slot list.
     [[nodiscard]] size_t nslots() const
@@ -360,13 +388,17 @@ public:
 
     Signal() = default;
 
+    ~Signal()
+    {
+        clearNodesLocked();
+    }
+
     /// Copy constructor; copies the slot list and last-assigned ID from `r`.
     /// @param r  The signal to copy from.
     Signal(const Signal& r)
-        : _slots(r.slots())
-        , _liveCount(_slots.size())
-        , _lastId(r._lastId)
     {
+        auto [snapshot, lastId] = r.snapshotState();
+        restoreState(std::move(snapshot), lastId);
     }
 
     /// Copy assignment operator; copies the slot list and last-assigned ID from `r`.
@@ -375,10 +407,8 @@ public:
     Signal& operator=(const Signal& r)
     {
         if (&r != this) {
-            _slots = r.slots();
-            _liveCount = _slots.size();
-            _lastId = r._lastId;
-            resetEmitState();
+            auto [snapshot, lastId] = r.snapshotState();
+            restoreState(std::move(snapshot), lastId);
         }
         return *this;
     }
@@ -394,26 +424,79 @@ private:
         const bool canErase = emitDepthLocked() == 0;
         size_t killed = 0;
 
-        for (auto it = _slots.begin(); it != _slots.end();) {
-            auto& slot = *it;
-            if (slot->alive() && matcher(*slot)) {
-                slot->kill();
+        for (auto* node = _head; node;) {
+            auto* next = node->next;
+            auto& slot = *node->slot;
+            if (slot.alive() && matcher(slot)) {
+                slot.kill();
                 ++killed;
                 if (canErase) {
-                    it = _slots.erase(it);
+                    eraseNodeLocked(node);
                 } else {
                     requestSweepLocked();
-                    ++it;
                 }
                 if (!removeAll)
                     break;
-            } else {
-                ++it;
             }
+            node = next;
         }
 
         _liveCount -= killed;
         return killed;
+    }
+
+    void insertSlotLocked(SlotPtr slot) const
+    {
+        auto* node = new SlotNode(std::move(slot));
+        auto* cursor = _head;
+        while (cursor && cursor->slot->priority >= node->slot->priority)
+            cursor = cursor->next;
+
+        if (!cursor) {
+            node->prev = _tail;
+            if (_tail)
+                _tail->next = node;
+            else
+                _head = node;
+            _tail = node;
+        } else {
+            node->next = cursor;
+            node->prev = cursor->prev;
+            if (cursor->prev)
+                cursor->prev->next = node;
+            else
+                _head = node;
+            cursor->prev = node;
+        }
+
+        ++_liveCount;
+    }
+
+    void appendSlotLocked(SlotPtr slot) const
+    {
+        auto* node = new SlotNode(std::move(slot));
+        node->prev = _tail;
+        if (_tail)
+            _tail->next = node;
+        else
+            _head = node;
+        _tail = node;
+        ++_liveCount;
+    }
+
+    void eraseNodeLocked(SlotNode* node) const
+    {
+        if (node->prev)
+            node->prev->next = node->next;
+        else
+            _head = node->next;
+
+        if (node->next)
+            node->next->prev = node->prev;
+        else
+            _tail = node->prev;
+
+        delete node;
     }
 
     size_t emitDepthLocked() const
@@ -461,14 +544,12 @@ private:
 
     void sweepLocked() const
     {
-        _slots.erase(
-            std::remove_if(
-                _slots.begin(),
-                _slots.end(),
-                [](const SlotPtr& slot) {
-                    return !slot->alive();
-                }),
-            _slots.end());
+        for (auto* node = _head; node;) {
+            auto* next = node->next;
+            if (!node->slot->alive())
+                eraseNodeLocked(node);
+            node = next;
+        }
     }
 
     void finishEmit()
@@ -478,8 +559,25 @@ private:
         if (!consumeSweepRequest())
             return;
 
-        std::unique_lock<MutexT> guard(_mutex);
-        sweepLocked();
+        if constexpr (threadSafe) {
+            std::unique_lock<MutexT> guard(_mutex);
+            sweepLocked();
+        } else {
+            sweepLocked();
+        }
+    }
+
+    void clearNodesLocked() const
+    {
+        auto* node = _head;
+        while (node) {
+            auto* next = node->next;
+            delete node;
+            node = next;
+        }
+        _head = nullptr;
+        _tail = nullptr;
+        _liveCount = 0;
     }
 
     void resetEmitState()
@@ -493,8 +591,30 @@ private:
         }
     }
 
+    std::pair<std::vector<SlotPtr>, int> snapshotState() const
+    {
+        std::shared_lock<MutexT> guard(_mutex);
+        std::vector<SlotPtr> snapshot;
+        snapshot.reserve(_liveCount);
+        for (auto* node = _head; node; node = node->next) {
+            if (node->slot->alive())
+                snapshot.push_back(node->slot);
+        }
+        return {std::move(snapshot), _lastId};
+    }
+
+    void restoreState(std::vector<SlotPtr> snapshot, int lastId)
+    {
+        clearNodesLocked();
+        _lastId = lastId;
+        resetEmitState();
+        for (auto& slot : snapshot)
+            appendSlotLocked(std::move(slot));
+    }
+
     mutable MutexT _mutex;
-    mutable std::vector<SlotPtr> _slots;
+    mutable SlotNode* _head = nullptr;
+    mutable SlotNode* _tail = nullptr;
     mutable size_t _liveCount = 0;
     mutable int _lastId = 0;
     mutable EmitDepth _emitDepth{};
@@ -630,6 +750,19 @@ struct Slot
     /// NonCopyable and NonMovable
     // Slot(const Slot&) = delete;
     // Slot& operator=(const Slot&) = delete;
+};
+
+template <typename RT, typename... Args>
+struct SlotNode
+{
+    std::shared_ptr<Slot<RT, Args...>> slot;
+    SlotNode* prev = nullptr;
+    SlotNode* next = nullptr;
+
+    explicit SlotNode(std::shared_ptr<Slot<RT, Args...>> slot)
+        : slot(std::move(slot))
+    {
+    }
 };
 
 } // namespace internal

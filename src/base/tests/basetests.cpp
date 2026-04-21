@@ -976,6 +976,34 @@ int main(int argc, char** argv)
 
 
     // =========================================================================
+    // Signal: local attach during emit is deferred until next emission
+    //
+    describe("signal attach during emit defers new slot", []() {
+        Signal<void(int)> sig;
+        int firstCalls = 0;
+        int secondCalls = 0;
+        int secondId = -1;
+
+        auto firstId = sig.attach([&](int depth) {
+            ++firstCalls;
+            if (depth == 0)
+                secondId = sig.attach([&](int) { ++secondCalls; });
+        }, nullptr, -1, 10);
+        expect(firstId > 0);
+
+        sig.emit(0);
+        expect(firstCalls == 1);
+        expect(secondCalls == 0);
+        expect(secondId > 0);
+        expect(sig.nslots() == 2);
+
+        sig.emit(1);
+        expect(firstCalls == 2);
+        expect(secondCalls == 1);
+    });
+
+
+    // =========================================================================
     // Signal: nested thread-safe emit keeps detached slot dead until sweep
     //
     describe("thread signal nested detach keeps slot dead", []() {
@@ -1004,6 +1032,34 @@ int main(int argc, char** argv)
         sig.emit(2);
         expect(firstCalls == 3);
         expect(secondCalls == 0);
+    });
+
+
+    // =========================================================================
+    // Signal: thread-safe attach during emit is deferred until next emission
+    //
+    describe("thread signal attach during emit defers new slot", []() {
+        ThreadSignal<void(int)> sig;
+        int firstCalls = 0;
+        int secondCalls = 0;
+        int secondId = -1;
+
+        auto firstId = sig.attach([&](int depth) {
+            ++firstCalls;
+            if (depth == 0)
+                secondId = sig.attach([&](int) { ++secondCalls; });
+        }, nullptr, -1, 10);
+        expect(firstId > 0);
+
+        sig.emit(0);
+        expect(firstCalls == 1);
+        expect(secondCalls == 0);
+        expect(secondId > 0);
+        expect(sig.nslots() == 2);
+
+        sig.emit(1);
+        expect(firstCalls == 2);
+        expect(secondCalls == 1);
     });
 
 
