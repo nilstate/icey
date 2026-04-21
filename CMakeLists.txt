@@ -64,6 +64,15 @@ if(BUILD_BENCHMARKS)
       USES_TERMINAL
       COMMENT "Running icey microbenchmarks and writing bench/benchmarks.json"
     )
+
+    add_custom_target(benchcheck
+      COMMAND "${Python3_EXECUTABLE}"
+              "${CMAKE_CURRENT_SOURCE_DIR}/bench/validate_benchmarks.py"
+              --report "${CMAKE_BINARY_DIR}/bench/benchmarks.json"
+      DEPENDS benchreport
+      USES_TERMINAL
+      COMMENT "Validating icey benchmark report"
+    )
   endif()
 endif()
 

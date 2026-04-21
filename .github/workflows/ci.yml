@@ -316,6 +316,51 @@ jobs:
           ${{ matrix.env_name }}: ${{ matrix.env_value }}
         run: ctest --test-dir build --output-on-failure --parallel $(nproc)
 
+  benchmarks:
+    runs-on: ubuntu-24.04
+    name: Benchmarks (FFmpeg)
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libssl-dev gcc-14 g++-14 \
+            libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libswresample-dev
+
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@v1
+        with:
+          key: benchmarks
+
+      - name: Configure
+        run: |
+          cmake -B build-bench \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_COMPILER=gcc-14 \
+            -DCMAKE_CXX_COMPILER=g++-14 \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DWITH_FFMPEG=ON \
+            -DBUILD_BENCHMARKS=ON \
+            -DBUILD_TESTS=OFF \
+            -DBUILD_SAMPLES=OFF \
+            -DBUILD_APPLICATIONS=OFF \
+            -DENABLE_WARNINGS_ARE_ERRORS=ON
+
+      - name: Benchcheck
+        run: cmake --build build-bench --parallel $(nproc) --target benchcheck
+
+      - name: Upload benchmark report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmarks-linux-ffmpeg
+          path: build-bench/bench/benchmarks.json
+          if-no-files-found: warn
+
   coverage:
     runs-on: ubuntu-24.04
     name: Coverage
