@@ -1,5 +1,6 @@
 export default {
   name: "icey",
+  prettyUrls: "strip",
   logo: "./icey.png",
   repo: "https://github.com/nilstate/icey",
   editBranch: "main",
