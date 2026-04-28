@@ -75,14 +75,25 @@ void MediaCapture::close()
 void MediaCapture::openFile(const std::string& file)
 {
     LTrace("Opening file: ", file);
+
+    // Device URLs (avfoundation:, v4l2:, dshow:) carry the libavdevice
+    // input format in the scheme; everything else falls through to
+    // FFmpeg's auto-detection.
+    const AVInputFormat* iformat = nullptr;
+    std::string filename = file;
+    if (auto parsed = parseDeviceUrl(file)) {
+        iformat = parsed->first;
+        filename = std::move(parsed->second);
+    }
+
     if (_openOptions.empty()) {
-        openStream(file, nullptr, nullptr);
+        openStream(filename, iformat, nullptr);
         return;
     }
     AVDictionary* opts = nullptr;
     for (const auto& [key, value] : _openOptions)
         av_dict_set(&opts, key.c_str(), value.c_str(), 0);
-    openStream(file, nullptr, &opts);
+    openStream(filename, iformat, &opts);
     av_dict_free(&opts);
 }
 
@@ -200,8 +211,20 @@ void MediaCapture::run()
             }
         }
 
-        // Read input packets until complete
-        while ((res = av_read_frame(_formatCtx, ipacket)) >= 0) {
+        // Read input packets until complete. AVERROR(EAGAIN) is treated
+        // as transient: live demuxers (notably avfoundation) return it
+        // whenever their internal frame queue is momentarily empty, so
+        // breaking the loop on it would tear the capture down at the
+        // first hiccup. The next av_read_frame call blocks until a
+        // frame arrives, so a tight retry loop is safe.
+        while ((res = av_read_frame(_formatCtx, ipacket)) >= 0 ||
+               res == AVERROR(EAGAIN)) {
+            if (res == AVERROR(EAGAIN)) {
+                if (_stopping)
+                    break;
+                continue;
+            }
+
             STrace << "Read frame: "
                    << "pts=" << ipacket->pts << ", "
                    << "dts=" << ipacket->dts;

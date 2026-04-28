@@ -336,6 +336,30 @@ protected:
 };
 
 
+#ifdef HAVE_FFMPEG
+
+/// Parse a libavdevice URL scheme.
+///
+/// Recognises:
+///   avfoundation:<spec>   (macOS, e.g. "0:0", "0:none")
+///   v4l2:<path>           (Linux, e.g. "/dev/video0")
+///   dshow:<spec>          (Windows, e.g. "video=Logitech HD WebCam")
+///
+/// On match returns the libavformat input format (looked up via
+/// `av_find_input_format`) and the portion of @p source after the scheme
+/// prefix. Returns `std::nullopt` for non-device sources (file paths,
+/// `rtsp://`, `rtmp://`, etc.), leaving the caller to use FFmpeg's
+/// auto-detection.
+///
+/// Throws `std::runtime_error` if a recognised scheme has no matching
+/// input format on this build (libavdevice not linked, or the backend
+/// is not compiled in on this platform).
+AV_API std::optional<std::pair<const AVInputFormat*, std::string>>
+parseDeviceUrl(std::string_view source);
+
+#endif // HAVE_FFMPEG
+
+
 } // namespace av
 } // namespace icy
 

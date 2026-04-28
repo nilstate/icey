@@ -12,6 +12,8 @@
 #include "icy/av/devicemanager.h"
 #include "icy/logger.h"
 
+#include <mutex>
+
 #ifdef HAVE_FFMPEG
 #include "icy/av/ffmpeg.h"
 
@@ -404,6 +406,56 @@ const AVInputFormat* DeviceManager::findVideoInputFormat() const
 const AVInputFormat* DeviceManager::findAudioInputFormat() const
 {
     return internal::findDefaultInputFormat(ICY_AUDIO_INPUTS);
+}
+
+
+std::optional<std::pair<const AVInputFormat*, std::string>>
+parseDeviceUrl(std::string_view source)
+{
+    // Closed list of libavdevice schemes recognised at the URL layer.
+    // Listed cross-platform: a recognised but unavailable backend (e.g.
+    // avfoundation: on Linux) should surface as an explicit error rather
+    // than fall through to FFmpeg's auto-detect, which would treat the
+    // string as a filename and produce a misleading message.
+    static constexpr std::string_view kSchemes[] = {
+        "avfoundation",
+        "v4l2",
+        "dshow",
+    };
+
+    for (auto scheme : kSchemes) {
+        if (source.size() <= scheme.size() + 1)
+            continue;
+        if (source.compare(0, scheme.size(), scheme) != 0)
+            continue;
+        if (source[scheme.size()] != ':')
+            continue;
+        // A standard "scheme://" URL is not a device URL. v4l2 paths
+        // legitimately start with a single slash ("v4l2:/dev/video0"),
+        // so only the double-slash form is excluded.
+        if (source.size() >= scheme.size() + 3 &&
+            source[scheme.size() + 1] == '/' &&
+            source[scheme.size() + 2] == '/')
+            continue;
+
+        // libavdevice formats are not auto-registered by FFmpeg's static
+        // initialisers. Register once on first device-URL lookup so the
+        // function works regardless of whether the caller has already
+        // constructed a MediaCapture.
+        static std::once_flag registered;
+        std::call_once(registered, []() { avdevice_register_all(); });
+
+        const AVInputFormat* iformat =
+            av_find_input_format(std::string(scheme).c_str());
+        if (!iformat)
+            throw std::runtime_error(
+                "libavdevice input format not available on this build: " +
+                std::string(scheme));
+
+        return std::make_pair(iformat, std::string(source.substr(scheme.size() + 1)));
+    }
+
+    return std::nullopt;
 }
 
 #endif // HAVE_FFMPEG

@@ -70,9 +70,14 @@ void init()
         // Optionally disable logging.
         // av_log_set_level(AV_LOG_QUIET);
 
-        // Note: av_register_all(), av_lockmgr_register(), and
-        // avdevice_register_all() were removed in FFmpeg 4.0+/5.0+.
-        // Codec, format, and device registration is now automatic.
+        // av_register_all() and av_lockmgr_register() were removed in
+        // FFmpeg 4.0+: codec/format/protocol registration is automatic.
+        // libavdevice is the exception: it still requires an explicit
+        // avdevice_register_all() call for av_find_input_format() to
+        // resolve device backends like "avfoundation", "v4l2", "dshow".
+#ifdef HAVE_FFMPEG_AVDEVICE
+        avdevice_register_all();
+#endif
     }
 }
 
