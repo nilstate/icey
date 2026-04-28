@@ -474,6 +474,20 @@ function(icy_add_benchmark name)
   )
   target_compile_definitions(${name} PRIVATE ICY_DATA_DIR="${icey_SOURCE_DIR}/data")
 
+  # GCC's -O3 + tree-vectorizer miscompiles the hot member-function-pointer
+  # call inside `icy::Signal::emit` on the GitHub-hosted ubuntu-24.04
+  # runner, producing SIGILL when benchmarks loop over Signal::emit at high
+  # iteration counts. The library proper builds and tests cleanly under
+  # the same compiler in the main Linux job and under both sanitizers, and
+  # the same bench binaries run cleanly on macOS clang and in a local
+  # Linux gcc-14 container with identical flags. Drop benchmarks to -O2
+  # and disable tree vectorization on GCC; correctness ahead of the last
+  # 10% of optimizer aggression for what is fundamentally microbenchmark
+  # measurement noise floor.
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_compile_options(${name} PRIVATE -O2 -fno-tree-vectorize)
+  endif()
+
   if(ENABLE_SOLUTION_FOLDERS)
     set_target_properties(${name} PROPERTIES FOLDER "benchmarks")
   endif()
