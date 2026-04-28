@@ -11,7 +11,9 @@
 #include <algorithm>
 #include <array>
 #include <cctype>
+#include <mutex>
 #include <stdexcept>
+#include <unordered_map>
 
 
 namespace icy {
@@ -313,8 +315,58 @@ std::optional<NegotiatedCodec> negotiate(const std::vector<std::string>& offered
 
 bool hasEncoder(const std::string& ffmpegName)
 {
+    // Result is cached: probing involves alloc + open + free of an
+    // AVCodecContext, which is cheap once but adds up over repeated
+    // SDP negotiations.
+    static std::mutex cacheMutex;
+    static std::unordered_map<std::string, bool> cache;
+
+    {
+        std::lock_guard lock(cacheMutex);
+        if (auto it = cache.find(ffmpegName); it != cache.end())
+            return it->second;
+    }
+
+    bool result = false;
     const AVCodec* codec = avcodec_find_encoder_by_name(ffmpegName.c_str());
-    return codec != nullptr;
+    if (codec) {
+        // Build-time presence is necessary but not sufficient: hardware
+        // encoders like h264_nvenc, h264_vaapi, h264_videotoolbox link
+        // against runtime resources (CUDA, VA-API drivers, VideoToolbox
+        // session) that may be missing on the host. Probe by allocating
+        // a context and opening it with a minimal config; treat any
+        // failure as "not available" so codec selection can fall back.
+        AVCodecContext* ctx = avcodec_alloc_context3(codec);
+        if (ctx) {
+            if (codec->type == AVMEDIA_TYPE_VIDEO) {
+                ctx->width = 64;
+                ctx->height = 64;
+                ctx->pix_fmt = (codec->pix_fmts && codec->pix_fmts[0] != AV_PIX_FMT_NONE)
+                    ? codec->pix_fmts[0]
+                    : AV_PIX_FMT_YUV420P;
+                ctx->time_base = AVRational{1, 30};
+                ctx->framerate = AVRational{30, 1};
+            } else if (codec->type == AVMEDIA_TYPE_AUDIO) {
+                ctx->sample_rate = (codec->supported_samplerates &&
+                                    codec->supported_samplerates[0] != 0)
+                    ? codec->supported_samplerates[0]
+                    : 48000;
+                ctx->sample_fmt = (codec->sample_fmts &&
+                                   codec->sample_fmts[0] != AV_SAMPLE_FMT_NONE)
+                    ? codec->sample_fmts[0]
+                    : AV_SAMPLE_FMT_FLT;
+                av_channel_layout_default(&ctx->ch_layout, 2);
+            }
+            result = avcodec_open2(ctx, codec, nullptr) == 0;
+            avcodec_free_context(&ctx);
+        }
+    }
+
+    {
+        std::lock_guard lock(cacheMutex);
+        cache.emplace(ffmpegName, result);
+    }
+    return result;
 }
 
 
