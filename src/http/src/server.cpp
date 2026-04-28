@@ -36,7 +36,8 @@ Timestamp normalizeHttpTimestamp(const Timestamp& ts)
 
 std::chrono::system_clock::time_point toSystemTime(stdfs::file_time_type fileTime)
 {
-    return std::chrono::file_clock::to_sys(fileTime);
+    return std::chrono::time_point_cast<std::chrono::system_clock::duration>(
+        std::chrono::file_clock::to_sys(fileTime));
 }
 
 std::string makeWeakETag(uint64_t size, long long version)
