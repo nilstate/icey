@@ -64,12 +64,12 @@ void AudioPacketEncoder::process(IPacket& packet)
 
     auto* planar = dynamic_cast<PlanarAudioPacket*>(ap);
     if (planar) {
-        encode(planar->buffer, static_cast<int>(planar->numSamples),
-               microsecondsToEncoderPts(*this, planar->time));
+        (void)encode(planar->buffer, static_cast<int>(planar->numSamples),
+                     microsecondsToEncoderPts(*this, planar->time));
     } else {
-        encode(reinterpret_cast<uint8_t*>(ap->data()),
-               static_cast<int>(ap->numSamples),
-               microsecondsToEncoderPts(*this, ap->time));
+        (void)encode(reinterpret_cast<uint8_t*>(ap->data()),
+                     static_cast<int>(ap->numSamples),
+                     microsecondsToEncoderPts(*this, ap->time));
     }
 }
 

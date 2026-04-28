@@ -54,11 +54,11 @@ void MultiplexPacketEncoder::encode(VideoPacket& packet)
 {
     auto planar = dynamic_cast<av::PlanarVideoPacket*>(&packet);
     if (planar) {
-        encodeVideo(planar->buffer, planar->linesize, planar->width,
-                    planar->height, planar->time);
+        (void)encodeVideo(planar->buffer, planar->linesize, planar->width,
+                          planar->height, planar->time);
     } else {
-        encodeVideo(reinterpret_cast<uint8_t*>(packet.data()), static_cast<int>(packet.size()), packet.width,
-                    packet.height, packet.time);
+        (void)encodeVideo(reinterpret_cast<uint8_t*>(packet.data()), static_cast<int>(packet.size()),
+                          packet.width, packet.height, packet.time);
     }
 }
 
@@ -67,9 +67,10 @@ void MultiplexPacketEncoder::encode(AudioPacket& packet)
 {
     auto planar = dynamic_cast<av::PlanarAudioPacket*>(&packet);
     if (planar) {
-        encodeAudio(planar->buffer, int(planar->numSamples), planar->time);
+        (void)encodeAudio(planar->buffer, int(planar->numSamples), planar->time);
     } else {
-        encodeAudio(reinterpret_cast<uint8_t*>(packet.data()), static_cast<int>(packet.numSamples), packet.time);
+        (void)encodeAudio(reinterpret_cast<uint8_t*>(packet.data()), static_cast<int>(packet.numSamples),
+                          packet.time);
     }
 }
 

@@ -64,12 +64,12 @@ void VideoPacketEncoder::process(IPacket& packet)
 
     auto* planar = dynamic_cast<PlanarVideoPacket*>(vp);
     if (planar) {
-        encode(planar->buffer, planar->linesize,
-               microsecondsToEncoderPts(*this, planar->time));
+        (void)encode(planar->buffer, planar->linesize,
+                     microsecondsToEncoderPts(*this, planar->time));
     } else {
-        encode(reinterpret_cast<uint8_t*>(vp->data()),
-               static_cast<int>(vp->size()),
-               microsecondsToEncoderPts(*this, vp->time));
+        (void)encode(reinterpret_cast<uint8_t*>(vp->data()),
+                     static_cast<int>(vp->size()),
+                     microsecondsToEncoderPts(*this, vp->time));
     }
 }
 

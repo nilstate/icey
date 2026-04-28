@@ -254,8 +254,10 @@ bool VideoEncoder::encode(AVFrame* iframe)
 
 void VideoEncoder::flush()
 {
-    // Send nullptr frame to signal end of stream
-    encode(nullptr);
+    // Send nullptr frame to signal end of stream. Return value of
+    // encode() is intentionally ignored on flush: any final packets
+    // it produced are emitted via the encoder's own emitter.
+    (void)encode(nullptr);
 }
 
 
