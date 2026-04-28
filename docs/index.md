@@ -55,7 +55,7 @@ That binary — `icey-server` — is built entirely from icey's library modules.
 Install and run icey-server. Docker, release binaries, package managers. Stream, record, or relay in under a minute.
 ::
 
-::card{title="Build" icon="code-bracket" href="build/getting-started"}
+::card{title="Build" icon="code-bracket" href="recipes/http-server"}
 Use icey modules in your own C++ project. FetchContent, CMake targets, recipes for HTTP, WebRTC, TURN, and more.
 ::
 
@@ -73,7 +73,7 @@ Deploy to production. Config reference, TLS, TURN, health endpoints, monitoring,
 | Install icey-server | [Install](run/install) |
 | Understand the three modes (stream, record, relay) | [Modes](run/modes) |
 | Understand how the server maps to the library | [Architecture](concepts/architecture) |
-| Build icey into my own C++ project | [Getting Started](build/getting-started) |
+| Build icey into my own C++ project | [HTTP Server recipe](recipes/http-server) |
 | Understand the runtime rules | [Runtime Contracts](concepts/runtime-contracts) |
 | Understand the module layout | [Module Map](modules) |
 | Build a fast HTTP service | [HTTP Server](recipes/http-server) |

@@ -197,6 +197,6 @@ What gets updated:
 
 ## Related Pages
 
-- [Installation](build/installation.md)
+- [Install](run/install.md)
 - [Contributing](contributing.md)
 - [Repository README](https://github.com/nilstate/icey/blob/main/README.md)

@@ -27,8 +27,6 @@ macports_size="$RELEASE_MACPORTS_SIZE"
 
 docs=(
     README.md
-    docs/build/getting-started.md
-    docs/build/installation.md
     docs/modules/av.md
     docs/modules/base.md
     docs/modules/http.md

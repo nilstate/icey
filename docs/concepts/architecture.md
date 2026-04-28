@@ -183,5 +183,5 @@ If the server does 90% of what you need, run it. If it does 60%, read the module
 - [PacketStream](packetstream.md) — the pipeline architecture
 - [HTTP Lifecycle](http-lifecycle.md) — connection state machine, keep-alive, streaming, WebSocket upgrade
 - [Module map](../modules.md) — full dependency diagram and overview
-- [Build guide](../build/getting-started.md) — use the library in your own C++ project
+- [HTTP Server recipe](../recipes/http-server.md) — use the library in your own C++ project
 - [HTTP performance harness](https://github.com/nilstate/icey/tree/main/src/http/perf/) — cross-stack benchmark methodology and results

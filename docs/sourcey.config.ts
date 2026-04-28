@@ -26,8 +26,6 @@ export default {
           {
             group: "Build",
             pages: [
-              "build/getting-started",
-              "build/installation",
               "recipes/http-server",
               "recipes/websocket-client-server",
               "recipes/turn-server",

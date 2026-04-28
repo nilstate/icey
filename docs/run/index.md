@@ -46,7 +46,7 @@ The binary you just ran is not a wrapper around external services. It is the who
 - **TURN** relays media through NATs when direct paths fail
 - **AV** captures, encodes, and packetizes H.264 video and Opus audio
 
-Each of those is an independent icey library module. The server assembles them into one binary. If you want to understand how, read the [architecture](../concepts/architecture.md) page. If you want to use those modules in your own C++ application, read the [build guide](../build/getting-started.md).
+Each of those is an independent icey library module. The server assembles them into one binary. If you want to understand how, read the [architecture](../concepts/architecture.md) page. If you want to use those modules in your own C++ application, start with the [HTTP Server recipe](../recipes/http-server.md).
 
 ## Three Modes
 
@@ -96,7 +96,7 @@ Each mode is covered in detail on the [modes page](modes.md).
 Docker, release binaries, Homebrew, APT, AUR, Nix, or build from source. Every install path in one place.
 ::
 
-::card{title="Build With icey" href="../build/getting-started"}
+::card{title="Build With icey" href="../recipes/http-server"}
 Use the library modules in your own C++ application. FetchContent, CMake targets, your first program.
 ::
 

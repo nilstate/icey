@@ -157,4 +157,4 @@ Both are configurable via CLI flags or config file. See the [CLI reference](cli.
 
 ## Library (For C++ Developers)
 
-If you want to use icey as a library in your own C++ project rather than running the server, see the [build guide](../build/getting-started.md). That covers FetchContent, CMake targets, and linking individual modules.
+If you want to use icey as a library in your own C++ project rather than running the server, the [HTTP Server recipe](../recipes/http-server.md) is the shortest end-to-end example. It covers FetchContent, CMake targets, and linking individual modules. The repository [README](https://github.com/nilstate/icey#quick-start) has the full library quick-start.
