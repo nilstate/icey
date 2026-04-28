@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+## [2.4.6] - 2026-04-28
+
 ### Fixed
 
 - `http::Server` now compiles on macOS libc++ where `file_clock::to_sys` returns a different precision than libstdc++ on Linux. Wrapped in `time_point_cast<system_clock::duration>` so both stdlibs produce a `system_clock::time_point` cleanly.
