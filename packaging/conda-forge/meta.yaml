@@ -7,7 +7,7 @@ package:
 
 source:
   url: https://github.com/nilstate/icey/archive/refs/tags/{{ version }}.tar.gz
-  sha256: 0000000000000000000000000000000000000000000000000000000000000000
+  sha256: 22bdcc9b30523dff995a132e63737d183a591e08aa3c76316e985cd4a2471176
 
 build:
   number: 0
