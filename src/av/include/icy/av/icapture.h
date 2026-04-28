@@ -39,10 +39,10 @@ public:
     virtual ~ICapture() = default;
 
     /// Start capturing and emitting packets.
-    virtual void start() = 0;
+    void start() override = 0;
 
     /// Stop capturing and release device resources.
-    virtual void stop() = 0;
+    void stop() override = 0;
 
     /// Open a media file as the capture source.
     /// @param file  Path to the media file.

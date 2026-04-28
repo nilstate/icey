@@ -140,7 +140,7 @@ protected:
     /// @param formatParams  Optional format parameters; may be updated by FFmpeg on return.
     void openStream(const std::string& filename, const AVInputFormat* inputFormat, AVDictionary** formatParams) override;
 
-    void emit(IPacket& packet);
+    void emit(IPacket& packet) override;
 
 protected:
     mutable std::mutex _mutex;
