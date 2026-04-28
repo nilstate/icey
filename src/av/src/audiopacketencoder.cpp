@@ -89,6 +89,13 @@ void AudioPacketEncoder::onStreamStateChange(const PacketStreamState& state)
             if (!_initialized) {
                 LTrace("Initializing audio encoder");
                 AudioEncoder::create();
+                // open() runs the iparams/oparams diff and creates the
+                // resampler when the input format (e.g. AAC's planar fltp)
+                // does not match the encoder's expected format (e.g. opus's
+                // interleaved flt). Without it, planar input gets written
+                // to an interleaved FIFO and channels get mis-interleaved,
+                // producing garbled audio.
+                AudioEncoder::open();
                 _initialized = true;
             }
             break;

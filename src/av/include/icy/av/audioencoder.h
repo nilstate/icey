@@ -73,6 +73,11 @@ struct AudioEncoder : public AudioContext
 
     av::AudioBuffer fifo;
     AVFormatContext* format;
+
+    /// Running PTS counter for encoder output, in encoder time_base units.
+    /// Anchored to the first input packet's PTS, then advanced by
+    /// frame->nb_samples per encoded frame. AV_NOPTS_VALUE before anchoring.
+    int64_t nextOutputPts = AV_NOPTS_VALUE;
 };
 
 

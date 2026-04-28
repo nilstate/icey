@@ -154,6 +154,9 @@ void AudioEncoder::create()
 
     // Update parameters that may have changed
     initAudioCodecFromContext(ctx, oparams);
+
+    // Output PTS counter is unanchored until the first input packet arrives.
+    nextOutputPts = AV_NOPTS_VALUE;
 }
 
 
@@ -187,15 +190,20 @@ void emitPacket(AudioEncoder* enc, AVPacket* opacket)
 
 int flushBuffer(AudioEncoder* enc)
 {
-    // Read frames from the FIFO while available
+    // Drain the FIFO into the encoder one output frame at a time.
+    // Each encoded frame's PTS comes from a running counter (anchored to the
+    // first input packet's PTS by encode(samples, ..., pts)) and advances by
+    // exactly frame->nb_samples per frame in the encoder time_base. This is
+    // what every audio encoder, including libopus, expects: gaps or resets
+    // produce "Queue input is backward in time" warnings and downstream
+    // A/V drift.
     int num = 0;
-    while (enc->fifo.read((void**)enc->frame->data, enc->frame->nb_samples) &&
-           enc->encode(enc->frame)) {
-        // NOTE: The encoder calculate the correct pts value for us,
-        // so let's just increment the pts counter.
-        if (enc->frame->pts != AV_NOPTS_VALUE) {
-            enc->frame->pts++;
-        }
+    while (enc->fifo.read((void**)enc->frame->data, enc->frame->nb_samples)) {
+        enc->frame->pts = enc->nextOutputPts;
+        if (!enc->encode(enc->frame))
+            break;
+        if (enc->nextOutputPts != AV_NOPTS_VALUE)
+            enc->nextOutputPts += enc->frame->nb_samples;
         num++;
     }
 
@@ -219,10 +227,11 @@ bool AudioEncoder::encode(uint8_t* samples, const int numSamples, const int64_t 
         fifo.write((void**)&samples, numSamples);
     }
 
-    // Set a timestamp value on the frame to be encoded if given.
-    if (pts != AV_NOPTS_VALUE) {
-        frame->pts = pts;
-    }
+    // Anchor the output PTS counter to the first input packet's PTS.
+    // Subsequent calls do not reset it; flushBuffer advances it by
+    // frame->nb_samples per encoded frame.
+    if (nextOutputPts == AV_NOPTS_VALUE && pts != AV_NOPTS_VALUE)
+        nextOutputPts = pts;
 
     return flushBuffer(this) > 0;
 }
@@ -249,10 +258,11 @@ bool AudioEncoder::encode(uint8_t* samples[4], const int numSamples, const int64
         fifo.write((void**)samples, numSamples);
     }
 
-    // Set a timestamp value on the frame to be encoded if given.
-    if (pts != AV_NOPTS_VALUE) {
-        frame->pts = pts;
-    }
+    // Anchor the output PTS counter to the first input packet's PTS.
+    // Subsequent calls do not reset it; flushBuffer advances it by
+    // frame->nb_samples per encoded frame.
+    if (nextOutputPts == AV_NOPTS_VALUE && pts != AV_NOPTS_VALUE)
+        nextOutputPts = pts;
 
     return flushBuffer(this) > 0;
 }
