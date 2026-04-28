@@ -57,6 +57,10 @@ void MediaCapture::close()
         std::lock_guard<std::mutex> guard(_mutex);
         _video.reset();
         _audio.reset();
+        // _videoStream is non-owning; the AVFormatContext owns the streams.
+        // Clear the pointer before closing the format context so the run
+        // loop never derefs a dangling pointer.
+        _videoStream = nullptr;
 
         if (_formatCtx) {
             avformat_close_input(&_formatCtx);
@@ -100,11 +104,14 @@ void MediaCapture::openStream(const std::string& filename, const AVInputFormat* 
 
     for (unsigned i = 0; i < _formatCtx->nb_streams; i++) {
         auto stream = _formatCtx->streams[i];
-        if (!_video && stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
-            _video = std::make_unique<VideoDecoder>(stream);
-            (void)_video->emitter.attach(packetSlot(this, &MediaCapture::emit));
-            _video->create();
-            _video->open();
+        if (!_videoStream && stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
+            _videoStream = stream;
+            if (!_passthroughVideo) {
+                _video = std::make_unique<VideoDecoder>(stream);
+                (void)_video->emitter.attach(packetSlot(this, &MediaCapture::emit));
+                _video->create();
+                _video->open();
+            }
         } else if (!_audio && stream->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
             _audio = std::make_unique<AudioDecoder>(stream);
             (void)_audio->emitter.attach(packetSlot(this, &MediaCapture::emit));
@@ -113,7 +120,7 @@ void MediaCapture::openStream(const std::string& filename, const AVInputFormat* 
         }
     }
 
-    if (!_video && !_audio)
+    if (!_videoStream && !_audio)
         throw std::runtime_error("Cannot find a valid media stream: " + filename);
 }
 
@@ -125,10 +132,10 @@ void MediaCapture::start()
     std::lock_guard<std::mutex>
         guard(_mutex);
 
-    if (!_video && !_audio)
+    if (!_videoStream && !_audio)
         throw std::runtime_error("No media streams available");
 
-    if ((_video || _audio) && !_thread.running()) {
+    if ((_videoStream || _audio) && !_thread.running()) {
         LTrace("Initializing thread");
         _stopping = false;
         _thread.start([this]() { run(); });
@@ -177,7 +184,9 @@ void MediaCapture::run()
         // Realtime variables
         int64_t startTime = time::hrtime();
 
-        // Rate limiting variables
+        // Rate limiting variables. Frame interval comes from the decoder's
+        // input params when decoding; in passthrough mode the rate limiter
+        // is a no-op (live sources are paced by their wire arrival).
         int64_t lastTimestamp = time::hrtime();
         int64_t frameInterval = _video ? fpsToInterval(int(_video->iparams.fps)) : 0;
 
@@ -200,31 +209,52 @@ void MediaCapture::run()
             if (_stopping)
                 break;
 
-            if (_video && ipacket->stream_index == _video->stream->index) {
+            if (_videoStream && ipacket->stream_index == _videoStream->index) {
 
                 // Realtime PTS calculation in microseconds
                 if (_realtime) {
                     ipacket->pts = time::hrtime() - startTime;
-                } else if (_looping) {
+                } else if (_looping && _video) {
                     // Set the PTS offset when looping
                     if (ipacket->pts == 0 && _video->pts > 0)
                         videoPtsOffset = _video->pts;
                     ipacket->pts += videoPtsOffset;
                 }
 
-                // Decode and emit
-                if (_video->decode(*ipacket)) {
-                    STrace << "Decoded video: "
-                           << "time=" << _video->time << ", "
-                           << "pts=" << _video->pts;
-                }
+                if (_video) {
+                    // Decode and emit (decoded frames go out via _video->emitter
+                    // which is wired to MediaCapture::emit in openStream).
+                    if (_video->decode(*ipacket)) {
+                        STrace << "Decoded video: "
+                               << "time=" << _video->time << ", "
+                               << "pts=" << _video->pts;
+                    }
 
-                // Pause the input stream in rate limited mode if the
-                // decoder is working too fast
-                if (_ratelimit) {
-                    auto nsdelay = frameInterval - (time::hrtime() - lastTimestamp);
-                    std::this_thread::sleep_for(std::chrono::nanoseconds(nsdelay));
-                    lastTimestamp = time::hrtime();
+                    // Pause the input stream in rate limited mode if the
+                    // decoder is working too fast.
+                    if (_ratelimit) {
+                        auto nsdelay = frameInterval - (time::hrtime() - lastTimestamp);
+                        std::this_thread::sleep_for(std::chrono::nanoseconds(nsdelay));
+                        lastTimestamp = time::hrtime();
+                    }
+                } else {
+                    // Passthrough mode: emit the encoded video AVPacket as an
+                    // av::VideoPacket without decoding. Time is microseconds
+                    // rescaled from the input stream's timebase. Keyframes
+                    // are signalled via the iframe flag so downstream consumers
+                    // (WebRtcTrackSender, recorders) can request keyframes
+                    // appropriately.
+                    const int64_t timeUs = ipacket->pts != AV_NOPTS_VALUE
+                        ? av_rescale_q(ipacket->pts, _videoStream->time_base, AVRational{1, AV_TIME_BASE})
+                        : 0;
+                    VideoPacket packet(
+                        ipacket->data,
+                        static_cast<size_t>(ipacket->size),
+                        _videoStream->codecpar->width,
+                        _videoStream->codecpar->height,
+                        timeUs);
+                    packet.iframe = (ipacket->flags & AV_PKT_FLAG_KEY) != 0;
+                    emit(packet);
                 }
             } else if (_audio && ipacket->stream_index == _audio->stream->index) {
 
@@ -347,6 +377,12 @@ void MediaCapture::setRealtimePTS(bool flag)
 void MediaCapture::setOpenOptions(const std::map<std::string, std::string>& options)
 {
     _openOptions = options;
+}
+
+
+void MediaCapture::setPassthroughVideo(bool flag)
+{
+    _passthroughVideo = flag;
 }
 
 

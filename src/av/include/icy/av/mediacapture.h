@@ -101,6 +101,18 @@ public:
     /// sources that need low-latency hints. Pass an empty map to clear.
     void setOpenOptions(const std::map<std::string, std::string>& options);
 
+    /// Skip the video decoder. Encoded video AVPackets from the input stream
+    /// are emitted directly as @c av::VideoPacket without decoding. The
+    /// emitted packets carry the source's encoded payload and a @c time in
+    /// microseconds rescaled from the stream's timebase. The @c iframe flag
+    /// is set from @c AV_PKT_FLAG_KEY.
+    ///
+    /// Use case: forwarding already-browser-compatible H.264 to a WebRTC
+    /// sender without the cost of decode plus re-encode. Must be called
+    /// before openFile(); changing the mode after the stream is open is
+    /// not supported.
+    void setPassthroughVideo(bool flag);
+
     /// @return The underlying AVFormatContext (thread-safe, mutex-protected).
     AVFormatContext* formatCtx() const;
 
@@ -141,7 +153,12 @@ protected:
     std::atomic<bool> _looping;
     std::atomic<bool> _realtime;
     std::atomic<bool> _ratelimit;
+    std::atomic<bool> _passthroughVideo{false};
     std::map<std::string, std::string> _openOptions;
+    // Non-owning pointer to the input video stream, populated whether or
+    // not a decoder was constructed. Used by the passthrough path so the
+    // run loop can route video AVPackets without depending on _video.
+    AVStream* _videoStream = nullptr;
 };
 
 
