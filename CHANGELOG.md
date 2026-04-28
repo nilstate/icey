@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Fixed
+
+- `http::Server` now compiles on macOS libc++ where `file_clock::to_sys` returns a different precision than libstdc++ on Linux. Wrapped in `time_point_cast<system_clock::duration>` so both stdlibs produce a `system_clock::time_point` cleanly.
+- `AudioPacketEncoder::onStreamStateChange` now calls `AudioEncoder::open()` after `create()` so the resampler is built when input format differs from the encoder's expected format. Without it, AAC's planar `fltp` was being written to opus's interleaved `flt` FIFO, producing garbled audio with mis-interleaved channels.
+- `AudioEncoder::flushBuffer` no longer increments output PTS by 1 per frame. PTS is now anchored to the first input packet's PTS and advances by `frame->nb_samples` per encoded frame, matching the standard pattern that libopus and other audio encoders expect. Eliminates the `[libopus] Queue input is backward in time` flood.
+
+### Added
+
+- `MediaCapture::setOpenOptions(map<string, string>)` for passing libavformat AVOptions (`rtsp_transport`, `fflags`, `analyzeduration`, `probesize`, `low_delay`, `reorder_queue_size`, ...) at `openFile()` time. Used by callers handling live network sources that need low-latency hints.
+
 ## [2.4.5] - 2026-04-12
 
 ### Fixed
