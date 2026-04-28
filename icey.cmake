@@ -355,7 +355,7 @@ if(WITH_LIBDATACHANNEL AND HAVE_OPENSSL AND HAVE_FFMPEG)
     include(FetchContent)
     FetchContent_Declare(libdatachannel
       GIT_REPOSITORY https://github.com/paullouisageneau/libdatachannel.git
-      GIT_TAG        v0.24.1
+      GIT_TAG        v0.24.2
       GIT_SHALLOW    TRUE)
     set(NO_MEDIA OFF CACHE BOOL "" FORCE)
     set(NO_WEBSOCKET ON CACHE BOOL "" FORCE)
