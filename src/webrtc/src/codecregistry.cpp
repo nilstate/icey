@@ -16,6 +16,12 @@
 
 namespace icy {
 namespace wrtc::codec_registry {
+
+// Forward declaration so the anonymous-namespace helpers below can call
+// hasEncoder, which is defined further down in this same translation unit
+// at codec_registry scope (it's part of the public API).
+bool hasEncoder(const std::string& ffmpegName);
+
 namespace {
 
 
@@ -141,20 +147,34 @@ bool icontains(std::string_view haystack, std::string_view needle)
 }
 
 
-const std::array<Entry, 10> kVideoEntries = {{
-    {CodecSpec{CodecId::H264, CodecMediaType::Video, "H264", "libx264", 90000, 96,
+// Order matters. Entries are walked in sequence; the first one whose ffmpeg
+// encoder is linked (hasEncoder() == true) wins for both SDP negotiation and
+// the auto-pick path used by callers that pass an empty encoder name. Place
+// hardware encoders ahead of libx264 so a build that includes
+// VideoToolbox / NVENC / VA-API / QSV / AMF will use the OS hardware path
+// by default; libx264 stays as the universal software fallback. On builds
+// that don't include a given hardware encoder, hasEncoder() returns false
+// and the walk falls through cleanly.
+const std::array<Entry, 13> kVideoEntries = {{
+    {CodecSpec{CodecId::H264, CodecMediaType::Video, "H264", "h264_videotoolbox", 90000, 96,
                "profile-level-id=42e01f;packetization-mode=1"}, AV_CODEC_ID_H264},
     {CodecSpec{CodecId::H264, CodecMediaType::Video, "H264", "h264_nvenc", 90000, 96,
                "profile-level-id=42e01f;packetization-mode=1"}, AV_CODEC_ID_H264},
     {CodecSpec{CodecId::H264, CodecMediaType::Video, "H264", "h264_vaapi", 90000, 96,
                "profile-level-id=42e01f;packetization-mode=1"}, AV_CODEC_ID_H264},
+    {CodecSpec{CodecId::H264, CodecMediaType::Video, "H264", "h264_qsv", 90000, 96,
+               "profile-level-id=42e01f;packetization-mode=1"}, AV_CODEC_ID_H264},
+    {CodecSpec{CodecId::H264, CodecMediaType::Video, "H264", "h264_amf", 90000, 96,
+               "profile-level-id=42e01f;packetization-mode=1"}, AV_CODEC_ID_H264},
+    {CodecSpec{CodecId::H264, CodecMediaType::Video, "H264", "libx264", 90000, 96,
+               "profile-level-id=42e01f;packetization-mode=1"}, AV_CODEC_ID_H264},
     {CodecSpec{CodecId::VP8, CodecMediaType::Video, "VP8", "libvpx", 90000, 97, {}}, AV_CODEC_ID_VP8},
     {CodecSpec{CodecId::VP9, CodecMediaType::Video, "VP9", "libvpx-vp9", 90000, 98, {}}, AV_CODEC_ID_VP9},
-    {CodecSpec{CodecId::AV1, CodecMediaType::Video, "AV1", "libaom-av1", 90000, 99, {}}, AV_CODEC_ID_AV1},
-    {CodecSpec{CodecId::AV1, CodecMediaType::Video, "AV1", "libsvtav1", 90000, 99, {}}, AV_CODEC_ID_AV1},
     {CodecSpec{CodecId::AV1, CodecMediaType::Video, "AV1", "av1_nvenc", 90000, 99, {}}, AV_CODEC_ID_AV1},
-    {CodecSpec{CodecId::H265, CodecMediaType::Video, "H265", "libx265", 90000, 100, {}}, AV_CODEC_ID_HEVC},
+    {CodecSpec{CodecId::AV1, CodecMediaType::Video, "AV1", "libsvtav1", 90000, 99, {}}, AV_CODEC_ID_AV1},
+    {CodecSpec{CodecId::AV1, CodecMediaType::Video, "AV1", "libaom-av1", 90000, 99, {}}, AV_CODEC_ID_AV1},
     {CodecSpec{CodecId::H265, CodecMediaType::Video, "H265", "hevc_nvenc", 90000, 100, {}}, AV_CODEC_ID_HEVC},
+    {CodecSpec{CodecId::H265, CodecMediaType::Video, "H265", "libx265", 90000, 100, {}}, AV_CODEC_ID_HEVC},
 }};
 
 
@@ -171,8 +191,13 @@ const std::array<Entry, 5> kAudioEntries = {{
 template <size_t N>
 const Entry* findByRtpInTable(std::string_view rtpName, const std::array<Entry, N>& table)
 {
+    // Walk all entries with the given RTP name and return the first one
+    // whose ffmpeg encoder is linked at runtime. Combined with the table's
+    // hardware-first ordering, this picks the platform-best encoder
+    // automatically. A name with no usable encoder returns nullptr instead
+    // of an unusable entry.
     for (const auto& entry : table) {
-        if (iequals(rtpName, entry.spec.rtpName))
+        if (iequals(rtpName, entry.spec.rtpName) && hasEncoder(entry.spec.ffmpegName))
             return &entry;
     }
     return nullptr;
@@ -305,8 +330,15 @@ const Entry* resolveVideo(const av::VideoCodec& codec)
 {
     if (!codec.specified())
         return nullptr;
-    if (!codec.encoder.empty())
-        return findByFfmpeg(codec.encoder);
+    if (!codec.encoder.empty()) {
+        // Try the explicit ffmpeg encoder name first ("libx264",
+        // "h264_videotoolbox", ...). If it doesn't match, treat the string
+        // as a codec alias ("h264", "vp8", ...) and resolve via the RTP
+        // name lookup, which returns the platform-best available encoder.
+        if (auto* entry = findByFfmpeg(codec.encoder))
+            return entry;
+        return findByRtp(codec.encoder);
+    }
     return findByRtp(codec.name);
 }
 
@@ -315,8 +347,11 @@ const Entry* resolveAudio(const av::AudioCodec& codec)
 {
     if (!codec.specified())
         return nullptr;
-    if (!codec.encoder.empty())
-        return findByFfmpeg(codec.encoder);
+    if (!codec.encoder.empty()) {
+        if (auto* entry = findByFfmpeg(codec.encoder))
+            return entry;
+        return findByRtp(codec.encoder);
+    }
     return findByRtp(codec.name);
 }
 
@@ -402,13 +437,49 @@ std::shared_ptr<rtc::MediaHandler> makeDepacketizer(const CodecSpec& spec)
 }
 
 
+// Encoder-specific low-latency option presets for H.264. Each ffmpeg encoder
+// has its own option vocabulary; setting "preset=ultrafast" on a hardware
+// encoder gets ignored by ffmpeg's av_opt_set with a warning, which is the
+// same behaviour as the previous code, but here we set the right knobs so
+// the hardware path actually runs in low-latency mode.
+void applyH264EncoderDefaults(av::VideoCodec& codec)
+{
+    const auto& enc = codec.encoder;
+    if (enc == "h264_videotoolbox") {
+        codec.options["realtime"] = "1";
+        codec.options["allow_sw"] = "0";
+        codec.options["profile"] = "baseline";
+    } else if (enc == "h264_nvenc") {
+        codec.options["preset"] = "p1";
+        codec.options["tune"] = "ll";
+        codec.options["zerolatency"] = "1";
+        codec.options["profile"] = "baseline";
+    } else if (enc == "h264_vaapi") {
+        codec.options["low_power"] = "1";
+        codec.options["idr_interval"] = "60";
+        codec.options["profile"] = "constrained_baseline";
+    } else if (enc == "h264_qsv") {
+        codec.options["preset"] = "veryfast";
+        codec.options["look_ahead"] = "0";
+        codec.options["profile"] = "baseline";
+    } else if (enc == "h264_amf") {
+        codec.options["usage"] = "ultralowlatency";
+        codec.options["quality"] = "speed";
+        codec.options["profile"] = "constrained_baseline";
+    } else {
+        // libx264 and any other software fallback.
+        codec.options["preset"] = "ultrafast";
+        codec.options["tune"] = "zerolatency";
+        codec.options["profile"] = "baseline";
+    }
+}
+
+
 void applyWebRtcDefaults(av::VideoCodec& codec, const CodecSpec& spec)
 {
     switch (spec.id) {
     case CodecId::H264:
-        codec.options["preset"] = "ultrafast";
-        codec.options["tune"] = "zerolatency";
-        codec.options["profile"] = "baseline";
+        applyH264EncoderDefaults(codec);
         break;
     case CodecId::VP8:
         codec.options["deadline"] = "realtime";
