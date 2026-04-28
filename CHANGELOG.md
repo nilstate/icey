@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+## [2.4.7] - 2026-04-28
+
+### Added
+
+- `icy::av::parseDeviceUrl(source)` — single source of truth for libavdevice URL schemes (`avfoundation:`, `v4l2:`, `dshow:`). Returns the resolved `AVInputFormat*` and the post-prefix filename. Throws if a recognised scheme has no matching backend on this build.
+- `MediaCapture::openFile` routes recognised device URLs through the existing `openStream(filename, iformat, opts)` path, so callers can open the OS camera directly without an ffmpeg/relay subprocess.
+
+### Fixed
+
+- `internal::init()` now calls `avdevice_register_all()` under `HAVE_FFMPEG_AVDEVICE`. The prior comment was wrong: codec/format auto-registration arrived in FFmpeg 4.0+, but libavdevice still requires an explicit register call for `av_find_input_format("avfoundation"|"v4l2"|"dshow")` to resolve. `parseDeviceUrl` also performs a one-shot `std::call_once` registration so device URLs work even before any `MediaCapture` is constructed.
+- `MediaCapture::run` no longer treats `AVERROR(EAGAIN)` from `av_read_frame` as fatal. Live demuxers (notably avfoundation) return it whenever their internal frame queue is momentarily empty; the prior code tore the capture down at the first hiccup, which surfaced as the capture pipeline emitting only the initial three buffered frames before going silent.
+
+### Changed
+
+- Bumped the pinned `libdatachannel` from `v0.24.1` to `v0.24.2`.
+
 ## [2.4.6] - 2026-04-28
 
 ### Fixed
