@@ -36,8 +36,16 @@ Timestamp normalizeHttpTimestamp(const Timestamp& ts)
 
 std::chrono::system_clock::time_point toSystemTime(stdfs::file_time_type fileTime)
 {
-    return std::chrono::time_point_cast<std::chrono::system_clock::duration>(
-        std::chrono::file_clock::to_sys(fileTime));
+    // Cross-platform conversion from filesystem time to system_clock time.
+    // file_clock::to_sys is not a member of MSVC's file_clock implementation,
+    // so we use the standard "delta calibration" idiom: compute the offset
+    // between file_clock::now() and system_clock::now() and apply it. Works
+    // on libstdc++, libc++, and MSVC, and tolerates the libc++ case where
+    // file_clock returns nanosecond precision (system_clock::duration on
+    // libstdc++ and microsecond on libc++).
+    using namespace std::chrono;
+    return time_point_cast<system_clock::duration>(
+        system_clock::now() + (fileTime - stdfs::file_time_type::clock::now()));
 }
 
 std::string makeWeakETag(uint64_t size, long long version)

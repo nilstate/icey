@@ -438,6 +438,7 @@ parseDeviceUrl(std::string_view source)
             source[scheme.size() + 2] == '/')
             continue;
 
+#ifdef HAVE_FFMPEG_AVDEVICE
         // libavdevice formats are not auto-registered by FFmpeg's static
         // initialisers. Register once on first device-URL lookup so the
         // function works regardless of whether the caller has already
@@ -453,6 +454,11 @@ parseDeviceUrl(std::string_view source)
                 std::string(scheme));
 
         return std::make_pair(iformat, std::string(source.substr(scheme.size() + 1)));
+#else
+        throw std::runtime_error(
+            "libavdevice is not linked; cannot resolve device input scheme: " +
+            std::string(scheme));
+#endif
     }
 
     return std::nullopt;
