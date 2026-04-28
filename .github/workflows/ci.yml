@@ -318,7 +318,7 @@ jobs:
 
   benchmarks:
     runs-on: ubuntu-24.04
-    name: Benchmarks (FFmpeg)
+    name: Benchmarks (clang-18 + FFmpeg)
     steps:
       - uses: actions/checkout@v5
         with:
@@ -327,7 +327,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libssl-dev gcc-14 g++-14 \
+          sudo apt-get install -y libssl-dev clang-18 \
             libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libswresample-dev
 
       - name: Setup ccache
@@ -335,12 +335,21 @@ jobs:
         with:
           key: benchmarks
 
+      # The benchmarks job runs under clang-18. The previous gcc-14 run
+      # hit SIGILL (signal 4) on signalbench and packetstreambench on
+      # the GitHub-hosted ubuntu-24.04 runner under -O3. The library
+      # itself builds and tests cleanly under gcc-14 (see the Linux
+      # (g++-14) job) and under both sanitizer jobs; the SIGILL only
+      # surfaces in the benchmark binaries' optimized inner loops.
+      # Clang-18 generates different code for the same hot paths and
+      # does not trigger the issue, so the bench numbers come from a
+      # consistent compiler that runs to completion.
       - name: Configure
         run: |
           cmake -B build-bench \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_C_COMPILER=gcc-14 \
-            -DCMAKE_CXX_COMPILER=g++-14 \
+            -DCMAKE_C_COMPILER=clang-18 \
+            -DCMAKE_CXX_COMPILER=clang++-18 \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DWITH_FFMPEG=ON \
