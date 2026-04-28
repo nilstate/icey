@@ -1,6 +1,6 @@
 pkgbase = icey
 	pkgdesc = C++20 media stack and libwebrtc alternative for real-time video, signalling, TURN, and media servers
-	pkgver = 2.4.8
+	pkgver = 2.4.9
 	pkgrel = 1
 	url = https://0state.com/icey/
 	arch = x86_64
@@ -14,7 +14,7 @@ pkgbase = icey
 	depends = minizip
 	depends = openssl
 	depends = zlib
-	source = icey-2.4.8.tar.gz::https://github.com/nilstate/icey/archive/refs/tags/2.4.8.tar.gz
-	sha256sums = 22bdcc9b30523dff995a132e63737d183a591e08aa3c76316e985cd4a2471176
+	source = icey-2.4.9.tar.gz::https://github.com/nilstate/icey/archive/refs/tags/2.4.9.tar.gz
+	sha256sums = 0000000000000000000000000000000000000000000000000000000000000000
 
 pkgname = icey

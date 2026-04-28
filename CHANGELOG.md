@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+## [2.4.9] - 2026-04-28
+
+### Fixed
+
+- `wrtc::codec_registry::hasEncoder` now does a runtime probe (`avcodec_alloc_context3` + `avcodec_open2`), with results cached. The prior implementation only checked `avcodec_find_encoder_by_name`, which on Linux distros that ship libavcodec with hardware-encoder wrappers built in (h264_nvenc, h264_vaapi, h264_qsv) returned true even when the runtime resources for those encoders (CUDA, VA-API drivers, etc.) were absent. The h264-on-macOS / videotoolbox path was unaffected; the fix prevents codec selection from picking a hardware encoder that exists at link time but cannot be opened at runtime, which surfaced as "Cannot open the video codec: Operation not permitted" in the icey-cli browser smoke on Linux CI.
+
 ## [2.4.8] - 2026-04-28
 
 ### Fixed
