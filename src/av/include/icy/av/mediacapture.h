@@ -25,6 +25,8 @@
 #include "icy/packetsignal.h"
 
 #include <atomic>
+#include <map>
+#include <string>
 
 
 namespace icy {
@@ -93,6 +95,12 @@ public:
     /// not always reliable.
     void setRealtimePTS(bool flag);
 
+    /// Set demuxer options applied at the next openFile() call.
+    /// Keys map to libavformat AVOption entries (e.g. "rtsp_transport",
+    /// "fflags", "analyzeduration", "probesize"). Useful for live network
+    /// sources that need low-latency hints. Pass an empty map to clear.
+    void setOpenOptions(const std::map<std::string, std::string>& options);
+
     /// @return The underlying AVFormatContext (thread-safe, mutex-protected).
     AVFormatContext* formatCtx() const;
 
@@ -133,6 +141,7 @@ protected:
     std::atomic<bool> _looping;
     std::atomic<bool> _realtime;
     std::atomic<bool> _ratelimit;
+    std::map<std::string, std::string> _openOptions;
 };
 
 

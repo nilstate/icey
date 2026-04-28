@@ -71,7 +71,15 @@ void MediaCapture::close()
 void MediaCapture::openFile(const std::string& file)
 {
     LTrace("Opening file: ", file);
-    openStream(file, nullptr, nullptr);
+    if (_openOptions.empty()) {
+        openStream(file, nullptr, nullptr);
+        return;
+    }
+    AVDictionary* opts = nullptr;
+    for (const auto& [key, value] : _openOptions)
+        av_dict_set(&opts, key.c_str(), value.c_str(), 0);
+    openStream(file, nullptr, &opts);
+    av_dict_free(&opts);
 }
 
 
@@ -333,6 +341,12 @@ void MediaCapture::setLimitFramerate(bool flag)
 void MediaCapture::setRealtimePTS(bool flag)
 {
     _realtime = flag;
+}
+
+
+void MediaCapture::setOpenOptions(const std::map<std::string, std::string>& options)
+{
+    _openOptions = options;
 }
 
 
