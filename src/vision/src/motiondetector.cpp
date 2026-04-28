@@ -13,11 +13,91 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <utility>
+#include <vector>
 
 
 namespace icy {
 namespace vision {
+
+namespace {
+
+struct MotionCluster
+{
+    int minX = 0, minY = 0;
+    int maxX = 0, maxY = 0; // inclusive
+    float scoreSum = 0.0f;
+    int cellCount = 0;
+};
+
+// 4-connected flood fill on cells where per-cell luma diff exceeds the
+// threshold. Returns one MotionCluster per connected component, with
+// per-cell normalized diffs in @p outDiffs (size = gridW * gridH).
+std::vector<MotionCluster> clusterHotCells(
+    const std::vector<uint8_t>& current,
+    const std::vector<uint8_t>& previous,
+    int gridW, int gridH,
+    float cellThreshold,
+    std::vector<float>& outDiffs)
+{
+    outDiffs.assign(current.size(), 0.0f);
+    for (size_t i = 0; i < current.size() && i < previous.size(); ++i) {
+        outDiffs[i] = std::abs(int(current[i]) - int(previous[i])) / 255.0f;
+    }
+
+    std::vector<int> labels(current.size(), -1);
+    std::vector<MotionCluster> clusters;
+    std::vector<int> stack;
+    stack.reserve(current.size());
+
+    auto idx = [gridW](int x, int y) { return y * gridW + x; };
+
+    for (int y = 0; y < gridH; ++y) {
+        for (int x = 0; x < gridW; ++x) {
+            const int seed = idx(x, y);
+            if (labels[seed] != -1) continue;
+            if (outDiffs[seed] < cellThreshold) continue;
+
+            const int clusterId = static_cast<int>(clusters.size());
+            clusters.push_back(MotionCluster{ x, y, x, y, 0.0f, 0 });
+            labels[seed] = clusterId;
+            stack.push_back(seed);
+
+            while (!stack.empty()) {
+                const int j = stack.back();
+                stack.pop_back();
+                const int jx = j % gridW;
+                const int jy = j / gridW;
+
+                MotionCluster& c = clusters[clusterId];
+                c.minX = std::min(c.minX, jx);
+                c.maxX = std::max(c.maxX, jx);
+                c.minY = std::min(c.minY, jy);
+                c.maxY = std::max(c.maxY, jy);
+                c.scoreSum += outDiffs[j];
+                c.cellCount++;
+
+                static const int dx[4] = { -1, 1, 0, 0 };
+                static const int dy[4] = { 0, 0, -1, 1 };
+                for (int n = 0; n < 4; ++n) {
+                    const int nx = jx + dx[n];
+                    const int ny = jy + dy[n];
+                    if (nx < 0 || nx >= gridW || ny < 0 || ny >= gridH) continue;
+                    const int ni = idx(nx, ny);
+                    if (labels[ni] != -1) continue;
+                    if (outDiffs[ni] < cellThreshold) continue;
+                    labels[ni] = clusterId;
+                    stack.push_back(ni);
+                }
+            }
+        }
+    }
+
+    return clusters;
+}
+
+} // anon namespace
 
 
 MotionDetector::MotionDetector(MotionDetectorConfig config)
@@ -186,20 +266,70 @@ void MotionDetector::emitEvent(const VisionFramePacket& packet, float score)
         event.frame.pixelFmt = packet.pixelFmt;
     event.frame.keyframe = packet.iframe || event.frame.keyframe;
 
-    Detection detection;
-    detection.label = "motion";
-    detection.confidence = score;
-    detection.region = {
-        .x = 0.0f,
-        .y = 0.0f,
-        .width = 1.0f,
-        .height = 1.0f,
-    };
-    detection.data["score"] = score;
-    event.detections.push_back(std::move(detection));
+    // Per-cell luma diffs and connected-component clusters. Cell threshold
+    // is half the global threshold; combined with the global gate above,
+    // most events will produce at least one cluster.
+    const float cellThreshold = std::max(_config.threshold * 0.5f, 0.02f);
+    std::vector<float> cellDiffs;
+    auto clusters = clusterHotCells(_currentGrid, _previousGrid,
+                                    static_cast<int>(_config.gridWidth),
+                                    static_cast<int>(_config.gridHeight),
+                                    cellThreshold,
+                                    cellDiffs);
+
+    // Cap clusters by area. Very small isolated cells are noise; very many
+    // clusters in one event swamps the overlay. Keep the top 8 by cell count.
+    std::sort(clusters.begin(), clusters.end(),
+              [](const MotionCluster& a, const MotionCluster& b) {
+                  return a.cellCount > b.cellCount;
+              });
+    if (clusters.size() > 8)
+        clusters.resize(8);
+
+    const float gw = static_cast<float>(_config.gridWidth);
+    const float gh = static_cast<float>(_config.gridHeight);
+
+    if (!clusters.empty()) {
+        for (const auto& c : clusters) {
+            Detection d;
+            d.label = "motion";
+            d.confidence = c.cellCount > 0 ? c.scoreSum / c.cellCount : 0.0f;
+            d.region = {
+                .x = c.minX / gw,
+                .y = c.minY / gh,
+                .width = (c.maxX - c.minX + 1) / gw,
+                .height = (c.maxY - c.minY + 1) / gh,
+            };
+            d.data["score"] = d.confidence;
+            d.data["cells"] = c.cellCount;
+            event.detections.push_back(std::move(d));
+        }
+    }
+    else {
+        // Diffuse motion that didn't form a cluster above cellThreshold.
+        // Keep one full-frame detection so consumers always see something.
+        Detection d;
+        d.label = "motion";
+        d.confidence = score;
+        d.region = { .x = 0.0f, .y = 0.0f, .width = 1.0f, .height = 1.0f };
+        d.data["score"] = score;
+        event.detections.push_back(std::move(d));
+    }
+
+    // Per-cell normalized diff grid for heatmap rendering.
+    json::Value grid = json::Value::object();
+    grid["width"] = static_cast<int>(_config.gridWidth);
+    grid["height"] = static_cast<int>(_config.gridHeight);
+    json::Value cells = json::Value::array();
+    cells.get_ref<json::Value::array_t&>().reserve(cellDiffs.size());
+    for (float d : cellDiffs)
+        cells.push_back(d);
+    grid["cells"] = std::move(cells);
+
     event.data["score"] = score;
     event.data["gridWidth"] = _config.gridWidth;
     event.data["gridHeight"] = _config.gridHeight;
+    event.data["grid"] = std::move(grid);
 
     Event.emit(event);
     ++_emitted;
