@@ -8,12 +8,12 @@ class Icey(CMakePackage):
     signalling, TURN, and media servers."""
 
     homepage = "https://0state.com/icey/"
-    url = "https://github.com/nilstate/icey/archive/refs/tags/2.4.8.tar.gz"
+    url = "https://github.com/nilstate/icey/archive/refs/tags/2.4.9.tar.gz"
     git = "https://github.com/nilstate/icey.git"
 
     license("LGPL-2.1-or-later")
 
-    version("2.4.9", sha256="0000000000000000000000000000000000000000000000000000000000000000")
+    version("2.4.9", sha256="9d8707b3696365a6d21d6eb377422125501980df910618acefea0c2b29af96c6")
 
     depends_on("c", type="build")
     depends_on("cxx", type="build")
