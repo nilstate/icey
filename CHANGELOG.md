@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+## [2.4.8] - 2026-04-28
+
+### Fixed
+
+- `http::Server` portability: replaced `file_clock::to_sys` with the standard delta-calibration idiom (`system_clock::now() + (fileTime - file_clock::now())`). MSVC's `_File_time_clock` does not expose `to_sys`, so the prior libc++-targeted fix from 2.4.6 broke the Windows build. The new form works on libstdc++, libc++, and MSVC, and tolerates the precision difference between libc++ and libstdc++ that the prior `time_point_cast` was meant to address.
+- `parseDeviceUrl`: device-resolution path is now guarded by `HAVE_FFMPEG_AVDEVICE`. The 2.4.7 implementation called `avdevice_register_all` unconditionally, breaking builds where libavdevice is not linked. Without it, hitting a recognised device URL throws an explicit "libavdevice is not linked" error rather than failing to build.
+
+### Changed
+
+- Doc cleanup: cross-links to the removed `docs/build/*` pages are redirected to the `recipes/http-server` recipe, the README quick-start, and `docs/run/install`. `sourcey.config.ts`, `release-sync.sh`, and `release-check.sh` no longer iterate over the deleted files.
+
 ## [2.4.7] - 2026-04-28
 
 ### Added
