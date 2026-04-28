@@ -319,13 +319,6 @@ jobs:
   benchmarks:
     runs-on: ubuntu-24.04
     name: Benchmarks (FFmpeg)
-    # Informational only. Tracks performance trends; not a merge gate.
-    # signalbench has been hitting SIGILL on the GitHub-hosted x86_64
-    # runner since Apr 21 (commit d3b3fee9) but cannot be reproduced in
-    # a local Linux GCC 14 container with the same source and flags;
-    # the regular Linux build/test jobs (gcc-14 + clang-18) and both
-    # sanitizer jobs all pass cleanly. Investigate separately.
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v5
         with:
