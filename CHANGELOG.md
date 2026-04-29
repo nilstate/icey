@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+## [2.4.10] - 2026-04-29
+
+### Fixed
+
+- `ICapture::start`/`::stop` (which override `basic::Startable`) and `MediaCapture::emit` (which overrides `PacketSource::emit`) are now declared with `override`. clang-18 with `-Werror -Winconsistent-missing-override` was failing the bench build on these.
+- `[[nodiscard]]` returns from `AudioEncoder::encode`, `VideoEncoder::encode`, `MultiplexEncoder::encode{Video,Audio}`, and `VideoEncoder::flush` are now explicitly discarded with `(void)` at the seven call sites in `audiopacketencoder.cpp`, `multiplexpacketencoder.cpp`, `videoencoder.cpp`, and `videopacketencoder.cpp`. Emission happens through the encoder's emitter, not through the boolean return; the discard was always intentional.
+
+### Changed
+
+- The CI benchmarks job now runs under clang-18 instead of gcc-14. The gcc-14 build of the bench binaries hit SIGILL on the GitHub-hosted ubuntu-24.04 runner under `-O3`; the library itself builds and tests cleanly under gcc-14 in the regular Linux job and under all three sanitizer jobs. Tracked by [nilstate/icey#325](https://github.com/nilstate/icey/issues/325). `icy_add_benchmark` carries a `-O2 -fno-tree-vectorize` GCC fallback as defence in depth for anyone building bench binaries with GCC outside CI.
+- Doc cross-links to the removed `docs/build/*` pages now redirect to the `recipes/http-server` recipe, the README quick-start, and `docs/run/install`. `sourcey.config.ts`, `release-sync.sh`, and `release-check.sh` no longer iterate over the deleted files.
+
 ## [2.4.9] - 2026-04-28
 
 ### Fixed
