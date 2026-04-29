@@ -335,15 +335,8 @@ jobs:
         with:
           key: benchmarks
 
-      # The benchmarks job runs under clang-18. The previous gcc-14 run
-      # hit SIGILL (signal 4) on signalbench and packetstreambench on
-      # the GitHub-hosted ubuntu-24.04 runner under -O3. The library
-      # itself builds and tests cleanly under gcc-14 (see the Linux
-      # (g++-14) job) and under both sanitizer jobs; the SIGILL only
-      # surfaces in the benchmark binaries' optimized inner loops.
-      # Clang-18 generates different code for the same hot paths and
-      # does not trigger the issue, so the bench numbers come from a
-      # consistent compiler that runs to completion.
+      # Bench runs under clang-18 to work around a gcc-14 SIGILL in the
+      # bench inner loops on the GitHub-hosted runner. See nilstate/icey#325.
       - name: Configure
         run: |
           cmake -B build-bench \
