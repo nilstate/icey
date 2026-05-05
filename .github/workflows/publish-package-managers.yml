@@ -51,27 +51,27 @@ jobs:
         if: steps.gate.outputs.publish == 'true'
         uses: actions/checkout@v5
         with:
-          repository: nilstate/homebrew-icey
+          repository: nilstate/homebrew-tap
           token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
-          path: .stage/homebrew-icey
+          path: .stage/homebrew-tap
 
       - name: Publish formulae
         if: steps.gate.outputs.publish == 'true'
         env:
-          TAP_REPO_DIR: ${{ github.workspace }}/.stage/homebrew-icey
+          TAP_REPO_DIR: ${{ github.workspace }}/.stage/homebrew-tap
         run: bash ./scripts/publish-homebrew.sh
 
       - name: Commit formula update
         if: steps.gate.outputs.publish == 'true'
         run: |
-          git -C .stage/homebrew-icey config user.name "github-actions[bot]"
-          git -C .stage/homebrew-icey config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git -C .stage/homebrew-icey add Formula/icey.rb Formula/libdatachannel.rb
-          if git -C .stage/homebrew-icey diff --cached --quiet; then
+          git -C .stage/homebrew-tap config user.name "github-actions[bot]"
+          git -C .stage/homebrew-tap config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C .stage/homebrew-tap add Formula/icey.rb Formula/libdatachannel.rb
+          if git -C .stage/homebrew-tap diff --cached --quiet; then
             exit 0
           fi
-          git -C .stage/homebrew-icey commit -m "icey ${{ needs.prepare.outputs.version }}"
-          git -C .stage/homebrew-icey push
+          git -C .stage/homebrew-tap commit -m "icey ${{ needs.prepare.outputs.version }}"
+          git -C .stage/homebrew-tap push
 
   publish-aur:
     runs-on: ubuntu-24.04

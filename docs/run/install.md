@@ -55,8 +55,7 @@ The release binary requires OpenSSL and FFmpeg libraries on the host. If you get
 ::tab{title="Homebrew"}
 
 ```bash
-brew tap nilstate/icey
-brew install icey-server
+brew install nilstate/tap/icey-server
 icey-server --source /path/to/video.mp4
 ```
 
