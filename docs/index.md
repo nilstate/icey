@@ -51,7 +51,7 @@ That binary — `icey-server` — is built entirely from icey's library modules.
 
 :::card-group{cols="3"}
 
-::card{title="Run" icon="play" href="run/"}
+::card{title="Run" icon="play" href="run"}
 Install and run icey-server. Docker, release binaries, package managers. Stream, record, or relay in under a minute.
 ::
 
@@ -69,7 +69,7 @@ Deploy to production. Config reference, TLS, TURN, health endpoints, monitoring,
 
 | Goal | Start here |
 | --- | --- |
-| Run the media server now | [See It Work](run/) |
+| Run the media server now | [See It Work](run) |
 | Install icey-server | [Install](run/install) |
 | Understand the three modes (stream, record, relay) | [Modes](run/modes) |
 | Understand how the server maps to the library | [Architecture](concepts/architecture) |
