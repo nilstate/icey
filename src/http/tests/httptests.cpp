@@ -182,45 +182,45 @@ int main(int argc, char** argv)
         expect(url2.host() == "localhost");
         expect(url2.path() == "/home/icey/foo.bar");
 
-        http::URL url3("http", "www.0state.com", "/index.html");
+        http::URL url3("http", "0state.com", "/index.html");
         expect(url3.scheme() == "http");
-        expect(url3.authority() == "www.0state.com");
-        expect(url3.host() == "www.0state.com");
+        expect(url3.authority() == "0state.com");
+        expect(url3.host() == "0state.com");
         expect(url3.path() == "/index.html");
 
-        http::URL url4("http", "www.0state.com:8000", "/index.html");
+        http::URL url4("http", "0state.com:8000", "/index.html");
         expect(url4.scheme() == "http");
-        expect(url4.authority() == "www.0state.com:8000");
-        expect(url4.host() == "www.0state.com");
+        expect(url4.authority() == "0state.com:8000");
+        expect(url4.host() == "0state.com");
         expect(url4.path() == "/index.html");
 
-        http::URL url5("http", "user@www.0state.com:8000", "/index.html");
+        http::URL url5("http", "user@0state.com:8000", "/index.html");
         expect(url5.scheme() == "http");
         expect(url5.userInfo() == "user");
-        expect(url5.host() == "www.0state.com");
+        expect(url5.host() == "0state.com");
         expect(url5.port() == 8000);
-        expect(url5.authority() == "user@www.0state.com:8000");
+        expect(url5.authority() == "user@0state.com:8000");
         expect(url5.path() == "/index.html");
 
-        http::URL url6("http", "user@www.0state.com:80", "/index.html");
+        http::URL url6("http", "user@0state.com:80", "/index.html");
         expect(url6.scheme() == "http");
         expect(url6.userInfo() == "user");
-        expect(url6.host() == "www.0state.com");
+        expect(url6.host() == "0state.com");
         expect(url6.port() == 80);
-        expect(url6.authority() == "user@www.0state.com:80");
+        expect(url6.authority() == "user@0state.com:80");
         expect(url6.path() == "/index.html");
 
-        http::URL url7("http", "www.0state.com", "/index.html", "query=test", "fragment");
+        http::URL url7("http", "0state.com", "/index.html", "query=test", "fragment");
         expect(url7.scheme() == "http");
-        expect(url7.authority() == "www.0state.com");
+        expect(url7.authority() == "0state.com");
         expect(url7.path() == "/index.html");
         expect(url7.pathEtc() == "/index.html?query=test#fragment");
         expect(url7.query() == "query=test");
         expect(url7.fragment() == "fragment");
 
-        http::URL url8("http", "www.0state.com", "/index.html?query=test#fragment");
+        http::URL url8("http", "0state.com", "/index.html?query=test#fragment");
         expect(url8.scheme() == "http");
-        expect(url8.authority() == "www.0state.com");
+        expect(url8.authority() == "0state.com");
         expect(url8.path() == "/index.html");
         expect(url8.pathEtc() == "/index.html?query=test#fragment");
         expect(url8.query() == "query=test");

@@ -425,7 +425,7 @@ Creates an [Address](#address) from an IP address or host name and a port number
 
 Examples: 192.168.1.10:80
 
-www.0state.com:8080
+0state.com:8080
 
 ---
 
