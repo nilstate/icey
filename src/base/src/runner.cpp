@@ -76,14 +76,12 @@ bool Runner::waitForExit(int timeout)
         throw std::logic_error("Runner: cannot join from own thread");
     using namespace std::chrono;
     auto start = steady_clock::now();
-    while (!cancelled() || running()) {
+    while (running()) {
         std::this_thread::sleep_for(milliseconds(10));
         if (timeout > 0) {
             auto elapsed = duration_cast<milliseconds>(steady_clock::now() - start).count();
-            if (elapsed > timeout) {
+            if (elapsed > timeout)
                 throw std::logic_error("Runner: join timed out, possible deadlock");
-                return false;
-            }
         }
     }
     return true;

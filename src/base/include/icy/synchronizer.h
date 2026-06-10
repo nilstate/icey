@@ -19,6 +19,7 @@
 #include "icy/platform.h"
 
 #include <deque>
+#include <mutex>
 #include <stdexcept>
 
 
@@ -146,6 +147,12 @@ protected:
     virtual bool async() const override;
 
     uv::Handle<uv_async_t> _handle;
+
+    /// Serializes `post()` (any thread) against `close()`. The handle context
+    /// uses a non-atomic intrusive refcount owned by the loop thread, so
+    /// `post()` must never copy the context pointer; it reads the raw handle
+    /// under this mutex instead.
+    std::mutex _postMutex;
 };
 
 

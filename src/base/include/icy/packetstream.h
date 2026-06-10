@@ -19,9 +19,11 @@
 #include "icy/loop.h"
 #include "icy/packetsignal.h"
 #include "icy/stateful.h"
+#include <atomic>
 #include <cassert>
 #include <cstdint>
 #include <memory>
+#include <thread>
 
 
 namespace icy {
@@ -632,6 +634,10 @@ protected:
 
     mutable std::mutex _mutex;
     mutable std::mutex _procMutex;
+    /// Thread currently holding `_procMutex` inside `process()`. Lets `emit()`
+    /// detect that handling an exception inline (close() -> stop() re-locks
+    /// `_procMutex`) would self-deadlock, and rethrow to `process()` instead.
+    std::atomic<std::thread::id> _procMutexOwner{};
     std::string _name;
     PacketAdapterVec _sources;
     PacketAdapterVec _processors;

@@ -387,6 +387,19 @@ public:
         return _context;
     }
 
+    /// Return the raw libuv handle pointer without retaining the `Context`.
+    ///
+    /// The intrusive refcount is non-atomic and owned by the loop thread, so
+    /// cross-thread callers (e.g. `Synchronizer::post()`) must use this
+    /// accessor with external synchronization against `close()` rather than
+    /// copying the context.
+    ///
+    /// @return  Pointer to the underlying libuv handle, or `nullptr` if closed.
+    T* rawPtr() const
+    {
+        return _context ? _context->ptr : nullptr;
+    }
+
     template <typename U>
     void setCloseCleanup(U* data)
     {

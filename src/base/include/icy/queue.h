@@ -316,6 +316,8 @@ public:
     void cancel(bool flag = true) override
     {
         Queue::cancel(flag);
+        if (!flag)
+            return;
         _sync.cancel(); // Call uv_close on the handle if calling from
                         // the event loop thread or we deadlock.
         if (_sync.tid() == Thread::currentID())
@@ -361,12 +363,17 @@ public:
     void cancel(bool flag = true) override
     {
         Queue::cancel(flag);
-        _thread.cancel();
+        if (flag)
+            _thread.cancel();
     }
 
 protected:
     virtual ~AsyncQueue()
     {
+        // Set the Runnable exit flag so run() terminates. ~Thread alone only
+        // cancels the Runner context, which run() never checks, so the
+        // subsequent join would block forever.
+        cancel();
     }
 
     Thread _thread;

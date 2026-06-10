@@ -187,8 +187,7 @@ std::int64_t Timer::interval() const
 {
     if (!_handle.get())
         throw std::logic_error("Timer handle not allocated");
-    return std::min<std::int64_t>(
-        uv_timer_get_repeat(_handle.get()), 0);
+    return static_cast<std::int64_t>(uv_timer_get_repeat(_handle.get()));
 }
 
 

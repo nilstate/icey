@@ -148,9 +148,15 @@ void PacketStream::reset()
         !stateEquals(PacketStreamState::Closed))
         throw std::logic_error("PacketStream: cannot reset in current state");
 
-    std::lock_guard<std::mutex> guard(_mutex);
-    _sources.clear();    // not detaching here
-    _processors.clear(); // not detaching here
+    // Destroy adapters outside _mutex: a managed threaded source's destructor
+    // joins its thread, and that thread may be blocked on _mutex inside
+    // process() — destroying under the lock deadlocks both.
+    PacketAdapterVec sources, processors;
+    {
+        std::lock_guard<std::mutex> guard(_mutex);
+        sources.swap(_sources);    // not detaching here
+        processors.swap(_processors);
+    }
 }
 
 
@@ -350,7 +356,15 @@ void PacketStream::process(IPacket& packet)
 
         if (synchronizeProcessing) {
             std::lock_guard<std::mutex> guard(_procMutex);
-            processCurrentPacket();
+            _procMutexOwner.store(std::this_thread::get_id(),
+                                  std::memory_order_relaxed);
+            try {
+                processCurrentPacket();
+            } catch (...) {
+                _procMutexOwner.store({}, std::memory_order_relaxed);
+                throw;
+            }
+            _procMutexOwner.store({}, std::memory_order_relaxed);
         } else
             processCurrentPacket();
 
@@ -392,6 +406,12 @@ void PacketStream::emit(IPacket& packet)
     try {
         emitter.emit(packet);
     } catch (std::exception& exc) {
+        // When emit() runs inside the processor chain the current thread holds
+        // _procMutex; handleException() -> close() -> stop() would re-lock it
+        // and self-deadlock. Rethrow so process() handles it after unlocking.
+        if (_procMutexOwner.load(std::memory_order_relaxed) ==
+            std::this_thread::get_id())
+            throw;
         handleException(exc);
     }
 }
@@ -424,7 +444,7 @@ void PacketStream::setup()
     } catch (std::exception& exc) {
         LError("Cannot start stream: ", exc.what());
         setState(this, PacketStreamState::Error); //, exc.what()
-        throw exc;
+        throw;
     }
 }
 

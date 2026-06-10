@@ -62,6 +62,11 @@ public:
     template <typename Function, typename... Args>
     void start(Function&& func, Args&&... args)
     {
+        // Assigning over a joinable std::thread calls std::terminate, even if
+        // the previous thread function has already returned.
+        if (_thread.joinable())
+            _thread.join();
+        _context->reset();
         _thread = std::thread(internal::runAsync<Function, Args...>, _context,
                               std::forward<Function>(func),
                               std::forward<Args>(args)...);

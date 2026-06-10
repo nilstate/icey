@@ -284,17 +284,16 @@ public:
     {
         if constexpr (!threadSafe) {
             beginEmitLocked();
+            EmitGuard guard{this}; // balances depth even if a slot throws
             if constexpr (std::is_same_v<RT, bool>) {
                 for (auto* node = _head; node;) {
                     auto* next = node->next;
                     if (node->slot->alive() &&
                         (*node->slot->delegate)(std::forward<Args>(args)...)) {
-                        finishEmit();
                         return true;
                     }
                     node = next;
                 }
-                finishEmit();
                 return false;
             } else {
                 for (auto* node = _head; node;) {
@@ -303,7 +302,6 @@ public:
                         (*node->slot->delegate)(std::forward<Args>(args)...);
                     node = next;
                 }
-                finishEmit();
             }
         } else {
             constexpr size_t inlineCapacity = 8;
@@ -324,23 +322,21 @@ public:
                         snapshot[count++] = node;
                 }
             }
+            EmitGuard guard{this}; // balances depth even if a slot throws
 
             if constexpr (std::is_same_v<RT, bool>) {
                 for (size_t i = 0; i < count; ++i) {
                     if (snapshot[i]->slot->alive() &&
                         (*snapshot[i]->slot->delegate)(std::forward<Args>(args)...)) {
-                        finishEmit();
                         return true;
                     }
                 }
-                finishEmit();
                 return false;
             } else {
                 for (size_t i = 0; i < count; ++i) {
                     if (snapshot[i]->slot->alive())
                         (*snapshot[i]->slot->delegate)(std::forward<Args>(args)...);
                 }
-                finishEmit();
             }
         }
     }
@@ -561,11 +557,25 @@ private:
 
         if constexpr (threadSafe) {
             std::unique_lock<MutexT> guard(_mutex);
+            // Another emission may have begun and snapshotted node pointers
+            // between our depth reaching zero and acquiring this lock;
+            // erasing nodes now would free memory it still dereferences.
+            if (emitDepthLocked() != 0) {
+                requestSweepLocked();
+                return;
+            }
             sweepLocked();
         } else {
             sweepLocked();
         }
     }
+
+    /// Balances beginEmitLocked() on every exit path, including a throwing slot.
+    struct EmitGuard
+    {
+        Signal* sig;
+        ~EmitGuard() { sig->finishEmit(); }
+    };
 
     void clearNodesLocked() const
     {

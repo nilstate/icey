@@ -42,9 +42,12 @@ void Synchronizer::start(std::function<void()> target)
 
 void Synchronizer::post()
 {
+    // NOTE: Cannot call `_handle.get()` as we're on different thread, and we
+    // must not copy the context here: its intrusive refcount is non-atomic
+    // and owned by the loop thread. The mutex serializes against close().
+    std::lock_guard<std::mutex> lock(_postMutex);
     if (!_handle.initialized()) return;
-    // NOTE: Cannot call `_handle.get()` as we're on different thread
-    uv_async_send(_handle.context()->ptr);
+    uv_async_send(_handle.rawPtr());
 }
 
 
@@ -60,6 +63,7 @@ void Synchronizer::close()
         return;
     cancel();
     post(); // post to wake up event loop
+    std::lock_guard<std::mutex> lock(_postMutex);
     _handle.close();
 }
 
