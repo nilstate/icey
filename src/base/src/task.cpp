@@ -12,6 +12,7 @@
 #include "icy/task.h"
 #include "icy/logger.h"
 #include "icy/platform.h"
+#include "icy/thread.h"
 #include "icy/util.h"
 
 #include <iostream>
@@ -82,8 +83,17 @@ TaskRunner::TaskRunner(std::shared_ptr<Runner> runner)
 TaskRunner::~TaskRunner()
 {
     Shutdown.emit();
-    if (_runner)
+    if (_runner) {
         _runner->cancel();
+        // Wait for the worker to leave run() before deleting tasks it may
+        // still be executing.
+        try {
+            if (_runner->async() && Thread::currentID() != _runner->tid())
+                _runner->waitForExit();
+        } catch (...) {
+            // Timed out; proceed with teardown rather than throwing.
+        }
+    }
     clear();
 }
 
@@ -148,6 +158,13 @@ bool TaskRunner::remove(Task* task)
     LTrace("Remove task: ", task);
 
     std::lock_guard<std::mutex> guard(_mutex);
+    if (task == _current) {
+        // The worker thread is executing this task; deleting it now would
+        // be a use-after-free. Flag it so run() deletes it on completion.
+        task->_destroyed = true;
+        onRemove(task);
+        return true;
+    }
     for (auto it = _tasks.begin(); it != _tasks.end(); ++it) {
         if (it->get() == task) {
             _tasks.erase(it); // unique_ptr destructs the task
@@ -162,6 +179,8 @@ bool TaskRunner::remove(Task* task)
 bool TaskRunner::exists(Task* task) const
 {
     std::lock_guard<std::mutex> guard(_mutex);
+    if (task == _current)
+        return true;
     for (const auto& t : _tasks) {
         if (t.get() == task)
             return true;
@@ -173,6 +192,8 @@ bool TaskRunner::exists(Task* task) const
 Task* TaskRunner::get(uint32_t id) const
 {
     std::lock_guard<std::mutex> guard(_mutex);
+    if (_current && _current->id() == id)
+        return _current;
     for (const auto& t : _tasks) {
         if (t->id() == id)
             return t.get();
@@ -195,6 +216,10 @@ Task* TaskRunner::next() const
 void TaskRunner::clear()
 {
     std::lock_guard<std::mutex> guard(_mutex);
+    // A task mid-execution is owned by run(); flag it so the worker deletes
+    // it on completion instead of re-queuing it.
+    if (_current)
+        _current->_destroyed = true;
     _tasks.clear(); // unique_ptrs auto-delete all tasks
 }
 
@@ -214,35 +239,40 @@ void TaskRunner::setRunner(std::shared_ptr<Runner> runner)
 
 void TaskRunner::run()
 {
-    Task* task = next();
+    // Extract the next runnable task so concurrent remove()/clear() calls
+    // cannot delete it while it executes; re-queue it at the back when done
+    // (which also rotates the queue fairly).
+    std::unique_ptr<Task> task;
+    {
+        std::lock_guard<std::mutex> guard(_mutex);
+        for (auto it = _tasks.begin(); it != _tasks.end(); ++it) {
+            if (!(*it)->cancelled()) {
+                task = std::move(*it);
+                _tasks.erase(it);
+                _current = task.get();
+                break;
+            }
+        }
+    }
 
     // Run the task
     if (task) {
-        // Check once more that the task has not been cancelled
-        if (!task->cancelled()) {
-            LTrace("Run task: ", task);
-            task->run();
+        LTrace("Run task: ", task.get());
+        task->run();
 
-            onRun(task);
+        onRun(task.get());
 
-            // Cancel the task if not repeating
-            if (!task->repeating())
-                task->cancel();
-        }
+        // Cancel the task if not repeating
+        if (!task->repeating())
+            task->cancel();
 
-        // Advance the task queue (rotate front to back)
-        {
-            std::lock_guard<std::mutex> guard(_mutex);
-            auto t = std::move(_tasks.front());
-            _tasks.pop_front();
-            _tasks.push_back(std::move(t));
-        }
-
-        // Destroy the task if required.
-        // remove() will erase the unique_ptr, which deletes the task.
+        std::lock_guard<std::mutex> guard(_mutex);
+        _current = nullptr;
         if (task->destroyed()) {
-            LTrace("Destroy task: ", task);
-            remove(task);
+            LTrace("Destroy task: ", task.get());
+            // unique_ptr deletes the task when it goes out of scope
+        } else {
+            _tasks.push_back(std::move(task));
         }
     }
 

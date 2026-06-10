@@ -179,6 +179,11 @@ protected:
     mutable std::mutex _mutex;
     std::shared_ptr<Runner> _runner;
     TaskList _tasks;
+
+    /// Task currently executing in run(). It is extracted from `_tasks`
+    /// while running so other threads cannot delete it mid-execution;
+    /// exists()/get()/remove() must consult it under `_mutex`.
+    Task* _current = nullptr;
 };
 
 
