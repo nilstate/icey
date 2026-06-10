@@ -87,23 +87,33 @@ public:
     PacketSignal emitter;
 
 private:
+    /// State shared with track callbacks. The callbacks fire on
+    /// libdatachannel threads and may be in flight while the receiver is
+    /// destroyed, so everything they touch lives here behind `mutex` —
+    /// they must never dereference the receiver itself. The destructor
+    /// nulls `dispatch` under `mutex` before tearing down the receiver.
     struct DispatchState
     {
+        DispatchState();
+        ~DispatchState();
+
         std::atomic<bool> alive{true};
         std::atomic<uint64_t> generation{0};
+        std::mutex mutex;
+        std::deque<std::unique_ptr<IPacket>> pending;
+        std::unique_ptr<detail::ReceiverJitterBuffer> jitterBuffer;
+        JitterBufferConfig jitterConfig;
+        std::int64_t timerTickMs = 5;
+        bool timerNeedsUpdate = false;
+        Synchronizer* dispatch = nullptr; // guarded by mutex
     };
 
-    void enqueue(std::unique_ptr<IPacket> packet);
+    static void enqueue(const std::shared_ptr<DispatchState>& state,
+                        std::unique_ptr<IPacket> packet);
     void flushPending();
 
     Synchronizer _dispatch;
     Timer _timer;
-    mutable std::mutex _mutex;
-    std::deque<std::unique_ptr<IPacket>> _pending;
-    std::unique_ptr<detail::ReceiverJitterBuffer> _jitterBuffer;
-    JitterBufferConfig _jitterConfig;
-    std::int64_t _timerTickMs = 5;
-    bool _timerNeedsUpdate = false;
     std::shared_ptr<DispatchState> _state = std::make_shared<DispatchState>();
     uint64_t _generation = 0;
 };

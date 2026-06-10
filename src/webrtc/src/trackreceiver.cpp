@@ -17,30 +17,47 @@ namespace icy {
 namespace wrtc {
 
 
+// Out-of-line so the unique_ptr<ReceiverJitterBuffer> member can be
+// declared against the forward declaration in the header.
+WebRtcTrackReceiver::DispatchState::DispatchState() = default;
+WebRtcTrackReceiver::DispatchState::~DispatchState() = default;
+
+
 WebRtcTrackReceiver::WebRtcTrackReceiver()
     : PacketStreamAdapter(emitter)
     , _dispatch([this]() { flushPending(); })
     , _timer(uv::defaultLoop())
-    , _jitterBuffer(std::make_unique<detail::ReceiverJitterBuffer>())
 {
     _timer.Timeout += [this]() { flushPending(); };
-    _jitterBuffer->configure(_jitterConfig);
-    _timerTickMs = std::max<int64_t>(1, _jitterConfig.tickIntervalMs);
-    _timer.setTimeout(_timerTickMs);
-    _timer.setInterval(_timerTickMs);
+    _state->jitterBuffer = std::make_unique<detail::ReceiverJitterBuffer>();
+    _state->jitterBuffer->configure(_state->jitterConfig);
+    _state->timerTickMs =
+        std::max<int64_t>(1, _state->jitterConfig.tickIntervalMs);
+    _timer.setTimeout(_state->timerTickMs);
+    _timer.setInterval(_state->timerTickMs);
+    {
+        std::lock_guard lock(_state->mutex);
+        _state->dispatch = &_dispatch;
+    }
 }
 
 
 WebRtcTrackReceiver::~WebRtcTrackReceiver()
 {
     _state->alive.store(false, std::memory_order_release);
+    {
+        // After this block an in-flight track callback only touches the
+        // shared state: it sees a null dispatcher and never dereferences
+        // this (partially destroyed) receiver.
+        std::lock_guard lock(_state->mutex);
+        _state->dispatch = nullptr;
+        _state->pending.clear();
+        if (_state->jitterBuffer)
+            _state->jitterBuffer->reset();
+    }
     if (_timer.active())
         _timer.stop();
     _dispatch.close();
-    std::lock_guard lock(_mutex);
-    _pending.clear();
-    if (_jitterBuffer)
-        _jitterBuffer->reset();
 }
 
 
@@ -56,9 +73,9 @@ void WebRtcTrackReceiver::bind(std::shared_ptr<rtc::Track> track)
     const auto generation = ++_generation;
     _state->generation.store(generation, std::memory_order_release);
     {
-        std::lock_guard lock(_mutex);
-        _pending.clear();
-        _jitterBuffer->reset();
+        std::lock_guard lock(_state->mutex);
+        _state->pending.clear();
+        _state->jitterBuffer->reset();
     }
     _dispatch.post();
     auto state = _state;
@@ -74,7 +91,7 @@ void WebRtcTrackReceiver::bind(std::shared_ptr<rtc::Track> track)
             return;
         }
     }, nullptr);
-    track->onFrame([this, state, generation, isVideo, clockRate](rtc::binary frame, rtc::FrameInfo info) {
+    track->onFrame([state, generation, isVideo, clockRate](rtc::binary frame, rtc::FrameInfo info) {
         if (!state->alive.load(std::memory_order_acquire) ||
             state->generation.load(std::memory_order_acquire) != generation) {
             return;
@@ -98,13 +115,13 @@ void WebRtcTrackReceiver::bind(std::shared_ptr<rtc::Track> track)
             auto pkt = std::make_unique<av::VideoPacket>();
             pkt->copyData(frame.data(), frame.size());
             pkt->time = timeUs;
-            enqueue(std::move(pkt));
+            enqueue(state, std::move(pkt));
         }
         else {
             auto pkt = std::make_unique<av::AudioPacket>();
             pkt->copyData(frame.data(), frame.size());
             pkt->time = timeUs;
-            enqueue(std::move(pkt));
+            enqueue(state, std::move(pkt));
         }
     });
 }
@@ -113,12 +130,12 @@ void WebRtcTrackReceiver::bind(std::shared_ptr<rtc::Track> track)
 void WebRtcTrackReceiver::configureJitterBuffer(const JitterBufferConfig& config)
 {
     {
-        std::lock_guard lock(_mutex);
-        _jitterConfig = config;
-        _jitterBuffer->configure(_jitterConfig);
-        _pending.clear();
-        _timerTickMs = std::max<int64_t>(1, _jitterConfig.tickIntervalMs);
-        _timerNeedsUpdate = true;
+        std::lock_guard lock(_state->mutex);
+        _state->jitterConfig = config;
+        _state->jitterBuffer->configure(config);
+        _state->pending.clear();
+        _state->timerTickMs = std::max<int64_t>(1, config.tickIntervalMs);
+        _state->timerNeedsUpdate = true;
     }
     _dispatch.post();
 }
@@ -126,33 +143,37 @@ void WebRtcTrackReceiver::configureJitterBuffer(const JitterBufferConfig& config
 
 JitterBufferConfig WebRtcTrackReceiver::jitterBufferConfig() const
 {
-    std::lock_guard lock(_mutex);
-    return _jitterConfig;
+    std::lock_guard lock(_state->mutex);
+    return _state->jitterConfig;
 }
 
 
 bool WebRtcTrackReceiver::jitterBufferEnabled() const
 {
-    std::lock_guard lock(_mutex);
-    return _jitterBuffer && _jitterBuffer->enabled();
+    std::lock_guard lock(_state->mutex);
+    return _state->jitterBuffer && _state->jitterBuffer->enabled();
 }
 
 
-void WebRtcTrackReceiver::enqueue(std::unique_ptr<IPacket> packet)
+void WebRtcTrackReceiver::enqueue(const std::shared_ptr<DispatchState>& state,
+                                  std::unique_ptr<IPacket> packet)
 {
     if (!packet)
         return;
 
-    {
-        std::lock_guard lock(_mutex);
-        if (_jitterBuffer && _jitterBuffer->enabled()) {
-            _jitterBuffer->push(std::move(packet), time::hrtime() / 1000);
-        }
-        else {
-            _pending.emplace_back(std::move(packet));
-        }
+    std::lock_guard lock(state->mutex);
+    if (!state->alive.load(std::memory_order_acquire))
+        return;
+    if (state->jitterBuffer && state->jitterBuffer->enabled()) {
+        state->jitterBuffer->push(std::move(packet), time::hrtime() / 1000);
     }
-    _dispatch.post();
+    else {
+        state->pending.emplace_back(std::move(packet));
+    }
+    // Post under the state mutex: the destructor nulls `dispatch` under the
+    // same mutex before the Synchronizer is destroyed.
+    if (state->dispatch)
+        state->dispatch->post();
 }
 
 
@@ -161,19 +182,19 @@ void WebRtcTrackReceiver::flushPending()
     std::deque<std::unique_ptr<IPacket>> pending;
     bool shouldRunTimer = false;
     {
-        std::lock_guard lock(_mutex);
-        if (_timerNeedsUpdate) {
+        std::lock_guard lock(_state->mutex);
+        if (_state->timerNeedsUpdate) {
             if (_timer.active())
                 _timer.stop();
-            _timer.setTimeout(_timerTickMs);
-            _timer.setInterval(_timerTickMs);
-            _timerNeedsUpdate = false;
+            _timer.setTimeout(_state->timerTickMs);
+            _timer.setInterval(_state->timerTickMs);
+            _state->timerNeedsUpdate = false;
         }
 
-        pending.swap(_pending);
-        if (_jitterBuffer && _jitterBuffer->enabled()) {
-            _jitterBuffer->drainReady(time::hrtime() / 1000, pending);
-            shouldRunTimer = _jitterBuffer->hasPending();
+        pending.swap(_state->pending);
+        if (_state->jitterBuffer && _state->jitterBuffer->enabled()) {
+            _state->jitterBuffer->drainReady(time::hrtime() / 1000, pending);
+            shouldRunTimer = _state->jitterBuffer->hasPending();
         }
     }
 
