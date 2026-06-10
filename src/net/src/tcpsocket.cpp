@@ -52,6 +52,8 @@ void TCPSocket::reset()
     Stream::reset();
     init();
     get()->data = this;
+    _peerAddress = net::Address();
+    _peerAddressCached = false;
 }
 
 
@@ -292,6 +294,11 @@ net::Address TCPSocket::address() const
 
 net::Address TCPSocket::peerAddress() const
 {
+    // The peer of a connected socket never changes; serve the address cached
+    // at connect/accept time rather than issuing a getpeername syscall per
+    // call (this runs per HTTP body chunk and per WebSocket send).
+    if (_peerAddressCached)
+        return _peerAddress;
     if (initialized()) {
         struct sockaddr_storage address;
         int addrlen = sizeof(address);
@@ -373,6 +380,7 @@ void TCPSocket::onConnect()
 {
     // LTrace("On connect");
     _peerAddress = peerAddress(); // cache once
+    _peerAddressCached = true;
 
     if (readStart()) // will set error on failure
         onSocketConnect(*this);
@@ -391,6 +399,7 @@ void TCPSocket::acceptConnection()
     if (uv_accept(get<uv_stream_t>(), socket->get<uv_stream_t>()) == 0) {
         (void)socket->setNoDelay(true);
         socket->_peerAddress = socket->peerAddress(); // cache once
+        socket->_peerAddressCached = true;
         socket->readStart();
         AcceptConnection.emit(socket);
     } else {

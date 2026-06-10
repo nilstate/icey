@@ -174,6 +174,7 @@ protected:
 
     SocketMode _mode;
     net::Address _peerAddress; ///< Cached peer address (avoids syscall per recv)
+    bool _peerAddressCached = false; ///< True once _peerAddress is set at connect/accept
 };
 
 
