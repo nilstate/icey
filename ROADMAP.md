@@ -122,7 +122,7 @@ Lightweight WebRTC media stack via libdatachannel now ships in-tree. See `src/we
 | sched | Active | |
 | webrtc | Active | libdatachannel, see src/webrtc/README.md |
 | pacm | External | Submodule |
-| pluga | External | Submodule |
+| graft | External | Submodule, replaced pluga |
 
 ---
 

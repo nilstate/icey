@@ -48,8 +48,8 @@ int main(int argc, char** argv)
         av::EncoderOptions options;
         options.ofile = outputFile;
         options.oformat = av::Format("MP4", "mp4",
-            av::VideoCodec("libx264", 0, 0, 0),    // 0 = match input dimensions/fps
-            av::AudioCodec("aac", 0, 0, 0));        // 0 = match input channels/rate
+            av::VideoCodec("libx264"),    // dimensions/fps default to 0 = match input
+            av::AudioCodec("aac"));       // channels/rate default to 0 = match input
         capture.getEncoderFormat(options.iformat);
 
         // Wire the pipeline: capture -> encoder

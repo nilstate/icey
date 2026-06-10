@@ -23,7 +23,9 @@ CPackConfig.cmake
 CPackSourceConfig.cmake
 CMakeDoxyfile.in
 CMakeDoxygenDefaults.cmake
+# CMake-generated makefiles only; the hand-written root Makefile is tracked
 Makefile
+!/Makefile
 compile_commands.json
 CMakeUserPresets.json
 *.pc

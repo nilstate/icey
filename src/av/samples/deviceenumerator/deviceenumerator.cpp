@@ -17,6 +17,7 @@
 
 
 #include "icy/av/devicemanager.h"
+#include "icy/av/ffmpeg.h"
 #include "icy/logger.h"
 
 #include <iostream>

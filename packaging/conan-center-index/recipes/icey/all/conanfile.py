@@ -140,7 +140,6 @@ class IceyConan(ConanFile):
         add_component("net", ["base", "crypto", "openssl::openssl"])
         add_component("pacm", ["base", "crypto", "net", "http", "json", "archo", "openssl::openssl"])
         add_component("graft", ["base"])
-        add_component("pluga", ["base"], header_only=True)
         add_component("sched", ["base", "json"])
         add_component("speech", ["base", "av", "json"])
         add_component("stun", ["base", "net", "crypto", "openssl::openssl"])
