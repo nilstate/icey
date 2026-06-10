@@ -238,9 +238,8 @@ void Client::authenticateRequest(stun::Message& request)
         crypto::Hash engine("md5");
         engine.update(_options.username + ":" + _realm + ":" +
                       _options.password);
-        STrace << "Generating HMAC: data="
-               << (_options.username + ":" + _realm + ":" + _options.password)
-               << ", key=" << engine.digestStr();
+        // Never log the password or derived integrity key.
+        STrace << "Generating HMAC for: " << _options.username << "@" << _realm;
         request.add<stun::MessageIntegrity>().setKey(engine.digestStr());
     }
 }

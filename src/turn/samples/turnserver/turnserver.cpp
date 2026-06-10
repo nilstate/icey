@@ -112,17 +112,15 @@ public:
         engine.update(credentials);
         request.hash = engine.digestStr();
 
-#if ENABLE_AUTHENTICATION
-        SDebug << "Generating HMAC: data=" << credentials
-               << ", key=" << request.hash;
-
+#ifdef ICEY_TURN_DISABLE_AUTH
+        // Compile-time opt-out for local testing ONLY: with auth disabled
+        // this sample is an open relay. Never deploy with this defined.
+        return turn::AuthenticationState::Authorized;
+#else
         // Verify the message integrity HMAC against our computed key
         if (integrityAttr->verifyHmac(request.hash))
             return turn::AuthenticationState::Authorized;
         return turn::AuthenticationState::NotAuthorized;
-#else
-        // Since no authentication is required we just return Authorized.
-        return turn::AuthenticationState::Authorized;
 #endif
     }
 

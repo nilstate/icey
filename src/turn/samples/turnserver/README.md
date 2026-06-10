@@ -25,7 +25,7 @@ The server listens on `0.0.0.0:3478` (the standard TURN port). Edit the constant
 
 - `SERVER_EXTERNAL_IP` - must be set to your public IP in production
 - `SERVER_USERNAME` / `SERVER_PASSWORD` - credentials clients use to authenticate
-- `ENABLE_AUTHENTICATION` - when disabled, all requests are authorized without HMAC verification
+- `ICEY_TURN_DISABLE_AUTH` - compile-time define that skips HMAC verification and authorizes every request; local testing only, as it turns the sample into an open relay
 
 ## Quick Local Test
 
