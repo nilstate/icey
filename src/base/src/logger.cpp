@@ -30,6 +30,10 @@ namespace icy {
 static Singleton<Logger> singleton;
 
 
+// 6 = above Fatal: nothing passes until the first channel is created.
+std::atomic<int> Logger::_levelFilter{6};
+
+
 Logger::Logger()
     : _defaultChannel(nullptr)
     , _writer(std::make_unique<LogWriter>())
@@ -311,6 +315,7 @@ LogChannel::LogChannel(std::string name, Level level,
     , _level(level)
     , _timeFormat(std::move(timeFormat))
 {
+    Logger::lowerLevelFilter(level);
 }
 
 

@@ -78,7 +78,10 @@ double Random::nextDouble()
 
 void Random::getSeed(char* seed, unsigned length)
 {
-    std::random_device rd;
+    // One random_device per thread: constructing it per call can open and
+    // close the OS entropy source each time. Each call still draws fresh
+    // OS entropy, so output quality is unchanged.
+    thread_local std::random_device rd;
     // random_device produces uint32_t values; fill the buffer in chunks
     unsigned i = 0;
     while (i + sizeof(uint32_t) <= length) {

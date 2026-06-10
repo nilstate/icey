@@ -18,6 +18,7 @@
 #include "icy/singleton.h"
 #include "icy/thread.h"
 
+#include <atomic>
 #include <cstring>
 #include <ctime>
 #include <deque>
@@ -195,6 +196,30 @@ public:
     /// Writes the given message to the default log channel.
     void write(std::unique_ptr<LogStream> stream);
 
+    /// Returns true if a message at the given level could be accepted by any
+    /// existing channel. Cheap (single relaxed atomic load) so the logging
+    /// macros can skip argument formatting entirely when the level is
+    /// filtered out. Conservative: never filters a deliverable message, but
+    /// raising a channel's level does not raise the filter back.
+    static bool levelEnabled(Level level) noexcept
+    {
+        return static_cast<int>(level) >=
+            _levelFilter.load(std::memory_order_relaxed);
+    }
+
+    /// Lowers the global level filter so messages at `level` and above pass
+    /// `levelEnabled()`. Called by `LogChannel` on construction and
+    /// `setLevel()`.
+    static void lowerLevelFilter(Level level) noexcept
+    {
+        int wanted = static_cast<int>(level);
+        int current = _levelFilter.load(std::memory_order_relaxed);
+        while (current > wanted &&
+               !_levelFilter.compare_exchange_weak(
+                   current, wanted, std::memory_order_relaxed)) {
+        }
+    }
+
 protected:
     /// NonCopyable and NonMovable
     Logger(const Logger&) = delete;
@@ -211,6 +236,10 @@ protected:
     LogChannelMap _channels;
     LogChannel* _defaultChannel; // non-owning view into _channels
     std::unique_ptr<LogWriter> _writer;
+
+    /// Process-wide minimum channel level; 6 (above Fatal) until the first
+    /// channel exists, so a default-constructed Logger never formats.
+    static std::atomic<int> _levelFilter;
 };
 
 
@@ -337,6 +366,15 @@ struct LogStream
 #endif
 
 
+/// Adapts a LogStream expression to void so the streaming log macros can
+/// short-circuit on the level filter inside a ternary (glog-style):
+/// the message arguments are never evaluated for filtered-out levels.
+struct LogVoidify
+{
+    void operator&(const LogStream&) {}
+};
+
+
 //
 // Log Channel
 //
@@ -380,7 +418,11 @@ public:
 
     /// Sets the minimum severity level.
     /// @param level Messages below this level are dropped.
-    void setLevel(Level level) { _level = level; };
+    void setLevel(Level level)
+    {
+        _level = level;
+        Logger::lowerLevelFilter(level);
+    };
 
     /// Sets the timestamp format string.
     /// @param format strftime-compatible format string.
@@ -584,32 +626,35 @@ inline std::string _methodName(std::string_view fsig)
 #endif
 
 
-#define STrace LogStream(Level::Trace, _fileName(__FILE__), __LINE__)
-#define SDebug LogStream(Level::Debug, _fileName(__FILE__), __LINE__)
-#define SInfo LogStream(Level::Info, _fileName(__FILE__), __LINE__)
-#define SWarn LogStream(Level::Warn, _fileName(__FILE__), __LINE__)
-#define SError LogStream(Level::Error, _fileName(__FILE__), __LINE__)
+// Both macro families check Logger::levelEnabled() BEFORE constructing the
+// LogStream or evaluating any message arguments, so filtered-out log sites
+// cost a single relaxed atomic load. Side effects in log arguments are
+// therefore not evaluated when the level is filtered out.
 
-#define LTrace(...)                                                                \
-    do {                                                                           \
-        LogStream(Level::Trace, _fileName(__FILE__), __LINE__).write(__VA_ARGS__); \
+#define ICY_LOG_STREAM(lvl)                                                    \
+    !icy::Logger::levelEnabled(lvl)                                            \
+        ? (void)0                                                              \
+        : icy::LogVoidify() &                                                  \
+            icy::LogStream(lvl, icy::_fileName(__FILE__), __LINE__)
+
+#define STrace ICY_LOG_STREAM(icy::Level::Trace)
+#define SDebug ICY_LOG_STREAM(icy::Level::Debug)
+#define SInfo ICY_LOG_STREAM(icy::Level::Info)
+#define SWarn ICY_LOG_STREAM(icy::Level::Warn)
+#define SError ICY_LOG_STREAM(icy::Level::Error)
+
+#define ICY_LOG_WRITE(lvl, ...)                                                \
+    do {                                                                       \
+        if (icy::Logger::levelEnabled(lvl))                                    \
+            icy::LogStream(lvl, icy::_fileName(__FILE__), __LINE__)            \
+                .write(__VA_ARGS__);                                           \
     } while (0)
-#define LDebug(...)                                                                \
-    do {                                                                           \
-        LogStream(Level::Debug, _fileName(__FILE__), __LINE__).write(__VA_ARGS__); \
-    } while (0)
-#define LInfo(...)                                                                \
-    do {                                                                          \
-        LogStream(Level::Info, _fileName(__FILE__), __LINE__).write(__VA_ARGS__); \
-    } while (0)
-#define LWarn(...)                                                                \
-    do {                                                                          \
-        LogStream(Level::Warn, _fileName(__FILE__), __LINE__).write(__VA_ARGS__); \
-    } while (0)
-#define LError(...)                                                                \
-    do {                                                                           \
-        LogStream(Level::Error, _fileName(__FILE__), __LINE__).write(__VA_ARGS__); \
-    } while (0)
+
+#define LTrace(...) ICY_LOG_WRITE(icy::Level::Trace, __VA_ARGS__)
+#define LDebug(...) ICY_LOG_WRITE(icy::Level::Debug, __VA_ARGS__)
+#define LInfo(...) ICY_LOG_WRITE(icy::Level::Info, __VA_ARGS__)
+#define LWarn(...) ICY_LOG_WRITE(icy::Level::Warn, __VA_ARGS__)
+#define LError(...) ICY_LOG_WRITE(icy::Level::Error, __VA_ARGS__)
 
 // #define TraceS(self) LogStream(Level::Trace, _fileName(__FILE__), __LINE__, self)
 // #define DebugS(self) LogStream(Level::Debug, _fileName(__FILE__), __LINE__, self)
