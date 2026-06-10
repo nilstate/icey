@@ -39,7 +39,7 @@ Connection::~Connection() noexcept
 
 ssize_t Connection::send(const char* data, size_t len, int flags)
 {
-    if (_closed)
+    if (_closed || !_adapter)
         return -1;
 
     markActive();
@@ -49,7 +49,7 @@ ssize_t Connection::send(const char* data, size_t len, int flags)
 
 ssize_t Connection::sendOwned(Buffer&& buffer, int flags)
 {
-    if (_closed)
+    if (_closed || !_adapter)
         return -1;
 
     markActive();
@@ -413,6 +413,12 @@ ConnectionStream::ConnectionStream(Connection::Ptr connection)
 
 ConnectionStream::~ConnectionStream()
 {
+    // The connection (and its adapter) outlive this stream; leaving the
+    // receiver registered would dispatch the next socket recv into freed
+    // memory.
+    if (_connection && _connection->adapter())
+        _connection->adapter()->removeReceiver(this);
+
     Outgoing.close();
     Incoming.close();
 }

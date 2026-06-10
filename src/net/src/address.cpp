@@ -58,8 +58,8 @@ class Net_API IPv4AddressBase : public AddressBase
 public:
     IPv4AddressBase()
     {
-        _addr.sin_family = AF_INET;
         memset(&_addr, 0, sizeof(_addr));
+        _addr.sin_family = AF_INET;
     }
 
     IPv4AddressBase(const struct sockaddr_in* addr)

@@ -98,6 +98,7 @@ void SocketAdapter::sendPacket(IPacket& packet)
 bool SocketAdapter::onSocketConnect(Socket& socket)
 {
     cleanupReceivers();
+    DispatchScope scope(this);
     if (_receivers.size() == 1 && _receivers[0].alive)
         return _receivers[0].ptr->onSocketConnect(socket);
     int current = int(_receivers.size() - 1);
@@ -113,6 +114,7 @@ bool SocketAdapter::onSocketConnect(Socket& socket)
 bool SocketAdapter::onSocketRecv(Socket& socket, const MutableBuffer& buffer, const Address& peerAddress)
 {
     cleanupReceivers();
+    DispatchScope scope(this);
     if (_receivers.size() == 1 && _receivers[0].alive)
         return _receivers[0].ptr->onSocketRecv(socket, buffer, peerAddress);
     int current = int(_receivers.size() - 1);
@@ -128,6 +130,7 @@ bool SocketAdapter::onSocketRecv(Socket& socket, const MutableBuffer& buffer, co
 bool SocketAdapter::onSocketError(Socket& socket, const icy::Error& error)
 {
     cleanupReceivers();
+    DispatchScope scope(this);
     if (_receivers.size() == 1 && _receivers[0].alive)
         return _receivers[0].ptr->onSocketError(socket, error);
     int current = int(_receivers.size() - 1);
@@ -143,6 +146,7 @@ bool SocketAdapter::onSocketError(Socket& socket, const icy::Error& error)
 bool SocketAdapter::onSocketClose(Socket& socket)
 {
     cleanupReceivers();
+    DispatchScope scope(this);
     if (_receivers.size() == 1 && _receivers[0].alive)
         return _receivers[0].ptr->onSocketClose(socket);
     int current = int(_receivers.size() - 1);
@@ -205,7 +209,9 @@ void SocketAdapter::removeReceiver(SocketAdapter* adapter)
 
 void SocketAdapter::cleanupReceivers()
 {
-    if (!_dirty)
+    // Never erase while a dispatch loop is iterating `_receivers`; a nested
+    // cleanup would invalidate the outer loop's indices.
+    if (!_dirty || _dispatchDepth > 0)
         return;
     _receivers.erase(
         std::remove_if(_receivers.begin(), _receivers.end(),

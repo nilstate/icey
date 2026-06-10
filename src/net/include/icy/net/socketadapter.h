@@ -141,9 +141,22 @@ protected:
         bool alive;
     };
 
+    /// Defers receiver cleanup while any onSocketXxx dispatch loop is on the
+    /// stack, so re-entrant callbacks cannot shrink `_receivers` under it.
+    struct DispatchScope
+    {
+        SocketAdapter* self;
+        explicit DispatchScope(SocketAdapter* adapter) : self(adapter)
+        {
+            ++self->_dispatchDepth;
+        }
+        ~DispatchScope() { --self->_dispatchDepth; }
+    };
+
     SocketAdapter* _sender;
     std::vector<Ref> _receivers;
     bool _dirty = false;
+    int _dispatchDepth = 0;
 };
 
 

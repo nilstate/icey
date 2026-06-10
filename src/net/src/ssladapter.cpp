@@ -59,6 +59,8 @@ void SSLAdapter::initClient()
         throw std::logic_error("SSLAdapter: client init called with server context");
 
     _ssl = SSL_new(_socket->context()->sslContext());
+    if (!_ssl)
+        throw std::runtime_error("SSLAdapter: cannot create SSL session");
 
     // Enable hostname verification if a hostname was set
     if (!_hostname.empty()) {
@@ -94,6 +96,8 @@ void SSLAdapter::initServer() //(SSL* ssl)
         throw std::logic_error("SSLAdapter: server init called with client context");
 
     _ssl = SSL_new(_socket->context()->sslContext());
+    if (!_ssl)
+        throw std::runtime_error("SSLAdapter: cannot create SSL session");
     _readBIO = BIO_new(BIO_s_mem());
     _writeBIO = BIO_new(BIO_s_mem());
     SSL_set_bio(_ssl, _readBIO, _writeBIO);
@@ -209,10 +213,13 @@ void SSLAdapter::flush()
     // Write any local data to SSL for excryption
     if (_bufferOut.size() > 0) {
         int r = SSL_write(_ssl, &_bufferOut[0], static_cast<int>(_bufferOut.size()));
-        if (r < 0) {
+        if (r > 0) {
+            // Only drop what SSL actually consumed; a retryable failure
+            // (SSL_ERROR_WANT_READ/WRITE) must keep the plaintext queued.
+            _bufferOut.erase(_bufferOut.begin(), _bufferOut.begin() + r);
+        } else {
             handleError(r);
         }
-        _bufferOut.clear();
         // flushWriteBIO();
     }
 

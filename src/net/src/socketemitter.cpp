@@ -51,8 +51,6 @@ void SocketEmitter::swap(const Socket::Ptr& socket)
 {
     if (impl)
         throw std::logic_error("SocketEmitter: already initialized");
-    if (impl)
-        impl->removeReceiver(this);
     if (socket)
         socket->addReceiver(this);
     impl = socket;

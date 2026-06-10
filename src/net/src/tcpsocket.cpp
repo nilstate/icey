@@ -277,10 +277,14 @@ ssize_t TCPSocket::sendOwned(Buffer&& buffer, const net::Address& /* peerAddress
 net::Address TCPSocket::address() const
 {
     if (initialized()) {
-        struct sockaddr address;
+        // sockaddr_storage: an IPv6 socket reports 28 bytes, which overflows
+        // a bare 16-byte sockaddr.
+        struct sockaddr_storage address;
         int addrlen = sizeof(address);
-        if (uv_tcp_getsockname(get(), &address, &addrlen) == 0)
-            return net::Address(&address, addrlen);
+        if (uv_tcp_getsockname(get(),
+                reinterpret_cast<struct sockaddr*>(&address), &addrlen) == 0)
+            return net::Address(
+                reinterpret_cast<struct sockaddr*>(&address), addrlen);
     }
     return net::Address();
 }
@@ -289,10 +293,12 @@ net::Address TCPSocket::address() const
 net::Address TCPSocket::peerAddress() const
 {
     if (initialized()) {
-        struct sockaddr address;
+        struct sockaddr_storage address;
         int addrlen = sizeof(address);
-        if (uv_tcp_getpeername(get(), &address, &addrlen) == 0)
-            return net::Address(&address, addrlen);
+        if (uv_tcp_getpeername(get(),
+                reinterpret_cast<struct sockaddr*>(&address), &addrlen) == 0)
+            return net::Address(
+                reinterpret_cast<struct sockaddr*>(&address), addrlen);
     }
     return net::Address();
 }

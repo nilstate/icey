@@ -286,10 +286,14 @@ const icy::Error& UDPSocket::error() const
 net::Address UDPSocket::address() const
 {
     if (initialized()) {
-        struct sockaddr address;
+        // sockaddr_storage: an IPv6 socket reports 28 bytes, which overflows
+        // a bare 16-byte sockaddr.
+        struct sockaddr_storage address;
         int addrlen = sizeof(address);
-        if (uv_udp_getsockname(get(), &address, &addrlen) == 0)
-            return net::Address(&address, addrlen);
+        if (uv_udp_getsockname(get(),
+                reinterpret_cast<struct sockaddr*>(&address), &addrlen) == 0)
+            return net::Address(
+                reinterpret_cast<struct sockaddr*>(&address), addrlen);
     }
     return net::Address();
 }
