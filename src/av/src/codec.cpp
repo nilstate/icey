@@ -58,32 +58,6 @@ Codec::Codec(const std::string& name, const std::string& encoder,
 }
 
 
-// Codec::Codec(const Codec& r) = default;
-//
-//
-// Codec::~Codec() = default;
-//
-//
-// Codec& Codec::operator=(const Codec& r) {
-//     name = r.name;
-//     encoder = r.encoder;
-//     sampleRate = r.sampleRate;
-//     bitRate = r.bitRate;
-//     enabled = r.enabled;
-//     return *this;
-// }
-//
-//
-// Codec::Codec(const Codec& r) :
-//     name(r.name),
-//     encoder(r.encoder),
-//     sampleRate(r.sampleRate),
-//     bitRate(r.bitRate),
-//     enabled(r.enabled)
-// {
-// }
-
-
 Codec::~Codec() noexcept
 {
 }

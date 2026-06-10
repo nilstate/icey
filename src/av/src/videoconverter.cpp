@@ -52,6 +52,8 @@ void VideoConverter::create()
 
     oframe = createVideoFrame(av_get_pix_fmt(oparams.pixelFmt.c_str()),
                               oparams.width, oparams.height);
+    if (!oframe)
+        throw std::runtime_error("Cannot allocate output frame for conversion.");
 
     ctx = sws_getContext(
         iparams.width, iparams.height, av_get_pix_fmt(iparams.pixelFmt.c_str()),

@@ -247,6 +247,8 @@ AVFrame* createVideoFrame(AVPixelFormat pixelFmt, int width, int height)
 AVFrame* cloneVideoFrame(AVFrame* source)
 {
     AVFrame* copy = av_frame_alloc();
+    if (!copy)
+        return nullptr;
     copy->format = source->format;
     copy->width = source->width;
     copy->height = source->height;
@@ -257,9 +259,12 @@ AVFrame* cloneVideoFrame(AVFrame* source)
     copy->channel_layout = source->channel_layout;
 #endif
     copy->nb_samples = source->nb_samples;
-    av_frame_get_buffer(copy, 32);
-    av_frame_copy(copy, source);
-    av_frame_copy_props(copy, source);
+    if (av_frame_get_buffer(copy, 32) < 0 ||
+        av_frame_copy(copy, source) < 0 ||
+        av_frame_copy_props(copy, source) < 0) {
+        av_frame_free(&copy);
+        return nullptr;
+    }
     return copy;
 }
 

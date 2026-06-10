@@ -125,9 +125,8 @@ void AudioResampler::close()
     }
 
     if (outSamples) {
-        av_freep(&(outSamples)[0]);
-        //av_free(outSamples);
-        outSamples = nullptr;
+        av_freep(&outSamples[0]);
+        av_freep(&outSamples); // frees the pointer array itself
     }
 
     outNumSamples = 0;
@@ -153,10 +152,17 @@ int AudioResampler::resample(uint8_t** inSamples, int inNumSamples)
 
     // Resize the output buffer if required
     if (requiredNumSamples > maxNumSamples) {
+        // Free the previous buffer and pointer array or they leak on regrow.
+        if (outSamples) {
+            av_freep(&outSamples[0]);
+            av_freep(&outSamples);
+        }
         ret = av_samples_alloc_array_and_samples(
             &outSamples, nullptr, oparams.channels, requiredNumSamples,
             outSampleFmt, 0);
         if (ret < 0) {
+            outSamples = nullptr;
+            maxNumSamples = 0;
             throw std::runtime_error("Cannot allocate buffer for converted output samples: " + averror(ret));
         }
 

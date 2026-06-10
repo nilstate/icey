@@ -212,10 +212,11 @@ void MediaCapture::stop()
 {
     LTrace("Stopping");
 
-    std::lock_guard<std::mutex>
-        guard(_mutex);
-
     _stopping = true;
+
+    // Join outside _mutex: the capture thread takes _mutex (error capture,
+    // accessors called from consumer slots), so holding it across join()
+    // deadlocks.
     if (_thread.running()) {
         LTrace("Terminating thread");
         _thread.cancel();
@@ -238,7 +239,11 @@ void MediaCapture::run()
 
     try {
         int res;
-        AVPacket* ipacket = av_packet_alloc();
+        // Owned via RAII so decode() exceptions don't leak the packet
+        // or its current payload.
+        std::unique_ptr<AVPacket, void (*)(AVPacket*)> ipacketPtr(
+            av_packet_alloc(), [](AVPacket* p) { av_packet_free(&p); });
+        AVPacket* ipacket = ipacketPtr.get();
         if (!ipacket)
             throw std::runtime_error("Cannot allocate packet");
 
@@ -366,15 +371,19 @@ void MediaCapture::run()
                 _audio->flush();
         }
 
-        av_packet_free(&ipacket);
-
         // End of file or error
         LTrace("Decoder EOF: ", res);
     } catch (std::exception& exc) {
-        _error = exc.what();
-        LError("Decoder Error: ", _error);
+        {
+            std::lock_guard<std::mutex> guard(_mutex);
+            _error = exc.what();
+        }
+        LError("Decoder Error: ", exc.what());
     } catch (...) {
-        _error = "Unknown Error";
+        {
+            std::lock_guard<std::mutex> guard(_mutex);
+            _error = "Unknown Error";
+        }
         LError("Unknown Error");
     }
 

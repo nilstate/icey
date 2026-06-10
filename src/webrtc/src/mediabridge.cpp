@@ -209,6 +209,9 @@ void MediaBridge::attach(std::shared_ptr<rtc::PeerConnection> pc,
     // outgoing watch/record sessions can advertise media lines without
     // inventing sender state.
     _pc->onTrack([this, opts](std::shared_ptr<rtc::Track> track) {
+        // Fired from libdatachannel's signaling thread; guard the track and
+        // receiver state against concurrent attach()/detach()/accessors.
+        std::lock_guard lock(_mutex);
         auto desc = track->description();
         LDebug("MediaBridge onTrack: type=", desc.type(), " mid=", track->mid());
         if (desc.type() == "video") {
