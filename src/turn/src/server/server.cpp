@@ -223,7 +223,11 @@ bool Server::onSocketRecv(net::Socket& socket, const MutableBuffer& buffer,
     while (len > 0 && (nread = message.read(constBuffer(buf, len))) > 0) {
         if (message.classType() == stun::Message::Request ||
             message.classType() == stun::Message::Indication) {
-            Request request(message, socket.transport(), socket.address(), peerAddress);
+            // Move: avoids deep-copying every attribute (including Send
+            // Indication payloads). read() fully reinitializes the message
+            // on the next loop iteration.
+            Request request(std::move(message), socket.transport(),
+                            socket.address(), peerAddress);
 
             // Note: authenticates both Requests and Indications
             handleRequest(request, _observer.authenticateRequest(this, request));

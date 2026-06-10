@@ -132,7 +132,9 @@ public:
     [[nodiscard]] MethodType methodType() const;
 
     /// @return Reference to the 12-byte transaction ID string.
-    [[nodiscard]] const TransactionID& transactionID() const { return _transactionID; }
+    /// Generated lazily on first access for outgoing messages; parse paths
+    /// overwrite it from the wire without paying for generation.
+    [[nodiscard]] const TransactionID& transactionID() const;
 
     /// @return Total body size in bytes (sum of padded attribute headers and bodies).
     [[nodiscard]] size_t size() const override { return static_cast<size_t>(computeBodySize()); }
@@ -204,7 +206,9 @@ protected:
     uint16_t _class;
     uint16_t _method;
     uint16_t _size; ///< Set by read(); write() uses computeBodySize() instead
-    TransactionID _transactionID;
+    /// Empty until first use; see transactionID(). Mutable for lazy
+    /// generation from the const accessor.
+    mutable TransactionID _transactionID;
     std::vector<std::unique_ptr<Attribute>> _attrs;
 
 private:

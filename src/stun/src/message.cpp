@@ -27,10 +27,10 @@ Message::Message()
     : _class(Request)
     , _method(Undefined)
     , _size(0)
-    , _transactionID(util::randomString(kTransactionIdLength))
 {
-    if (_transactionID.size() != kTransactionIdLength)
-        throw std::runtime_error("Message: invalid transaction ID length");
+    // The transaction ID is generated lazily by transactionID(): parse
+    // paths construct a Message per inbound packet and read() overwrites
+    // the ID, so eager generation would draw entropy per received datagram.
 }
 
 
@@ -38,7 +38,6 @@ Message::Message(ClassType clss, MethodType meth)
     : _class(static_cast<uint16_t>(clss))
     , _method(static_cast<uint16_t>(meth))
     , _size(0)
-    , _transactionID(util::randomString(kTransactionIdLength))
 {
 }
 
@@ -48,11 +47,13 @@ Message::Message(const Message& that)
     , _class(that._class)
     , _method(that._method)
     , _size(that._size)
-    , _transactionID(that._transactionID)
+    // Materialize the source ID so the copy shares it; two independent
+    // lazy generations would give copy and original different IDs.
+    , _transactionID(that.transactionID())
 {
     if (!_method)
         throw std::runtime_error("Message copy: invalid method");
-    if (_transactionID.size() != kTransactionIdLength)
+    if (!_transactionID.empty() && _transactionID.size() != kTransactionIdLength)
         throw std::runtime_error("Message copy: invalid transaction ID length");
 
     // Deep-copy attributes from source object
@@ -80,10 +81,10 @@ Message& Message::operator=(const Message& that)
         _method = that._method;
         _class = that._class;
         _size = that._size;
-        _transactionID = that._transactionID;
+        _transactionID = that.transactionID(); // materialize so both share the ID
         if (!_method)
             throw std::runtime_error("Message assign: invalid method");
-        if (_transactionID.size() != kTransactionIdLength)
+        if (!_transactionID.empty() && _transactionID.size() != kTransactionIdLength)
             throw std::runtime_error("Message assign: invalid transaction ID length");
 
         // Clear and deep-copy attributes from source object
@@ -154,6 +155,14 @@ Attribute* Message::get(Attribute::Type type, int index) const
         }
     }
     return nullptr;
+}
+
+
+const TransactionID& Message::transactionID() const
+{
+    if (_transactionID.empty())
+        _transactionID = util::randomString(kTransactionIdLength);
+    return _transactionID;
 }
 
 
@@ -281,7 +290,8 @@ void Message::write(Buffer& buf) const
     writer.putU16(type);
     writer.putU16(computeBodySize());
     writer.putU32(kMagicCookie);
-    writer.put(_transactionID.c_str(), _transactionID.size());
+    const auto& tid = transactionID(); // generates the ID if not set yet
+    writer.put(tid.c_str(), tid.size());
 
     // Note: MessageIntegrity must be at the end
 

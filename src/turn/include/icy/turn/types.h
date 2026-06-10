@@ -81,6 +81,22 @@ public:
         , remoteAddress(remoteAddress)
     {
     }
+
+    /// Move overload for server parse loops: adopts the parsed message
+    /// (including any Data payload) instead of deep-copying every attribute.
+    /// @param message       Parsed STUN message; left in a reusable state.
+    /// @param transport     Transport protocol on which the message arrived.
+    /// @param localAddress  Server-side local address.
+    /// @param remoteAddress Client-side remote address.
+    Request(stun::Message&& message, net::TransportType transport,
+            const net::Address& localAddress = net::Address(),
+            const net::Address& remoteAddress = net::Address())
+        : stun::Message(std::move(message))
+        , transport(transport)
+        , localAddress(localAddress)
+        , remoteAddress(remoteAddress)
+    {
+    }
 };
 
 
