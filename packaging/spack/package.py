@@ -13,7 +13,7 @@ class Icey(CMakePackage):
 
     license("LGPL-2.1-or-later")
 
-    version("2.5.0", sha256="0000000000000000000000000000000000000000000000000000000000000000")
+    version("2.5.0", sha256="6d664c0e7f79da19caabc953b8f2ac367fc7fc9c397dc68e5e23e94fa7c3dfcf")
 
     depends_on("c", type="build")
     depends_on("cxx", type="build")
