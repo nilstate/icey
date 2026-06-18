@@ -6,6 +6,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+## [2.5.0] - 2026-06-19
+
+### Added
+
+- Added `MediaCapture::setOpenTimeoutUsec()` and interruptible FFmpeg network opens so blocking RTSP and other network sources can time out or stop cleanly instead of hanging shutdown.
+- Added default FFmpeg protocol allowlists and network-open timeout handling for `MediaCapture`, while still allowing callers to override the underlying AVOptions.
+- Added `http::Server::setWebSocketOriginValidator()` and Symple server origin policy options (`enforceOrigin`, `allowSameOrigin`, `originScheme`, and `allowedOrigins`) so browser WebSocket upgrades can be rejected before the `101` handshake.
+- Added a move-based TURN request path for parsed STUN messages, avoiding deep copies of inbound attributes and data payloads in server receive loops.
+
+### Changed
+
+- `symple::Server::Options::maxConnections` now defaults to `1024` instead of unlimited, matching the hardened production defaults used by the server responder.
+- Logging macros now check a process-wide atomic level filter before constructing `LogStream` objects or evaluating log arguments, making filtered log sites substantially cheaper and preventing side effects in disabled log arguments.
+- STUN transaction IDs are now generated lazily for outbound messages, avoiding unnecessary entropy work on inbound parse paths.
+- TCP peer addresses are cached at connect time so repeated peer-address lookups do not call back into libuv for stable connection metadata.
+- The pacm submodule was advanced to the latest hardened revision used by the control-surface defaults.
+
+### Fixed
+
+- Hardened base lifetime primitives across signals, queues, packet streams, synchronizers, timers, handles, threads, runners, and `TaskRunner` so shutdown and task execution remain ownership-safe under concurrent teardown.
+- Hardened socket and HTTP handling, including address validation, adapter lifetime, SSL flush behavior, URL parsing, and WebSocket frame size checks.
+- Fixed FFmpeg ownership and media-state consistency issues in audio resampling, video contexts, media capture, video conversion, and WebRTC media bridging.
+- TURN clients and samples now verify message integrity by default and avoid logging credentials.
+- WebRTC track receiver teardown is now safe against libdatachannel callbacks that are still in flight while the receiver is being destroyed.
+- Hardened parsing and memory-safety checks across zip extraction, Base64, crypto, X.509 certificates, STUN attributes/messages, Symple command handling, WebRTC codec selection, remote media planning, and the pipeline C API.
+- Stabilized the WebRTC session test harness after the teardown and callback lifetime hardening.
+- Removed stale pluga references and fixed sample/package-manager rot found during the hardening pass.
+
 ## [2.4.11] - 2026-05-28
 
 ### Added

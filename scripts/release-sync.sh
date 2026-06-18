@@ -39,6 +39,17 @@ sources:
     url: "https://github.com/nilstate/icey/archive/refs/tags/$version.tar.gz"
     sha256: "0000000000000000000000000000000000000000000000000000000000000000"
 EOF
+cat > packaging/conan-center-index/recipes/icey/config.yml <<EOF
+versions:
+  "$version":
+    folder: all
+EOF
+cat > packaging/conan-center-index/recipes/icey/all/conandata.yml <<EOF
+sources:
+  "$version":
+    url: "https://github.com/nilstate/icey/archive/refs/tags/$version.tar.gz"
+    sha256: "0000000000000000000000000000000000000000000000000000000000000000"
+EOF
 perl -0pi -e 's/"version": "\d+\.\d+\.\d+"/"version": "'"$version"'"/' packaging/vcpkg/icey/vcpkg.json
 perl -0pi -e 's/^pkgver=\d+\.\d+\.\d+$/pkgver='"$version"'/m' packaging/arch/PKGBUILD
 perl -0pi -e 's/^pkgrel=\d+$/pkgrel=1/m' packaging/arch/PKGBUILD
@@ -59,6 +70,7 @@ perl -0pi -e 's/github.setup\s+nilstate\s+icey\s+\d+\.\d+\.\d+/github.setup     
 perl -0pi -e 's/^([[:space:]]*rmd160[[:space:]]+)[0-9a-f]{40}( \\\\)$/\10000000000000000000000000000000000000000\2/m' packaging/macports/Portfile
 perl -0pi -e 's/^([[:space:]]*sha256[[:space:]]+)[0-9a-f]{64}( \\\\)$/\10000000000000000000000000000000000000000000000000000000000000000\2/m' packaging/macports/Portfile
 perl -0pi -e 's/^([[:space:]]*size[[:space:]]+)\d+$/${1}0/m' packaging/macports/Portfile
+perl -0pi -e 's#url = "https://github.com/nilstate/icey/archive/refs/tags/\d+\.\d+\.\d+\.tar\.gz"#url = "https://github.com/nilstate/icey/archive/refs/tags/'"$version"'.tar.gz"#' packaging/spack/package.py
 perl -0pi -e 's/version\("\d+\.\d+\.\d+", sha256="[0-9a-f]+"\)/version("'"$version"'", sha256="0000000000000000000000000000000000000000000000000000000000000000")/' packaging/spack/package.py
 perl -0pi -e 's/\{\% set version = "\d+\.\d+\.\d+" \%\}/{% set version = "'"$version"'" %}/' packaging/conda-forge/meta.yaml
 perl -0pi -e 's/^  sha256: [0-9a-f]{64}$/  sha256: 0000000000000000000000000000000000000000000000000000000000000000/m' packaging/conda-forge/meta.yaml

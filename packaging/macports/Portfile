@@ -3,7 +3,7 @@ PortGroup           cmake 1.1
 PortGroup           github 1.0
 PortGroup           openssl 1.0
 
-github.setup        nilstate icey 2.4.11
+github.setup        nilstate icey 2.5.0
 github.tarball_from archive
 revision            0
 
@@ -16,7 +16,7 @@ long_description    ${description}
 
 checksums           rmd160  15d461fc4c3ac2c04ad28e003fc205631a4f8ce5 \
                     sha256  65a32554a871671db7ff0e4075b50a9f3a899964f25e47b8eb564e1f76b0ce75 \
-                    size    6728643
+                    size    0
 
 openssl.branch      3
 

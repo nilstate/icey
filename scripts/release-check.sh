@@ -48,6 +48,8 @@ grep -Fqx '    sha256: "'"$release_sha256"'"' packaging/conan/conandata.yml \
     || fail "packaging/conan/conandata.yml sha256 does not match the live release archive"
 grep -Eq '^  "'"$version"'":$' packaging/conan-center-index/recipes/icey/all/conandata.yml \
     || fail "packaging/conan-center-index/recipes/icey/all/conandata.yml is not synced to $version"
+grep -Eq '^    url: "https://github.com/nilstate/icey/archive/refs/tags/'"$version"'.tar.gz"$' packaging/conan-center-index/recipes/icey/all/conandata.yml \
+    || fail "packaging/conan-center-index/recipes/icey/all/conandata.yml source URL is not synced to $version"
 grep -Fqx '    sha256: "'"$release_sha256"'"' packaging/conan-center-index/recipes/icey/all/conandata.yml \
     || fail "packaging/conan-center-index/recipes/icey/all/conandata.yml sha256 does not match the live release archive"
 grep -Eq '^[[:space:]]*"version": "'"$version"'"' packaging/vcpkg/icey/vcpkg.json \
@@ -92,6 +94,8 @@ grep -Eq '^[[:space:]]+size[[:space:]]+'"${macports_size}"'$' packaging/macports
     || fail "packaging/macports/Portfile size does not match the live MacPorts archive"
 grep -Fqx '    version("'"$version"'", sha256="'"$release_sha256"'")' packaging/spack/package.py \
     || fail "packaging/spack/package.py sha256 does not match the live release archive"
+grep -Fqx '    url = "https://github.com/nilstate/icey/archive/refs/tags/'"$version"'.tar.gz"' packaging/spack/package.py \
+    || fail "packaging/spack/package.py URL is not synced to $version"
 grep -Eq '^\{\% set version = "'"$version"'" \%\}$' packaging/conda-forge/meta.yaml \
     || fail "packaging/conda-forge/meta.yaml is not synced to $version"
 grep -Fqx "  sha256: $release_sha256" packaging/conda-forge/meta.yaml \
