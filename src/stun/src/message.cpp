@@ -140,7 +140,7 @@ uint16_t Message::computeBodySize() const
         if (size > std::numeric_limits<uint16_t>::max())
             throw std::runtime_error("STUN message body is too large");
     }
-    return size;
+    return static_cast<uint16_t>(size);
 }
 
 
