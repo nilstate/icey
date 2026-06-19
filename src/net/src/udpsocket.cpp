@@ -342,9 +342,10 @@ void UDPSocket::onRecv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf,
         return;
     }
 
-    const auto addrLen = addr->sa_family == AF_INET6
-        ? sizeof(struct sockaddr_in6)
-        : sizeof(struct sockaddr_in);
+    const socklen_t addrLen = static_cast<socklen_t>(
+        addr->sa_family == AF_INET6
+            ? sizeof(struct sockaddr_in6)
+            : sizeof(struct sockaddr_in));
     socket->onRecv(mutableBuffer(buf->base, nread),
                    net::Address(addr, addrLen));
 }
