@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-24.04
     name: Build & Deploy
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
 
@@ -33,7 +33,7 @@ jobs:
           mkdir -p build/doxygen
           doxygen
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
 
@@ -44,8 +44,8 @@ jobs:
           npm run site:build
 
       - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3
+        uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=icey-docs
+          command: pages deploy dist --project-name=icey-docs --commit-dirty=true
