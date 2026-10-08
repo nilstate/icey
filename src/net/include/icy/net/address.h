@@ -13,6 +13,7 @@
 
 
 #include "icy/net/net.h"
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <string_view>
