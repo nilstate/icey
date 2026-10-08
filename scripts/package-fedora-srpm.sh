@@ -35,5 +35,5 @@ docker run --rm \
             useradd -m -u "$HOST_UID" -g "$group_name" builder
         fi
 
-        sudo -u builder make package-rpm-srpm
+        sudo -u builder env ICEY_RPM_SOURCE_MODE="$ICEY_RPM_SOURCE_MODE" make package-rpm-srpm
     '
