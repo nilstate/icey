@@ -9,6 +9,7 @@
 #import <assert.h>
 #import <AVFoundation/AVFoundation.h>
 #import <CoreMedia/CoreMedia.h>
+#import <TargetConditionals.h>
 
 
 namespace icy {
@@ -51,6 +52,7 @@ bool GetAVFoundationVideoDevices(Device::Type type, std::vector<Device>* devices
     NSArray<AVCaptureDeviceType>* deviceTypes;
     NSString* mediaType = nil;
 
+#if !TARGET_OS_IPHONE
     // AVCaptureDeviceTypeExternal (macOS 14+) replaces
     // AVCaptureDeviceTypeExternalUnknown (macOS 10.15-13.x)
     AVCaptureDeviceType externalType = nil;
@@ -65,6 +67,7 @@ bool GetAVFoundationVideoDevices(Device::Type type, std::vector<Device>* devices
         externalType = AVCaptureDeviceTypeExternalUnknown;
 #pragma clang diagnostic pop
     }
+#endif
 
     AVCaptureDeviceType microphoneType = nil;
 #if defined(__MAC_OS_X_VERSION_MAX_ALLOWED) && __MAC_OS_X_VERSION_MAX_ALLOWED >= 140000
@@ -80,16 +83,24 @@ bool GetAVFoundationVideoDevices(Device::Type type, std::vector<Device>* devices
     }
 
     if (type == Device::VideoInput) {
+#if TARGET_OS_IPHONE
+        deviceTypes = @[AVCaptureDeviceTypeBuiltInWideAngleCamera];
+#else
         deviceTypes = @[
             AVCaptureDeviceTypeBuiltInWideAngleCamera,
             externalType
         ];
+#endif
         mediaType = AVMediaTypeVideo;
     } else if (type == Device::AudioInput) {
+#if TARGET_OS_IPHONE
+        deviceTypes = @[microphoneType];
+#else
         deviceTypes = @[
             microphoneType,
             externalType
         ];
+#endif
         mediaType = AVMediaTypeAudio;
     } else {
         return false;
@@ -105,6 +116,11 @@ bool GetAVFoundationVideoDevices(Device::Type type, std::vector<Device>* devices
     LDebug([capture_devices count], " capture device(s) found:");
 
     for (AVCaptureDevice* capture_device in capture_devices) {
+#if TARGET_OS_IPHONE
+        const BOOL inUse = NO;
+#else
+        const BOOL inUse = [capture_device isInUseByAnotherApplication];
+#endif
         static NSString* const kFormat = @"localizedName: \"%@\", "
             @"modelID: \"%@\", uniqueID \"%@\", isConnected: %d, "
             @"isInUseByAnotherApplication: %d";
@@ -114,14 +130,14 @@ bool GetAVFoundationVideoDevices(Device::Type type, std::vector<Device>* devices
                              [capture_device modelID],
                              [capture_device uniqueID],
                              [capture_device isConnected],
-                             [capture_device isInUseByAnotherApplication]];
+                             inUse];
         LDebug('\t', [info UTF8String]);
 
         std::string uniqueID([[capture_device uniqueID] UTF8String]);
         std::string name([[capture_device localizedName] UTF8String]);
         Device device(type, uniqueID, name);
         device.isConnected = [capture_device isConnected] ? true : false;
-        device.isInUse = [capture_device isInUseByAnotherApplication] ? true : false;
+        device.isInUse = inUse ? true : false;
 
         // Query capabilities from device formats
         if (type == Device::VideoInput) {
