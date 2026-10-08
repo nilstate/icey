@@ -27,10 +27,25 @@ jobs:
 
       - name: Validate release metadata
         id: meta
+        env:
+          DEBIAN_REVISION: ${{ github.event.inputs.debian_revision || '1' }}
         run: |
           version="$(tr -d '[:space:]' < VERSION)"
           echo "version=$version" >> "$GITHUB_OUTPUT"
-          bash ./scripts/release-publish-readiness.sh
+          if [[ "$GITHUB_EVENT_NAME" == 'workflow_dispatch' ]]; then
+            [[ "$GITHUB_REF" == 'refs/heads/main' ]]
+            [[ "$DEBIAN_REVISION" =~ ^[0-9]+$ ]] && (( DEBIAN_REVISION > 1 ))
+            [[ "$(git show "refs/tags/$version:VERSION")" == "$version" ]]
+            while IFS= read -r changed; do
+              case "$changed" in
+                packaging/debian/*|.github/workflows/publish-debian-source.yml) ;;
+                *) echo "Non-Debian change since tag: $changed" >&2; exit 1 ;;
+              esac
+            done < <(git diff --name-only "$version" HEAD)
+            echo 'ready=true' >> "$GITHUB_OUTPUT"
+          else
+            bash ./scripts/release-publish-readiness.sh
+          fi
 
       - name: Install packaging dependencies
         if: steps.meta.outputs.ready == 'true'
