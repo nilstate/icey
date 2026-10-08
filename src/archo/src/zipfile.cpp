@@ -30,6 +30,7 @@ namespace internal {
 constexpr uint64_t kPerFileMax = 2ULL * 1024 * 1024 * 1024;
 constexpr uint64_t kArchiveMax = 4ULL * 1024 * 1024 * 1024;
 constexpr uint64_t kEntryMax = 100000;
+constexpr unsigned int kZipDirectoryAttribute = 0x10;
 
 std::string errmsg(int code)
 {
@@ -187,12 +188,8 @@ bool ZipFile::extractCurrentFile(const std::filesystem::path& path, bool whiny)
 
         LTrace("Extracting asset: ", outPath.string());
 
-// Create directory
-#if !WIN32
-        const int FILE_ATTRIBUTE_DIRECTORY = 0x10;
-#endif
         const size_t nameLen = strlen(fname);
-        if (finfo.external_fa & FILE_ATTRIBUTE_DIRECTORY ||
+        if (finfo.external_fa & internal::kZipDirectoryAttribute ||
             (nameLen > 0 && fname[nameLen - 1] == '/')) {
             LTrace("Create directory: ", outPath.string());
             std::filesystem::create_directories(outPath);
