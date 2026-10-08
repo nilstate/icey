@@ -56,14 +56,28 @@ jobs:
             type=raw,value=${{ github.ref_name }}
             type=raw,value=latest
 
-      - name: Build and push image
+      - name: Build image once
         uses: docker/build-push-action@v7
         with:
           context: .
           file: ./Dockerfile
-          push: true
+          load: true
+          push: false
+          platforms: linux/amd64
           tags: ${{ steps.image_meta.outputs.tags }}
           labels: ${{ steps.image_meta.outputs.labels }}
+
+      - name: Verify and publish image
+        run: |
+          docker run --rm "0state/icey:${GITHUB_REF_NAME}" sh -c \
+            'test -d /usr/local/include && find /usr/local/lib -name libicy_base.a -type f | grep -q .'
+          docker push "0state/icey:${GITHUB_REF_NAME}"
+          docker push 0state/icey:latest
+          version_digest="$(docker buildx imagetools inspect "0state/icey:${GITHUB_REF_NAME}" | awk '/^Digest:/ {print $2; exit}')"
+          latest_digest="$(docker buildx imagetools inspect 0state/icey:latest | awk '/^Digest:/ {print $2; exit}')"
+          test -n "$version_digest"
+          test "$version_digest" = "$latest_digest"
+          echo "Verified 0state/icey:${GITHUB_REF_NAME} at ${version_digest}"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
