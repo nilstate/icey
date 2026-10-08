@@ -8,7 +8,7 @@ fi
 
 version="$1"
 if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-    echo "expected plain semantic version like 2.4.0" >&2
+    echo "expected plain semantic version in MAJOR.MINOR.PATCH format" >&2
     exit 1
 fi
 

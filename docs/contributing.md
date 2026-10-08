@@ -77,25 +77,9 @@ The normal docs path is `make docs`. Use `make docs-api-md` only when you want t
 
 ## Release flow
 
-Release prose stays manual in `CHANGELOG.md` and `ROADMAP.md`. The mechanical version sync does not.
+Write the changelog, set `VERSION`, and run `make release VERSION="$(tr -d '[:space:]' < VERSION)"` before committing the reviewed release candidate. `bash scripts/release-publish-readiness.sh` checks that derived metadata matches the committed version. Push one plain semantic-version tag at the merged `main` commit; the tag workflows pin archive hashes and publish owned channels without a post-tag commit.
 
-```bash
-make release VERSION=2.4.0
-make release-check VERSION=2.4.0
-git commit -am "release: prepare 2.4.0"
-git tag 2.4.0
-git push origin main 2.4.0
-make release-pin VERSION=2.4.0
-```
-
-What each step does:
-
-- `make release` syncs `VERSION`, package recipe versions, Arch metadata, and the public `FetchContent` examples after you have already written the matching `CHANGELOG.md` section.
-- `make release-check` fails if `VERSION`, Conan, `vcpkg`, Arch metadata, docs examples, and the changelog heading drift apart.
-- The GitHub release workflow runs on plain semantic-version tags from `main` and fails if the pushed tag does not match `VERSION`.
-- `make release-pin` is the post-tag helper for package-manager archive hashes.
-
-Use [releasing.md](releasing.md) for the package-specific flow, including Conan verification, `vcpkg` archive pinning, Arch / AUR publication, the Homebrew tap formulae, and the Debian / PPA source-package staging path.
+Use [releasing.md](releasing.md) for the exact commands, package registry boundaries, and readback checks.
 
 ## Licence
 

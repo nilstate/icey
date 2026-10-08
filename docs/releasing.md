@@ -1,242 +1,33 @@
-# Releasing
+# Releasing Icey
 
-This page is the operator guide for cutting an `icey` release.
+`VERSION` is the Icey library version. CMake, release recipes, documentation examples, and the Debian changelog derive from it. Icey Server is a separate product with its own `VERSION`; its `ICEY_VERSION` pins an exact published Icey tag.
 
-Use it when you are preparing a new version, tagging it, and updating the package-manager artifacts that depend on the published GitHub source archive.
+## One library tag
 
-## What Changes On A Release
+1. Edit `VERSION` and write the matching, nonempty `CHANGELOG.md` section. Run `make release VERSION="$(tr -d '[:space:]' < VERSION)"` to sync derived metadata. Commit the result with a conventional subject and get it reviewed on `main`.
+2. On that committed revision, run `bash scripts/release-publish-readiness.sh`. It must leave no release metadata diff. Run the relevant build and packaging checks before merging.
+3. Fetch `main`, check that its `VERSION` and changelog are the reviewed release, then push one new plain semantic-version tag at that exact commit:
 
-A real `icey` release has two parts:
+   ```bash
+   git fetch origin main
+   version="$(git show origin/main:VERSION | tr -d '[:space:]')"
+   git tag "$version" origin/main
+   git push origin "refs/tags/$version"
+   ```
 
-1. manual release prose
-2. mechanical version and archive metadata
+The tag triggers the GitHub release and verified Docker image, Homebrew and AUR formula publication, and a signed Debian source upload to the Launchpad PPA. The tag workflows derive and check archive hashes from the immutable source archive. There is no post-tag recipe commit or second tag push. Missing credentials fail the relevant publish job visibly.
 
-The manual part stays in:
+Launchpad accepts a source upload before it builds and publishes binaries. Check the published `libicey2` and `libicey-dev` versions, not just the source upload. A Debian-only packaging correction can reuse the accepted original tarball with the next Debian revision through the manual `Publish Debian Source` workflow on `main`. That workflow copies only `packaging/debian/debian` from the current checkout into the revision.
 
-- [`CHANGELOG.md`](https://github.com/nilstate/icey/blob/main/CHANGELOG.md)
-- [`ROADMAP.md`](https://github.com/nilstate/icey/blob/main/ROADMAP.md)
+## Package registries
 
-The mechanical part is handled by the top-level release helpers:
+The repository's `packaging/` files are release recipes, not evidence that an external registry has updated. Homebrew, AUR, Docker Hub, GitHub Releases, and the PPA are owned channels. vcpkg, ConanCenter, MacPorts, Spack, nixpkgs, conda-forge, Alpine, Fedora, openSUSE, and xrepo require their own review or publication. Submit updates from the tagged archive's exact checksum and read back the registry after its maintainers merge them. The independently versioned Rust crates should only be published when their own bytes and dependency contract change; publish `icey-sys` before `icey`.
 
-- `make release`
-- `make release-check`
-- `make release-pin`
+Icey Server is released only after its pinned Icey tag is available. Push one `v`-prefixed server tag at the reviewed server commit. Its tag workflow builds Linux assets once, uses the built binary and web files for the Docker image, and publishes Homebrew, AUR, and the signed APT repository. Check release assets, the image digest and health endpoint, formula versions, the AUR entry, and the APT `InRelease` signature and `Packages` entry. Windows package templates require a verified Windows archive before winget, Scoop, or Chocolatey publication.
 
-## Core Release Flow
+Use the server's `scripts/check-distribution.py --strict` for owned-channel drift and its JSON output for the full registry inventory. A failed upstream review or pending Launchpad build is not a completed listing. Content and documentation updates follow their incremental publish path and do not need a runtime image.
 
-Start from a clean, reviewed `main` branch with the release notes already written.
-
-```bash
-make release VERSION=2.4.0
-git commit -am "release: prepare 2.4.0"
-git tag 2.4.0
-git push origin main 2.4.0
-make release-finalize VERSION=2.4.0
-git commit -am "build: pin release archives for 2.4.0"
-git push origin main
-```
-
-What those steps do:
-
-- `make release` syncs `VERSION`, package recipe versions, Debian source metadata, Conan release metadata, and the public `FetchContent` examples.
-- `make release-finalize` pins the release archive hashes and then verifies that `VERSION`, package metadata, docs examples, and the matching `CHANGELOG.md` heading all line up.
-- `make release-check` validates the exact live archive hashes and sizes used by each repo-local package recipe, not just that hash fields are non-empty.
-- the release tag must be a plain semantic version such as `2.4.0`
-- the GitHub source archive for that tag is the thing the package-manager pinning steps use
-
-## Package-Specific Follow-Up
-
-After the tag is pushed, the provider-specific source archives are what get pinned. The release helpers now hash the exact URLs each package manager consumes.
-
-The combined post-tag helper is:
-
-```bash
-make release-finalize VERSION=2.4.0
-```
-
-That runs:
-
-- `make release-pin-conan VERSION=2.4.0`
-- `make release-pin-vcpkg VERSION=2.4.0`
-- `make release-pin-arch VERSION=2.4.0`
-- `make release-pin-homebrew VERSION=2.4.0`
-- `make release-pin-alpine VERSION=2.4.0`
-- `make release-pin-macports VERSION=2.4.0`
-- `make release-pin-spack VERSION=2.4.0`
-- `make release-pin-conda VERSION=2.4.0`
-- `make release-check VERSION=2.4.0`
-
-## Conan
-
-Local Conan packaging is version-synced by `make release`, and `make release-pin-conan` pins the post-tag archive hash used by the recipe.
-
-Use it to verify the shipped recipe still builds:
-
-```bash
-make package-conan
-```
-
-Current scope:
-
-- local recipe path: [`packaging/conan/conanfile.py`](../packaging/conan/conanfile.py)
-- local source metadata: [`packaging/conan/conandata.yml`](../packaging/conan/conandata.yml)
-- local consumer test: [`packaging/conan/test_package`](../packaging/conan/test_package)
-
-Current non-scope:
-
-- ConanCenter submission is not automated here yet
-- if and when ConanCenter packaging is added, it will need its own source-download metadata and review path
-
-## vcpkg
-
-The `vcpkg` port in this repo is an overlay/custom-registry seed, not an upstream `microsoft/vcpkg` port checkout.
-
-Release sequence:
-
-```bash
-make release VERSION=2.4.0
-git tag 2.4.0
-git push origin main 2.4.0
-make release-pin-vcpkg VERSION=2.4.0
-make package-vcpkg
-```
-
-What gets updated:
-
-- [`packaging/vcpkg/icey/vcpkg.json`](../packaging/vcpkg/icey/vcpkg.json) version is synced by `make release`
-- [`packaging/vcpkg/icey/portfile.cmake`](../packaging/vcpkg/icey/portfile.cmake) archive ref and SHA512 are pinned by `make release-pin-vcpkg`
-
-## Arch / AUR
-
-The Arch packaging in this repo is the AUR seed:
-
-- [`packaging/arch/PKGBUILD`](../packaging/arch/PKGBUILD)
-- [`packaging/arch/.SRCINFO`](../packaging/arch/.SRCINFO)
-
-Release sequence:
-
-```bash
-make release VERSION=2.4.0
-git tag 2.4.0
-git push origin main 2.4.0
-make release-pin-arch VERSION=2.4.0
-make package-arch
-```
-
-What gets updated:
-
-- `pkgver` and `pkgrel` are synced by `make release`
-- the source URL is synced by `make release`
-- the archive SHA256 is pinned by `make release-pin-arch`
-
-For a real AUR publish, copy the final `PKGBUILD` and `.SRCINFO` into the AUR repo after the hash is pinned and the local `makepkg` run passes.
-
-## Homebrew
-
-The Homebrew packaging in this repo is a tap-local seed:
-
-- [`packaging/homebrew/Formula/libdatachannel.rb`](../packaging/homebrew/Formula/libdatachannel.rb)
-- [`packaging/homebrew/Formula/icey.rb`](../packaging/homebrew/Formula/icey.rb)
-
-Release sequence:
-
-```bash
-make release VERSION=2.4.0
-git tag 2.4.0
-git push origin main 2.4.0
-make release-pin-homebrew VERSION=2.4.0
-brew install --formula ./packaging/homebrew/Formula/libdatachannel.rb
-brew install --formula ./packaging/homebrew/Formula/icey.rb
-```
-
-What gets updated:
-
-- `version`, source URL, and placeholder SHA are synced by `make release`
-- the final release archive SHA256 is pinned by `make release-pin-homebrew`
-
-The `icey` formula depends on the tap-local `libdatachannel` formula because Homebrew core does not currently ship that dependency.
-
-## Debian / PPA
-
-The Debian packaging in this repo is a source-package seed intended for Debian-style apt repositories and Launchpad PPAs:
-
-- [`packaging/debian/debian/control`](../packaging/debian/debian/control)
-- [`packaging/debian/debian/rules`](../packaging/debian/debian/rules)
-- [`scripts/package-debian-source.sh`](../scripts/package-debian-source.sh)
-
-Release sequence:
-
-```bash
-make release VERSION=2.4.0
-make release-check VERSION=2.4.0
-make package-debian-source
-```
-
-For a Launchpad target series, set the distribution explicitly:
-
-```bash
-DEBIAN_DISTRIBUTION=noble make package-debian-source
-```
-
-What gets updated:
-
-- the Debian changelog version is synced by `make release`
-- `make package-debian-source` stages a full source package under `build/package/debian/`
-- that staging flow vendors the pinned source tarballs needed for a WebRTC-enabled build where distro packages do not exist yet
-
-## Rust Crates
-
-The Rust package surface lives under [`packaging/crates`](../packaging/crates).
-It publishes two crates:
-
-- `icey-sys`: raw bindgen output and the native `links = "icey_pipeline_capi"`
-  contract
-- `icey`: the safe wrapper and examples that most Rust users should consume
-
-Publish `icey-sys` first, then `icey`. The top-level crate depends on the sys
-crate through a normal versioned crates.io dependency, so Cargo cannot verify or
-publish `icey` until the matching `icey-sys` version exists in the registry.
-
-```bash
-cd packaging/crates
-cargo publish -p icey-sys
-# wait for crates.io index propagation
-cargo publish -p icey
-```
-
-Before publishing, verify the first publish unit:
-
-```bash
-cd packaging/crates
-cargo check -p icey
-cargo publish -p icey-sys --dry-run
-```
-
-The `icey` package verification is expected to fail before the matching
-`icey-sys` release exists on crates.io. After `icey-sys` is live, run:
-
-```bash
-cargo publish -p icey --dry-run
-```
-
-The Cargo `homepage` field for both crates should remain
-`https://0state.com/icey`, and the Cargo `documentation` field should remain
-`https://0state.com/icey/docs`; those fields are the package-manager backlinks
-consumed by crates.io and downstream crate indexes.
-
-## Release Checklist
-
-- update [`CHANGELOG.md`](https://github.com/nilstate/icey/blob/main/CHANGELOG.md) and [`ROADMAP.md`](https://github.com/nilstate/icey/blob/main/ROADMAP.md)
-- run `make release VERSION=x.y.z`
-- commit the pre-tag release metadata
-- create and push the plain semantic-version tag
-- run `make release-finalize VERSION=x.y.z`
-- commit the pinned package-manager archive hashes and successful final check
-- verify the package-manager entry points you intend to publish
-- if you are publishing Rust bindings, publish `icey-sys` before `icey`
-- if you are targeting apt or Launchpad, run `make package-debian-source` after the version sync
-
-## Related Pages
+## Related pages
 
 - [Install](run/install.md)
 - [Contributing](contributing.md)

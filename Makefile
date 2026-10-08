@@ -95,7 +95,7 @@ package-alpine-apkbuild:
 
 ## Sync release metadata for VERSION, package recipes, and FetchContent examples
 release:
-	@if [ -z "$(VERSION)" ]; then echo "usage: make release VERSION=2.4.0" >&2; exit 1; fi
+	@if [ -z "$(VERSION)" ]; then echo "usage: make release VERSION=<semver>" >&2; exit 1; fi
 	./scripts/release-sync.sh "$(VERSION)"
 
 ## Verify release metadata is internally consistent
@@ -110,40 +110,40 @@ release-finalize: release-pin release-check
 
 ## After pushing a git tag, pin the Conan source URL and sha256
 release-pin-conan:
-	@if [ -z "$(VERSION)" ]; then echo "usage: make release-pin-conan VERSION=2.4.0" >&2; exit 1; fi
+	@if [ -z "$(VERSION)" ]; then echo "usage: make release-pin-conan VERSION=<semver>" >&2; exit 1; fi
 	./scripts/release-pin-conan.sh "$(VERSION)"
 
 ## After pushing a git tag, pin the vcpkg fallback archive ref and sha512
 release-pin-vcpkg:
-	@if [ -z "$(VERSION)" ]; then echo "usage: make release-pin-vcpkg VERSION=2.4.0" >&2; exit 1; fi
+	@if [ -z "$(VERSION)" ]; then echo "usage: make release-pin-vcpkg VERSION=<semver>" >&2; exit 1; fi
 	./scripts/release-pin-vcpkg.sh "$(VERSION)"
 
 ## After pushing a git tag, pin the Arch release archive sha256 and SRCINFO
 release-pin-arch:
-	@if [ -z "$(VERSION)" ]; then echo "usage: make release-pin-arch VERSION=2.4.0" >&2; exit 1; fi
+	@if [ -z "$(VERSION)" ]; then echo "usage: make release-pin-arch VERSION=<semver>" >&2; exit 1; fi
 	./scripts/release-pin-arch.sh "$(VERSION)"
 
 ## After pushing a git tag, pin the Homebrew formula source sha256
 release-pin-homebrew:
-	@if [ -z "$(VERSION)" ]; then echo "usage: make release-pin-homebrew VERSION=2.4.0" >&2; exit 1; fi
+	@if [ -z "$(VERSION)" ]; then echo "usage: make release-pin-homebrew VERSION=<semver>" >&2; exit 1; fi
 	./scripts/release-pin-homebrew.sh "$(VERSION)"
 
 ## After pushing a git tag, pin the Alpine archive sha512
 release-pin-alpine:
-	@if [ -z "$(VERSION)" ]; then echo "usage: make release-pin-alpine VERSION=2.4.0" >&2; exit 1; fi
+	@if [ -z "$(VERSION)" ]; then echo "usage: make release-pin-alpine VERSION=<semver>" >&2; exit 1; fi
 	./scripts/release-pin-alpine.sh "$(VERSION)"
 
 ## After pushing a git tag, pin the MacPorts archive checksums and size
 release-pin-macports:
-	@if [ -z "$(VERSION)" ]; then echo "usage: make release-pin-macports VERSION=2.4.0" >&2; exit 1; fi
+	@if [ -z "$(VERSION)" ]; then echo "usage: make release-pin-macports VERSION=<semver>" >&2; exit 1; fi
 	./scripts/release-pin-macports.sh "$(VERSION)"
 
 ## After pushing a git tag, pin the Spack recipe version sha256
 release-pin-spack:
-	@if [ -z "$(VERSION)" ]; then echo "usage: make release-pin-spack VERSION=2.4.0" >&2; exit 1; fi
+	@if [ -z "$(VERSION)" ]; then echo "usage: make release-pin-spack VERSION=<semver>" >&2; exit 1; fi
 	./scripts/release-pin-spack.sh "$(VERSION)"
 
 ## After pushing a git tag, pin the conda-forge recipe sha256
 release-pin-conda:
-	@if [ -z "$(VERSION)" ]; then echo "usage: make release-pin-conda VERSION=2.4.0" >&2; exit 1; fi
+	@if [ -z "$(VERSION)" ]; then echo "usage: make release-pin-conda VERSION=<semver>" >&2; exit 1; fi
 	./scripts/release-pin-conda.sh "$(VERSION)"

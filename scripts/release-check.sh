@@ -11,7 +11,7 @@ cd "$repo_root"
 
 version="${1:-$(tr -d '[:space:]' < VERSION)}"
 if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-    fail "expected plain semantic version like 2.4.0"
+    fail "expected plain semantic version in MAJOR.MINOR.PATCH format"
 fi
 
 manifest="$(
