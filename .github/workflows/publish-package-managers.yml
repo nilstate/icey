@@ -1,6 +1,10 @@
 name: Publish Package Managers
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - packaging/conan/conandata.yml
   workflow_dispatch:
 
 permissions:
@@ -11,6 +15,7 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       version: ${{ steps.meta.outputs.version }}
+      ready: ${{ steps.meta.outputs.ready }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -21,16 +26,12 @@ jobs:
         run: |
           version="$(tr -d '[:space:]' < VERSION)"
           echo "version=$version" >> "$GITHUB_OUTPUT"
-          if [[ "${GITHUB_EVENT_NAME}" == "push" ]]; then
-            bash ./scripts/validate-release-tag.sh "${GITHUB_REF_NAME}"
-          else
-            bash ./scripts/validate-release-tag.sh
-          fi
-          bash ./scripts/release-check.sh "$version"
+          bash ./scripts/release-publish-readiness.sh
 
   publish-homebrew:
     runs-on: ubuntu-24.04
     needs: prepare
+    if: needs.prepare.outputs.ready == 'true'
     steps:
       - name: Check Homebrew publish credentials
         id: gate
@@ -70,12 +71,13 @@ jobs:
           if git -C .stage/homebrew-tap diff --cached --quiet; then
             exit 0
           fi
-          git -C .stage/homebrew-tap commit -m "icey ${{ needs.prepare.outputs.version }}"
+          git -C .stage/homebrew-tap commit -m "chore(icey): publish ${{ needs.prepare.outputs.version }}"
           git -C .stage/homebrew-tap push
 
   publish-aur:
     runs-on: ubuntu-24.04
     needs: prepare
+    if: needs.prepare.outputs.ready == 'true'
     steps:
       - name: Check AUR publish credentials
         id: gate
@@ -125,5 +127,5 @@ jobs:
           if git -C .stage/aur-icey diff --cached --quiet; then
             exit 0
           fi
-          git -C .stage/aur-icey commit -m "icey ${{ needs.prepare.outputs.version }}"
+          git -C .stage/aur-icey commit -m "chore(icey): publish ${{ needs.prepare.outputs.version }}"
           git -C .stage/aur-icey push

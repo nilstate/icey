@@ -41,7 +41,11 @@ package listings back to the product and docs surfaces.
 
 ## Fastest Path
 
-If you want the shortest path from zero to browser video, use the published `icey-server` image from the separate `icey-cli` repo.
+Icey is the C++ library. [Icey Server](https://github.com/nilstate/icey-server)
+is the runnable product built on it; its executable and packages are named
+`icey-server`.
+
+If you want the shortest path from zero to browser video, use the published `icey-server` image from the separate `icey-server` repo.
 
 One command. One URL. One click.
 
@@ -51,7 +55,7 @@ docker run --rm --network host 0state/icey-server:latest
 
 Then open `http://localhost:4500` and click `Watch` on the `icey` peer.
 
-This express path ships from `nilstate/icey-cli` and starts `stream` mode with the bundled demo source. If you want the repo-backed app path for local edits or richer runtime control, use the separate `icey-cli` app surface on top of the core `icey` modules.
+This express path ships from `nilstate/icey-server` and starts `stream` mode with the bundled demo source. If you want the repo-backed app path for local edits or richer runtime control, use the separate `icey-server` app surface on top of the core `icey` modules.
 
 ## Why icey
 
@@ -215,7 +219,7 @@ ctest --test-dir build --output-on-failure
 include(FetchContent)
 FetchContent_Declare(icey
   GIT_REPOSITORY https://github.com/nilstate/icey.git
-  GIT_TAG 2.5.0
+  GIT_TAG 2.5.1
 )
 FetchContent_MakeAvailable(icey)
 target_link_libraries(myapp PRIVATE icey::base icey::net icey::http)

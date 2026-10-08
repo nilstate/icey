@@ -115,4 +115,4 @@ If something breaks, isolate which layer is failing. Do not treat the binary as 
 
 ## Still Stuck
 
-Check the server logs first. Every failure above produces log output that points to the cause. If the logs are not helpful, file an issue at [github.com/nilstate/icey-cli](https://github.com/nilstate/icey-cli/issues) with the log output and your config (redact credentials).
+Check the server logs first. Every failure above produces log output that points to the cause. If the logs are not helpful, file an issue at [github.com/nilstate/icey-server](https://github.com/nilstate/icey-server/issues) with the log output and your config (redact credentials).

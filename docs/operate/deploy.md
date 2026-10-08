@@ -27,7 +27,7 @@ services:
 :::
 
 :::note
-The published Docker image is environment-driven (`ICEY_MODE`, `ICEY_SOURCE`, `ICEY_LOOP`, `ICEY_TURN_EXTERNAL_IP`). For config-file-driven bring-up, use a native `icey-server` install or the repo-backed `nilstate/icey-cli` source path.
+The published Docker image is environment-driven (`ICEY_MODE`, `ICEY_SOURCE`, `ICEY_LOOP`, `ICEY_TURN_EXTERNAL_IP`). For config-file-driven bring-up, use a native `icey-server` install or the repo-backed `nilstate/icey-server` source path.
 :::
 
 ::

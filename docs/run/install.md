@@ -29,18 +29,18 @@ docker run --rm --network host \
   0state/icey-server:0.1.1
 ```
 
-For config-file-driven bring-up or direct `icey-server` flags, use a native `icey-server` install or the repo-backed `nilstate/icey-cli` source path.
+For config-file-driven bring-up or direct `icey-server` flags, use a native `icey-server` install or the repo-backed `nilstate/icey-server` source path.
 
 ::
 
 ::tab{title="Release Binary"}
 
-Download a prebuilt binary from the [GitHub releases](https://github.com/nilstate/icey-cli/releases) page.
+Download a prebuilt binary from the [GitHub releases](https://github.com/nilstate/icey-server/releases) page.
 
 Linux x86_64:
 
 ```bash
-curl -L https://github.com/nilstate/icey-cli/releases/latest/download/icey-server-Linux-x86_64.tar.gz \
+curl -L https://github.com/nilstate/icey-server/releases/latest/download/icey-server-Linux-x86_64.tar.gz \
   | tar xz
 cd icey-server-*
 ./bin/icey-server --source /path/to/video.mp4
@@ -90,7 +90,7 @@ icey-server --source /path/to/video.mp4
 ::tab{title="Nix"}
 
 ```bash
-nix run github:nilstate/icey-cli -- --source /path/to/video.mp4
+nix run github:nilstate/icey-server -- --source /path/to/video.mp4
 ```
 
 ::
@@ -105,13 +105,13 @@ Build `icey-server` against a local icey checkout:
 
    ```bash
    git clone https://github.com/nilstate/icey.git
-   git clone https://github.com/nilstate/icey-cli.git
+   git clone https://github.com/nilstate/icey-server.git
    ```
 
 2. Build the server
 
    ```bash
-   cd icey-cli
+   cd icey-server
    cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DICEY_SOURCE_DIR=../icey
    cmake --build build --target icey-server
    ```
