@@ -23,7 +23,7 @@ docker run --rm \
     "$fedora_image" \
     bash -lc '
         set -euo pipefail
-        dnf install -y make rpm-build curl shadow-utils sudo >/dev/null
+        dnf install -y make rpm-build curl git shadow-utils sudo >/dev/null
 
         group_name=$(awk -F: -v gid="$HOST_GID" "\$3 == gid { print \$1; exit }" /etc/group)
         if [ -z "$group_name" ]; then
