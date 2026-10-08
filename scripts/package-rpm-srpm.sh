@@ -30,7 +30,11 @@ mkdir -p \
     "$topdir/SPECS" \
     "$topdir/SRPMS"
 
-curl --fail --location --retry 3 --retry-delay 1 --output "$source_archive" "$archive_url"
+if [[ "${ICEY_RPM_SOURCE_MODE:-tag}" == "worktree" ]]; then
+    git archive --format=tar --prefix="icey-${version}/" HEAD | gzip -n > "$source_archive"
+else
+    curl --fail --location --retry 3 --retry-delay 1 --output "$source_archive" "$archive_url"
+fi
 cp "$spec_file" "$topdir/SPECS/icey.spec"
 find "$repo_root/packaging/rpm" -maxdepth 1 -type f ! -name 'icey.spec' -exec cp {} "$topdir/SOURCES/" \;
 

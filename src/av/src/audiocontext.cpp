@@ -148,12 +148,27 @@ void initAudioCodecFromContext(const AVCodecContext* ctx, AudioCodec& params)
 
 bool isSampleFormatSupported(const AVCodec* codec, enum AVSampleFormat sampleFormat)
 {
+#if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(61, 12, 100)
+    const void* configs = nullptr;
+    int count = 0;
+    if (avcodec_get_supported_config(nullptr, codec, AV_CODEC_CONFIG_SAMPLE_FORMAT,
+                                     0, &configs, &count) < 0)
+        return false;
+    if (!configs)
+        return sampleFormat != AV_SAMPLE_FMT_NONE;
+    const auto* formats = static_cast<const AVSampleFormat*>(configs);
+    for (int i = 0; i < count; ++i) {
+        if (formats[i] == sampleFormat)
+            return true;
+    }
+#else
     const enum AVSampleFormat* p = codec->sample_fmts;
-    while (*p != AV_SAMPLE_FMT_NONE) {
+    while (p && *p != AV_SAMPLE_FMT_NONE) {
         if (*p == sampleFormat)
             return true;
         p++;
     }
+#endif
     return false;
 }
 
@@ -176,8 +191,25 @@ AVSampleFormat selectSampleFormat(const AVCodec* codec, av::AudioCodec& params)
     enum AVSampleFormat compatible = AV_SAMPLE_FMT_NONE;
     enum AVSampleFormat requested = av_get_sample_fmt(params.sampleFmt.c_str());
     int planar = av_sample_fmt_is_planar(requested);
+#if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(61, 12, 100)
+    const void* configs = nullptr;
+    int count = 0;
+    if (avcodec_get_supported_config(nullptr, codec, AV_CODEC_CONFIG_SAMPLE_FORMAT,
+                                     0, &configs, &count) < 0)
+        return compatible;
+    if (!configs)
+        return requested;
+    const auto* formats = static_cast<const AVSampleFormat*>(configs);
+    for (int i = 0; i < count; ++i) {
+        if (compatible == AV_SAMPLE_FMT_NONE &&
+            av_sample_fmt_is_planar(formats[i]) == planar)
+            compatible = formats[i];
+        if (formats[i] == requested)
+            return requested;
+    }
+#else
     const enum AVSampleFormat* p = codec->sample_fmts;
-    while (*p != AV_SAMPLE_FMT_NONE) {
+    while (p && *p != AV_SAMPLE_FMT_NONE) {
         if (compatible == AV_SAMPLE_FMT_NONE &&
             av_sample_fmt_is_planar(*p) == planar)
             compatible = *p; // or use the first compatible format
@@ -185,6 +217,7 @@ AVSampleFormat selectSampleFormat(const AVCodec* codec, av::AudioCodec& params)
             return requested; // always try to return requested format
         p++;
     }
+#endif
     return compatible;
 }
 

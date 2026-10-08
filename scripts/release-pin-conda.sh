@@ -15,11 +15,12 @@ fi
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$repo_root"
 
-eval "$(
+manifest="$(
     RELEASE_REQUIRE_REMOTE_TAG=1 \
     RELEASE_FETCH_ARCHIVE_META=1 \
     bash "$repo_root"/scripts/release-manifest.sh "$version"
 )"
+eval "$manifest"
 
 perl -0pi -e 's/\{\% set version = "\d+\.\d+\.\d+" \%\}/{% set version = "'"$version"'" %}/' packaging/conda-forge/meta.yaml
 perl -0pi -e 's/^  sha256: [0-9a-f]{64}$/  sha256: '"$RELEASE_ARCHIVE_SHA256"'/m' packaging/conda-forge/meta.yaml

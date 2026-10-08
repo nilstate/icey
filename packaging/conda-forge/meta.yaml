@@ -1,5 +1,5 @@
 {% set name = "icey" %}
-{% set version = "2.5.0" %}
+{% set version = "2.5.1" %}
 
 package:
   name: {{ name|lower }}
@@ -7,7 +7,7 @@ package:
 
 source:
   url: https://github.com/nilstate/icey/archive/refs/tags/{{ version }}.tar.gz
-  sha256: 6d664c0e7f79da19caabc953b8f2ac367fc7fc9c397dc68e5e23e94fa7c3dfcf
+  sha256: 0000000000000000000000000000000000000000000000000000000000000000
 
 build:
   number: 0

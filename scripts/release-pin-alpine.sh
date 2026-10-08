@@ -15,11 +15,12 @@ fi
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$repo_root"
 
-eval "$(
+manifest="$(
     RELEASE_REQUIRE_REMOTE_TAG=1 \
     RELEASE_FETCH_ARCHIVE_META=1 \
     bash "$repo_root"/scripts/release-manifest.sh "$version"
 )"
+eval "$manifest"
 
 perl -0pi -e 's/^pkgver=\d+\.\d+\.\d+$/pkgver='"$version"'/m' packaging/alpine/APKBUILD
 perl -0pi -e 's/^(source="\$pkgname-\$pkgver\.tar\.gz::https:\/\/github\.com\/nilstate\/icey\/archive\/refs\/tags\/)\$pkgver(\.tar\.gz")$/${1}\$pkgver${2}/m' packaging/alpine/APKBUILD

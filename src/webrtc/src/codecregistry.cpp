@@ -352,12 +352,39 @@ bool hasEncoder(const std::string& ffmpegName)
             if (codec->type == AVMEDIA_TYPE_VIDEO) {
                 ctx->width = 64;
                 ctx->height = 64;
+#if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(61, 12, 100)
+                const void* configs = nullptr;
+                int count = 0;
+                if (avcodec_get_supported_config(nullptr, codec, AV_CODEC_CONFIG_PIX_FORMAT,
+                                                 0, &configs, &count) >= 0 && configs && count > 0)
+                    ctx->pix_fmt = static_cast<const AVPixelFormat*>(configs)[0];
+                else
+                    ctx->pix_fmt = AV_PIX_FMT_YUV420P;
+#else
                 ctx->pix_fmt = (codec->pix_fmts && codec->pix_fmts[0] != AV_PIX_FMT_NONE)
                     ? codec->pix_fmts[0]
                     : AV_PIX_FMT_YUV420P;
+#endif
                 ctx->time_base = AVRational{1, 30};
                 ctx->framerate = AVRational{30, 1};
             } else if (codec->type == AVMEDIA_TYPE_AUDIO) {
+#if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(61, 12, 100)
+                const void* configs = nullptr;
+                int count = 0;
+                if (avcodec_get_supported_config(nullptr, codec, AV_CODEC_CONFIG_SAMPLE_RATE,
+                                                 0, &configs, &count) >= 0 && configs && count > 0)
+                    ctx->sample_rate = static_cast<const int*>(configs)[0];
+                else
+                    ctx->sample_rate = 48000;
+
+                configs = nullptr;
+                count = 0;
+                if (avcodec_get_supported_config(nullptr, codec, AV_CODEC_CONFIG_SAMPLE_FORMAT,
+                                                 0, &configs, &count) >= 0 && configs && count > 0)
+                    ctx->sample_fmt = static_cast<const AVSampleFormat*>(configs)[0];
+                else
+                    ctx->sample_fmt = AV_SAMPLE_FMT_FLT;
+#else
                 ctx->sample_rate = (codec->supported_samplerates &&
                                     codec->supported_samplerates[0] != 0)
                     ? codec->supported_samplerates[0]
@@ -366,6 +393,7 @@ bool hasEncoder(const std::string& ffmpegName)
                                    codec->sample_fmts[0] != AV_SAMPLE_FMT_NONE)
                     ? codec->sample_fmts[0]
                     : AV_SAMPLE_FMT_FLT;
+#endif
                 av_channel_layout_default(&ctx->ch_layout, 2);
             }
             result = avcodec_open2(ctx, codec, nullptr) == 0;

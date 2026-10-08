@@ -1,9 +1,9 @@
 class Icey < Formula
   desc "C++20 media stack and libwebrtc alternative for real-time video, signalling, TURN, and media servers"
   homepage "https://0state.com/icey/"
-  url "https://github.com/nilstate/icey/archive/refs/tags/2.5.0.tar.gz"
-  version "2.5.0"
-  sha256 "6d664c0e7f79da19caabc953b8f2ac367fc7fc9c397dc68e5e23e94fa7c3dfcf"
+  url "https://github.com/nilstate/icey/archive/refs/tags/2.5.1.tar.gz"
+  version "2.5.1"
+  sha256 "0000000000000000000000000000000000000000000000000000000000000000"
   license "LGPL-2.1-or-later"
 
   depends_on "cmake" => :build
@@ -40,7 +40,7 @@ class Icey < Formula
   end
 
   test do
-    assert_predicate include/"icy/base/base.h", :exist?
+    assert_predicate include/"icy/base.h", :exist?
     assert_predicate lib/"pkgconfig/icey.pc", :exist?
     assert_predicate lib/"cmake/icey/iceyConfig.cmake", :exist?
   end

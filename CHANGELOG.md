@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+## [2.5.1] - 2026-10-08
+
+### Fixed
+
+- Query supported audio formats, pixel formats, and sample rates through FFmpeg's codec configuration API when building with FFmpeg 8. This restores macOS and Nix builds without changing codec selection on earlier FFmpeg versions.
+
 ## [2.5.0] - 2026-06-19
 
 ### Added

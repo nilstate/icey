@@ -14,11 +14,12 @@ if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     fail "expected plain semantic version like 2.4.0"
 fi
 
-eval "$(
+manifest="$(
     RELEASE_REQUIRE_REMOTE_TAG=1 \
     RELEASE_FETCH_ARCHIVE_META=1 \
     bash "$repo_root"/scripts/release-manifest.sh "$version"
 )"
+eval "$manifest"
 release_sha256="$RELEASE_ARCHIVE_SHA256"
 release_sha512="$RELEASE_ARCHIVE_SHA512"
 macports_rmd160="$RELEASE_MACPORTS_RMD160"
@@ -37,6 +38,8 @@ docs=(
 
 current_version=$(tr -d '[:space:]' < VERSION)
 [ "$current_version" = "$version" ] || fail "VERSION contains $current_version, expected $version"
+grep -Eq '^PROJECT_NUMBER[[:space:]]*=[[:space:]]*'"$version"'$' Doxyfile \
+    || fail "Doxyfile PROJECT_NUMBER is not synced to $version"
 
 grep -Eq '^    version = "'"$version"'"$' packaging/conan/conanfile.py \
     || fail "packaging/conan/conanfile.py is not synced to $version"

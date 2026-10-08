@@ -17,12 +17,13 @@ docker run --rm \
     -e HOST_UID="$host_uid" \
     -e HOST_GID="$host_gid" \
     -e CMAKE_BUILD_PARALLEL_LEVEL="${CMAKE_BUILD_PARALLEL_LEVEL:-1}" \
+    -e ICEY_RPM_SOURCE_MODE="${ICEY_RPM_SOURCE_MODE:-tag}" \
     -v "$repo_root:/workspace" \
     -w /workspace \
     "$fedora_image" \
     bash -lc '
         set -euo pipefail
-        dnf install -y make rpm-build curl shadow-utils sudo >/dev/null
+        dnf install -y make rpm-build curl git shadow-utils sudo >/dev/null
 
         group_name=$(awk -F: -v gid="$HOST_GID" "\$3 == gid { print \$1; exit }" /etc/group)
         if [ -z "$group_name" ]; then
@@ -34,5 +35,5 @@ docker run --rm \
             useradd -m -u "$HOST_UID" -g "$group_name" builder
         fi
 
-        sudo -u builder make package-rpm-srpm
+        sudo -u builder env ICEY_RPM_SOURCE_MODE="$ICEY_RPM_SOURCE_MODE" make package-rpm-srpm
     '

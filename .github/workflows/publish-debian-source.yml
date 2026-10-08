@@ -1,6 +1,9 @@
 name: Publish Debian Source
 
 on:
+  push:
+    tags:
+      - '*.*.*'
   workflow_dispatch:
     inputs:
       debian_revision:
@@ -16,6 +19,7 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       version: ${{ steps.meta.outputs.version }}
+      ready: ${{ steps.meta.outputs.ready }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -26,19 +30,16 @@ jobs:
         run: |
           version="$(tr -d '[:space:]' < VERSION)"
           echo "version=$version" >> "$GITHUB_OUTPUT"
-          if [[ "${GITHUB_EVENT_NAME}" == "push" ]]; then
-            bash ./scripts/validate-release-tag.sh "${GITHUB_REF_NAME}"
-          else
-            bash ./scripts/validate-release-tag.sh
-          fi
-          bash ./scripts/release-check.sh "$version"
+          bash ./scripts/release-publish-readiness.sh
 
       - name: Install packaging dependencies
+        if: steps.meta.outputs.ready == 'true'
         run: |
           sudo apt-get update
           sudo apt-get install -y curl debhelper devscripts dpkg-dev rsync
 
       - name: Build Debian source package
+        if: steps.meta.outputs.ready == 'true'
         run: bash ./scripts/package-debian-source.sh "${{ steps.meta.outputs.version }}"
         env:
           DEBIAN_DISTRIBUTION: ${{ vars.PPA_UBUNTU_SERIES || 'noble' }}
@@ -46,6 +47,7 @@ jobs:
           DEBIAN_PPA_TARGET: ${{ vars.PPA_TARGET || 'ppa:0state/icey' }}
 
       - uses: actions/upload-artifact@v7
+        if: steps.meta.outputs.ready == 'true'
         with:
           name: debian-source-${{ steps.meta.outputs.version }}
           path: |
@@ -58,6 +60,7 @@ jobs:
   publish-ppa:
     runs-on: ubuntu-24.04
     needs: build-source
+    if: needs.build-source.outputs.ready == 'true'
     steps:
       - name: Check PPA publish credentials
         id: gate
@@ -70,8 +73,8 @@ jobs:
             echo "publish=true" >> "$GITHUB_OUTPUT"
             echo "Publishing Ubuntu series: ${PPA_UBUNTU_SERIES:-noble}"
           else
-            echo "publish=false" >> "$GITHUB_OUTPUT"
-            echo "Skipping PPA publish: set PPA_PUBLISH_ENABLED=true after the Launchpad account is ready and PPA_GPG_PRIVATE_KEY is configured."
+            echo "PPA_PUBLISH_ENABLED=true and PPA_GPG_PRIVATE_KEY are required for this release." >&2
+            exit 1
           fi
 
       - uses: actions/checkout@v7
