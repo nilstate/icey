@@ -27,6 +27,7 @@ jobs:
         run: |
           bash -n scripts/package-debian-source.sh
           bash -n scripts/package-alpine-apkbuild.sh
+          for script in scripts/package-conan*.sh scripts/package-vcpkg*.sh; do bash -n "$script"; done
           bash -n scripts/package-fedora-srpm.sh
           bash -n scripts/package-rpm-srpm.sh
           bash -n scripts/publish-aur.sh
@@ -40,6 +41,7 @@ jobs:
           bash -n scripts/release-pin-macports.sh
           bash -n scripts/release-pin-spack.sh
           bash -n scripts/release-pin-vcpkg.sh
+          bash -n scripts/release-render.sh
 
       - name: Validate package recipe syntax
         run: |

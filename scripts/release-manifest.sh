@@ -50,6 +50,10 @@ if [[ "$fetch_archive_meta" == "1" ]]; then
     macports_archive_rmd160="$ARCHIVE_RMD160"
     macports_archive_sha256="$ARCHIVE_SHA256"
     macports_archive_size="$ARCHIVE_SIZE"
+    if [[ "$macports_archive_sha256" != "$release_archive_sha256" ]]; then
+        echo "GitHub tag archive endpoints returned different source bytes for $version" >&2
+        exit 1
+    fi
 fi
 
 printf 'RELEASE_VERSION=%q\n' "$version"

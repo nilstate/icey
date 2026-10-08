@@ -13,17 +13,22 @@ if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
 fi
 
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-cd "$repo_root"
+cd "${RELEASE_OUTPUT_ROOT:-$repo_root}"
 
-manifest="$(
-    RELEASE_REQUIRE_REMOTE_TAG=1 \
-    RELEASE_FETCH_ARCHIVE_META=1 \
-    bash "$repo_root"/scripts/release-manifest.sh "$version"
-)"
-eval "$manifest"
+if [[ -n "${RELEASE_MANIFEST_FILE:-}" ]]; then
+    source "$RELEASE_MANIFEST_FILE"
+else
+    manifest="$(
+        RELEASE_REQUIRE_REMOTE_TAG=1 \
+        RELEASE_FETCH_ARCHIVE_META=1 \
+        bash "$repo_root"/scripts/release-manifest.sh "$version"
+    )"
+    eval "$manifest"
+fi
+[[ "$RELEASE_VERSION" == "$version" ]] || { echo "release manifest version mismatch" >&2; exit 1; }
 
 perl -0pi -e 's#url = "https://github.com/nilstate/icey/archive/refs/tags/\d+\.\d+\.\d+\.tar\.gz"#url = "https://github.com/nilstate/icey/archive/refs/tags/'"$version"'.tar.gz"#' packaging/spack/package.py
-perl -0pi -e 's/version\("\d+\.\d+\.\d+", sha256="[0-9a-f]+"\)/version("'"$version"'", sha256="'"$RELEASE_ARCHIVE_SHA256"'")/' packaging/spack/package.py
+perl -0pi -e 's/version\("\d+\.\d+\.\d+", sha256="[^"]+"\)/version("'"$version"'", sha256="'"$RELEASE_ARCHIVE_SHA256"'")/' packaging/spack/package.py
 
 echo "updated packaging/spack/package.py for $version"
 echo "sha256: $RELEASE_ARCHIVE_SHA256"

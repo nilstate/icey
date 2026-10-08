@@ -3,7 +3,7 @@ class Icey < Formula
   homepage "https://0state.com/icey/"
   url "https://github.com/nilstate/icey/archive/refs/tags/2.5.1.tar.gz"
   version "2.5.1"
-  sha256 "0000000000000000000000000000000000000000000000000000000000000000"
+  sha256 "@RELEASE_ARCHIVE_SHA256@"
   license "LGPL-2.1-or-later"
 
   depends_on "cmake" => :build

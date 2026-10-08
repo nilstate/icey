@@ -1,4 +1,4 @@
-.PHONY: docs docs-install docs-xml docs-api-md docs-site docs-check docs-dev docs-docker clean-docs package-conan package-vcpkg package-arch package-homebrew package-debian-source package-nix package-rpm-srpm package-fedora-srpm package-alpine-apkbuild release release-check release-pin release-finalize release-pin-conan release-pin-vcpkg release-pin-arch release-pin-homebrew release-pin-alpine release-pin-macports release-pin-spack release-pin-conda
+.PHONY: docs docs-install docs-xml docs-api-md docs-site docs-check docs-dev docs-docker clean-docs package-conan package-vcpkg package-arch package-homebrew package-debian-source package-nix package-rpm-srpm package-fedora-srpm package-alpine-apkbuild release release-check release-pin release-finalize
 
 DOCS_NPM = npm --prefix docs
 DOCS_RUN = $(DOCS_NPM) run
@@ -56,22 +56,26 @@ docs-docker:
 clean-docs:
 	rm -rf build/doxygen dist
 
-## Build the local Conan package from packaging/conan
+## Build the Conan recipe rendered from the released archive
 package-conan:
-	$(CONAN) create packaging/conan --build=missing -s compiler.cppstd=20
+	@set -e; render_root="$$(bash ./scripts/release-render.sh)"; \
+	  $(CONAN) create "$$render_root/packaging/conan" --build=missing -s compiler.cppstd=20
 
 ## Install icey through the local vcpkg overlay port
 package-vcpkg:
-	ICEY_VCPKG_SOURCE_PATH="$(ICEY_VCPKG_SOURCE_PATH)" VCPKG_MAX_CONCURRENCY="$(VCPKG_MAX_CONCURRENCY)" $(VCPKG) install icey --overlay-ports="$(CURDIR)/packaging/vcpkg"
+	@set -e; render_root="$$(bash ./scripts/release-render.sh)"; \
+	  ICEY_VCPKG_SOURCE_PATH="$(ICEY_VCPKG_SOURCE_PATH)" VCPKG_MAX_CONCURRENCY="$(VCPKG_MAX_CONCURRENCY)" $(VCPKG) install icey --overlay-ports="$$render_root/packaging/vcpkg"
 
 ## Build the local Arch package from packaging/arch
 package-arch:
-	cd packaging/arch && $(MAKEPKG) --force --cleanbuild --syncdeps
+	@set -e; render_root="$$(bash ./scripts/release-render.sh)"; \
+	  cd "$$render_root/packaging/arch" && $(MAKEPKG) --force --cleanbuild --syncdeps
 
 ## Install the tap-local Homebrew formulae from packaging/homebrew
 package-homebrew:
-	$(BREW) install --formula ./packaging/homebrew/Formula/libdatachannel.rb
-	$(BREW) install --formula ./packaging/homebrew/Formula/icey.rb
+	@set -e; render_root="$$(bash ./scripts/release-render.sh)"; \
+	  $(BREW) install --formula "$$render_root/packaging/homebrew/Formula/libdatachannel.rb" && \
+	  $(BREW) install --formula "$$render_root/packaging/homebrew/Formula/icey.rb"
 
 ## Build a Debian source package / PPA seed under build/package/debian
 package-debian-source:
@@ -100,50 +104,13 @@ release:
 
 ## Verify release metadata is internally consistent
 release-check:
-	@if [ -n "$(VERSION)" ]; then ./scripts/release-check.sh "$(VERSION)"; else ./scripts/release-check.sh; fi
+	@if [ -n "$(VERSION)" ] && [ "$(VERSION)" != "$$(tr -d '[:space:]' < VERSION)" ]; then echo "VERSION does not match the requested release" >&2; exit 1; fi
+	./scripts/release-publish-readiness.sh
 
 ## Pin release archive hashes for all package-manager recipes
-release-pin: release-pin-conan release-pin-vcpkg release-pin-arch release-pin-homebrew release-pin-alpine release-pin-macports release-pin-spack release-pin-conda
+release-pin: release-finalize
 
 ## After pushing a git tag, pin archive hashes and verify the release metadata
-release-finalize: release-pin release-check
-
-## After pushing a git tag, pin the Conan source URL and sha256
-release-pin-conan:
-	@if [ -z "$(VERSION)" ]; then echo "usage: make release-pin-conan VERSION=<semver>" >&2; exit 1; fi
-	./scripts/release-pin-conan.sh "$(VERSION)"
-
-## After pushing a git tag, pin the vcpkg fallback archive ref and sha512
-release-pin-vcpkg:
-	@if [ -z "$(VERSION)" ]; then echo "usage: make release-pin-vcpkg VERSION=<semver>" >&2; exit 1; fi
-	./scripts/release-pin-vcpkg.sh "$(VERSION)"
-
-## After pushing a git tag, pin the Arch release archive sha256 and SRCINFO
-release-pin-arch:
-	@if [ -z "$(VERSION)" ]; then echo "usage: make release-pin-arch VERSION=<semver>" >&2; exit 1; fi
-	./scripts/release-pin-arch.sh "$(VERSION)"
-
-## After pushing a git tag, pin the Homebrew formula source sha256
-release-pin-homebrew:
-	@if [ -z "$(VERSION)" ]; then echo "usage: make release-pin-homebrew VERSION=<semver>" >&2; exit 1; fi
-	./scripts/release-pin-homebrew.sh "$(VERSION)"
-
-## After pushing a git tag, pin the Alpine archive sha512
-release-pin-alpine:
-	@if [ -z "$(VERSION)" ]; then echo "usage: make release-pin-alpine VERSION=<semver>" >&2; exit 1; fi
-	./scripts/release-pin-alpine.sh "$(VERSION)"
-
-## After pushing a git tag, pin the MacPorts archive checksums and size
-release-pin-macports:
-	@if [ -z "$(VERSION)" ]; then echo "usage: make release-pin-macports VERSION=<semver>" >&2; exit 1; fi
-	./scripts/release-pin-macports.sh "$(VERSION)"
-
-## After pushing a git tag, pin the Spack recipe version sha256
-release-pin-spack:
-	@if [ -z "$(VERSION)" ]; then echo "usage: make release-pin-spack VERSION=<semver>" >&2; exit 1; fi
-	./scripts/release-pin-spack.sh "$(VERSION)"
-
-## After pushing a git tag, pin the conda-forge recipe sha256
-release-pin-conda:
-	@if [ -z "$(VERSION)" ]; then echo "usage: make release-pin-conda VERSION=<semver>" >&2; exit 1; fi
-	./scripts/release-pin-conda.sh "$(VERSION)"
+release-finalize:
+	@if [ -n "$(VERSION)" ] && [ "$(VERSION)" != "$$(tr -d '[:space:]' < VERSION)" ]; then echo "VERSION does not match the requested release" >&2; exit 1; fi
+	./scripts/release-render.sh

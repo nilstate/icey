@@ -29,15 +29,14 @@ jobs:
 
       - name: Preserve exact rendered recipes
         if: steps.meta.outputs.ready == 'true'
+        run: tar -C "${{ steps.meta.outputs.render_root }}" -czf release-recipes.tar.gz packaging
+
+      - name: Upload verified recipes
+        if: steps.meta.outputs.ready == 'true'
         uses: actions/upload-artifact@v7
         with:
           name: icey-release-recipes
-          include-hidden-files: true
-          path: |
-            packaging/homebrew/Formula/icey.rb
-            packaging/homebrew/Formula/libdatachannel.rb
-            packaging/arch/PKGBUILD
-            packaging/arch/.SRCINFO
+          path: release-recipes.tar.gz
 
   publish-homebrew:
     runs-on: ubuntu-24.04
@@ -63,7 +62,13 @@ jobs:
         if: steps.gate.outputs.publish == 'true'
         with:
           name: icey-release-recipes
-          path: .
+          path: .stage
+
+      - name: Extract verified recipes
+        if: steps.gate.outputs.publish == 'true'
+        run: |
+          mkdir -p .stage/release-rendered
+          tar -xzf .stage/release-recipes.tar.gz -C .stage/release-rendered
 
       - name: Checkout tap repo
         if: steps.gate.outputs.publish == 'true'
@@ -77,6 +82,7 @@ jobs:
         if: steps.gate.outputs.publish == 'true'
         env:
           TAP_REPO_DIR: ${{ github.workspace }}/.stage/homebrew-tap
+          FORMULA_SRC_DIR: ${{ github.workspace }}/.stage/release-rendered/packaging/homebrew/Formula
         run: bash ./scripts/publish-homebrew.sh
 
       - name: Commit formula update
@@ -115,7 +121,13 @@ jobs:
         if: steps.gate.outputs.publish == 'true'
         with:
           name: icey-release-recipes
-          path: .
+          path: .stage
+
+      - name: Extract verified recipes
+        if: steps.gate.outputs.publish == 'true'
+        run: |
+          mkdir -p .stage/release-rendered
+          tar -xzf .stage/release-recipes.tar.gz -C .stage/release-rendered
 
       - name: Configure SSH
         if: steps.gate.outputs.publish == 'true'
@@ -137,6 +149,7 @@ jobs:
         if: steps.gate.outputs.publish == 'true'
         env:
           AUR_REPO_DIR: ${{ github.workspace }}/.stage/aur-icey
+          AUR_SRC_DIR: ${{ github.workspace }}/.stage/release-rendered/packaging/arch
         run: bash ./scripts/publish-aur.sh
 
       - name: Commit AUR update

@@ -10,4 +10,5 @@ if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     exit 1
 fi
 
-exec "$conan_bin" create "$repo_root/packaging/conan-center-index/recipes/icey/all" --version="$version" --build=missing -s compiler.cppstd=20
+render_root=$(bash "$repo_root/scripts/release-render.sh")
+exec "$conan_bin" create "$render_root/packaging/conan-center-index/recipes/icey/all" --version="$version" --build=missing -s compiler.cppstd=20

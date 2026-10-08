@@ -25,6 +25,8 @@ trap cleanup EXIT
 
 case "$source_mode" in
     release)
+        render_root=$(bash "$repo_root/scripts/release-render.sh")
+        package_workspace="$render_root/packaging/alpine"
         ;;
     worktree)
         pkgver=$(awk -F= '/^pkgver=/{print $2; exit}' "$package_workspace/APKBUILD")

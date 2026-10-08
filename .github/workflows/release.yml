@@ -16,9 +16,9 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Validate tag and release metadata
+      - name: Validate tagged source and package recipes
         run: |
-          bash ./scripts/validate-release-tag.sh "${GITHUB_REF_NAME}"
+          bash ./scripts/release-publish-readiness.sh
 
       - name: Extract changelog
         run: |

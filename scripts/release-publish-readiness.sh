@@ -22,6 +22,6 @@ fi
   exit 1
 }
 bash ./scripts/validate-release-tag.sh "$version"
-make release-finalize VERSION="$version"
+bash ./scripts/release-render.sh
 [[ -z "${GITHUB_OUTPUT:-}" ]] || echo "ready=true" >> "$GITHUB_OUTPUT"
 echo "Release $version is ready for package publication."

@@ -7,19 +7,24 @@ fail() {
 }
 
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-cd "$repo_root"
+cd "${RELEASE_OUTPUT_ROOT:-$repo_root}"
 
 version="${1:-$(tr -d '[:space:]' < VERSION)}"
 if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     fail "expected plain semantic version in MAJOR.MINOR.PATCH format"
 fi
 
-manifest="$(
-    RELEASE_REQUIRE_REMOTE_TAG=1 \
-    RELEASE_FETCH_ARCHIVE_META=1 \
-    bash "$repo_root"/scripts/release-manifest.sh "$version"
-)"
-eval "$manifest"
+if [[ -n "${RELEASE_MANIFEST_FILE:-}" ]]; then
+    source "$RELEASE_MANIFEST_FILE"
+else
+    manifest="$(
+        RELEASE_REQUIRE_REMOTE_TAG=1 \
+        RELEASE_FETCH_ARCHIVE_META=1 \
+        bash "$repo_root"/scripts/release-manifest.sh "$version"
+    )"
+    eval "$manifest"
+fi
+[[ "$RELEASE_VERSION" == "$version" ]] || fail "release manifest version mismatch"
 release_sha256="$RELEASE_ARCHIVE_SHA256"
 release_sha512="$RELEASE_ARCHIVE_SHA512"
 macports_rmd160="$RELEASE_MACPORTS_RMD160"
@@ -124,6 +129,9 @@ grep -Eq '^    version\("'"$version"'", sha256="0{64}"\)$' packaging/spack/packa
     && fail "packaging/spack/package.py still has a placeholder sha256"
 grep -Eq '^  sha256: 0{64}$' packaging/conda-forge/meta.yaml \
     && fail "packaging/conda-forge/meta.yaml still has a placeholder sha256"
+if grep -R -q '@RELEASE_' packaging; then
+    fail "rendered packaging still contains release template fields"
+fi
 
 for file in "${docs[@]}"; do
     grep -Eq 'GIT_TAG '"$version"'([^0-9]|$)' "$file" \

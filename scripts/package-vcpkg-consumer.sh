@@ -9,6 +9,11 @@ consumer_build_dir=${ICEY_VCPKG_CONSUMER_BUILD_DIR:-"$repo_root/build/package/vc
 install_root=${ICEY_VCPKG_INSTALL_ROOT:-"$repo_root/build/package/vcpkg-installed"}
 canonical_overlay_ports="$repo_root/packaging/vcpkg"
 overlay_ports="$canonical_overlay_ports"
+if [[ -n "${ICEY_VCPKG_SOURCE_PATH+x}" && -z "${ICEY_VCPKG_SOURCE_PATH}" ]]; then
+    render_root=$(bash "$repo_root/scripts/release-render.sh")
+    canonical_overlay_ports="$render_root/packaging/vcpkg"
+    overlay_ports="$canonical_overlay_ports"
+fi
 
 if ! command -v "$vcpkg_bin" >/dev/null 2>&1 && [[ ! -x "$vcpkg_bin" ]]; then
     echo "vcpkg executable not found: $vcpkg_bin" >&2

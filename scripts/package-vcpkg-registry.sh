@@ -4,7 +4,8 @@ set -euo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 stage_dir=${ICEY_VCPKG_REGISTRY_DIR:-"$repo_root/build/package/vcpkg-registry"}
 port_name=icey
-port_dir="$repo_root/packaging/vcpkg/$port_name"
+render_root=$(bash "$repo_root/scripts/release-render.sh")
+port_dir="$render_root/packaging/vcpkg/$port_name"
 
 if [[ ! -d "$port_dir" ]]; then
     echo "missing vcpkg port directory: $port_dir" >&2

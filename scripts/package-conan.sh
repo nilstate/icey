@@ -8,4 +8,5 @@ if [[ -z "${ICEY_CONAN_SOURCE_PATH+x}" ]]; then
     export ICEY_CONAN_SOURCE_PATH="$repo_root"
 fi
 
-exec "$conan_bin" create "$repo_root/packaging/conan" --build=missing -s compiler.cppstd=20
+render_root=$(bash "$repo_root/scripts/release-render.sh")
+exec "$conan_bin" create "$render_root/packaging/conan" --build=missing -s compiler.cppstd=20

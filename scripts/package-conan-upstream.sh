@@ -18,7 +18,8 @@ if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
 fi
 
 upstream_dir=$(cd "$upstream_dir" && pwd)
-source_recipe_dir="$repo_root/packaging/conan-center-index/recipes/$recipe_name"
+render_root=$(bash "$repo_root/scripts/release-render.sh")
+source_recipe_dir="$render_root/packaging/conan-center-index/recipes/$recipe_name"
 target_recipe_dir="$upstream_dir/recipes/$recipe_name"
 
 if [[ ! -d "$source_recipe_dir" ]]; then

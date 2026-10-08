@@ -11,7 +11,8 @@ fi
 
 upstream_dir=$(cd "$upstream_dir" && pwd)
 port_name=icey
-source_port_dir="$repo_root/packaging/vcpkg/$port_name"
+render_root=$(bash "$repo_root/scripts/release-render.sh")
+source_port_dir="$render_root/packaging/vcpkg/$port_name"
 target_port_dir="$upstream_dir/ports/$port_name"
 
 if [[ ! -d "$source_port_dir" ]]; then

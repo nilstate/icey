@@ -67,3 +67,6 @@ packaging/arch/*.tar.gz
 
 # Wrangler
 .wrangler/
+
+# Exact release recipe renders
+.stage/

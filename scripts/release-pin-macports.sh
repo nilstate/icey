@@ -13,14 +13,19 @@ if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
 fi
 
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-cd "$repo_root"
+cd "${RELEASE_OUTPUT_ROOT:-$repo_root}"
 
-manifest="$(
-    RELEASE_REQUIRE_REMOTE_TAG=1 \
-    RELEASE_FETCH_ARCHIVE_META=1 \
-    bash "$repo_root"/scripts/release-manifest.sh "$version"
-)"
-eval "$manifest"
+if [[ -n "${RELEASE_MANIFEST_FILE:-}" ]]; then
+    source "$RELEASE_MANIFEST_FILE"
+else
+    manifest="$(
+        RELEASE_REQUIRE_REMOTE_TAG=1 \
+        RELEASE_FETCH_ARCHIVE_META=1 \
+        bash "$repo_root"/scripts/release-manifest.sh "$version"
+    )"
+    eval "$manifest"
+fi
+[[ "$RELEASE_VERSION" == "$version" ]] || { echo "release manifest version mismatch" >&2; exit 1; }
 
 if [ -z "$RELEASE_MACPORTS_RMD160" ]; then
     echo "need openssl to compute the MacPorts rmd160 checksum" >&2
@@ -30,7 +35,7 @@ fi
 perl -0pi -e 's/github.setup\s+nilstate\s+icey\s+\d+\.\d+\.\d+/github.setup        nilstate icey '"$version"'/g' packaging/macports/Portfile
 tmp_portfile=$(mktemp)
 awk -v rmd160="$RELEASE_MACPORTS_RMD160" -v sha256="$RELEASE_MACPORTS_SHA256" -v size="$RELEASE_MACPORTS_SIZE" '
-    /^checksums[[:space:]]+rmd160[[:space:]]+[0-9a-f]{40}[[:space:]]+\\$/ {
+    /^checksums[[:space:]]+rmd160[[:space:]]+[^[:space:]]+[[:space:]]+\\$/ {
         print "checksums           rmd160  " rmd160 " \\"
         if (getline <= 0) {
             exit 1

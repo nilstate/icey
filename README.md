@@ -238,27 +238,13 @@ target_link_libraries(myapp PRIVATE icey::base icey::net icey::http)
 
 ### Package Managers
 
-Public registry submission is not live yet, but the repo now carries local package-manager support:
+The checked-in package files are pre-tag templates. Build from recipes rendered against the exact published archive:
 
 ```bash
-# Conan
-conan create packaging/conan --build=missing -s compiler.cppstd=20
-# or: make package-conan
-
-# vcpkg overlay port
-ICEY_VCPKG_SOURCE_PATH=$PWD vcpkg install icey --overlay-ports=$PWD/packaging/vcpkg
-# or: make package-vcpkg
-
-# Arch package / AUR seed
-cd packaging/arch && makepkg --force --cleanbuild --syncdeps
-# or: make package-arch
-
-# Homebrew tap-local formulae
-brew install --formula ./packaging/homebrew/Formula/libdatachannel.rb
-brew install --formula ./packaging/homebrew/Formula/icey.rb
-# or: make package-homebrew
-
-# Debian source package / Launchpad PPA seed
+make package-conan
+make package-vcpkg
+make package-arch
+make package-homebrew
 make package-debian-source
 ```
 

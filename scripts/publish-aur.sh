@@ -2,8 +2,15 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-AUR_SRC_DIR="${AUR_SRC_DIR:-$ROOT_DIR/packaging/arch}"
 AUR_REPO_DIR="${AUR_REPO_DIR:?Set AUR_REPO_DIR to a checked-out AUR package repository}"
+if [[ -z "${AUR_SRC_DIR:-}" ]]; then
+  render_root=$(bash "$ROOT_DIR/scripts/release-render.sh")
+  AUR_SRC_DIR="$render_root/packaging/arch"
+fi
+if grep -R -q '@RELEASE_' "$AUR_SRC_DIR"; then
+  echo "AUR package source still contains release template fields" >&2
+  exit 1
+fi
 
 pkg_release() {
   local file="$1"
