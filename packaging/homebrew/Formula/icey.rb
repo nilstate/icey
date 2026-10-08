@@ -40,7 +40,7 @@ class Icey < Formula
   end
 
   test do
-    assert_predicate include/"icy/base/base.h", :exist?
+    assert_predicate include/"icy/base.h", :exist?
     assert_predicate lib/"pkgconfig/icey.pc", :exist?
     assert_predicate lib/"cmake/icey/iceyConfig.cmake", :exist?
   end
