@@ -15,11 +15,12 @@ fi
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$repo_root"
 
-eval "$(
+manifest="$(
     RELEASE_REQUIRE_REMOTE_TAG=1 \
     RELEASE_FETCH_ARCHIVE_META=1 \
     bash "$repo_root"/scripts/release-manifest.sh "$version"
 )"
+eval "$manifest"
 
 perl -0pi -e 's/REF "\d+\.\d+\.\d+"/REF "'"$version"'"/' packaging/vcpkg/icey/portfile.cmake
 perl -0pi -e 's/SHA512 [0-9a-f]+/SHA512 '"$RELEASE_ARCHIVE_SHA512"'/i' packaging/vcpkg/icey/portfile.cmake

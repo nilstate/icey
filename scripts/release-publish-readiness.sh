@@ -5,18 +5,23 @@ root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root_dir"
 version="$(tr -d '[:space:]' < VERSION)"
 
-# The first main push prepares a version before its immutable source tag exists.
-# That revision must not publish package recipes with placeholder hashes.
-if [[ "${GITHUB_EVENT_NAME:-}" != "workflow_dispatch" ]]; then
-  if [[ -z "$(git ls-remote --refs --tags origin "refs/tags/$version")" ]] ||
-     grep -Eq 'sha256: "0{64}"' packaging/conan/conandata.yml; then
-    echo "Release $version is not finalized; package publication is deferred."
-    [[ -z "${GITHUB_OUTPUT:-}" ]] || echo "ready=false" >> "$GITHUB_OUTPUT"
-    exit 0
-  fi
+# Main and pull-request runs validate that all derived metadata still comes
+# from VERSION. Only the immutable version tag may publish packages.
+if [[ "${GITHUB_REF_TYPE:-}" != "tag" ]]; then
+  bash ./scripts/release-sync.sh "$version"
+  git diff --exit-code -- VERSION Doxyfile CHANGELOG.md README.md docs llms.txt packaging || {
+    echo "Release metadata has drifted from VERSION=$version" >&2
+    exit 1
+  }
+  [[ -z "${GITHUB_OUTPUT:-}" ]] || echo "ready=false" >> "$GITHUB_OUTPUT"
+  exit 0
 fi
 
-bash ./scripts/validate-release-tag.sh
-bash ./scripts/release-check.sh "$version"
+[[ "${GITHUB_REF_NAME:-}" == "$version" ]] || {
+  echo "Tag ${GITHUB_REF_NAME:-<missing>} does not match VERSION=$version" >&2
+  exit 1
+}
+bash ./scripts/validate-release-tag.sh "$version"
+make release-finalize VERSION="$version"
 [[ -z "${GITHUB_OUTPUT:-}" ]] || echo "ready=true" >> "$GITHUB_OUTPUT"
 echo "Release $version is ready for package publication."

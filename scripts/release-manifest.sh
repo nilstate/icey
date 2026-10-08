@@ -40,11 +40,13 @@ macports_archive_sha256=""
 macports_archive_size=""
 
 if [[ "$fetch_archive_meta" == "1" ]]; then
-    eval "$("$repo_root"/scripts/release-archive-meta.sh "$release_archive_url")"
+    archive_meta="$("$repo_root"/scripts/release-archive-meta.sh "$release_archive_url")"
+    eval "$archive_meta"
     release_archive_sha256="$ARCHIVE_SHA256"
     release_archive_sha512="$ARCHIVE_SHA512"
 
-    eval "$("$repo_root"/scripts/release-archive-meta.sh "$macports_archive_url")"
+    archive_meta="$("$repo_root"/scripts/release-archive-meta.sh "$macports_archive_url")"
+    eval "$archive_meta"
     macports_archive_rmd160="$ARCHIVE_RMD160"
     macports_archive_sha256="$ARCHIVE_SHA256"
     macports_archive_size="$ARCHIVE_SIZE"

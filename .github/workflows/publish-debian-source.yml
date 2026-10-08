@@ -2,9 +2,8 @@ name: Publish Debian Source
 
 on:
   push:
-    branches: [main]
-    paths:
-      - packaging/conan/conandata.yml
+    tags:
+      - '*.*.*'
   workflow_dispatch:
     inputs:
       debian_revision:
@@ -74,8 +73,8 @@ jobs:
             echo "publish=true" >> "$GITHUB_OUTPUT"
             echo "Publishing Ubuntu series: ${PPA_UBUNTU_SERIES:-noble}"
           else
-            echo "publish=false" >> "$GITHUB_OUTPUT"
-            echo "Skipping PPA publish: set PPA_PUBLISH_ENABLED=true after the Launchpad account is ready and PPA_GPG_PRIVATE_KEY is configured."
+            echo "PPA_PUBLISH_ENABLED=true and PPA_GPG_PRIVATE_KEY are required for this release." >&2
+            exit 1
           fi
 
       - uses: actions/checkout@v7

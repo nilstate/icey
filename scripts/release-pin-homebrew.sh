@@ -15,11 +15,12 @@ fi
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$repo_root"
 
-eval "$(
+manifest="$(
     RELEASE_REQUIRE_REMOTE_TAG=1 \
     RELEASE_FETCH_ARCHIVE_META=1 \
     bash "$repo_root"/scripts/release-manifest.sh "$version"
 )"
+eval "$manifest"
 
 perl -0pi -e 's#url "https://github.com/nilstate/icey/archive/refs/tags/\d+\.\d+\.\d+\.tar\.gz"#url "https://github.com/nilstate/icey/archive/refs/tags/'"$version"'.tar.gz"#' packaging/homebrew/Formula/icey.rb
 perl -0pi -e 's/version "\d+\.\d+\.\d+"/version "'"$version"'"/' packaging/homebrew/Formula/icey.rb
