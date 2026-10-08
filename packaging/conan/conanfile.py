@@ -1,3 +1,5 @@
+import os
+
 from conan import ConanFile
 from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
 from conan.tools.files import copy, get, rmdir
@@ -48,7 +50,7 @@ class iceyConan(ConanFile):
         self.requires("llhttp/[>=9.2 <10]", transitive_headers=True)
         self.requires("minizip/[>=1.3 <2]", transitive_headers=True)
         if self.options.with_ffmpeg:
-            self.requires("ffmpeg/[>=5.0 <8]", transitive_headers=True)
+            self.requires("ffmpeg/[>=5.0 <9]", transitive_headers=True)
         if self.options.with_opencv:
             self.requires("opencv/[>=4.5 <5]")
 
