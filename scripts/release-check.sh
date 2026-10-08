@@ -88,6 +88,15 @@ grep -Fqx "        SHA512 $release_sha512" packaging/vcpkg/icey/portfile.cmake \
     || fail "packaging/vcpkg/icey/portfile.cmake SHA512 does not match the live release archive"
 grep -Eq '^Version:[[:space:]]+'"${version}"'$' packaging/rpm/icey.spec \
     || fail "packaging/rpm/icey.spec is not synced to $version"
+grep -Eq '^Version:[[:space:]]+'"${version}"'$' packaging/opensuse/icey/icey.spec \
+    || fail "packaging/opensuse/icey/icey.spec is not synced to $version"
+grep -Fq '<param name="revision">'"$version"'</param>' packaging/opensuse/icey/_service \
+    || fail "packaging/opensuse/icey/_service is not synced to $version"
+obs_latest=$(sed -nE 's/^- Update icey to ([0-9]+\.[0-9]+\.[0-9]+)$/\1/p' packaging/opensuse/icey/icey.changes | head -n 1)
+[[ "$obs_latest" == "$version" ]] \
+    || fail "packaging/opensuse/icey/icey.changes is not synced to $version"
+grep -Eq '^URL:[[:space:]]+https://0state\.com/icey/$' packaging/opensuse/icey/icey.spec \
+    || fail "packaging/opensuse/icey/icey.spec homepage has drifted"
 grep -Eq '^pkgver='"$version"'$' packaging/alpine/APKBUILD \
     || fail "packaging/alpine/APKBUILD is not synced to $version"
 grep -Fqx "$release_sha512  icey-$version.tar.gz" packaging/alpine/APKBUILD \

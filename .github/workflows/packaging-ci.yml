@@ -45,7 +45,7 @@ jobs:
 
       - name: Validate package recipe syntax
         run: |
-          python3 -m py_compile packaging/conan/conanfile.py packaging/spack/package.py
+          python3 -m py_compile packaging/conan/conanfile.py packaging/spack/package.py scripts/release-sync-packaging.py
           ruby -c packaging/homebrew/Formula/icey.rb
 
   debian-source:

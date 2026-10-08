@@ -20,6 +20,8 @@ if ! grep -Eq "^## \\[$version\\]" CHANGELOG.md; then
     exit 1
 fi
 
+python3 "$repo_root/scripts/release-sync-packaging.py" "$repo_root" "$version"
+
 docs=(
     README.md
     docs/modules/av.md
@@ -90,10 +92,6 @@ perl -0pi -e 's#url = "https://github.com/nilstate/icey/archive/refs/tags/\d+\.\
 perl -0pi -e 's/version\("\d+\.\d+\.\d+", sha256="[^"]+"\)/version("'"$version"'", sha256="\@RELEASE_ARCHIVE_SHA256\@")/' packaging/spack/package.py
 perl -0pi -e 's/\{\% set version = "\d+\.\d+\.\d+" \%\}/{% set version = "'"$version"'" %}/' packaging/conda-forge/meta.yaml
 perl -0pi -e 's/^  sha256: \S+$/  sha256: \@RELEASE_ARCHIVE_SHA256\@/m' packaging/conda-forge/meta.yaml
-if ! grep -Eq '^icey \('"$version"'-1\) ' packaging/debian/debian/changelog; then
-    perl -0pi -e 's/^icey \(\d+\.\d+\.\d+-\d+\) /icey ('"$version"'-1) /m' packaging/debian/debian/changelog
-    perl -0pi -e 's/^ -- .*$/ -- 0state OSS <oss\@0state.com>  '"$(date -R)"'/m' packaging/debian/debian/changelog
-fi
 
 for file in "${docs[@]}"; do
     perl -0pi -e 's/GIT_TAG v?\d+\.\d+\.\d+/GIT_TAG '"$version"'/g' "$file"

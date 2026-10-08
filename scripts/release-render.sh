@@ -50,6 +50,7 @@ git -C "$repo_root" archive "$version" | tar -x -C "$render_root"
 printf '%s\n' "$manifest" > "$render_root/release-manifest.env"
 printf 'RELEASE_SOURCE_COMMIT=%q\n' "$RELEASE_LOCAL_TAG_COMMIT" >> "$render_root/release-manifest.env"
 
+python3 "$repo_root/scripts/release-sync-packaging.py" "$render_root" "$version"
 export RELEASE_OUTPUT_ROOT="$render_root"
 export RELEASE_MANIFEST_FILE="$render_root/release-manifest.env"
 for channel in conan vcpkg arch homebrew alpine macports spack conda; do

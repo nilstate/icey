@@ -6,7 +6,7 @@ Why two packages:
 
 Layout:
 - `llhttp/`: OBS service, spec, and changelog for `llhttp 9.3.1`
-- `icey/`: OBS service, spec, and changelog for `icey 2.4.5`
+- `icey/`: OBS service, spec, and changelog for `icey`
 
 Current build policy:
 - `icey` uses system dependencies
@@ -15,14 +15,12 @@ Current build policy:
 - `icey.spec` already sets `URL: https://0state.com/icey/` so the eventual
   package page backlinks to the project site
 
-Current state as of 2026-04-21:
+Source state:
 - `https://src.opensuse.org/0state/llhttp` and
-  `https://src.opensuse.org/0state/icey` are live and current
-- both repos now have pending transfer requests into the `c_cpp` org, which
-  maps to OBS project `devel:libraries:c_c++`
-- local `osc` is installed at `/home/kam/.venvs/osc/bin/osc`, but this machine
-  still does not have working OBS basic-auth credentials for direct
-  `api.opensuse.org` submitrequest work
+  `https://src.opensuse.org/0state/icey` carry the package sources.
+- The `icey` spec and service revision come from the root `VERSION` file.
+- A source repository is not an OBS or Factory binary listing; those
+  submissions must be verified separately.
 
 Submission flow:
 1. Keep the pending `0state/*` -> `c_cpp/*` transfer requests moving until the

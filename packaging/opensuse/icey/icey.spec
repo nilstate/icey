@@ -3,7 +3,7 @@
 #
 
 Name:           icey
-Version:        2.4.5
+Version:        2.5.1
 Release:        0
 Summary:        C++20 media stack and libwebrtc alternative for real-time video, signalling, TURN, and media servers
 License:        LGPL-2.1-or-later
@@ -74,7 +74,7 @@ and CMake package exports for building against icey.
 
 %files -n libicey2
 %license LICENSE.md
-%{_libdir}/libicy_*.so.2.4*
+%{_libdir}/libicy_*.so.*
 
 %files devel
 %license LICENSE.md
