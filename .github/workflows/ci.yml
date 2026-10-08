@@ -335,8 +335,8 @@ jobs:
         with:
           key: benchmarks
 
-      # Bench runs under clang-18 to work around a gcc-14 SIGILL in the
-      # bench inner loops on the GitHub-hosted runner. See nilstate/icey#325.
+      # Cached benchmarks must not depend on the runner CPU's native ISA.
+      # Different GitHub-hosted runner CPUs can otherwise reuse an incompatible binary.
       - name: Configure
         run: |
           cmake -B build-bench \
@@ -350,6 +350,7 @@ jobs:
             -DBUILD_TESTS=OFF \
             -DBUILD_SAMPLES=OFF \
             -DBUILD_APPLICATIONS=OFF \
+            -DENABLE_NATIVE_ARCH=OFF \
             -DENABLE_WARNINGS_ARE_ERRORS=ON
 
       - name: Benchcheck
