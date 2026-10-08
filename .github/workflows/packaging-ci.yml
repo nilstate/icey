@@ -21,7 +21,7 @@ jobs:
           fetch-depth: 0
 
       - name: Validate release metadata
-        run: ./scripts/release-check.sh
+        run: bash ./scripts/release-publish-readiness.sh
 
       - name: Validate packaging helper scripts
         run: |
@@ -65,6 +65,8 @@ jobs:
   rpm-srpm:
     runs-on: ubuntu-24.04
     name: RPM SRPM
+    env:
+      ICEY_RPM_SOURCE_MODE: worktree
     steps:
       - uses: actions/checkout@v7
         with:
@@ -83,6 +85,7 @@ jobs:
     name: Fedora SRPM
     env:
       CMAKE_BUILD_PARALLEL_LEVEL: 1
+      ICEY_RPM_SOURCE_MODE: worktree
     steps:
       - uses: actions/checkout@v7
         with:

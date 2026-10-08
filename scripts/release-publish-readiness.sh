@@ -7,7 +7,7 @@ version="$(tr -d '[:space:]' < VERSION)"
 
 # The first main push prepares a version before its immutable source tag exists.
 # That revision must not publish package recipes with placeholder hashes.
-if [[ "${GITHUB_EVENT_NAME:-}" == "push" ]]; then
+if [[ "${GITHUB_EVENT_NAME:-}" != "workflow_dispatch" ]]; then
   if [[ -z "$(git ls-remote --refs --tags origin "refs/tags/$version")" ]] ||
      grep -Eq 'sha256: "0{64}"' packaging/conan/conandata.yml; then
     echo "Release $version is not finalized; package publication is deferred."

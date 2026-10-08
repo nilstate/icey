@@ -17,6 +17,7 @@ docker run --rm \
     -e HOST_UID="$host_uid" \
     -e HOST_GID="$host_gid" \
     -e CMAKE_BUILD_PARALLEL_LEVEL="${CMAKE_BUILD_PARALLEL_LEVEL:-1}" \
+    -e ICEY_RPM_SOURCE_MODE="${ICEY_RPM_SOURCE_MODE:-tag}" \
     -v "$repo_root:/workspace" \
     -w /workspace \
     "$fedora_image" \
