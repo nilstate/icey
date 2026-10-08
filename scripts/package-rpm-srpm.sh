@@ -39,6 +39,7 @@ cp "$spec_file" "$topdir/SPECS/icey.spec"
 find "$repo_root/packaging/rpm" -maxdepth 1 -type f ! -name 'icey.spec' -exec cp {} "$topdir/SOURCES/" \;
 
 "$rpmbuild_bin" -bs "$topdir/SPECS/icey.spec" --define "_topdir $topdir"
+"$rpmbuild_bin" -bp --nodeps "$topdir/SPECS/icey.spec" --define "_topdir $topdir"
 
 echo "staged RPM sources under $topdir"
 echo "source archive: $source_archive"
