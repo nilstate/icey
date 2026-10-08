@@ -9,6 +9,12 @@ if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     echo "expected plain semantic version in MAJOR.MINOR.PATCH format" >&2
     exit 1
 fi
+source_version=$(git show HEAD:VERSION | tr -d '[:space:]')
+[[ "$source_version" == "$version" ]] || {
+    echo "HEAD contains VERSION=$source_version, expected $version" >&2
+    exit 1
+}
+export SOURCE_DATE_EPOCH=$(git show -s --format=%ct HEAD)
 
 debian_revision="${DEBIAN_REVISION:-1}"
 if [[ ! "$debian_revision" =~ ^[0-9]+$ ]]; then
@@ -136,24 +142,7 @@ if (( debian_revision > 1 )); then
     download_existing_orig_tarball
     tar -xzf "$orig_tarball" -C "$stage_root"
 else
-    rsync -a \
-        --exclude '.git/' \
-        --exclude '.github/' \
-        --exclude '.plans/' \
-        --exclude '.venv/' \
-        --exclude 'venv/' \
-        --exclude '__pycache__/' \
-        --exclude '_deps/' \
-        --exclude 'build/' \
-        --exclude 'build-*/' \
-        --exclude 'dist/' \
-        --exclude 'docs/dist/' \
-        --exclude 'docs/node_modules/' \
-        --exclude 'packaging/arch/pkg/' \
-        --exclude 'packaging/arch/src/' \
-        --exclude 'packaging/arch/*.pkg.tar.*' \
-        --exclude 'packaging/arch/*.src.tar.*' \
-        "$repo_root/" "$work_dir/"
+    git archive --format=tar --prefix="icey-${version}/" HEAD | tar -xf - -C "$stage_root"
 
     mkdir -p "$work_dir/vendor"
     download_extract "https://dist.libuv.org/dist/v1.50.0/libuv-v1.50.0.tar.gz" \
@@ -172,13 +161,13 @@ else
     download_extract "https://github.com/SergiusTheBest/plog/archive/94899e0b926ac1b0f4750bfbd495167b4a6ae9ef.tar.gz" \
         "92a08bce559b5f28aa88d3fd9071567414b9f43a83fe2a05a6dd14f1da536072" \
         "$work_dir/vendor/libdatachannel/deps/plog"
-    tar --exclude="icey-$version/debian" -czf "$orig_tarball" -C "$stage_root" "icey-$version"
+    python3 "$repo_root/scripts/release-source-archive.py" "$work_dir" "$orig_tarball" "$SOURCE_DATE_EPOCH"
 fi
 
+git archive --format=tar HEAD packaging/debian/debian | tar -xf - -C "$tmp_dir"
 rm -rf "$work_dir/debian"
-cp -a "$repo_root/packaging/debian/debian" "$work_dir/debian"
+cp -a "$tmp_dir/packaging/debian/debian" "$work_dir/debian"
 perl -0pi -e 's/^icey \(\d+\.\d+\.\d+-\d+\) .*/icey ('"$version"'-'"$debian_revision"') '"$distribution"'; urgency=medium/m' "$work_dir/debian/changelog"
-perl -0pi -e 's/^ -- .*$/ -- 0state OSS <oss\@0state.com>  '"$(date -R)"'/m' "$work_dir/debian/changelog"
 
 (
     cd "$work_dir"
