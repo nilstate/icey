@@ -433,7 +433,7 @@ install(FILES ${CMAKE_BINARY_DIR}/iceyInstall.h
 # ----------------------------------------------------------------------------
 set(PKG_CONFIG_LIBS)
 foreach(_mod ${icey_BUILD_MODULES})
-  string(APPEND PKG_CONFIG_LIBS " -licy_${_mod}")
+  string(APPEND PKG_CONFIG_LIBS " -licy_${_mod}$<$<CONFIG:Debug>:${icey_DEBUG_POSTFIX}>")
 endforeach()
 
 set(PKG_CONFIG_PREFIX "${CMAKE_INSTALL_PREFIX}")
@@ -451,8 +451,12 @@ endif()
 message(STATUS "  Generating icey.pc")
 configure_file(
   ${icey_DIR}/cmake/icey.pc.cmake.in
-  ${CMAKE_BINARY_DIR}/icey.pc @ONLY)
-install(FILES ${CMAKE_BINARY_DIR}/icey.pc
+  ${CMAKE_BINARY_DIR}/icey.pc.in @ONLY)
+file(GENERATE
+  OUTPUT ${CMAKE_BINARY_DIR}/icey-$<CONFIG>.pc
+  INPUT ${CMAKE_BINARY_DIR}/icey.pc.in)
+install(FILES ${CMAKE_BINARY_DIR}/icey-$<CONFIG>.pc
+  RENAME icey.pc
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig COMPONENT dev)
 
 # ----------------------------------------------------------------------------
